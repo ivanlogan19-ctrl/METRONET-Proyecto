@@ -1,0 +1,22 @@
+# Java
+target/
+*.class
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# Environment
+.env
