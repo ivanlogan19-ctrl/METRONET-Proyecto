@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro - METRONET</title>
+</head>
+<body>
+  <h1>Crear usuario</h1>
+
+  <form id="registroForm">
+    <input type="text" id="nombre" placeholder="Nombre" required>
+    <br><br>
+
+    <input type="email" id="email" placeholder="Email" required>
+    <br><br>
+
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <br><br>
+
+    <button type="submit">Registrarse</button>
+  </form>
+
+  <p>¿Ya posee una cuenta? <a href="login.html">Iniciar sesión</a></p>
+
+  <p id="mensaje"></p>
+
+  <script>
+    document.getElementById("registroForm").addEventListener("submit", async function(evento) {
+      evento.preventDefault();
+
+      const datos = {
+        nombre: document.getElementById("nombre").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const respuesta = await fetch("http://localhost:8080/auth/registro", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
+        });
+
+        if (!respuesta.ok) {
+          throw new Error("No se pudo crear el usuario");
+        }
+
+        const usuario = await respuesta.json();
+
+        localStorage.setItem("usuario", JSON.stringify(usuario));
+
+        document.getElementById("registroForm").reset();
+        
+        document.getElementById("mensaje").textContent = "Usuario creado correctamente. Redirigiendo...";
+        
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1700);
+
+        document.getElementById("mensaje").textContent = "Usuario creado correctamente";
+      } catch (error) {
+        document.getElementById("mensaje").textContent = error.message;
+      }
+    });
+  </script>
+</body>
+</html>

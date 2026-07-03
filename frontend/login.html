@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - METRONET</title>
+</head>
+<body>
+  <h1>Iniciar sesión</h1>
+
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" required>
+    <br><br>
+
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <br><br>
+
+    <button type="submit">Ingresar</button>
+  </form>
+
+  <p>¿No posee una cuenta? <a href="registro.html">Crear usuario aquí</a></p>
+
+  <p id="mensaje"></p>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async function(evento) {
+      evento.preventDefault();
+
+      const datos = {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const respuesta = await fetch("http://localhost:8080/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
+        });
+
+        if (!respuesta.ok) {
+          throw new Error("Email o contraseña incorrectos");
+        }
+
+        const usuario = await respuesta.json();
+
+        localStorage.setItem("usuario", JSON.stringify(usuario));
+
+        document.getElementById("mensaje").textContent = "Login correcto";
+      } catch (error) {
+        document.getElementById("mensaje").textContent = error.message;
+      }
+    });
+  </script>
+</body>
+</html>
