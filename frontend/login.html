@@ -1,57 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - METRONET</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <h1>Iniciar sesión</h1>
+  <main class="auth-page">
+    <section class="brand-panel" aria-label="Presentación de MetroNet">
+      <div class="metro-map" aria-hidden="true"></div>
+      <div class="brand-content">
+        <img src="img/metronet-logo.svg" alt="Logo de METRONET" class="brand-logo" />
+        <p class="eyebrow">Sistema de simulación</p>
+        <h1>METRONET</h1>
+        <p class="brand-description">
+          Gestioná usuarios, líneas, estaciones y simulaciones de red desde una interfaz moderna y clara.
+        </p>
+      </div>
+    </section>
 
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Email" required>
-    <br><br>
+    <section class="auth-card" aria-labelledby="loginTitle">
+      <div class="mobile-brand">
+        <img src="img/metronet-logo.svg" alt="Logo de METRONET" class="mobile-logo" />
+        <span>METRONET</span>
+      </div>
 
-    <input type="password" id="password" placeholder="Contraseña" required>
-    <br><br>
+      <p class="eyebrow">Bienvenido nuevamente</p>
+      <h2 id="loginTitle">Iniciar sesión</h2>
+      <p class="auth-subtitle">Ingresá tus datos para acceder al sistema.</p>
 
-    <button type="submit">Ingresar</button>
-  </form>
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="field-group">
+          <label for="email">Correo electrónico</label>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">@</span>
+            <input type="email" id="email" name="email" placeholder="usuario@correo.com" autocomplete="email" required />
+          </div>
+        </div>
 
-  <p>¿No posee una cuenta? <a href="registro.html">Crear usuario aquí</a></p>
+        <div class="field-group">
+          <label for="password">Contraseña</label>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">●</span>
+            <input type="password" id="password" name="password" placeholder="Ingresá tu contraseña" autocomplete="current-password" required />
+            <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar u ocultar contraseña">👁</button>
+          </div>
+        </div>
 
-  <p id="mensaje"></p>
+        <button type="submit" id="loginButton" class="primary-button">
+          <span class="button-text">Ingresar</span>
+          <span class="button-loader" aria-hidden="true"></span>
+        </button>
+      </form>
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", async function(evento) {
-      evento.preventDefault();
+      <p id="mensaje" class="message" role="status" aria-live="polite"></p>
 
-      const datos = {
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value
-      };
+      <p class="auth-link">
+        ¿No posee una cuenta?
+        <a href="registro.html">Crear usuario aquí</a>
+      </p>
+    </section>
+  </main>
 
-      try {
-        const respuesta = await fetch("http://localhost:8080/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(datos)
-        });
-
-        if (!respuesta.ok) {
-          throw new Error("Email o contraseña incorrectos");
-        }
-
-        const usuario = await respuesta.json();
-
-        localStorage.setItem("usuario", JSON.stringify(usuario));
-
-        document.getElementById("mensaje").textContent = "Login correcto";
-      } catch (error) {
-        document.getElementById("mensaje").textContent = error.message;
-      }
-    });
-  </script>
+  <script src="js/ui.js"></script>
+  <script src="js/login.js"></script>
 </body>
 </html>
