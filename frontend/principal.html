@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="/css/principal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetroNet</title>
+</head>
+<body>
+    <button id="btnCrearEstacion">Crear estación</button> <button id="btnEditarEstaciones">Editar estaciones</button>
+
+    <div id="formEstacion" class="modal" hidden>
+      <div class="modal-contenido">
+        <h2>Crear estación</h2>
+
+        <label for="nombreEstacion">Nombre:</label>
+        <input type="text" id="nombreEstacion">
+
+        <button id="btnCancelarEstacion">Cancelar</button>
+        <button id="btnContinuarEstacion">Continuar</button>
+      </div>
+    </div>
+
+    <div id="formEditarEstacion" class="modal" hidden>
+      <div class="modal-contenido">
+        <h2>Editar estación</h2>
+
+        <label for="nombreEstacionEditar">Nombre:</label>
+        <input type="text" id="nombreEstacionEditar">
+
+        <button id="btnEliminarEstacion">Eliminar</button>
+        <button id="btnCancelarEditarEstacion">Cancelar</button>
+        <button id="btnGuardarEstacion">Guardar</button>
+      </div>
+    </div>
+
+    <div id="juego"></div>
+
+    <script type="module" src="/js/juego.js"></script>
+</body>
+</html>

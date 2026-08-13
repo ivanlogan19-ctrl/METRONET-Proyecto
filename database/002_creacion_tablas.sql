@@ -19,6 +19,7 @@ metronet
 DROP TABLE IF EXISTS simulacion CASCADE;
 DROP TABLE IF EXISTS metro CASCADE;
 DROP TABLE IF EXISTS pasa CASCADE;
+DROP TABLE IF EXISTS tramo CASCADE;
 DROP TABLE IF EXISTS estacion CASCADE;
 DROP TABLE IF EXISTS linea CASCADE;
 DROP TABLE IF EXISTS intento CASCADE;
@@ -113,37 +114,51 @@ CREATE TABLE linea (
 );
 
 CREATE TABLE estacion (
+  id_estacion SERIAL PRIMARY KEY,
   id_diseno INTEGER NOT NULL,
   nombre VARCHAR(100) NOT NULL,
-  posicion_x NUMERIC(10,2) NOT NULL,
-  posicion_y NUMERIC(10,2) NOT NULL,
+  posicion_x DOUBLE PRECISION NOT NULL,
+  posicion_y DOUBLE PRECISION NOT NULL,
   transbordo BOOLEAN NOT NULL DEFAULT FALSE,
   modificable BOOLEAN NOT NULL DEFAULT TRUE,
 
-  PRIMARY KEY (id_diseno, nombre),
+  CONSTRAINT uq_estacion_nombre_diseno
+      UNIQUE (id_diseno, nombre),
 
   CONSTRAINT fk_estacion_diseno
-  FOREIGN KEY (id_diseno)
-  REFERENCES diseno(id_diseno)
-  ON DELETE CASCADE
+      FOREIGN KEY (id_diseno)
+      REFERENCES diseno(id_diseno)
+      ON DELETE CASCADE
 );
 
-CREATE TABLE pasa (
-  id_diseno INTEGER NOT NULL,
-  nombre_linea VARCHAR(100) NOT NULL,
-  nombre_estacion VARCHAR(100) NOT NULL,
+CREATE TABLE tramo (
+    id_tramo SERIAL PRIMARY KEY,
 
-  PRIMARY KEY (id_diseno, nombre_linea, nombre_estacion),
+    id_diseno INTEGER NOT NULL,
+    nombre_linea VARCHAR(100) NOT NULL,
+    estacion_a VARCHAR(100) NOT NULL,
+    estacion_b VARCHAR(100) NOT NULL,
 
-  CONSTRAINT fk_pasa_linea
-  FOREIGN KEY (id_diseno, nombre_linea)
-  REFERENCES linea(id_diseno, nombre)
-  ON DELETE CASCADE,
+    CONSTRAINT uq_tramo
+        UNIQUE (id_diseno, nombre_linea, estacion_a, estacion_b),
 
-  CONSTRAINT fk_pasa_estacion
-  FOREIGN KEY (id_diseno, nombre_estacion)
-  REFERENCES estacion(id_diseno, nombre)
-  ON DELETE CASCADE
+    CONSTRAINT fk_tramo_linea
+        FOREIGN KEY (id_diseno, nombre_linea)
+        REFERENCES linea(id_diseno, nombre)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_tramo_estacion_a
+        FOREIGN KEY (id_diseno, estacion_a)
+        REFERENCES estacion(id_diseno, nombre)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_tramo_estacion_b
+        FOREIGN KEY (id_diseno, estacion_b)
+        REFERENCES estacion(id_diseno, nombre)
+        ON DELETE CASCADE,
+
+    CONSTRAINT ck_tramo_estaciones_distintas
+        CHECK (estacion_a < estacion_b)
 );
 
 CREATE TABLE metro (
