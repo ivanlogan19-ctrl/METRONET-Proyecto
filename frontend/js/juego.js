@@ -4,11 +4,179 @@ let modoActual = "normal";
 let nombreEstacionPendiente = "";
 let estacionSeleccionada = null;
 
+let nombreLineaPendiente = "";
+let tramosLineaPendiente = [];
+let estacionTramoPendiente = null;
+let estacionesLineaPendiente = [];
+let estacionesCargadas = [];
+let dibujosTramosPendientes = [];
+
+let tramosGuardados = [];
+
 const idDisenoActual = 1;
 
-// --------------------
-// ESTACIONES - VISUAL
-// --------------------
+
+// --------
+//  LOGICA
+// --------
+
+// Lineas
+
+function seleccionarEstacionParaLinea(escena, estacion) {
+
+    // Primer tramo: todavía no hay estaciones en la línea
+
+    // Guarda en variables temporales la primera estación
+    if (estacionesLineaPendiente.length === 0) {
+        estacionTramoPendiente = estacion;
+        estacionesLineaPendiente.push(estacion.nombre);
+
+        console.log(
+            "Primera estación de la línea:",
+            estacion.nombre
+        );
+
+        return;
+    }
+
+    /* Comprueba que ambas estaciones sean diferentes
+    guarda el tramo y la estación y limpia la variable temporal de tramo pendiente */
+    if (tramosLineaPendiente.length === 0) {
+
+        if (estacion.nombre === estacionTramoPendiente.nombre) {
+            return;
+        }
+
+        if (
+            tramoYaExisteGuardado(
+                estacionTramoPendiente.nombre,
+                estacion.nombre
+            )
+        ) {
+            alert("Ya existe un tramo entre estas estaciones");
+            return;
+        }
+
+        tramosLineaPendiente.push({
+            estacionA: estacionTramoPendiente.nombre,
+            estacionB: estacion.nombre
+        });
+
+        estacionesLineaPendiente.push(estacion.nombre);
+
+        dibujarTramo(
+            escena,
+            estacionTramoPendiente,
+            estacion
+        );
+
+        marcarExtremosLinea();
+
+        console.log(
+            "Primer tramo creado:",
+            estacionTramoPendiente.nombre,
+            "-",
+            estacion.nombre
+        );
+
+        estacionTramoPendiente = null;
+
+        return;
+    }
+
+    // A partir del segundo tramo, primero se debe elegir un extremo
+    if (estacionTramoPendiente === null) {
+
+        const extremos = obtenerExtremosLinea(
+            tramosLineaPendiente
+        );
+
+        if (!extremos.includes(estacion.nombre)) {
+            return;
+        }
+
+        estacionTramoPendiente = estacion;
+
+        console.log(
+            "Extremo seleccionado:",
+            estacion.nombre
+        );
+
+        return;
+    }
+
+    // La segunda estación del nuevo tramo debe ser nueva
+    if (estacionesLineaPendiente.includes(estacion.nombre)) {
+        return;
+    }
+
+    if (
+        tramoYaExisteGuardado(
+            estacionTramoPendiente.nombre,
+            estacion.nombre
+        )
+    ) {
+        alert("Ya existe un tramo entre estas estaciones");
+        return;
+    }
+
+    tramosLineaPendiente.push({
+        estacionA: estacionTramoPendiente.nombre,
+        estacionB: estacion.nombre
+    });
+
+    estacionesLineaPendiente.push(estacion.nombre);
+
+    dibujarTramo(
+        escena,
+        estacionTramoPendiente,
+        estacion
+    );
+
+    marcarExtremosLinea();
+
+    console.log(
+        "Nuevo tramo creado:",
+        estacionTramoPendiente.nombre,
+        "-",
+        estacion.nombre
+    );
+
+    estacionTramoPendiente = null;
+}
+
+function obtenerExtremosLinea(tramos) {
+    const cantidadConexiones = {};
+
+    for (const tramo of tramos) {
+        cantidadConexiones[tramo.estacionA] =
+            (cantidadConexiones[tramo.estacionA] || 0) + 1;
+
+        cantidadConexiones[tramo.estacionB] =
+            (cantidadConexiones[tramo.estacionB] || 0) + 1;
+    }
+
+    return Object.keys(cantidadConexiones).filter(
+        nombreEstacion => cantidadConexiones[nombreEstacion] === 1
+    );
+}
+
+function tramoYaExisteGuardado(nombreA, nombreB) {
+
+    return tramosGuardados.some(tramo => {
+
+        return (
+            (tramo.estacionA === nombreA && tramo.estacionB === nombreB) ||
+            (tramo.estacionA === nombreB && tramo.estacionB === nombreA)
+        );
+    });
+}
+
+// --------
+//  VISUAL
+// --------
+
+// Estaciones
 
 function dibujarEstacion(escena, estacion) {
     const circulo = escena.add.circle(
@@ -19,6 +187,8 @@ function dibujarEstacion(escena, estacion) {
     );
 
     estacion.circulo = circulo;
+
+    estacionesCargadas.push(estacion);
 
     const texto = escena.add.text(
         estacion.posicionX + 15,
@@ -41,6 +211,12 @@ function dibujarEstacion(escena, estacion) {
     });
 
     circulo.on("pointerdown", function() {
+
+        if (modoActual === "crearLinea") {
+            seleccionarEstacionParaLinea(escena, estacion);
+            return;
+        }
+
         if (modoActual === "editarEstacion") {
             estacionSeleccionada = estacion;
 
@@ -59,9 +235,55 @@ function dibujarEstacion(escena, estacion) {
     });
 }
 
-// --------------------
-// ESTACIONES - BACKEND
-// --------------------
+// Lineas
+
+function marcarExtremosLinea() {
+
+    const extremos = obtenerExtremosLinea(
+        tramosLineaPendiente
+    );
+
+    estacionesCargadas.forEach(estacion => {
+
+        if (extremos.includes(estacion.nombre)) {
+            estacion.circulo.setFillStyle(0xffff00);
+        } else {
+            estacion.circulo.setFillStyle(0xffffff);
+        }
+    });
+}
+
+function dibujarTramo(
+    escena,
+    estacionA,
+    estacionB,
+    pendiente = true
+) {
+
+    const linea = escena.add.line(
+        0,
+        0,
+        estacionA.posicionX,
+        estacionA.posicionY,
+        estacionB.posicionX,
+        estacionB.posicionY,
+        0xffffff
+    );
+
+    linea.setOrigin(0, 0);
+
+    if (pendiente) {
+        dibujosTramosPendientes.push(linea);
+    }
+
+    return linea;
+}
+
+// ---------
+//  BACKEND
+// ---------
+
+// Estaciones
 
 function guardarEstacion(escena, estacion) {
     fetch("http://localhost:8080/estaciones", {
@@ -151,15 +373,101 @@ function cargarEstaciones(escena) {
         estaciones.forEach(estacion => {
             dibujarEstacion(escena, estacion);
         });
+
+        cargarLineas(escena);
     })
     .catch(error => {
         console.error("No se pudieron cargar las estaciones:", error);
     });
 }
 
+// Lineas
+
+function guardarLinea(linea) {
+
+    return fetch("http://localhost:8080/lineas", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(linea)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(mensaje => {
+                throw new Error(mensaje);
+            });
+        }
+
+        return response.text();
+    });
+}
+
+function cargarLineas(escena) {
+
+    fetch(
+        `http://localhost:8080/lineas/diseno/${idDisenoActual}`
+    )
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Error al cargar las líneas");
+        }
+
+        return response.json();
+    })
+    .then(lineas => {
+
+        lineas.forEach(linea => {
+
+            fetch(
+                `http://localhost:8080/lineas/diseno/${idDisenoActual}/${encodeURIComponent(linea.nombre)}/tramos`
+            )
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error al cargar los tramos");
+                }
+
+                return response.json();
+            })
+            .then(tramos => {
+
+                tramosGuardados.push(...tramos);
+
+                tramos.forEach(tramo => {
+
+                    const estacionA = estacionesCargadas.find(
+                        estacion => estacion.nombre === tramo.estacionA
+                    );
+
+                    const estacionB = estacionesCargadas.find(
+                        estacion => estacion.nombre === tramo.estacionB
+                    );
+
+                    if (estacionA && estacionB) {
+                        dibujarTramo(
+                            escena,
+                            estacionA,
+                            estacionB,
+                            false
+                        );
+                    }
+                });
+            });
+        });
+    })
+    .catch(error => {
+        console.error(
+            "No se pudieron cargar las líneas:",
+            error
+        );
+    });
+}
+
 // --------------------
 // INTERFAZ - CREACIÓN
 // --------------------
+
+// Estaciones
 
 function configurarCreacionEstacion(escena, elementos) {
 
@@ -233,6 +541,157 @@ function configurarCreacionEstacion(escena, elementos) {
         nombreEstacionPendiente = "";
         elementos.nombreEstacion.value = "";
     });
+}
+
+// Lineas
+
+function configurarCreacionLinea(elementos) {
+
+    function continuarCreacionLinea() {
+
+        if (elementos.nombreLinea.value.trim() === "") {
+            alert("Ingresá un nombre para la línea");
+            return;
+        }
+
+        nombreLineaPendiente =
+            elementos.nombreLinea.value.trim();
+
+        elementos.formLinea.hidden = true;
+
+        elementos.controlesLinea.hidden = false;
+
+        modoActual = "crearLinea";
+
+        console.log(
+            "Línea a crear:",
+            nombreLineaPendiente
+        );
+    }
+
+    elementos.botonCrearLinea.addEventListener(
+        "click",
+        function() {
+            elementos.formLinea.hidden = false;
+            elementos.nombreLinea.focus();
+        }
+    );
+
+    elementos.botonCancelarLinea.addEventListener(
+        "click",
+        function() {
+            elementos.formLinea.hidden = true;
+            elementos.nombreLinea.value = "";
+        }
+    );
+
+    elementos.botonContinuarLinea.addEventListener(
+        "click",
+        continuarCreacionLinea
+    );
+
+    elementos.nombreLinea.addEventListener(
+        "keydown",
+        function(evento) {
+            if (evento.key === "Enter") {
+                continuarCreacionLinea();
+            }
+        }
+    );
+
+    elementos.botonCancelarCreacionLinea.addEventListener(
+        "click",
+        function() {
+
+            dibujosTramosPendientes.forEach(linea => {
+                linea.destroy();
+            });
+
+            estacionesLineaPendiente.forEach(nombreEstacion => {
+
+                const estacion = estacionesCargadas.find(
+                    estacion => estacion.nombre === nombreEstacion
+                );
+
+                if (estacion) {
+                    estacion.circulo.setFillStyle(0xffffff);
+                }
+            });
+
+            dibujosTramosPendientes = [];
+            nombreLineaPendiente = "";
+            tramosLineaPendiente = [];
+            estacionTramoPendiente = null;
+            estacionesLineaPendiente = [];
+
+            modoActual = "normal";
+
+            elementos.controlesLinea.hidden = true;
+            elementos.nombreLinea.value = "";
+
+            console.log("Creación de línea cancelada");
+        }
+    );
+
+    elementos.botonGuardarLinea.addEventListener(
+        "click",
+        function() {
+
+            if (tramosLineaPendiente.length === 0) {
+                alert("La línea debe tener al menos un tramo");
+                return;
+            }
+
+            const linea = {
+                idDiseno: idDisenoActual,
+                nombre: nombreLineaPendiente,
+                tramos: tramosLineaPendiente
+            };
+
+            guardarLinea(linea)
+                .then(mensaje => {
+
+                    console.log(mensaje);
+
+                    tramosGuardados.push(...tramosLineaPendiente);
+
+                    // Devuelve las estaciones de la línea al color normal
+                    estacionesLineaPendiente.forEach(nombreEstacion => {
+
+                        const estacion = estacionesCargadas.find(
+                            estacion => estacion.nombre === nombreEstacion
+                        );
+
+                        if (estacion) {
+                            estacion.circulo.setFillStyle(0xffffff);
+                        }
+                    });
+
+                    /* Los tramos ya fueron guardados,
+                    por eso se dejan dibujados pero dejan de ser pendientes */
+                    dibujosTramosPendientes = [];
+
+                    // Limpia las variables temporales de creación
+                    nombreLineaPendiente = "";
+                    tramosLineaPendiente = [];
+                    estacionTramoPendiente = null;
+                    estacionesLineaPendiente = [];
+
+                    // Sale del modo creación de línea
+                    modoActual = "normal";
+
+                    // Oculta los controles y limpia el input
+                    elementos.controlesLinea.hidden = true;
+                    elementos.nombreLinea.value = "";
+                })
+                .catch(error => {
+                    console.error(
+                        "No se pudo guardar la línea:",
+                        error
+                    );
+                });
+        }
+    );
 }
 
 // --------------------
@@ -319,6 +778,9 @@ function configurarEdicionEstaciones(elementos) {
 
 function obtenerElementos() {
     return {
+
+        // Estaciones
+
         botonCrearEstacion:
             document.getElementById("btnCrearEstacion"),
 
@@ -352,7 +814,33 @@ function obtenerElementos() {
             ),
 
         botonGuardarEstacion:
-            document.getElementById("btnGuardarEstacion")
+            document.getElementById("btnGuardarEstacion"),
+
+        // Lineas
+
+        botonCrearLinea:
+            document.getElementById("btnCrearLinea"),
+
+        formLinea:
+            document.getElementById("formLinea"),
+
+        nombreLinea:
+            document.getElementById("nombreLinea"),
+
+        botonCancelarLinea:
+            document.getElementById("btnCancelarLinea"),
+
+        botonContinuarLinea:
+            document.getElementById("btnContinuarLinea"),
+
+        controlesLinea:
+            document.getElementById("controlesLinea"),
+
+        botonCancelarCreacionLinea:
+            document.getElementById("btnCancelarCreacionLinea"),
+
+        botonGuardarLinea:
+            document.getElementById("btnGuardarLinea"),
     };
 }
 
@@ -365,6 +853,7 @@ function crear() {
 
     configurarCreacionEstacion(this, elementos);
     configurarEdicionEstaciones(elementos);
+    configurarCreacionLinea(elementos);
 
     cargarEstaciones(this);
 }

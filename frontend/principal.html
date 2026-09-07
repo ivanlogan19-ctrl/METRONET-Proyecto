@@ -7,7 +7,9 @@
   <title>MetroNet</title>
 </head>
 <body>
-    <button id="btnCrearEstacion">Crear estación</button> <button id="btnEditarEstaciones">Editar estaciones</button>
+    <button id="btnCrearEstacion">Crear estación</button>
+    <button id="btnEditarEstaciones">Editar estaciones</button>
+    <button id="btnCrearLinea">Crear línea</button>
 
     <div id="formEstacion" class="modal" hidden>
       <div class="modal-contenido">
@@ -32,6 +34,23 @@
         <button id="btnCancelarEditarEstacion">Cancelar</button>
         <button id="btnGuardarEstacion">Guardar</button>
       </div>
+    </div>
+
+    <div id="formLinea" class="modal" hidden>
+      <div class="modal-contenido">
+        h2>Crear línea</h2>
+
+        <label for="nombreLinea">Nombre:</label>
+        <input type="text" id="nombreLinea">
+
+        <button id="btnCancelarLinea">Cancelar</button>
+        <button id="btnContinuarLinea">Continuar</button>
+      </div>
+    </div>
+
+    <div id="controlesLinea" hidden>
+      <button id="btnCancelarCreacionLinea">Cancelar</button>
+      <button id="btnGuardarLinea">Guardar</button>
     </div>
 
     <div id="juego"></div>

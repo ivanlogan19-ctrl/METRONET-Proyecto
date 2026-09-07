@@ -101,16 +101,18 @@ CREATE TABLE intento (
 );
 
 CREATE TABLE linea (
+  id_linea SERIAL PRIMARY KEY,
   id_diseno INTEGER NOT NULL,
   nombre VARCHAR(100) NOT NULL,
   modificable BOOLEAN NOT NULL DEFAULT TRUE,
 
-  PRIMARY KEY (id_diseno, nombre),
+  CONSTRAINT uq_linea_nombre_diseno
+      UNIQUE (id_diseno, nombre),
 
   CONSTRAINT fk_linea_diseno
-  FOREIGN KEY (id_diseno)
-  REFERENCES diseno(id_diseno)
-  ON DELETE CASCADE
+      FOREIGN KEY (id_diseno)
+      REFERENCES diseno(id_diseno)
+      ON DELETE CASCADE
 );
 
 CREATE TABLE estacion (

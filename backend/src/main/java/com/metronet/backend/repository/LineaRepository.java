@@ -1,14 +1,13 @@
 package com.metronet.backend.repository;
 
+import com.metronet.backend.entity.Linea;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 
-import com.metronet.backend.entity.Estacion;
-
-public interface EstacionRepository extends JpaRepository<Estacion, Integer> {
-
-    List<Estacion> findByIdDiseno(Integer idDiseno);
+public interface LineaRepository extends JpaRepository<Linea, Integer> {
 
     boolean existsByIdDisenoAndNombre(Integer idDiseno, String nombre);
+    
+    List<Linea> findByIdDiseno(Integer idDiseno);
+    
 }
