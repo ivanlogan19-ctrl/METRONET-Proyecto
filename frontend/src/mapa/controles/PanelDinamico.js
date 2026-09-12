@@ -188,8 +188,11 @@ export default class PanelDinamico {
             'none';
 
         if (oculto) {
+
             this.mostrar();
+
         } else {
+
             this.ocultar();
         }
     }
@@ -363,7 +366,10 @@ export default class PanelDinamico {
             'auto';
     }
 
-    mover(top, right) {
+    mover(
+        top,
+        right
+    ) {
 
         this.posicion = {
             top,
@@ -419,12 +425,14 @@ export default class PanelDinamico {
 
     crearEstilos() {
 
-        if (
+        const estiloAnterior =
             document.getElementById(
                 'metronet-panel-dinamico-styles'
-            )
-        ) {
-            return;
+            );
+
+        if (estiloAnterior) {
+
+            estiloAnterior.remove();
         }
 
         const style =
@@ -451,17 +459,17 @@ export default class PanelDinamico {
 
                 background:
                     rgba(
-                        11,
-                        37,
-                        69,
-                        0.96
+                        8,
+                        25,
+                        45,
+                        0.98
                     );
 
                 border:
                     1px solid #6FA8DC;
 
                 border-radius:
-                    5px;
+                    4px;
 
                 color:
                     #FFFFFF;
@@ -476,12 +484,13 @@ export default class PanelDinamico {
                         0,
                         0,
                         0,
-                        0.35
+                        0.45
                     );
 
                 overflow:
                     visible;
             }
+
 
             .metronet-panel-encabezado {
 
@@ -495,22 +504,22 @@ export default class PanelDinamico {
                     center;
 
                 justify-content:
-                    space-between;
+                    center;
 
                 width:
                     100%;
 
-                min-height:
-                    30px;
+                height:
+                    27px;
 
                 padding:
-                    5px 7px;
+                    3px 5px;
 
                 border:
                     none;
 
                 border-radius:
-                    4px;
+                    3px;
 
                 background:
                     #0B2545;
@@ -519,16 +528,16 @@ export default class PanelDinamico {
                     #FFFFFF;
 
                 font-size:
-                    10px;
+                    8px;
 
                 font-weight:
                     bold;
 
                 text-align:
-                    left;
+                    center;
 
                 letter-spacing:
-                    0.2px;
+                    0px;
 
                 cursor:
                     pointer;
@@ -537,11 +546,13 @@ export default class PanelDinamico {
                     nowrap;
             }
 
+
             .metronet-panel-encabezado:hover {
 
                 background:
                     #12385F;
             }
+
 
             .metronet-panel-contenido {
 
@@ -551,65 +562,40 @@ export default class PanelDinamico {
                 width:
                     100%;
 
-                max-height:
-                    230px;
-
                 padding:
-                    6px;
+                    4px;
 
-                overflow-y:
-                    auto;
-
-                overflow-x:
-                    hidden;
+                background:
+                    rgba(
+                        4,
+                        15,
+                        29,
+                        0.99
+                    );
 
                 border-top:
                     1px solid #6FA8DC;
 
-                background:
-                    rgba(
-                        5,
-                        18,
-                        35,
-                        0.98
-                    );
-
                 border-radius:
-                    0 0 4px 4px;
+                    0 0 3px 3px;
+
+                overflow:
+                    hidden;
             }
 
-            .metronet-panel-contenido::-webkit-scrollbar {
-
-                width:
-                    4px;
-            }
-
-            .metronet-panel-contenido::-webkit-scrollbar-thumb {
-
-                background:
-                    #6FA8DC;
-
-                border-radius:
-                    4px;
-            }
 
             @media (max-width: 700px) {
 
                 .metronet-panel-dinamico {
 
                     width:
-                        115px !important;
-
-                    max-width:
-                        calc(
-                            50vw - 15px
-                        );
+                        120px !important;
                 }
 
-                .metronet-panel-contenido {
+                .metronet-panel-encabezado {
 
-                    max-height:
-                        200px;
+                    font-size:
+                        7px;
                 }
             }
         `;

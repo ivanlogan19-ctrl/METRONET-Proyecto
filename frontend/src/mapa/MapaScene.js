@@ -3,9 +3,13 @@ import Phaser from 'phaser';
 import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
 import CapaZonas from './capas/CapaZonas.js';
+import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
+import CapaIconosBarrios from './capas/CapaIconosBarrios.js';
 
 import SelectorZonas from './controles/SelectorZonas.js';
 import SelectorBarrios from './controles/SelectorBarrios.js';
+
+import ControlZoom from './controles/ControlZoom.js';
 
 import {
     obtenerZona
@@ -20,15 +24,21 @@ export default class MapaScene extends Phaser.Scene {
         });
 
         this.datosBarrios = null;
+        this.datosPuntosInteres = null;
 
         this.capaMapaBase = null;
         this.capaBarrios = null;
         this.capaZonas = null;
+        this.capaPuntosInteres = null;
+        this.capaIconosBarrios = null;
 
         this.selectorZonas = null;
         this.selectorBarrios = null;
 
+        this.controlZoom = null;
+
         this.logo = null;
+
     }
 
     preload() {
@@ -40,6 +50,15 @@ export default class MapaScene extends Phaser.Scene {
                 import.meta.url
             ).href
         );
+
+        this.load.json(
+            'puntosInteres',
+            new URL(
+                './datos/puntos-interes.json',
+                import.meta.url
+            ).href
+        );
+
     }
 
     create() {
@@ -49,13 +68,24 @@ export default class MapaScene extends Phaser.Scene {
                 'barriosMontevideo'
             );
 
+        this.datosPuntosInteres =
+            this.cache.json.get(
+                'puntosInteres'
+            );
+
         this.crearCapaMapaBase();
 
         this.crearCapaBarrios();
 
         this.crearCapaZonas();
 
+        this.crearCapaPuntosInteres();
+
+        this.crearCapaIconosBarrios();
+
         this.crearControles();
+
+        this.crearControlZoom();
 
         this.crearLogo();
 
@@ -74,6 +104,10 @@ export default class MapaScene extends Phaser.Scene {
                 this.limpiar();
             }
         );
+
+    }
+
+    update() {
     }
 
     crearCapaMapaBase() {
@@ -91,6 +125,7 @@ export default class MapaScene extends Phaser.Scene {
             );
 
         this.capaMapaBase.crear();
+
     }
 
     crearCapaBarrios() {
@@ -105,6 +140,7 @@ export default class MapaScene extends Phaser.Scene {
             );
 
         this.capaBarrios.dibujar();
+
     }
 
     crearCapaZonas() {
@@ -117,6 +153,71 @@ export default class MapaScene extends Phaser.Scene {
                         this.capaBarrios
                 }
             );
+
+    }
+
+    crearCapaPuntosInteres() {
+
+        this.capaPuntosInteres =
+            new CapaPuntosInteres(
+                this,
+                {
+                    datos:
+                        this.datosPuntosInteres,
+
+                    capaBarrios:
+                        this.capaBarrios
+                }
+            );
+
+        this.capaPuntosInteres
+            .establecerDatos(
+                this.datosPuntosInteres
+            );
+
+        /*
+         * Al iniciar el mapa no hay
+         * ninguna zona ni barrio seleccionado.
+         *
+         * Por seguridad, forzamos ambas
+         * selecciones a estar vacías.
+         */
+        this.capaPuntosInteres
+            .establecerZonasSeleccionadas(
+                []
+            );
+
+        this.capaPuntosInteres
+            .establecerBarriosSeleccionados(
+                []
+            );
+
+    }
+
+    crearCapaIconosBarrios() {
+
+        this.capaIconosBarrios =
+            new CapaIconosBarrios(
+                this,
+                {
+                    capaBarrios:
+                        this.capaBarrios
+                }
+            );
+
+        this.capaIconosBarrios
+            .establecerZonasSeleccionadas(
+                []
+            );
+
+        this.capaIconosBarrios
+            .establecerBarriosSeleccionados(
+                []
+            );
+
+        this.capaIconosBarrios
+            .dibujar();
+
     }
 
     crearControles() {
@@ -124,6 +225,31 @@ export default class MapaScene extends Phaser.Scene {
         this.crearSelectorZonas();
 
         this.crearSelectorBarrios();
+
+    }
+
+    crearControlZoom() {
+
+        this.controlZoom =
+            new ControlZoom(
+                this,
+                {
+                    capaBarrios:
+                        this.capaBarrios,
+
+                    factorZoom:
+                        1.5,
+
+                    zoomMinimo:
+                        1,
+
+                    zoomMaximo:
+                        8
+                }
+            );
+
+        this.controlZoom.crear();
+
     }
 
     crearSelectorZonas() {
@@ -141,28 +267,126 @@ export default class MapaScene extends Phaser.Scene {
                     130,
 
                 posicion: {
+
                     top:
                         55,
 
                     right:
                         148
+
                 },
 
                 onCambio:
                     (zonas) => {
 
+                        /*
+                         * Nos aseguramos de que
+                         * siempre trabajemos con
+                         * un arreglo.
+                         */
+                        const zonasSeleccionadas =
+
+                            Array.isArray(zonas)
+
+                                ? zonas
+
+                                : [];
+
+                        /*
+                         * Actualizamos el mapa
+                         * de zonas.
+                         */
                         this.capaZonas
                             .establecerZonasSeleccionadas(
-                                zonas
+                                zonasSeleccionadas
                             );
 
+                        /*
+                         * Actualizamos la lista
+                         * de barrios.
+                         */
                         this.actualizarBarriosSegunZonas(
-                            zonas
+                            zonasSeleccionadas
                         );
+
+                        /*
+                         * IMPORTANTE:
+                         * actualizamos los puntos
+                         * de interés.
+                         */
+                        if (
+                            this.capaPuntosInteres
+                        ) {
+
+                            this.capaPuntosInteres
+                                .establecerZonasSeleccionadas(
+                                    zonasSeleccionadas
+                                );
+
+                            /*
+                             * Cuando seleccionamos
+                             * una zona, no queremos
+                             * conservar una selección
+                             * anterior de barrios.
+                             */
+                            this.capaPuntosInteres
+                                .establecerBarriosSeleccionados(
+                                    []
+                                );
+
+                        }
+
+                        /*
+                         * Actualizamos los íconos
+                         * representativos de barrios.
+                         */
+                        if (
+                            this.capaIconosBarrios
+                        ) {
+
+                            this.capaIconosBarrios
+                                .establecerZonasSeleccionadas(
+                                    zonasSeleccionadas
+                                );
+
+                            this.capaIconosBarrios
+                                .establecerBarriosSeleccionados(
+                                    []
+                                );
+
+                        }
+
+                        /*
+                         * Zoom automático de la zona.
+                         */
+                        if (
+                            this.controlZoom
+                        ) {
+
+                            if (
+                                zonasSeleccionadas.length > 0
+                            ) {
+
+                                this.controlZoom
+                                    .enfocarZonas(
+                                        zonasSeleccionadas
+                                    );
+
+                            } else {
+
+                                this.controlZoom
+                                    .restaurar();
+
+                            }
+
+                        }
+
                     }
+
             });
 
         this.selectorZonas.crear();
+
     }
 
     crearSelectorBarrios() {
@@ -184,25 +408,99 @@ export default class MapaScene extends Phaser.Scene {
                     130,
 
                 posicion: {
+
                     top:
                         55,
 
                     right:
                         8
+
                 },
 
                 onCambio:
                     (barrios) => {
 
+                        const barriosSeleccionados =
+
+                            Array.isArray(barrios)
+
+                                ? barrios
+
+                                : [];
+
+                        /*
+                         * Actualizamos el
+                         * resaltado de barrios.
+                         */
                         this.capaBarrios
                             .establecerBarriosSeleccionados(
-                                barrios
+                                barriosSeleccionados
                             );
+
+                        /*
+                         * Actualizamos los
+                         * puntos de interés.
+                         */
+                        if (
+                            this.capaPuntosInteres
+                        ) {
+
+                            this.capaPuntosInteres
+                                .establecerBarriosSeleccionados(
+                                    barriosSeleccionados
+                                );
+
+                        }
+
+                        /*
+                         * Actualizamos los
+                         * íconos de barrios.
+                         */
+                        if (
+                            this.capaIconosBarrios
+                        ) {
+
+                            this.capaIconosBarrios
+                                .establecerBarriosSeleccionados(
+                                    barriosSeleccionados
+                                );
+
+                        }
+
+                        /*
+                         * Zoom automático.
+                         */
+                        if (
+                            this.controlZoom
+                        ) {
+
+                            if (
+                                barriosSeleccionados.length > 0
+                            ) {
+
+                                this.controlZoom
+                                    .enfocarBarrios(
+                                        barriosSeleccionados
+                                    );
+
+                            } else {
+
+                                this.controlZoom
+                                    .restaurar();
+
+                            }
+
+                        }
+
                     }
+
             });
 
         this.selectorBarrios
-            .crear(barrios);
+            .crear(
+                barrios
+            );
+
     }
 
     actualizarBarriosSegunZonas(
@@ -213,7 +511,9 @@ export default class MapaScene extends Phaser.Scene {
             !this.selectorBarrios ||
             !this.capaBarrios
         ) {
+
             return;
+
         }
 
         if (
@@ -231,6 +531,7 @@ export default class MapaScene extends Phaser.Scene {
                 );
 
             return;
+
         }
 
         const barrios =
@@ -250,6 +551,7 @@ export default class MapaScene extends Phaser.Scene {
                         return zonas.includes(
                             zonaBarrio
                         );
+
                     }
                 )
                 .map(
@@ -261,6 +563,7 @@ export default class MapaScene extends Phaser.Scene {
             .establecerBarrios(
                 barriosFiltrados
             );
+
     }
 
     crearLogo() {
@@ -312,18 +615,24 @@ export default class MapaScene extends Phaser.Scene {
 
                 display:
                     'block'
+
             }
         );
 
         document.body.appendChild(
             this.logo
         );
+
     }
 
     ajustarTamanoLogo() {
 
-        if (!this.logo) {
+        if (
+            !this.logo
+        ) {
+
             return;
+
         }
 
         const ancho =
@@ -334,80 +643,170 @@ export default class MapaScene extends Phaser.Scene {
 
         this.logo.style.width =
             `${ancho}px`;
+
     }
 
     ajustarMapa() {
 
-        if (!this.capaBarrios) {
+        if (
+            !this.capaBarrios
+        ) {
+
             return;
+
         }
 
         this.capaBarrios.ajustarMapa(
             this.scale.width,
             this.scale.height
         );
+
+        if (
+            this.capaPuntosInteres
+        ) {
+
+            this.capaPuntosInteres
+                .actualizar();
+
+        }
+
+        if (
+            this.capaIconosBarrios
+        ) {
+
+            this.capaIconosBarrios
+                .dibujar();
+
+        }
+
+        if (
+            this.controlZoom
+        ) {
+
+            this.controlZoom
+                .actualizar();
+
+        }
+
     }
 
     actualizarTamano() {
 
-        if (this.capaMapaBase) {
+        if (
+            this.capaMapaBase
+        ) {
 
             this.capaMapaBase.actualizar();
+
         }
 
         this.ajustarMapa();
 
         this.ajustarTamanoLogo();
+
     }
 
     limpiar() {
 
-        if (this.selectorZonas) {
+        if (
+            this.selectorZonas
+        ) {
 
             this.selectorZonas.eliminar();
 
             this.selectorZonas =
                 null;
+
         }
 
-        if (this.selectorBarrios) {
+        if (
+            this.selectorBarrios
+        ) {
 
             this.selectorBarrios.eliminar();
 
             this.selectorBarrios =
                 null;
+
         }
 
-        if (this.capaZonas) {
+        if (
+            this.controlZoom
+        ) {
+
+            this.controlZoom.eliminar();
+
+            this.controlZoom =
+                null;
+
+        }
+
+        if (
+            this.capaIconosBarrios
+        ) {
+
+            this.capaIconosBarrios.eliminar();
+
+            this.capaIconosBarrios =
+                null;
+
+        }
+
+        if (
+            this.capaPuntosInteres
+        ) {
+
+            this.capaPuntosInteres.eliminar();
+
+            this.capaPuntosInteres =
+                null;
+
+        }
+
+        if (
+            this.capaZonas
+        ) {
 
             this.capaZonas.eliminar();
 
             this.capaZonas =
                 null;
+
         }
 
-        if (this.capaBarrios) {
+        if (
+            this.capaBarrios
+        ) {
 
             this.capaBarrios.eliminar();
 
             this.capaBarrios =
                 null;
+
         }
 
-        if (this.capaMapaBase) {
+        if (
+            this.capaMapaBase
+        ) {
 
             this.capaMapaBase.eliminar();
 
             this.capaMapaBase =
                 null;
+
         }
 
-        if (this.logo) {
+        if (
+            this.logo
+        ) {
 
             this.logo.remove();
 
             this.logo =
                 null;
+
         }
+
     }
+
 }

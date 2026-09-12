@@ -704,8 +704,8 @@ export default class CapaBarrios {
 
         switch (zona) {
 
-            case 'ZONA CENTRO':
-                return 0xD95D39;
+            case 'ZONA CENTRO': 
+            return 0xE53935;
 
             case 'ZONA ESTE':
                 return 0x4CAF50;
