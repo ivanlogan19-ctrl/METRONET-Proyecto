@@ -1,20 +1,40 @@
 import Phaser from 'phaser';
-import MapaScene from './mapa/MapaScene';
+
+import MapaScene from './mapa/MapaScene.js';
+
 
 const config = {
-    type: Phaser.AUTO,
 
-    width: window.innerWidth,
-    height: window.innerHeight,
+    type:
+        Phaser.AUTO,
 
-    backgroundColor: '#0B2545',
+    width:
+        window.innerWidth,
+
+    height:
+        window.innerHeight,
+
+    backgroundColor:
+        '#000000',
 
     scale: {
-        mode: Phaser.Scale.RESIZE,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+
+        mode:
+            Phaser.Scale.RESIZE,
+
+        width:
+            '100%',
+
+        height:
+            '100%'
     },
 
-    scene: [MapaScene]
+    scene: [
+        MapaScene
+    ]
 };
 
-new Phaser.Game(config);
+
+new Phaser.Game(
+    config
+);
