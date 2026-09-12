@@ -1,6 +1,6 @@
 body {
-    background: white;
-    color: black;
+    background: black;
+    color: white;
     font-family: "Courier New", monospace;
     margin: 0;
 }
@@ -8,7 +8,7 @@ body {
 .caja {
     width: 350px;
     margin: 80px auto;
-    border: 2px solid black;
+    border: 4px solid rgb(4, 103, 184);
     padding: 25px;
 }
 
@@ -41,20 +41,20 @@ button {
     width: 100%;
     margin-top: 20px;
     padding: 10px;
-    background: white;
-    color: black;
-    border: 2px solid black;
+    background: black;
+    color: white;
+    border: 2px solid white;
     font-family: inherit;
     cursor: pointer;
 }
 
 button:hover {
-    background: black;
-    color: white;
+    background: white;
+    color: black;
 }
 
 a {
-    color: black;
+    color: white;
 }
 
 #mensaje {
