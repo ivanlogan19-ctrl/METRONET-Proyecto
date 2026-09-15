@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
 import CapaZonas from './capas/CapaZonas.js';
+import { COLORES_PUNTOS_INTERES } from './capas/CapaPuntosInteres.js';
 import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
 import CapaIconosBarrios from './capas/CapaIconosBarrios.js';
 
@@ -10,6 +11,7 @@ import SelectorZonas from './controles/SelectorZonas.js';
 import SelectorBarrios from './controles/SelectorBarrios.js';
 
 import ControlZoom from './controles/ControlZoom.js';
+import LeyendaPuntosInteres from './controles/LeyendaPuntosInteres.js';
 
 import { obtenerZona } from './utilidades/ClasificadorZonas.js';
 
@@ -32,6 +34,7 @@ export default class MapaScene extends Phaser.Scene {
     this.selectorBarrios = null;
 
     this.controlZoom = null;
+    this.leyendaPuntosInteres = null;
 
     this.logo = null;
   }
@@ -63,6 +66,8 @@ export default class MapaScene extends Phaser.Scene {
     this.crearControles();
 
     this.crearControlZoom();
+
+    this.crearLeyendaPuntosInteres();
 
     this.crearLogo();
 
@@ -154,6 +159,62 @@ export default class MapaScene extends Phaser.Scene {
     });
 
     this.controlZoom.crear();
+  }
+
+  crearLeyendaPuntosInteres() {
+    const convertirColor = (color) => `#${color.toString(16).padStart(6, '0')}`;
+
+    this.leyendaPuntosInteres = new LeyendaPuntosInteres({
+      referencias: [
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.PATRIMONIO),
+          titulo: 'Patrimonio e historia',
+          descripcion: 'Museos, monumentos, edificios históricos y miradores.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.NATURALEZA),
+          titulo: 'Espacios verdes',
+          descripcion: 'Plazas, parques, jardines y áreas verdes.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.CULTURA),
+          titulo: 'Cultura y recreación',
+          descripcion: 'Teatros, centros culturales y bodegas.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.MOVILIDAD),
+          titulo: 'Movilidad y deporte',
+          descripcion: 'Terminales, estaciones, estadios e hipódromos.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.SALUD),
+          titulo: 'Salud',
+          descripcion: 'Hospitales y centros de atención.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.EDUCACION),
+          titulo: 'Educación',
+          descripcion: 'Universidades, facultades y bibliotecas.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.COMERCIO),
+          titulo: 'Comercio y gastronomía',
+          descripcion: 'Mercados, ferias y áreas comerciales.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.COSTA),
+          titulo: 'Costa y agua',
+          descripcion: 'Playas, ramblas, puertos y lagos.',
+        },
+        {
+          color: convertirColor(COLORES_PUNTOS_INTERES.OTROS),
+          titulo: 'Otros puntos de interés',
+          descripcion: 'Lugares sin una categoría específica.',
+        },
+      ],
+    });
+
+    this.leyendaPuntosInteres.crear();
   }
 
   crearSelectorZonas() {
@@ -416,7 +477,7 @@ export default class MapaScene extends Phaser.Scene {
     this.capaBarrios.ajustarMapa(this.scale.width, this.scale.height);
 
     if (this.capaPuntosInteres) {
-      this.capaPuntosInteres.actualizar();
+      this.capaPuntosInteres.dibujar();
     }
 
     if (this.capaIconosBarrios) {
@@ -455,6 +516,12 @@ export default class MapaScene extends Phaser.Scene {
       this.controlZoom.eliminar();
 
       this.controlZoom = null;
+    }
+
+    if (this.leyendaPuntosInteres) {
+      this.leyendaPuntosInteres.eliminar();
+
+      this.leyendaPuntosInteres = null;
     }
 
     if (this.capaIconosBarrios) {

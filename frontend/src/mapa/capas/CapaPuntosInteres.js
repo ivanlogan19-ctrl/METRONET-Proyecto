@@ -2,6 +2,18 @@ import Phaser from 'phaser';
 
 import { obtenerZona } from '../utilidades/ClasificadorZonas.js';
 
+export const COLORES_PUNTOS_INTERES = Object.freeze({
+  PATRIMONIO: 0xf3c86b,
+  NATURALEZA: 0x69cf9a,
+  CULTURA: 0xdc82c4,
+  MOVILIDAD: 0x7ba8ff,
+  SALUD: 0xf07878,
+  EDUCACION: 0xb99cff,
+  COMERCIO: 0xffaa67,
+  COSTA: 0x6cd7f7,
+  OTROS: 0x49c3f2,
+});
+
 export default class CapaPuntosInteres {
   constructor(escena, opciones = {}) {
     this.escena = escena;
@@ -16,13 +28,17 @@ export default class CapaPuntosInteres {
 
     this.panelInformacion = null;
 
-    /*
-     * Los puntos aparecen cuando
-     * el mapa llega a zoom 2.
-     */
-    this.zoomMinimoVisible = 2;
+    this.manejadorClicFueraInformacion = null;
 
-    this.tamanoIcono = 28;
+    this.retrasoCierreInformacion = null;
+
+    /*
+     * Los puntos aparecen solamente al llegar
+     * al máximo de zoom seguro de la selección.
+     */
+    this.zoomMinimoVisibleBase = 2;
+
+    this.zoomMinimoVisible = this.zoomMinimoVisibleBase;
 
     this.zonasSeleccionadas = [];
 
@@ -72,6 +88,26 @@ export default class CapaPuntosInteres {
     this.dibujar();
   }
 
+  ajustarZoomVisibleAlMaximo(zoomMaximo) {
+    const zoom = Number(zoomMaximo);
+
+    if (!Number.isFinite(zoom)) {
+      this.restablecerZoomMinimoVisible();
+
+      return;
+    }
+
+    this.zoomMinimoVisible = Math.max(1, zoom);
+
+    this.actualizarVisibilidad(this.obtenerZoomActual());
+  }
+
+  restablecerZoomMinimoVisible() {
+    this.zoomMinimoVisible = this.zoomMinimoVisibleBase;
+
+    this.actualizarVisibilidad(this.obtenerZoomActual());
+  }
+
   extraerPuntos() {
     this.puntos = [];
 
@@ -116,12 +152,18 @@ export default class CapaPuntosInteres {
           continue;
         }
 
+        const ubicacionGeografica = this.obtenerUbicacionGeografica(longitud, latitud);
+
         puntosUnicos.set(clave, {
           ...punto,
 
           id: punto.id ?? siguienteId,
 
           barrio: nombreBarrio,
+
+          barrioGeografico: ubicacionGeografica?.nombre ?? null,
+
+          zonaGeografica: ubicacionGeografica?.zona ?? obtenerZona(nombreBarrio),
 
           longitud: longitud,
 
@@ -135,6 +177,79 @@ export default class CapaPuntosInteres {
     this.puntos = Array.from(puntosUnicos.values());
   }
 
+  obtenerUbicacionGeografica(longitud, latitud) {
+    if (!this.capaBarrios) {
+      return null;
+    }
+
+    const punto = [longitud, latitud];
+
+    for (const barrio of this.capaBarrios.obtenerBarrios()) {
+      if (this.puntoEstaEnGeometria(punto, barrio.feature?.geometry)) {
+        return barrio;
+      }
+    }
+
+    return null;
+  }
+
+  puntoEstaEnGeometria(punto, geometria) {
+    if (!geometria) {
+      return false;
+    }
+
+    if (geometria.type === 'Polygon') {
+      return this.puntoEstaEnPoligono(punto, geometria.coordinates);
+    }
+
+    if (geometria.type === 'MultiPolygon') {
+      return geometria.coordinates.some((poligono) => this.puntoEstaEnPoligono(punto, poligono));
+    }
+
+    return false;
+  }
+
+  puntoEstaEnPoligono(punto, anillos) {
+    if (!Array.isArray(anillos) || anillos.length === 0) {
+      return false;
+    }
+
+    const [anilloExterior, ...huecos] = anillos;
+
+    return (
+      this.puntoEstaEnAnillo(punto, anilloExterior) &&
+      !huecos.some((anillo) => this.puntoEstaEnAnillo(punto, anillo))
+    );
+  }
+
+  puntoEstaEnAnillo([x, y], anillo) {
+    if (!Array.isArray(anillo) || anillo.length < 3) {
+      return false;
+    }
+
+    let estaDentro = false;
+
+    for (
+      let indice = 0, anterior = anillo.length - 1;
+      indice < anillo.length;
+      anterior = indice++
+    ) {
+      const [xActual, yActual] = anillo[indice];
+
+      const [xAnterior, yAnterior] = anillo[anterior];
+
+      const intersecta =
+        yActual > y !== yAnterior > y &&
+        x < ((xAnterior - xActual) * (y - yActual)) / (yAnterior - yActual) + xActual;
+
+      if (intersecta) {
+        estaDentro = !estaDentro;
+      }
+    }
+
+    return estaDentro;
+  }
+
   normalizarNombre(nombre) {
     return String(nombre || '')
       .trim()
@@ -144,35 +259,23 @@ export default class CapaPuntosInteres {
   }
 
   puntoPerteneceASeleccion(punto) {
-    const barrioPunto = this.normalizarNombre(punto.barrio);
+    const barrioPunto = this.normalizarNombre(punto.barrioGeografico);
+
+    const perteneceABarrio = this.barriosSeleccionados.some((barrio) => {
+      return this.normalizarNombre(barrio) === barrioPunto;
+    });
+
+    const perteneceAZona = this.zonasSeleccionadas.some((zonaSeleccionada) => {
+      return (
+        this.normalizarNombre(zonaSeleccionada) === this.normalizarNombre(punto.zonaGeografica)
+      );
+    });
 
     /*
-     * Si hay barrios seleccionados,
-     * mostramos solamente sus puntos.
+     * Un punto pertenece a la selección si su
+     * barrio o su zona fueron seleccionados.
      */
-    if (this.barriosSeleccionados.length > 0) {
-      return this.barriosSeleccionados.some((barrio) => {
-        return this.normalizarNombre(barrio) === barrioPunto;
-      });
-    }
-
-    /*
-     * Si hay zonas seleccionadas,
-     * mostramos los puntos de esas zonas.
-     */
-    if (this.zonasSeleccionadas.length > 0) {
-      const zona = obtenerZona(punto.barrio);
-
-      return this.zonasSeleccionadas.some((zonaSeleccionada) => {
-        return this.normalizarNombre(zonaSeleccionada) === this.normalizarNombre(zona);
-      });
-    }
-
-    /*
-     * Sin filtros:
-     * todos los puntos pueden mostrarse.
-     */
-    return true;
+    return perteneceABarrio || perteneceAZona;
   }
 
   obtenerZoomActual() {
@@ -183,7 +286,7 @@ export default class CapaPuntosInteres {
     return this.escena.cameras.main.zoom || 1;
   }
 
-  obtenerIcono(punto) {
+  obtenerColorMarcador(punto) {
     const tipo = this.normalizarNombre(punto.tipo);
 
     if (
@@ -192,7 +295,7 @@ export default class CapaPuntosInteres {
       tipo.includes('HISTORICA') ||
       tipo.includes('PATRIMONIO')
     ) {
-      return '🏛️';
+      return COLORES_PUNTOS_INTERES.PATRIMONIO;
     }
 
     if (
@@ -201,111 +304,111 @@ export default class CapaPuntosInteres {
       tipo.includes('JARDIN') ||
       tipo.includes('ESPACIO VERDE')
     ) {
-      return '🌳';
+      return COLORES_PUNTOS_INTERES.NATURALEZA;
     }
 
     if (tipo.includes('TEATRO')) {
-      return '🎭';
+      return COLORES_PUNTOS_INTERES.CULTURA;
     }
 
     if (tipo.includes('MUSEO')) {
-      return '🏛️';
+      return COLORES_PUNTOS_INTERES.PATRIMONIO;
     }
 
     if (tipo.includes('ESTADIO') || tipo.includes('ARENA')) {
-      return '🏟️';
+      return COLORES_PUNTOS_INTERES.MOVILIDAD;
     }
 
     if (tipo.includes('HOSPITAL')) {
-      return '🏥';
+      return COLORES_PUNTOS_INTERES.SALUD;
     }
 
     if (tipo.includes('UNIVERSIDAD') || tipo.includes('EDUCACION') || tipo.includes('FACULTAD')) {
-      return '🎓';
+      return COLORES_PUNTOS_INTERES.EDUCACION;
     }
 
     if (tipo.includes('BIBLIOTECA')) {
-      return '📚';
+      return COLORES_PUNTOS_INTERES.EDUCACION;
     }
 
     if (tipo.includes('IGLESIA') || tipo.includes('CAPILLA')) {
-      return '⛪';
+      return COLORES_PUNTOS_INTERES.PATRIMONIO;
     }
 
     if (tipo.includes('MERCADO')) {
-      return '🛒';
+      return COLORES_PUNTOS_INTERES.COMERCIO;
     }
 
     if (tipo.includes('FERIA')) {
-      return '🛍️';
+      return COLORES_PUNTOS_INTERES.COMERCIO;
     }
 
     if (tipo.includes('PLAYA')) {
-      return '🏖️';
+      return COLORES_PUNTOS_INTERES.COSTA;
     }
 
     if (tipo.includes('RAMBLA')) {
-      return '🌊';
+      return COLORES_PUNTOS_INTERES.COSTA;
     }
 
     if (tipo.includes('PUERTO')) {
-      return '⚓';
+      return COLORES_PUNTOS_INTERES.COSTA;
     }
 
     if (tipo.includes('FARO')) {
-      return '🗼';
+      return COLORES_PUNTOS_INTERES.PATRIMONIO;
     }
 
     if (tipo.includes('MIRADOR')) {
-      return '🔭';
+      return COLORES_PUNTOS_INTERES.PATRIMONIO;
     }
 
     if (tipo.includes('TERMINAL')) {
-      return '🚌';
+      return COLORES_PUNTOS_INTERES.MOVILIDAD;
     }
 
     if (tipo.includes('ESTACION')) {
-      return '🚉';
+      return COLORES_PUNTOS_INTERES.MOVILIDAD;
     }
 
     if (tipo.includes('FERROVIARIO')) {
-      return '🚂';
+      return COLORES_PUNTOS_INTERES.MOVILIDAD;
     }
 
     if (tipo.includes('HIPODROMO')) {
-      return '🏇';
+      return COLORES_PUNTOS_INTERES.MOVILIDAD;
     }
 
     if (tipo.includes('DEPORTIVO') || tipo.includes('DEPORTE')) {
-      return '⚽';
+      return COLORES_PUNTOS_INTERES.MOVILIDAD;
     }
 
     if (tipo.includes('CULTURAL')) {
-      return '🎨';
+      return COLORES_PUNTOS_INTERES.CULTURA;
     }
 
     if (tipo.includes('BODEGA')) {
-      return '🍇';
+      return COLORES_PUNTOS_INTERES.CULTURA;
     }
 
     if (tipo.includes('COMERCIAL')) {
-      return '🏬';
+      return COLORES_PUNTOS_INTERES.COMERCIO;
     }
 
     if (tipo.includes('EDIFICIO') || tipo.includes('COMPLEJO')) {
-      return '🏢';
+      return COLORES_PUNTOS_INTERES.PATRIMONIO;
     }
 
     if (tipo.includes('LAGO')) {
-      return '💧';
+      return COLORES_PUNTOS_INTERES.COSTA;
     }
 
     /*
      * Si aparece un tipo nuevo que todavía
      * no tenemos clasificado, usamos este
-     * icono genérico.
+     * marcador genérico.
      */
-    return '📍';
+    return COLORES_PUNTOS_INTERES.OTROS;
   }
 
   convertirCoordenada(longitud, latitud) {
@@ -367,53 +470,42 @@ export default class CapaPuntosInteres {
       return;
     }
 
-    const icono = this.obtenerIcono(punto);
+    const color = this.obtenerColorMarcador(punto);
 
-    const texto = this.escena.add.text(
-      posicion.x,
+    const marcador = this.escena.add.graphics();
 
-      posicion.y,
+    marcador.fillStyle(0x061d32, 0.96);
+    marcador.fillCircle(0, 0, 10);
+    marcador.lineStyle(2, 0xe8f8ff, 0.9);
+    marcador.strokeCircle(0, 0, 10);
+    marcador.fillStyle(color, 1);
+    marcador.fillCircle(0, 0, 4);
+    marcador.lineStyle(1, color, 0.95);
+    marcador.strokeCircle(0, 0, 6);
 
-      icono,
+    const contenedor = this.escena.add.container(posicion.x, posicion.y, [marcador]);
 
-      {
-        fontFamily: 'Arial',
+    contenedor.setDepth(100);
 
-        fontSize: `${this.tamanoIcono}px`,
+    const areaInteraccion = this.escena.add.zone(posicion.x, posicion.y, 28, 28);
 
-        color: '#FFFFFF',
+    areaInteraccion.setOrigin(0.5, 0.5);
+    areaInteraccion.setDepth(101);
+    areaInteraccion.setInteractive({ useHandCursor: true });
 
-        stroke: '#000000',
-
-        strokeThickness: 3,
-
-        align: 'center',
-
-        resolution: 2,
-      },
-    );
-
-    texto.setOrigin(0.5, 0.5);
-
-    texto.setDepth(100);
-
-    texto.setInteractive({
-      useHandCursor: true,
-    });
-
-    texto.on('pointerdown', () => {
+    areaInteraccion.on('pointerdown', () => {
       this.mostrarInformacion(punto);
     });
 
-    texto.on('pointerover', () => {
-      texto.setAlpha(0.75);
+    areaInteraccion.on('pointerover', () => {
+      contenedor.setAlpha(0.8);
     });
 
-    texto.on('pointerout', () => {
-      texto.setAlpha(1);
+    areaInteraccion.on('pointerout', () => {
+      contenedor.setAlpha(1);
     });
 
-    this.elementos.push(texto);
+    this.elementos.push(contenedor, areaInteraccion);
   }
 
   actualizar() {
@@ -454,10 +546,10 @@ export default class CapaPuntosInteres {
 
   actualizarVisibilidad(zoom) {
     /*
-     * Los puntos solamente aparecen
-     * a partir de zoom 2.
+     * Mostramos los puntos al llegar al máximo
+     * de zoom seguro de la selección activa.
      */
-    const mostrar = zoom >= this.zoomMinimoVisible;
+    const mostrar = zoom + 0.001 >= this.zoomMinimoVisible;
 
     for (const elemento of this.elementos) {
       if (!elemento) {
@@ -522,9 +614,45 @@ export default class CapaPuntosInteres {
     this.panelInformacion.appendChild(barrio);
 
     document.body.appendChild(this.panelInformacion);
+
+    this.programarCierreInformacionAlClicFuera();
+  }
+
+  programarCierreInformacionAlClicFuera() {
+    this.cancelarCierreInformacionAlClicFuera();
+
+    this.manejadorClicFueraInformacion = (evento) => {
+      if (this.panelInformacion && !this.panelInformacion.contains(evento.target)) {
+        this.ocultarInformacion();
+      }
+    };
+
+    this.retrasoCierreInformacion = window.setTimeout(() => {
+      if (this.panelInformacion && this.manejadorClicFueraInformacion) {
+        document.addEventListener('pointerdown', this.manejadorClicFueraInformacion, true);
+      }
+
+      this.retrasoCierreInformacion = null;
+    }, 0);
+  }
+
+  cancelarCierreInformacionAlClicFuera() {
+    if (this.retrasoCierreInformacion !== null) {
+      window.clearTimeout(this.retrasoCierreInformacion);
+
+      this.retrasoCierreInformacion = null;
+    }
+
+    if (this.manejadorClicFueraInformacion) {
+      document.removeEventListener('pointerdown', this.manejadorClicFueraInformacion, true);
+
+      this.manejadorClicFueraInformacion = null;
+    }
   }
 
   ocultarInformacion() {
+    this.cancelarCierreInformacionAlClicFuera();
+
     if (this.panelInformacion) {
       this.panelInformacion.remove();
 

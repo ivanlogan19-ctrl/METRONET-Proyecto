@@ -18,6 +18,10 @@ export default class PanelDinamico {
     this.contenido = null;
 
     this.abierto = false;
+
+    this.manejadorClicFuera = null;
+
+    this.retrasoCierre = null;
   }
 
   crear() {
@@ -30,6 +34,8 @@ export default class PanelDinamico {
     panel.id = this.id;
 
     panel.className = 'metronet-panel-dinamico';
+
+    panel.controladorPanelDinamico = this;
 
     panel.style.width = `${this.ancho}px`;
 
@@ -113,13 +119,9 @@ export default class PanelDinamico {
       return;
     }
 
+    this.cerrarContenido();
+
     this.elemento.style.display = 'none';
-
-    this.elemento.classList.remove('metronet-panel-abierto');
-
-    this.abierto = false;
-
-    this.actualizarEncabezado();
   }
 
   alternar() {
@@ -166,6 +168,8 @@ export default class PanelDinamico {
     this.actualizarEncabezado();
 
     this.ajustarPosicionPantalla();
+
+    this.programarCierreAlClicFuera();
   }
 
   cerrarContenido() {
@@ -180,6 +184,8 @@ export default class PanelDinamico {
     this.abierto = false;
 
     this.actualizarEncabezado();
+
+    this.cancelarCierreAlClicFuera();
   }
 
   cerrarOtrosPaneles() {
@@ -190,20 +196,40 @@ export default class PanelDinamico {
         return;
       }
 
-      const encabezado = panel.querySelector('.metronet-panel-encabezado');
-
-      const contenido = panel.querySelector('.metronet-panel-contenido');
-
-      if (contenido && contenido.style.display !== 'none') {
-        contenido.style.display = 'none';
-
-        panel.classList.remove('metronet-panel-abierto');
-
-        if (encabezado) {
-          encabezado.textContent = encabezado.textContent.replace(' ▲', ' ▼');
-        }
-      }
+      panel.controladorPanelDinamico?.cerrarContenido();
     });
+  }
+
+  programarCierreAlClicFuera() {
+    this.cancelarCierreAlClicFuera();
+
+    this.manejadorClicFuera = (evento) => {
+      if (this.elemento && !this.elemento.contains(evento.target)) {
+        this.cerrarContenido();
+      }
+    };
+
+    this.retrasoCierre = window.setTimeout(() => {
+      if (this.abierto && this.manejadorClicFuera) {
+        document.addEventListener('pointerdown', this.manejadorClicFuera, true);
+      }
+
+      this.retrasoCierre = null;
+    }, 0);
+  }
+
+  cancelarCierreAlClicFuera() {
+    if (this.retrasoCierre !== null) {
+      window.clearTimeout(this.retrasoCierre);
+
+      this.retrasoCierre = null;
+    }
+
+    if (this.manejadorClicFuera) {
+      document.removeEventListener('pointerdown', this.manejadorClicFuera, true);
+
+      this.manejadorClicFuera = null;
+    }
   }
 
   ajustarPosicionPantalla() {
@@ -270,7 +296,11 @@ export default class PanelDinamico {
   }
 
   eliminar() {
+    this.cancelarCierreAlClicFuera();
+
     if (this.elemento) {
+      this.elemento.controladorPanelDinamico = null;
+
       this.elemento.remove();
 
       this.elemento = null;

@@ -14,6 +14,10 @@ export default class ControlZoom {
 
     this.centroSeleccion = null;
 
+    this.barriosEnfocados = [];
+
+    this.limitesSeleccion = null;
+
     this.contenedor = null;
 
     this.botonAcercar = null;
@@ -107,7 +111,7 @@ export default class ControlZoom {
     const nuevoZoom = Math.min(
       this.zoomActual * this.factorZoom,
 
-      this.zoomMaximo,
+      this.obtenerZoomMaximoPermitido(),
     );
 
     this.establecerZoom(nuevoZoom);
@@ -172,7 +176,9 @@ export default class ControlZoom {
       return;
     }
 
-    this.centroSeleccion = this.obtenerCentroBarrio(barrios);
+    this.establecerAreaEnfocada(barrios);
+
+    this.ajustarVisibilidadPuntosInteres();
 
     const camara = this.obtenerCamara();
 
@@ -206,7 +212,9 @@ export default class ControlZoom {
       return;
     }
 
-    this.centroSeleccion = this.obtenerCentroBarrio(barrios);
+    this.establecerAreaEnfocada(barrios);
+
+    this.ajustarVisibilidadPuntosInteres();
 
     const camara = this.obtenerCamara();
 
@@ -231,7 +239,8 @@ export default class ControlZoom {
     const dimensiones = this.capaBarrios?.obtenerDimensionesMapa?.();
 
     const desplazamientoVertical = dimensiones
-      ? Math.max((dimensiones.margenSuperior - dimensiones.margenInferior) / 2, 0)
+      ? Math.max((dimensiones.margenSuperior - dimensiones.margenInferior) / 2, 0) /
+        Math.max(camara.zoom || this.zoomActual, 1)
       : 0;
 
     /*
@@ -241,7 +250,15 @@ export default class ControlZoom {
     camara.centerOn(this.centroSeleccion.x, this.centroSeleccion.y - desplazamientoVertical);
   }
 
-  obtenerCentroBarrio(barrios) {
+  establecerAreaEnfocada(barrios) {
+    this.barriosEnfocados = Array.isArray(barrios) ? [...barrios] : [];
+
+    this.limitesSeleccion = this.obtenerLimitesBarrios(this.barriosEnfocados);
+
+    this.centroSeleccion = this.obtenerCentroLimites(this.limitesSeleccion);
+  }
+
+  obtenerLimitesBarrios(barrios) {
     const puntos = [];
 
     for (const barrio of barrios) {
@@ -263,7 +280,7 @@ export default class ControlZoom {
     }
 
     if (puntos.length === 0) {
-      return this.obtenerCentroMapa();
+      return null;
     }
 
     let minimoX = Infinity;
@@ -284,11 +301,46 @@ export default class ControlZoom {
       maximoY = Math.max(maximoY, punto.y);
     }
 
-    return {
-      x: (minimoX + maximoX) / 2,
+    return { minimoX, maximoX, minimoY, maximoY };
+  }
 
-      y: (minimoY + maximoY) / 2,
+  obtenerCentroLimites(limites) {
+    if (!limites) {
+      return this.obtenerCentroMapa();
+    }
+
+    return {
+      x: (limites.minimoX + limites.maximoX) / 2,
+      y: (limites.minimoY + limites.maximoY) / 2,
     };
+  }
+
+  obtenerZoomMaximoPermitido() {
+    if (!this.limitesSeleccion || !this.capaBarrios) {
+      return this.zoomMaximo;
+    }
+
+    const dimensiones = this.capaBarrios.obtenerDimensionesMapa?.();
+
+    if (!dimensiones) {
+      return this.zoomMaximo;
+    }
+
+    const anchoSeleccion = this.limitesSeleccion.maximoX - this.limitesSeleccion.minimoX;
+    const altoSeleccion = this.limitesSeleccion.maximoY - this.limitesSeleccion.minimoY;
+
+    if (anchoSeleccion <= 0 || altoSeleccion <= 0) {
+      return this.zoomMaximo;
+    }
+
+    const zoomHorizontal = dimensiones.anchoDisponible / anchoSeleccion;
+    const zoomVertical = dimensiones.altoDisponible / altoSeleccion;
+
+    return Math.max(this.zoomMinimo, Math.min(zoomHorizontal, zoomVertical, this.zoomMaximo));
+  }
+
+  ajustarVisibilidadPuntosInteres() {
+    this.escena.capaPuntosInteres?.ajustarZoomVisibleAlMaximo(this.obtenerZoomMaximoPermitido());
   }
 
   obtenerTodasLasCoordenadas(geometria) {
@@ -374,7 +426,13 @@ export default class ControlZoom {
   }
 
   restaurar() {
+    this.escena.capaPuntosInteres?.restablecerZoomMinimoVisible();
+
     this.centroSeleccion = null;
+
+    this.barriosEnfocados = [];
+
+    this.limitesSeleccion = null;
 
     this.zoomActual = 1;
 
@@ -402,9 +460,24 @@ export default class ControlZoom {
       const camara = this.obtenerCamara();
 
       if (camara) {
+        this.limitesSeleccion = this.obtenerLimitesBarrios(this.barriosEnfocados);
+        this.centroSeleccion = this.obtenerCentroLimites(this.limitesSeleccion);
+
+        this.ajustarVisibilidadPuntosInteres();
+
+        const zoomMaximoPermitido = this.obtenerZoomMaximoPermitido();
+
+        if (this.zoomActual > zoomMaximoPermitido) {
+          this.establecerZoom(zoomMaximoPermitido);
+
+          return;
+        }
+
         this.centrarEnSeleccion(camara);
       }
     }
+
+    this.actualizarBotones();
   }
 
   actualizarBotones() {
@@ -412,7 +485,7 @@ export default class ControlZoom {
       return;
     }
 
-    this.botonAcercar.disabled = this.zoomActual >= this.zoomMaximo;
+    this.botonAcercar.disabled = this.zoomActual >= this.obtenerZoomMaximoPermitido();
 
     this.botonAlejar.disabled = this.zoomActual <= this.zoomMinimo;
   }
@@ -431,7 +504,7 @@ export default class ControlZoom {
         this.zoomMinimo,
       ),
 
-      this.zoomMaximo,
+      this.obtenerZoomMaximoPermitido(),
     );
   }
 
