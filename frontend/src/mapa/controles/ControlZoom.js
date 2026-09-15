@@ -18,6 +18,10 @@ export default class ControlZoom {
 
     this.limitesSeleccion = null;
 
+    this.contenedorPadre = opciones.contenedorPadre ?? document.body;
+
+    this.integrado = Boolean(opciones.integrado);
+
     this.contenedor = null;
 
     this.botonAcercar = null;
@@ -39,6 +43,10 @@ export default class ControlZoom {
     this.contenedor = document.createElement('div');
 
     this.contenedor.className = 'metronet-control-zoom';
+
+    if (this.integrado) {
+      this.contenedor.classList.add('metronet-control-zoom-integrado');
+    }
 
     this.botonAcercar = document.createElement('button');
 
@@ -94,7 +102,7 @@ export default class ControlZoom {
 
     this.contenedor.appendChild(this.botonRestaurar);
 
-    document.body.appendChild(this.contenedor);
+    this.contenedorPadre.appendChild(this.contenedor);
 
     this.actualizarBotones();
   }
@@ -190,7 +198,7 @@ export default class ControlZoom {
       this.centrarEnSeleccion(camara);
     }
 
-    this.escena.actualizarVisibilidadLogo?.(false);
+    this.escena.actualizarVisibilidadLogo?.(true);
 
     this.actualizarBotones();
   }
@@ -226,7 +234,7 @@ export default class ControlZoom {
       this.centrarEnSeleccion(camara);
     }
 
-    this.escena.actualizarVisibilidadLogo?.(false);
+    this.escena.actualizarVisibilidadLogo?.(true);
 
     this.actualizarBotones();
   }
@@ -591,6 +599,48 @@ export default class ControlZoom {
                     blur(14px)
                     saturate(130%);
 
+            }
+
+
+            .metronet-control-zoom-integrado {
+
+                position:
+                    static;
+
+                flex-direction:
+                    row;
+
+                justify-content:
+                    center;
+
+                width:
+                    100%;
+
+                margin-top:
+                    auto;
+
+                box-sizing:
+                    border-box;
+            }
+
+
+            .metronet-control-zoom-integrado
+            .metronet-control-zoom-restaurar {
+
+                margin-top:
+                    0;
+
+                margin-left:
+                    2px;
+
+                border-top:
+                    none;
+
+                border-left:
+                    1px solid rgba(141, 215, 247, 0.18);
+
+                border-radius:
+                    0 11px 11px 0;
             }
 
             .metronet-control-zoom-boton {

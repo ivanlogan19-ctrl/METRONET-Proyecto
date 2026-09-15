@@ -11,6 +11,10 @@ export default class PanelDinamico {
       right: 8,
     };
 
+    this.contenedorPadre = opciones.contenedorPadre ?? document.body;
+
+    this.integrado = Boolean(opciones.integrado);
+
     this.elemento = null;
 
     this.encabezado = null;
@@ -34,6 +38,10 @@ export default class PanelDinamico {
     panel.id = this.id;
 
     panel.className = 'metronet-panel-dinamico';
+
+    if (this.integrado) {
+      panel.classList.add('metronet-panel-integrado');
+    }
 
     panel.controladorPanelDinamico = this;
 
@@ -59,7 +67,7 @@ export default class PanelDinamico {
 
     panel.appendChild(contenido);
 
-    document.body.appendChild(panel);
+    this.contenedorPadre.appendChild(panel);
 
     this.elemento = panel;
 
@@ -233,7 +241,7 @@ export default class PanelDinamico {
   }
 
   ajustarPosicionPantalla() {
-    if (!this.elemento) {
+    if (!this.elemento || this.integrado) {
       return;
     }
 
@@ -383,6 +391,19 @@ export default class PanelDinamico {
             }
 
 
+            .metronet-panel-integrado {
+
+                position:
+                    static !important;
+
+                width:
+                    100% !important;
+
+                min-width:
+                    0;
+            }
+
+
             .metronet-panel-encabezado {
 
                 box-sizing:
@@ -448,7 +469,6 @@ export default class PanelDinamico {
 
                 transition:
                     background 0.16s ease,
-                    transform 0.16s ease,
                     filter 0.16s ease;
             }
 
@@ -472,9 +492,6 @@ export default class PanelDinamico {
 
                 filter:
                     brightness(1.05);
-
-                transform:
-                    translateY(-1px);
             }
 
 
@@ -544,6 +561,12 @@ export default class PanelDinamico {
 
                     padding:
                         0 8px;
+                }
+
+                .metronet-panel-integrado {
+
+                    width:
+                        100% !important;
                 }
             }
         `;

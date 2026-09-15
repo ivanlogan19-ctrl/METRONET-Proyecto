@@ -35,8 +35,15 @@ export default class MapaScene extends Phaser.Scene {
 
     this.controlZoom = null;
     this.leyendaPuntosInteres = null;
+    this.controlSesion = null;
+    this.controlPerfil = null;
+    this.contenedorInformacionJugador = null;
 
     this.logo = null;
+
+    this.contenedorMapa = null;
+
+    this.contenedorControles = null;
   }
 
   preload() {
@@ -49,6 +56,10 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   create() {
+    this.contenedorMapa = document.getElementById('metronet-mapa');
+
+    this.contenedorControles = document.getElementById('metronet-panel-controles');
+
     this.datosBarrios = this.cache.json.get('barriosMontevideo');
 
     this.datosPuntosInteres = this.cache.json.get('puntosInteres');
@@ -65,9 +76,11 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearControles();
 
+    this.crearLeyendaPuntosInteres();
+
     this.crearControlZoom();
 
-    this.crearLeyendaPuntosInteres();
+    this.crearControlSesion();
 
     this.crearLogo();
 
@@ -156,15 +169,87 @@ export default class MapaScene extends Phaser.Scene {
       zoomMinimo: 1,
 
       zoomMaximo: 8,
+
+      contenedorPadre: this.contenedorControles,
+
+      integrado: true,
     });
 
     this.controlZoom.crear();
+  }
+
+  crearControlSesion() {
+    const controlSesion = document.getElementById('metronet-control-sesion');
+    const controlPerfil = document.getElementById('metronet-control-perfil');
+    const contenedorInformacionJugador = document.getElementById('metronet-informacion-jugador');
+
+    if (!controlSesion || !this.contenedorControles) {
+      return;
+    }
+
+    this.controlSesion = controlSesion;
+    this.controlPerfil = controlPerfil;
+    this.contenedorInformacionJugador = contenedorInformacionJugador;
+
+    this.controlSesion.addEventListener('click', async () => {
+      await this.cerrarSesion();
+    });
+
+    if (this.contenedorInformacionJugador) {
+      this.contenedorControles.appendChild(this.contenedorInformacionJugador);
+    }
+
+    this.contenedorControles.appendChild(this.controlSesion);
+  }
+
+  async cerrarSesion() {
+    let tokenUsuario = null;
+    let tokenAdministrador = null;
+
+    try {
+      tokenUsuario = JSON.parse(window.localStorage.getItem('sesionUsuario'))?.token;
+      tokenAdministrador = JSON.parse(window.localStorage.getItem('sesionAdministrador'))?.token;
+    } catch {
+      tokenUsuario = null;
+      tokenAdministrador = null;
+    }
+
+    if (tokenUsuario) {
+      try {
+        await fetch(`${window.location.protocol}//${window.location.hostname}:8080/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tokenUsuario}` },
+        });
+      } catch {
+        // La sesión local se elimina aunque el servicio ya no esté disponible.
+      }
+    }
+
+    if (tokenAdministrador) {
+      try {
+        await fetch(`${window.location.protocol}//${window.location.hostname}:8080/auth/logout/admin`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tokenAdministrador}` },
+        });
+      } catch {
+        // La sesión local se elimina aunque el servicio ya no esté disponible.
+      }
+    }
+
+    window.localStorage.removeItem('usuario');
+    window.localStorage.removeItem('sesionUsuario');
+    window.localStorage.removeItem('sesionAdministrador');
+    window.location.assign('/login.html');
   }
 
   crearLeyendaPuntosInteres() {
     const convertirColor = (color) => `#${color.toString(16).padStart(6, '0')}`;
 
     this.leyendaPuntosInteres = new LeyendaPuntosInteres({
+      contenedorPadre: this.contenedorControles,
+
+      integrado: true,
+
       referencias: [
         {
           color: convertirColor(COLORES_PUNTOS_INTERES.PATRIMONIO),
@@ -230,6 +315,10 @@ export default class MapaScene extends Phaser.Scene {
 
         right: 196,
       },
+
+      contenedorPadre: this.contenedorControles,
+
+      integrado: true,
 
       onCambio: (zonas) => {
         /*
@@ -310,6 +399,10 @@ export default class MapaScene extends Phaser.Scene {
         right: 8,
       },
 
+      contenedorPadre: this.contenedorControles,
+
+      integrado: true,
+
       onCambio: (barrios) => {
         const barriosSeleccionados = Array.isArray(barrios) ? barrios : [];
 
@@ -387,7 +480,7 @@ export default class MapaScene extends Phaser.Scene {
     imagenLogo.alt = 'METRONET';
 
     Object.assign(this.logo.style, {
-      position: 'fixed',
+      position: 'absolute',
 
       top: '10px',
 
@@ -395,7 +488,7 @@ export default class MapaScene extends Phaser.Scene {
 
       transform: 'translateX(-50%)',
 
-      width: 'clamp(92px, 18vw, 170px)',
+      width: 'clamp(76px, 11vw, 130px)',
 
       aspectRatio: '1',
 
@@ -436,7 +529,7 @@ export default class MapaScene extends Phaser.Scene {
 
     this.logo.appendChild(imagenLogo);
 
-    document.body.appendChild(this.logo);
+    (this.contenedorMapa ?? document.body).appendChild(this.logo);
 
     this.ajustarTamanoLogo();
   }
@@ -446,16 +539,14 @@ export default class MapaScene extends Phaser.Scene {
       return;
     }
 
-    const pantallaAngosta = this.scale.width < 760;
-
     Object.assign(this.logo.style, {
-      top: pantallaAngosta ? '8px' : '10px',
+      top: this.scale.width < 520 ? '8px' : '10px',
 
-      left: pantallaAngosta ? '8px' : '50%',
+      left: '50%',
 
-      transform: pantallaAngosta ? 'none' : 'translateX(-50%)',
+      transform: 'translateX(-50%)',
 
-      width: pantallaAngosta ? '62px' : 'clamp(88px, 10vw, 130px)',
+      width: this.scale.width < 520 ? '62px' : 'clamp(76px, 11vw, 130px)',
     });
   }
 
@@ -559,5 +650,9 @@ export default class MapaScene extends Phaser.Scene {
 
       this.logo = null;
     }
+
+    this.contenedorMapa = null;
+
+    this.contenedorControles = null;
   }
 }

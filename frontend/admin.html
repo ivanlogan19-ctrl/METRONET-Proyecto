@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración · METRONET</title>
+    <link rel="stylesheet" href="/src/administracion/administracion.css" />
+  </head>
+  <body>
+    <main class="admin-aplicacion">
+      <aside class="admin-menu" aria-label="Menú de administración">
+        <a
+          class="admin-marca"
+          href="/admin.html"
+          aria-label="Inicio de administración"
+        >
+          <img src="/assets/logoMETRONET.png" alt="METRONET" />
+          <span>Administración</span>
+        </a>
+        <nav class="admin-navegacion" aria-label="Módulos de administración">
+          <button
+            class="admin-enlace activo"
+            type="button"
+            data-vista="usuarios"
+          >
+            Usuarios
+          </button>
+          <button class="admin-enlace" type="button" data-vista="disenos">
+            Diseños y escenarios
+          </button>
+          <button class="admin-enlace" type="button" data-vista="configuracion">
+            Configuración
+          </button>
+        </nav>
+        <div class="admin-menu-pie">
+          <a class="admin-volver-mapa" href="/">Ver mapa</a>
+          <button id="cerrarSesion" class="admin-cerrar-sesion" type="button">
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      <section class="admin-contenido">
+        <header class="admin-encabezado">
+          <div>
+            <p class="admin-etiqueta">Panel de control</p>
+            <h1 id="tituloVista">Gestión de usuarios</h1>
+          </div>
+          <p id="nombreAdministrador" class="admin-usuario"></p>
+        </header>
+
+        <section
+          id="vista-usuarios"
+          class="admin-vista activa"
+          aria-labelledby="tituloVista"
+        >
+          <p class="admin-descripcion">
+            Consultá las cuentas registradas y asigná el rol correspondiente.
+          </p>
+          <p
+            id="mensajeAdministracion"
+            class="admin-mensaje"
+            role="status"
+            aria-live="polite"
+          ></p>
+          <div class="admin-tabla-contenedor">
+            <table class="admin-tabla">
+              <thead>
+                <tr>
+                  <th>Nombre completo</th>
+                  <th>Correo electrónico</th>
+                  <th>Rol</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaUsuarios"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="vista-disenos" class="admin-vista">
+          <h2>Diseños y escenarios</h2>
+          <p>
+            Consultá los diseños creados por los jugadores. Al abrir uno podés
+            modificar o eliminar sus líneas de metro, estaciones y conexiones.
+          </p>
+          <p id="mensajeDisenos" class="admin-mensaje" role="status" aria-live="polite"></p>
+          <div id="listaDisenos" class="admin-lista-disenos"></div>
+          <div id="detalleDiseno" class="admin-detalle-diseno" hidden></div>
+        </section>
+        <section id="vista-configuracion" class="admin-vista">
+          <h2>Configuración general</h2>
+          <p>Este espacio reunirá los parámetros generales de la plataforma.</p>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/src/administracion/administracion.js"></script>
+  </body>
+</html>

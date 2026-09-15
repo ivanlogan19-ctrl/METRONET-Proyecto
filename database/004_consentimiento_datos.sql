@@ -1,0 +1,3 @@
+ALTER TABLE usuario
+  ADD COLUMN IF NOT EXISTS acepta_datos BOOLEAN,
+  ADD COLUMN IF NOT EXISTS fecha_consentimiento TIMESTAMP;

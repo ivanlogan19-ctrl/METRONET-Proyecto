@@ -15,6 +15,10 @@ export default class SelectorBarrios {
         top: 125,
         right: 8,
       },
+
+      contenedorPadre: opciones.contenedorPadre,
+
+      integrado: opciones.integrado,
     });
 
     this.barrios = [];

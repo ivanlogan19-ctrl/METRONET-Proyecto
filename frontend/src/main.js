@@ -5,9 +5,7 @@ import MapaScene from './mapa/MapaScene.js';
 const config = {
   type: Phaser.AUTO,
 
-  width: window.innerWidth,
-
-  height: window.innerHeight,
+  parent: 'metronet-mapa',
 
   backgroundColor: '#000000',
 

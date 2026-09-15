@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS usuario (
+    id_usuario SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    rol VARCHAR(20) NOT NULL,
+    CONSTRAINT chk_usuario_rol CHECK (rol IN ('ADMIN', 'JUGADOR'))
+);

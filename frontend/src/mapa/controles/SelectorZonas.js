@@ -15,6 +15,10 @@ export default class SelectorZonas {
         top: 24,
         left: 24,
       },
+
+      contenedorPadre: opciones.contenedorPadre,
+
+      integrado: opciones.integrado,
     });
 
     this.zonasSeleccionadas = new Set();

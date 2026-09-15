@@ -2,6 +2,10 @@ export default class LeyendaPuntosInteres {
   constructor(opciones = {}) {
     this.id = opciones.id ?? 'metronet-leyenda-puntos-interes';
     this.referencias = Array.isArray(opciones.referencias) ? opciones.referencias : [];
+    this.contenedorPadre = opciones.contenedorPadre ?? document.body;
+    this.integrado = Boolean(opciones.integrado);
+    this.titulo = opciones.titulo ?? 'Puntos de interés';
+    this.tituloElemento = null;
     this.elemento = null;
     this.encabezado = null;
     this.contenido = null;
@@ -18,12 +22,20 @@ export default class LeyendaPuntosInteres {
     this.elemento.id = this.id;
     this.elemento.className = 'metronet-leyenda-puntos-interes';
 
+    if (this.integrado) {
+      this.elemento.classList.add('metronet-leyenda-integrada');
+    }
+
+    this.tituloElemento = document.createElement('h2');
+    this.tituloElemento.className = 'metronet-leyenda-titulo-seccion';
+    this.tituloElemento.textContent = this.titulo;
+
     this.encabezado = document.createElement('button');
     this.encabezado.type = 'button';
     this.encabezado.className = 'metronet-leyenda-encabezado';
     this.encabezado.setAttribute('aria-expanded', 'false');
     this.encabezado.innerHTML =
-      '<span>Referencias</span><span class="metronet-leyenda-indicador">▾</span>';
+      '<span>Referencias</span><span class="metronet-leyenda-indicador">▼</span>';
 
     this.contenido = document.createElement('div');
     this.contenido.className = 'metronet-leyenda-contenido';
@@ -36,7 +48,7 @@ export default class LeyendaPuntosInteres {
     this.encabezado.addEventListener('click', () => this.alternar());
 
     this.elemento.append(this.encabezado, this.contenido);
-    document.body.appendChild(this.elemento);
+    this.contenedorPadre.append(this.tituloElemento, this.elemento);
   }
 
   crearReferencia({ color, titulo, descripcion }) {
@@ -126,7 +138,9 @@ export default class LeyendaPuntosInteres {
 
   eliminar() {
     this.cerrar();
+    this.tituloElemento?.remove();
     this.elemento?.remove();
+    this.tituloElemento = null;
     this.elemento = null;
     this.encabezado = null;
     this.contenido = null;
@@ -159,9 +173,26 @@ export default class LeyendaPuntosInteres {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
+      .metronet-leyenda-integrada {
+        position: static;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .metronet-leyenda-titulo-seccion {
+        margin: 6px 4px -4px;
+        color: #a9d9ef;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
       .metronet-leyenda-encabezado {
         display: flex;
         align-items: center;
+        justify-content: center;
         width: 100%;
         min-height: 42px;
         padding: 0 13px;
@@ -175,18 +206,17 @@ export default class LeyendaPuntosInteres {
         letter-spacing: 0.01em;
         text-align: center;
         cursor: pointer;
-        transition: background 0.16s ease, transform 0.16s ease, filter 0.16s ease;
+        transition: background 0.16s ease, filter 0.16s ease;
       }
 
       .metronet-leyenda-encabezado:hover {
         background: linear-gradient(135deg, #1a6d91, #1595cf);
         filter: brightness(1.05);
-        transform: translateY(-1px);
       }
 
       .metronet-leyenda-indicador {
-        position: absolute;
-        right: 13px;
+        position: static;
+        margin-left: 4px;
         color: #ffffff;
         font-size: 13px;
         transition: transform 0.16s ease;
@@ -271,13 +301,22 @@ export default class LeyendaPuntosInteres {
           max-height: min(330px, calc(100vh - 76px));
         }
 
+        .metronet-leyenda-integrada {
+          width: 100%;
+        }
+
+        .metronet-leyenda-titulo-seccion {
+          grid-column: 1 / -1;
+          margin: 4px 2px -2px;
+        }
+
         .metronet-leyenda-encabezado {
           padding: 0 8px;
           font-size: 11px;
         }
 
         .metronet-leyenda-indicador {
-          right: 8px;
+          margin-left: 3px;
           font-size: 11px;
         }
       }

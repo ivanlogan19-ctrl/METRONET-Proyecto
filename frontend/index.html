@@ -52,6 +52,294 @@
         }
 
 
+        #metronet-aplicacion {
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                clamp(230px, 23vw, 300px);
+
+            width: 100%;
+
+            height: 100%;
+
+            background: #020B14;
+
+        }
+
+
+        #metronet-mapa {
+
+            position: relative;
+
+            min-width: 0;
+
+            min-height: 0;
+
+            overflow: hidden;
+
+            background: #020B14;
+
+        }
+
+
+        #metronet-panel-controles {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+            min-width: 0;
+
+            padding: 18px 14px;
+
+            overflow-y: auto;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #0A2335,
+                    #061521
+                );
+
+            border-left:
+                1px solid rgba(141, 215, 247, 0.22);
+
+            box-shadow:
+                -12px 0 28px rgba(0, 0, 0, 0.16);
+
+            box-sizing: border-box;
+
+        }
+
+
+        .metronet-panel-titulo {
+
+            margin: 0 4px 2px;
+
+            color: #A9D9EF;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .metronet-control-sesion {
+
+            width: 100%;
+
+            margin: 4px 0 0;
+
+            padding: 9px 10px;
+
+            color: #8DD7F7;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.03em;
+
+            cursor: pointer;
+
+        }
+
+
+        .metronet-informacion-jugador {
+
+            display: grid;
+
+            gap: 6px;
+
+            width: 100%;
+
+        }
+
+
+        .metronet-informacion-jugador-titulo {
+
+            margin: 6px 4px -2px;
+
+            color: #A9D9EF;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .metronet-control-perfil {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 42px;
+
+            padding: 0 13px;
+
+            border-radius: 13px;
+
+            color: #FFFFFF;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #145A7B,
+                    #0B79AE
+                );
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            letter-spacing: 0.01em;
+
+            text-align: center;
+
+            text-decoration: none;
+
+        }
+
+
+        .metronet-control-perfil:hover,
+        .metronet-control-perfil:focus-visible {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1A6D91,
+                    #1595CF
+                );
+
+        }
+
+
+        .metronet-control-perfil-indicador {
+
+            margin-left: 4px;
+
+            font-size: 13px;
+
+        }
+
+
+        .metronet-control-sesion:hover,
+        .metronet-control-sesion:focus-visible {
+
+            color: #FFFFFF;
+
+            background: #0A2335;
+
+            border-color: #8DD7F7;
+
+        }
+
+
+        @media (max-width: 900px) {
+
+            #metronet-aplicacion {
+
+                grid-template-columns: minmax(0, 1fr);
+
+                grid-template-rows: auto minmax(0, 1fr);
+
+            }
+
+
+            #metronet-panel-controles {
+
+                display: grid;
+
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+
+                gap: 8px;
+
+                max-height: 43vh;
+
+                padding: 10px;
+
+                overflow-y: auto;
+
+                border-right: none;
+
+                border-bottom:
+                    1px solid rgba(141, 215, 247, 0.22);
+
+                box-shadow:
+                    0 8px 18px rgba(0, 0, 0, 0.16);
+
+            }
+
+
+            .metronet-panel-titulo {
+
+                grid-column: 1 / -1;
+
+                margin: 0 2px;
+
+            }
+
+
+            .metronet-control-sesion {
+
+                grid-column: 1 / -1;
+
+                margin: 2px 0 0;
+
+            }
+
+
+            .metronet-informacion-jugador {
+
+                grid-column: 1 / -1;
+
+            }
+
+        }
+
+
         button,
         input,
         select,
@@ -136,6 +424,31 @@
 
 
 <body>
+
+    <div id="metronet-aplicacion">
+
+        <main
+            id="metronet-mapa"
+            aria-label="Mapa de Montevideo"
+        ></main>
+
+        <aside
+            id="metronet-panel-controles"
+            aria-label="Controles del mapa"
+        >
+            <h1 class="metronet-panel-titulo">Controles del mapa</h1>
+            <section id="metronet-informacion-jugador" class="metronet-informacion-jugador" aria-label="Información de jugador">
+                <h2 class="metronet-informacion-jugador-titulo">Información de jugador</h2>
+                <a id="metronet-control-perfil" class="metronet-control-perfil" href="/perfil.html">
+                    Actualizar mis datos <span class="metronet-control-perfil-indicador" aria-hidden="true">▼</span>
+                </a>
+            </section>
+            <button id="metronet-control-sesion" class="metronet-control-sesion" type="button">
+                Cerrar sesión
+            </button>
+        </aside>
+
+    </div>
 
     <script
         type="module"

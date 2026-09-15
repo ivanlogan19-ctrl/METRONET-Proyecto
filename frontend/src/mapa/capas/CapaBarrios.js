@@ -154,18 +154,18 @@ export default class CapaBarrios {
 
     const altoPantalla = this.escena.scale.height;
 
-    const pantallaAngosta = anchoPantalla < 760;
+    const pantallaAngosta = anchoPantalla < 520;
 
     /*
-     * Reservamos el sector superior para
-     * logo y menús, que cambia por tamaño
-     * de pantalla.
+     * Los controles ocupan un panel independiente.
+     * Solo dejamos espacio para el logo centrado
+     * dentro del área exclusiva del mapa.
      */
-    const margenHorizontal = pantallaAngosta ? 22 : 40;
+    const margenHorizontal = pantallaAngosta ? 18 : 32;
 
-    const margenSuperior = pantallaAngosta ? 145 : 160;
+    const margenSuperior = pantallaAngosta ? 96 : 128;
 
-    const margenInferior = 50;
+    const margenInferior = pantallaAngosta ? 28 : 32;
 
     const anchoDisponible = Math.max(anchoPantalla - margenHorizontal * 2, 300);
 
