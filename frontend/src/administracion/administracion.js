@@ -24,8 +24,7 @@ function obtenerSesionAdministrador() {
 }
 
 function inicializarAdministracion(sesionAdministrador) {
-  document.getElementById("nombreAdministrador").textContent =
-    sesionAdministrador.usuario.nombre;
+  actualizarEtiquetaAdministrador(sesionAdministrador.usuario);
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
     boton.addEventListener("click", () => {
@@ -39,6 +38,11 @@ function inicializarAdministracion(sesionAdministrador) {
 
   document.getElementById("cerrarSesion").addEventListener("click", () => {
     cerrarSesion(sesionAdministrador.token);
+  });
+
+  document.getElementById("cerrarEditorUsuario").addEventListener("click", cerrarEditorUsuario);
+  document.getElementById("formularioEditorUsuario").addEventListener("submit", (evento) => {
+    guardarUsuarioEditado(evento, sesionAdministrador.token);
   });
 
   document
@@ -56,7 +60,7 @@ function inicializarAdministracion(sesionAdministrador) {
       const botonEditar = evento.target.closest("[data-editar-usuario]");
 
       if (botonEditar) {
-        editarUsuario(botonEditar, sesionAdministrador.token);
+        abrirEditorUsuario(botonEditar);
       }
 
       const botonEliminar = evento.target.closest("[data-eliminar-usuario]");
@@ -92,7 +96,7 @@ function inicializarAdministracion(sesionAdministrador) {
 function mostrarVista(nombreVista) {
   const titulos = {
     usuarios: "Gestión de usuarios",
-    disenos: "Supervisión de diseños y escenarios",
+    disenos: "Supervisión de escenarios diseñados",
     configuracion: "Configuración general",
   };
 
@@ -160,7 +164,7 @@ function renderizarUsuarios(usuarios) {
         <td><select id="rol-${usuario.idUsuario}" class="admin-rol">${opciones}</select></td>
         <td>
           <button class="admin-guardar" type="button" data-guardar-rol="${usuario.idUsuario}">Guardar rol</button>
-          <button class="admin-secundario" type="button" data-editar-usuario="${usuario.idUsuario}" data-nombre="${escaparHtml(usuario.nombre)}" data-apellido="${escaparHtml(usuario.apellido ?? "")}" data-email="${escaparHtml(usuario.email)}">Editar datos</button>
+          <button class="admin-secundario" type="button" data-editar-usuario="${usuario.idUsuario}" data-nombre="${escaparHtml(usuario.nombre)}" data-apellido="${escaparHtml(usuario.apellido ?? "")}" data-email="${escaparHtml(usuario.email)}" data-rol="${usuario.rol}" data-identificador-administrador="${escaparHtml(usuario.identificadorAdministrador ?? usuario.nombre)}">Editar datos</button>
           <button class="admin-eliminar" type="button" data-eliminar-usuario="${usuario.idUsuario}" data-nombre-usuario="${escaparHtml(`${usuario.nombre ?? ""} ${usuario.apellido ?? ""}`.trim())}">Eliminar usuario</button>
         </td>
       `;
@@ -422,24 +426,60 @@ async function actualizarRol(idUsuario, token) {
   }
 }
 
-async function editarUsuario(boton, token) {
-  const nombre = window.prompt("Nombre:", boton.dataset.nombre);
-  if (nombre === null) return;
-  const apellido = window.prompt("Apellido:", boton.dataset.apellido);
-  if (apellido === null) return;
-  const email = window.prompt("Correo electrónico:", boton.dataset.email);
-  if (email === null) return;
+function abrirEditorUsuario(boton) {
+  document.getElementById("editorIdUsuario").value = boton.dataset.editarUsuario;
+  document.getElementById("editorNombre").value = boton.dataset.nombre;
+  document.getElementById("editorApellido").value = boton.dataset.apellido;
+  document.getElementById("editorEmail").value = boton.dataset.email;
+  const esAdministrador = boton.dataset.rol === "ADMIN";
+  document.getElementById("campoIdentificadorAdministrador").hidden = !esAdministrador;
+  document.getElementById("editorIdentificadorAdministrador").value = esAdministrador
+    ? boton.dataset.identificadorAdministrador
+    : "";
+  document.getElementById("editorContrasena").value = "";
+  mostrarMensajeEditorUsuario("");
+  document.getElementById("editorUsuario").showModal();
+}
+
+function cerrarEditorUsuario() {
+  document.getElementById("editorUsuario").close();
+}
+
+async function guardarUsuarioEditado(evento, token) {
+  evento.preventDefault();
+  const idUsuario = document.getElementById("editorIdUsuario").value;
+  const nombre = document.getElementById("editorNombre").value.trim();
+  const apellido = document.getElementById("editorApellido").value.trim();
+  const email = document.getElementById("editorEmail").value.trim();
+  const identificadorAdministrador = document.getElementById("editorIdentificadorAdministrador").value.trim();
+  const nuevaContrasena = document.getElementById("editorContrasena").value;
+  const contrasenaValida = nuevaContrasena.length >= 6 && /[A-Z]/.test(nuevaContrasena) && /[^A-Za-z0-9]/.test(nuevaContrasena);
+
+  if (!nombre || !email) {
+    mostrarMensajeEditorUsuario("Completá el nombre y el correo electrónico.", "error");
+    return;
+  }
+
+  if (!document.getElementById("campoIdentificadorAdministrador").hidden && !identificadorAdministrador) {
+    mostrarMensajeEditorUsuario("Completá el identificador de administrador.", "error");
+    return;
+  }
+
+  if (nuevaContrasena && !contrasenaValida) {
+    mostrarMensajeEditorUsuario("La contraseña debe tener 6 caracteres, una mayúscula y un carácter especial.", "error");
+    return;
+  }
 
   try {
     const respuesta = await fetch(
-      `${obtenerUrlServidor()}/api/admin/usuarios/${boton.dataset.editarUsuario}`,
+      `${obtenerUrlServidor()}/api/admin/usuarios/${idUsuario}`,
       {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nombre, apellido, email }),
+        body: JSON.stringify({ nombre, apellido, email, nuevaContrasena, identificadorAdministrador }),
       },
     );
 
@@ -452,11 +492,41 @@ async function editarUsuario(boton, token) {
       );
     }
 
+    const usuarioActualizado = await respuesta.json();
+    actualizarSesionAdministradorSiCorresponde(usuarioActualizado);
+    cerrarEditorUsuario();
     mostrarMensaje("Datos del usuario actualizados correctamente.");
     cargarUsuarios(token);
   } catch (error) {
     mostrarMensaje(error.message, "error");
   }
+}
+
+function mostrarMensajeEditorUsuario(texto, tipo = "") {
+  const mensaje = document.getElementById("mensajeEditorUsuario");
+  mensaje.textContent = texto;
+  mensaje.className = `admin-mensaje ${tipo}`;
+}
+
+function actualizarSesionAdministradorSiCorresponde(usuarioActualizado) {
+  try {
+    const sesionAdministrador = JSON.parse(localStorage.getItem("sesionAdministrador"));
+
+    if (sesionAdministrador?.usuario?.idUsuario !== usuarioActualizado.idUsuario) {
+      return;
+    }
+
+    sesionAdministrador.usuario = usuarioActualizado;
+    localStorage.setItem("sesionAdministrador", JSON.stringify(sesionAdministrador));
+    actualizarEtiquetaAdministrador(usuarioActualizado);
+  } catch {
+    // La actualización del usuario se conserva aunque no pueda leerse la sesión local.
+  }
+}
+
+function actualizarEtiquetaAdministrador(administrador) {
+  const identificador = administrador.identificadorAdministrador || administrador.nombre;
+  document.getElementById("nombreAdministrador").textContent = `Administrador: ${identificador}`;
 }
 
 async function cerrarSesion(token) {

@@ -2,6 +2,7 @@ package com.metronet.backend.controller;
 
 import com.metronet.backend.dto.LoginRequest;
 import com.metronet.backend.dto.LoginAdministradorRequest;
+import com.metronet.backend.dto.CambioContrasenaRequest;
 import com.metronet.backend.dto.PerfilRequest;
 import com.metronet.backend.dto.RegistroRequest;
 import com.metronet.backend.dto.SesionAdministradorResponse;
@@ -69,6 +70,15 @@ public class AuthController {
         @RequestBody PerfilRequest solicitud
     ) {
         return ResponseEntity.ok(authService.actualizarPerfil(autorizacion, solicitud));
+    }
+
+    @PatchMapping("/perfil/contrasena")
+    public ResponseEntity<Void> cambiarContrasena(
+        @RequestHeader(value = "Authorization", required = false) String autorizacion,
+        @RequestBody CambioContrasenaRequest solicitud
+    ) {
+        authService.cambiarContrasena(autorizacion, solicitud);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/logout")

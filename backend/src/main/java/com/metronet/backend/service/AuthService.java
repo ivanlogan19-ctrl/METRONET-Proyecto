@@ -2,6 +2,7 @@ package com.metronet.backend.service;
 
 import com.metronet.backend.dto.LoginRequest;
 import com.metronet.backend.dto.LoginAdministradorRequest;
+import com.metronet.backend.dto.CambioContrasenaRequest;
 import com.metronet.backend.dto.PerfilRequest;
 import com.metronet.backend.dto.RegistroRequest;
 import com.metronet.backend.dto.SesionAdministradorResponse;
@@ -140,6 +141,22 @@ public class AuthService {
         return convertirARespuesta(usuarioRepository.save(usuario));
     }
 
+    public void cambiarContrasena(String autorizacion, CambioContrasenaRequest solicitud) {
+        if (solicitud == null || esVacio(solicitud.contrasenaActual()) || esVacio(solicitud.nuevaContrasena())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Completá la contraseña actual y la nueva");
+        }
+
+        Usuario usuario = obtenerUsuarioAutorizado(autorizacion);
+
+        if (!usuario.getPassword().equals(solicitud.contrasenaActual())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La contraseña actual no es correcta");
+        }
+
+        validarContrasena(solicitud.nuevaContrasena());
+        usuario.setPassword(solicitud.nuevaContrasena());
+        usuarioRepository.save(usuario);
+    }
+
     public void cerrarSesionUsuario(String autorizacion) {
         if (autorizacion != null && autorizacion.startsWith("Bearer ")) {
             sesionesUsuario.remove(autorizacion.substring(7).trim());
@@ -170,7 +187,8 @@ public class AuthService {
         }
 
         return usuarioRepository
-            .findByNombreIgnoreCase(solicitud.usuario().trim())
+            .findByIdentificadorAdministradorIgnoreCase(solicitud.usuario().trim())
+            .or(() -> usuarioRepository.findByNombreIgnoreCase(solicitud.usuario().trim()))
             .filter(candidato -> candidato.getPassword().equals(solicitud.password()))
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.UNAUTHORIZED,
@@ -225,7 +243,8 @@ public class AuthService {
             usuario.getNombre(),
             usuario.getApellido(),
             usuario.getEmail(),
-            usuario.getRol()
+            usuario.getRol(),
+            usuario.getIdentificadorAdministrador()
         );
     }
 }

@@ -23,6 +23,9 @@ public class Usuario {
 
     private String apellido;
 
+    @Column(name = "identificador_administrador", unique = true)
+    private String identificadorAdministrador;
+
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -60,6 +63,14 @@ public class Usuario {
 
     public String getApellido() {
         return apellido;
+    }
+
+    public String getIdentificadorAdministrador() {
+        return identificadorAdministrador;
+    }
+
+    public void setIdentificadorAdministrador(String identificadorAdministrador) {
+        this.identificadorAdministrador = identificadorAdministrador;
     }
 
     public void setApellido(String apellido) {

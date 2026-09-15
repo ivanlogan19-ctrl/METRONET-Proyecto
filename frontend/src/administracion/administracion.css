@@ -37,20 +37,29 @@ select {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 4px 8px 28px;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 750;
-  letter-spacing: 0.04em;
+  gap: 12px;
+  width: 100%;
+  padding: 4px 8px 22px;
+  border-bottom: 1px solid rgba(141, 215, 247, 0.2);
+  color: #a9d9ef;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.35;
+  text-align: center;
   text-decoration: none;
   text-transform: uppercase;
 }
 
 .admin-marca img {
-  width: 108px;
-  border-radius: 16px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  width: 96px;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+.admin-marca span {
+  display: block;
+  max-width: 180px;
 }
 
 .admin-navegacion {
@@ -208,28 +217,28 @@ h2 {
   background: #061521;
 }
 .admin-guardar {
-  margin-left: 8px;
+  margin: 0;
   padding: 7px 10px;
-  border: 1px solid #2488c3;
+  border: 1px solid #3ba36d;
   border-radius: 5px;
   color: #ffffff;
-  background: #0b5ea8;
+  background: #237a4a;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
 .admin-guardar:hover,
 .admin-guardar:focus-visible {
-  background: #1477ad;
+  background: #31945c;
 }
 
 .admin-eliminar {
-  margin-top: 8px;
+  margin: 0;
   padding: 7px 10px;
-  border: 1px solid rgba(255, 163, 157, 0.58);
+  border: 1px solid #c96b68;
   border-radius: 5px;
-  color: #ffd4d0;
-  background: rgba(130, 39, 36, 0.22);
+  color: #ffffff;
+  background: #a84340;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -238,7 +247,7 @@ h2 {
 
 .admin-eliminar:hover,
 .admin-eliminar:focus-visible {
-  background: rgba(163, 52, 48, 0.42);
+  background: #c2524f;
 }
 
 .admin-restablecer {
@@ -260,10 +269,10 @@ h2 {
 
 .admin-secundario {
   padding: 7px 10px;
-  border: 1px solid rgba(141, 215, 247, 0.38);
+  border: 1px solid #77818a;
   border-radius: 5px;
-  color: #d9f2fd;
-  background: rgba(20, 90, 123, 0.28);
+  color: #ffffff;
+  background: #5c6670;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -272,7 +281,7 @@ h2 {
 
 .admin-secundario:hover,
 .admin-secundario:focus-visible {
-  background: rgba(20, 90, 123, 0.54);
+  background: #707b85;
 }
 
 .admin-lista-disenos {
@@ -338,8 +347,69 @@ h2 {
 
 .admin-tabla-diseno td:last-child {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 7px;
+  white-space: nowrap;
+}
+
+.admin-tabla td:last-child {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.admin-modal {
+  width: min(92vw, 520px);
+  max-height: min(90vh, 720px);
+  padding: 0;
+  border: 1px solid rgba(141, 215, 247, 0.35);
+  border-radius: 12px;
+  color: #ffffff;
+  background: #061521;
+}
+
+.admin-modal::backdrop {
+  background: rgba(0, 0, 0, 0.66);
+}
+
+.admin-formulario-editor {
+  display: grid;
+  gap: 10px;
+  padding: clamp(18px, 4vw, 28px);
+}
+
+.admin-formulario-editor label {
+  color: #c5e4f2;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-campo-identificador {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-formulario-editor input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(141, 215, 247, 0.38);
+  border-radius: 5px;
+  color: #ffffff;
+  background: #020b14;
+  font: inherit;
+}
+
+.admin-formulario-editor input:focus {
+  outline: 2px solid #8dd7f7;
+  outline-offset: 1px;
+}
+
+.admin-ayuda {
+  margin: 0;
+  color: #a9c9d9;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .admin-tarjetas-resumen {
@@ -372,10 +442,11 @@ h2 {
   .admin-marca {
     flex-direction: row;
     justify-content: center;
-    padding-bottom: 16px;
+    padding-bottom: 14px;
+    text-align: left;
   }
   .admin-marca img {
-    width: 72px;
+    width: 64px;
   }
   .admin-navegacion {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -384,7 +455,7 @@ h2 {
     font-size: 12px;
   }
   .admin-menu-pie {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     margin-top: 16px;
     padding-top: 0;
   }

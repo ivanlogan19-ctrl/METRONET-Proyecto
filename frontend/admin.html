@@ -15,7 +15,7 @@
           aria-label="Inicio de administración"
         >
           <img src="/assets/logoMETRONET.png" alt="METRONET" />
-          <span>Administración</span>
+          <span>Gestión de administración</span>
         </a>
         <nav class="admin-navegacion" aria-label="Módulos de administración">
           <button
@@ -26,14 +26,14 @@
             Usuarios
           </button>
           <button class="admin-enlace" type="button" data-vista="disenos">
-            Diseños y escenarios
+            Escenarios diseñados
           </button>
           <button class="admin-enlace" type="button" data-vista="configuracion">
             Configuración
           </button>
+          <a class="admin-enlace admin-volver-mapa" href="/">Vista del mapa</a>
         </nav>
         <div class="admin-menu-pie">
-          <a class="admin-volver-mapa" href="/">Ver mapa</a>
           <button id="cerrarSesion" class="admin-cerrar-sesion" type="button">
             Cerrar sesión
           </button>
@@ -79,7 +79,7 @@
         </section>
 
         <section id="vista-disenos" class="admin-vista">
-          <h2>Diseños y escenarios</h2>
+          <h2>Escenarios diseñados</h2>
           <p>
             Consultá los diseños creados por los jugadores. Al abrir uno podés
             modificar o eliminar sus líneas de metro, estaciones y conexiones.
@@ -94,6 +94,33 @@
         </section>
       </section>
     </main>
+    <dialog id="editorUsuario" class="admin-modal" aria-labelledby="tituloEditorUsuario">
+      <form id="formularioEditorUsuario" class="admin-formulario-editor" novalidate>
+        <div class="admin-detalle-encabezado">
+          <div>
+            <p class="admin-etiqueta">Cuenta registrada</p>
+            <h2 id="tituloEditorUsuario">Editar usuario</h2>
+          </div>
+          <button id="cerrarEditorUsuario" class="admin-secundario" type="button">Cerrar</button>
+        </div>
+        <input id="editorIdUsuario" type="hidden" />
+        <label for="editorNombre">Nombre</label>
+        <input id="editorNombre" type="text" autocomplete="given-name" required />
+        <label for="editorApellido">Apellido</label>
+        <input id="editorApellido" type="text" autocomplete="family-name" />
+        <div id="campoIdentificadorAdministrador" class="admin-campo-identificador" hidden>
+          <label for="editorIdentificadorAdministrador">Identificador de administrador</label>
+          <input id="editorIdentificadorAdministrador" type="text" autocomplete="username" />
+        </div>
+        <label for="editorEmail">Correo electrónico</label>
+        <input id="editorEmail" type="email" autocomplete="email" required />
+        <label for="editorContrasena">Nueva contraseña</label>
+        <input id="editorContrasena" type="password" autocomplete="new-password" placeholder="Dejar vacía para conservarla" />
+        <p class="admin-ayuda">Si cambiás la contraseña: mínimo 6 caracteres, una mayúscula y un carácter especial.</p>
+        <p id="mensajeEditorUsuario" class="admin-mensaje" role="status"></p>
+        <button class="admin-guardar" type="submit">Guardar cambios</button>
+      </form>
+    </dialog>
     <script type="module" src="/src/administracion/administracion.js"></script>
   </body>
 </html>
