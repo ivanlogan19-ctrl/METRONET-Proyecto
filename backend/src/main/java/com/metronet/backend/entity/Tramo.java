@@ -14,24 +14,28 @@ public class Tramo {
     @Column(name = "id_diseno", nullable = false)
     private Integer idDiseno;
 
-    @Column(name = "nombre_linea", nullable = false, length = 100)
-    private String nombreLinea;
+    @Column(name = "id_linea", nullable = false)
+    private Integer idLinea;
 
-    @Column(name = "estacion_a", nullable = false, length = 100)
-    private String estacionA;
+    @Column(name = "id_estacion_a", nullable = false)
+    private Integer idEstacionA;
 
-    @Column(name = "estacion_b", nullable = false, length = 100)
-    private String estacionB;
+    @Column(name = "id_estacion_b", nullable = false)
+    private Integer idEstacionB;
 
     public Tramo() {
     }
 
-    public Tramo(Integer idDiseno, String nombreLinea,
-                 String estacionA, String estacionB) {
+    public Tramo(
+        Integer idDiseno,
+        Integer idLinea,
+        Integer idEstacionA,
+        Integer idEstacionB
+    ) {
         this.idDiseno = idDiseno;
-        this.nombreLinea = nombreLinea;
-        this.estacionA = estacionA;
-        this.estacionB = estacionB;
+        this.idLinea = idLinea;
+        this.idEstacionA = idEstacionA;
+        this.idEstacionB = idEstacionB;
     }
 
     public Integer getIdTramo() {
@@ -50,27 +54,27 @@ public class Tramo {
         this.idDiseno = idDiseno;
     }
 
-    public String getNombreLinea() {
-        return nombreLinea;
+    public Integer getIdLinea() {
+        return idLinea;
     }
 
-    public void setNombreLinea(String nombreLinea) {
-        this.nombreLinea = nombreLinea;
+    public void setIdLinea(Integer idLinea) {
+        this.idLinea = idLinea;
     }
 
-    public String getEstacionA() {
-        return estacionA;
+    public Integer getIdEstacionA() {
+        return idEstacionA;
     }
 
-    public void setEstacionA(String estacionA) {
-        this.estacionA = estacionA;
+    public void setIdEstacionA(Integer idEstacionA) {
+        this.idEstacionA = idEstacionA;
     }
 
-    public String getEstacionB() {
-        return estacionB;
+    public Integer getIdEstacionB() {
+        return idEstacionB;
     }
 
-    public void setEstacionB(String estacionB) {
-        this.estacionB = estacionB;
+    public void setIdEstacionB(Integer idEstacionB) {
+        this.idEstacionB = idEstacionB;
     }
 }

@@ -3,15 +3,17 @@ import Phaser from "phaser";
 let modoActual = "normal";
 let nombreEstacionPendiente = "";
 let estacionSeleccionada = null;
+let estacionesCargadas = [];
 
 let nombreLineaPendiente = "";
 let tramosLineaPendiente = [];
 let estacionTramoPendiente = null;
 let estacionesLineaPendiente = [];
-let estacionesCargadas = [];
+let lineaSeleccionada = null;
 let dibujosTramosPendientes = [];
 
 let tramosGuardados = [];
+let dibujosLineasGuardadas = [];
 
 const idDisenoActual = 1;
 
@@ -210,28 +212,25 @@ function dibujarEstacion(escena, estacion) {
         texto.setVisible(false);
     });
 
-    circulo.on("pointerdown", function() {
+    circulo.on("pointerdown", function(pointer) {
 
         if (modoActual === "crearLinea") {
             seleccionarEstacionParaLinea(escena, estacion);
             return;
         }
 
-        if (modoActual === "editarEstacion") {
-            estacionSeleccionada = estacion;
+        estacionSeleccionada = estacion;
 
-            const formEditarEstacion =
-                document.getElementById("formEditarEstacion");
+        const menuEstacion =
+            document.getElementById("menuEstacion");
 
-            const nombreEstacionEditar =
-                document.getElementById("nombreEstacionEditar");
+        menuEstacion.hidden = false;
 
-            nombreEstacionEditar.value = estacion.nombre;
-            formEditarEstacion.hidden = false;
-            nombreEstacionEditar.focus();
+        menuEstacion.style.position = "absolute";
+        menuEstacion.style.left = `${pointer.event.clientX}px`;
+        menuEstacion.style.top = `${pointer.event.clientY}px`;
 
-            console.log("Estación seleccionada:", estacion);
-        }
+        console.log("Estación seleccionada:", estacion);
     });
 }
 
@@ -277,6 +276,26 @@ function dibujarTramo(
     }
 
     return linea;
+}
+
+function actualizarSeleccionLinea(nombreLinea) {
+
+    dibujosLineasGuardadas.forEach(item => {
+
+        if (item.nombreLinea === nombreLinea) {
+            item.dibujo.setStrokeStyle(2, 0xffff00);
+        } else {
+            item.dibujo.setStrokeStyle(1, 0xffffff);
+        }
+    });
+
+    const menuLinea = document.getElementById("menuLinea");
+
+    if (nombreLinea === null) {
+        menuLinea.hidden = true;
+    } else {
+        menuLinea.hidden = false;
+    }
 }
 
 // ---------
@@ -358,7 +377,7 @@ function eliminarEstacion(estacion) {
     });
 }
 
-function cargarEstaciones(escena) {
+function cargarEstaciones(escena, elementos) {
     fetch(
         `http://localhost:8080/estaciones?idDiseno=${idDisenoActual}`
     )
@@ -374,7 +393,7 @@ function cargarEstaciones(escena) {
             dibujarEstacion(escena, estacion);
         });
 
-        cargarLineas(escena);
+        cargarLineas(escena, elementos);
     })
     .catch(error => {
         console.error("No se pudieron cargar las estaciones:", error);
@@ -403,7 +422,50 @@ function guardarLinea(linea) {
     });
 }
 
-function cargarLineas(escena) {
+function eliminarLinea(nombreLinea) {
+
+    return fetch(
+        `http://localhost:8080/lineas/${idDisenoActual}/${encodeURIComponent(nombreLinea)}`,
+        {
+            method: "DELETE"
+        }
+    )
+    .then(response => {
+
+        console.log("Respuesta DELETE:", response.status);
+
+        if (!response.ok) {
+            throw new Error("Error al eliminar la línea");
+        }
+
+        console.log("Línea eliminada:", nombreLinea);
+    });
+}
+
+function cambiarNombreLinea(nombreActual, nuevoNombre) {
+
+    return fetch(
+        `http://localhost:8080/lineas/${idDisenoActual}/${encodeURIComponent(nombreActual)}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "text/plain"
+            },
+            body: nuevoNombre
+        }
+    )
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(mensaje => {
+                throw new Error(mensaje);
+            });
+        }
+
+        return response.text();
+    });
+}
+
+function cargarLineas(escena, elementos) {
 
     fetch(
         `http://localhost:8080/lineas/diseno/${idDisenoActual}`
@@ -436,20 +498,103 @@ function cargarLineas(escena) {
                 tramos.forEach(tramo => {
 
                     const estacionA = estacionesCargadas.find(
-                        estacion => estacion.nombre === tramo.estacionA
+                        e => e.idEstacion === tramo.idEstacionA
                     );
 
                     const estacionB = estacionesCargadas.find(
-                        estacion => estacion.nombre === tramo.estacionB
+                        e => e.idEstacion === tramo.idEstacionB
                     );
 
                     if (estacionA && estacionB) {
-                        dibujarTramo(
+
+                        const dibujo = dibujarTramo(
                             escena,
                             estacionA,
                             estacionB,
                             false
                         );
+
+                        const xMedio =
+                            (estacionA.posicionX + estacionB.posicionX) / 2;
+
+                        const yMedio =
+                            (estacionA.posicionY + estacionB.posicionY) / 2;
+
+                        const distancia = Phaser.Math.Distance.Between(
+                            estacionA.posicionX,
+                            estacionA.posicionY,
+                            estacionB.posicionX,
+                            estacionB.posicionY
+                        );
+
+                        const angulo = Phaser.Math.Angle.Between(
+                            estacionA.posicionX,
+                            estacionA.posicionY,
+                            estacionB.posicionX,
+                            estacionB.posicionY
+                        );
+
+                        const zonaClick = escena.add.zone(
+                            xMedio,
+                            yMedio,
+                            distancia,
+                            20
+                        );
+
+                        zonaClick.setRotation(angulo);
+                        zonaClick.setInteractive();
+
+                        const textoLinea = escena.add.text(
+                            xMedio + 15,
+                            yMedio - 8,
+                            linea.nombre
+                        );
+
+                        textoLinea.setVisible(false);
+
+                        zonaClick.on("pointerover", function() {
+
+                            const registroLinea = dibujosLineasGuardadas.find(
+                                item => item.zonaClick === zonaClick
+                            );
+
+                            if (registroLinea) {
+                                textoLinea.setText(registroLinea.nombreLinea);
+                            }
+
+                            textoLinea.setVisible(true);
+                        });
+
+                        zonaClick.on("pointerout", function() {
+                            textoLinea.setVisible(false);
+                        });
+
+                        zonaClick.on("pointerdown", function(pointer) {
+
+                            const registroLinea = dibujosLineasGuardadas.find(
+                                item => item.zonaClick === zonaClick
+                            );
+
+                            lineaSeleccionada = registroLinea.nombreLinea;
+
+                            actualizarSeleccionLinea(lineaSeleccionada);
+
+                            elementos.menuLinea.style.position = "absolute";
+                            elementos.menuLinea.style.left = `${pointer.event.clientX}px`;
+                            elementos.menuLinea.style.top = `${pointer.event.clientY}px`;
+
+                            console.log(
+                                "Línea seleccionada:",
+                                lineaSeleccionada
+                            );
+                        });
+
+                        dibujosLineasGuardadas.push({
+                            nombreLinea: linea.nombre,
+                            tramo: tramo,
+                            dibujo: dibujo,
+                            zonaClick: zonaClick
+                        });
                     }
                 });
             });
@@ -460,6 +605,68 @@ function cargarLineas(escena) {
             "No se pudieron cargar las líneas:",
             error
         );
+    });
+}
+
+function actualizarTramosDeEstacion(escena, estacion) {
+
+    dibujosLineasGuardadas.forEach(item => {
+
+        const tramo = item.tramo;
+
+        if (
+            tramo.idEstacionA !== estacion.idEstacion &&
+            tramo.idEstacionB !== estacion.idEstacion
+        ) {
+            return;
+        }
+
+        const estacionA = estacionesCargadas.find(
+            e => e.idEstacion === tramo.idEstacionA
+        );
+
+        const estacionB = estacionesCargadas.find(
+            e => e.idEstacion === tramo.idEstacionB
+        );
+
+        if (!estacionA || !estacionB) {
+            return;
+        }
+
+        // Redibujar la línea
+        item.dibujo.destroy();
+
+        item.dibujo = dibujarTramo(
+            escena,
+            estacionA,
+            estacionB,
+            false
+        );
+
+        // Reposicionar la zona clickeable
+        const xMedio =
+            (estacionA.posicionX + estacionB.posicionX) / 2;
+
+        const yMedio =
+            (estacionA.posicionY + estacionB.posicionY) / 2;
+
+        const distancia = Phaser.Math.Distance.Between(
+            estacionA.posicionX,
+            estacionA.posicionY,
+            estacionB.posicionX,
+            estacionB.posicionY
+        );
+
+        const angulo = Phaser.Math.Angle.Between(
+            estacionA.posicionX,
+            estacionA.posicionY,
+            estacionB.posicionX,
+            estacionB.posicionY
+        );
+
+        item.zonaClick.setPosition(xMedio, yMedio);
+        item.zonaClick.setSize(distancia, 20);
+        item.zonaClick.setRotation(angulo);
     });
 }
 
@@ -520,6 +727,35 @@ function configurarCreacionEstacion(escena, elementos) {
     );
 
     escena.input.on("pointerdown", function(pointer) {
+
+        if (modoActual === "moverEstacion") {
+
+            estacionSeleccionada.posicionX = pointer.x;
+            estacionSeleccionada.posicionY = pointer.y;
+
+            estacionSeleccionada.circulo.setPosition(
+                pointer.x,
+                pointer.y
+            );
+
+            estacionSeleccionada.texto.setPosition(
+                pointer.x,
+                pointer.y - 20
+            );
+
+            actualizarTramosDeEstacion(
+                escena,
+                estacionSeleccionada
+            );
+
+            actualizarEstacion(estacionSeleccionada);
+
+            modoActual = "normal";
+            estacionSeleccionada = null;
+
+            return;
+        }
+
         if (modoActual !== "crearEstacion") {
             return;
         }
@@ -545,7 +781,7 @@ function configurarCreacionEstacion(escena, elementos) {
 
 // Lineas
 
-function configurarCreacionLinea(elementos) {
+function configurarCreacionLinea(escena, elementos) {
 
     function continuarCreacionLinea() {
 
@@ -595,6 +831,16 @@ function configurarCreacionLinea(elementos) {
         function(evento) {
             if (evento.key === "Enter") {
                 continuarCreacionLinea();
+            }
+        }
+    );
+
+    elementos.nuevoNombreLinea.addEventListener(
+        "keydown",
+        function(evento) {
+
+            if (evento.key === "Enter") {
+                elementos.botonGuardarNombreLinea.click();
             }
         }
     );
@@ -653,7 +899,108 @@ function configurarCreacionLinea(elementos) {
 
                     console.log(mensaje);
 
+                    const nombreLineaGuardada = nombreLineaPendiente;
+
                     tramosGuardados.push(...tramosLineaPendiente);
+
+                    tramosLineaPendiente.forEach((tramo, indice) => {
+
+                        const dibujo = dibujosTramosPendientes[indice];
+
+                        const estacionA = estacionesCargadas.find(
+                            estacion => estacion.nombre === tramo.estacionA
+                        );
+
+                        const estacionB = estacionesCargadas.find(
+                            estacion => estacion.nombre === tramo.estacionB
+                        );
+
+                        if (!estacionA || !estacionB || !dibujo) {
+                            return;
+                        }
+
+                        const xMedio =
+                            (estacionA.posicionX + estacionB.posicionX) / 2;
+
+                        const yMedio =
+                            (estacionA.posicionY + estacionB.posicionY) / 2;
+
+                        const distancia = Phaser.Math.Distance.Between(
+                            estacionA.posicionX,
+                            estacionA.posicionY,
+                            estacionB.posicionX,
+                            estacionB.posicionY
+                        );
+
+                        const angulo = Phaser.Math.Angle.Between(
+                            estacionA.posicionX,
+                            estacionA.posicionY,
+                            estacionB.posicionX,
+                            estacionB.posicionY
+                        );
+
+                        const zonaClick = escena.add.zone(
+                            xMedio,
+                            yMedio,
+                            distancia,
+                            20
+                        );
+
+                        zonaClick.setRotation(angulo);
+                        zonaClick.setInteractive();
+
+                        const textoLinea = escena.add.text(
+                            xMedio + 15,
+                            yMedio - 8,
+                            nombreLineaGuardada
+                        );
+
+                        textoLinea.setVisible(false);
+
+                        zonaClick.on("pointerover", function() {
+
+                            const registroLinea = dibujosLineasGuardadas.find(
+                                item => item.zonaClick === zonaClick
+                            );
+
+                            if (registroLinea) {
+                                textoLinea.setText(registroLinea.nombreLinea);
+                            }
+
+                            textoLinea.setVisible(true);
+                        });
+
+                        zonaClick.on("pointerout", function() {
+                            textoLinea.setVisible(false);
+                        });
+
+                        zonaClick.on("pointerdown", function(pointer) {
+
+                            const registroLinea = dibujosLineasGuardadas.find(
+                                item => item.zonaClick === zonaClick
+                            );
+
+                            lineaSeleccionada = registroLinea.nombreLinea;
+
+                            actualizarSeleccionLinea(lineaSeleccionada);
+
+                            elementos.menuLinea.style.position = "absolute";
+                            elementos.menuLinea.style.left = `${pointer.event.clientX}px`;
+                            elementos.menuLinea.style.top = `${pointer.event.clientY}px`;
+
+                            console.log(
+                                "Línea seleccionada:",
+                                lineaSeleccionada
+                            );
+                        });
+
+                        dibujosLineasGuardadas.push({
+                            nombreLinea: nombreLineaGuardada,
+                            tramo: tramo,
+                            dibujo: dibujo,
+                            zonaClick: zonaClick
+                        });
+                    });
 
                     // Devuelve las estaciones de la línea al color normal
                     estacionesLineaPendiente.forEach(nombreEstacion => {
@@ -667,8 +1014,6 @@ function configurarCreacionLinea(elementos) {
                         }
                     });
 
-                    /* Los tramos ya fueron guardados,
-                    por eso se dejan dibujados pero dejan de ser pendientes */
                     dibujosTramosPendientes = [];
 
                     // Limpia las variables temporales de creación
@@ -700,15 +1045,7 @@ function configurarCreacionLinea(elementos) {
 
 function configurarEdicionEstaciones(elementos) {
 
-    elementos.botonEditarEstaciones.addEventListener(
-        "click",
-        function() {
-            modoActual = "editarEstacion";
-            console.log(
-                "Modo editar estaciones activado"
-            );
-        }
-    );
+    
 
     elementos.botonCancelarEditarEstacion.addEventListener(
         "click",
@@ -740,6 +1077,9 @@ function configurarEdicionEstaciones(elementos) {
                 nuevoNombre
             );
 
+            //TEMPORAL
+            console.log("Estación enviada al PUT:", estacionSeleccionada);
+
             actualizarEstacion(estacionSeleccionada);
 
             elementos.formEditarEstacion.hidden = true;
@@ -770,6 +1110,230 @@ function configurarEdicionEstaciones(elementos) {
             }
         }
     );
+
+    document.addEventListener("pointerdown", function(evento) {
+
+        // Cerrar menú de estación al clickear afuera
+        if (
+            !elementos.menuEstacion.hidden &&
+            !elementos.menuEstacion.contains(evento.target)
+        ) {
+            elementos.menuEstacion.hidden = true;
+            estacionSeleccionada = null;
+        }
+
+        // Cerrar menú de línea y deseleccionarla al clickear afuera
+        if (
+            !elementos.menuLinea.hidden &&
+            !elementos.menuLinea.contains(evento.target) &&
+            !elementos.confirmarEliminarLinea.contains(evento.target)
+        ) {
+            elementos.menuLinea.hidden = true;
+
+            lineaSeleccionada = null;
+            actualizarSeleccionLinea(lineaSeleccionada);
+        }
+    });
+
+    //Botones menú desplegable estación
+    elementos.botonMoverEstacion.addEventListener(
+        "click",
+        function() {
+
+            elementos.menuEstacion.hidden = true;
+
+            modoActual = "moverEstacion";
+
+            console.log(
+                "Moviendo estación:",
+                estacionSeleccionada.nombre
+            );
+        }
+    );
+
+    elementos.botonCambiarNombreEstacion.addEventListener(
+        "click",
+        function() {
+
+            elementos.menuEstacion.hidden = true;
+
+            elementos.nombreEstacionEditar.value =
+                estacionSeleccionada.nombre;
+    
+            elementos.formEditarEstacion.hidden = false;
+            elementos.nombreEstacionEditar.focus();
+        }
+    );
+
+    //eliminar estacion
+    //------------------------------------------------------------
+    elementos.botonEliminarEstacionMenu.addEventListener(
+        "click",
+        function() {
+
+            elementos.menuEstacion.hidden = true;
+            elementos.confirmarEliminarEstacion.hidden = false;
+        }
+    );
+
+    elementos.botonCancelarEliminarEstacion.addEventListener(
+        "click",
+        function() {
+            elementos.confirmarEliminarEstacion.hidden = true;
+        }
+    );
+
+    elementos.botonConfirmarEliminarEstacion.addEventListener(
+        "click",
+        function() {
+
+            if (estacionSeleccionada === null) {
+                return;
+            }
+
+            eliminarEstacion(estacionSeleccionada);
+
+            elementos.confirmarEliminarEstacion.hidden = true;
+            estacionSeleccionada = null;
+        }
+    );
+    //------------------------------------------------------------
+}
+
+function configurarEdicionLineas(elementos) {
+
+    elementos.botonCambiarNombreLinea.addEventListener(
+        "click",
+        function() {
+
+            if (lineaSeleccionada === null) {
+                return;
+            }
+
+            elementos.nuevoNombreLinea.value = lineaSeleccionada;
+
+            elementos.menuLinea.hidden = true;
+            elementos.formCambiarNombreLinea.hidden = false;
+        }
+    );
+
+    elementos.botonCancelarCambiarNombreLinea.addEventListener(
+        "click",
+        function() {
+            elementos.formCambiarNombreLinea.hidden = true;
+            elementos.nuevoNombreLinea.value = "";
+        }
+    );
+
+    elementos.botonGuardarNombreLinea.addEventListener(
+        "click",
+        function() {
+
+            if (lineaSeleccionada === null) {
+                return;
+            }
+
+            const nombreActual = lineaSeleccionada;
+            const nuevoNombre =
+                elementos.nuevoNombreLinea.value.trim();
+
+            if (nuevoNombre === "") {
+                return;
+            }
+
+            cambiarNombreLinea(nombreActual, nuevoNombre)
+                .then(() => {
+
+                    dibujosLineasGuardadas.forEach(item => {
+                        if (item.nombreLinea === nombreActual) {
+                            item.nombreLinea = nuevoNombre;
+                        }
+                    });
+
+                    lineaSeleccionada = nuevoNombre;
+                    actualizarSeleccionLinea(lineaSeleccionada);
+
+                    elementos.formCambiarNombreLinea.hidden = true;
+                    elementos.nuevoNombreLinea.value = "";
+
+                    console.log(
+                        "Línea renombrada:",
+                        nombreActual,
+                        "→",
+                        nuevoNombre
+                    );
+                })
+                .catch(error => {
+                    console.error(
+                        "No se pudo cambiar el nombre de la línea:",
+                        error
+                    );
+                });
+        }
+    );
+
+    elementos.botonEliminarLinea.addEventListener(
+        "click",
+        function() {
+            elementos.confirmarEliminarLinea.hidden = false;
+        }
+    );
+
+    elementos.botonCancelarEliminarLinea.addEventListener(
+        "click",
+        function() {
+            elementos.confirmarEliminarLinea.hidden = true;
+        }
+    );
+
+    elementos.botonConfirmarEliminarLinea.addEventListener(
+        "click",
+        function() {
+
+            if (lineaSeleccionada === null) {
+                return;
+            }
+
+            eliminarLinea(lineaSeleccionada)
+                .then(() => {
+
+                    console.log("Línea a quitar visualmente:", lineaSeleccionada);
+                    console.log("Dibujos guardados:", dibujosLineasGuardadas);
+
+                    dibujosLineasGuardadas
+                        .filter(item =>
+                            item.nombreLinea === lineaSeleccionada
+                        )
+                        .forEach(item => {
+                            item.dibujo.destroy();
+                            item.zonaClick.destroy();
+                        });
+
+                    dibujosLineasGuardadas =
+                        dibujosLineasGuardadas.filter(
+                            item =>
+                                item.nombreLinea !== lineaSeleccionada
+                        );
+
+                    tramosGuardados =
+                        tramosGuardados.filter(
+                            tramo =>
+                                tramo.nombreLinea !== lineaSeleccionada
+                        );
+
+                    lineaSeleccionada = null;
+
+                    elementos.confirmarEliminarLinea.hidden = true;
+                    elementos.menuLinea.hidden = true;
+                })
+                .catch(error => {
+                    console.error(
+                        "No se pudo eliminar la línea:",
+                        error
+                    );
+                });
+        }
+    );
 }
 
 // --------------------
@@ -783,9 +1347,6 @@ function obtenerElementos() {
 
         botonCrearEstacion:
             document.getElementById("btnCrearEstacion"),
-
-        botonEditarEstaciones:
-            document.getElementById("btnEditarEstaciones"),
 
         formEstacion:
             document.getElementById("formEstacion"),
@@ -813,8 +1374,31 @@ function obtenerElementos() {
                 "btnCancelarEditarEstacion"
             ),
 
+        confirmarEliminarEstacion:
+            document.getElementById("confirmarEliminarEstacion"),
+
+        botonConfirmarEliminarEstacion:
+            document.getElementById("btnConfirmarEliminarEstacion"),
+
+        botonCancelarEliminarEstacion:
+            document.getElementById("btnCancelarEliminarEstacion"),
+
         botonGuardarEstacion:
             document.getElementById("btnGuardarEstacion"),
+        
+
+        //Menú desplegable de opciones click estación
+        menuEstacion:
+            document.getElementById("menuEstacion"),
+
+        botonCambiarNombreEstacion:
+            document.getElementById("btnCambiarNombreEstacion"),
+
+        botonMoverEstacion:
+            document.getElementById("btnMoverEstacion"),
+
+        botonEliminarEstacionMenu:
+            document.getElementById("btnEliminarEstacionMenu"),
 
         // Lineas
 
@@ -841,6 +1425,38 @@ function obtenerElementos() {
 
         botonGuardarLinea:
             document.getElementById("btnGuardarLinea"),
+
+        confirmarEliminarLinea:
+            document.getElementById("confirmarEliminarLinea"),
+
+        botonConfirmarEliminarLinea:
+            document.getElementById("btnConfirmarEliminarLinea"),
+
+        botonCancelarEliminarLinea:
+        document.getElementById("btnCancelarEliminarLinea"),
+
+        //Menú desplegable de opciones click linea
+        menuLinea:
+            document.getElementById("menuLinea"),
+
+        botonCambiarNombreLinea:
+            document.getElementById("btnCambiarNombreLinea"),
+
+        botonEliminarLinea:
+            document.getElementById("btnEliminarLinea"),
+
+        //formulario de cambio de nombre
+        formCambiarNombreLinea:
+            document.getElementById("formCambiarNombreLinea"),
+
+        nuevoNombreLinea:
+            document.getElementById("nuevoNombreLinea"),
+
+        botonCancelarCambiarNombreLinea:
+            document.getElementById("btnCancelarCambiarNombreLinea"),
+
+        botonGuardarNombreLinea:
+            document.getElementById("btnGuardarNombreLinea"),
     };
 }
 
@@ -853,9 +1469,10 @@ function crear() {
 
     configurarCreacionEstacion(this, elementos);
     configurarEdicionEstaciones(elementos);
-    configurarCreacionLinea(elementos);
+    configurarCreacionLinea(this, elementos);
+    configurarEdicionLineas(elementos);
 
-    cargarEstaciones(this);
+    cargarEstaciones(this, elementos);
 }
 
 // --------------------

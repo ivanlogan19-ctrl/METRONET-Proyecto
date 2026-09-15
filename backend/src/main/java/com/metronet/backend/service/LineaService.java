@@ -31,26 +31,26 @@ public class LineaService {
         this.estacionRepository = estacionRepository;
     }
 
-    private List<String> obtenerExtremos(List<Tramo> tramos) {
+    private List<Integer> obtenerExtremos(List<Tramo> tramos) {
 
-        Map<String, Integer> cantidadConexiones = new HashMap<>();
+        Map<Integer, Integer> cantidadConexiones = new HashMap<>();
 
         for (Tramo tramo : tramos) {
 
             cantidadConexiones.put(
-                tramo.getEstacionA(),
-                cantidadConexiones.getOrDefault(tramo.getEstacionA(), 0) + 1
+                tramo.getIdEstacionA(),
+                cantidadConexiones.getOrDefault(tramo.getIdEstacionA(), 0) + 1
             );
 
             cantidadConexiones.put(
-                tramo.getEstacionB(),
-                cantidadConexiones.getOrDefault(tramo.getEstacionB(), 0) + 1
+                tramo.getIdEstacionB(),
+                cantidadConexiones.getOrDefault(tramo.getIdEstacionB(), 0) + 1
             );
         }
 
-        List<String> extremos = new ArrayList<>();
+        List<Integer> extremos = new ArrayList<>();
 
-        for (Map.Entry<String, Integer> entrada : cantidadConexiones.entrySet()) {
+        for (Map.Entry<Integer, Integer> entrada : cantidadConexiones.entrySet()) {
 
             if (entrada.getValue() == 1) {
                 extremos.add(entrada.getKey());
@@ -79,21 +79,26 @@ public class LineaService {
 
         for (TramoRequest tramoRequest : request.getTramos()) {
 
-            boolean existeEstacionA = estacionRepository.existsByIdDisenoAndNombre(
-                idDiseno,
-                tramoRequest.getEstacionA()
-            );
+            var estacionAObj = estacionRepository
+                .findByIdDisenoAndNombre(
+                    idDiseno,
+                    tramoRequest.getEstacionA()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "La estación A no existe en el diseño"
+                ));
 
-            boolean existeEstacionB = estacionRepository.existsByIdDisenoAndNombre(
-                idDiseno,
-                tramoRequest.getEstacionB()
-            );
+            var estacionBObj = estacionRepository
+                .findByIdDisenoAndNombre(
+                    idDiseno,
+                    tramoRequest.getEstacionB()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "La estación B no existe en el diseño"
+                ));
 
-            if (!existeEstacionA || !existeEstacionB) {
-                throw new IllegalArgumentException(
-                    "Ambas estaciones deben existir en el diseño"
-                );
-            }
+            Integer idEstacionA = estacionAObj.getIdEstacion();
+            Integer idEstacionB = estacionBObj.getIdEstacion();
 
             if (tramoRequest.getEstacionA().equals(tramoRequest.getEstacionB())) {
                 throw new IllegalArgumentException(
@@ -101,22 +106,11 @@ public class LineaService {
                 );
             }
 
-            String estacionA;
-            String estacionB;
-
-            if (tramoRequest.getEstacionA().compareTo(tramoRequest.getEstacionB()) < 0) {
-                estacionA = tramoRequest.getEstacionA();
-                estacionB = tramoRequest.getEstacionB();
-            } else {
-                estacionA = tramoRequest.getEstacionB();
-                estacionB = tramoRequest.getEstacionA();
-            }
-
             boolean tramoYaExiste =
-                tramoRepository.existsByIdDisenoAndEstacionAAndEstacionB(
+                tramoRepository.existsByIdDisenoAndIdEstacionAAndIdEstacionB(
                     idDiseno,
-                    estacionA,
-                    estacionB
+                    idEstacionA,
+                    idEstacionB
                 );
 
             if (tramoYaExiste) {
@@ -187,22 +181,31 @@ public class LineaService {
 
         for (TramoRequest tramoRequest : request.getTramos()) {
 
-            String estacionA;
-            String estacionB;
+            Integer idEstacionA = estacionRepository
+                .findByIdDisenoAndNombre(
+                    idDiseno,
+                    tramoRequest.getEstacionA()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "La estación A no existe en el diseño"
+                ))
+                .getIdEstacion();
 
-            if (tramoRequest.getEstacionA().compareTo(tramoRequest.getEstacionB()) < 0) {
-                estacionA = tramoRequest.getEstacionA();
-                estacionB = tramoRequest.getEstacionB();
-            } else {
-                estacionA = tramoRequest.getEstacionB();
-                estacionB = tramoRequest.getEstacionA();
-            }
+            Integer idEstacionB = estacionRepository
+                .findByIdDisenoAndNombre(
+                    idDiseno,
+                    tramoRequest.getEstacionB()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "La estación B no existe en el diseño"
+                ))
+                .getIdEstacion();
 
             Tramo tramo = new Tramo(
                 idDiseno,
-                request.getNombre(),
-                estacionA,
-                estacionB
+                linea.getIdLinea(),
+                idEstacionA,
+                idEstacionB
             );
 
             tramoRepository.save(tramo);
@@ -216,32 +219,34 @@ public class LineaService {
         TramoRequest request
     ) {
 
-        boolean existeLinea = lineaRepository.existsByIdDisenoAndNombre(
-            idDiseno,
-            nombreLinea
-        );
-
-        if (!existeLinea) {
-            throw new IllegalArgumentException(
+        Linea linea = lineaRepository
+            .findByIdDisenoAndNombre(idDiseno, nombreLinea)
+            .orElseThrow(() -> new IllegalArgumentException(
                 "La línea no existe"
-            );
-        }
+            ));
 
-        boolean existeEstacionA = estacionRepository.existsByIdDisenoAndNombre(
-            idDiseno,
-            request.getEstacionA()
-        );
+        Integer idLinea = linea.getIdLinea();
 
-        boolean existeEstacionB = estacionRepository.existsByIdDisenoAndNombre(
-            idDiseno,
-            request.getEstacionB()
-        );
+        var estacionAObj = estacionRepository
+            .findByIdDisenoAndNombre(
+                idDiseno,
+                request.getEstacionA()
+            )
+            .orElseThrow(() -> new IllegalArgumentException(
+                "La estación A no existe en el diseño"
+            ));
 
-        if (!existeEstacionA || !existeEstacionB) {
-            throw new IllegalArgumentException(
-                "Ambas estaciones deben existir en el diseño"
-            );
-        }
+        var estacionBObj = estacionRepository
+            .findByIdDisenoAndNombre(
+                idDiseno,
+                    request.getEstacionB()
+            )
+            .orElseThrow(() -> new IllegalArgumentException(
+                "La estación B no existe en el diseño"
+            ));
+
+        Integer idEstacionA = estacionAObj.getIdEstacion();
+        Integer idEstacionB = estacionBObj.getIdEstacion();
 
         if (request.getEstacionA().equals(request.getEstacionB())) {
             throw new IllegalArgumentException(
@@ -249,15 +254,15 @@ public class LineaService {
             );
         }
 
-        List<Tramo> tramosActuales = tramoRepository.findByIdDisenoAndNombreLinea(
+        List<Tramo> tramosActuales = tramoRepository.findByIdDisenoAndIdLinea(
             idDiseno,
-            nombreLinea
+            idLinea
         );
 
-        List<String> extremos = obtenerExtremos(tramosActuales);
+        List<Integer> extremos = obtenerExtremos(tramosActuales);
 
-        boolean estacionAEsExtremo = extremos.contains(request.getEstacionA());
-        boolean estacionBEsExtremo = extremos.contains(request.getEstacionB());
+            boolean estacionAEsExtremo = extremos.contains(idEstacionA);
+            boolean estacionBEsExtremo = extremos.contains(idEstacionB);
 
         if (estacionAEsExtremo == estacionBEsExtremo) {
             throw new IllegalArgumentException(
@@ -268,12 +273,12 @@ public class LineaService {
         for (Tramo tramo : tramosActuales) {
 
             boolean estacionAYaPertenece =
-                tramo.getEstacionA().equals(request.getEstacionA()) ||
-                tramo.getEstacionB().equals(request.getEstacionA());
+                tramo.getIdEstacionA().equals(idEstacionA) ||
+                tramo.getIdEstacionB().equals(idEstacionA);
 
             boolean estacionBYaPertenece =
-                tramo.getEstacionA().equals(request.getEstacionB()) ||
-                tramo.getEstacionB().equals(request.getEstacionB());
+                tramo.getIdEstacionA().equals(idEstacionB) ||
+                tramo.getIdEstacionB().equals(idEstacionB);
 
             if ((!estacionAEsExtremo && estacionAYaPertenece) ||
                 (!estacionBEsExtremo && estacionBYaPertenece)) {
@@ -284,22 +289,11 @@ public class LineaService {
             }
         }
 
-        String estacionA;
-        String estacionB;
-
-        if (request.getEstacionA().compareTo(request.getEstacionB()) < 0) {
-            estacionA = request.getEstacionA();
-            estacionB = request.getEstacionB();
-        } else {
-            estacionA = request.getEstacionB();
-            estacionB = request.getEstacionA();
-        }
-
         boolean tramoYaExiste =
-            tramoRepository.existsByIdDisenoAndEstacionAAndEstacionB(
+            tramoRepository.existsByIdDisenoAndIdEstacionAAndIdEstacionB(
                 idDiseno,
-                estacionA,
-                estacionB
+                idEstacionA,
+                idEstacionB
             );
 
         if (tramoYaExiste) {
@@ -310,9 +304,9 @@ public class LineaService {
 
         Tramo tramo = new Tramo(
             idDiseno,
-            nombreLinea,
-            estacionA,
-            estacionB
+            idLinea,
+            idEstacionA,
+            idEstacionB
         );
 
         tramoRepository.save(tramo);
@@ -322,9 +316,67 @@ public class LineaService {
         Integer idDiseno,
         String nombreLinea
     ) {
-        return tramoRepository.findByIdDisenoAndNombreLinea(
+        Linea linea = lineaRepository
+            .findByIdDisenoAndNombre(idDiseno, nombreLinea)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "La línea no existe"
+            ));
+
+        return tramoRepository.findByIdDisenoAndIdLinea(
             idDiseno,
-            nombreLinea
+            linea.getIdLinea()
         );
+    }
+
+    @Transactional
+    public void cambiarNombreLinea(
+        Integer idDiseno,
+        String nombreLinea,
+        String nuevoNombre
+    ) {
+        Linea linea = lineaRepository
+            .findByIdDisenoAndNombre(idDiseno, nombreLinea)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "La línea no existe"
+            ));
+
+        nuevoNombre = nuevoNombre.trim();
+
+        if (nuevoNombre.isEmpty()) {
+            throw new IllegalArgumentException(
+                "El nombre de la línea no puede estar vacío"
+            );
+        }
+
+        if (lineaRepository.existsByIdDisenoAndNombre(
+            idDiseno,
+            nuevoNombre
+        )) {
+            throw new IllegalArgumentException(
+                "Ya existe una línea con ese nombre"
+            );
+        }
+
+        linea.setNombre(nuevoNombre);
+
+        lineaRepository.save(linea);
+    }
+
+    @Transactional
+    public void eliminarLinea(Integer idDiseno, String nombreLinea) {
+
+        Linea linea = lineaRepository
+            .findByIdDisenoAndNombre(idDiseno, nombreLinea)
+            .orElseThrow(() -> new RuntimeException("Línea no encontrada"));
+
+        List<Tramo> tramos =
+            tramoRepository.findByIdDisenoAndIdLinea(
+                idDiseno,
+                linea.getIdLinea()
+            );
+
+        tramoRepository.deleteAll(tramos);
+
+        lineaRepository.delete(linea);
     }
 }

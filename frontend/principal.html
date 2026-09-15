@@ -8,9 +8,32 @@
 </head>
 <body>
     <button id="btnCrearEstacion">Crear estación</button>
-    <button id="btnEditarEstaciones">Editar estaciones</button>
     <button id="btnCrearLinea">Crear línea</button>
 
+    <div id="menuEstacion" hidden>
+      <button id="btnMoverEstacion">Mover</button> <br/>
+      <button id="btnCambiarNombreEstacion">Cambiar nombre</button> <br/>
+      <button id="btnEliminarEstacionMenu">Eliminar</button> <br/>
+    </div>
+
+    <div id="menuLinea" hidden>
+      <button id="btnModificarLinea">Modificar recorrido</button> <br/>
+      <button id="btnCambiarNombreLinea">Cambiar nombre</button> <br/>
+      <button id="btnEliminarLinea">Eliminar</button> <br/>
+    </div>
+
+    <div id="formCambiarNombreLinea" class="modal" hidden>
+      <div class="modal-contenido">
+        <h2>Cambiar nombre de línea</h2>
+
+        <label for="nuevoNombreLinea">Nombre:</label>
+        <input type="text" id="nuevoNombreLinea">
+
+        <button id="btnCancelarCambiarNombreLinea">Cancelar</button>
+        <button id="btnGuardarNombreLinea">Guardar</button>
+      </div>
+    </div>
+    
     <div id="formEstacion" class="modal" hidden>
       <div class="modal-contenido">
         <h2>Crear estación</h2>
@@ -38,7 +61,7 @@
 
     <div id="formLinea" class="modal" hidden>
       <div class="modal-contenido">
-        h2>Crear línea</h2>
+        <h2>Crear línea</h2>
 
         <label for="nombreLinea">Nombre:</label>
         <input type="text" id="nombreLinea">
@@ -51,6 +74,25 @@
     <div id="controlesLinea" hidden>
       <button id="btnCancelarCreacionLinea">Cancelar</button>
       <button id="btnGuardarLinea">Guardar</button>
+    </div>
+
+    <div id="confirmarEliminarLinea" hidden>
+      <p>¿Está seguro de que quiere eliminar esta línea?</p>
+
+      <button id="btnConfirmarEliminarLinea">Sí, eliminar</button>
+      <button id="btnCancelarEliminarLinea">Cancelar</button>
+    </div>
+
+        <div id="confirmarEliminarEstacion" hidden>
+      <p>¿Está seguro de que quiere eliminar esta estación?</p>
+
+      <button id="btnConfirmarEliminarEstacion">
+        Sí, eliminar
+      </button>
+
+      <button id="btnCancelarEliminarEstacion">
+        Cancelar
+      </button>
     </div>
 
     <div id="juego"></div>

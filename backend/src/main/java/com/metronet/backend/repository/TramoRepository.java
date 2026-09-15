@@ -6,14 +6,14 @@ import java.util.List;
 
 public interface TramoRepository extends JpaRepository<Tramo, Integer> {
 
-    List<Tramo> findByIdDisenoAndNombreLinea(
+    List<Tramo> findByIdDisenoAndIdLinea(
         Integer idDiseno,
-        String nombreLinea
+        Integer idLinea
     );
 
-    boolean existsByIdDisenoAndEstacionAAndEstacionB(
+    boolean existsByIdDisenoAndIdEstacionAAndIdEstacionB(
         Integer idDiseno,
-        String estacionA,
-        String estacionB
+        Integer idEstacionA,
+        Integer idEstacionB
     );
 }

@@ -27,9 +27,20 @@ public class EstacionController {
     public List<Estacion> obtenerEstaciones(@RequestParam Integer idDiseno) {
         return estacionService.obtenerEstacionesPorDiseno(idDiseno);
     }
+/* 
+    @PutMapping
+    public Estacion actualizarEstacion(@RequestBody Estacion estacion) {
+        return estacionService.actualizarEstacion(estacion);
+    }*/
 
     @PutMapping
     public Estacion actualizarEstacion(@RequestBody Estacion estacion) {
+
+        System.out.println("PUT /estaciones recibido");
+        System.out.println("idEstacion: " + estacion.getIdEstacion());
+        System.out.println("idDiseno: " + estacion.getIdDiseno());
+        System.out.println("nombre: " + estacion.getNombre());
+
         return estacionService.actualizarEstacion(estacion);
     }
 

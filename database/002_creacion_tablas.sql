@@ -15,10 +15,12 @@ metronet
 */ 
 
 -- Limpieza
-
+--tablas viejas que ya no deben existir
+DROP TABLE IF EXISTS juega CASCADE;
+DROP TABLE IF EXISTS pasa CASCADE;
+--tablas que existen y van a crearse luego en este mismo script
 DROP TABLE IF EXISTS simulacion CASCADE;
 DROP TABLE IF EXISTS metro CASCADE;
-DROP TABLE IF EXISTS pasa CASCADE;
 DROP TABLE IF EXISTS tramo CASCADE;
 DROP TABLE IF EXISTS estacion CASCADE;
 DROP TABLE IF EXISTS linea CASCADE;
@@ -137,42 +139,33 @@ CREATE TABLE tramo (
     id_tramo SERIAL PRIMARY KEY,
 
     id_diseno INTEGER NOT NULL,
-    nombre_linea VARCHAR(100) NOT NULL,
-    estacion_a VARCHAR(100) NOT NULL,
-    estacion_b VARCHAR(100) NOT NULL,
-
-    CONSTRAINT uq_tramo
-        UNIQUE (id_diseno, nombre_linea, estacion_a, estacion_b),
+    id_linea INTEGER NOT NULL,
+    id_estacion_a INTEGER NOT NULL,
+    id_estacion_b INTEGER NOT NULL,
 
     CONSTRAINT fk_tramo_linea
-        FOREIGN KEY (id_diseno, nombre_linea)
-        REFERENCES linea(id_diseno, nombre)
-        ON DELETE CASCADE,
+        FOREIGN KEY (id_linea)
+        REFERENCES linea(id_linea),
 
     CONSTRAINT fk_tramo_estacion_a
-        FOREIGN KEY (id_diseno, estacion_a)
-        REFERENCES estacion(id_diseno, nombre)
-        ON DELETE CASCADE,
+        FOREIGN KEY (id_estacion_a)
+        REFERENCES estacion(id_estacion),
 
     CONSTRAINT fk_tramo_estacion_b
-        FOREIGN KEY (id_diseno, estacion_b)
-        REFERENCES estacion(id_diseno, nombre)
-        ON DELETE CASCADE,
-
-    CONSTRAINT ck_tramo_estaciones_distintas
-        CHECK (estacion_a < estacion_b)
+        FOREIGN KEY (id_estacion_b)
+        REFERENCES estacion(id_estacion)
 );
 
 CREATE TABLE metro (
   id_tren SERIAL PRIMARY KEY,
   id_diseno INTEGER NOT NULL,
-  nombre_linea VARCHAR(100) NOT NULL,
+  id_linea INTEGER NOT NULL,
   capacidad INTEGER NOT NULL,
   velocidad_promedio NUMERIC(6,2) NOT NULL,
 
   CONSTRAINT fk_metro_linea
-  FOREIGN KEY (id_diseno, nombre_linea)
-  REFERENCES linea(id_diseno, nombre)
+  FOREIGN KEY (id_linea)
+  REFERENCES linea(id_linea)
   ON DELETE CASCADE,
 
   CONSTRAINT chk_metro_capacidad
@@ -181,7 +174,6 @@ CREATE TABLE metro (
   CONSTRAINT chk_metro_velocidad
   CHECK (velocidad_promedio > 0)
 );
-
 CREATE TABLE simulacion (
   id_simulacion SERIAL PRIMARY KEY,
   id_intento INTEGER NOT NULL,

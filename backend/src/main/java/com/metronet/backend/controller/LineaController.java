@@ -62,4 +62,30 @@ public class LineaController {
             lineaService.obtenerTramos(idDiseno, nombreLinea)
         );
     }
+
+    @PutMapping("/{idDiseno}/{nombreLinea}")
+    public ResponseEntity<String> cambiarNombreLinea(
+        @PathVariable Integer idDiseno,
+        @PathVariable String nombreLinea,
+        @RequestBody String nuevoNombre
+    ) {
+        lineaService.cambiarNombreLinea(
+            idDiseno,
+            nombreLinea,
+            nuevoNombre
+        );
+
+        return ResponseEntity.ok(
+            "Nombre de línea actualizado correctamente"
+        );
+    }
+
+    @DeleteMapping("/{idDiseno}/{nombreLinea}")
+    public ResponseEntity<Void> eliminarLinea(
+            @PathVariable Integer idDiseno,
+            @PathVariable String nombreLinea) {
+
+        lineaService.eliminarLinea(idDiseno, nombreLinea);
+        return ResponseEntity.noContent().build();
+    }
 }
