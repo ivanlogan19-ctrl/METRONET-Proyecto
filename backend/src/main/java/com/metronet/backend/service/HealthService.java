@@ -15,12 +15,8 @@ public class HealthService {
     }
 
     public Map<String, String> health() {
-
         jdbcTemplate.queryForObject("SELECT 1", Integer.class);
 
-        return Map.of(
-                "status", "UP",
-                "database", "CONNECTED"
-        );
+        return Map.of("status", "UP", "database", "CONNECTED");
     }
 }

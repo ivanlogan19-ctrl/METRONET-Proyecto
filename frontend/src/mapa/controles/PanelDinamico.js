@@ -1,447 +1,300 @@
 export default class PanelDinamico {
+  constructor(opciones = {}) {
+    this.id = opciones.id ?? 'metronet-panel';
 
-    constructor(opciones = {}) {
+    this.titulo = opciones.titulo ?? '';
 
-        this.id =
-            opciones.id ??
-            'metronet-panel';
+    this.ancho = opciones.ancho ?? 130;
 
-        this.titulo =
-            opciones.titulo ??
-            '';
+    this.posicion = opciones.posicion ?? {
+      top: 55,
+      right: 8,
+    };
 
-        this.ancho =
-            opciones.ancho ??
-            130;
+    this.elemento = null;
 
-        this.posicion =
-            opciones.posicion ??
-            {
-                top: 55,
-                right: 8
-            };
+    this.encabezado = null;
 
-        this.elemento =
-            null;
+    this.contenido = null;
 
-        this.encabezado =
-            null;
+    this.abierto = false;
+  }
 
-        this.contenido =
-            null;
+  crear() {
+    this.eliminar();
 
-        this.abierto =
-            false;
+    this.crearEstilos();
+
+    const panel = document.createElement('div');
+
+    panel.id = this.id;
+
+    panel.className = 'metronet-panel-dinamico';
+
+    panel.style.width = `${this.ancho}px`;
+
+    panel.style.top = `${this.posicion.top}px`;
+
+    panel.style.right = `${this.posicion.right}px`;
+
+    const encabezado = document.createElement('button');
+
+    encabezado.type = 'button';
+
+    encabezado.className = 'metronet-panel-encabezado';
+
+    encabezado.textContent = `${this.titulo} ▼`;
+
+    const contenido = document.createElement('div');
+
+    contenido.className = 'metronet-panel-contenido';
+
+    panel.appendChild(encabezado);
+
+    panel.appendChild(contenido);
+
+    document.body.appendChild(panel);
+
+    this.elemento = panel;
+
+    this.encabezado = encabezado;
+
+    this.contenido = contenido;
+
+    this.contenido.style.display = 'none';
+
+    this.encabezado.addEventListener('click', () => {
+      this.alternarContenido();
+    });
+
+    return panel;
+  }
+
+  establecerTitulo(titulo) {
+    this.titulo = titulo;
+
+    this.actualizarEncabezado();
+  }
+
+  actualizarEncabezado() {
+    if (!this.encabezado) {
+      return;
     }
 
-    crear() {
+    this.encabezado.textContent = this.abierto ? `${this.titulo} ▲` : `${this.titulo} ▼`;
+  }
 
-        this.eliminar();
-
-        this.crearEstilos();
-
-        const panel =
-            document.createElement('div');
-
-        panel.id =
-            this.id;
-
-        panel.className =
-            'metronet-panel-dinamico';
-
-        panel.style.width =
-            `${this.ancho}px`;
-
-        panel.style.top =
-            `${this.posicion.top}px`;
-
-        panel.style.right =
-            `${this.posicion.right}px`;
-
-        const encabezado =
-            document.createElement('button');
-
-        encabezado.type =
-            'button';
-
-        encabezado.className =
-            'metronet-panel-encabezado';
-
-        encabezado.textContent =
-            `${this.titulo} ▼`;
-
-        const contenido =
-            document.createElement('div');
-
-        contenido.className =
-            'metronet-panel-contenido';
-
-        panel.appendChild(
-            encabezado
-        );
-
-        panel.appendChild(
-            contenido
-        );
-
-        document.body.appendChild(
-            panel
-        );
-
-        this.elemento =
-            panel;
-
-        this.encabezado =
-            encabezado;
-
-        this.contenido =
-            contenido;
-
-        this.contenido.style.display =
-            'none';
-
-        this.encabezado.addEventListener(
-            'click',
-            () => {
-
-                this.alternarContenido();
-            }
-        );
-
-        return panel;
+  establecerContenido(contenido) {
+    if (!this.contenido) {
+      return;
     }
 
-    establecerTitulo(titulo) {
+    this.contenido.innerHTML = contenido;
+  }
 
-        this.titulo =
-            titulo;
-
-        this.actualizarEncabezado();
+  agregarElemento(elemento) {
+    if (!this.contenido) {
+      return;
     }
 
-    actualizarEncabezado() {
+    this.contenido.appendChild(elemento);
+  }
 
-        if (!this.encabezado) {
-            return;
-        }
-
-        this.encabezado.textContent =
-            this.abierto
-                ? `${this.titulo} ▲`
-                : `${this.titulo} ▼`;
+  mostrar() {
+    if (!this.elemento) {
+      return;
     }
 
-    establecerContenido(contenido) {
+    this.elemento.style.display = 'block';
+  }
 
-        if (!this.contenido) {
-            return;
-        }
-
-        this.contenido.innerHTML =
-            contenido;
+  ocultar() {
+    if (!this.elemento) {
+      return;
     }
 
-    agregarElemento(elemento) {
+    this.elemento.style.display = 'none';
 
-        if (!this.contenido) {
-            return;
-        }
+    this.elemento.classList.remove('metronet-panel-abierto');
 
-        this.contenido.appendChild(
-            elemento
-        );
+    this.abierto = false;
+
+    this.actualizarEncabezado();
+  }
+
+  alternar() {
+    if (!this.elemento) {
+      return;
     }
 
-    mostrar() {
+    const oculto = this.elemento.style.display === 'none';
 
-        if (!this.elemento) {
-            return;
-        }
+    if (oculto) {
+      this.mostrar();
+    } else {
+      this.ocultar();
+    }
+  }
 
-        this.elemento.style.display =
-            'block';
+  alternarContenido() {
+    if (!this.contenido || !this.elemento) {
+      return;
     }
 
-    ocultar() {
+    if (this.abierto) {
+      this.cerrarContenido();
 
-        if (!this.elemento) {
-            return;
-        }
-
-        this.elemento.style.display =
-            'none';
-
-        this.abierto =
-            false;
-
-        this.actualizarEncabezado();
+      return;
     }
 
-    alternar() {
+    this.abrirContenido();
+  }
 
-        if (!this.elemento) {
-            return;
-        }
-
-        const oculto =
-            this.elemento.style.display ===
-            'none';
-
-        if (oculto) {
-
-            this.mostrar();
-
-        } else {
-
-            this.ocultar();
-        }
+  abrirContenido() {
+    if (!this.contenido || !this.elemento) {
+      return;
     }
 
-    alternarContenido() {
+    this.cerrarOtrosPaneles();
 
-        if (
-            !this.contenido ||
-            !this.elemento
-        ) {
-            return;
-        }
+    this.contenido.style.display = 'block';
 
-        if (this.abierto) {
+    this.elemento.classList.add('metronet-panel-abierto');
 
-            this.cerrarContenido();
+    this.abierto = true;
 
-            return;
-        }
+    this.actualizarEncabezado();
 
-        this.abrirContenido();
+    this.ajustarPosicionPantalla();
+  }
+
+  cerrarContenido() {
+    if (!this.contenido) {
+      return;
     }
 
-    abrirContenido() {
+    this.contenido.style.display = 'none';
 
-        if (
-            !this.contenido ||
-            !this.elemento
-        ) {
-            return;
+    this.elemento?.classList.remove('metronet-panel-abierto');
+
+    this.abierto = false;
+
+    this.actualizarEncabezado();
+  }
+
+  cerrarOtrosPaneles() {
+    const paneles = document.querySelectorAll('.metronet-panel-dinamico');
+
+    paneles.forEach((panel) => {
+      if (panel === this.elemento) {
+        return;
+      }
+
+      const encabezado = panel.querySelector('.metronet-panel-encabezado');
+
+      const contenido = panel.querySelector('.metronet-panel-contenido');
+
+      if (contenido && contenido.style.display !== 'none') {
+        contenido.style.display = 'none';
+
+        panel.classList.remove('metronet-panel-abierto');
+
+        if (encabezado) {
+          encabezado.textContent = encabezado.textContent.replace(' ▲', ' ▼');
         }
+      }
+    });
+  }
 
-        this.cerrarOtrosPaneles();
-
-        this.contenido.style.display =
-            'block';
-
-        this.abierto =
-            true;
-
-        this.actualizarEncabezado();
-
-        this.ajustarPosicionPantalla();
+  ajustarPosicionPantalla() {
+    if (!this.elemento) {
+      return;
     }
 
-    cerrarContenido() {
+    const rect = this.elemento.getBoundingClientRect();
 
-        if (!this.contenido) {
-            return;
-        }
+    const margen = 8;
 
-        this.contenido.style.display =
-            'none';
+    let top = rect.top;
 
-        this.abierto =
-            false;
+    let right = window.innerWidth - rect.right;
 
-        this.actualizarEncabezado();
+    if (rect.bottom > window.innerHeight - margen) {
+      top = window.innerHeight - rect.height - margen;
     }
 
-    cerrarOtrosPaneles() {
-
-        const paneles =
-            document.querySelectorAll(
-                '.metronet-panel-dinamico'
-            );
-
-        paneles.forEach(
-            (panel) => {
-
-                if (
-                    panel ===
-                    this.elemento
-                ) {
-                    return;
-                }
-
-                const encabezado =
-                    panel.querySelector(
-                        '.metronet-panel-encabezado'
-                    );
-
-                const contenido =
-                    panel.querySelector(
-                        '.metronet-panel-contenido'
-                    );
-
-                if (
-                    contenido &&
-                    contenido.style.display !==
-                    'none'
-                ) {
-
-                    contenido.style.display =
-                        'none';
-
-                    if (encabezado) {
-
-                        encabezado.textContent =
-                            encabezado.textContent
-                                .replace(
-                                    ' ▲',
-                                    ' ▼'
-                                );
-                    }
-                }
-            }
-        );
+    if (top < margen) {
+      top = margen;
     }
 
-    ajustarPosicionPantalla() {
-
-        if (!this.elemento) {
-            return;
-        }
-
-        const rect =
-            this.elemento.getBoundingClientRect();
-
-        const margen =
-            8;
-
-        let top =
-            rect.top;
-
-        let right =
-            window.innerWidth -
-            rect.right;
-
-        if (
-            rect.bottom >
-            window.innerHeight -
-            margen
-        ) {
-
-            top =
-                window.innerHeight -
-                rect.height -
-                margen;
-        }
-
-        if (top < margen) {
-
-            top =
-                margen;
-        }
-
-        if (
-            rect.right >
-            window.innerWidth -
-            margen
-        ) {
-
-            right =
-                margen;
-        }
-
-        if (right < margen) {
-
-            right =
-                margen;
-        }
-
-        this.elemento.style.top =
-            `${top}px`;
-
-        this.elemento.style.right =
-            `${right}px`;
-
-        this.elemento.style.left =
-            'auto';
+    if (rect.right > window.innerWidth - margen) {
+      right = margen;
     }
 
-    mover(
-        top,
-        right
-    ) {
-
-        this.posicion = {
-            top,
-            right
-        };
-
-        if (!this.elemento) {
-            return;
-        }
-
-        this.elemento.style.top =
-            `${top}px`;
-
-        this.elemento.style.right =
-            `${right}px`;
-
-        this.elemento.style.left =
-            'auto';
+    if (right < margen) {
+      right = margen;
     }
 
-    cambiarAncho(ancho) {
+    this.elemento.style.top = `${top}px`;
 
-        this.ancho =
-            ancho;
+    this.elemento.style.right = `${right}px`;
 
-        if (!this.elemento) {
-            return;
-        }
+    this.elemento.style.left = 'auto';
+  }
 
-        this.elemento.style.width =
-            `${ancho}px`;
+  mover(top, right) {
+    this.posicion = {
+      top,
+      right,
+    };
+
+    if (!this.elemento) {
+      return;
     }
 
-    eliminar() {
+    this.elemento.style.top = `${top}px`;
 
-        if (this.elemento) {
+    this.elemento.style.right = `${right}px`;
 
-            this.elemento.remove();
+    this.elemento.style.left = 'auto';
+  }
 
-            this.elemento =
-                null;
+  cambiarAncho(ancho) {
+    this.ancho = ancho;
 
-            this.encabezado =
-                null;
-
-            this.contenido =
-                null;
-
-            this.abierto =
-                false;
-        }
+    if (!this.elemento) {
+      return;
     }
 
-    crearEstilos() {
+    this.elemento.style.width = `${ancho}px`;
+  }
 
-        const estiloAnterior =
-            document.getElementById(
-                'metronet-panel-dinamico-styles'
-            );
+  eliminar() {
+    if (this.elemento) {
+      this.elemento.remove();
 
-        if (estiloAnterior) {
+      this.elemento = null;
 
-            estiloAnterior.remove();
-        }
+      this.encabezado = null;
 
-        const style =
-            document.createElement('style');
+      this.contenido = null;
 
-        style.id =
-            'metronet-panel-dinamico-styles';
+      this.abierto = false;
+    }
+  }
 
-        style.textContent = `
+  crearEstilos() {
+    const estiloAnterior = document.getElementById('metronet-panel-dinamico-styles');
+
+    if (estiloAnterior) {
+      estiloAnterior.remove();
+    }
+
+    const style = document.createElement('style');
+
+    style.id = 'metronet-panel-dinamico-styles';
+
+    style.textContent = `
 
             .metronet-panel-dinamico {
 
@@ -455,37 +308,45 @@ export default class PanelDinamico {
                     border-box;
 
                 width:
-                    130px;
+                    156px;
 
                 background:
                     rgba(
-                        8,
-                        25,
-                        45,
-                        0.98
+                        7,
+                        23,
+                        37,
+                        0.84
                     );
 
                 border:
-                    1px solid #6FA8DC;
+                    1px solid rgba(141, 215, 247, 0.26);
 
                 border-radius:
-                    4px;
+                    14px;
 
                 color:
                     #FFFFFF;
 
                 font-family:
-                    Arial,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
                     sans-serif;
 
                 box-shadow:
-                    0 2px 8px
+                    0 14px 34px
                     rgba(
                         0,
                         0,
                         0,
-                        0.45
-                    );
+                        0.30
+                    ),
+                    inset 0 1px 0
+                    rgba(255, 255, 255, 0.08);
+
+                backdrop-filter:
+                    blur(14px)
+                    saturate(130%);
 
                 overflow:
                     visible;
@@ -510,47 +371,80 @@ export default class PanelDinamico {
                     100%;
 
                 height:
-                    27px;
+                    42px;
 
                 padding:
-                    3px 5px;
+                    0 12px;
 
                 border:
                     none;
 
                 border-radius:
-                    3px;
+                    13px;
 
                 background:
-                    #0B2545;
+                    linear-gradient(
+                        135deg,
+                        #145A7B,
+                        #0B79AE
+                    );
 
                 color:
                     #FFFFFF;
 
+                font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+
                 font-size:
-                    8px;
+                    13px;
 
                 font-weight:
-                    bold;
+                    600;
 
                 text-align:
                     center;
 
                 letter-spacing:
-                    0px;
+                    0.01em;
 
                 cursor:
                     pointer;
 
                 white-space:
                     nowrap;
+
+                transition:
+                    background 0.16s ease,
+                    transform 0.16s ease,
+                    filter 0.16s ease;
+            }
+
+
+            .metronet-panel-dinamico.metronet-panel-abierto
+            .metronet-panel-encabezado {
+
+                border-radius:
+                    13px 13px 0 0;
             }
 
 
             .metronet-panel-encabezado:hover {
 
                 background:
-                    #12385F;
+                    linear-gradient(
+                        135deg,
+                        #1A6D91,
+                        #1595CF
+                    );
+
+                filter:
+                    brightness(1.05);
+
+                transform:
+                    translateY(-1px);
             }
 
 
@@ -563,21 +457,21 @@ export default class PanelDinamico {
                     100%;
 
                 padding:
-                    4px;
+                    7px;
 
                 background:
                     rgba(
                         4,
-                        15,
+                        18,
                         29,
-                        0.99
+                        0.93
                     );
 
                 border-top:
-                    1px solid #6FA8DC;
+                    1px solid rgba(141, 215, 247, 0.16);
 
                 border-radius:
-                    0 0 3px 3px;
+                    0 0 13px 13px;
 
                 overflow:
                     hidden;
@@ -589,19 +483,41 @@ export default class PanelDinamico {
                 .metronet-panel-dinamico {
 
                     width:
-                        120px !important;
+                        calc(50% - 12px) !important;
+
+                    border-radius:
+                        12px;
+                }
+
+                #metronet-selector-zonas {
+
+                    top:
+                        92px !important;
+
+                    right:
+                        calc(50% + 4px) !important;
+                }
+
+                #metronet-selector-barrios {
+
+                    top:
+                        92px !important;
+
+                    right:
+                        8px !important;
                 }
 
                 .metronet-panel-encabezado {
 
                     font-size:
-                        7px;
+                        11px;
+
+                    padding:
+                        0 8px;
                 }
             }
         `;
 
-        document.head.appendChild(
-            style
-        );
-    }
+    document.head.appendChild(style);
+  }
 }

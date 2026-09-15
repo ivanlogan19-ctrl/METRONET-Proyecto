@@ -2,39 +2,24 @@ import Phaser from 'phaser';
 
 import MapaScene from './mapa/MapaScene.js';
 
-
 const config = {
+  type: Phaser.AUTO,
 
-    type:
-        Phaser.AUTO,
+  width: window.innerWidth,
 
-    width:
-        window.innerWidth,
+  height: window.innerHeight,
 
-    height:
-        window.innerHeight,
+  backgroundColor: '#000000',
 
-    backgroundColor:
-        '#000000',
+  scale: {
+    mode: Phaser.Scale.RESIZE,
 
-    scale: {
+    width: '100%',
 
-        mode:
-            Phaser.Scale.RESIZE,
+    height: '100%',
+  },
 
-        width:
-            '100%',
-
-        height:
-            '100%'
-    },
-
-    scene: [
-        MapaScene
-    ]
+  scene: [MapaScene],
 };
 
-
-new Phaser.Game(
-    config
-);
+new Phaser.Game(config);

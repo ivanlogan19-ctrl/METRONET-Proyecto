@@ -1,6 +1,11 @@
 package com.metronet.backend.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +32,7 @@ public class Usuario {
     private String password;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
-private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion;
 
     @Column(nullable = false, length = 20)
     private String rol;

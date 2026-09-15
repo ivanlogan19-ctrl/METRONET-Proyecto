@@ -1,223 +1,114 @@
-import {
-    ZONAS,
-    obtenerZona,
-    normalizarBarrio
-} from '../utilidades/ClasificadorZonas.js';
-
+import { ZONAS, obtenerZona, normalizarBarrio } from '../utilidades/ClasificadorZonas.js';
 
 export default class CapaZonas {
+  constructor(escena, opciones = {}) {
+    this.escena = escena;
 
-    constructor(escena, opciones = {}) {
+    this.capaBarrios = opciones.capaBarrios ?? null;
 
-        this.escena =
-            escena;
+    this.zonasSeleccionadas = [];
 
-        this.capaBarrios =
-            opciones.capaBarrios ??
-            null;
+    /*
+     * Paleta visual METRONET.
+     *
+     * Todas las zonas utilizan tonalidades
+     * de azul para mantener una identidad
+     * visual uniforme con el logo.
+     */
+    this.colores = {
+      'ZONA CENTRO': 0x0b5ea8,
 
-        this.zonasSeleccionadas =
-            [];
+      'ZONA ESTE': 0x1677c8,
 
-        this.colores =
-            {
-                'ZONA CENTRO':
-                    0xD95D39,
+      'ZONA NORTE': 0x2b9be8,
 
-                'ZONA ESTE':
-                    0x4CAF50,
+      'ZONA OESTE': 0x0a3150,
 
-                'ZONA NORTE':
-                    0xF2C14E,
+      'ZONA OESTE-COSTA': 0x071a2b,
 
-                'ZONA OESTE':
-                    0x7E57C2,
+      'ZONA NOROESTE': 0x67c7ff,
+    };
+  }
 
-                'ZONA OESTE-COSTA':
-                    0xE76F51,
+  establecerCapaBarrios(capaBarrios) {
+    this.capaBarrios = capaBarrios;
+  }
 
-                'ZONA NOROESTE':
-                    0x2A9D8F
-            };
+  establecerZonasSeleccionadas(zonas) {
+    if (!Array.isArray(zonas)) {
+      this.zonasSeleccionadas = [];
+
+      return;
     }
 
+    this.zonasSeleccionadas = zonas.filter((zona) => ZONAS.includes(zona));
 
-    establecerCapaBarrios(
-        capaBarrios
-    ) {
+    this.actualizar();
+  }
 
-        this.capaBarrios =
-            capaBarrios;
+  agregarZona(zona) {
+    if (!ZONAS.includes(zona)) {
+      return;
     }
 
-
-    establecerZonasSeleccionadas(
-        zonas
-    ) {
-
-        if (
-            !Array.isArray(zonas)
-        ) {
-
-            this.zonasSeleccionadas =
-                [];
-
-            return;
-        }
-
-
-        this.zonasSeleccionadas =
-            zonas.filter(
-                (zona) =>
-                    ZONAS.includes(
-                        zona
-                    )
-            );
-
-
-        this.actualizar();
+    if (!this.zonasSeleccionadas.includes(zona)) {
+      this.zonasSeleccionadas.push(zona);
     }
 
+    this.actualizar();
+  }
 
-    agregarZona(
-        zona
-    ) {
+  quitarZona(zona) {
+    this.zonasSeleccionadas = this.zonasSeleccionadas.filter(
+      (zonaSeleccionada) => zonaSeleccionada !== zona,
+    );
 
-        if (
-            !ZONAS.includes(zona)
-        ) {
-            return;
-        }
+    this.actualizar();
+  }
 
+  limpiar() {
+    this.zonasSeleccionadas = [];
 
-        if (
-            !this.zonasSeleccionadas.includes(
-                zona
-            )
-        ) {
+    this.actualizar();
+  }
 
-            this.zonasSeleccionadas.push(
-                zona
-            );
-        }
+  obtenerZonasSeleccionadas() {
+    return [...this.zonasSeleccionadas];
+  }
 
+  estaSeleccionada(zona) {
+    return this.zonasSeleccionadas.includes(zona);
+  }
 
-        this.actualizar();
+  obtenerColor(zona) {
+    return this.colores[zona] ?? 0x0a3150;
+  }
+
+  obtenerBarriosDeZonasSeleccionadas() {
+    if (!this.capaBarrios) {
+      return [];
     }
 
+    const barrios = this.capaBarrios.obtenerBarrios();
 
-    quitarZona(
-        zona
-    ) {
+    return barrios.filter((barrio) => this.zonasSeleccionadas.includes(obtenerZona(barrio.nombre)));
+  }
 
-        this.zonasSeleccionadas =
-            this.zonasSeleccionadas.filter(
-                (zonaSeleccionada) =>
-                    zonaSeleccionada !==
-                    zona
-            );
+  obtenerZonaDeBarrio(nombreBarrio) {
+    return obtenerZona(normalizarBarrio(nombreBarrio));
+  }
 
-
-        this.actualizar();
+  actualizar() {
+    if (!this.capaBarrios) {
+      return;
     }
 
+    this.capaBarrios.establecerZonasSeleccionadas(this.zonasSeleccionadas);
+  }
 
-    limpiar() {
+  eliminar() {
+    this.zonasSeleccionadas = [];
 
-        this.zonasSeleccionadas =
-            [];
-
-        this.actualizar();
-    }
-
-
-    obtenerZonasSeleccionadas() {
-
-        return [
-            ...this.zonasSeleccionadas
-        ];
-    }
-
-
-    estaSeleccionada(
-        zona
-    ) {
-
-        return this.zonasSeleccionadas.includes(
-            zona
-        );
-    }
-
-
-    obtenerColor(
-        zona
-    ) {
-
-        return (
-            this.colores[zona] ??
-            0x2E4057
-        );
-    }
-
-
-    obtenerBarriosDeZonasSeleccionadas() {
-
-        if (
-            !this.capaBarrios
-        ) {
-
-            return [];
-        }
-
-
-        const barrios =
-            this.capaBarrios.obtenerBarrios();
-
-
-        return barrios.filter(
-            (barrio) =>
-                this.zonasSeleccionadas.includes(
-                    obtenerZona(
-                        barrio.nombre
-                    )
-                )
-        );
-    }
-
-
-    obtenerZonaDeBarrio(
-        nombreBarrio
-    ) {
-
-        return obtenerZona(
-            normalizarBarrio(
-                nombreBarrio
-            )
-        );
-    }
-
-
-    actualizar() {
-
-        if (
-            !this.capaBarrios
-        ) {
-            return;
-        }
-
-
-        this.capaBarrios.establecerZonasSeleccionadas(
-            this.zonasSeleccionadas
-        );
-    }
-
-
-    eliminar() {
-
-        this.zonasSeleccionadas =
-            [];
-
-        this.capaBarrios =
-            null;
-    }
+    this.capaBarrios = null;
+  }
 }

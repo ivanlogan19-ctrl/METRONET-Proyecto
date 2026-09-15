@@ -1,87 +1,63 @@
 export default class CapaMapaBase {
+  constructor(escena, opciones = {}) {
+    this.escena = escena;
 
-    constructor(escena, opciones = {}) {
+    /*
+     * Fondo exclusivo del área del mapa.
+     *
+     * El resto de la interfaz permanece
+     * con el fondo negro definido en index.html.
+     */
+    this.colorFondo = 0x020b14;
 
-        this.escena =
-            escena;
+    this.grafico = null;
+  }
 
-        this.colorFondo =
-            0x000000;
+  crear() {
+    this.eliminar();
 
-        this.grafico =
-            null;
+    this.grafico = this.escena.add.graphics();
+
+    /*
+     * El fondo pertenece al visor, no al mapa.
+     * Así permanece fijo al mover la cámara.
+     */
+    this.grafico.setScrollFactor(0);
+
+    this.dibujar();
+
+    return this;
+  }
+
+  dibujar() {
+    if (!this.grafico) {
+      return;
     }
 
+    const ancho = this.escena.scale.width;
 
-    crear() {
+    const alto = this.escena.scale.height;
 
-        this.eliminar();
+    this.grafico.clear();
 
-        this.grafico =
-            this.escena.add.graphics();
+    this.grafico.fillStyle(this.colorFondo, 1);
 
-        this.dibujar();
+    this.grafico.fillRect(0, 0, ancho, alto);
+  }
 
-        return this;
+  actualizar() {
+    this.dibujar();
+  }
+
+  redibujar() {
+    this.dibujar();
+  }
+
+  eliminar() {
+    if (this.grafico) {
+      this.grafico.destroy();
+
+      this.grafico = null;
     }
-
-
-    dibujar() {
-
-        if (!this.grafico) {
-            return;
-        }
-
-
-        const ancho =
-            this.escena.scale.width;
-
-        const alto =
-            this.escena.scale.height;
-
-
-        this.grafico.clear();
-
-
-        /*
-         * Fondo completamente negro.
-         */
-
-        this.grafico.fillStyle(
-            this.colorFondo,
-            1
-        );
-
-
-        this.grafico.fillRect(
-            0,
-            0,
-            ancho,
-            alto
-        );
-    }
-
-
-    actualizar() {
-
-        this.dibujar();
-    }
-
-
-    redibujar() {
-
-        this.dibujar();
-    }
-
-
-    eliminar() {
-
-        if (this.grafico) {
-
-            this.grafico.destroy();
-
-            this.grafico =
-                null;
-        }
-    }
+  }
 }

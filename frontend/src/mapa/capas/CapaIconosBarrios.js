@@ -1,127 +1,73 @@
 export default class CapaIconosBarrios {
+  constructor(escena, opciones = {}) {
+    this.escena = escena;
 
-    constructor(
-        escena,
-        opciones = {}
-    ) {
+    this.capaBarrios = opciones.capaBarrios || null;
 
-        this.escena =
-            escena;
+    this.zonasSeleccionadas = [];
 
-        this.capaBarrios =
-            opciones.capaBarrios || null;
+    this.barriosSeleccionados = [];
 
-        this.zonasSeleccionadas =
-            [];
+    this.elementos = [];
 
-        this.barriosSeleccionados =
-            [];
+    this.zoomMinimoVisible = 2;
+  }
 
-        this.elementos =
-            [];
+  establecerCapaBarrios(capaBarrios) {
+    this.capaBarrios = capaBarrios;
 
-        this.zoomMinimoVisible =
-            2;
+    this.eliminarElementos();
+  }
 
+  establecerZonasSeleccionadas(zonas) {
+    this.zonasSeleccionadas = Array.isArray(zonas) ? [...zonas] : [];
+
+    this.eliminarElementos();
+  }
+
+  establecerBarriosSeleccionados(barrios) {
+    this.barriosSeleccionados = Array.isArray(barrios) ? [...barrios] : [];
+
+    this.eliminarElementos();
+  }
+
+  dibujar() {
+    /*
+     * Los barrios no tienen iconos propios.
+     *
+     * Esta capa se mantiene para conservar
+     * compatibilidad con MapaScene, pero no
+     * dibuja ningún elemento sobre el mapa.
+     */
+
+    this.eliminarElementos();
+  }
+
+  actualizar() {
+    /*
+     * No hay iconos de barrios que actualizar.
+     */
+  }
+
+  eliminarElementos() {
+    for (const elemento of this.elementos) {
+      if (elemento) {
+        elemento.destroy();
+      }
     }
 
-    establecerCapaBarrios(
-        capaBarrios
-    ) {
+    this.elementos = [];
+  }
 
-        this.capaBarrios =
-            capaBarrios;
+  eliminar() {
+    this.eliminarElementos();
 
-        this.eliminarElementos();
+    this.zonasSeleccionadas = [];
 
-    }
+    this.barriosSeleccionados = [];
 
-    establecerZonasSeleccionadas(
-        zonas
-    ) {
+    this.capaBarrios = null;
 
-        this.zonasSeleccionadas =
-            Array.isArray(zonas)
-                ? [...zonas]
-                : [];
-
-        this.eliminarElementos();
-
-    }
-
-    establecerBarriosSeleccionados(
-        barrios
-    ) {
-
-        this.barriosSeleccionados =
-            Array.isArray(barrios)
-                ? [...barrios]
-                : [];
-
-        this.eliminarElementos();
-
-    }
-
-    dibujar() {
-
-        /*
-         * Los barrios no tienen iconos propios.
-         *
-         * Esta capa se mantiene para conservar
-         * compatibilidad con MapaScene, pero no
-         * dibuja ningún elemento sobre el mapa.
-         */
-
-        this.eliminarElementos();
-
-    }
-
-    actualizar() {
-
-        /*
-         * No hay iconos de barrios que actualizar.
-         */
-
-    }
-
-    eliminarElementos() {
-
-        for (
-            const elemento
-            of this.elementos
-        ) {
-
-            if (
-                elemento
-            ) {
-
-                elemento.destroy();
-
-            }
-
-        }
-
-        this.elementos =
-            [];
-
-    }
-
-    eliminar() {
-
-        this.eliminarElementos();
-
-        this.zonasSeleccionadas =
-            [];
-
-        this.barriosSeleccionados =
-            [];
-
-        this.capaBarrios =
-            null;
-
-        this.escena =
-            null;
-
-    }
-
+    this.escena = null;
+  }
 }
