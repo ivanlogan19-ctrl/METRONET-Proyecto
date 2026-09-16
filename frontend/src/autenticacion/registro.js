@@ -4,6 +4,7 @@ import {
   mostrarMensaje,
   obtenerMensajeError,
   obtenerUrlAutenticacion,
+  validarFormulario,
 } from "./ui.js";
 
 const formulario = document.getElementById("registroForm");
@@ -13,6 +14,11 @@ activarVisibilidadContrasena();
 
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+
+  if (!validarFormulario(formulario)) {
+    mostrarMensaje("Revisá los datos obligatorios del registro.", "error");
+    return;
+  }
 
   const datos = {
     nombre: document.getElementById("nombre").value.trim(),

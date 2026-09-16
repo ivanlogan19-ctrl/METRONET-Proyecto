@@ -17,7 +17,7 @@
           <h1>Mis simulaciones</h1>
           <label for="nombreSimulacion">Nombre de la simulación</label>
           <input id="nombreSimulacion" type="text" maxlength="100" placeholder="Ej.: Red metropolitana" required />
-          <button class="simulacion-primario" type="submit">Crear simulación</button>
+          <button class="simulacion-primario" type="submit">Nueva simulación</button>
         </form>
         <form id="formularioEscenario" class="simulacion-formulario simulacion-formulario-escenario">
           <h2>Escenario de aprendizaje</h2>
@@ -42,7 +42,7 @@
           <button class="simulacion-secundario" type="submit">Crear escenario</button>
         </form>
         <div class="simulacion-acciones-diseno">
-          <button id="actualizarEscenario" class="simulacion-secundario" type="button">Actualizar escenario actual</button>
+          <button id="actualizarEscenario" class="simulacion-secundario" type="button">Editar escenario</button>
           <button id="eliminarDiseno" class="simulacion-accion-eliminar" type="button">Eliminar diseño actual</button>
         </div>
         <p id="mensajeSimulacion" class="simulacion-mensaje" role="status" aria-live="polite"></p>
@@ -72,14 +72,14 @@
               <label for="nombreLinea">Línea</label>
               <div class="simulacion-control-horizontal">
                 <input id="nombreLinea" type="text" maxlength="100" placeholder="Nombre de la línea" />
-                <button id="crearLinea" class="simulacion-primario" type="button">Guardar línea</button>
+                <button id="crearLinea" class="simulacion-primario" type="button">Iniciar línea</button>
               </div>
             </div>
             <div class="simulacion-grupo-control simulacion-validacion-control">
               <label>Consistencia de la red</label>
               <div class="simulacion-control-horizontal">
-                <button id="guardarDiseno" class="simulacion-secundario" type="button">Guardar diseño</button>
-                <button id="validarDiseno" class="simulacion-secundario" type="button">Validar red</button>
+                <button id="guardarDiseno" class="simulacion-secundario" type="button">Guardar progreso</button>
+                <button id="validarDiseno" class="simulacion-secundario" type="button">Revisar red</button>
               </div>
             </div>
             <p id="ayudaEditor" class="simulacion-ayuda">Ingresá el nombre de una estación y elegí «Ubicar estación».</p>

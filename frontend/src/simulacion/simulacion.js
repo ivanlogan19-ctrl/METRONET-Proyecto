@@ -137,6 +137,7 @@ async function abrirSimulacion(idDiseno) {
     document.querySelectorAll(".simulacion-tarjeta").forEach((boton) => {
       boton.classList.toggle("activa", Number(boton.dataset.idDiseno) === idDiseno);
     });
+    actualizarAccionLinea();
     actualizarAyuda();
     dibujarRed();
     renderizarGestionRed();
@@ -207,6 +208,7 @@ function activarUbicacionEstacion() {
   if (!nombre) return mostrarMensaje("Ingresá el nombre de la estación antes de ubicarla.", "error");
   modo = "crearEstacion";
   estacionesSeleccionadas = [];
+  actualizarAccionLinea();
   actualizarAyuda();
 }
 
@@ -250,6 +252,7 @@ async function guardarLinea() {
   if (modo !== "crearLinea") {
     modo = "crearLinea";
     estacionesSeleccionadas = [];
+    actualizarAccionLinea();
     actualizarAyuda();
     dibujarRed();
     return;
@@ -267,6 +270,7 @@ async function guardarLinea() {
     document.getElementById("nombreLinea").value = "";
     modo = "normal";
     estacionesSeleccionadas = [];
+    actualizarAccionLinea();
     mostrarMensaje(`Línea «${nombre}» creada.`);
     await abrirSimulacion(simulacionActual.simulacion.idDiseno);
   } catch (error) {
@@ -277,8 +281,16 @@ async function guardarLinea() {
 function actualizarAyuda() {
   const ayuda = document.getElementById("ayudaEditor");
   if (modo === "crearEstacion") ayuda.textContent = "Hacé clic en el plano para ubicar la estación indicada.";
-  else if (modo === "crearLinea") ayuda.textContent = `Seleccioná las estaciones en orden (${estacionesSeleccionadas.length} elegidas) y volvé a presionar «Guardar línea».`;
-  else ayuda.textContent = "Ingresá el nombre de una estación y elegí «Ubicar estación». Para una línea, ingresá su nombre y elegí «Guardar línea».";
+  else if (modo === "crearLinea") ayuda.textContent = `Seleccioná al menos dos estaciones (${estacionesSeleccionadas.length} elegidas) y elegí «Guardar línea».`;
+  else ayuda.textContent = "Ingresá el nombre de una estación y elegí «Ubicar estación». Para una línea, ingresá su nombre y elegí «Iniciar línea».";
+}
+
+function actualizarAccionLinea() {
+  const boton = document.getElementById("crearLinea");
+
+  if (boton) {
+    boton.textContent = modo === "crearLinea" ? "Guardar línea" : "Iniciar línea";
+  }
 }
 
 function dibujarRed() {

@@ -4,6 +4,7 @@ import {
   mostrarMensaje,
   obtenerMensajeError,
   obtenerUrlAutenticacion,
+  validarFormulario,
 } from "./ui.js";
 
 const formulario = document.getElementById("loginForm");
@@ -13,6 +14,11 @@ activarVisibilidadContrasena();
 
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+
+  if (!validarFormulario(formulario)) {
+    mostrarMensaje("Revisá el correo electrónico y la contraseña.", "error");
+    return;
+  }
 
   const datos = {
     email: document.getElementById("email").value.trim(),

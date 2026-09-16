@@ -401,13 +401,10 @@ export default class SelectorBarrios {
                     8px;
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
 
                 font-family:
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    sans-serif;
+                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
                 font-size:
                     13px;
@@ -454,7 +451,7 @@ export default class SelectorBarrios {
                     );
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
             }
 
             .metronet-selector-barrio-opcion input {
@@ -487,7 +484,7 @@ export default class SelectorBarrios {
             .metronet-selector-barrios-lista::-webkit-scrollbar-thumb {
 
                 background:
-                    rgba(141, 215, 247, 0.42);
+                    rgba(155, 200, 255, 0.42);
 
                 border-radius:
                     99px;

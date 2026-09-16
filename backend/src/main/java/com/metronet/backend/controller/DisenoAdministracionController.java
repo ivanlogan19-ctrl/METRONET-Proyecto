@@ -10,7 +10,9 @@ import com.metronet.backend.dto.CrearEstacionAdministracionRequest;
 import com.metronet.backend.dto.CrearLineaAdministracionRequest;
 import com.metronet.backend.dto.DisenoDetalleResponse;
 import com.metronet.backend.dto.DisenoResumenResponse;
+import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.service.AuthService;
+import com.metronet.backend.service.ActividadAdministrativaService;
 import com.metronet.backend.service.DisenoAdministracionService;
 import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,10 +33,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class DisenoAdministracionController {
     private final AuthService authService;
     private final DisenoAdministracionService disenoService;
+    private final ActividadAdministrativaService actividadAdministrativaService;
 
-    public DisenoAdministracionController(AuthService authService, DisenoAdministracionService disenoService) {
+    public DisenoAdministracionController(
+        AuthService authService,
+        DisenoAdministracionService disenoService,
+        ActividadAdministrativaService actividadAdministrativaService
+    ) {
         this.authService = authService;
         this.disenoService = disenoService;
+        this.actividadAdministrativaService = actividadAdministrativaService;
     }
 
     @GetMapping
@@ -51,8 +59,9 @@ public class DisenoAdministracionController {
 
     @DeleteMapping("/{idDiseno}")
     public void eliminarDiseno(@PathVariable Integer idDiseno, @RequestHeader(value = "Authorization", required = false) String autorizacion) {
-        authService.obtenerAdministradorAutorizado(autorizacion);
+        Usuario administrador = authService.obtenerAdministradorAutorizado(autorizacion);
         disenoService.eliminarDiseno(idDiseno);
+        actividadAdministrativaService.registrarActividad(administrador, "Diseño eliminado", "Se eliminó el diseño #" + idDiseno);
     }
 
     @PostMapping("/{idDiseno}/lineas")

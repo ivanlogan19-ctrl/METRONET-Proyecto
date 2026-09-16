@@ -1,10 +1,15 @@
-import { establecerCarga, mostrarMensaje, obtenerUrlAutenticacion } from "./ui.js";
+import { establecerCarga, mostrarMensaje, obtenerUrlAutenticacion, validarFormulario } from "./ui.js";
 
 const formulario = document.getElementById("formularioRecuperacion");
 const boton = document.getElementById("botonRecuperar");
 
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+
+  if (!validarFormulario(formulario)) {
+    mostrarMensaje("Ingresá un correo electrónico válido.", "error");
+    return;
+  }
   const email = document.getElementById("email").value.trim();
 
   if (!email) {

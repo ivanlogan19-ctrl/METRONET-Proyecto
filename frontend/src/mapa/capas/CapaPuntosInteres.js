@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { obtenerZona } from '../utilidades/ClasificadorZonas.js';
+import { ZONAS, obtenerZona } from '../utilidades/ClasificadorZonas.js';
 
 export const COLORES_PUNTOS_INTERES = Object.freeze({
   PATRIMONIO: 0xf3c86b,
@@ -31,6 +31,8 @@ export default class CapaPuntosInteres {
     this.manejadorClicFueraInformacion = null;
 
     this.retrasoCierreInformacion = null;
+
+    this.onCambioSeleccion = opciones.onCambioSeleccion ?? null;
 
     /*
      * Los puntos aparecen solamente al llegar
@@ -97,7 +99,15 @@ export default class CapaPuntosInteres {
       return;
     }
 
-    this.zoomMinimoVisible = Math.max(1, zoom);
+    const todasLasZonasSeleccionadas = ZONAS.every((zona) => this.zonasSeleccionadas.includes(zona));
+
+    /*
+     * Elegir todas las zonas equivale a ver el mapa completo: los puntos
+     * no deben saturarlo hasta que la persona haga zoom de forma explícita.
+     */
+    this.zoomMinimoVisible = todasLasZonasSeleccionadas
+      ? Math.max(1.01, zoom)
+      : Math.max(1, zoom);
 
     this.actualizarVisibilidad(this.obtenerZoomActual());
   }
@@ -432,11 +442,14 @@ export default class CapaPuntosInteres {
   dibujar() {
     this.eliminarElementos();
 
+    let cantidadPuntosSeleccionados = 0;
+
     for (const punto of this.puntos) {
       if (!this.puntoPerteneceASeleccion(punto)) {
         continue;
       }
 
+      cantidadPuntosSeleccionados += 1;
       this.dibujarPunto(punto);
     }
 
@@ -449,6 +462,19 @@ export default class CapaPuntosInteres {
     this.actualizarTamanoIconos();
 
     this.zoomAnterior = this.obtenerZoomActual();
+
+    this.notificarCambioSeleccion(cantidadPuntosSeleccionados);
+  }
+
+  notificarCambioSeleccion(cantidadPuntos) {
+    if (typeof this.onCambioSeleccion !== 'function') {
+      return;
+    }
+
+    this.onCambioSeleccion({
+      haySeleccion: this.zonasSeleccionadas.length > 0 || this.barriosSeleccionados.length > 0,
+      cantidadPuntos,
+    });
   }
 
   dibujarPunto(punto) {
@@ -765,7 +791,7 @@ export default class CapaPuntosInteres {
                     );
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
 
                 font-family:
                     Arial,
@@ -849,7 +875,7 @@ export default class CapaPuntosInteres {
                     transparent;
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
 
                 font-size:
                     22px;

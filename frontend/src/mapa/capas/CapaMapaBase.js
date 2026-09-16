@@ -8,7 +8,7 @@ export default class CapaMapaBase {
      * El resto de la interfaz permanece
      * con el fondo negro definido en index.html.
      */
-    this.colorFondo = 0x020b14;
+    this.colorFondo = opciones.colorFondo ?? 0x070a0f;
 
     this.grafico = null;
   }

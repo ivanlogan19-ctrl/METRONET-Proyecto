@@ -1,7 +1,9 @@
 package com.metronet.backend.controller;
 
 import com.metronet.backend.dto.SolicitudRecuperacionResponse;
+import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.service.AuthService;
+import com.metronet.backend.service.ActividadAdministrativaService;
 import com.metronet.backend.service.RecuperacionContrasenaService;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecuperacionContrasenaController {
     private final AuthService authService;
     private final RecuperacionContrasenaService recuperacionContrasenaService;
+    private final ActividadAdministrativaService actividadAdministrativaService;
 
-    public RecuperacionContrasenaController(AuthService authService, RecuperacionContrasenaService recuperacionContrasenaService) {
+    public RecuperacionContrasenaController(
+        AuthService authService,
+        RecuperacionContrasenaService recuperacionContrasenaService,
+        ActividadAdministrativaService actividadAdministrativaService
+    ) {
         this.authService = authService;
         this.recuperacionContrasenaService = recuperacionContrasenaService;
+        this.actividadAdministrativaService = actividadAdministrativaService;
     }
 
     @PatchMapping("/auth/recuperar-contrasena")
@@ -40,8 +48,9 @@ public class RecuperacionContrasenaController {
 
     @PatchMapping("/api/admin/recuperaciones/{idSolicitud}/atendida")
     public ResponseEntity<Void> marcarAtendida(@PathVariable Integer idSolicitud, @RequestHeader(value = "Authorization", required = false) String autorizacion) {
-        authService.obtenerAdministradorAutorizado(autorizacion);
+        Usuario administrador = authService.obtenerAdministradorAutorizado(autorizacion);
         recuperacionContrasenaService.marcarAtendida(idSolicitud);
+        actividadAdministrativaService.registrarActividad(administrador, "Recuperación atendida", "Se atendió la solicitud #" + idSolicitud);
         return ResponseEntity.noContent().build();
     }
 }

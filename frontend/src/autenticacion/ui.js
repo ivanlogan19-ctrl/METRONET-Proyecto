@@ -30,6 +30,15 @@ export function establecerCarga(boton, cargando) {
   boton.classList.toggle('cargando', cargando);
 }
 
+export function validarFormulario(formulario) {
+  if (formulario.checkValidity()) {
+    return true;
+  }
+
+  formulario.reportValidity();
+  return false;
+}
+
 export async function obtenerMensajeError(respuesta, mensajePredeterminado) {
   try {
     const datos = await respuesta.json();

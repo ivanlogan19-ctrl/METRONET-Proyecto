@@ -16,17 +16,17 @@ export default class CapaZonas {
      * visual uniforme con el logo.
      */
     this.colores = {
-      'ZONA CENTRO': 0x0b5ea8,
+      'ZONA CENTRO': 0x9bc8ff,
 
-      'ZONA ESTE': 0x1677c8,
+      'ZONA ESTE': 0x3b78c8,
 
-      'ZONA NORTE': 0x2b9be8,
+      'ZONA NORTE': 0x3b78c8,
 
-      'ZONA OESTE': 0x0a3150,
+      'ZONA OESTE': 0x1a2340,
 
-      'ZONA OESTE-COSTA': 0x071a2b,
+      'ZONA OESTE-COSTA': 0x1a2340,
 
-      'ZONA NOROESTE': 0x67c7ff,
+      'ZONA NOROESTE': 0x9bc8ff,
     };
   }
 
@@ -81,7 +81,7 @@ export default class CapaZonas {
   }
 
   obtenerColor(zona) {
-    return this.colores[zona] ?? 0x0a3150;
+    return this.colores[zona] ?? 0x1a2340;
   }
 
   obtenerBarriosDeZonasSeleccionadas() {

@@ -6,6 +6,7 @@ import com.metronet.backend.dto.UsuarioResponse;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
 import com.metronet.backend.service.AuthService;
+import com.metronet.backend.service.ActividadAdministrativaService;
 import com.metronet.backend.service.UsuarioService;
 import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -27,10 +28,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsuarioController {
     private final UsuarioService usuarioService;
     private final AuthService authService;
+    private final ActividadAdministrativaService actividadAdministrativaService;
 
-    public UsuarioController(UsuarioService usuarioService, AuthService authService) {
+    public UsuarioController(
+        UsuarioService usuarioService,
+        AuthService authService,
+        ActividadAdministrativaService actividadAdministrativaService
+    ) {
         this.usuarioService = usuarioService;
         this.authService = authService;
+        this.actividadAdministrativaService = actividadAdministrativaService;
     }
 
     @GetMapping
@@ -53,7 +60,9 @@ public class UsuarioController {
             throw new IllegalArgumentException("No podés quitarte tu propio rol de administrador");
         }
 
-        return usuarioService.actualizarRol(idUsuario, solicitud.rol());
+        UsuarioResponse usuarioActualizado = usuarioService.actualizarRol(idUsuario, solicitud.rol());
+        actividadAdministrativaService.registrarActividad(administrador, "Rol actualizado", "Usuario #" + idUsuario + " asignado como " + solicitud.rol());
+        return usuarioActualizado;
     }
 
     @PatchMapping("/{idUsuario}")
@@ -62,8 +71,10 @@ public class UsuarioController {
         @RequestBody ActualizarUsuarioRequest solicitud,
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
-        authService.obtenerAdministradorAutorizado(autorizacion);
-        return usuarioService.actualizarUsuario(idUsuario, solicitud);
+        Usuario administrador = authService.obtenerAdministradorAutorizado(autorizacion);
+        UsuarioResponse usuarioActualizado = usuarioService.actualizarUsuario(idUsuario, solicitud);
+        actividadAdministrativaService.registrarActividad(administrador, "Usuario actualizado", "Se actualizaron los datos del usuario #" + idUsuario);
+        return usuarioActualizado;
     }
 
     @DeleteMapping("/{idUsuario}")
@@ -78,5 +89,6 @@ public class UsuarioController {
         }
 
         usuarioService.eliminarUsuario(idUsuario);
+        actividadAdministrativaService.registrarActividad(administrador, "Usuario eliminado", "Se eliminó el usuario #" + idUsuario);
     }
 }

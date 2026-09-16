@@ -156,14 +156,10 @@ export default class CapaBarrios {
 
     const pantallaAngosta = anchoPantalla < 520;
 
-    /*
-     * Los controles ocupan un panel independiente.
-     * Solo dejamos espacio para el logo centrado
-     * dentro del área exclusiva del mapa.
-     */
+    /* El logo y los controles viven fuera del área útil del mapa. */
     const margenHorizontal = pantallaAngosta ? 18 : 32;
 
-    const margenSuperior = pantallaAngosta ? 96 : 128;
+    const margenSuperior = pantallaAngosta ? 24 : 32;
 
     const margenInferior = pantallaAngosta ? 28 : 32;
 
@@ -310,12 +306,12 @@ export default class CapaBarrios {
     /*
      * Base azul petróleo del mapa.
      */
-    this.fondoMapa.fillStyle(0x102e40, 1);
+    this.fondoMapa.fillStyle(0x111820, 1);
 
     /*
      * Borde exterior azul METRONET.
      */
-    this.fondoMapa.lineStyle(2, 0x68d2ff, 0.9);
+    this.fondoMapa.lineStyle(2, 0x3b78c8, 0.9);
 
     for (const barrio of this.barrios) {
       const geometria = barrio.feature.geometry;
@@ -409,25 +405,22 @@ export default class CapaBarrios {
 
     const zonaSeleccionada = this.esZonaSeleccionada(barrio);
 
-    let colorRelleno = 0x102e40;
+    let colorRelleno = 0x111820;
 
     let transparencia = 0;
 
-    /*
-     * Cuando una zona está seleccionada,
-     * se colorea sobre el fondo blanco.
-     */
+    /* La zona elegida usa un azul claro que no se confunde con el mapa base. */
     if (zonaSeleccionada) {
-      colorRelleno = this.obtenerColorZona(barrio.zona);
+      colorRelleno = 0x3b78c8;
 
-      transparencia = 0.55;
+      transparencia = 0.72;
     }
 
     /*
      * Barrio seleccionado.
      */
     if (barrioSeleccionado) {
-      colorRelleno = 0x5bc8ff;
+      colorRelleno = 0x568fdb;
 
       transparencia = 0.9;
     }
@@ -436,11 +429,11 @@ export default class CapaBarrios {
      * Bordes internos de los barrios.
      */
     grafico.lineStyle(
-      barrioSeleccionado ? 3 : 1,
+      barrioSeleccionado || zonaSeleccionada ? 3 : 1,
 
-      barrioSeleccionado ? 0x0b5ea8 : 0x2e91c2,
+      barrioSeleccionado ? 0xf4f7fa : zonaSeleccionada ? 0xaab7c4 : 0x263240,
 
-      barrioSeleccionado ? 1 : 0.85,
+      barrioSeleccionado || zonaSeleccionada ? 1 : 0.85,
     );
 
     if (transparencia > 0) {
@@ -519,30 +512,28 @@ export default class CapaBarrios {
   }
 
   obtenerColorZona(zona) {
-    /*
-     * Paleta azul METRONET.
-     */
+    /* Paleta violeta-azul METRONET. */
     switch (zona) {
       case 'ZONA CENTRO':
-        return 0x0b5ea8;
+        return 0x9bc8ff;
 
       case 'ZONA ESTE':
-        return 0x0878c9;
+        return 0x3b78c8;
 
       case 'ZONA NORTE':
-        return 0x149be8;
+        return 0x3b78c8;
 
       case 'ZONA OESTE':
-        return 0x0a3a5c;
+        return 0x1a2340;
 
       case 'ZONA OESTE-COSTA':
-        return 0x08243d;
+        return 0x1a2340;
 
       case 'ZONA NOROESTE':
-        return 0x35b7f3;
+        return 0x9bc8ff;
 
       default:
-        return 0x0a3150;
+        return 0x1a2340;
     }
   }
 

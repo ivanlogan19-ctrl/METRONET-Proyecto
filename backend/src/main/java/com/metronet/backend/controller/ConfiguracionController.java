@@ -2,7 +2,9 @@ package com.metronet.backend.controller;
 
 import com.metronet.backend.dto.ActualizarConfiguracionRequest;
 import com.metronet.backend.dto.ConfiguracionResponse;
+import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.service.AuthService;
+import com.metronet.backend.service.ActividadAdministrativaService;
 import com.metronet.backend.service.ConfiguracionService;
 import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,10 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConfiguracionController {
     private final AuthService authService;
     private final ConfiguracionService configuracionService;
+    private final ActividadAdministrativaService actividadAdministrativaService;
 
-    public ConfiguracionController(AuthService authService, ConfiguracionService configuracionService) {
+    public ConfiguracionController(
+        AuthService authService,
+        ConfiguracionService configuracionService,
+        ActividadAdministrativaService actividadAdministrativaService
+    ) {
         this.authService = authService;
         this.configuracionService = configuracionService;
+        this.actividadAdministrativaService = actividadAdministrativaService;
     }
 
     @GetMapping
@@ -34,7 +42,9 @@ public class ConfiguracionController {
 
     @PatchMapping("/{clave}")
     public ConfiguracionResponse actualizar(@PathVariable String clave, @RequestBody ActualizarConfiguracionRequest solicitud, @RequestHeader(value = "Authorization", required = false) String autorizacion) {
-        authService.obtenerAdministradorAutorizado(autorizacion);
-        return configuracionService.actualizarConfiguracion(clave, solicitud);
+        Usuario administrador = authService.obtenerAdministradorAutorizado(autorizacion);
+        ConfiguracionResponse configuracion = configuracionService.actualizarConfiguracion(clave, solicitud);
+        actividadAdministrativaService.registrarActividad(administrador, "Configuración actualizada", "Se actualizó el valor de " + clave);
+        return configuracion;
     }
 }

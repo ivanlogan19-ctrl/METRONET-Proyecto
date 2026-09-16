@@ -7,7 +7,7 @@ const config = {
 
   parent: 'metronet-mapa',
 
-  backgroundColor: '#000000',
+  backgroundColor: '#1A2340',
 
   scale: {
     mode: Phaser.Scale.RESIZE,

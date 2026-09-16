@@ -5,17 +5,20 @@ import com.metronet.backend.dto.UsuarioResponse;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
 import com.metronet.backend.repository.UsuarioRepository;
-import org.springframework.stereotype.Service;
-
+import com.metronet.backend.utilidades.ValidadorDatos;
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UsuarioResponse> listarUsuarios() {
@@ -45,6 +48,10 @@ public class UsuarioService {
         );
         String email = solicitud.email().trim().toLowerCase();
 
+        if (!ValidadorDatos.esCorreoElectronicoValido(email)) {
+            throw new IllegalArgumentException("Ingresá un correo electrónico válido");
+        }
+
         usuarioRepository.findByEmail(email).ifPresent(candidato -> {
             if (!candidato.getIdUsuario().equals(idUsuario)) {
                 throw new IllegalArgumentException("Ya existe una cuenta con ese correo electrónico");
@@ -71,7 +78,7 @@ public class UsuarioService {
 
         if (!esVacio(solicitud.nuevaContrasena())) {
             validarContrasena(solicitud.nuevaContrasena());
-            usuario.setPassword(solicitud.nuevaContrasena());
+            usuario.setPassword(passwordEncoder.encode(solicitud.nuevaContrasena()));
         }
         return convertirARespuesta(usuarioRepository.save(usuario));
     }

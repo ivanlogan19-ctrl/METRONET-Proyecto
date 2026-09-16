@@ -38,6 +38,8 @@ export default class MapaScene extends Phaser.Scene {
     this.controlSesion = null;
     this.controlPerfil = null;
     this.contenedorInformacionJugador = null;
+    this.mensajePuntosInteres = null;
+    this.estadoPuntosInteres = { haySeleccion: false, cantidadPuntos: 0 };
 
     this.logo = null;
 
@@ -78,11 +80,15 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearLeyendaPuntosInteres();
 
+    this.crearEstadoPuntosInteres();
+
     this.crearControlZoom();
 
     this.crearControlSesion();
 
     this.crearLogo();
+
+    this.crearEstilosPanelSobrio();
 
     this.ajustarMapa();
 
@@ -97,11 +103,72 @@ export default class MapaScene extends Phaser.Scene {
 
   update() {}
 
+  crearEstilosPanelSobrio() {
+    const id = 'metronet-estilos-panel-sobrio';
+
+    document.getElementById(id)?.remove();
+
+    const estilos = document.createElement('style');
+    estilos.id = id;
+    estilos.textContent = `
+      #metronet-panel-controles .metronet-panel-dinamico,
+      #metronet-panel-controles .metronet-leyenda-puntos-interes,
+      #metronet-panel-controles .metronet-control-zoom,
+      .metronet-punto-interes-panel {
+        border: 1px solid #263240 !important;
+        background: #111820 !important;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28) !important;
+        color: #F4F7FA !important;
+      }
+      #metronet-panel-controles .metronet-panel-encabezado,
+      #metronet-panel-controles .metronet-leyenda-encabezado {
+        background: #1B2B3B !important;
+        color: #F4F7FA !important;
+        font-size: 14px !important;
+      }
+      #metronet-panel-controles .metronet-panel-encabezado:hover,
+      #metronet-panel-controles .metronet-leyenda-encabezado:hover {
+        background: #263B50 !important;
+        color: #F4F7FA !important;
+      }
+      #metronet-panel-controles .metronet-panel-contenido,
+      #metronet-panel-controles .metronet-leyenda-contenido {
+        background: #111820 !important;
+        border-color: #263240 !important;
+      }
+      #metronet-panel-controles .metronet-selector-zona-opcion,
+      #metronet-panel-controles .metronet-selector-barrio-opcion,
+      #metronet-panel-controles .metronet-leyenda-referencia,
+      #metronet-panel-controles .metronet-control-zoom-boton {
+        color: #E8EEF3 !important;
+        font-size: 14px !important;
+      }
+      #metronet-panel-controles .metronet-selector-zona-opcion:hover,
+      #metronet-panel-controles .metronet-selector-barrio-opcion:hover,
+      #metronet-panel-controles .metronet-leyenda-referencia:hover,
+      #metronet-panel-controles .metronet-control-zoom-boton:hover {
+        background: #1B2B3B !important;
+      }
+      #metronet-panel-controles input[type="checkbox"] { accent-color: #3B78C8; }
+      #metronet-panel-controles .metronet-leyenda-titulo-seccion,
+      #metronet-panel-controles .metronet-leyenda-indicador,
+      .metronet-punto-interes-titulo,
+      .metronet-punto-interes-tipo,
+      .metronet-punto-interes-descripcion,
+      .metronet-punto-interes-barrio { color: #E8EEF3 !important; }
+      #metronet-panel-controles .metronet-leyenda-marcador {
+        border-color: #AAB7C4 !important;
+        background: #111820 !important;
+      }
+    `;
+    document.head.appendChild(estilos);
+  }
+
   crearCapaMapaBase() {
     this.capaMapaBase = new CapaMapaBase(this, {
-      colorFondo: 0x000000,
+      colorFondo: 0x070a0f,
 
-      colorAgua: 0x000000,
+      colorAgua: 0x070a0f,
     });
 
     this.capaMapaBase.crear();
@@ -126,6 +193,8 @@ export default class MapaScene extends Phaser.Scene {
       datos: this.datosPuntosInteres,
 
       capaBarrios: this.capaBarrios,
+
+      onCambioSeleccion: (estado) => this.actualizarEstadoPuntosInteres(estado),
     });
 
     this.capaPuntosInteres.establecerDatos(this.datosPuntosInteres);
@@ -216,6 +285,10 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   async cerrarSesion() {
+    if (!window.confirm('¿Querés cerrar la sesión actual?')) {
+      return;
+    }
+
     let tokenUsuario = null;
     let tokenAdministrador = null;
 
@@ -313,6 +386,33 @@ export default class MapaScene extends Phaser.Scene {
     });
 
     this.leyendaPuntosInteres.crear();
+  }
+
+  crearEstadoPuntosInteres() {
+    if (!this.contenedorControles) {
+      return;
+    }
+
+    this.mensajePuntosInteres = document.createElement('p');
+    this.mensajePuntosInteres.className = 'metronet-estado-puntos';
+    this.mensajePuntosInteres.setAttribute('role', 'status');
+    this.mensajePuntosInteres.setAttribute('aria-live', 'polite');
+    this.contenedorControles.appendChild(this.mensajePuntosInteres);
+    this.actualizarEstadoPuntosInteres(this.estadoPuntosInteres);
+  }
+
+  actualizarEstadoPuntosInteres(estado) {
+    this.estadoPuntosInteres = estado ?? { haySeleccion: false, cantidadPuntos: 0 };
+
+    if (!this.mensajePuntosInteres) {
+      return;
+    }
+
+    const sinPuntos = this.estadoPuntosInteres.haySeleccion && this.estadoPuntosInteres.cantidadPuntos === 0;
+    this.mensajePuntosInteres.hidden = !sinPuntos;
+    this.mensajePuntosInteres.textContent = sinPuntos
+      ? 'La selección no tiene puntos de interés registrados.'
+      : '';
   }
 
   crearSelectorZonas() {
@@ -484,7 +584,13 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   crearLogo() {
+    if (!this.contenedorControles) {
+      return;
+    }
+
     this.logo = document.createElement('div');
+
+    this.logo.className = 'metronet-logo-marca';
 
     const imagenLogo = document.createElement('img');
 
@@ -493,39 +599,8 @@ export default class MapaScene extends Phaser.Scene {
     imagenLogo.alt = 'METRONET';
 
     Object.assign(this.logo.style, {
-      position: 'absolute',
-
-      top: '10px',
-
-      left: '50%',
-
-      transform: 'translateX(-50%)',
-
-      width: 'clamp(76px, 11vw, 130px)',
-
-      aspectRatio: '1',
-
-      padding: 'clamp(5px, 1vw, 10px)',
-
-      boxSizing: 'border-box',
-
-      background: '#061D32',
-
-      border: '1px solid rgba(53, 183, 243, 0.55)',
-
-      borderRadius: 'clamp(10px, 2vw, 18px)',
-
-      boxShadow: '0 8px 22px rgba(6, 29, 50, 0.28)',
-
-      zIndex: '2000',
-
       pointerEvents: 'none',
-
       userSelect: 'none',
-
-      overflow: 'hidden',
-
-      isolation: 'isolate',
     });
 
     Object.assign(imagenLogo.style, {
@@ -536,13 +611,11 @@ export default class MapaScene extends Phaser.Scene {
       objectFit: 'contain',
 
       display: 'block',
-
-      mixBlendMode: 'screen',
     });
 
     this.logo.appendChild(imagenLogo);
 
-    (this.contenedorMapa ?? document.body).appendChild(this.logo);
+    this.contenedorControles.prepend(this.logo);
 
     this.ajustarTamanoLogo();
   }
@@ -553,13 +626,7 @@ export default class MapaScene extends Phaser.Scene {
     }
 
     Object.assign(this.logo.style, {
-      top: this.scale.width < 520 ? '8px' : '10px',
-
-      left: '50%',
-
-      transform: 'translateX(-50%)',
-
-      width: this.scale.width < 520 ? '62px' : 'clamp(76px, 11vw, 130px)',
+      width: this.scale.width < 520 ? '88px' : 'clamp(108px, 10vw, 132px)',
     });
   }
 
@@ -568,9 +635,10 @@ export default class MapaScene extends Phaser.Scene {
       return;
     }
 
-    this.logo.style.opacity = mostrar ? '1' : '0';
+    /* El logo está fuera del lienzo, por lo que no debe ocultarse durante el zoom. */
+    this.logo.style.opacity = '1';
 
-    this.logo.style.visibility = mostrar ? 'visible' : 'hidden';
+    this.logo.style.visibility = 'visible';
   }
 
   ajustarMapa() {

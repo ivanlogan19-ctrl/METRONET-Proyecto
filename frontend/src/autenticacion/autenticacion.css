@@ -1,7 +1,7 @@
 :root {
-  color: #ffffff;
-  background: #000000;
-  font-family: "Courier New", Courier, monospace;
+  color: #1A2340;
+  background: #F8FBFF;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 * {
@@ -11,7 +11,7 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background: #000000;
+  background: radial-gradient(circle at 50% 0%, #D9ECFF 0, #F8FBFF 62%, #D9ECFF 100%);
   overflow-x: hidden;
 }
 
@@ -29,8 +29,9 @@ body {
 .auth-card {
   width: min(100%, 540px);
   padding: clamp(22px, 5vw, 38px);
-  border: 2px solid #0b5ea8;
-  background: #000000;
+  border: 1px solid #3B78C8;
+  background: #F8FBFF;
+  box-shadow: 0 12px 28px rgba(59, 120, 200, 0.14);
 }
 
 .mobile-brand {
@@ -48,7 +49,8 @@ body {
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: #000000;
+  background: #1A2340;
+  mix-blend-mode: screen;
 }
 
 .mobile-brand span {
@@ -57,7 +59,7 @@ body {
 
 .eyebrow {
   margin: 14px 0 0;
-  color: #ffffff;
+  color: #1A2340;
   font: inherit;
   font-size: 12px;
   text-align: center;
@@ -67,7 +69,7 @@ body {
 h1,
 h2 {
   margin: 16px 0 0;
-  color: #ffffff;
+  color: #1A2340;
   font: inherit;
   font-size: 22px;
   font-weight: 700;
@@ -100,7 +102,7 @@ h2 {
 .field-group label {
   display: block;
   margin-bottom: 6px;
-  color: #ffffff;
+  color: #1A2340;
   font: inherit;
   font-size: 14px;
 }
@@ -109,16 +111,23 @@ h2 {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  color: #ffffff;
+  color: #1A2340;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.consentimiento-destacado {
+  padding: 10px;
+  border: 1px solid #e05252;
+  color: #ffd6d6;
+  background: rgba(224, 82, 82, 0.12);
 }
 
 .consentimiento input {
   width: 15px;
   height: 15px;
   margin: 2px 0 0;
-  accent-color: #0b5ea8;
+  accent-color: #e05252;
 }
 
 .consentimiento label {
@@ -127,15 +136,19 @@ h2 {
 
 .consentimiento a,
 .privacy-content a {
-  color: #ffffff;
+  color: #1A2340;
   font-weight: 700;
+}
+
+.consentimiento-destacado a {
+  color: #ff8b8b;
 }
 
 .consentimiento a:hover,
 .consentimiento a:focus-visible,
 .privacy-content a:hover,
 .privacy-content a:focus-visible {
-  color: #58a9e8;
+  color: #9BC8FF;
 }
 
 .input-wrapper {
@@ -147,18 +160,18 @@ h2 {
   max-width: 100%;
   height: 36px;
   padding: 5px 76px 5px 8px;
-  border: 1px solid #ffffff;
+  border: 1px solid #1A2340;
   border-radius: 0;
   outline: 0;
-  color: #000000;
-  background: #ffffff;
+  color: #F8FBFF;
+  background: #1A2340;
   font: inherit;
   font-size: 14px;
 }
 
 .input-wrapper input:focus {
-  border-color: #58a9e8;
-  box-shadow: 0 0 0 1px #58a9e8;
+  border-color: #9BC8FF;
+  box-shadow: 0 0 0 1px #9BC8FF;
 }
 
 .requisitos-contrasena {
@@ -169,9 +182,9 @@ h2 {
   display: none;
   width: 100%;
   padding: 8px;
-  border: 1px solid #0b5ea8;
-  color: #dff6ff;
-  background: #061521;
+  border: 1px solid #3B78C8;
+  color: #1A2340;
+  background: #F8FBFF;
   font-size: 11px;
   line-height: 1.4;
 }
@@ -185,10 +198,10 @@ h2 {
   top: 50%;
   right: 5px;
   padding: 2px 5px;
-  border: 1px solid #0b5ea8;
+  border: 1px solid #3B78C8;
   border-radius: 0;
-  color: #ffffff;
-  background: #000000;
+  color: #1A2340;
+  background: #F8FBFF;
   font: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -199,10 +212,10 @@ h2 {
   width: 100%;
   min-height: 42px;
   margin-top: 4px;
-  border: 1px solid #ffffff;
+  border: 1px solid #1A2340;
   border-radius: 0;
-  color: #ffffff;
-  background: #000000;
+  color: #F8FBFF;
+  background: #F8FBFF;
   font: inherit;
   font-size: 14px;
   cursor: pointer;
@@ -210,8 +223,8 @@ h2 {
 
 .primary-button:hover,
 .primary-button:focus-visible {
-  border-color: #58a9e8;
-  color: #58a9e8;
+  border-color: #9BC8FF;
+  color: #9BC8FF;
 }
 
 .primary-button:disabled {
@@ -229,7 +242,7 @@ h2 {
   height: 15px;
   margin: auto;
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #ffffff;
+  border-top-color: #1A2340;
   border-radius: 50%;
   animation: giro 0.75s linear infinite;
 }
@@ -256,20 +269,20 @@ h2 {
 
 .auth-link {
   margin: 18px 0 0;
-  color: #ffffff;
+  color: #1A2340;
   font-size: 12px;
   line-height: 1.5;
   text-align: center;
 }
 
 .auth-link a {
-  color: #ffffff;
+  color: #1A2340;
   font-weight: 700;
 }
 
 .auth-link a:hover,
 .auth-link a:focus-visible {
-  color: #58a9e8;
+  color: #9BC8FF;
 }
 
 .privacy-card {
@@ -280,9 +293,27 @@ h2 {
   display: grid;
   gap: 14px;
   margin-top: 20px;
-  color: #ffffff;
+  color: #1A2340;
   font-size: 13px;
   line-height: 1.65;
+}
+
+.privacy-contexto {
+  color: #f2c6c6;
+}
+
+.privacy-notice {
+  display: grid;
+  gap: 14px;
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid #e05252;
+  border-left: 4px solid #ff6767;
+  color: #ffe2e2;
+  background: rgba(224, 82, 82, 0.12);
+}
+
+.privacy-notice strong {
+  color: #ff9c9c;
 }
 
 .privacy-content p {
@@ -331,3 +362,23 @@ h2 {
     font-size: 10px;
   }
 }
+
+/* Acceso con la misma identidad sobria del resto de METRONET. */
+:root { color: #f4f7fa; background: #070a0f; }
+body { background: #070a0f; }
+.auth-card { border-color: #263240; background: #111820; box-shadow: 0 12px 28px rgba(0, 0, 0, .28); }
+.mobile-brand { border-color: #263240; }
+.mobile-brand img { width: 220px; background: transparent; }
+h1 { font-size: 30px; line-height: 1.15; }
+h2 { font-size: 20px; line-height: 1.25; }
+.field-group label, .input-wrapper input, .primary-button { font-size: 14px; }
+
+@media (max-width: 430px) {
+  .mobile-brand img { width: 172px; }
+  h1 { font-size: 25px; }
+}
+.eyebrow, h1, h2, .field-group label, .consentimiento { color: #f4f7fa; }
+.input-wrapper input { color: #e8eef3; border-color: #263240; background: #0b0f14; }
+.toggle-password { color: #e8eef3; border-color: #263240; background: #1b2b3b; }
+.primary-button { color: #f4f7fa; border-color: #3b78c8; background: #3b78c8; }
+.primary-button:hover, .primary-button:focus-visible { color: #f4f7fa; border-color: #4b86d1; background: #4b86d1; }

@@ -4,6 +4,7 @@ import {
   obtenerMensajeError,
   obtenerUrlAutenticacion,
   activarVisibilidadContrasena,
+  validarFormulario,
 } from "./ui.js";
 
 const sesion = obtenerSesion();
@@ -23,6 +24,11 @@ if (!sesion) {
 
 async function guardarContrasena(evento) {
   evento.preventDefault();
+
+  if (!validarFormulario(formularioContrasena)) {
+    mostrarMensaje("Completá correctamente los datos de la contraseña.", "error");
+    return;
+  }
 
   const contrasenaActual = document.getElementById("contrasenaActual").value;
   const nuevaContrasena = document.getElementById("nuevaContrasena").value;
@@ -97,6 +103,11 @@ async function cargarPerfil() {
 
 async function guardarPerfil(evento) {
   evento.preventDefault();
+
+  if (!validarFormulario(formulario)) {
+    mostrarMensaje("Revisá los datos del perfil.", "error");
+    return;
+  }
 
   const datos = {
     nombre: document.getElementById("nombre").value.trim(),

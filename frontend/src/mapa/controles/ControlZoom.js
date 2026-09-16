@@ -580,7 +580,7 @@ export default class ControlZoom {
                     0.84
                 );
 
-                border: 1px solid rgba(141, 215, 247, 0.26);
+                border: 1px solid rgba(155, 200, 255, 0.26);
 
                 border-radius: 16px;
 
@@ -637,7 +637,7 @@ export default class ControlZoom {
                     none;
 
                 border-left:
-                    1px solid rgba(141, 215, 247, 0.18);
+                    1px solid rgba(155, 200, 255, 0.18);
 
                 border-radius:
                     0 11px 11px 0;
@@ -658,13 +658,10 @@ export default class ControlZoom {
                 background:
                     transparent;
 
-                color: #FFFFFF;
+                color: #F8FBFF;
 
                 font-family:
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    sans-serif;
+                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
                 font-size: 21px;
 
@@ -688,17 +685,17 @@ export default class ControlZoom {
             .metronet-control-zoom-boton:hover {
 
                 background:
-                    rgba(60, 186, 239, 0.20);
+                    rgba(155, 200, 255, 0.20);
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
 
             }
 
             .metronet-control-zoom-boton:active {
 
                 background:
-                    rgba(60, 186, 239, 0.32);
+                    rgba(155, 200, 255, 0.32);
 
                 transform:
                     scale(0.94);
@@ -721,7 +718,7 @@ export default class ControlZoom {
                     2px;
 
                 border-top:
-                    1px solid rgba(141, 215, 247, 0.18);
+                    1px solid rgba(155, 200, 255, 0.18);
 
                 border-radius:
                     0 0 11px 11px;

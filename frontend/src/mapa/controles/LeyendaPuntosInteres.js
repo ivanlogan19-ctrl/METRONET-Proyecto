@@ -164,13 +164,13 @@ export default class LeyendaPuntosInteres {
         left: 18px;
         width: min(238px, calc(100vw - 36px));
         overflow: hidden;
-        border: 1px solid rgba(141, 215, 247, 0.26);
+        border: 1px solid rgba(155, 200, 255, 0.26);
         border-radius: 14px;
-        background: rgba(7, 23, 37, 0.84);
+        background: rgba(26, 35, 64, 0.84);
         box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(14px) saturate(130%);
-        color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #F8FBFF;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       }
 
       .metronet-leyenda-integrada {
@@ -181,8 +181,8 @@ export default class LeyendaPuntosInteres {
 
       .metronet-leyenda-titulo-seccion {
         margin: 6px 4px -4px;
-        color: #a9d9ef;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #F8FBFF;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.08em;
@@ -198,7 +198,7 @@ export default class LeyendaPuntosInteres {
         padding: 0 13px;
         border: 0;
         border-radius: 13px;
-        background: linear-gradient(135deg, #145a7b, #0b79ae);
+        background: linear-gradient(135deg, #3B78C8, #3B78C8);
         color: inherit;
         font: inherit;
         font-size: 13px;
@@ -210,14 +210,14 @@ export default class LeyendaPuntosInteres {
       }
 
       .metronet-leyenda-encabezado:hover {
-        background: linear-gradient(135deg, #1a6d91, #1595cf);
+        background: linear-gradient(135deg, #3B78C8, #9BC8FF);
         filter: brightness(1.05);
       }
 
       .metronet-leyenda-indicador {
         position: static;
         margin-left: 4px;
-        color: #ffffff;
+        color: #F8FBFF;
         font-size: 13px;
         transition: transform 0.16s ease;
       }
@@ -234,8 +234,8 @@ export default class LeyendaPuntosInteres {
         max-height: min(430px, calc(100vh - 100px));
         overflow-y: auto;
         padding: 6px;
-        border-top: 1px solid rgba(141, 215, 247, 0.16);
-        background: rgba(4, 18, 29, 0.93);
+        border-top: 1px solid rgba(155, 200, 255, 0.16);
+        background: rgba(26, 35, 64, 0.93);
       }
 
       .metronet-leyenda-referencia {
@@ -259,7 +259,7 @@ export default class LeyendaPuntosInteres {
         margin: auto;
         border: 2px solid #e8f8ff;
         border-radius: 50%;
-        background: #061d32;
+        background: #1A2340;
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
       }
 
@@ -272,7 +272,7 @@ export default class LeyendaPuntosInteres {
         border: 1px solid var(--color-marcador);
         border-radius: 50%;
         background: var(--color-marcador);
-        box-shadow: 0 0 0 2px rgba(6, 29, 50, 0.8);
+        box-shadow: 0 0 0 2px rgba(26, 35, 64, 0.8);
         content: '';
         transform: translate(-50%, -50%);
       }

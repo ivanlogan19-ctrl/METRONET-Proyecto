@@ -1,4 +1,6 @@
 const sesion = obtenerSesionAdministrador();
+let usuariosDisponibles = [];
+let disenosDisponibles = [];
 
 if (!sesion) {
   window.location.replace("/admin-login.html");
@@ -28,6 +30,10 @@ function inicializarAdministracion(sesionAdministrador) {
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
     boton.addEventListener("click", () => {
+      if (!boton.dataset.vista) {
+        return;
+      }
+
       mostrarVista(boton.dataset.vista);
 
       if (boton.dataset.vista === "disenos") {
@@ -36,6 +42,10 @@ function inicializarAdministracion(sesionAdministrador) {
 
       if (boton.dataset.vista === "configuracion") {
         cargarConfiguracion(sesionAdministrador.token);
+      }
+
+      if (boton.dataset.vista === "actividad") {
+        cargarActividad(sesionAdministrador.token);
       }
     });
   });
@@ -113,6 +123,10 @@ function inicializarAdministracion(sesionAdministrador) {
     if (boton) guardarConfiguracion(boton.dataset.guardarConfiguracion, sesionAdministrador.token);
   });
 
+  document.getElementById("filtroUsuarios").addEventListener("input", filtrarUsuarios);
+  document.getElementById("filtroRolUsuarios").addEventListener("change", filtrarUsuarios);
+  document.getElementById("filtroDisenos").addEventListener("input", filtrarDisenos);
+
   cargarUsuarios(sesionAdministrador.token);
 }
 
@@ -121,6 +135,7 @@ function mostrarVista(nombreVista) {
     usuarios: "Gestión de usuarios",
     disenos: "Supervisión de escenarios diseñados",
     configuracion: "Configuración general",
+    actividad: "Actividad reciente",
   };
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
@@ -154,12 +169,9 @@ async function cargarUsuarios(token) {
       );
     }
 
-    const usuarios = await respuesta.json();
-    renderizarUsuarios(usuarios);
+    usuariosDisponibles = await respuesta.json();
+    filtrarUsuarios();
     cargarRecuperaciones(token);
-    mostrarMensaje(
-      usuarios.length ? "" : "Todavía no hay usuarios registrados.",
-    );
   } catch (error) {
     mostrarMensaje(error.message, "error");
 
@@ -203,6 +215,10 @@ function crearFilaVaciaRecuperaciones() {
 }
 
 async function marcarRecuperacionAtendida(idSolicitud, token) {
+  if (!window.confirm("¿Confirmás que la solicitud fue atendida?")) {
+    return;
+  }
+
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/recuperaciones/${idSolicitud}/atendida`, {
       method: "PATCH",
@@ -225,8 +241,7 @@ function mostrarMensajeRecuperaciones(texto, tipo = "") {
 function renderizarUsuarios(usuarios) {
   const tablaUsuarios = document.getElementById("tablaUsuarios");
 
-  tablaUsuarios.replaceChildren(
-    ...usuarios.map((usuario) => {
+  tablaUsuarios.replaceChildren(...(usuarios.length ? usuarios.map((usuario) => {
       const fila = document.createElement("tr");
       const opciones = ["ADMIN", "JUGADOR"]
         .map(
@@ -247,8 +262,19 @@ function renderizarUsuarios(usuarios) {
       `;
 
       return fila;
-    }),
-  );
+    }) : [crearFilaVacia("No hay usuarios que coincidan con el filtro.", 4)]));
+}
+
+function filtrarUsuarios() {
+  const texto = normalizarTexto(document.getElementById("filtroUsuarios").value);
+  const rol = document.getElementById("filtroRolUsuarios").value;
+  const usuariosFiltrados = usuariosDisponibles.filter((usuario) => {
+    const contenido = `${usuario.nombre ?? ""} ${usuario.apellido ?? ""} ${usuario.email ?? ""}`;
+    return (!texto || normalizarTexto(contenido).includes(texto)) && (!rol || usuario.rol === rol);
+  });
+
+  renderizarUsuarios(usuariosFiltrados);
+  mostrarMensaje(usuariosDisponibles.length && !usuariosFiltrados.length ? "No hay usuarios que coincidan con el filtro." : usuariosDisponibles.length ? "" : "Todavía no hay usuarios registrados.");
 }
 
 async function cargarDisenos(token) {
@@ -263,9 +289,8 @@ async function cargarDisenos(token) {
       throw new Error(await obtenerMensajeError(respuesta, "No fue posible cargar los diseños."));
     }
 
-    const disenos = await respuesta.json();
-    renderizarDisenos(disenos);
-    mostrarMensajeDisenos(disenos.length ? "" : "Todavía no hay diseños ni escenarios creados por jugadores.");
+    disenosDisponibles = await respuesta.json();
+    filtrarDisenos();
   } catch (error) {
     mostrarMensajeDisenos(error.message, "error");
   }
@@ -277,8 +302,7 @@ function renderizarDisenos(disenos) {
 
   detalle.hidden = true;
   detalle.replaceChildren();
-  lista.replaceChildren(
-    ...disenos.map((diseno) => {
+  lista.replaceChildren(...(disenos.length ? disenos.map((diseno) => {
       const tarjeta = document.createElement("article");
       const escenario = diseno.idEscenario
         ? `Escenario #${diseno.idEscenario} · ${formatearModoEscenario(diseno.modoEscenario)}`
@@ -297,8 +321,35 @@ function renderizarDisenos(disenos) {
       `;
 
       return tarjeta;
-    }),
-  );
+    }) : [crearEstadoVacio("No hay diseños que coincidan con el filtro.")]));
+}
+
+function filtrarDisenos() {
+  const texto = normalizarTexto(document.getElementById("filtroDisenos").value);
+  const disenosFiltrados = disenosDisponibles.filter((diseno) => {
+    const contenido = `${diseno.idDiseno} ${diseno.propietario ?? ""} ${diseno.correoPropietario ?? ""} ${diseno.modoEscenario ?? ""}`;
+    return !texto || normalizarTexto(contenido).includes(texto);
+  });
+
+  renderizarDisenos(disenosFiltrados);
+  mostrarMensajeDisenos(disenosDisponibles.length && !disenosFiltrados.length ? "No hay diseños que coincidan con el filtro." : disenosDisponibles.length ? "" : "Todavía no hay diseños ni escenarios creados por jugadores.");
+}
+
+function crearFilaVacia(mensaje, cantidadColumnas) {
+  const fila = document.createElement("tr");
+  fila.innerHTML = `<td colspan="${cantidadColumnas}">${escaparHtml(mensaje)}</td>`;
+  return fila;
+}
+
+function crearEstadoVacio(mensaje) {
+  const estado = document.createElement("p");
+  estado.className = "admin-aviso";
+  estado.textContent = mensaje;
+  return estado;
+}
+
+function normalizarTexto(valor) {
+  return (valor ?? "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim();
 }
 
 async function eliminarDisenoAdministrador(idDiseno, token) {
@@ -610,6 +661,49 @@ function mostrarMensajeConfiguracion(texto, tipo = "") {
   mensaje.className = `admin-mensaje ${tipo}`;
 }
 
+async function cargarActividad(token) {
+  mostrarMensajeActividad("Cargando actividad reciente…");
+
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/actividades`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(await obtenerMensajeError(respuesta, "No fue posible cargar la actividad."));
+    }
+
+    renderizarActividad(await respuesta.json());
+  } catch (error) {
+    mostrarMensajeActividad(error.message, "error");
+  }
+}
+
+function renderizarActividad(actividades) {
+  const tabla = document.getElementById("tablaActividad");
+  tabla.replaceChildren(...(actividades.length ? actividades.map((actividad) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${escaparHtml(formatearFecha(actividad.fecha))}</td>
+      <td>${escaparHtml(actividad.administrador)}</td>
+      <td>${escaparHtml(actividad.accion)}</td>
+      <td>${escaparHtml(actividad.detalle)}</td>
+    `;
+    return fila;
+  }) : [crearFilaVacia("Todavía no hay actividad registrada.", 4)]));
+  mostrarMensajeActividad(actividades.length ? "" : "Todavía no hay actividad registrada.");
+}
+
+function mostrarMensajeActividad(texto, tipo = "") {
+  const mensaje = document.getElementById("mensajeActividad");
+  mensaje.textContent = texto;
+  mensaje.className = `admin-mensaje ${tipo}`;
+}
+
+function formatearFecha(fecha) {
+  return new Intl.DateTimeFormat("es-UY", { dateStyle: "short", timeStyle: "short" }).format(new Date(fecha));
+}
+
 function formatearClave(clave) {
   return clave.replaceAll("_", " ").replace(/\b\w/g, (letra) => letra.toUpperCase());
 }
@@ -704,6 +798,14 @@ function cerrarEditorUsuario() {
 
 async function guardarUsuarioEditado(evento, token) {
   evento.preventDefault();
+  const formulario = evento.currentTarget;
+
+  if (!formulario.checkValidity()) {
+    formulario.reportValidity();
+    mostrarMensajeEditorUsuario("Revisá los datos obligatorios del usuario.", "error");
+    return;
+  }
+
   const idUsuario = document.getElementById("editorIdUsuario").value;
   const nombre = document.getElementById("editorNombre").value.trim();
   const apellido = document.getElementById("editorApellido").value.trim();
@@ -787,6 +889,10 @@ function actualizarEtiquetaAdministrador(administrador) {
 }
 
 async function cerrarSesion(token) {
+  if (!window.confirm("¿Querés cerrar la sesión de administración?")) {
+    return;
+  }
+
   try {
     await fetch(`${obtenerUrlServidor()}/auth/logout/admin`, {
       method: "POST",

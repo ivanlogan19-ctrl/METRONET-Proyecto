@@ -357,19 +357,16 @@ export default class PanelDinamico {
                     );
 
                 border:
-                    1px solid rgba(141, 215, 247, 0.26);
+                    1px solid rgba(155, 200, 255, 0.26);
 
                 border-radius:
                     14px;
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
 
                 font-family:
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    sans-serif;
+                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
                 box-shadow:
                     0 14px 34px
@@ -441,13 +438,10 @@ export default class PanelDinamico {
                     );
 
                 color:
-                    #FFFFFF;
+                    #F8FBFF;
 
                 font-family:
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    sans-serif;
+                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
                 font-size:
                     13px;
@@ -515,7 +509,7 @@ export default class PanelDinamico {
                     );
 
                 border-top:
-                    1px solid rgba(141, 215, 247, 0.16);
+                    1px solid rgba(155, 200, 255, 0.16);
 
                 border-radius:
                     0 0 13px 13px;

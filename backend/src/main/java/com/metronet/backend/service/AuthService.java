@@ -11,22 +11,26 @@ import com.metronet.backend.dto.UsuarioResponse;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
 import com.metronet.backend.repository.UsuarioRepository;
+import com.metronet.backend.utilidades.ValidadorDatos;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
     private final Map<String, Integer> sesionesUsuario = new ConcurrentHashMap<>();
     private final Map<String, Integer> sesionesAdministrador = new ConcurrentHashMap<>();
 
-    public AuthService(UsuarioRepository usuarioRepository) {
+    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public SesionUsuarioResponse iniciarSesion(LoginRequest solicitud) {
@@ -56,6 +60,10 @@ public class AuthService {
 
         String email = solicitud.email().trim().toLowerCase();
 
+        if (!ValidadorDatos.esCorreoElectronicoValido(email)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá un correo electrónico válido");
+        }
+
         if (usuarioRepository.existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con ese email");
         }
@@ -65,7 +73,7 @@ public class AuthService {
         usuario.setApellido(solicitud.apellido().trim());
         usuario.setEmail(email);
         validarContrasena(solicitud.password());
-        usuario.setPassword(solicitud.password());
+        usuario.setPassword(passwordEncoder.encode(solicitud.password()));
         usuario.setRol(Rol.JUGADOR);
         usuario.setAceptaDatos(true);
         usuario.setFechaConsentimiento(LocalDateTime.now());
@@ -128,6 +136,10 @@ public class AuthService {
         Usuario usuario = obtenerUsuarioAutorizado(autorizacion);
         String email = solicitud.email().trim().toLowerCase();
 
+        if (!ValidadorDatos.esCorreoElectronicoValido(email)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá un correo electrónico válido");
+        }
+
         usuarioRepository.findByEmail(email).ifPresent(candidato -> {
             if (!candidato.getIdUsuario().equals(usuario.getIdUsuario())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una cuenta con ese correo");
@@ -148,12 +160,12 @@ public class AuthService {
 
         Usuario usuario = obtenerUsuarioAutorizado(autorizacion);
 
-        if (!usuario.getPassword().equals(solicitud.contrasenaActual())) {
+        if (!coincideContrasena(usuario, solicitud.contrasenaActual())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La contraseña actual no es correcta");
         }
 
         validarContrasena(solicitud.nuevaContrasena());
-        usuario.setPassword(solicitud.nuevaContrasena());
+        usuario.setPassword(passwordEncoder.encode(solicitud.nuevaContrasena()));
         usuarioRepository.save(usuario);
     }
 
@@ -174,7 +186,7 @@ public class AuthService {
 
         return usuarioRepository
             .findByEmailIgnoreCase(solicitud.email().trim())
-            .filter(candidato -> candidato.getPassword().equals(solicitud.password()))
+            .filter(candidato -> coincideContrasena(candidato, solicitud.password()))
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.UNAUTHORIZED,
                 "Email o contraseña incorrectos"
@@ -189,7 +201,7 @@ public class AuthService {
         return usuarioRepository
             .findByIdentificadorAdministradorIgnoreCase(solicitud.usuario().trim())
             .or(() -> usuarioRepository.findByNombreIgnoreCase(solicitud.usuario().trim()))
-            .filter(candidato -> candidato.getPassword().equals(solicitud.password()))
+            .filter(candidato -> coincideContrasena(candidato, solicitud.password()))
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.UNAUTHORIZED,
                 "Usuario o contraseña incorrectos"
@@ -243,6 +255,30 @@ public class AuthService {
 
     private boolean esVacio(String valor) {
         return valor == null || valor.isBlank();
+    }
+
+    private boolean coincideContrasena(Usuario usuario, String contrasena) {
+        String contrasenaAlmacenada = usuario.getPassword();
+
+        if (esHashBCrypt(contrasenaAlmacenada)) {
+            try {
+                return passwordEncoder.matches(contrasena, contrasenaAlmacenada);
+            } catch (IllegalArgumentException excepcion) {
+                return false;
+            }
+        }
+
+        if (!contrasenaAlmacenada.equals(contrasena)) {
+            return false;
+        }
+
+        usuario.setPassword(passwordEncoder.encode(contrasena));
+        usuarioRepository.save(usuario);
+        return true;
+    }
+
+    private boolean esHashBCrypt(String valor) {
+        return valor != null && valor.matches("^\\$2[aby]\\$\\d{2}\\$.*");
     }
 
     private void validarContrasena(String contrasena) {
