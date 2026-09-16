@@ -6,12 +6,14 @@ import CapaZonas from './capas/CapaZonas.js';
 import { COLORES_PUNTOS_INTERES } from './capas/CapaPuntosInteres.js';
 import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
 import CapaIconosBarrios from './capas/CapaIconosBarrios.js';
+import CapaRedMetro from './capas/CapaRedMetro.js';
 
 import SelectorZonas from './controles/SelectorZonas.js';
 import SelectorBarrios from './controles/SelectorBarrios.js';
 
 import ControlZoom from './controles/ControlZoom.js';
 import LeyendaPuntosInteres from './controles/LeyendaPuntosInteres.js';
+import EditorRedMetro from './controles/EditorRedMetro.js';
 
 import { obtenerZona } from './utilidades/ClasificadorZonas.js';
 
@@ -29,12 +31,14 @@ export default class MapaScene extends Phaser.Scene {
     this.capaZonas = null;
     this.capaPuntosInteres = null;
     this.capaIconosBarrios = null;
+    this.capaRedMetro = null;
 
     this.selectorZonas = null;
     this.selectorBarrios = null;
 
     this.controlZoom = null;
     this.leyendaPuntosInteres = null;
+    this.editorRedMetro = null;
     this.controlSesion = null;
     this.controlPerfil = null;
     this.contenedorInformacionJugador = null;
@@ -76,6 +80,8 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearCapaIconosBarrios();
 
+    this.crearCapaRedMetro();
+
     this.crearControles();
 
     this.crearLeyendaPuntosInteres();
@@ -85,6 +91,8 @@ export default class MapaScene extends Phaser.Scene {
     this.crearControlZoom();
 
     this.crearControlSesion();
+
+    this.crearEditorRedMetro();
 
     this.crearLogo();
 
@@ -221,6 +229,22 @@ export default class MapaScene extends Phaser.Scene {
     this.capaIconosBarrios.establecerBarriosSeleccionados([]);
 
     this.capaIconosBarrios.dibujar();
+  }
+
+  crearCapaRedMetro() {
+    this.capaRedMetro = new CapaRedMetro(this, {
+      capaBarrios: this.capaBarrios,
+    });
+    this.capaRedMetro.crear();
+  }
+
+  crearEditorRedMetro() {
+    if (!this.contenedorControles || !this.capaRedMetro) return;
+    this.editorRedMetro = new EditorRedMetro(this, {
+      contenedorPadre: this.contenedorControles,
+      capaRedMetro: this.capaRedMetro,
+    });
+    this.editorRedMetro.crear();
   }
 
   crearControles() {
@@ -656,6 +680,8 @@ export default class MapaScene extends Phaser.Scene {
       this.capaIconosBarrios.dibujar();
     }
 
+    this.capaRedMetro?.actualizarTamano();
+
     if (this.controlZoom) {
       this.controlZoom.actualizar();
     }
@@ -672,6 +698,12 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   limpiar() {
+    this.editorRedMetro?.eliminar();
+    this.editorRedMetro = null;
+
+    this.capaRedMetro?.eliminar();
+    this.capaRedMetro = null;
+
     if (this.selectorZonas) {
       this.selectorZonas.eliminar();
 

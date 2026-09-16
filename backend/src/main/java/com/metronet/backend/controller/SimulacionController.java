@@ -3,6 +3,7 @@ package com.metronet.backend.controller;
 import com.metronet.backend.dto.ActualizarEstacionRequest;
 import com.metronet.backend.dto.ActualizarEscenarioRequest;
 import com.metronet.backend.dto.ActualizarLineaSimulacionRequest;
+import com.metronet.backend.dto.ActualizarTramoRequest;
 import com.metronet.backend.dto.ActualizarUnidadMetroRequest;
 import com.metronet.backend.dto.CrearEstacionSimulacionRequest;
 import com.metronet.backend.dto.CrearEscenarioRequest;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -200,6 +202,40 @@ public class SimulacionController {
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
         simulacionService.eliminarLinea(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, nombreLinea);
+    }
+
+    @PostMapping("/{idDiseno}/tramos")
+    public void crearTramo(
+        @PathVariable Integer idDiseno,
+        @RequestBody ActualizarTramoRequest solicitud,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion
+    ) {
+        simulacionService.crearTramo(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, solicitud);
+    }
+
+    @PatchMapping("/{idDiseno}/tramos")
+    public void actualizarTramo(
+        @PathVariable Integer idDiseno,
+        @RequestParam String lineaActual,
+        @RequestParam String estacionAActual,
+        @RequestParam String estacionBActual,
+        @RequestBody ActualizarTramoRequest solicitud,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion
+    ) {
+        simulacionService.actualizarTramo(
+            obtenerJugador(autorizacion).getIdUsuario(), idDiseno, lineaActual, estacionAActual, estacionBActual, solicitud
+        );
+    }
+
+    @DeleteMapping("/{idDiseno}/tramos")
+    public void eliminarTramo(
+        @PathVariable Integer idDiseno,
+        @RequestParam String linea,
+        @RequestParam String estacionA,
+        @RequestParam String estacionB,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion
+    ) {
+        simulacionService.eliminarTramo(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, linea, estacionA, estacionB);
     }
 
     @GetMapping("/{idDiseno}/validacion")

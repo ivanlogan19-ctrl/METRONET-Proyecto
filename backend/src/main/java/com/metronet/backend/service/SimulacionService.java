@@ -9,6 +9,7 @@ import com.metronet.backend.dto.EjecutarSimulacionRequest;
 import com.metronet.backend.dto.ActualizarEstacionRequest;
 import com.metronet.backend.dto.ActualizarEscenarioRequest;
 import com.metronet.backend.dto.ActualizarLineaSimulacionRequest;
+import com.metronet.backend.dto.ActualizarTramoRequest;
 import com.metronet.backend.dto.ActualizarUnidadMetroRequest;
 import com.metronet.backend.dto.EstacionSimulacionResponse;
 import com.metronet.backend.dto.LineaSimulacionResponse;
@@ -32,9 +33,11 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class SimulacionService {
     private final JdbcTemplate jdbcTemplate;
+    private final DisenoAdministracionService disenoAdministracionService;
 
-    public SimulacionService(JdbcTemplate jdbcTemplate) {
+    public SimulacionService(JdbcTemplate jdbcTemplate, DisenoAdministracionService disenoAdministracionService) {
         this.jdbcTemplate = jdbcTemplate;
+        this.disenoAdministracionService = disenoAdministracionService;
     }
 
     public List<SimulacionResumenResponse> listarSimulaciones(Integer idUsuario) {
@@ -409,6 +412,39 @@ public class SimulacionService {
         if (jdbcTemplate.update("DELETE FROM linea WHERE id_diseno = ? AND nombre = ?", idDiseno, nombreLinea) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la línea solicitada");
         }
+        marcarEnDiseno(idUsuario, idDiseno);
+    }
+
+    public void crearTramo(Integer idUsuario, Integer idDiseno, ActualizarTramoRequest solicitud) {
+        obtenerResumen(idUsuario, idDiseno);
+        disenoAdministracionService.crearTramo(idDiseno, solicitud);
+        marcarEnDiseno(idUsuario, idDiseno);
+    }
+
+    public void actualizarTramo(
+        Integer idUsuario,
+        Integer idDiseno,
+        String nombreLineaActual,
+        String estacionAActual,
+        String estacionBActual,
+        ActualizarTramoRequest solicitud
+    ) {
+        obtenerResumen(idUsuario, idDiseno);
+        disenoAdministracionService.actualizarTramo(
+            idDiseno, nombreLineaActual, estacionAActual, estacionBActual, solicitud
+        );
+        marcarEnDiseno(idUsuario, idDiseno);
+    }
+
+    public void eliminarTramo(
+        Integer idUsuario,
+        Integer idDiseno,
+        String nombreLinea,
+        String estacionA,
+        String estacionB
+    ) {
+        obtenerResumen(idUsuario, idDiseno);
+        disenoAdministracionService.eliminarTramo(idDiseno, nombreLinea, estacionA, estacionB);
         marcarEnDiseno(idUsuario, idDiseno);
     }
 

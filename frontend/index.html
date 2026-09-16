@@ -584,6 +584,144 @@
             background: #070A0F;
         }
 
+        .metronet-editor-red {
+            display: grid;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #263240;
+        }
+
+        .metronet-juego,
+        .metronet-consigna {
+            display: grid;
+            gap: 7px;
+            padding: 10px;
+            border: 1px solid #263240;
+            border-radius: 8px;
+            background: #0D141C;
+        }
+
+        .metronet-juego h3 { margin: 0; }
+
+        .metronet-juego-introduccion {
+            margin: 0;
+            color: #AAB7C4;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .metronet-lista-escenarios { display: grid; gap: 6px; }
+
+        .metronet-escenario {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 3px 7px;
+            padding: 8px;
+            border-left: 3px solid #3B78C8;
+            background: #111820;
+            color: #E8EEF3;
+            font-size: 12px;
+        }
+
+        .metronet-escenario.activo { border-left-color: #55C3E7; }
+        .metronet-escenario.bloqueado { opacity: .5; border-left-color: #46515d; }
+        .metronet-escenario span { color: #AAB7C4; font-size: 11px; }
+        .metronet-escenario button { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+        .metronet-consigna strong { color: #55C3E7; font-size: 13px; }
+        .metronet-consigna span { color: #F4F7FA; font-size: 12px; line-height: 1.4; }
+        .metronet-consigna small { color: #AAB7C4; font-size: 11px; line-height: 1.35; }
+        .metronet-consigna b { color: #9ED49C; font-size: 11px; }
+
+        .metronet-editor-red button,
+        .metronet-editor-red input,
+        .metronet-editor-red select {
+            min-height: 34px;
+            padding: 7px 8px;
+            border: 1px solid #263240;
+            border-radius: 7px;
+            box-sizing: border-box;
+            font: 600 12px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .metronet-editor-red button {
+            color: #E8EEF3;
+            cursor: pointer;
+        }
+
+        .metronet-editor-red button:hover,
+        .metronet-editor-red button:focus-visible {
+            border-color: #3B78C8;
+            background: #263B50;
+        }
+
+        .metronet-editor-nueva,
+        .metronet-editor-fila,
+        .metronet-editor-acciones {
+            display: flex;
+            gap: 6px;
+        }
+
+        .metronet-editor-nueva input,
+        .metronet-editor-fila input,
+        .metronet-editor-fila select,
+        .metronet-editor-red > select,
+        .metronet-editor-grupo > select {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .metronet-editor-nueva button,
+        .metronet-editor-fila button,
+        .metronet-editor-acciones button {
+            flex: 0 0 auto;
+        }
+
+        .metronet-editor-grupo {
+            display: grid;
+            gap: 6px;
+            padding: 9px;
+            border: 1px solid #263240;
+            border-radius: 8px;
+            background: #0D141C;
+        }
+
+        .metronet-editor-etiqueta {
+            color: #AAB7C4;
+            font: 700 11px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .metronet-editor-mensaje {
+            min-height: 17px;
+            margin: 0;
+            color: #AAB7C4;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .metronet-editor-mensaje.error { color: #FF9E92; }
+
+        .metronet-editor-seleccionado {
+            display: grid;
+            gap: 7px;
+            padding: 9px;
+            border-left: 3px solid #55C3E7;
+            background: #0D141C;
+            color: #E8EEF3;
+            font-size: 12px;
+        }
+
+        .metronet-editor-seleccionado span { color: #AAB7C4; }
+
+        .metronet-editor-seleccionado div { display: flex; flex-wrap: wrap; gap: 5px; }
+
+        @media (max-width: 900px) {
+            .metronet-editor-red { grid-column: 1 / -1; }
+            .metronet-editor-grupo { min-width: 190px; }
+        }
+
     </style>
 
 </head>
@@ -608,7 +746,6 @@
                 <a id="metronet-control-perfil" class="metronet-control-perfil" href="/perfil.html">
                     Actualizar mis datos <span class="metronet-control-perfil-indicador" aria-hidden="true">▼</span>
                 </a>
-                <a class="metronet-control-simulacion" href="/login.html?destino=%2Fsimulacion.html">Crear simulación</a>
             </section>
             <button id="metronet-control-sesion" class="metronet-control-sesion" type="button">
                 Cerrar sesión
