@@ -6,5 +6,7 @@ public record DisenoDetalleResponse(
     DisenoResumenResponse diseno,
     List<LineaMetroResponse> lineas,
     List<EstacionResponse> estaciones,
-    List<ConexionResponse> conexiones
+    List<ConexionResponse> conexiones,
+    List<TramoResponse> tramos,
+    List<UnidadMetroResponse> unidadesMetro
 ) {}

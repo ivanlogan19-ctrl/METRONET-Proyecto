@@ -181,6 +181,7 @@ export default class MapaScene extends Phaser.Scene {
   crearControlSesion() {
     const controlSesion = document.getElementById('metronet-control-sesion');
     const controlPerfil = document.getElementById('metronet-control-perfil');
+    const controlSimulacion = document.querySelector('.metronet-control-simulacion');
     const contenedorInformacionJugador = document.getElementById('metronet-informacion-jugador');
 
     if (!controlSesion || !this.contenedorControles) {
@@ -190,6 +191,18 @@ export default class MapaScene extends Phaser.Scene {
     this.controlSesion = controlSesion;
     this.controlPerfil = controlPerfil;
     this.contenedorInformacionJugador = contenedorInformacionJugador;
+
+    if (controlSimulacion) {
+      try {
+        const sesionUsuario = JSON.parse(window.localStorage.getItem('sesionUsuario'));
+        const sesionAdministrador = JSON.parse(window.localStorage.getItem('sesionAdministrador'));
+        controlSimulacion.href = sesionUsuario?.token || sesionAdministrador?.token
+          ? '/simulacion.html'
+          : '/login.html?destino=%2Fsimulacion.html';
+      } catch {
+        controlSimulacion.href = '/login.html?destino=%2Fsimulacion.html';
+      }
+    }
 
     this.controlSesion.addEventListener('click', async () => {
       await this.cerrarSesion();

@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS linea CASCADE;
 DROP TABLE IF EXISTS intento CASCADE;
 DROP TABLE IF EXISTS escenario CASCADE;
 DROP TABLE IF EXISTS diseno CASCADE;
+DROP TABLE IF EXISTS solicitud_recuperacion_contrasena CASCADE;
 DROP TABLE IF EXISTS usuario CASCADE;
 
 CREATE TABLE usuario (
@@ -38,14 +39,43 @@ CREATE TABLE usuario (
   CHECK (rol IN ('ADMIN', 'JUGADOR'))
 );
 
+CREATE TABLE solicitud_recuperacion_contrasena (
+  id_solicitud SERIAL PRIMARY KEY,
+  id_usuario INTEGER NOT NULL,
+  fecha_solicitud TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+
+  CONSTRAINT fk_solicitud_recuperacion_usuario
+  FOREIGN KEY (id_usuario)
+  REFERENCES usuario(id_usuario)
+  ON DELETE CASCADE,
+
+  CONSTRAINT chk_solicitud_recuperacion_estado
+  CHECK (estado IN ('PENDIENTE', 'ATENDIDA'))
+);
+
+CREATE TABLE configuracion (
+  clave VARCHAR(100) PRIMARY KEY,
+  valor VARCHAR(255) NOT NULL,
+  descripcion VARCHAR(255) NOT NULL
+);
+
+INSERT INTO configuracion (clave, valor, descripcion) VALUES
+  ('velocidad_simulacion', '1', 'Velocidad predeterminada de las simulaciones'),
+  ('capacidad_unidad', '300', 'Capacidad predeterminada de una unidad de metro'),
+  ('modo_mantenimiento', 'desactivado', 'Estado general de mantenimiento de la plataforma');
+
 CREATE TABLE diseno (
   id_diseno SERIAL PRIMARY KEY
 );
 
 CREATE TABLE escenario (
   id_escenario SERIAL PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
   id_diseno_base INTEGER,
   objetivo TEXT,
+  dificultad VARCHAR(20) NOT NULL DEFAULT 'Inicial',
+  instrucciones TEXT,
   numero INTEGER,
   modo VARCHAR(30) NOT NULL,
 
@@ -146,6 +176,32 @@ CREATE TABLE pasa (
   ON DELETE CASCADE
 );
 
+CREATE TABLE tramo (
+  id_tramo SERIAL PRIMARY KEY,
+  id_diseno INTEGER NOT NULL,
+  nombre_linea VARCHAR(100) NOT NULL,
+  nombre_estacion_a VARCHAR(100) NOT NULL,
+  nombre_estacion_b VARCHAR(100) NOT NULL,
+
+  CONSTRAINT fk_tramo_linea
+  FOREIGN KEY (id_diseno, nombre_linea)
+  REFERENCES linea(id_diseno, nombre)
+  ON DELETE CASCADE,
+
+  CONSTRAINT fk_tramo_estacion_a
+  FOREIGN KEY (id_diseno, nombre_estacion_a)
+  REFERENCES estacion(id_diseno, nombre)
+  ON DELETE CASCADE,
+
+  CONSTRAINT fk_tramo_estacion_b
+  FOREIGN KEY (id_diseno, nombre_estacion_b)
+  REFERENCES estacion(id_diseno, nombre)
+  ON DELETE CASCADE,
+
+  CONSTRAINT chk_tramo_estaciones_distintas
+  CHECK (nombre_estacion_a <> nombre_estacion_b)
+);
+
 CREATE TABLE metro (
   id_tren SERIAL PRIMARY KEY,
   id_diseno INTEGER NOT NULL,
@@ -171,6 +227,9 @@ CREATE TABLE simulacion (
   velocidad NUMERIC(6,2),
   duracion INTEGER,
   comentarios TEXT,
+  estado VARCHAR(30) NOT NULL DEFAULT 'COMPLETADA',
+  puntaje INTEGER,
+  fecha_ejecucion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_simulacion_intento
   FOREIGN KEY (id_intento)

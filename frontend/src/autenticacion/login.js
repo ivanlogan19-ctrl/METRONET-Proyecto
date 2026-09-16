@@ -45,10 +45,11 @@ formulario.addEventListener("submit", async (evento) => {
     localStorage.setItem("usuario", JSON.stringify(usuario));
     localStorage.setItem("sesionUsuario", JSON.stringify(sesionUsuario));
 
-    mostrarMensaje("Ingreso correcto. Abriendo el mapa…");
+    const destino = obtenerDestino();
+    mostrarMensaje(destino === "/" ? "Ingreso correcto. Abriendo el mapa…" : "Ingreso correcto. Abriendo tus simulaciones…");
 
     window.setTimeout(() => {
-      window.location.assign("/");
+      window.location.assign(destino);
     }, 600);
   } catch (error) {
     mostrarMensaje(error.message, "error");
@@ -56,3 +57,8 @@ formulario.addEventListener("submit", async (evento) => {
     establecerCarga(botonIngresar, false);
   }
 });
+
+function obtenerDestino() {
+  const destino = new URLSearchParams(window.location.search).get("destino");
+  return destino?.startsWith("/") && !destino.startsWith("//") ? destino : "/";
+}

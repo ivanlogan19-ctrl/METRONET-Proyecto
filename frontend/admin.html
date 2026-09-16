@@ -31,6 +31,7 @@
           <button class="admin-enlace" type="button" data-vista="configuracion">
             Configuración
           </button>
+          <a class="admin-enlace admin-volver-mapa" href="/simulacion.html">Crear simulación</a>
           <a class="admin-enlace admin-volver-mapa" href="/">Vista del mapa</a>
         </nav>
         <div class="admin-menu-pie">
@@ -76,6 +77,16 @@
               <tbody id="tablaUsuarios"></tbody>
             </table>
           </div>
+          <section class="admin-solicitudes-recuperacion">
+            <h2>Solicitudes de recuperación de contraseña</h2>
+            <p id="mensajeRecuperaciones" class="admin-mensaje" role="status" aria-live="polite"></p>
+            <div class="admin-tabla-contenedor">
+              <table class="admin-tabla">
+                <thead><tr><th>Usuario</th><th>Correo electrónico</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody id="tablaRecuperaciones"></tbody>
+              </table>
+            </div>
+          </section>
         </section>
 
         <section id="vista-disenos" class="admin-vista">
@@ -90,7 +101,9 @@
         </section>
         <section id="vista-configuracion" class="admin-vista">
           <h2>Configuración general</h2>
-          <p>Este espacio reunirá los parámetros generales de la plataforma.</p>
+          <p>Actualizá los parámetros generales que utiliza la plataforma.</p>
+          <p id="mensajeConfiguracion" class="admin-mensaje" role="status" aria-live="polite"></p>
+          <div id="listaConfiguracion" class="admin-lista-configuracion"></div>
         </section>
       </section>
     </main>

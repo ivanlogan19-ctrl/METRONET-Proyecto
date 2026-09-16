@@ -203,7 +203,7 @@ public class AuthService {
         return new SesionUsuarioResponse(convertirARespuesta(usuario), token);
     }
 
-    private Usuario obtenerUsuarioAutorizado(String autorizacion) {
+    public Usuario obtenerUsuarioAutorizado(String autorizacion) {
         if (autorizacion == null || !autorizacion.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida");
         }
@@ -215,6 +215,28 @@ public class AuthService {
         }
 
         return usuarioRepository.findById(idUsuario).orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida")
+        );
+    }
+
+    public Usuario obtenerUsuarioConSesion(String autorizacion) {
+        if (autorizacion == null || !autorizacion.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida");
+        }
+
+        String token = autorizacion.substring(7).trim();
+        Integer idUsuario = sesionesUsuario.get(token);
+
+        if (idUsuario == null) {
+            idUsuario = sesionesAdministrador.get(token);
+        }
+
+        if (idUsuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión venció o no es válida");
+        }
+
+        Integer identificadorUsuario = idUsuario;
+        return usuarioRepository.findById(identificadorUsuario).orElseThrow(() ->
             new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida")
         );
     }

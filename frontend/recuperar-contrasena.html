@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recuperar contraseña · METRONET</title>
+    <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+  </head>
+  <body>
+    <main class="auth-page">
+      <section class="auth-card" aria-labelledby="tituloRecuperacion">
+        <div class="mobile-brand"><img src="/assets/logoMETRONET.png" alt="Logo de METRONET" /></div>
+        <p class="eyebrow">Simulador de red de metro</p>
+        <h1 id="tituloRecuperacion">Recuperar contraseña</h1>
+        <form id="formularioRecuperacion" class="auth-form" novalidate>
+          <div class="field-group">
+            <label for="email">Correo electrónico</label>
+            <div class="input-wrapper"><input id="email" type="email" autocomplete="email" required /></div>
+          </div>
+          <p class="auth-ayuda">Enviaremos tu solicitud al administrador de la plataforma.</p>
+          <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+          <button id="botonRecuperar" class="primary-button" type="submit">
+            <span class="button-text">Solicitar restablecimiento</span><span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+        <p class="auth-link"><a href="/login.html">Volver al inicio de sesión</a></p>
+      </section>
+    </main>
+    <script type="module" src="/src/autenticacion/recuperar-contrasena.js"></script>
+  </body>
+</html>

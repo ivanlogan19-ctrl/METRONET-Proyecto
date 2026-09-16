@@ -33,6 +33,10 @@ function inicializarAdministracion(sesionAdministrador) {
       if (boton.dataset.vista === "disenos") {
         cargarDisenos(sesionAdministrador.token);
       }
+
+      if (boton.dataset.vista === "configuracion") {
+        cargarConfiguracion(sesionAdministrador.token);
+      }
     });
   });
 
@@ -74,12 +78,20 @@ function inicializarAdministracion(sesionAdministrador) {
       }
     });
 
+  document.getElementById("tablaRecuperaciones").addEventListener("click", (evento) => {
+    const boton = evento.target.closest("[data-atender-recuperacion]");
+    if (boton) marcarRecuperacionAtendida(boton.dataset.atenderRecuperacion, sesionAdministrador.token);
+  });
+
   document.getElementById("listaDisenos").addEventListener("click", (evento) => {
     const boton = evento.target.closest("[data-ver-diseno]");
+    const botonEliminar = evento.target.closest("[data-eliminar-diseno]");
 
     if (boton) {
       cargarDetalleDiseno(boton.dataset.verDiseno, sesionAdministrador.token);
     }
+
+    if (botonEliminar) eliminarDisenoAdministrador(botonEliminar.dataset.eliminarDiseno, sesionAdministrador.token);
   });
 
   document.getElementById("detalleDiseno").addEventListener("click", (evento) => {
@@ -88,6 +100,17 @@ function inicializarAdministracion(sesionAdministrador) {
     if (boton) {
       ejecutarAccionDiseno(boton, sesionAdministrador.token);
     }
+
+    const botonCrear = evento.target.closest("[data-crear-diseno]");
+
+    if (botonCrear) {
+      crearElementoDiseno(botonCrear, sesionAdministrador.token);
+    }
+  });
+
+  document.getElementById("listaConfiguracion").addEventListener("click", (evento) => {
+    const boton = evento.target.closest("[data-guardar-configuracion]");
+    if (boton) guardarConfiguracion(boton.dataset.guardarConfiguracion, sesionAdministrador.token);
   });
 
   cargarUsuarios(sesionAdministrador.token);
@@ -133,6 +156,7 @@ async function cargarUsuarios(token) {
 
     const usuarios = await respuesta.json();
     renderizarUsuarios(usuarios);
+    cargarRecuperaciones(token);
     mostrarMensaje(
       usuarios.length ? "" : "Todavía no hay usuarios registrados.",
     );
@@ -143,6 +167,59 @@ async function cargarUsuarios(token) {
       cerrarSesionLocal();
     }
   }
+}
+
+async function cargarRecuperaciones(token) {
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/recuperaciones`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible cargar las solicitudes."));
+    renderizarRecuperaciones(await respuesta.json());
+    mostrarMensajeRecuperaciones("");
+  } catch (error) {
+    mostrarMensajeRecuperaciones(error.message, "error");
+  }
+}
+
+function renderizarRecuperaciones(solicitudes) {
+  const tabla = document.getElementById("tablaRecuperaciones");
+  tabla.replaceChildren(...(solicitudes.length ? solicitudes.map((solicitud) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${escaparHtml(solicitud.nombreUsuario)}</td>
+      <td>${escaparHtml(solicitud.email)}</td>
+      <td>${escaparHtml(solicitud.estado)}</td>
+      <td>${solicitud.estado === "PENDIENTE" ? `<button class="admin-guardar" type="button" data-atender-recuperacion="${solicitud.idSolicitud}">Marcar atendida</button>` : "—"}</td>
+    `;
+    return fila;
+  }) : [crearFilaVaciaRecuperaciones()]));
+}
+
+function crearFilaVaciaRecuperaciones() {
+  const fila = document.createElement("tr");
+  fila.innerHTML = '<td colspan="4">No hay solicitudes de recuperación pendientes.</td>';
+  return fila;
+}
+
+async function marcarRecuperacionAtendida(idSolicitud, token) {
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/recuperaciones/${idSolicitud}/atendida`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible actualizar la solicitud."));
+    mostrarMensajeRecuperaciones("Solicitud marcada como atendida. Actualizá la contraseña desde Editar datos del usuario.");
+    cargarRecuperaciones(token);
+  } catch (error) {
+    mostrarMensajeRecuperaciones(error.message, "error");
+  }
+}
+
+function mostrarMensajeRecuperaciones(texto, tipo = "") {
+  const mensaje = document.getElementById("mensajeRecuperaciones");
+  mensaje.textContent = texto;
+  mensaje.className = `admin-mensaje ${tipo}`;
 }
 
 function renderizarUsuarios(usuarios) {
@@ -213,12 +290,27 @@ function renderizarDisenos(disenos) {
           <p>${escaparHtml(diseno.propietario)} · ${escaparHtml(diseno.correoPropietario ?? "Sin correo")}</p>
           <p>${escaparHtml(escenario)}</p>
         </div>
-        <button class="admin-guardar" type="button" data-ver-diseno="${diseno.idDiseno}">Abrir diseño</button>
+        <div class="admin-acciones-linea">
+          <button class="admin-guardar" type="button" data-ver-diseno="${diseno.idDiseno}">Abrir diseño</button>
+          <button class="admin-eliminar" type="button" data-eliminar-diseno="${diseno.idDiseno}">Eliminar</button>
+        </div>
       `;
 
       return tarjeta;
     }),
   );
+}
+
+async function eliminarDisenoAdministrador(idDiseno, token) {
+  if (!window.confirm(`¿Eliminar definitivamente el diseño #${idDiseno}, sus escenarios, resultados y elementos asociados?`)) return;
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
+      method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible eliminar el diseño."));
+    mostrarMensajeDisenos("Diseño eliminado correctamente.");
+    cargarDisenos(token);
+  } catch (error) { mostrarMensajeDisenos(error.message, "error"); }
 }
 
 async function cargarDetalleDiseno(idDiseno, token) {
@@ -242,7 +334,7 @@ async function cargarDetalleDiseno(idDiseno, token) {
 
 function renderizarDetalleDiseno(detalle) {
   const contenedor = document.getElementById("detalleDiseno");
-  const { diseno, lineas, estaciones, conexiones } = detalle;
+  const { diseno, lineas, estaciones, conexiones, tramos, unidadesMetro } = detalle;
 
   contenedor.hidden = false;
   contenedor.innerHTML = `
@@ -255,10 +347,19 @@ function renderizarDetalleDiseno(detalle) {
     </div>
     ${crearTablaElementos("Líneas de metro", lineas, (linea) => `
       <tr><td>${escaparHtml(linea.nombre)}</td><td>${linea.modificable ? "Sí" : "No"}</td><td>${botonesAccion("linea", diseno.idDiseno, { nombre: linea.nombre })}</td></tr>`)}
+    <button class="admin-guardar" type="button" data-crear-diseno="linea" data-id-diseno="${diseno.idDiseno}">Agregar línea</button>
     ${crearTablaElementos("Estaciones", estaciones, (estacion) => `
       <tr><td>${escaparHtml(estacion.nombre)}</td><td>${estacion.posicionX}, ${estacion.posicionY}${estacion.transbordo ? " · Transbordo" : ""}</td><td>${botonesAccion("estacion", diseno.idDiseno, { nombre: estacion.nombre, x: estacion.posicionX, y: estacion.posicionY, transbordo: estacion.transbordo })}</td></tr>`)}
-    ${crearTablaElementos("Conexiones", conexiones, (conexion) => `
+    <button class="admin-guardar" type="button" data-crear-diseno="estacion" data-id-diseno="${diseno.idDiseno}">Agregar estación</button>
+    ${crearTablaElementos("Paradas por línea", conexiones, (conexion) => `
       <tr><td>${escaparHtml(conexion.nombreLinea)}</td><td>${escaparHtml(conexion.nombreEstacion)}</td><td>${botonesAccion("conexion", diseno.idDiseno, { linea: conexion.nombreLinea, estacion: conexion.nombreEstacion })}</td></tr>`)}
+    <button class="admin-guardar" type="button" data-crear-diseno="conexion" data-id-diseno="${diseno.idDiseno}">Agregar parada a línea</button>
+    ${crearTablaElementos("Tramos entre estaciones", tramos, (tramo) => `
+      <tr><td>${escaparHtml(tramo.nombreLinea)}</td><td>${escaparHtml(tramo.estacionA)} · ${escaparHtml(tramo.estacionB)}</td><td>${botonesAccion("tramo", diseno.idDiseno, { linea: tramo.nombreLinea, estacionA: tramo.estacionA, estacionB: tramo.estacionB })}</td></tr>`)}
+    <button class="admin-guardar" type="button" data-crear-diseno="tramo" data-id-diseno="${diseno.idDiseno}">Agregar tramo</button>
+    ${crearTablaElementos("Unidades de metro", unidadesMetro, (unidad) => `
+      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Capacidad: ${unidad.capacidad} · Velocidad: ${unidad.velocidadPromedio}</td><td>${botonesAccion("unidad", diseno.idDiseno, { idTren: unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
+    <button class="admin-guardar" type="button" data-crear-diseno="unidad" data-id-diseno="${diseno.idDiseno}">Agregar unidad de metro</button>
   `;
 }
 
@@ -341,6 +442,43 @@ async function ejecutarAccionDiseno(boton, token) {
     url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/conexiones?${consulta}`;
   }
 
+  if (accion.includes("tramo")) {
+    const consulta = new URLSearchParams({ linea: boton.dataset.linea, estacionA: boton.dataset.estacionA, estacionB: boton.dataset.estacionB });
+    if (accion === "editar-tramo") {
+      const nombreLinea = window.prompt("Línea del tramo:", boton.dataset.linea);
+      const estacionA = window.prompt("Estación de origen:", boton.dataset.estacionA);
+      const estacionB = window.prompt("Estación de destino:", boton.dataset.estacionB);
+      if (!nombreLinea || !estacionA || !estacionB) return;
+      consulta.set("lineaActual", boton.dataset.linea);
+      consulta.set("estacionAActual", boton.dataset.estacionA);
+      consulta.set("estacionBActual", boton.dataset.estacionB);
+      consulta.delete("linea");
+      consulta.delete("estacionA");
+      consulta.delete("estacionB");
+      opciones.body = JSON.stringify({ nombreLinea, estacionA, estacionB });
+    } else if (!window.confirm(`¿Eliminar el tramo ${boton.dataset.estacionA} · ${boton.dataset.estacionB}?`)) {
+      return;
+    } else {
+      opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
+    }
+    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/tramos?${consulta}`;
+  }
+
+  if (accion.includes("unidad")) {
+    if (accion === "editar-unidad") {
+      const nombreLinea = window.prompt("Línea asignada:", boton.dataset.linea);
+      const capacidad = window.prompt("Capacidad:", boton.dataset.capacidad);
+      const velocidadPromedio = window.prompt("Velocidad promedio:", boton.dataset.velocidad);
+      if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
+      opciones.body = JSON.stringify({ nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) });
+    } else if (!window.confirm("¿Eliminar esta unidad de metro?")) {
+      return;
+    } else {
+      opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
+    }
+    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/unidades/${boton.dataset.idTren}`;
+  }
+
   try {
     const respuesta = await fetch(url, opciones);
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible guardar el cambio."));
@@ -351,10 +489,129 @@ async function ejecutarAccionDiseno(boton, token) {
   }
 }
 
+async function crearElementoDiseno(boton, token) {
+  const idDiseno = boton.dataset.idDiseno;
+  const tipo = boton.dataset.crearDiseno;
+  let cuerpo = null;
+  let ruta = "";
+
+  if (tipo === "linea") {
+    const nombre = window.prompt("Nombre de la línea:");
+    if (!nombre) return;
+    cuerpo = { nombre };
+    ruta = "lineas";
+  }
+
+  if (tipo === "estacion") {
+    const nombre = window.prompt("Nombre de la estación:");
+    const posicionX = window.prompt("Posición X:", "500");
+    const posicionY = window.prompt("Posición Y:", "300");
+    if (!nombre || posicionX === null || posicionY === null) return;
+    cuerpo = { nombre, posicionX: Number(posicionX), posicionY: Number(posicionY), transbordo: false };
+    ruta = "estaciones";
+  }
+
+  if (tipo === "conexion") {
+    const nombreLinea = window.prompt("Nombre de la línea:");
+    const nombreEstacion = window.prompt("Nombre de la estación:");
+    if (!nombreLinea || !nombreEstacion) return;
+    cuerpo = { nombreLinea, nombreEstacion };
+    ruta = "conexiones";
+  }
+
+  if (tipo === "tramo") {
+    const nombreLinea = window.prompt("Nombre de la línea:");
+    const estacionA = window.prompt("Estación de origen:");
+    const estacionB = window.prompt("Estación de destino:");
+    if (!nombreLinea || !estacionA || !estacionB) return;
+    cuerpo = { nombreLinea, estacionA, estacionB };
+    ruta = "tramos";
+  }
+
+  if (tipo === "unidad") {
+    const nombreLinea = window.prompt("Nombre de la línea asignada:");
+    const capacidad = window.prompt("Capacidad:", "300");
+    const velocidadPromedio = window.prompt("Velocidad promedio:", "40");
+    if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
+    cuerpo = { nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) };
+    ruta = "unidades";
+  }
+
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/${ruta}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible crear el elemento."));
+    mostrarMensajeDisenos("Elemento creado correctamente.");
+    cargarDetalleDiseno(idDiseno, token);
+  } catch (error) {
+    mostrarMensajeDisenos(error.message, "error");
+  }
+}
+
 function mostrarMensajeDisenos(texto, tipo = "") {
   const mensaje = document.getElementById("mensajeDisenos");
   mensaje.textContent = texto;
   mensaje.className = `admin-mensaje ${tipo}`;
+}
+
+async function cargarConfiguracion(token) {
+  mostrarMensajeConfiguracion("Cargando configuración…");
+
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/configuracion`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible cargar la configuración."));
+    renderizarConfiguracion(await respuesta.json());
+    mostrarMensajeConfiguracion("");
+  } catch (error) {
+    mostrarMensajeConfiguracion(error.message, "error");
+  }
+}
+
+function renderizarConfiguracion(configuraciones) {
+  const lista = document.getElementById("listaConfiguracion");
+  lista.replaceChildren(...configuraciones.map((configuracion) => {
+    const elemento = document.createElement("article");
+    elemento.className = "admin-configuracion-item";
+    elemento.innerHTML = `
+      <div><h3>${escaparHtml(formatearClave(configuracion.clave))}</h3><p>${escaparHtml(configuracion.descripcion)}</p></div>
+      <input id="configuracion-${escaparHtml(configuracion.clave)}" value="${escaparHtml(configuracion.valor)}" aria-label="Valor de ${escaparHtml(configuracion.descripcion)}" />
+      <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
+    `;
+    return elemento;
+  }));
+}
+
+async function guardarConfiguracion(clave, token) {
+  const campo = document.getElementById(`configuracion-${clave}`);
+  const valor = campo?.value.trim();
+  if (!valor) return mostrarMensajeConfiguracion("Ingresá un valor para guardar.", "error");
+
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/configuracion/${encodeURIComponent(clave)}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ valor }),
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible guardar la configuración."));
+    mostrarMensajeConfiguracion("Configuración actualizada correctamente.");
+  } catch (error) {
+    mostrarMensajeConfiguracion(error.message, "error");
+  }
+}
+
+function mostrarMensajeConfiguracion(texto, tipo = "") {
+  const mensaje = document.getElementById("mensajeConfiguracion");
+  mensaje.textContent = texto;
+  mensaje.className = `admin-mensaje ${tipo}`;
+}
+
+function formatearClave(clave) {
+  return clave.replaceAll("_", " ").replace(/\b\w/g, (letra) => letra.toUpperCase());
 }
 
 function formatearModoEscenario(modo) {

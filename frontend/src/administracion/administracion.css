@@ -319,6 +319,45 @@ h2 {
   font-size: 13px;
 }
 
+.admin-lista-configuracion {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+  margin-top: 18px;
+}
+
+.admin-solicitudes-recuperacion { margin-top: 30px; }
+
+.admin-solicitudes-recuperacion h2 { margin: 0 0 8px; font-size: 17px; }
+
+.admin-configuracion-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 220px) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(141, 215, 247, 0.2);
+  border-radius: 12px;
+  background: #061521;
+}
+
+.admin-configuracion-item h3,
+.admin-configuracion-item p { margin: 0; }
+
+.admin-configuracion-item h3 { font-size: 14px; }
+
+.admin-configuracion-item p { margin-top: 4px; color: #a9d9ef; font-size: 13px; }
+
+.admin-configuracion-item input {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid rgba(141, 215, 247, 0.42);
+  border-radius: 8px;
+  color: #eff8fc;
+  background: #0a2335;
+}
+
 .admin-detalle-diseno {
   margin-top: 18px;
   padding: 18px;
@@ -473,4 +512,6 @@ h2 {
     align-items: stretch;
     flex-direction: column;
   }
+
+  .admin-configuracion-item { grid-template-columns: 1fr; }
 }
