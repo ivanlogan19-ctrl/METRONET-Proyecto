@@ -1,0 +1,1296 @@
+{
+    "barrios": {
+        "AGUADA": {
+            "puntos": [
+                {
+                    "id": 1,
+                    "nombre": "Palacio Legislativo",
+                    "tipo": "Edificio histórico",
+                    "descripcion": "Sede del Poder Legislativo de Uruguay.",
+                    "longitud": -56.1885,
+                    "latitud": -34.8897,
+                    "imagen": ""
+                },
+                {
+                    "id": 2,
+                    "nombre": "Mercado Agrícola de Montevideo",
+                    "tipo": "Mercado histórico",
+                    "descripcion": "Mercado histórico y espacio gastronómico de la ciudad.",
+                    "longitud": -56.1873,
+                    "latitud": -34.8839,
+                    "imagen": ""
+                },
+                {
+                    "id": 3,
+                    "nombre": "Torre de las Comunicaciones",
+                    "tipo": "Edificio emblemático",
+                    "descripcion": "Complejo de la Administración Nacional de Telecomunicaciones.",
+                    "longitud": -56.1887,
+                    "latitud": -34.901,
+                    "imagen": ""
+                }
+            ]
+        },
+        "AIRES PUROS": {
+            "puntos": [
+                {
+                    "id": 4,
+                    "nombre": "Parque Posadas",
+                    "tipo": "Complejo habitacional",
+                    "descripcion": "Complejo residencial y espacio verde de gran escala.",
+                    "longitud": -56.2042,
+                    "latitud": -34.8572,
+                    "imagen": ""
+                },
+                {
+                    "id": 5,
+                    "nombre": "Parroquia de la Sagrada Familia",
+                    "tipo": "Iglesia",
+                    "descripcion": "Templo conocido como Capilla Jackson.",
+                    "longitud": -56.1988,
+                    "latitud": -34.86,
+                    "imagen": ""
+                }
+            ]
+        },
+        "ARROYO SECO": {
+            "puntos": [
+                {
+                    "id": 6,
+                    "nombre": "Plaza Las Pioneras",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público construido sobre la estructura de una antigua estación de tranvías.",
+                    "longitud": -56.1955,
+                    "latitud": -34.8824,
+                    "imagen": ""
+                },
+                {
+                    "id": 7,
+                    "nombre": "Palacio de la Luz",
+                    "tipo": "Edificio histórico",
+                    "descripcion": "Edificio institucional de UTE ubicado en el entorno de Arroyo Seco.",
+                    "longitud": -56.193,
+                    "latitud": -34.881,
+                    "imagen": ""
+                }
+            ]
+        },
+        "ATAHUALPA": {
+            "puntos": [
+                {
+                    "id": 8,
+                    "nombre": "Museo Casa Quinta de Luis Alberto de Herrera",
+                    "tipo": "Museo",
+                    "descripcion": "Casa histórica vinculada a Luis Alberto de Herrera.",
+                    "longitud": -56.1875,
+                    "latitud": -34.8575,
+                    "imagen": ""
+                },
+                {
+                    "id": 9,
+                    "nombre": "Quinta de Larrañaga",
+                    "tipo": "Patrimonio histórico",
+                    "descripcion": "Antigua quinta histórica vinculada a Dámaso Antonio Larrañaga.",
+                    "longitud": -56.1895,
+                    "latitud": -34.8545,
+                    "imagen": ""
+                },
+                {
+                    "id": 10,
+                    "nombre": "Plaza Atahualpa",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza histórica ubicada en Cubo del Norte y Florencio Escardó.",
+                    "longitud": -56.19,
+                    "latitud": -34.862,
+                    "imagen": ""
+                }
+            ]
+        },
+        "BARRIO SUR": {
+            "puntos": [
+                {
+                    "id": 11,
+                    "nombre": "Plaza Carlos Gardel",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público vinculado a la Peatonal Curuguaty y al patrimonio del candombe.",
+                    "longitud": -56.19,
+                    "latitud": -34.9085,
+                    "imagen": ""
+                },
+                {
+                    "id": 12,
+                    "nombre": "Peatonal Curuguaty",
+                    "tipo": "Patrimonio cultural",
+                    "descripcion": "Peatonal del Candombe con construcciones históricas y murales.",
+                    "longitud": -56.189,
+                    "latitud": -34.9105,
+                    "imagen": ""
+                },
+                {
+                    "id": 13,
+                    "nombre": "Monumento a Yemanjá",
+                    "tipo": "Monumento",
+                    "descripcion": "Monumento vinculado a la tradición afro-uruguaya y al candombe.",
+                    "longitud": -56.1905,
+                    "latitud": -34.915,
+                    "imagen": ""
+                }
+            ]
+        },
+        "BELLA ITALIA": {
+            "puntos": [
+                {
+                    "id": 14,
+                    "nombre": "Plaza Guayabo",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza histórica del barrio Bella Italia.",
+                    "longitud": -56.126,
+                    "latitud": -34.8545,
+                    "imagen": ""
+                },
+                {
+                    "id": 15,
+                    "nombre": "Parque Alba Roballo",
+                    "tipo": "Parque",
+                    "descripcion": "Espacio público dedicado a Alba Roballo.",
+                    "longitud": -56.1218,
+                    "latitud": -34.856,
+                    "imagen": ""
+                }
+            ]
+        },
+        "BELVEDERE": {
+            "puntos": [
+                {
+                    "id": 16,
+                    "nombre": "Estadio Belvedere",
+                    "tipo": "Estadio",
+                    "descripcion": "Estadio del Liverpool Fútbol Club.",
+                    "longitud": -56.2277,
+                    "latitud": -34.866,
+                    "imagen": ""
+                },
+                {
+                    "id": 17,
+                    "nombre": "Parque Bellán",
+                    "tipo": "Parque",
+                    "descripcion": "Espacio verde característico del barrio.",
+                    "longitud": -56.2285,
+                    "latitud": -34.8605,
+                    "imagen": ""
+                }
+            ]
+        },
+        "BRAZO ORIENTAL": {
+            "puntos": [
+                {
+                    "id": 18,
+                    "nombre": "Museo Casa de Luis Alberto de Herrera",
+                    "tipo": "Museo",
+                    "descripcion": "Casa histórica que forma parte del Museo Histórico Nacional.",
+                    "longitud": -56.1838,
+                    "latitud": -34.8625,
+                    "imagen": ""
+                },
+                {
+                    "id": 19,
+                    "nombre": "Plaza de Deportes Nº 12",
+                    "tipo": "Centro deportivo",
+                    "descripcion": "Espacio deportivo público de referencia del barrio.",
+                    "longitud": -56.1845,
+                    "latitud": -34.8675,
+                    "imagen": ""
+                }
+            ]
+        },
+        "BUCEO": {
+            "puntos": [
+                {
+                    "id": 20,
+                    "nombre": "Puerto del Buceo",
+                    "tipo": "Puerto",
+                    "descripcion": "Puerto deportivo y pesquero de Montevideo.",
+                    "longitud": -56.132,
+                    "latitud": -34.9065,
+                    "imagen": ""
+                },
+                {
+                    "id": 21,
+                    "nombre": "World Trade Center Montevideo",
+                    "tipo": "Complejo empresarial",
+                    "descripcion": "Complejo empresarial y comercial del Buceo.",
+                    "longitud": -56.1338,
+                    "latitud": -34.902,
+                    "imagen": ""
+                },
+                {
+                    "id": 22,
+                    "nombre": "Museo Naval",
+                    "tipo": "Museo",
+                    "descripcion": "Museo dedicado a la historia naval uruguaya.",
+                    "longitud": -56.1315,
+                    "latitud": -34.9035,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CAPURRO": {
+            "puntos": [
+                {
+                    "id": 23,
+                    "nombre": "Parque Capurro",
+                    "tipo": "Parque",
+                    "descripcion": "Parque histórico ubicado frente a la bahía.",
+                    "longitud": -56.2265,
+                    "latitud": -34.8725,
+                    "imagen": ""
+                },
+                {
+                    "id": 24,
+                    "nombre": "Plaza Senzala",
+                    "tipo": "Patrimonio cultural",
+                    "descripcion": "Espacio asociado a la memoria afrodescendiente del barrio Capurro.",
+                    "longitud": -56.225,
+                    "latitud": -34.8705,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CARRASCO": {
+            "puntos": [
+                {
+                    "id": 25,
+                    "nombre": "Sofitel Montevideo Casino Carrasco & Spa",
+                    "tipo": "Edificio histórico",
+                    "descripcion": "Edificio patrimonial frente a la Rambla de Carrasco.",
+                    "longitud": -56.081,
+                    "latitud": -34.8915,
+                    "imagen": ""
+                },
+                {
+                    "id": 26,
+                    "nombre": "Rambla de Carrasco",
+                    "tipo": "Rambla",
+                    "descripcion": "Tramo costero característico del barrio.",
+                    "longitud": -56.079,
+                    "latitud": -34.8935,
+                    "imagen": ""
+                },
+                {
+                    "id": 27,
+                    "nombre": "Carrasco Lawn Tennis Club",
+                    "tipo": "Club deportivo",
+                    "descripcion": "Institución deportiva histórica del barrio.",
+                    "longitud": -56.083,
+                    "latitud": -34.8885,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CARRASCO NORTE": {
+            "puntos": [
+                {
+                    "id": 28,
+                    "nombre": "Parque Rivera",
+                    "tipo": "Parque",
+                    "descripcion": "Gran espacio verde del este de Montevideo.",
+                    "longitud": -56.0985,
+                    "latitud": -34.8625,
+                    "imagen": ""
+                },
+                {
+                    "id": 29,
+                    "nombre": "Lago del Parque Rivera",
+                    "tipo": "Lago",
+                    "descripcion": "Lago artificial y área recreativa del parque.",
+                    "longitud": -56.1,
+                    "latitud": -34.864,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CASABO": {
+            "puntos": [
+                {
+                    "id": 30,
+                    "nombre": "Plaza de los Derechos",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público inaugurado en 2012 en el barrio Casabó.",
+                    "longitud": -56.2735,
+                    "latitud": -34.883,
+                    "imagen": ""
+                },
+                {
+                    "id": 31,
+                    "nombre": "Parque Deportivo y Recreativo 7 Hectáreas",
+                    "tipo": "Parque deportivo",
+                    "descripcion": "Gran espacio deportivo y recreativo del barrio.",
+                    "longitud": -56.272,
+                    "latitud": -34.88,
+                    "imagen": ""
+                },
+                {
+                    "id": 32,
+                    "nombre": "Playa del Nacional",
+                    "tipo": "Playa",
+                    "descripcion": "Sector costero de Casabó sobre el Río de la Plata.",
+                    "longitud": -56.2745,
+                    "latitud": -34.897,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CENTRO": {
+            "puntos": [
+                {
+                    "id": 33,
+                    "nombre": "Mirador Panorámico de la Intendencia",
+                    "tipo": "Mirador",
+                    "descripcion": "Mirador ubicado en el edificio de la Intendencia de Montevideo.",
+                    "longitud": -56.186,
+                    "latitud": -34.9055,
+                    "imagen": ""
+                },
+                {
+                    "id": 34,
+                    "nombre": "Plaza Cagancha",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza histórica de Montevideo.",
+                    "longitud": -56.1915,
+                    "latitud": -34.905,
+                    "imagen": ""
+                },
+                {
+                    "id": 35,
+                    "nombre": "Plaza Fabini",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza del Entrevero en la avenida 18 de Julio.",
+                    "longitud": -56.1935,
+                    "latitud": -34.902,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CERRITO": {
+            "puntos": [
+                {
+                    "id": 36,
+                    "nombre": "Santuario Nacional del Sagrado Corazón de Jesús",
+                    "tipo": "Iglesia histórica",
+                    "descripcion": "Santuario conocido como Iglesia del Cerrito.",
+                    "longitud": -56.1715,
+                    "latitud": -34.8505,
+                    "imagen": ""
+                },
+                {
+                    "id": 37,
+                    "nombre": "Plaza de Deportes Nº 4",
+                    "tipo": "Centro deportivo",
+                    "descripcion": "Espacio deportivo y comunitario del barrio.",
+                    "longitud": -56.17,
+                    "latitud": -34.854,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CIUDAD VIEJA": {
+            "puntos": [
+                {
+                    "id": 38,
+                    "nombre": "Puerta de la Ciudadela",
+                    "tipo": "Monumento histórico",
+                    "descripcion": "Vestigio de la antigua ciudad fortificada de Montevideo.",
+                    "longitud": -56.2038,
+                    "latitud": -34.9067,
+                    "imagen": "puerta-ciudadela.png"
+                },
+                {
+                    "id": 39,
+                    "nombre": "Plaza Independencia",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público ubicado en el límite entre Ciudad Vieja y el Centro.",
+                    "longitud": -56.2008,
+                    "latitud": -34.9064,
+                    "imagen": "plaza-independencia.png"
+                },
+                {
+                    "id": 40,
+                    "nombre": "Teatro Solís",
+                    "tipo": "Teatro",
+                    "descripcion": "Uno de los principales teatros históricos de Montevideo.",
+                    "longitud": -56.2031,
+                    "latitud": -34.9081,
+                    "imagen": "teatro-solis.png"
+                }
+            ]
+        },
+        "COLON": {
+            "puntos": [
+                {
+                    "id": 41,
+                    "nombre": "Plaza Vidiella",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza principal y espacio público histórico de Colón.",
+                    "longitud": -56.216,
+                    "latitud": -34.8155,
+                    "imagen": ""
+                },
+                {
+                    "id": 42,
+                    "nombre": "Parroquia San Juan Bautista de la Paz",
+                    "tipo": "Iglesia",
+                    "descripcion": "Templo histórico del barrio Colón.",
+                    "longitud": -56.214,
+                    "latitud": -34.8165,
+                    "imagen": ""
+                },
+                {
+                    "id": 43,
+                    "nombre": "Bodega Carrau",
+                    "tipo": "Bodega histórica",
+                    "descripcion": "Establecimiento vitivinícola histórico de la zona de Colón.",
+                    "longitud": -56.236,
+                    "latitud": -34.806,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CONCILIACION": {
+            "puntos": [
+                {
+                    "id": 44,
+                    "nombre": "Plaza José Pedro Ramírez",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza central y espacio de encuentro del barrio.",
+                    "longitud": -56.232,
+                    "latitud": -34.815,
+                    "imagen": ""
+                },
+                {
+                    "id": 45,
+                    "nombre": "Mercadito Conciliación",
+                    "tipo": "Centro comunitario",
+                    "descripcion": "Antiguo mercado municipal utilizado como espacio comunitario.",
+                    "longitud": -56.231,
+                    "latitud": -34.8135,
+                    "imagen": ""
+                }
+            ]
+        },
+        "CORDON": {
+            "puntos": [
+                {
+                    "id": 46,
+                    "nombre": "Feria de Tristán Narvaja",
+                    "tipo": "Feria",
+                    "descripcion": "Tradicional feria dominical de Montevideo.",
+                    "longitud": -56.185,
+                    "latitud": -34.9,
+                    "imagen": ""
+                },
+                {
+                    "id": 47,
+                    "nombre": "Biblioteca Nacional",
+                    "tipo": "Biblioteca",
+                    "descripcion": "Biblioteca Nacional de Uruguay.",
+                    "longitud": -56.187,
+                    "latitud": -34.9015,
+                    "imagen": ""
+                },
+                {
+                    "id": 48,
+                    "nombre": "Universidad de la República - Edificio Central",
+                    "tipo": "Universidad",
+                    "descripcion": "Edificio histórico de la Universidad de la República.",
+                    "longitud": -56.1845,
+                    "latitud": -34.901,
+                    "imagen": ""
+                }
+            ]
+        },
+        "FIGURITA": {
+            "puntos": [
+                {
+                    "id": 49,
+                    "nombre": "Estadio Gran Parque Central",
+                    "tipo": "Estadio",
+                    "descripcion": "Estadio histórico del Club Nacional de Football.",
+                    "longitud": -56.1645,
+                    "latitud": -34.8735,
+                    "imagen": ""
+                },
+                {
+                    "id": 50,
+                    "nombre": "Plazoleta La Figurita",
+                    "tipo": "Plazoleta",
+                    "descripcion": "Espacio público del barrio.",
+                    "longitud": -56.177,
+                    "latitud": -34.8755,
+                    "imagen": ""
+                }
+            ]
+        },
+        "FLOR DE MAROÑAS": {
+            "puntos": [
+                {
+                    "id": 51,
+                    "nombre": "Estadio Jardines del Hipódromo",
+                    "tipo": "Estadio",
+                    "descripcion": "Estadio del Danubio Fútbol Club.",
+                    "longitud": -56.139,
+                    "latitud": -34.851,
+                    "imagen": ""
+                },
+                {
+                    "id": 52,
+                    "nombre": "Centro Cultural y Deportivo CRECE",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Espacio cultural y deportivo comunitario.",
+                    "longitud": -56.131,
+                    "latitud": -34.8515,
+                    "imagen": ""
+                }
+            ]
+        },
+        "GOES": {
+            "puntos": [
+                {
+                    "id": 53,
+                    "nombre": "Plaza Goes",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público central del barrio.",
+                    "longitud": -56.1845,
+                    "latitud": -34.879,
+                    "imagen": ""
+                },
+                {
+                    "id": 54,
+                    "nombre": "Centro Cultural Goes",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Centro comunitario y cultural del barrio.",
+                    "longitud": -56.1835,
+                    "latitud": -34.8795,
+                    "imagen": ""
+                }
+            ]
+        },
+        "JACINTO VERA": {
+            "puntos": [
+                {
+                    "id": 55,
+                    "nombre": "Hospital de Clínicas",
+                    "tipo": "Hospital universitario",
+                    "descripcion": "Hospital universitario de la Universidad de la República.",
+                    "longitud": -56.159,
+                    "latitud": -34.886,
+                    "imagen": ""
+                },
+                {
+                    "id": 56,
+                    "nombre": "Espacio cultural barrial de Jacinto Vera",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Espacio comunitario y cultural de la zona.",
+                    "longitud": -56.167,
+                    "latitud": -34.8785,
+                    "imagen": ""
+                }
+            ]
+        },
+        "JARDINES DEL HIPODROMO": {
+            "puntos": [
+                {
+                    "id": 57,
+                    "nombre": "Hipódromo de Maroñas",
+                    "tipo": "Hipódromo",
+                    "descripcion": "Principal hipódromo de Montevideo.",
+                    "longitud": -56.145,
+                    "latitud": -34.8445,
+                    "imagen": ""
+                },
+                {
+                    "id": 58,
+                    "nombre": "Estadio Jardines del Hipódromo",
+                    "tipo": "Estadio",
+                    "descripcion": "Estadio deportivo del Danubio Fútbol Club.",
+                    "longitud": -56.139,
+                    "latitud": -34.851,
+                    "imagen": ""
+                }
+            ]
+        },
+        "LA BLANQUEADA": {
+            "puntos": [
+                {
+                    "id": 59,
+                    "nombre": "Hospital Militar",
+                    "tipo": "Hospital",
+                    "descripcion": "Hospital de las Fuerzas Armadas.",
+                    "longitud": -56.1605,
+                    "latitud": -34.884,
+                    "imagen": ""
+                },
+                {
+                    "id": 60,
+                    "nombre": "Plaza de la Bandera",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público próximo al eje de 8 de Octubre.",
+                    "longitud": -56.158,
+                    "latitud": -34.8855,
+                    "imagen": ""
+                }
+            ]
+        },
+        "LA COMERCIAL": {
+            "puntos": [
+                {
+                    "id": 61,
+                    "nombre": "Plaza de la Comercial",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público de referencia barrial.",
+                    "longitud": -56.1815,
+                    "latitud": -34.881,
+                    "imagen": ""
+                },
+                {
+                    "id": 62,
+                    "nombre": "Espacio público de La Comercial",
+                    "tipo": "Espacio público",
+                    "descripcion": "Área de encuentro y actividad vecinal del barrio.",
+                    "longitud": -56.1795,
+                    "latitud": -34.883,
+                    "imagen": ""
+                }
+            ]
+        },
+        "LA PALOMA": {
+            "puntos": [
+                {
+                    "id": 63,
+                    "nombre": "Parque Tecnológico Industrial del Cerro",
+                    "tipo": "Centro industrial",
+                    "descripcion": "Área productiva e industrial ubicada en La Paloma-Tomkinson.",
+                    "longitud": -56.277,
+                    "latitud": -34.858,
+                    "imagen": ""
+                },
+                {
+                    "id": 64,
+                    "nombre": "Parque Tomkinson",
+                    "tipo": "Parque",
+                    "descripcion": "Área verde vinculada al entorno de La Paloma-Tomkinson.",
+                    "longitud": -56.282,
+                    "latitud": -34.8467,
+                    "imagen": ""
+                }
+            ]
+        },
+        "LAS ACACIAS": {
+            "puntos": [
+                {
+                    "id": 65,
+                    "nombre": "Estadio José Pedro Damiani",
+                    "tipo": "Estadio",
+                    "descripcion": "Estadio conocido popularmente como Las Acacias.",
+                    "longitud": -56.16,
+                    "latitud": -34.85,
+                    "imagen": ""
+                },
+                {
+                    "id": 66,
+                    "nombre": "Complejo Deportivo Las Acacias",
+                    "tipo": "Centro deportivo",
+                    "descripcion": "Complejo deportivo ubicado en el barrio Las Acacias.",
+                    "longitud": -56.1605,
+                    "latitud": -34.8485,
+                    "imagen": ""
+                }
+            ]
+        },
+        "LEZICA": {
+            "puntos": [
+                {
+                    "id": 67,
+                    "nombre": "Plaza Lezica",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público del barrio.",
+                    "longitud": -56.247,
+                    "latitud": -34.817,
+                    "imagen": ""
+                },
+                {
+                    "id": 68,
+                    "nombre": "Entorno vitivinícola de Lezica",
+                    "tipo": "Patrimonio vitivinícola",
+                    "descripcion": "Zona histórica de quintas y establecimientos vitivinícolas del oeste.",
+                    "longitud": -56.25,
+                    "latitud": -34.806,
+                    "imagen": ""
+                }
+            ]
+        },
+        "MALVIN": {
+            "puntos": [
+                {
+                    "id": 69,
+                    "nombre": "Playa Malvín",
+                    "tipo": "Playa",
+                    "descripcion": "Playa urbana de la costa este de Montevideo.",
+                    "longitud": -56.108,
+                    "latitud": -34.894,
+                    "imagen": ""
+                },
+                {
+                    "id": 70,
+                    "nombre": "Plaza Delmira Agustini",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público del barrio Malvín.",
+                    "longitud": -56.112,
+                    "latitud": -34.889,
+                    "imagen": ""
+                }
+            ]
+        },
+        "MALVIN NORTE": {
+            "puntos": [
+                {
+                    "id": 71,
+                    "nombre": "Complejo Euskal Erria",
+                    "tipo": "Complejo habitacional",
+                    "descripcion": "Complejo residencial emblemático de Malvín Norte.",
+                    "longitud": -56.115,
+                    "latitud": -34.873,
+                    "imagen": ""
+                },
+                {
+                    "id": 72,
+                    "nombre": "Espacio público de Malvín Norte",
+                    "tipo": "Espacio público",
+                    "descripcion": "Área de encuentro y recreación del barrio.",
+                    "longitud": -56.119,
+                    "latitud": -34.876,
+                    "imagen": ""
+                }
+            ]
+        },
+        "MANGA": {
+            "puntos": [
+                {
+                    "id": 73,
+                    "nombre": "Estación Manga",
+                    "tipo": "Estación ferroviaria",
+                    "descripcion": "Estación histórica del ferrocarril en Manga.",
+                    "longitud": -56.113,
+                    "latitud": -34.8085,
+                    "imagen": ""
+                },
+                {
+                    "id": 74,
+                    "nombre": "Biblioteca Batlle y Ordóñez",
+                    "tipo": "Biblioteca",
+                    "descripcion": "Biblioteca ubicada en el eje de avenida José Belloni.",
+                    "longitud": -56.105,
+                    "latitud": -34.812,
+                    "imagen": ""
+                }
+            ]
+        },
+        "MERCADO MODELO": {
+            "puntos": [
+                {
+                    "id": 75,
+                    "nombre": "Mercado Modelo",
+                    "tipo": "Mercado",
+                    "descripcion": "Antiguo mercado mayorista y referencia del barrio.",
+                    "longitud": -56.171,
+                    "latitud": -34.864,
+                    "imagen": ""
+                },
+                {
+                    "id": 76,
+                    "nombre": "Espacio público del Mercado Modelo",
+                    "tipo": "Espacio público",
+                    "descripcion": "Área de encuentro del entorno del Mercado Modelo.",
+                    "longitud": -56.169,
+                    "latitud": -34.862,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PALERMO": {
+            "puntos": [
+                {
+                    "id": 77,
+                    "nombre": "Plaza Juan Ángel Silva",
+                    "tipo": "Plaza",
+                    "descripcion": "Plaza inclusiva ubicada en Minas y Cebollatí.",
+                    "longitud": -56.1815,
+                    "latitud": -34.915,
+                    "imagen": ""
+                },
+                {
+                    "id": 78,
+                    "nombre": "Casa de la Cultura Afrouruguaya",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Espacio cultural dedicado a la cultura afrouruguaya.",
+                    "longitud": -56.181,
+                    "latitud": -34.914,
+                    "imagen": ""
+                },
+                {
+                    "id": 79,
+                    "nombre": "Africanía",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Espacio cultural vinculado al patrimonio afro-uruguayo y al candombe.",
+                    "longitud": -56.1815,
+                    "latitud": -34.9145,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PARQUE BATLLE": {
+            "puntos": [
+                {
+                    "id": 80,
+                    "nombre": "Estadio Centenario",
+                    "tipo": "Estadio histórico",
+                    "descripcion": "Principal estadio histórico de Uruguay.",
+                    "longitud": -56.1525,
+                    "latitud": -34.894,
+                    "imagen": ""
+                },
+                {
+                    "id": 81,
+                    "nombre": "Monumento La Carreta",
+                    "tipo": "Monumento",
+                    "descripcion": "Monumento de José Belloni ubicado en el Parque Batlle.",
+                    "longitud": -56.1505,
+                    "latitud": -34.8895,
+                    "imagen": ""
+                },
+                {
+                    "id": 82,
+                    "nombre": "Velódromo Municipal Atilio François",
+                    "tipo": "Velódromo",
+                    "descripcion": "Instalación deportiva del Parque Batlle.",
+                    "longitud": -56.146,
+                    "latitud": -34.887,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PARQUE GUARNANI": {
+            "puntos": [
+                {
+                    "id": 83,
+                    "nombre": "Estadio Obdulio Varela",
+                    "tipo": "Estadio",
+                    "descripcion": "Estadio anteriormente conocido como Estadio Parque Guaraní.",
+                    "longitud": -56.139,
+                    "latitud": -34.8365,
+                    "imagen": ""
+                },
+                {
+                    "id": 84,
+                    "nombre": "Plaza Parque Guaraní",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público del barrio Parque Guaraní.",
+                    "longitud": -56.142,
+                    "latitud": -34.839,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PARQUE RODO": {
+            "puntos": [
+                {
+                    "id": 85,
+                    "nombre": "Parque Rodó",
+                    "tipo": "Parque",
+                    "descripcion": "Gran parque urbano y espacio recreativo.",
+                    "longitud": -56.176,
+                    "latitud": -34.9155,
+                    "imagen": ""
+                },
+                {
+                    "id": 86,
+                    "nombre": "Castillo del Parque Rodó",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Edificio histórico del parque utilizado para actividades culturales.",
+                    "longitud": -56.1765,
+                    "latitud": -34.9135,
+                    "imagen": ""
+                },
+                {
+                    "id": 87,
+                    "nombre": "Playa Ramírez",
+                    "tipo": "Playa",
+                    "descripcion": "Playa urbana frente al Parque Rodó.",
+                    "longitud": -56.174,
+                    "latitud": -34.917,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PASO DE LA ARENA": {
+            "puntos": [
+                {
+                    "id": 88,
+                    "nombre": "Plaza de la Equidad",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público central vinculado a la historia y vida comunitaria del barrio.",
+                    "longitud": -56.331,
+                    "latitud": -34.826,
+                    "imagen": ""
+                },
+                {
+                    "id": 89,
+                    "nombre": "Terminal de Ómnibus Paso de la Arena",
+                    "tipo": "Terminal",
+                    "descripcion": "Terminal de transporte del oeste de Montevideo.",
+                    "longitud": -56.33,
+                    "latitud": -34.8265,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PASO DEL MOLINO": {
+            "puntos": [
+                {
+                    "id": 90,
+                    "nombre": "Plaza de Paso Molino",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público y centralidad comercial del barrio.",
+                    "longitud": -56.238,
+                    "latitud": -34.863,
+                    "imagen": ""
+                },
+                {
+                    "id": 91,
+                    "nombre": "Avenida Agraciada - Paso Molino",
+                    "tipo": "Avenida histórica",
+                    "descripcion": "Eje comercial y urbano histórico del oeste de Montevideo.",
+                    "longitud": -56.237,
+                    "latitud": -34.861,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PEÑAROL": {
+            "puntos": [
+                {
+                    "id": 92,
+                    "nombre": "Museo y Estación Peñarol",
+                    "tipo": "Museo ferroviario",
+                    "descripcion": "Conjunto patrimonial ferroviario del barrio.",
+                    "longitud": -56.2035,
+                    "latitud": -34.83,
+                    "imagen": ""
+                },
+                {
+                    "id": 93,
+                    "nombre": "Talleres del Ferrocarril Peñarol",
+                    "tipo": "Patrimonio ferroviario",
+                    "descripcion": "Antiguos talleres ferroviarios vinculados al desarrollo industrial del barrio.",
+                    "longitud": -56.201,
+                    "latitud": -34.831,
+                    "imagen": ""
+                },
+                {
+                    "id": 94,
+                    "nombre": "Centro Cultural Artesano",
+                    "tipo": "Centro cultural",
+                    "descripcion": "Espacio cultural comunitario de Peñarol.",
+                    "longitud": -56.203,
+                    "latitud": -34.8245,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PIEDRAS BLANCAS": {
+            "puntos": [
+                {
+                    "id": 95,
+                    "nombre": "Museo Casa Quinta José Batlle y Ordóñez",
+                    "tipo": "Museo",
+                    "descripcion": "Casa quinta histórica de José Batlle y Ordóñez.",
+                    "longitud": -56.111,
+                    "latitud": -34.81,
+                    "imagen": ""
+                },
+                {
+                    "id": 96,
+                    "nombre": "Feria de Piedras Blancas",
+                    "tipo": "Feria",
+                    "descripcion": "Tradicional feria del eje de avenida José Belloni.",
+                    "longitud": -56.102,
+                    "latitud": -34.817,
+                    "imagen": ""
+                }
+            ]
+        },
+        "POCITOS": {
+            "puntos": [
+                {
+                    "id": 97,
+                    "nombre": "Letrero de Montevideo",
+                    "tipo": "Monumento urbano",
+                    "descripcion": "Letrero emblemático ubicado en la Rambla de Pocitos.",
+                    "longitud": -56.1535,
+                    "latitud": -34.913,
+                    "imagen": ""
+                },
+                {
+                    "id": 98,
+                    "nombre": "Playa Pocitos",
+                    "tipo": "Playa",
+                    "descripcion": "Una de las playas urbanas más conocidas de Montevideo.",
+                    "longitud": -56.151,
+                    "latitud": -34.916,
+                    "imagen": ""
+                },
+                {
+                    "id": 99,
+                    "nombre": "Punta Trouville",
+                    "tipo": "Espacio costero",
+                    "descripcion": "Punto costero emblemático de Pocitos.",
+                    "longitud": -56.151,
+                    "latitud": -34.911,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PRADO": {
+            "puntos": [
+                {
+                    "id": 100,
+                    "nombre": "Rosedal del Prado",
+                    "tipo": "Jardín histórico",
+                    "descripcion": "Jardín de rosas del Parque Prado.",
+                    "longitud": -56.21,
+                    "latitud": -34.858,
+                    "imagen": ""
+                },
+                {
+                    "id": 101,
+                    "nombre": "Museo Juan Manuel Blanes",
+                    "tipo": "Museo",
+                    "descripcion": "Museo de artes visuales ubicado en el Prado.",
+                    "longitud": -56.2125,
+                    "latitud": -34.857,
+                    "imagen": ""
+                },
+                {
+                    "id": 102,
+                    "nombre": "Jardín Botánico de Montevideo",
+                    "tipo": "Jardín botánico",
+                    "descripcion": "Jardín botánico histórico del Parque Prado.",
+                    "longitud": -56.208,
+                    "latitud": -34.853,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PUNTA CARRETAS": {
+            "puntos": [
+                {
+                    "id": 103,
+                    "nombre": "Faro de Punta Carretas",
+                    "tipo": "Faro",
+                    "descripcion": "Faro histórico de la costa de Punta Carretas.",
+                    "longitud": -56.161,
+                    "latitud": -34.932,
+                    "imagen": ""
+                },
+                {
+                    "id": 104,
+                    "nombre": "Punta Carretas Shopping",
+                    "tipo": "Centro comercial histórico",
+                    "descripcion": "Centro comercial instalado en el antiguo penal de Punta Carretas.",
+                    "longitud": -56.1615,
+                    "latitud": -34.922,
+                    "imagen": ""
+                },
+                {
+                    "id": 105,
+                    "nombre": "Parque Nelson Mandela",
+                    "tipo": "Parque",
+                    "descripcion": "Espacio de memoria dedicado a Nelson Mandela.",
+                    "longitud": -56.163,
+                    "latitud": -34.925,
+                    "imagen": ""
+                }
+            ]
+        },
+        "PUNTA GORDA": {
+            "puntos": [
+                {
+                    "id": 106,
+                    "nombre": "Plaza Virgilio",
+                    "tipo": "Plaza mirador",
+                    "descripcion": "Plaza y mirador costero con vista al Río de la Plata.",
+                    "longitud": -56.0845,
+                    "latitud": -34.891,
+                    "imagen": ""
+                },
+                {
+                    "id": 107,
+                    "nombre": "Rambla de Punta Gorda",
+                    "tipo": "Rambla",
+                    "descripcion": "Tramo costero característico del barrio.",
+                    "longitud": -56.082,
+                    "latitud": -34.89,
+                    "imagen": ""
+                },
+                {
+                    "id": 108,
+                    "nombre": "Playa de los Ingleses",
+                    "tipo": "Playa",
+                    "descripcion": "Playa ubicada en la costa de Punta Gorda.",
+                    "longitud": -56.085,
+                    "latitud": -34.889,
+                    "imagen": ""
+                }
+            ]
+        },
+        "REDUCTO": {
+            "puntos": [
+                {
+                    "id": 109,
+                    "nombre": "Iglesia del Reducto",
+                    "tipo": "Iglesia histórica",
+                    "descripcion": "Templo histórico del barrio Reducto.",
+                    "longitud": -56.191,
+                    "latitud": -34.875,
+                    "imagen": ""
+                },
+                {
+                    "id": 110,
+                    "nombre": "Hospital Vilardebó",
+                    "tipo": "Hospital histórico",
+                    "descripcion": "Hospital psiquiátrico histórico de Montevideo.",
+                    "longitud": -56.195,
+                    "latitud": -34.8705,
+                    "imagen": ""
+                }
+            ]
+        },
+        "SAYAGO": {
+            "puntos": [
+                {
+                    "id": 111,
+                    "nombre": "Estación Sayago",
+                    "tipo": "Estación ferroviaria",
+                    "descripcion": "Estación ferroviaria del barrio Sayago.",
+                    "longitud": -56.218,
+                    "latitud": -34.823,
+                    "imagen": ""
+                },
+                {
+                    "id": 112,
+                    "nombre": "Facultad de Agronomía",
+                    "tipo": "Universidad",
+                    "descripcion": "Complejo universitario y parque de la Universidad de la República.",
+                    "longitud": -56.216,
+                    "latitud": -34.842,
+                    "imagen": ""
+                }
+            ]
+        },
+        "TRES CRUCES": {
+            "puntos": [
+                {
+                    "id": 113,
+                    "nombre": "Terminal y Shopping Tres Cruces",
+                    "tipo": "Terminal y centro comercial",
+                    "descripcion": "Principal terminal de ómnibus de larga distancia de Montevideo.",
+                    "longitud": -56.164,
+                    "latitud": -34.894,
+                    "imagen": ""
+                },
+                {
+                    "id": 114,
+                    "nombre": "Obelisco a los Constituyentes de 1830",
+                    "tipo": "Monumento",
+                    "descripcion": "Monumento ubicado en el entorno de Bulevar Artigas y 18 de Julio.",
+                    "longitud": -56.164,
+                    "latitud": -34.8955,
+                    "imagen": ""
+                }
+            ]
+        },
+        "UNION": {
+            "puntos": [
+                {
+                    "id": 115,
+                    "nombre": "Plaza de la Restauración",
+                    "tipo": "Plaza",
+                    "descripcion": "Espacio público histórico de la Unión.",
+                    "longitud": -56.155,
+                    "latitud": -34.872,
+                    "imagen": ""
+                },
+                {
+                    "id": 116,
+                    "nombre": "Parroquia de San Agustín",
+                    "tipo": "Iglesia",
+                    "descripcion": "Templo católico histórico de la Unión.",
+                    "longitud": -56.154,
+                    "latitud": -34.8705,
+                    "imagen": ""
+                }
+            ]
+        },
+        "VILLA ESPAÑOLA": {
+            "puntos": [
+                {
+                    "id": 117,
+                    "nombre": "Antel Arena",
+                    "tipo": "Arena deportiva",
+                    "descripcion": "Arena cubierta ubicada en el límite de Villa Española.",
+                    "longitud": -56.16,
+                    "latitud": -34.852,
+                    "imagen": ""
+                },
+                {
+                    "id": 118,
+                    "nombre": "Santuario de la Medalla Milagrosa y San Agustín",
+                    "tipo": "Iglesia",
+                    "descripcion": "Templo religioso destacado del barrio.",
+                    "longitud": -56.157,
+                    "latitud": -34.854,
+                    "imagen": ""
+                }
+            ]
+        },
+        "VILLA GARCIA": {
+            "puntos": [
+                {
+                    "id": 119,
+                    "nombre": "Capilla Jacksonville / San José del Manga",
+                    "tipo": "Capilla histórica",
+                    "descripcion": "Capilla histórica ubicada en el territorio de Villa García.",
+                    "longitud": -56.087,
+                    "latitud": -34.789,
+                    "imagen": ""
+                },
+                {
+                    "id": 120,
+                    "nombre": "Parque Villa García",
+                    "tipo": "Parque",
+                    "descripcion": "Espacio verde ubicado en Daniel García Acevedo.",
+                    "longitud": -56.078,
+                    "latitud": -34.786,
+                    "imagen": ""
+                },
+                {
+                    "id": 121,
+                    "nombre": "Facultad de Veterinaria - sede nueva",
+                    "tipo": "Universidad",
+                    "descripcion": "Nueva sede de la Facultad de Veterinaria de la Universidad de la República.",
+                    "longitud": -56.09,
+                    "latitud": -34.792,
+                    "imagen": ""
+                }
+            ]
+        }
+    }}

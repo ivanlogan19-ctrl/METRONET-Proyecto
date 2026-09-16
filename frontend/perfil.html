@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi perfil · METRONET</title>
+    <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+  </head>
+  <body>
+    <main class="auth-page">
+      <section class="auth-card" aria-labelledby="tituloPerfil">
+        <div class="mobile-brand">
+          <img src="/assets/logoMETRONET.png" alt="Logo de METRONET" />
+          <span>METRONET</span>
+        </div>
+        <p class="eyebrow">Cuenta personal</p>
+        <h1 id="tituloPerfil">Mi perfil</h1>
+        <form id="perfilForm" class="auth-form" novalidate>
+          <div class="field-group">
+            <label for="nombre">Nombre</label>
+            <div class="input-wrapper">
+              <input id="nombre" type="text" autocomplete="name" required />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="apellido">Apellido</label>
+            <div class="input-wrapper">
+              <input
+                id="apellido"
+                type="text"
+                autocomplete="family-name"
+                required
+              />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="email">Correo electrónico</label>
+            <div class="input-wrapper">
+              <input id="email" type="email" autocomplete="email" required />
+            </div>
+          </div>
+          <button id="guardarPerfil" class="primary-button" type="submit">
+            <span class="button-text">Guardar cambios</span
+            ><span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+        <form id="contrasenaForm" class="auth-form auth-form-separado" novalidate>
+          <h2>Cambiar contraseña</h2>
+          <div class="field-group">
+            <label for="contrasenaActual">Contraseña actual</label>
+            <div class="input-wrapper">
+              <input id="contrasenaActual" type="password" autocomplete="current-password" required />
+              <button class="toggle-password" type="button" data-target="contrasenaActual">Mostrar</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="nuevaContrasena">Nueva contraseña</label>
+            <div class="input-wrapper">
+              <input id="nuevaContrasena" type="password" autocomplete="new-password" required />
+              <button class="toggle-password" type="button" data-target="nuevaContrasena">Mostrar</button>
+              <div class="requisitos-contrasena" role="tooltip">
+                Mínimo 6 caracteres, una mayúscula y un carácter especial.
+              </div>
+            </div>
+          </div>
+          <button id="guardarContrasena" class="primary-button" type="submit">
+            <span class="button-text">Guardar contraseña</span><span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+        <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        <p class="auth-link"><a href="/">Volver al mapa</a></p>
+      </section>
+    </main>
+    <script type="module" src="/src/autenticacion/perfil.js"></script>
+  </body>
+</html>

@@ -1,0 +1,6591 @@
+{
+ "displayFieldName": "OBSERVACIONES",
+ "fieldAliases": {
+  "OID": "OID",
+  "NOMBRE": "Categoria",
+  "POT_TRANS": "APT",
+  "GRUPO": "IOT",
+  "NOMBRE_INSTRUM": "Nombre de IOT",
+  "OBSERVACIONES": "Observaciones",
+  "SUBCATEGORIA": "Subcategoria",
+  "APT_SUBCAT": "APT_Subcategoria"
+ },
+ "fields": [
+  {
+   "name": "OID",
+   "type": "esriFieldTypeOID",
+   "alias": "OID"
+  },
+  {
+   "name": "NOMBRE",
+   "type": "esriFieldTypeString",
+   "alias": "Categoria",
+   "length": 40
+  },
+  {
+   "name": "POT_TRANS",
+   "type": "esriFieldTypeInteger",
+   "alias": "APT"
+  },
+  {
+   "name": "GRUPO",
+   "type": "esriFieldTypeString",
+   "alias": "IOT",
+   "length": 50
+  },
+  {
+   "name": "NOMBRE_INSTRUM",
+   "type": "esriFieldTypeString",
+   "alias": "Nombre de IOT",
+   "length": 2000
+  },
+  {
+   "name": "OBSERVACIONES",
+   "type": "esriFieldTypeString",
+   "alias": "Observaciones",
+   "length": 1073741822
+  },
+  {
+   "name": "SUBCATEGORIA",
+   "type": "esriFieldTypeString",
+   "alias": "Subcategoria",
+   "length": 255
+  },
+  {
+   "name": "APT_SUBCAT",
+   "type": "esriFieldTypeString",
+   "alias": "APT_Subcategoria",
+   "length": 255
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OID": 3178,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 687,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Destino programas de vivienda de interés social y servicios",
+    "SUBCATEGORIA": "Servicios, vivienda de interés social",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1042,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Entorno Bo La Chimenea",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2136,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2207,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2800,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "RURAL PRODUCTIVO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1065,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Barrio Nuevo Llamas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2061,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2159,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3155,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1094,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-26-Norte de Colon de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2748,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2084,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3009,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Alrededores de Villa Garcia",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2107,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2771,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1117,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-12-Entoro de Instrucciones y Belloni de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2130,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3040,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1048,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Entorno de Luis Batlle Berres",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2153,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1071,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- Alrededores de Carlomagno",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3172,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2199,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2236,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Las Piedras",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2637,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2096,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2090,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2783,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Melilla",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1111,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-9 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2777,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2144,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1105,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 15-sector2 de SRP a SSC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2044,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 5631,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "Urbano - Revision Parcial: Resolucion 7.682/023",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2190,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3026,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO DE VULNERABILIDAD AMBIENTAL",
+    "SUBCATEGORIA": "Vulnerabilidad ambiental",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 4423,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Suburbano de Actividades Productivas y de Servicios - Resolucion 4.748/020",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1128,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-28-Rincon del Cerro y Norte de Casabo de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2124,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1054,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Los Cilindros",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2073,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2737,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2147,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2196,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3192,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO DE HABITACION PERMANENTE - Decreto 001/023",
+    "SUBCATEGORIA": "Habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1171,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Maroñas-HIpodromo- B. Italia",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2173,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2671,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2665,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1148,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Cerro Norte - La Paloma - Casabo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2053,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2104,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2030,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2645,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2694,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "RURAL NATURAL",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2757,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3006,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-5-Parque de Act. del Este y Zona América de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1085,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-17-Norte de Cno. Maldonado-ruta 8 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2210,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2024,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Propuesta retiro obligatorio",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 9598,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Suelo Suburbano, subcategoría No Habitacional - Decreto 38.718/024",
+    "SUBCATEGORIA": "No habitacional",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1028,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Este de Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2602,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO OBRAS DE INFRAESTRUCTURA",
+    "SUBCATEGORIA": "Obras de infraestructura",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2167,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1177,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2216,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1134,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sur de Maroñas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2116,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2067,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2608,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2751,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2087,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1091,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-21-Este de Cno.F. Cardozo de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2064,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Enclave",
+    "SUBCATEGORIA": "Enclave",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1068,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHS- Carcel Punta Rieles",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2797,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2133,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1137,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Punta Rieles",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2110,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2774,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1114,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-18 Este de Villa Garcia de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2179,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2156,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3158,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1045,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Norte Camino Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1022,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Rincon del Cerro   Punta Espinillo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1168,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sayago-Peñarol",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2093,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1097,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-5-Parque de Act. del Este y Zona América de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1062,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHI- Zona ANCAP",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2734,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2187,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2033,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1051,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Cerro Oeste",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2047,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2233,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Rincon de Melilla",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3175,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1154,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Pocitos",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1160,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Union",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2041,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Actualizacion saneamiento 2013",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1108,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-23-Este de Cañada del Tala de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2780,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2239,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo de Toledo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2170,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1174,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2668,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3166,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2193,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2027,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2740,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1031,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RIC-Punta Yeguas -excluido",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2050,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2219,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1125,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 1-Sureste de Pajas Blancas-A de SRIC a SRIC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1151,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Barrio Sur- Parque Rodo- Palermo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2811,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES PRODUCTIVAS Y DE SERVICIO",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2150,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2127,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2768,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1145,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Pajas Blancas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1180,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Casavalle Piedras Blancas- Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2176,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1074,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Los Bulevares",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1025,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Paso de la Arena-",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2070,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2021,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1088,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-24-Rincon del Cerro de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2013,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2760,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2113,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2611,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2605,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO OBRAS DE INFRAESTRUCTURA",
+    "SUBCATEGORIA": "Obras de infraestructura",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1131,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-30-Sur de la Unidad Agroalimentaria de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2213,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2803,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO RESIDENCIAL HABITACION PERMANENTE",
+    "SUBCATEGORIA": "Residencial habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1186,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "Cerrito - Joanico",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2111,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2182,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2775,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2205,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2752,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2088,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1092,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-20-Noreste de Flor de Maroñas de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1140,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Cerro Norte - La Paloma - Casabo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1163,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Aguada - Arroyo Seco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2798,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Rural Productivo APT",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1023,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Rincon del Cerro Este",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1017,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Rio de la Plata",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3038,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1109,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-23-Este de Cañada del Tala de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2769,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2188,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3184,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2082,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2234,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Abayuba",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2735,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1063,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Barrio Gori",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2048,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2036,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1057,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Sosa Chaferro",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2142,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2042,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1103,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-1-Entorno de Punta de Sayago de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2194,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2028,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2763,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3024,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO DE HABITACION PERMANENTE",
+    "SUBCATEGORIA": "Habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3190,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1152,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Parque Batlle",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2812,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "RURAL PRODUCTIVO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2145,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1077,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- Entorno de Paso de la Arena a la Tablada",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1126,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-32-Parque de Actividades del Oeste de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2171,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2122,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2835,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RI-Entorno de Banado de Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 8122,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL  DE CIUDAD DEL PLATA",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2102,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1146,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Boiso Lanza",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2151,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1169,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Lezica- Colon",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2079,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2128,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2620,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2669,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3161,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2743,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1026,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Sur de Cno: Duran",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2022,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3041,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2222,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2059,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2649,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1040,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Mendoza",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2663,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1183,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Casavalle Piedras Blancas- Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2606,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2806,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO RESIDENCIAL HABITACION PERMANENTE",
+    "SUBCATEGORIA": "Residencial habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2065,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1132,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-28-Rincon del Cerro y Norte de Casabo de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2214,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1083,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- Oeste de Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2165,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1020,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RIC-Punta Yeguas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2016,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2609,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2039,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3035,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Suburbano Habitacional",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "Habitacional"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1066,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Fenix",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2062,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2231,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Banados de Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2749,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1089,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "APT-10-Sur del Aerodr. B. Lanza de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2208,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2085,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2108,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2772,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1166,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Paso Molino - La Teja - Belvedere",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2131,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1143,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Paso de la Arena- Las Torres",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2202,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1120,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 10-Norte de Camino Carrasco de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1049,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Banados de Santa Lucia",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1106,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-6-Este de Paso de la Arena de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1112,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-8 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2778,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2185,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2191,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3127,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE",
+    "SUBCATEGORIA": "Actividades logísticas, Industriales",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1060,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHI- Punta Lobos",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2237,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Las Piedras",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2139,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2091,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3173,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2099,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2597,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1080,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHS-Base Aérea Boizo Lanza",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2076,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1149,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Cerro",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2809,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Suburbano Residencial Habitacion Permanente con APT",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2148,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1100,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-2-Entorno Punta de Tigre de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2025,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2766,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2125,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2174,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1123,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 1-Sureste de Pajas Blancas-C de SRIC a SRIC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1172,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Santiago Vazquez",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2666,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3138,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO DE VULNERABILIDAD AMBIENTAL - Revisión Parcial no sustancial - Decreto 015/2020",
+    "SUBCATEGORIA": "Vulnerabilidad ambiental",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2056,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2646,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2105,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2211,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2746,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1037,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Miguelete",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1086,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-11-Entorno de B. Lanza de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3007,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Suburbano - Decreto Departamental 37.957/021 del 16 de diciembre de 2021 ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2019,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1029,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Entorno de Luis Batlle Berres -excluido",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1129,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-31-La Tablada de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2168,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2119,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2162,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2068,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2040,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1044,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Entorno de Banado de Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1115,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-27-Sur de Ruta 8 y A. Toledo de SRP a SSH",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "Habitacional"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3036,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2063,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1161,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "La Comercial Villa MUñoz",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2750,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2086,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2157,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2773,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2134,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1138,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Don Bosco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2203,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2180,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3182,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 8131,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL  DE CIUDAD DEL PLATA",
+    "OBSERVACIONES": "Categoría Suburbana subcategoría Turístico Residencial",
+    "SUBCATEGORIA": "Turístico, Residencial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1167,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Lavalleja Norte - Nuevo Paris",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1144,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Santa Catalina",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2781,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2034,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2721,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-3-Entorno de Ruta 5 y ACPV de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1098,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-25-Noreste de Lezica de SSP a SHC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2094,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1061,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Toledo Chico",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1015,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Este de Camino F. Carsozo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1052,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2186,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3176,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1155,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Buceo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2240,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Prolongacion Las Piedras",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1107,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-23-Este de Cañada del Tala de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2140,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1032,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Pantanoso",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2100,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2051,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Suelo categoría Suburbana de actividades productivas y de servicio / Revisión Decreto 0010/022",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2598,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2169,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2810,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO RESIDENCIAL HABITACION PERMANENTE",
+    "SUBCATEGORIA": "Residencial habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2220,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1101,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-16-Norte de Cno. Tte. Galeano de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2761,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2126,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1124,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 1-Sureste de Pajas Blancas-B de SRIC a SRIC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2618,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3139,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES PRODUCTIVAS Y DE SERVICIO",
+    "SUBCATEGORIA": "Actividades productivas y servicios",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2641,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO RESIDENCIAL",
+    "SUBCATEGORIA": "Residencial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2741,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2077,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2667,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2767,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1038,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Pantanoso",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3196,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "RURAL NATURAL",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2106,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2604,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1075,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- La Tablada",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2747,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2071,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1087,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 5A- Sur de Camino Duran de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2661,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2114,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Propuesta retiro obligatorio",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2120,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2020,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2014,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1081,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHS-Hospital G.Sanit Bois",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1181,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Miguelete",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2804,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Suburbano de Vulnerabilidad Ambiental con APT",
+    "SUBCATEGORIA": "Vulnerabilidad Ambiental",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2206,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1164,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Jacinto Vera - La Blanqueada",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2160,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3156,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Suburbano Productivo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "Productivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1187,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "RN-Arroyo Miguelete",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2183,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3179,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1041,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Mendoza",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1118,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-19- Sur de Punta Rieles de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3039,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1024,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Entorno de Luis Batlle Berres",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1018,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Este Cañada del Tala",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1141,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Cerro Norte - La Paloma - Casabo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3010,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RI-Entorno de Banado de Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2154,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1072,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHI- Zona America",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2177,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1095,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-13-Este de Av. J. Belloni-sur del ACPV de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3125,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2200,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2770,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2083,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1064,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH-Cabaña Anaya",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2638,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO PREFERENTEMENTE TURISTICO- APLICACION ART. 46",
+    "SUBCATEGORIA": "Turístico",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2784,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Las Piedras",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2043,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2037,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2137,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2143,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 5635,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "Rural Natural - Revision Parcial: Resolucion 7.682/023",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 18121,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Suburbano Residencial - Resolucion 3.747/024",
+    "SUBCATEGORIA": "Residencial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1158,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Malvin Norte Las Canteras",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1058,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHI- Puerto de Montevideo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2189,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1127,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-29-Unidad Agroalimentaria de Montevideo de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2123,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2621,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2764,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2217,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1104,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-14-Este de Av. J. Belloni-norte del ACPV de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1078,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- Parque de Actividades del Oeste",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2074,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2738,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2097,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2146,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2031,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2695,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Resolución 6.972/020 IC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2197,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1147,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Paso del Andaluz",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2813,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES PRODUCTIVAS Y DE SERVICIO",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1170,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Cerrito - Joanico",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2744,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2080,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3162,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2103,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2054,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2117,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2793,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "RURAL PRODUCTIVO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1121,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 10-Norte de Camino Carrasco de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3042,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Suburbano Habitacional",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "Habitacional"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2223,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2758,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2664,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2023,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2060,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2601,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2209,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1135,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Paso de la Arena- Las Torres",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1184,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Casavalle Piedras Blancas- Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2807,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES PRODUCTIVAS Y DE SERVICIO",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1178,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2801,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Rural Productivo APT",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1084,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 15-sector1 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2166,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2017,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 24522,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PAI ABREVIADO PARQUE INDUSTRIAL RUTA 102 - RUTA 8",
+    "OBSERVACIONES": "Suelo Suburbano no Habitacional Intensivo",
+    "SUBCATEGORIA": "No Habitacional Intensivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1067,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Carlomagno",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2184,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1090,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-15-Entorno Barrio Capra de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1113,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-8 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2232,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Cuchilla Pereira   Cuchilla Grande",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2109,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1142,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Cerro Norte - La Paloma - Casabo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2796,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Suburbano Residencial Habitacion Permanente con APT",
+    "SUBCATEGORIA": "Residencial Habitacion Permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2132,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1165,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Prado Capurro",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2155,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3157,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Suburbano Productivo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "Productivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3034,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Suburbano Productivo y de Servicios APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1019,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Este de Paso de la Arena",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1096,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-7 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2178,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2201,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1119,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 10-Norte de Camino Carrasco de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1050,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Cerro Oeste",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2639,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO- APLICACION ART. 46",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2046,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2733,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Enclave",
+    "SUBCATEGORIA": "Enclave",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 21720,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Urbano Consolidado - Resolucion 25/05531",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1059,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- La Abeja",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2138,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1153,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Punta  Carretas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2192,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2038,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1159,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Malvin Norte  La Cruz",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2092,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2779,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2238,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo de Toledo",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1056,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH-Las Artes",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2218,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2075,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2739,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1079,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- Felipe Cardozo y Cochabamba",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2098,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1173,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Punta Gorda",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1150,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Ciudad Vieja",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2049,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2026,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2198,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2149,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2032,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2765,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2175,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2596,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2212,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2745,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2118,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2069,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1122,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-33-Asent-15-de-febrero de SRP a SSH",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "Habitacional"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1073,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUH- Barrio Monterrosa",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2616,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "RURAL NATURAL",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3008,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Suburbano - Decreto Departamental 37.957/021 del 16 de diciembre de 2021 ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2759,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1130,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-30-Sur de la Unidad Agroalimentaria de SSNH a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1136,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "Casavalle Piedras Blancas- Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2808,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES PRODUCTIVAS Y DE SERVICIO",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2802,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "SUBURBANO RESIDENCIAL HABITACION PERMANENTE",
+    "SUBCATEGORIA": "Residencial habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3151,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE CANELONES",
+    "OBSERVACIONES": "RURAL",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2161,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3194,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "RURAL PRODUCTIVO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1036,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RIC-Punta del Canario",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1179,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2753,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2018,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 4425,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Natural -ZRA (Zona de Recuperacion Ambiental)- Resolucion 4.748/020",
+    "SUBCATEGORIA": "Zona de recuperación ambiental",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2135,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2799,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Suburbano Residencial Habitacion Permanente con APT",
+    "SUBCATEGORIA": " Residencial Habitacion Permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1139,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Villa Garcia",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1116,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-3-Entorno de Ruta 5 y ACPV de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2112,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Propuesta retiro obligatorio",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2776,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1185,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "RI-Entorno A. MIguelete",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2181,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3177,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1162,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Centro",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2158,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3154,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO PRODUCTIVO Y DE SERVICIOS",
+    "SUBCATEGORIA": "Servicios, Productivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2204,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1093,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "APT-9 de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3183,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO DE HABITACION PERMANENTE - Decreto 001/023",
+    "SUBCATEGORIA": "Habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3037,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "Rural Productivo APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1070,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHS-COM.PEN.Santiago Vazquez",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2722,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PAI MELILLA OESTE",
+    "OBSERVACIONES": "Suelo Suburbano No Habitacional Intensivo",
+    "SUBCATEGORIA": "No habitacional intensivo",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2129,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2141,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Urbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1110,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-22-Este de Santa Catalina de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2782,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2081,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2235,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Carrasco",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2095,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1016,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Noreste de Flor de Maroñas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1099,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "APT-4-Norte de ACPV y Av . J. Belloni de SRP a SSNHI",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": "No Habitacional Intensivo"
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2736,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2035,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " Suelo categoría Suburbana de actividades productivas y de servicio / Revisión Decreto 0010/022",
+    "SUBCATEGORIA": "Servicios, Actividades productivas",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1053,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RN-Arroyo Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 5630,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "RURAL NATURAL",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2636,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "RURAL PRODUCTIVO",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2089,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 3171,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL MICRORREGIONES 6 Y 8",
+    "OBSERVACIONES": "SUBURBANO DE HABITACION PERMANENTE - Decreto 001/023",
+    "SUBCATEGORIA": "Habitación permanente",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1156,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Malvin",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2052,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "APT a Suburbano",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2762,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2172,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1102,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sector 7-P.Rieles - A. Manga de SRP a SUC",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2599,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "RURAL NATURAL",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2121,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2195,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2221,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2101,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": "Propuesta retiro obligatorio",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2670,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE- APLICACION ART. 46",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2029,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2742,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2078,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2152,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2619,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "SUBURBANO DE ACTIVIDADES LOGÍSTICAS E INDUSTRIALE",
+    "SUBCATEGORIA": "Logístico, Industrial",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2693,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "Rural Productivo APT",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2805,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 1,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN PARCIAL DISTRITO PRODUCTIVO RUTA 5 ",
+    "OBSERVACIONES": "Rural Productivo APT",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2058,
+    "NOMBRE": "Categoría Rural Natural",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1133,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "Sur de Maroñas",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2009,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE CANELONES",
+    "OBSERVACIONES": "SUBURBANO DE VULNERABILIDAD AMBIENTAL   LOCALIDAD",
+    "SUBCATEGORIA": "Vulnerabilidad ambiental",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1076,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNH- Rincon del Cerro Oeste",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1027,
+    "NOMBRE": "Categoría Rural",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RI-Entorno A. MIguelete",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2072,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1039,
+    "NOMBRE": "Categoría Rural Productivo",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "RP-Mendoza",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2662,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "COSTAPLAN - PLAN DE ORDENAMIENTO TERRITORIAL DE LA MICRORREGION DE LA CIUDAD DE LA COSTA",
+    "OBSERVACIONES": "URBANO NO CONSOLIDADO- APLICACION ART. 46",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2215,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2015,
+    "NOMBRE": "Categoría Urbano Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1182,
+    "NOMBRE": "Categoría Urbano",
+    "POT_TRANS": 0,
+    "GRUPO": "INSTRUMENTOS ESPECIALES",
+    "NOMBRE_INSTRUM": "PLAN CASAVALLE",
+    "OBSERVACIONES": "Casavalle Piedras Blancas- Manga",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2756,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 1082,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "DIRECTRICES DEPARTAMENTALES",
+    "NOMBRE_INSTRUM": "DIRECTRICES DEPARTAMENTALES DE MONTEVIDEO",
+    "OBSERVACIONES": "SUNHS-Aerodromo de Melilla",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2115,
+    "NOMBRE": "Categoría Urbano no Consolidado",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  },
+  {
+   "attributes": {
+    "OID": 2066,
+    "NOMBRE": "Categoría Suburbana",
+    "POT_TRANS": 0,
+    "GRUPO": "PLANES LOCALES",
+    "NOMBRE_INSTRUM": "PLAN LOCAL LA PAZ, LAS PIEDRAS, PROGRESO (MICRORREGIÓN 7)",
+    "OBSERVACIONES": " ",
+    "SUBCATEGORIA": " ",
+    "APT_SUBCAT": " "
+   }
+  }
+ ]
+}
