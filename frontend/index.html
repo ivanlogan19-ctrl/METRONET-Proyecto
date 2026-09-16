@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>METRONET</title>
+
+
+    <style>
+
+        html,
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            overflow: hidden;
+
+            background: #000000;
+
+            font-family:
+                "Courier New",
+                Courier,
+                monospace;
+
+        }
+
+
+        body {
+
+            background: #000000;
+
+            color: #FFFFFF;
+
+            font-family:
+                "Courier New",
+                Courier,
+                monospace;
+
+        }
+
+
+        #metronet-aplicacion {
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                clamp(230px, 23vw, 300px);
+
+            width: 100%;
+
+            height: 100%;
+
+            background: #020B14;
+
+        }
+
+
+        #metronet-mapa {
+
+            position: relative;
+
+            min-width: 0;
+
+            min-height: 0;
+
+            overflow: hidden;
+
+            background: #020B14;
+
+        }
+
+
+        #metronet-panel-controles {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+            min-width: 0;
+
+            padding: 18px 14px;
+
+            overflow-y: auto;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #0A2335,
+                    #061521
+                );
+
+            border-left:
+                1px solid rgba(141, 215, 247, 0.22);
+
+            box-shadow:
+                -12px 0 28px rgba(0, 0, 0, 0.16);
+
+            box-sizing: border-box;
+
+        }
+
+
+        .metronet-panel-titulo {
+
+            margin: 0 4px 2px;
+
+            color: #A9D9EF;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .metronet-control-sesion {
+
+            width: 100%;
+
+            margin: 4px 0 0;
+
+            padding: 9px 10px;
+
+            color: #8DD7F7;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.03em;
+
+            cursor: pointer;
+
+        }
+
+
+        .metronet-informacion-jugador {
+
+            display: grid;
+
+            gap: 6px;
+
+            width: 100%;
+
+        }
+
+
+        .metronet-informacion-jugador-titulo {
+
+            margin: 6px 4px -2px;
+
+            color: #A9D9EF;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .metronet-control-perfil {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 42px;
+
+            padding: 0 13px;
+
+            border-radius: 13px;
+
+            color: #FFFFFF;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #145A7B,
+                    #0B79AE
+                );
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            letter-spacing: 0.01em;
+
+            text-align: center;
+
+            text-decoration: none;
+
+        }
+
+        .metronet-control-simulacion {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 42px;
+
+            padding: 0 13px;
+
+            border: 1px solid rgba(141, 215, 247, 0.5);
+
+            border-radius: 13px;
+
+            color: #D9F2FB;
+
+            background: #0A2335;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            text-align: center;
+
+            text-decoration: none;
+
+        }
+
+
+        .metronet-control-simulacion:hover,
+        .metronet-control-simulacion:focus-visible {
+
+            border-color: #8DD7F7;
+
+            background: #123B52;
+
+        }
+
+
+        .metronet-control-perfil:hover,
+        .metronet-control-perfil:focus-visible {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1A6D91,
+                    #1595CF
+                );
+
+        }
+
+
+        .metronet-control-perfil-indicador {
+
+            margin-left: 4px;
+
+            font-size: 13px;
+
+        }
+
+
+        .metronet-control-sesion:hover,
+        .metronet-control-sesion:focus-visible {
+
+            color: #FFFFFF;
+
+            background: #0A2335;
+
+            border-color: #8DD7F7;
+
+        }
+
+
+        @media (max-width: 900px) {
+
+            #metronet-aplicacion {
+
+                grid-template-columns: minmax(0, 1fr);
+
+                grid-template-rows: auto minmax(0, 1fr);
+
+            }
+
+
+            #metronet-panel-controles {
+
+                display: grid;
+
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+
+                gap: 8px;
+
+                max-height: 43vh;
+
+                padding: 10px;
+
+                overflow-y: auto;
+
+                border-right: none;
+
+                border-bottom:
+                    1px solid rgba(141, 215, 247, 0.22);
+
+                box-shadow:
+                    0 8px 18px rgba(0, 0, 0, 0.16);
+
+            }
+
+
+            .metronet-panel-titulo {
+
+                grid-column: 1 / -1;
+
+                margin: 0 2px;
+
+            }
+
+
+            .metronet-control-sesion {
+
+                grid-column: 1 / -1;
+
+                margin: 2px 0 0;
+
+            }
+
+
+            .metronet-informacion-jugador {
+
+                grid-column: 1 / -1;
+
+            }
+
+        }
+
+
+        button,
+        input,
+        select,
+        textarea {
+
+            font-family:
+                "Courier New",
+                Courier,
+                monospace;
+
+        }
+
+
+        button {
+
+            color: #FFFFFF;
+
+            background: #000000;
+
+            border:
+                1px solid
+                #0B5EA8;
+
+            border-radius: 0;
+
+        }
+
+
+        button:hover {
+
+            background:
+                #071A2B;
+
+            border-color:
+                #2B9BE8;
+
+        }
+
+
+        input,
+        select,
+        textarea {
+
+            color: #FFFFFF;
+
+            background:
+                #000000;
+
+            border:
+                1px solid
+                #0B5EA8;
+
+            border-radius: 0;
+
+        }
+
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+
+            outline: none;
+
+            border-color:
+                #2B9BE8;
+
+        }
+
+
+        canvas {
+
+            display: block;
+
+            background:
+                #000000;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div id="metronet-aplicacion">
+
+        <main
+            id="metronet-mapa"
+            aria-label="Mapa de Montevideo"
+        ></main>
+
+        <aside
+            id="metronet-panel-controles"
+            aria-label="Controles del mapa"
+        >
+            <h1 class="metronet-panel-titulo">Controles del mapa</h1>
+            <section id="metronet-informacion-jugador" class="metronet-informacion-jugador" aria-label="Información de jugador">
+                <h2 class="metronet-informacion-jugador-titulo">Información de jugador</h2>
+                <a id="metronet-control-perfil" class="metronet-control-perfil" href="/perfil.html">
+                    Actualizar mis datos <span class="metronet-control-perfil-indicador" aria-hidden="true">▼</span>
+                </a>
+                <a class="metronet-control-simulacion" href="/login.html?destino=%2Fsimulacion.html">Crear simulación</a>
+            </section>
+            <button id="metronet-control-sesion" class="metronet-control-sesion" type="button">
+                Cerrar sesión
+            </button>
+        </aside>
+
+    </div>
+
+    <script
+        type="module"
+        src="./src/main.js"
+    ></script>
+
+</body>
+
+</html>
