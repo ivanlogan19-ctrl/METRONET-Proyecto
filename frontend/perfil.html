@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi perfil · METRONET</title>
+    <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+    <link rel="stylesheet" href="/src/perfil/perfil.css" />
+  </head>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
+    <main class="perfil-pagina">
+      <section class="perfil-contenedor" aria-labelledby="tituloPerfil" aria-busy="true">
+        <header class="perfil-encabezado">
+          <p class="eyebrow">Cuenta personal</p>
+          <h1 id="tituloPerfil">Mi perfil</h1>
+          <p>Gestioná de forma segura los datos de tu cuenta METRONET.</p>
+          <p id="estadoCargaPerfil" class="perfil-estado-carga" role="status" aria-live="polite">
+            Cargando la información de tu cuenta…
+          </p>
+        </header>
+        <section
+          class="perfil-seccion perfil-seccion--personales"
+          aria-labelledby="tituloDatosPersonales"
+        >
+          <div class="perfil-seccion__encabezado">
+            <div>
+              <p class="perfil-seccion__etiqueta">Información personal</p>
+              <h2 id="tituloDatosPersonales">Nombre y apellido</h2>
+            </div>
+            <p id="descripcionDatosPersonales">Actualizá cómo se muestra tu nombre dentro de la plataforma.</p>
+          </div>
+          <form
+            id="datosPersonalesForm"
+            class="perfil-formulario perfil-formulario--dos-columnas"
+            aria-describedby="descripcionDatosPersonales"
+            novalidate
+          >
+            <div class="field-group">
+              <label for="nombre">Nombre</label>
+              <div class="input-wrapper">
+                <input id="nombre" type="text" autocomplete="given-name" required />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="apellido">Apellido</label>
+              <div class="input-wrapper">
+                <input id="apellido" type="text" autocomplete="family-name" required />
+              </div>
+            </div>
+            <div class="perfil-acciones">
+              <button id="guardarDatosPersonales" class="primary-button" type="submit">
+                <span class="button-text">Guardar cambios</span><span class="button-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </section>
+        <section
+          class="perfil-seccion perfil-seccion--cuenta"
+          aria-labelledby="tituloCuenta"
+        >
+          <div class="perfil-seccion__encabezado">
+            <div>
+              <p class="perfil-seccion__etiqueta">Cuenta</p>
+              <h2 id="tituloCuenta">Correo electrónico</h2>
+            </div>
+            <p id="descripcionCuenta">Este correo identifica tu cuenta dentro de METRONET.</p>
+          </div>
+          <form
+            id="correoForm"
+            class="perfil-formulario"
+            aria-describedby="descripcionCuenta"
+            novalidate
+          >
+            <div class="field-group">
+              <label for="correoActual">Correo actual</label>
+              <div class="input-wrapper">
+                <input
+                  id="correoActual"
+                  type="email"
+                  autocomplete="email"
+                  readonly
+                  aria-describedby="descripcionCuenta"
+                />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="email">Nuevo correo electrónico</label>
+              <div class="input-wrapper">
+                <input id="email" type="email" autocomplete="email" required />
+              </div>
+            </div>
+            <div class="perfil-acciones">
+              <button id="guardarCorreo" class="primary-button" type="submit">
+                <span class="button-text">Actualizar correo</span><span class="button-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </section>
+        <section
+          class="perfil-seccion perfil-seccion--seguridad"
+          aria-labelledby="tituloSeguridad"
+        >
+          <div class="perfil-seccion__encabezado">
+            <div>
+              <p class="perfil-seccion__etiqueta">Seguridad</p>
+              <h2 id="tituloSeguridad">Contraseña</h2>
+            </div>
+            <p id="descripcionSeguridad">Para proteger tu cuenta, confirmá tu contraseña actual antes del cambio.</p>
+          </div>
+          <form
+            id="contrasenaForm"
+            class="perfil-formulario perfil-formulario--seguridad"
+            aria-describedby="descripcionSeguridad"
+            novalidate
+          >
+            <div class="field-group">
+              <label for="contrasenaActual">Contraseña actual</label>
+              <div class="input-wrapper">
+                <input id="contrasenaActual" type="password" autocomplete="current-password" required />
+                <button
+                  class="toggle-password"
+                  type="button"
+                  data-target="contrasenaActual"
+                  aria-controls="contrasenaActual"
+                >
+                  Mostrar
+                </button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="nuevaContrasena">Nueva contraseña</label>
+              <div class="input-wrapper">
+                <input
+                  id="nuevaContrasena"
+                  type="password"
+                  autocomplete="new-password"
+                  aria-describedby="requisitosContrasena"
+                  required
+                />
+                <button
+                  class="toggle-password"
+                  type="button"
+                  data-target="nuevaContrasena"
+                  aria-controls="nuevaContrasena"
+                >
+                  Mostrar
+                </button>
+                <div id="requisitosContrasena" class="requisitos-contrasena" role="note">
+                  Mínimo 6 caracteres, una mayúscula y un carácter especial.
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="confirmarNuevaContrasena">Confirmar nueva contraseña</label>
+              <div class="input-wrapper">
+                <input id="confirmarNuevaContrasena" type="password" autocomplete="new-password" required />
+                <button
+                  class="toggle-password"
+                  type="button"
+                  data-target="confirmarNuevaContrasena"
+                  aria-controls="confirmarNuevaContrasena"
+                >
+                  Mostrar
+                </button>
+              </div>
+            </div>
+            <div class="perfil-acciones">
+              <button id="guardarContrasena" class="primary-button" type="submit">
+                <span class="button-text">Guardar contraseña</span>
+                <span class="button-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </section>
+        <section class="perfil-seccion perfil-seccion--informacion" aria-labelledby="tituloInformacionCuenta">
+          <div class="perfil-seccion__encabezado">
+            <div>
+              <p class="perfil-seccion__etiqueta">Información</p>
+              <h2 id="tituloInformacionCuenta">Resumen de cuenta</h2>
+            </div>
+            <p>Estos datos son informativos y no pueden editarse desde tu perfil.</p>
+          </div>
+          <dl class="perfil-informacion">
+            <div><dt>Rol</dt><dd id="rolUsuario">—</dd></div>
+            <div><dt>Miembro desde</dt><dd id="fechaCreacion">—</dd></div>
+          </dl>
+        </section>
+        <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        <p class="perfil-volver"><a href="/inicio.html" data-volver-perfil>Volver a Inicio</a></p>
+      </section>
+    </main>
+    <script type="module" src="/src/autenticacion/perfil.js"></script>
+  </body>
+</html>

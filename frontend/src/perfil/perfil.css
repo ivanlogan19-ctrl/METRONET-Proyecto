@@ -1,0 +1,175 @@
+/* Perfil: superficie propia de cuenta; utiliza los tokens globales de METRONET. */
+.perfil-pagina {
+  align-items: start;
+  background: var(--bg-primary);
+}
+
+.perfil-contenedor {
+  width: min(100%, 900px);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .24);
+}
+
+.perfil-encabezado {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.perfil-contenedor h1,
+.perfil-contenedor h2 {
+  font-family: var(--font-ui);
+  text-align: left;
+  text-transform: none;
+}
+
+.perfil-encabezado h1 {
+  letter-spacing: -.02em;
+}
+
+.perfil-encabezado .eyebrow,
+.perfil-seccion__etiqueta {
+  font-family: var(--font-tecnica);
+}
+
+.perfil-estado-carga {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  font-size: 13px;
+}
+
+.perfil-estado-carga[hidden] {
+  display: none;
+}
+
+.perfil-seccion {
+  scroll-margin-top: calc(var(--navegacion-alto) + var(--space-lg));
+}
+
+.perfil-seccion--seguridad {
+  background: color-mix(in srgb, var(--panel-elevated) 35%, var(--panel));
+}
+
+.perfil-seccion__encabezado {
+  gap: var(--space-lg);
+}
+
+.perfil-seccion__encabezado h2 {
+  letter-spacing: -.01em;
+}
+
+.perfil-seccion__encabezado > p {
+  max-width: 300px;
+}
+
+.perfil-formulario {
+  width: min(100%, 620px);
+  max-width: none;
+  gap: var(--space-md);
+}
+
+.perfil-formulario--dos-columnas {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.perfil-formulario .field-group {
+  min-width: 0;
+}
+
+.perfil-contenedor .field-group label {
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.perfil-contenedor .input-wrapper input {
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+}
+
+.perfil-contenedor .input-wrapper input[type='password'] {
+  padding-right: 76px;
+}
+
+.perfil-contenedor .input-wrapper input[readonly] {
+  color: var(--text-secondary);
+  background: var(--panel-elevated);
+}
+
+.perfil-contenedor .toggle-password {
+  right: var(--space-xs);
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.perfil-contenedor .requisitos-contrasena {
+  z-index: var(--layer-dropdown);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+}
+
+.perfil-acciones {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+}
+
+.perfil-formulario--dos-columnas .perfil-acciones {
+  grid-column: 1 / -1;
+}
+
+.perfil-formulario .primary-button {
+  min-height: 42px;
+  margin: 0;
+  padding: 9px var(--space-md);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.perfil-seccion--informacion {
+  background: color-mix(in srgb, var(--panel-elevated) 55%, var(--panel));
+}
+
+.perfil-informacion {
+  width: min(100%, 620px);
+  max-width: none;
+  gap: var(--space-sm);
+}
+
+.perfil-informacion > div {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.perfil-volver {
+  padding: var(--space-md) clamp(20px, 4vw, 34px);
+}
+
+@media (max-width: 720px) {
+  .perfil-formulario--dos-columnas {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-formulario--dos-columnas .perfil-acciones {
+    grid-column: auto;
+  }
+
+  .perfil-estado-carga {
+    width: 100%;
+  }
+}

@@ -1,0 +1,245 @@
+import PanelDinamico from './PanelDinamico.js';
+
+import { ZONAS, quitarTildes } from '../utilidades/ClasificadorZonas.js';
+
+export default class SelectorZonas {
+  constructor(opciones = {}) {
+    this.panel = new PanelDinamico({
+      id: opciones.id ?? 'metronet-selector-zonas',
+
+      titulo: opciones.titulo ?? 'ZONAS',
+
+      ancho: opciones.ancho ?? 230,
+
+      posicion: opciones.posicion ?? {
+        top: 24,
+        left: 24,
+      },
+
+      contenedorPadre: opciones.contenedorPadre,
+
+      integrado: opciones.integrado,
+    });
+
+    this.zonasSeleccionadas = new Set();
+
+    this.onCambio = opciones.onCambio ?? null;
+
+    this.elemento = null;
+
+    this.menu = null;
+  }
+
+  crear() {
+    this.panel.crear();
+
+    this.elemento = this.panel.elemento;
+
+    this.menu = document.createElement('div');
+
+    this.menu.className = 'metronet-selector-zonas-lista';
+
+    for (const zona of ZONAS) {
+      const opcion = this.crearOpcionZona(zona);
+
+      this.menu.appendChild(opcion);
+    }
+
+    this.panel.agregarElemento(this.menu);
+
+    this.crearEstilos();
+
+    return this;
+  }
+
+  crearOpcionZona(zona) {
+    const label = document.createElement('label');
+
+    label.className = 'metronet-selector-zona-opcion';
+
+    const checkbox = document.createElement('input');
+
+    checkbox.type = 'checkbox';
+
+    checkbox.value = zona;
+
+    checkbox.addEventListener('change', () => {
+      this.cambiarSeleccionZona(zona, checkbox.checked);
+    });
+
+    const texto = document.createElement('span');
+
+    texto.textContent = this.formatearNombre(quitarTildes(zona));
+
+    label.appendChild(checkbox);
+
+    label.appendChild(texto);
+
+    return label;
+  }
+
+  formatearNombre(texto = '') {
+    return String(texto)
+      .toLocaleLowerCase('es-UY')
+      .replace(
+        /(^|[\s-])([a-záéíóúüñ])/giu,
+        (coincidencia, prefijo, letra) => `${prefijo}${letra.toLocaleUpperCase('es-UY')}`,
+      );
+  }
+
+  cambiarSeleccionZona(zona, seleccionada) {
+    if (seleccionada) {
+      this.zonasSeleccionadas.add(zona);
+    } else {
+      this.zonasSeleccionadas.delete(zona);
+    }
+
+    this.notificarCambio();
+
+    this.panel.cerrarContenido();
+  }
+
+  notificarCambio() {
+    if (typeof this.onCambio === 'function') {
+      this.onCambio(this.obtenerSeleccion());
+    }
+  }
+
+  obtenerSeleccion() {
+    return [...this.zonasSeleccionadas];
+  }
+
+  seleccionarZona(zona) {
+    const checkbox = this.obtenerCheckbox(zona);
+
+    if (!checkbox) {
+      return;
+    }
+
+    checkbox.checked = true;
+
+    this.zonasSeleccionadas.add(zona);
+
+    this.notificarCambio();
+  }
+
+  deseleccionarZona(zona) {
+    const checkbox = this.obtenerCheckbox(zona);
+
+    if (!checkbox) {
+      return;
+    }
+
+    checkbox.checked = false;
+
+    this.zonasSeleccionadas.delete(zona);
+
+    this.notificarCambio();
+  }
+
+  obtenerCheckbox(zona) {
+    if (!this.menu) {
+      return null;
+    }
+
+    const checkboxes = this.menu.querySelectorAll('input[type="checkbox"]');
+
+    return [...checkboxes].find((checkbox) => checkbox.value === zona) ?? null;
+  }
+
+  limpiarSeleccion() {
+    this.zonasSeleccionadas.clear();
+
+    if (this.menu) {
+      const checkboxes = this.menu.querySelectorAll('input[type="checkbox"]');
+
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+    }
+
+    this.notificarCambio();
+  }
+
+  mostrar() {
+    this.panel.mostrar();
+  }
+
+  ocultar() {
+    this.panel.ocultar();
+  }
+
+  alternar() {
+    this.panel.alternar();
+  }
+
+  mover(top, left) {
+    this.panel.mover(top, left);
+  }
+
+  cambiarAncho(ancho) {
+    this.panel.cambiarAncho(ancho);
+  }
+
+  eliminar() {
+    this.panel.eliminar();
+
+    this.elemento = null;
+
+    this.menu = null;
+  }
+
+  crearEstilos() {
+    if (document.getElementById('metronet-selector-zonas-styles')) {
+      return;
+    }
+
+    const style = document.createElement('style');
+
+    style.id = 'metronet-selector-zonas-styles';
+
+    style.textContent = `
+      .metronet-selector-zonas-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-color: var(--border-active) transparent;
+        scrollbar-width: thin;
+      }
+      .metronet-selector-zona-opcion {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: var(--radius-sm, 5px);
+        color: var(--text-primary);
+        font: 600 13px/18px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+        cursor: pointer;
+        user-select: none;
+      }
+      .metronet-selector-zona-opcion:hover {
+        background: color-mix(in srgb, var(--info-active) 12%, var(--panel-elevated));
+      }
+      .metronet-selector-zona-opcion:has(input:checked) {
+        color: var(--text-primary);
+        background: color-mix(in srgb, var(--info-active) 20%, var(--panel-elevated));
+      }
+      .metronet-selector-zona-opcion input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        cursor: pointer;
+        accent-color: var(--info-active);
+      }
+      .metronet-selector-zonas-lista::-webkit-scrollbar { width: 6px; }
+      .metronet-selector-zonas-lista::-webkit-scrollbar-thumb {
+        border-radius: 99px;
+        background: var(--border-active);
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+}

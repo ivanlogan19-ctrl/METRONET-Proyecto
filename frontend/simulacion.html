@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulación · METRONET</title>
+    <link rel="stylesheet" href="/src/simulacion/simulacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  </head>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
+    <main class="simulacion-aplicacion">
+      <aside class="simulacion-lateral" aria-label="Diseños disponibles">
+        <section class="simulacion-panel-lateral simulacion-diseno-activo" aria-labelledby="tituloDisenoActivo">
+          <p class="simulacion-etiqueta">Diseño activo</p>
+          <h2 id="tituloDisenoActivo">Red seleccionada</h2>
+          <strong id="nombreDisenoLateral">Sin diseño seleccionado</strong>
+          <p id="estadoDisenoLateral" class="simulacion-texto-secundario">Elegí una red validada para simular.</p>
+          <a id="volverEdicion" class="simulacion-volver" href="/">Volver a edición</a>
+        </section>
+        <section class="simulacion-panel-lateral simulacion-diseno-lista" aria-labelledby="tituloDisenos">
+          <h2 id="tituloDisenos">Mis diseños</h2>
+          <p class="simulacion-texto-secundario">Seleccioná una red para consultar sus resultados o ejecutar una simulación.</p>
+          <div id="listaDisenos" class="simulacion-lista" aria-live="polite"></div>
+        </section>
+        <p id="mensajeSimulacion" class="simulacion-mensaje" role="status" aria-live="polite"></p>
+      </aside>
+      <section class="simulacion-contenido">
+        <div data-flujo-navegacion></div>
+        <header class="simulacion-encabezado">
+          <div>
+            <p class="simulacion-etiqueta">Simulación</p>
+            <h1 id="tituloSimulacion">Elegí un diseño</h1>
+          </div>
+          <span id="estadoSimulacion" class="simulacion-estado"></span>
+        </header>
+        <section id="estadoVacio" class="simulacion-vacio">
+          <h2>Seleccioná una red para simular</h2>
+          <p>Desde Edición podés crear la red, guardarla y validarla. La simulación utiliza ese mismo diseño sin modificarlo.</p>
+        </section>
+        <section id="panelSimulacion" class="simulacion-editor" hidden>
+          <section class="simulacion-visor-mapa" aria-labelledby="tituloVistaSimulacion">
+            <header class="simulacion-visor-encabezado">
+              <div>
+                <h3 id="tituloVistaSimulacion">Mapa de la simulación</h3>
+                <p id="estadoVistaMapa">Montevideo · enfoque automático sobre la red</p>
+              </div>
+              <div class="simulacion-visor-acciones">
+                <span class="simulacion-visor-modo">Solo lectura</span>
+                <div id="controlesCamaraSimulacion" aria-label="Controles de zoom y ajuste de red"></div>
+              </div>
+            </header>
+            <div id="visorSimulacion" class="simulacion-lienzo-contenedor" aria-label="Mapa Phaser de Montevideo con la red seleccionada"></div>
+          </section>
+          <section class="simulacion-contexto" aria-label="Consigna del escenario">
+            <details id="consignaSimulacion" class="simulacion-consigna" open>
+              <summary class="simulacion-consigna__resumen">
+                <span id="contextoConsigna" class="simulacion-etiqueta">Escenario</span>
+                <span id="estadoConsigna" class="simulacion-consigna__estado"></span>
+                <strong id="tituloConsigna">Actividad de simulación</strong>
+                <span id="progresoCompactoConsigna" class="simulacion-consigna__progreso-compacto" hidden>
+                  <span>Progreso</span>
+                  <strong id="valorProgresoCompactoConsigna">—</strong>
+                  <span class="simulacion-consigna__barra-compacta" aria-hidden="true"><span id="rellenoProgresoCompactoConsigna"></span></span>
+                </span>
+              </summary>
+              <div class="simulacion-consigna__contenido">
+                <p id="objetivoConsigna" class="simulacion-consigna__objetivo"></p>
+                <details id="informacionAdicionalConsigna" class="simulacion-consigna__informacion" hidden>
+                  <summary>Más información</summary>
+                  <p id="descripcionConsigna" class="simulacion-texto-secundario"></p>
+                </details>
+                <p id="estadoObjetivosConsigna" class="simulacion-consigna__aviso" role="status" aria-live="polite" hidden></p>
+                <section id="seccionProgresoObjetivosConsigna" class="simulacion-consigna__progreso simulacion-consigna__progreso-objetivos" aria-labelledby="tituloProgresoObjetivosConsigna" hidden>
+                  <div class="simulacion-consigna__progreso-encabezado">
+                    <span id="tituloProgresoObjetivosConsigna">Progreso del escenario</span>
+                    <strong id="valorProgresoObjetivosConsigna">—</strong>
+                  </div>
+                  <div id="progresoObjetivosConsigna" class="simulacion-consigna__barra" role="progressbar" aria-labelledby="tituloProgresoObjetivosConsigna" aria-valuemin="0" aria-valuemax="100">
+                    <span id="rellenoProgresoObjetivosConsigna" class="simulacion-consigna__barra-relleno"></span>
+                  </div>
+                  <p id="estadoProgresoObjetivosConsigna" class="simulacion-texto-secundario"></p>
+                </section>
+                <section id="objetivosConsigna" class="simulacion-consigna__objetivos" aria-labelledby="tituloObjetivosConsigna" hidden>
+                  <h4 id="tituloObjetivosConsigna">Objetivos del escenario</h4>
+                  <ul id="listaObjetivosConsigna" class="simulacion-consigna__lista-objetivos"></ul>
+                  <details id="masObjetivosConsigna" class="simulacion-consigna__mas-elementos" hidden>
+                    <summary id="tituloMasObjetivosConsigna">Ver más objetivos</summary>
+                    <ul id="listaObjetivosAdicionalesConsigna" class="simulacion-consigna__lista-objetivos"></ul>
+                  </details>
+                </section>
+                <section id="referenciasConsigna" class="simulacion-consigna__referencias" aria-labelledby="tituloReferenciasConsigna" hidden>
+                  <h4 id="tituloReferenciasConsigna">Referencias del mapa</h4>
+                  <div id="listaReferenciasConsigna" class="simulacion-consigna__lista-referencias"></div>
+                  <details id="masReferenciasConsigna" class="simulacion-consigna__mas-elementos" hidden>
+                    <summary id="tituloMasReferenciasConsigna">Ver más referencias</summary>
+                    <div id="listaReferenciasAdicionalesConsigna" class="simulacion-consigna__lista-referencias"></div>
+                  </details>
+                </section>
+                <section class="simulacion-consigna__progreso" aria-labelledby="tituloProgresoEjecucion">
+                  <div class="simulacion-consigna__progreso-encabezado">
+                    <span id="tituloProgresoEjecucion">Progreso de ejecución</span>
+                    <strong id="valorProgresoEjecucion">0%</strong>
+                  </div>
+                  <div id="progresoEjecucion" class="simulacion-consigna__barra" role="progressbar" aria-labelledby="tituloProgresoEjecucion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <span id="rellenoProgresoEjecucion" class="simulacion-consigna__barra-relleno"></span>
+                  </div>
+                  <p id="estadoProgresoEjecucion" class="simulacion-texto-secundario" aria-live="polite">Detenida</p>
+                </section>
+              </div>
+            </details>
+          </section>
+          <section class="simulacion-operacion simulacion-control-operacion" aria-label="Controles de simulación">
+            <article class="simulacion-panel-operacion">
+              <h3>Controles de simulación</h3>
+              <form id="formularioEjecucion" class="simulacion-formulario simulacion-formulario-integrado">
+                <input id="velocidadSimulacion" type="hidden" value="1" />
+                <span class="simulacion-etiqueta-control">Velocidad</span>
+                <div class="simulacion-selector-velocidad" role="group" aria-label="Velocidad de simulación">
+                  <button type="button" data-velocidad="0.5" aria-pressed="false">x0.5</button>
+                  <button type="button" data-velocidad="1" aria-pressed="true">x1</button>
+                  <button type="button" data-velocidad="2" aria-pressed="false">x2</button>
+                  <button type="button" data-velocidad="4" aria-pressed="false">x4</button>
+                </div>
+                <label for="duracionSimulacion">Duración en segundos</label>
+                <input id="duracionSimulacion" type="number" min="10" value="60" required />
+                <button class="simulacion-primario" type="submit">▶ Iniciar simulación</button>
+              </form>
+              <div class="simulacion-acciones-ejecucion">
+                <button id="pausarSimulacion" class="simulacion-secundario" type="button" disabled>⏸ Pausar</button>
+                <button id="reanudarSimulacion" class="simulacion-secundario" type="button" disabled>▶ Reanudar</button>
+                <button id="detenerSimulacion" class="simulacion-accion-detener" type="button" disabled>■ Detener</button>
+                <button id="reiniciarSimulacion" class="simulacion-secundario" type="button" disabled>↻ Reiniciar</button>
+              </div>
+              <button id="seguirMetro" class="simulacion-seguimiento" type="button" aria-pressed="false" disabled>Seguir metro: desactivado</button>
+              <p id="estadoEjecucion" class="simulacion-estado-ejecucion"></p>
+            </article>
+            <article class="simulacion-panel-operacion simulacion-panel-tiempo-real" aria-live="polite">
+              <h3>Información en tiempo real</h3>
+              <dl class="simulacion-datos-tiempo-real">
+                <div><dt>Tiempo</dt><dd id="tiempoSimulacion">00:00</dd></div>
+                <div><dt>Metro</dt><dd id="metroSimulacion">Sin unidad activa</dd></div>
+                <div><dt>Línea</dt><dd id="lineaSimulacion">—</dd></div>
+                <div><dt>Próxima estación</dt><dd id="proximaEstacionSimulacion">—</dd></div>
+                <div><dt>Estado</dt><dd id="estadoTiempoReal">Red lista</dd></div>
+              </dl>
+              <button id="verResultadosSimulacion" class="simulacion-secundario" type="button" hidden>Ver resultados</button>
+            </article>
+            <article class="simulacion-panel-operacion">
+              <h3 id="tituloResultadosSimulacion">Resultados e intentos</h3>
+              <div id="listaResultadosSimulacion" class="simulacion-lista-elementos"></div>
+              <a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con escenarios</a>
+            </article>
+          </section>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
+    <script type="module" src="/src/simulacion/simulacion.js"></script>
+  </body>
+</html>

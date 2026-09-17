@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verificar código · METRONET</title>
+    <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  </head>
+  <body>
+    <main class="auth-page">
+      <section class="auth-card" aria-labelledby="tituloVerificacion">
+        <div class="mobile-brand auth-marca" data-metronet-logo></div>
+        <p class="eyebrow">Recuperación de acceso</p>
+        <h1 id="tituloVerificacion">Verificar código</h1>
+        <p class="auth-subtitle">
+          Enviamos un código de verificación al correo indicado. Ingresalo para continuar.
+        </p>
+        <form id="formularioVerificacion" class="auth-form" novalidate>
+          <div class="field-group">
+            <label for="codigo">Código de verificación</label>
+            <div class="input-wrapper">
+              <input
+                id="codigo"
+                class="input-codigo"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                pattern="[0-9]{6}"
+                minlength="6"
+                maxlength="6"
+                placeholder="000000"
+                aria-describedby="ayudaCodigo contadorReenvio"
+                required
+              />
+            </div>
+          </div>
+          <p id="ayudaCodigo" class="auth-ayuda">El código es válido por un tiempo limitado.</p>
+          <button id="botonVerificar" class="primary-button" type="submit">
+            <span class="button-text">Verificar código</span>
+            <span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+        <div class="auth-reenvio">
+          <p class="auth-link">¿No recibiste el código?</p>
+          <button id="botonReenviar" class="secondary-button" type="button">Reenviar código</button>
+          <p id="contadorReenvio" class="auth-ayuda" role="status" aria-live="polite"></p>
+        </div>
+        <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        <p class="auth-link"><a id="volverRecuperacion" href="/recuperar-contrasena.html">← Volver</a></p>
+      </section>
+    </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
+    <script type="module" src="/src/autenticacion/verificar-codigo.js"></script>
+  </body>
+</html>

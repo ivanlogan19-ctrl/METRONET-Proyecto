@@ -11,6 +11,7 @@ target/
 
 # Node
 node_modules/
+frontend/dist/
 
 # Mac
 .DS_Store
@@ -20,3 +21,5 @@ node_modules/
 
 # Environment
 .env
+.env.*
+!.env.example

@@ -1,0 +1,408 @@
+export default class PanelDinamico {
+  constructor(opciones = {}) {
+    this.id = opciones.id ?? 'metronet-panel';
+
+    this.titulo = opciones.titulo ?? '';
+
+    this.ancho = opciones.ancho ?? 130;
+
+    this.posicion = opciones.posicion ?? {
+      top: 55,
+      right: 8,
+    };
+
+    this.contenedorPadre = opciones.contenedorPadre ?? document.body;
+
+    this.integrado = Boolean(opciones.integrado);
+
+    this.elemento = null;
+
+    this.encabezado = null;
+
+    this.contenido = null;
+
+    this.abierto = false;
+
+    this.manejadorClicFuera = null;
+
+    this.retrasoCierre = null;
+  }
+
+  crear() {
+    this.eliminar();
+
+    this.crearEstilos();
+
+    const panel = document.createElement('div');
+
+    panel.id = this.id;
+
+    panel.className = 'metronet-panel-dinamico';
+
+    if (this.integrado) {
+      panel.classList.add('metronet-panel-integrado');
+    }
+
+    panel.controladorPanelDinamico = this;
+
+    panel.style.width = `${this.ancho}px`;
+
+    panel.style.top = `${this.posicion.top}px`;
+
+    panel.style.right = `${this.posicion.right}px`;
+
+    const encabezado = document.createElement('button');
+
+    encabezado.type = 'button';
+
+    encabezado.className = 'metronet-panel-encabezado';
+
+    encabezado.textContent = `${this.titulo} ▼`;
+
+    const contenido = document.createElement('div');
+
+    contenido.className = 'metronet-panel-contenido';
+
+    panel.appendChild(encabezado);
+
+    panel.appendChild(contenido);
+
+    this.contenedorPadre.appendChild(panel);
+
+    this.elemento = panel;
+
+    this.encabezado = encabezado;
+
+    this.contenido = contenido;
+
+    this.contenido.style.display = 'none';
+
+    this.encabezado.addEventListener('click', () => {
+      this.alternarContenido();
+    });
+
+    return panel;
+  }
+
+  establecerTitulo(titulo) {
+    this.titulo = titulo;
+
+    this.actualizarEncabezado();
+  }
+
+  actualizarEncabezado() {
+    if (!this.encabezado) {
+      return;
+    }
+
+    this.encabezado.textContent = this.abierto ? `${this.titulo} ▲` : `${this.titulo} ▼`;
+  }
+
+  establecerContenido(contenido) {
+    if (!this.contenido) {
+      return;
+    }
+
+    this.contenido.innerHTML = contenido;
+  }
+
+  agregarElemento(elemento) {
+    if (!this.contenido) {
+      return;
+    }
+
+    this.contenido.appendChild(elemento);
+  }
+
+  mostrar() {
+    if (!this.elemento) {
+      return;
+    }
+
+    this.elemento.style.display = 'block';
+  }
+
+  ocultar() {
+    if (!this.elemento) {
+      return;
+    }
+
+    this.cerrarContenido();
+
+    this.elemento.style.display = 'none';
+  }
+
+  alternar() {
+    if (!this.elemento) {
+      return;
+    }
+
+    const oculto = this.elemento.style.display === 'none';
+
+    if (oculto) {
+      this.mostrar();
+    } else {
+      this.ocultar();
+    }
+  }
+
+  alternarContenido() {
+    if (!this.contenido || !this.elemento) {
+      return;
+    }
+
+    if (this.abierto) {
+      this.cerrarContenido();
+
+      return;
+    }
+
+    this.abrirContenido();
+  }
+
+  abrirContenido() {
+    if (!this.contenido || !this.elemento) {
+      return;
+    }
+
+    this.cerrarOtrosPaneles();
+
+    this.contenido.style.display = 'block';
+
+    this.elemento.classList.add('metronet-panel-abierto');
+
+    this.abierto = true;
+
+    this.actualizarEncabezado();
+
+    this.ajustarPosicionPantalla();
+
+    this.programarCierreAlClicFuera();
+  }
+
+  cerrarContenido() {
+    if (!this.contenido) {
+      return;
+    }
+
+    this.contenido.style.display = 'none';
+
+    this.elemento?.classList.remove('metronet-panel-abierto');
+
+    this.abierto = false;
+
+    this.actualizarEncabezado();
+
+    this.cancelarCierreAlClicFuera();
+  }
+
+  cerrarOtrosPaneles() {
+    const paneles = document.querySelectorAll('.metronet-panel-dinamico');
+
+    paneles.forEach((panel) => {
+      if (panel === this.elemento) {
+        return;
+      }
+
+      panel.controladorPanelDinamico?.cerrarContenido();
+    });
+  }
+
+  programarCierreAlClicFuera() {
+    this.cancelarCierreAlClicFuera();
+
+    this.manejadorClicFuera = (evento) => {
+      if (this.elemento && !this.elemento.contains(evento.target)) {
+        this.cerrarContenido();
+      }
+    };
+
+    this.retrasoCierre = window.setTimeout(() => {
+      if (this.abierto && this.manejadorClicFuera) {
+        document.addEventListener('pointerdown', this.manejadorClicFuera, true);
+      }
+
+      this.retrasoCierre = null;
+    }, 0);
+  }
+
+  cancelarCierreAlClicFuera() {
+    if (this.retrasoCierre !== null) {
+      window.clearTimeout(this.retrasoCierre);
+
+      this.retrasoCierre = null;
+    }
+
+    if (this.manejadorClicFuera) {
+      document.removeEventListener('pointerdown', this.manejadorClicFuera, true);
+
+      this.manejadorClicFuera = null;
+    }
+  }
+
+  ajustarPosicionPantalla() {
+    if (!this.elemento || this.integrado) {
+      return;
+    }
+
+    const rect = this.elemento.getBoundingClientRect();
+
+    const margen = 8;
+
+    let top = rect.top;
+
+    let right = window.innerWidth - rect.right;
+
+    if (rect.bottom > window.innerHeight - margen) {
+      top = window.innerHeight - rect.height - margen;
+    }
+
+    if (top < margen) {
+      top = margen;
+    }
+
+    if (rect.right > window.innerWidth - margen) {
+      right = margen;
+    }
+
+    if (right < margen) {
+      right = margen;
+    }
+
+    this.elemento.style.top = `${top}px`;
+
+    this.elemento.style.right = `${right}px`;
+
+    this.elemento.style.left = 'auto';
+  }
+
+  mover(top, right) {
+    this.posicion = {
+      top,
+      right,
+    };
+
+    if (!this.elemento) {
+      return;
+    }
+
+    this.elemento.style.top = `${top}px`;
+
+    this.elemento.style.right = `${right}px`;
+
+    this.elemento.style.left = 'auto';
+  }
+
+  cambiarAncho(ancho) {
+    this.ancho = ancho;
+
+    if (!this.elemento) {
+      return;
+    }
+
+    this.elemento.style.width = `${ancho}px`;
+  }
+
+  eliminar() {
+    this.cancelarCierreAlClicFuera();
+
+    if (this.elemento) {
+      this.elemento.controladorPanelDinamico = null;
+
+      this.elemento.remove();
+
+      this.elemento = null;
+
+      this.encabezado = null;
+
+      this.contenido = null;
+
+      this.abierto = false;
+    }
+  }
+
+  crearEstilos() {
+    const estiloAnterior = document.getElementById('metronet-panel-dinamico-styles');
+
+    if (estiloAnterior) {
+      estiloAnterior.remove();
+    }
+
+    const style = document.createElement('style');
+
+    style.id = 'metronet-panel-dinamico-styles';
+
+    style.textContent = `
+      .metronet-panel-dinamico {
+        position: fixed;
+        z-index: var(--layer-dropdown, 200);
+        box-sizing: border-box;
+        width: 156px;
+        overflow: visible;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md, 8px);
+        color: var(--text-primary);
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgb(0 0 0 / .30);
+        font-family: var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+      }
+      .metronet-panel-integrado {
+        position: static !important;
+        width: 100% !important;
+        min-width: 0;
+      }
+      .metronet-panel-encabezado {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 42px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: var(--radius-md, 8px);
+        color: var(--text-primary);
+        background: var(--panel-elevated);
+        font: 700 13px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+        text-align: center;
+        white-space: nowrap;
+      }
+      .metronet-panel-dinamico.metronet-panel-abierto .metronet-panel-encabezado {
+        border-radius: var(--radius-md, 8px) var(--radius-md, 8px) 0 0;
+      }
+      .metronet-panel-encabezado:hover,
+      .metronet-panel-encabezado:focus-visible {
+        color: var(--text-primary);
+        background: color-mix(in srgb, var(--info-active) 16%, var(--panel-elevated));
+      }
+      .metronet-panel-contenido {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 7px;
+        overflow: hidden;
+        border-top: 1px solid var(--border);
+        border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+        background: var(--bg-secondary);
+      }
+      @media (max-width: 700px) {
+        .metronet-panel-dinamico {
+          width: calc(50% - 12px) !important;
+        }
+        #metronet-selector-zonas {
+          top: 92px !important;
+          right: calc(50% + 4px) !important;
+        }
+        #metronet-selector-barrios {
+          top: 92px !important;
+          right: 8px !important;
+        }
+        .metronet-panel-encabezado {
+          padding: 0 8px;
+          font-size: 11px;
+        }
+        .metronet-panel-integrado { width: 100% !important; }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+}

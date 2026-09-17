@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>METRONET</title>
+
+
+    <style>
+
+        html,
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            overflow: hidden;
+
+            background: var(--bg-primary);
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+        }
+
+
+        body {
+
+            background: var(--bg-primary);
+
+            color: var(--text-primary);
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+        }
+
+
+        #metronet-aplicacion {
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                clamp(230px, 23vw, 300px);
+
+            width: 100%;
+
+            height: 100%;
+
+            padding: 16px;
+
+            background: var(--bg-primary);
+
+            box-sizing: border-box;
+
+        }
+
+
+        #metronet-mapa {
+
+            position: relative;
+
+            min-width: 0;
+
+            min-height: 0;
+
+            overflow: hidden;
+
+            border-radius: 18px;
+
+            background: var(--bg-primary);
+
+            box-shadow: none;
+
+        }
+
+
+        #metronet-panel-controles {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px;
+
+            min-width: 0;
+
+            padding: 18px 14px;
+
+            overflow-y: auto;
+
+            border-radius: 18px;
+
+            background: var(--panel);
+
+            box-shadow: none;
+
+            box-sizing: border-box;
+
+        }
+
+
+        .metronet-logo-marca {
+
+            display: grid;
+
+            place-items: center;
+
+            align-self: center;
+
+            aspect-ratio: 1;
+
+            padding: 7px;
+
+            background: transparent;
+
+            overflow: hidden;
+
+        }
+
+
+        .metronet-logo-marca img {
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: contain;
+
+            mix-blend-mode: screen;
+
+        }
+
+
+        .metronet-panel-titulo {
+
+            margin: 0 4px 2px;
+
+            color: var(--text-primary);
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .metronet-control-sesion {
+
+            width: 100%;
+
+            margin: 4px 0 0;
+
+            padding: 9px 10px;
+
+            color: var(--text-primary);
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.03em;
+
+            cursor: pointer;
+
+        }
+
+
+        .metronet-informacion-jugador {
+
+            display: grid;
+
+            gap: 6px;
+
+            width: 100%;
+
+        }
+
+
+        .metronet-informacion-jugador-titulo {
+
+            margin: 6px 4px -2px;
+
+            color: var(--text-primary);
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+        }
+
+
+        .metronet-control-simulacion {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 42px;
+
+            padding: 0 13px;
+
+            border: none;
+
+            border-radius: 13px;
+
+            color: var(--text-primary);
+
+            background: var(--panel-elevated);
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            text-align: center;
+
+            text-decoration: none;
+
+        }
+
+
+        .metronet-control-simulacion:hover,
+        .metronet-control-simulacion:focus-visible {
+
+            background: color-mix(in srgb, var(--info-active) 16%, var(--panel));
+
+        }
+
+
+        .metronet-control-sesion:hover,
+        .metronet-control-sesion:focus-visible {
+
+            color: var(--text-primary);
+
+            background: var(--panel-elevated);
+
+            border-color: var(--border-active);
+
+        }
+
+
+        .metronet-estado-puntos {
+
+            margin: 0;
+
+            padding: 10px;
+
+            border-left: 3px solid var(--warning);
+
+            color: var(--text-primary);
+
+            background: color-mix(in srgb, var(--warning) 12%, var(--panel));
+
+            font-size: 12px;
+
+            line-height: 1.45;
+
+        }
+
+
+        @media (max-width: 900px) {
+
+            #metronet-aplicacion {
+
+                grid-template-columns: minmax(0, 1fr);
+
+                grid-template-rows: auto minmax(0, 1fr);
+
+            }
+
+
+            #metronet-panel-controles {
+
+                display: grid;
+
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+
+                gap: 8px;
+
+                max-height: 43vh;
+
+                padding: 10px;
+
+                overflow-y: auto;
+
+                border-right: none;
+
+                border-bottom:
+                    1px solid var(--border);
+
+                box-shadow:
+                    none;
+
+            }
+
+
+            .metronet-panel-titulo {
+
+                grid-column: 1 / -1;
+
+                margin: 0 2px;
+
+            }
+
+
+            .metronet-control-sesion {
+
+                grid-column: 1 / -1;
+
+                margin: 2px 0 0;
+
+            }
+
+
+            .metronet-informacion-jugador {
+
+                grid-column: 1 / -1;
+
+            }
+
+
+            .metronet-estado-puntos {
+
+                grid-column: 1 / -1;
+
+            }
+
+        }
+
+
+        button,
+        input,
+        select,
+        textarea {
+
+            font-family:
+                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+        }
+
+
+        button {
+
+            color: var(--text-primary);
+
+            background: var(--panel-elevated);
+
+            border:
+                1px solid
+                var(--info-active);
+
+            border-radius: 0;
+
+        }
+
+
+        button:hover {
+
+            background:
+                color-mix(in srgb, var(--info-active) 14%, var(--panel));
+
+            border-color:
+                var(--border-active);
+
+        }
+
+
+        input,
+        select,
+        textarea {
+
+            color: var(--text-primary);
+
+            background:
+                var(--bg-secondary);
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius: 0;
+
+        }
+
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+
+            outline: none;
+
+            border-color:
+                var(--info-active);
+
+        }
+
+
+        canvas {
+
+            display: block;
+
+            background:
+                var(--bg-primary);
+
+        }
+
+
+        /* Tema sobrio compartido: una base oscura y un único acento azul. */
+        html,
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        #metronet-aplicacion {
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-primary);
+        }
+
+        #metronet-mapa {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            box-shadow: none;
+        }
+
+        #metronet-panel-controles {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--panel);
+            box-shadow: none;
+        }
+
+        .metronet-logo-marca {
+            background: transparent;
+        }
+
+        .metronet-panel-titulo,
+        .metronet-informacion-jugador-titulo {
+            color: var(--text-primary);
+        }
+
+        .metronet-control-simulacion,
+        .metronet-control-sesion {
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            background: transparent;
+        }
+
+        .metronet-control-simulacion:hover,
+        .metronet-control-simulacion:focus-visible,
+        .metronet-control-sesion:hover,
+        .metronet-control-sesion:focus-visible {
+            border-color: var(--info-active);
+            color: var(--text-primary);
+            background: color-mix(in srgb, var(--info-active) 15%, var(--panel));
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            border-color: var(--border);
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        button:hover,
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--info-active);
+            background: color-mix(in srgb, var(--info-active) 15%, var(--panel));
+        }
+
+        canvas {
+            background: var(--bg-primary);
+        }
+
+        .metronet-editor-red {
+            display: grid;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .metronet-juego,
+        .metronet-consigna {
+            display: grid;
+            gap: 7px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .metronet-juego h3 { margin: 0; }
+
+        .metronet-juego-introduccion {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .metronet-lista-escenarios { display: grid; gap: 6px; }
+
+        .metronet-escenario {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 3px 7px;
+            padding: 8px;
+            border-left: 3px solid var(--info-active);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .metronet-escenario.activo { border-left-color: var(--info-active); }
+        .metronet-escenario.bloqueado { opacity: .5; border-left-color: var(--text-disabled); }
+        .metronet-escenario span { color: var(--text-secondary); font-size: 11px; }
+        .metronet-escenario button { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+        .metronet-consigna strong { color: var(--info-active); font-size: 13px; }
+        .metronet-consigna span { color: var(--text-primary); font-size: 12px; line-height: 1.4; }
+        .metronet-consigna small { color: var(--text-secondary); font-size: 11px; line-height: 1.35; }
+        .metronet-consigna b { color: var(--success); font-size: 11px; }
+
+        .metronet-editor-red button,
+        .metronet-editor-red input,
+        .metronet-editor-red select {
+            min-height: 34px;
+            padding: 7px 8px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            box-sizing: border-box;
+            font: 600 12px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .metronet-editor-red button {
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .metronet-editor-red button:hover,
+        .metronet-editor-red button:focus-visible {
+            border-color: var(--info-active);
+            background: color-mix(in srgb, var(--info-active) 22%, var(--panel));
+        }
+
+        .metronet-editor-nueva,
+        .metronet-editor-fila,
+        .metronet-editor-acciones {
+            display: flex;
+            gap: 6px;
+        }
+
+        .metronet-editor-nueva input,
+        .metronet-editor-fila input,
+        .metronet-editor-fila select,
+        .metronet-editor-red > select,
+        .metronet-editor-grupo > select {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .metronet-editor-nueva button,
+        .metronet-editor-fila button,
+        .metronet-editor-acciones button {
+            flex: 0 0 auto;
+        }
+
+        .metronet-editor-grupo {
+            display: grid;
+            gap: 6px;
+            padding: 9px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .metronet-editor-grupo[hidden] {
+            display: none;
+        }
+
+        .metronet-editor-etiqueta {
+            color: var(--text-secondary);
+            font: 700 11px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .metronet-editor-mensaje {
+            min-height: 17px;
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .metronet-editor-mensaje.error { color: var(--danger); }
+
+        .metronet-editor-seleccionado {
+            display: grid;
+            gap: 7px;
+            padding: 9px;
+            border-left: 3px solid var(--info-active);
+            background: var(--panel);
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .metronet-editor-seleccionado span { color: var(--text-secondary); }
+
+        .metronet-editor-seleccionado div { display: flex; flex-wrap: wrap; gap: 5px; }
+
+        @media (max-width: 900px) {
+            .metronet-editor-red { grid-column: 1 / -1; }
+            .metronet-editor-grupo { min-width: 190px; }
+        }
+
+    </style>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+
+</head>
+
+
+<body class="metronet-pagina-editor">
+
+    <div class="metronet-pantalla-editor">
+        <div data-navegacion-global></div>
+        <div id="metronet-aplicacion">
+
+        <main
+            id="metronet-mapa"
+            aria-label="Mapa de Montevideo"
+        >
+            <section data-contenedor-puntos-interes aria-label="Referencias del mapa"></section>
+        </main>
+
+        <aside
+            id="metronet-panel-controles"
+            aria-label="Edición de red"
+        >
+            <header class="metronet-panel-editor-cabecera">
+                <div>
+                    <p class="metronet-panel-editor-sobretitulo">Constructor de red</p>
+                    <h1 class="metronet-panel-titulo">Edición de red</h1>
+                </div>
+                <button class="metronet-panel-editor-toggle" data-panel-edicion-toggle type="button" aria-expanded="true">Herramientas</button>
+            </header>
+            <div class="metronet-panel-editor-contenido" data-panel-edicion-contenido>
+                <div data-flujo-navegacion></div>
+                <section class="metronet-consigna" data-contenedor-consigna hidden aria-live="polite"></section>
+                <section class="metronet-panel-selectores-mapa" aria-label="Selección geográfica">
+                    <p class="metronet-panel-selectores-mapa__titulo">Mapa</p>
+                    <div data-contenedor-selectores-mapa></div>
+                </section>
+                <section class="metronet-panel-editor-herramientas" data-contenedor-editor-red></section>
+                <footer class="metronet-panel-editor-pie" data-panel-editor-pie></footer>
+            </div>
+        </aside>
+
+    </div>
+    </div>
+
+    <script
+        type="module"
+        src="./src/main.js"
+    ></script>
+
+</body>
+
+</html>

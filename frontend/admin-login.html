@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración · METRONET</title>
+    <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  </head>
+  <body>
+    <main class="auth-page">
+      <section class="auth-card" aria-labelledby="tituloAdmin">
+        <div class="mobile-brand auth-marca" data-metronet-logo></div>
+        <p class="eyebrow">Acceso restringido</p>
+        <h1 id="tituloAdmin">Administración</h1>
+        <p class="auth-subtitle">
+          Ingresá con una cuenta que tenga permisos de administrador.
+        </p>
+        <form id="loginAdminForm" class="auth-form" novalidate>
+          <div class="field-group">
+            <label for="usuario">Identificador de administrador</label>
+            <div class="input-wrapper">
+              <input
+                id="usuario"
+                type="text"
+                autocomplete="username"
+                placeholder="Ingresá tu identificador"
+                required
+              />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="password">Contraseña</label>
+            <div class="input-wrapper">
+              <input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Ingresá tu contraseña"
+                required
+              />
+              <button
+                class="toggle-password"
+                type="button"
+                data-target="password"
+              >
+                Mostrar
+              </button>
+            </div>
+          </div>
+          <button id="loginAdminButton" class="primary-button" type="submit">
+            <span class="button-text">Ingresar a administración</span>
+            <span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+        <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        <p class="auth-link">
+          ¿Sos usuario? <a href="/login.html">Volver a iniciar sesión</a>
+        </p>
+      </section>
+    </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
+    <script type="module" src="/src/administracion/login-admin.js"></script>
+  </body>
+</html>

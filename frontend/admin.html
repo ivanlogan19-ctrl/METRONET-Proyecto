@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración · METRONET</title>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+    <link rel="stylesheet" href="/src/administracion/administracion.css" />
+  </head>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
+    <main class="admin-aplicacion">
+      <aside class="admin-menu" aria-label="Menú de administración">
+        <a
+          class="admin-marca"
+          href="/admin.html"
+          aria-label="Inicio de administración"
+        >
+          <span
+            class="admin-marca__logo"
+            data-metronet-logo
+            data-logo-alternativo="Logo de METRONET"
+          ></span>
+          <span class="admin-marca__texto">Gestión de administración</span>
+        </a>
+        <nav class="admin-navegacion" aria-label="Módulos de administración">
+          <p class="admin-navegacion__etiqueta">Módulos</p>
+          <button
+            class="admin-enlace activo"
+            type="button"
+            data-vista="usuarios"
+          >
+            Usuarios
+          </button>
+          <button class="admin-enlace" type="button" data-vista="disenos">
+            Escenarios diseñados
+          </button>
+          <button class="admin-enlace" type="button" data-vista="configuracion">
+            Configuración
+          </button>
+          <button class="admin-enlace" type="button" data-vista="actividad">
+            Actividad reciente
+          </button>
+        </nav>
+        <div class="admin-menu-pie" hidden>
+          <button id="cerrarSesion" class="admin-cerrar-sesion" type="button">
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      <section class="admin-contenido">
+        <header class="admin-encabezado">
+          <div>
+            <p class="admin-etiqueta">Panel de control</p>
+            <h1 id="tituloVista">Gestión de usuarios</h1>
+          </div>
+          <p id="nombreAdministrador" class="admin-usuario"></p>
+        </header>
+
+        <section
+          id="vista-usuarios"
+          class="admin-vista activa"
+          aria-labelledby="tituloVista"
+        >
+          <p class="admin-descripcion">
+            Consultá las cuentas registradas y asigná el rol correspondiente.
+          </p>
+          <p
+            id="mensajeAdministracion"
+            class="admin-mensaje"
+            role="status"
+            aria-live="polite"
+          ></p>
+          <div class="admin-filtros" aria-label="Filtros de usuarios">
+            <label>
+              Buscar usuario
+              <input id="filtroUsuarios" type="search" placeholder="Nombre o correo electrónico" autocomplete="off" />
+            </label>
+            <label>
+              Rol
+              <select id="filtroRolUsuarios">
+                <option value="">Todos los roles</option>
+                <option value="ADMIN">Administrador</option>
+                <option value="JUGADOR">Jugador</option>
+              </select>
+            </label>
+          </div>
+          <div class="admin-tabla-contenedor">
+            <table class="admin-tabla">
+              <thead>
+                <tr>
+                  <th>Nombre completo</th>
+                  <th>Correo electrónico</th>
+                  <th>Rol</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaUsuarios"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="vista-disenos" class="admin-vista">
+          <h2>Escenarios diseñados</h2>
+          <p>
+            Consultá los diseños creados por los jugadores. Al abrir uno podés
+            modificar o eliminar sus líneas de metro, estaciones y conexiones.
+          </p>
+          <p id="mensajeDisenos" class="admin-mensaje" role="status" aria-live="polite"></p>
+          <div class="admin-filtros" aria-label="Filtro de diseños">
+            <label>
+              Buscar diseño
+              <input id="filtroDisenos" type="search" placeholder="Diseño, jugador o correo electrónico" autocomplete="off" />
+            </label>
+          </div>
+          <div id="listaDisenos" class="admin-lista-disenos"></div>
+          <div id="detalleDiseno" class="admin-detalle-diseno" hidden></div>
+        </section>
+        <section id="vista-configuracion" class="admin-vista">
+          <h2>Configuración general</h2>
+          <p>Actualizá los parámetros generales que utiliza la plataforma.</p>
+          <p id="mensajeConfiguracion" class="admin-mensaje" role="status" aria-live="polite"></p>
+          <div id="listaConfiguracion" class="admin-lista-configuracion"></div>
+        </section>
+        <section id="vista-actividad" class="admin-vista">
+          <h2>Actividad reciente</h2>
+          <p>Consultá las últimas acciones realizadas por los administradores autorizados.</p>
+          <p id="mensajeActividad" class="admin-mensaje" role="status" aria-live="polite"></p>
+          <div class="admin-tabla-contenedor">
+            <table class="admin-tabla">
+              <thead><tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Detalle</th></tr></thead>
+              <tbody id="tablaActividad"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+    <dialog id="editorUsuario" class="admin-modal" aria-labelledby="tituloEditorUsuario">
+      <form id="formularioEditorUsuario" class="admin-formulario-editor" novalidate>
+        <div class="admin-detalle-encabezado">
+          <div>
+            <p class="admin-etiqueta">Cuenta registrada</p>
+            <h2 id="tituloEditorUsuario">Editar usuario</h2>
+          </div>
+          <button id="cerrarEditorUsuario" class="admin-secundario" type="button">Cerrar</button>
+        </div>
+        <input id="editorIdUsuario" type="hidden" />
+        <label for="editorNombre">Nombre</label>
+        <input id="editorNombre" type="text" autocomplete="given-name" required />
+        <label for="editorApellido">Apellido</label>
+        <input id="editorApellido" type="text" autocomplete="family-name" />
+        <div id="campoIdentificadorAdministrador" class="admin-campo-identificador" hidden>
+          <label for="editorIdentificadorAdministrador">Identificador de administrador</label>
+          <input id="editorIdentificadorAdministrador" type="text" autocomplete="username" />
+        </div>
+        <label for="editorEmail">Correo electrónico</label>
+        <input id="editorEmail" type="email" autocomplete="email" required />
+        <label for="editorContrasena">Nueva contraseña</label>
+        <input id="editorContrasena" type="password" autocomplete="new-password" placeholder="Dejar vacía para conservarla" />
+        <p class="admin-ayuda">Si cambiás la contraseña: mínimo 6 caracteres, una mayúscula y un carácter especial.</p>
+        <p id="mensajeEditorUsuario" class="admin-mensaje" role="status"></p>
+        <button class="admin-guardar" type="submit">Guardar cambios</button>
+      </form>
+    </dialog>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
+    <script type="module" src="/src/administracion/administracion.js"></script>
+  </body>
+</html>

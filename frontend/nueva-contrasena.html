@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nueva contraseña · METRONET</title>
+    <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  </head>
+  <body>
+    <main class="auth-page">
+      <section class="auth-card" aria-labelledby="tituloNuevaContrasena">
+        <div class="mobile-brand auth-marca" data-metronet-logo></div>
+        <p class="eyebrow">Recuperación de acceso</p>
+        <h1 id="tituloNuevaContrasena">Nueva contraseña</h1>
+        <p class="auth-subtitle">Elegí una contraseña nueva para volver a ingresar a METRONET.</p>
+        <form id="formularioNuevaContrasena" class="auth-form" novalidate>
+          <div class="field-group">
+            <label for="nuevaContrasena">Nueva contraseña</label>
+            <div class="input-wrapper">
+              <input
+                id="nuevaContrasena"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Ingresá una nueva contraseña"
+                aria-describedby="requisitosContrasena"
+                required
+              />
+              <button class="toggle-password" type="button" data-target="nuevaContrasena">Mostrar</button>
+              <div id="requisitosContrasena" class="requisitos-contrasena" role="tooltip">
+                Mínimo 6 caracteres, una mayúscula y un carácter especial.
+              </div>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="confirmarContrasena">Confirmar contraseña</label>
+            <div class="input-wrapper">
+              <input
+                id="confirmarContrasena"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Repetí la nueva contraseña"
+                required
+              />
+              <button class="toggle-password" type="button" data-target="confirmarContrasena">Mostrar</button>
+            </div>
+          </div>
+          <button id="botonCambiarContrasena" class="primary-button" type="submit">
+            <span class="button-text">Cambiar contraseña</span>
+            <span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+        <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
+        <p class="auth-link"><a href="/login.html">← Volver a iniciar sesión</a></p>
+      </section>
+    </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
+    <script type="module" src="/src/autenticacion/nueva-contrasena.js"></script>
+  </body>
+</html>
