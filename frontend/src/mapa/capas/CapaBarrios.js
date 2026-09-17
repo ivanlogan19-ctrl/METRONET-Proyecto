@@ -1,4 +1,5 @@
 import { normalizarBarrio, obtenerZona } from '../utilidades/ClasificadorZonas.js';
+import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
 export default class CapaBarrios {
   constructor(escena, opciones = {}) {
@@ -306,12 +307,12 @@ export default class CapaBarrios {
     /*
      * Base azul petróleo del mapa.
      */
-    this.fondoMapa.fillStyle(0x111820, 1);
+    this.fondoMapa.fillStyle(COLORES_INTERFAZ_MAPA.PANEL, 1);
 
     /*
      * Borde exterior azul METRONET.
      */
-    this.fondoMapa.lineStyle(2, 0x3b78c8, 0.9);
+    this.fondoMapa.lineStyle(2, COLORES_INTERFAZ_MAPA.BORDE, 0.92);
 
     for (const barrio of this.barrios) {
       const geometria = barrio.feature.geometry;
@@ -405,24 +406,22 @@ export default class CapaBarrios {
 
     const zonaSeleccionada = this.esZonaSeleccionada(barrio);
 
-    let colorRelleno = 0x111820;
+    let colorRelleno = COLORES_INTERFAZ_MAPA.PANEL;
 
     let transparencia = 0;
 
     /* La zona elegida usa un azul claro que no se confunde con el mapa base. */
     if (zonaSeleccionada) {
-      colorRelleno = 0x3b78c8;
-
-      transparencia = 0.72;
+      colorRelleno = COLORES_INTERFAZ_MAPA.ACTIVO;
+      transparencia = 0.32;
     }
 
     /*
      * Barrio seleccionado.
      */
     if (barrioSeleccionado) {
-      colorRelleno = 0x568fdb;
-
-      transparencia = 0.9;
+      colorRelleno = COLORES_INTERFAZ_MAPA.ACTIVO;
+      transparencia = 0.52;
     }
 
     /*
@@ -431,7 +430,7 @@ export default class CapaBarrios {
     grafico.lineStyle(
       barrioSeleccionado || zonaSeleccionada ? 3 : 1,
 
-      barrioSeleccionado ? 0xf4f7fa : zonaSeleccionada ? 0xaab7c4 : 0x263240,
+      barrioSeleccionado ? COLORES_INTERFAZ_MAPA.BORDE_ACTIVO : zonaSeleccionada ? COLORES_INTERFAZ_MAPA.ACTIVO : COLORES_INTERFAZ_MAPA.BORDE,
 
       barrioSeleccionado || zonaSeleccionada ? 1 : 0.85,
     );
@@ -511,30 +510,8 @@ export default class CapaBarrios {
     grafico.strokePath();
   }
 
-  obtenerColorZona(zona) {
-    /* Paleta violeta-azul METRONET. */
-    switch (zona) {
-      case 'ZONA CENTRO':
-        return 0x9bc8ff;
-
-      case 'ZONA ESTE':
-        return 0x3b78c8;
-
-      case 'ZONA NORTE':
-        return 0x3b78c8;
-
-      case 'ZONA OESTE':
-        return 0x1a2340;
-
-      case 'ZONA OESTE-COSTA':
-        return 0x1a2340;
-
-      case 'ZONA NOROESTE':
-        return 0x9bc8ff;
-
-      default:
-        return 0x1a2340;
-    }
+  obtenerColorZona() {
+    return COLORES_INTERFAZ_MAPA.ACTIVO;
   }
 
   establecerZonasSeleccionadas(zonas) {

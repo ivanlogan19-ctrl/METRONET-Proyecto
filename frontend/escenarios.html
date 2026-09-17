@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escenarios · METRONET</title>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  </head>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
+    <main class="metronet-escenarios-pagina" aria-labelledby="tituloEscenarios">
+      <header class="metronet-escenarios-pagina__encabezado">
+        <div>
+          <p class="metronet-inicio__etiqueta">Juego educativo</p>
+          <h1 id="tituloEscenarios">Escenarios</h1>
+          <p>Elegí un escenario desbloqueado. Al abrirlo se recupera tu intento activo o se crea uno nuevo solo la primera vez.</p>
+        </div>
+      </header>
+      <div data-flujo-navegacion></div>
+      <p id="mensajeEscenarios" class="metronet-inicio__mensaje" role="status" aria-live="polite"></p>
+      <section id="listaEscenarios" class="metronet-escenarios-pagina__lista" aria-live="polite"></section>
+    </main>
+    <script type="module" src="/src/navegacion/escenarios.js"></script>
+  </body>
+</html>

@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Administración · METRONET</title>
     <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
   </head>
   <body>
     <main class="auth-page">
       <section class="auth-card" aria-labelledby="tituloAdmin">
         <div class="mobile-brand">
-          <img src="/assets/logoMETRONET.png" alt="Logo de METRONET" />
+          <div data-metronet-logo></div>
           <span>METRONET</span>
         </div>
         <p class="eyebrow">Acceso restringido</p>
@@ -61,6 +62,7 @@
         </p>
       </section>
     </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
     <script type="module" src="/src/administracion/login-admin.js"></script>
   </body>
 </html>

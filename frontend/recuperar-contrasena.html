@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Recuperar contraseña · METRONET</title>
     <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
   </head>
   <body>
     <main class="auth-page">
       <section class="auth-card" aria-labelledby="tituloRecuperacion">
-        <div class="mobile-brand"><img src="/assets/logoMETRONET.png" alt="Logo de METRONET" /></div>
+        <div class="mobile-brand"><div data-metronet-logo></div></div>
         <p class="eyebrow">Simulador de red de metro</p>
         <h1 id="tituloRecuperacion">Recuperar contraseña</h1>
         <form id="formularioRecuperacion" class="auth-form" novalidate>
@@ -26,6 +27,7 @@
         <p class="auth-link"><a href="/login.html">Volver al inicio de sesión</a></p>
       </section>
     </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
     <script type="module" src="/src/autenticacion/recuperar-contrasena.js"></script>
   </body>
 </html>

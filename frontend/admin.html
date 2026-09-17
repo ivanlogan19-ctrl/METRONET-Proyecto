@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Administración · METRONET</title>
     <link rel="stylesheet" href="/src/administracion/administracion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
   </head>
-  <body>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
     <main class="admin-aplicacion">
       <aside class="admin-menu" aria-label="Menú de administración">
         <a
@@ -14,7 +16,6 @@
           href="/admin.html"
           aria-label="Inicio de administración"
         >
-          <img src="/assets/logoMETRONET.png" alt="METRONET" />
           <span>Gestión de administración</span>
         </a>
         <nav class="admin-navegacion" aria-label="Módulos de administración">
@@ -168,6 +169,7 @@
         <button class="admin-guardar" type="submit">Guardar cambios</button>
       </form>
     </dialog>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
     <script type="module" src="/src/administracion/administracion.js"></script>
   </body>
 </html>

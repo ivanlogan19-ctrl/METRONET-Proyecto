@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro · METRONET</title>
     <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
   </head>
   <body>
     <main class="auth-page">
       <section class="brand-panel" aria-label="Presentación de METRONET">
         <div class="metro-map" aria-hidden="true"></div>
         <div class="brand-content">
-          <img
-            class="brand-logo"
-            src="/assets/logoMETRONET.png"
-            alt="Logo de METRONET"
-          />
+          <div data-metronet-logo></div>
           <p class="eyebrow">Nuevo usuario</p>
           <h1>METRONET</h1>
           <p class="descripcion">
@@ -25,7 +22,7 @@
       </section>
       <section class="auth-card" aria-labelledby="tituloRegistro">
         <div class="mobile-brand">
-          <img src="/assets/logoMETRONET.png" alt="" />
+          <div data-metronet-logo data-logo-alternativo=""></div>
           <span>METRONET</span>
         </div>
         <p class="eyebrow">Simulador de red de metro</p>
@@ -113,6 +110,7 @@
         </p>
       </section>
     </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
     <script type="module" src="/src/autenticacion/registro.js"></script>
   </body>
 </html>

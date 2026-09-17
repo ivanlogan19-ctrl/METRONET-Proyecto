@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inicio · METRONET</title>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  </head>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
+    <main class="metronet-inicio" aria-labelledby="tituloInicio">
+      <section class="metronet-inicio__presentacion">
+        <p class="metronet-inicio__etiqueta">Simulador educativo de red de metro</p>
+        <h1 id="tituloInicio">Inicio</h1>
+        <p>Elegí una actividad para continuar con tu progreso, diseñar una red o consultar una simulación guardada.</p>
+      </section>
+      <p id="mensajeInicio" class="metronet-inicio__mensaje" role="status" aria-live="polite"></p>
+      <section id="accionesInicio" class="metronet-inicio__acciones" aria-label="Acciones disponibles"></section>
+    </main>
+    <script type="module" src="/src/navegacion/inicio.js"></script>
+  </body>
+</html>

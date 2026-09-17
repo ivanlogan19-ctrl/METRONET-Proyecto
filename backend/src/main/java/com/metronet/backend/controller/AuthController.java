@@ -1,9 +1,11 @@
 package com.metronet.backend.controller;
 
-import com.metronet.backend.dto.LoginRequest;
-import com.metronet.backend.dto.LoginAdministradorRequest;
+import com.metronet.backend.dto.ActualizarCorreoPerfilRequest;
+import com.metronet.backend.dto.ActualizarDatosPersonalesRequest;
 import com.metronet.backend.dto.CambioContrasenaRequest;
-import com.metronet.backend.dto.PerfilRequest;
+import com.metronet.backend.dto.LoginAdministradorRequest;
+import com.metronet.backend.dto.LoginRequest;
+import com.metronet.backend.dto.PerfilUsuarioResponse;
 import com.metronet.backend.dto.RegistroRequest;
 import com.metronet.backend.dto.SesionAdministradorResponse;
 import com.metronet.backend.dto.SesionUsuarioResponse;
@@ -58,18 +60,26 @@ public class AuthController {
     }
 
     @GetMapping("/perfil")
-    public ResponseEntity<UsuarioResponse> obtenerPerfil(
+    public ResponseEntity<PerfilUsuarioResponse> obtenerPerfil(
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
         return ResponseEntity.ok(authService.obtenerPerfil(autorizacion));
     }
 
-    @PatchMapping("/perfil")
-    public ResponseEntity<UsuarioResponse> actualizarPerfil(
+    @PatchMapping("/perfil/datos-personales")
+    public ResponseEntity<PerfilUsuarioResponse> actualizarDatosPersonales(
         @RequestHeader(value = "Authorization", required = false) String autorizacion,
-        @RequestBody PerfilRequest solicitud
+        @RequestBody ActualizarDatosPersonalesRequest solicitud
     ) {
-        return ResponseEntity.ok(authService.actualizarPerfil(autorizacion, solicitud));
+        return ResponseEntity.ok(authService.actualizarDatosPersonales(autorizacion, solicitud));
+    }
+
+    @PatchMapping("/perfil/correo")
+    public ResponseEntity<PerfilUsuarioResponse> actualizarCorreoPerfil(
+        @RequestHeader(value = "Authorization", required = false) String autorizacion,
+        @RequestBody ActualizarCorreoPerfilRequest solicitud
+    ) {
+        return ResponseEntity.ok(authService.actualizarCorreoPerfil(autorizacion, solicitud));
     }
 
     @PatchMapping("/perfil/contrasena")

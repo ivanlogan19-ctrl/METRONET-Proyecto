@@ -1,3 +1,6 @@
+import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
+import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
+
 const sesion = obtenerSesionAdministrador();
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
@@ -8,24 +11,8 @@ if (!sesion) {
   inicializarAdministracion(sesion);
 }
 
-function obtenerSesionAdministrador() {
-  try {
-    const sesionGuardada = JSON.parse(
-      localStorage.getItem("sesionAdministrador"),
-    );
-
-    if (sesionGuardada?.token && sesionGuardada?.usuario?.rol === "ADMIN") {
-      return sesionGuardada;
-    }
-  } catch {
-    // La sesión dañada se elimina antes de volver al acceso de administrador.
-  }
-
-  localStorage.removeItem("sesionAdministrador");
-  return null;
-}
-
 function inicializarAdministracion(sesionAdministrador) {
+  inicializarNavegacion({ actual: "administracion" });
   actualizarEtiquetaAdministrador(sesionAdministrador.usuario);
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
@@ -627,10 +614,14 @@ function renderizarConfiguracion(configuraciones) {
   const lista = document.getElementById("listaConfiguracion");
   lista.replaceChildren(...configuraciones.map((configuracion) => {
     const elemento = document.createElement("article");
+    const esCapacidadUnidad = configuracion.clave === "capacidad_unidad";
+    const tipoCampo = esCapacidadUnidad ? "number" : "text";
+    const restricciones = esCapacidadUnidad ? 'min="1" step="1"' : "";
+    const unidad = esCapacidadUnidad ? '<span class="admin-unidad-configuracion">pasajeros</span>' : "";
     elemento.className = "admin-configuracion-item";
     elemento.innerHTML = `
       <div><h3>${escaparHtml(formatearClave(configuracion.clave))}</h3><p>${escaparHtml(configuracion.descripcion)}</p></div>
-      <input id="configuracion-${escaparHtml(configuracion.clave)}" value="${escaparHtml(configuracion.valor)}" aria-label="Valor de ${escaparHtml(configuracion.descripcion)}" />
+      <div class="admin-campo-configuracion"><input class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" type="${tipoCampo}" ${restricciones} value="${escaparHtml(configuracion.valor)}" aria-label="Valor de ${escaparHtml(configuracion.descripcion)}" />${unidad}</div>
       <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
     `;
     return elemento;
@@ -854,6 +845,11 @@ async function guardarUsuarioEditado(evento, token) {
     const usuarioActualizado = await respuesta.json();
     actualizarSesionAdministradorSiCorresponde(usuarioActualizado);
     cerrarEditorUsuario();
+    if (nuevaContrasena && Number(idUsuario) === sesion?.usuario?.idUsuario) {
+      mostrarMensaje("Contraseña actualizada. Iniciá sesión nuevamente para continuar.");
+      window.setTimeout(cerrarSesionLocal, 900);
+      return;
+    }
     mostrarMensaje("Datos del usuario actualizados correctamente.");
     cargarUsuarios(token);
   } catch (error) {
@@ -875,8 +871,7 @@ function actualizarSesionAdministradorSiCorresponde(usuarioActualizado) {
       return;
     }
 
-    sesionAdministrador.usuario = usuarioActualizado;
-    localStorage.setItem("sesionAdministrador", JSON.stringify(sesionAdministrador));
+    guardarSesionAdministrador({ ...sesionAdministrador, usuario: usuarioActualizado });
     actualizarEtiquetaAdministrador(usuarioActualizado);
   } catch {
     // La actualización del usuario se conserva aunque no pueda leerse la sesión local.
@@ -904,8 +899,7 @@ async function cerrarSesion(token) {
 }
 
 function cerrarSesionLocal() {
-  localStorage.removeItem("usuario");
-  localStorage.removeItem("sesionAdministrador");
+  eliminarSesiones();
   window.location.assign("/admin-login.html");
 }
 

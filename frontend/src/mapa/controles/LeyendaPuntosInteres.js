@@ -35,7 +35,7 @@ export default class LeyendaPuntosInteres {
     this.encabezado.className = 'metronet-leyenda-encabezado';
     this.encabezado.setAttribute('aria-expanded', 'false');
     this.encabezado.innerHTML =
-      '<span>Referencias</span><span class="metronet-leyenda-indicador">▼</span>';
+      '<span>Ver puntos de interés</span><span class="metronet-leyenda-indicador">▼</span>';
 
     this.contenido = document.createElement('div');
     this.contenido.className = 'metronet-leyenda-contenido';
@@ -49,6 +49,7 @@ export default class LeyendaPuntosInteres {
 
     this.elemento.append(this.encabezado, this.contenido);
     this.contenedorPadre.append(this.tituloElemento, this.elemento);
+    this.abrir();
   }
 
   crearReferencia({ color, titulo, descripcion }) {
@@ -158,6 +159,8 @@ export default class LeyendaPuntosInteres {
     estilos.id = id;
     estilos.textContent = `
       .metronet-leyenda-puntos-interes {
+        --alto-maximo-contenido-leyenda: min(430px, calc(100vh - 100px));
+        --alto-leyenda-abierta: min(472px, calc(100vh - 58px));
         position: fixed;
         z-index: 2500;
         bottom: 18px;
@@ -177,6 +180,10 @@ export default class LeyendaPuntosInteres {
         position: static;
         width: 100%;
         box-sizing: border-box;
+      }
+
+      .metronet-leyenda-integrada.metronet-leyenda-abierta {
+        min-height: var(--alto-leyenda-abierta);
       }
 
       .metronet-leyenda-titulo-seccion {
@@ -231,7 +238,7 @@ export default class LeyendaPuntosInteres {
       }
 
       .metronet-leyenda-contenido {
-        max-height: min(430px, calc(100vh - 100px));
+        max-height: var(--alto-maximo-contenido-leyenda);
         overflow-y: auto;
         padding: 6px;
         border-top: 1px solid rgba(155, 200, 255, 0.16);
@@ -292,13 +299,11 @@ export default class LeyendaPuntosInteres {
 
       @media (max-width: 700px) {
         .metronet-leyenda-puntos-interes {
+          --alto-maximo-contenido-leyenda: min(330px, calc(100vh - 76px));
+          --alto-leyenda-abierta: min(372px, calc(100vh - 34px));
           bottom: 10px;
           left: 10px;
           width: min(210px, calc(100vw - 20px));
-        }
-
-        .metronet-leyenda-contenido {
-          max-height: min(330px, calc(100vh - 76px));
         }
 
         .metronet-leyenda-integrada {

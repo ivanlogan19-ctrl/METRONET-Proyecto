@@ -1,3 +1,5 @@
+import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
+
 export default class CapaMapaBase {
   constructor(escena, opciones = {}) {
     this.escena = escena;
@@ -8,7 +10,7 @@ export default class CapaMapaBase {
      * El resto de la interfaz permanece
      * con el fondo negro definido en index.html.
      */
-    this.colorFondo = opciones.colorFondo ?? 0x070a0f;
+    this.colorFondo = opciones.colorFondo ?? COLORES_INTERFAZ_MAPA.FONDO;
 
     this.grafico = null;
   }

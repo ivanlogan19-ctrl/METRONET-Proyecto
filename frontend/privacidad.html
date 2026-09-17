@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Uso de datos · METRONET</title>
     <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
   </head>
   <body>
     <main class="auth-page">
@@ -13,7 +14,7 @@
         aria-labelledby="tituloPrivacidad"
       >
         <div class="mobile-brand">
-          <img src="/assets/logoMETRONET.png" alt="Logo de METRONET" />
+          <div data-metronet-logo></div>
         </div>
         <p class="eyebrow">METRONET</p>
         <h1 id="tituloPrivacidad">Uso de datos en METRONET</h1>
@@ -44,5 +45,6 @@
         >
       </section>
     </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
   </body>
 </html>

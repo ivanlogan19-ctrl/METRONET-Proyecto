@@ -5,6 +5,7 @@ import {
   obtenerMensajeError,
   obtenerUrlAutenticacion,
 } from "../autenticacion/ui.js";
+import { guardarSesionAdministrador } from "../autenticacion/sesion.js";
 
 const formulario = document.getElementById("loginAdminForm");
 const botonIngresar = document.getElementById("loginAdminButton");
@@ -41,8 +42,7 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     const sesion = await respuesta.json();
-    localStorage.setItem("usuario", JSON.stringify(sesion.usuario));
-    localStorage.setItem("sesionAdministrador", JSON.stringify(sesion));
+    guardarSesionAdministrador(sesion);
     mostrarMensaje("Acceso autorizado. Abriendo administración…");
 
     window.setTimeout(() => {

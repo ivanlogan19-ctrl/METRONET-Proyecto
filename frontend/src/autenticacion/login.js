@@ -6,10 +6,13 @@ import {
   obtenerUrlAutenticacion,
   validarFormulario,
 } from "./ui.js";
+import { inicializarLogosMetronet } from "../componentes/LogoMetronet.js";
+import { guardarSesionUsuario } from "./sesion.js";
 
 const formulario = document.getElementById("loginForm");
 const botonIngresar = document.getElementById("loginButton");
 
+inicializarLogosMetronet();
 activarVisibilidadContrasena();
 
 formulario.addEventListener("submit", async (evento) => {
@@ -47,12 +50,10 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     const sesionUsuario = await respuesta.json();
-    const usuario = sesionUsuario.usuario;
-    localStorage.setItem("usuario", JSON.stringify(usuario));
-    localStorage.setItem("sesionUsuario", JSON.stringify(sesionUsuario));
+    guardarSesionUsuario(sesionUsuario);
 
     const destino = obtenerDestino();
-    mostrarMensaje(destino === "/" ? "Ingreso correcto. Abriendo el mapa…" : "Ingreso correcto. Abriendo tus simulaciones…");
+    mostrarMensaje(destino === "/inicio.html" ? "Ingreso correcto. Abriendo Inicio…" : "Ingreso correcto. Abriendo la sección solicitada…");
 
     window.setTimeout(() => {
       window.location.assign(destino);
@@ -66,5 +67,5 @@ formulario.addEventListener("submit", async (evento) => {
 
 function obtenerDestino() {
   const destino = new URLSearchParams(window.location.search).get("destino");
-  return destino?.startsWith("/") && !destino.startsWith("//") ? destino : "/";
+  return destino?.startsWith("/") && !destino.startsWith("//") ? destino : "/inicio.html";
 }

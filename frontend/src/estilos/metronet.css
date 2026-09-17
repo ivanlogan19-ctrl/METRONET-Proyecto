@@ -1,0 +1,384 @@
+:root {
+  --bg-primary: #0B0D0E;
+  --bg-secondary: #121619;
+  --panel: #181D20;
+  --panel-elevated: #20262A;
+  --border: #3C454A;
+  --border-active: #778187;
+  --text-primary: #E3E6E5;
+  --text-secondary: #9AA2A6;
+  --text-disabled: #62696D;
+  --success: #42C76A;
+  --info-active: #3D8BDB;
+  --warning: #D6A84B;
+  --danger: #D9534F;
+  --header-height: 76px;
+  --header-padding: 16px;
+  --metronet-logo-width: 180px;
+  --metronet-logo-width-mobile: 140px;
+  --metronet-logo-width-map: 132px;
+  --metronet-logo-width-principal: 240px;
+  --metronet-logo-alto-header: 56px;
+  --metronet-logo-alto-header-mobile: 44px;
+  --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-tecnica: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  color-scheme: dark;
+  font-family: var(--font-ui);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { min-height: 100%; background: var(--bg-primary); color: var(--text-primary); }
+body { margin: 0; font-family: var(--font-ui); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--info-active);
+  outline-offset: 2px;
+}
+button:disabled, input:disabled, select:disabled, textarea:disabled {
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-disabled);
+  background: var(--bg-secondary);
+  opacity: .72;
+}
+
+.metronet-logo {
+  display: block;
+  width: var(--metronet-logo-width);
+  max-width: 100%;
+  flex: 0 0 auto;
+  line-height: 0;
+}
+.metronet-logo__imagen { display: block; width: 100%; height: auto; object-fit: contain; }
+.metronet-logo--compacta { width: var(--metronet-logo-width-mobile); }
+.mobile-brand .metronet-logo__imagen,
+.admin-marca .metronet-logo__imagen,
+.simulacion-marca .metronet-logo__imagen,
+.metronet-logo-marca .metronet-logo__imagen {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  mix-blend-mode: normal;
+}
+
+/* Acceso, registro, perfil y privacidad. */
+.auth-page { background: var(--bg-primary); }
+.auth-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .32);
+}
+.auth-card > .mobile-brand {
+  gap: 0;
+  padding: 0 0 18px;
+  border-bottom-color: var(--border);
+}
+.auth-card > .mobile-brand .metronet-logo {
+  display: block;
+  width: var(--metronet-logo-width-principal);
+}
+.eyebrow, .field-group label, .consentimiento, .auth-ayuda { color: var(--text-secondary); }
+.eyebrow { font-family: var(--font-tecnica); letter-spacing: .08em; }
+.auth-card h1, .auth-card h2 { color: var(--text-primary); }
+.auth-link, .auth-link a, .consentimiento a, .privacy-content a { color: var(--text-secondary); }
+.auth-link a:hover, .consentimiento a:hover, .privacy-content a:hover { color: var(--info-active); }
+.input-wrapper input {
+  border-color: var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.input-wrapper input:focus { border-color: var(--info-active); box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-active) 26%, transparent); }
+.toggle-password, .requisitos-contrasena {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  background: var(--panel-elevated);
+}
+.consentimiento-destacado { border-color: var(--danger); color: var(--text-primary); background: color-mix(in srgb, var(--danger) 12%, var(--panel)); }
+.consentimiento-destacado a { color: var(--danger); }
+.consentimiento input { accent-color: var(--danger); }
+.primary-button {
+  border-color: var(--success);
+  border-radius: 6px;
+  color: var(--bg-primary);
+  background: var(--success);
+  font-family: var(--font-tecnica);
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.primary-button:hover, .primary-button:focus-visible { border-color: var(--success); color: var(--text-primary); background: color-mix(in srgb, var(--success) 78%, var(--panel)); }
+.mensaje { color: var(--text-secondary); }
+.mensaje.error { color: var(--danger); }
+.mensaje.exito, .mensaje.success { color: var(--success); }
+.privacy-card .mobile-brand { justify-content: center; }
+.privacy-notice { border-color: var(--warning); color: var(--text-primary); background: color-mix(in srgb, var(--warning) 9%, var(--panel)); }
+
+/* Gestión centralizada de la cuenta propia. */
+.perfil-pagina {
+  display: grid;
+  min-height: calc(100svh - var(--navegacion-alto));
+  padding: clamp(24px, 5vw, 58px) clamp(14px, 3vw, 30px);
+}
+.perfil-contenedor {
+  width: min(100%, 820px);
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.perfil-encabezado, .perfil-seccion { padding: clamp(20px, 4vw, 34px); }
+.perfil-encabezado { border-bottom: 1px solid var(--border); background: var(--panel-elevated); }
+.perfil-encabezado .eyebrow, .perfil-seccion__etiqueta { margin: 0; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.perfil-encabezado h1 { margin: 8px 0 0; color: var(--text-primary); font-size: clamp(28px, 5vw, 40px); line-height: 1.1; }
+.perfil-encabezado > p:last-child { max-width: 540px; margin: 10px 0 0; color: var(--text-secondary); line-height: 1.55; }
+.perfil-seccion + .perfil-seccion { border-top: 1px solid var(--border); }
+.perfil-seccion__encabezado { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, .9fr); align-items: start; gap: 16px; margin-bottom: 20px; }
+.perfil-seccion__encabezado h2 { margin: 5px 0 0; color: var(--text-primary); font-size: 20px; line-height: 1.2; }
+.perfil-seccion__encabezado > p { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.perfil-formulario { display: grid; gap: 16px; max-width: 540px; }
+.perfil-formulario .input-wrapper input[type='email'] { padding-right: 8px; }
+.perfil-formulario .primary-button { width: min(100%, 240px); margin-top: 4px; }
+.perfil-seccion--informacion { background: color-mix(in srgb, var(--panel-elevated) 45%, var(--panel)); }
+.perfil-informacion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 540px; margin: 0; }
+.perfil-informacion > div { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-secondary); }
+.perfil-informacion dt { color: var(--text-secondary); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.perfil-informacion dd { margin: 6px 0 0; color: var(--text-primary); font-weight: 700; }
+.perfil-contenedor > .mensaje { padding: 0 clamp(20px, 4vw, 34px); text-align: left; }
+.perfil-volver { margin: 0; padding: 18px clamp(20px, 4vw, 34px); border-top: 1px solid var(--border); background: var(--panel-elevated); }
+.perfil-volver a { color: var(--text-secondary); font-size: 13px; font-weight: 700; text-decoration: none; }
+.perfil-volver a:hover, .perfil-volver a:focus-visible { color: var(--text-primary); }
+
+/* Administración. */
+.admin-aplicacion { background: var(--bg-primary); }
+.admin-menu { border-right: 1px solid var(--border); background: var(--bg-secondary); box-shadow: none; }
+.admin-marca { border-bottom-color: var(--border); color: var(--text-primary); }
+.admin-marca .metronet-logo { width: var(--metronet-logo-width); }
+.admin-enlace, .admin-cerrar-sesion, .admin-volver-mapa { color: var(--text-secondary); }
+.admin-enlace:hover, .admin-enlace:focus-visible, .admin-enlace.activo { border-color: var(--border-active); color: var(--text-primary); background: var(--panel-elevated); }
+.admin-cerrar-sesion { color: var(--danger); }
+.admin-cerrar-sesion:hover, .admin-cerrar-sesion:focus-visible { border-color: var(--danger); color: var(--text-primary); background: color-mix(in srgb, var(--danger) 18%, var(--panel)); }
+.admin-contenido { background: var(--bg-primary); }
+.admin-encabezado { border-bottom-color: var(--border); }
+.admin-etiqueta, .admin-usuario, .admin-descripcion, .admin-vista > p, .admin-filtros label { color: var(--text-secondary); }
+.admin-encabezado h1, .admin-vista h2 { color: var(--text-primary); }
+.admin-usuario, .admin-tabla-contenedor, .admin-detalle-diseno, .admin-configuracion-item { border-color: var(--border); background: var(--panel); }
+.admin-filtros input, .admin-filtros select, .admin-rol, .admin-formulario-editor input, .admin-formulario-editor select, .admin-configuracion-item input {
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.admin-campo-configuracion { display: flex; align-items: center; min-width: 0; }
+.admin-configuracion-valor {
+  min-width: 0;
+  font-family: var(--font-tecnica);
+  font-weight: 700;
+  text-align: right;
+}
+.admin-configuracion-valor:focus { border-color: var(--info-active); background: var(--panel-elevated); }
+.admin-unidad-configuracion {
+  margin-left: 9px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.admin-tabla th { color: var(--text-primary); background: var(--panel-elevated); }
+.admin-tabla td { color: var(--text-secondary); border-bottom-color: var(--border); }
+.admin-guardar, .admin-secundario, .admin-eliminar {
+  border-radius: 6px;
+  font-family: var(--font-tecnica);
+  font-weight: 700;
+}
+.admin-guardar { border-color: var(--success); color: var(--bg-primary); background: var(--success); }
+.admin-guardar:hover, .admin-guardar:focus-visible { color: var(--text-primary); background: color-mix(in srgb, var(--success) 78%, var(--panel)); }
+.admin-secundario { border-color: var(--warning); color: var(--bg-primary); background: var(--warning); }
+.admin-secundario:hover, .admin-secundario:focus-visible { color: var(--text-primary); background: color-mix(in srgb, var(--warning) 76%, var(--panel)); }
+.admin-eliminar { border-color: var(--danger); color: var(--text-primary); background: var(--danger); }
+.admin-eliminar:hover, .admin-eliminar:focus-visible { background: color-mix(in srgb, var(--danger) 72%, var(--panel)); }
+.admin-mensaje { color: var(--text-secondary); }.admin-mensaje.error { color: var(--danger); }.admin-mensaje.exito { color: var(--success); }
+.admin-modal { border-color: var(--border); color: var(--text-primary); background: var(--panel); }
+
+/* Construcción y simulación. */
+.simulacion-aplicacion, .simulacion-contenido { background: var(--bg-primary); }
+.simulacion-lateral { border-right: 1px solid var(--border); background: var(--bg-secondary); box-shadow: none; }
+.simulacion-marca { border-bottom-color: var(--border); color: var(--text-primary); }
+.simulacion-marca .metronet-logo { width: var(--metronet-logo-width); }
+.simulacion-formulario h1, .simulacion-formulario h2, .simulacion-encabezado h2, .simulacion-vacio h2, .simulacion-etiqueta, .simulacion-grupo-control label { color: var(--text-primary); }
+.simulacion-formulario-escenario p, .simulacion-mensaje, .simulacion-estado, .simulacion-ayuda, .simulacion-vacio p, .simulacion-formulario label, .simulacion-formulario-integrado label { color: var(--text-secondary); }
+.simulacion-formulario input, .simulacion-formulario select, .simulacion-formulario textarea, .simulacion-control-horizontal input {
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.simulacion-formulario input:focus, .simulacion-formulario select:focus, .simulacion-formulario textarea:focus, .simulacion-control-horizontal input:focus { border-color: var(--info-active); }
+.simulacion-herramientas, .simulacion-gestion-grupo, .simulacion-panel-aprendizaje, .simulacion-panel-operacion, .simulacion-resultado, .simulacion-tarjeta, .simulacion-elemento, .simulacion-lienzo-contenedor { border-color: var(--border); background: var(--panel); }
+.simulacion-panel-aprendizaje h3, .simulacion-panel-operacion h3, .simulacion-gestion-grupo h3, .simulacion-elemento strong, .simulacion-resultado strong { color: var(--text-primary); }
+.simulacion-elemento span, .simulacion-resultado span, .simulacion-resultado p, .simulacion-estado-ejecucion { color: var(--text-secondary); }
+.simulacion-primario, .simulacion-secundario, .simulacion-volver, .simulacion-tarjeta { border-color: var(--info-active); color: var(--text-primary); background: var(--panel-elevated); }
+.simulacion-primario { background: var(--info-active); }
+.simulacion-primario:hover, .simulacion-primario:focus-visible, .simulacion-secundario:hover, .simulacion-secundario:focus-visible, .simulacion-volver:hover, .simulacion-volver:focus-visible { border-color: var(--info-active); background: var(--info-active); }
+.simulacion-tarjeta.activa { border-color: var(--info-active); background: color-mix(in srgb, var(--info-active) 23%, var(--panel)); }
+.simulacion-accion-editar { border-color: var(--warning); color: var(--bg-primary); background: var(--warning); }
+.simulacion-accion-editar:hover, .simulacion-accion-editar:focus-visible { color: var(--text-primary); background: color-mix(in srgb, var(--warning) 76%, var(--panel)); }
+.simulacion-accion-eliminar { border-color: var(--danger); color: var(--text-primary); background: var(--danger); }
+.simulacion-accion-eliminar:hover, .simulacion-accion-eliminar:focus-visible { background: color-mix(in srgb, var(--danger) 72%, var(--panel)); }
+.simulacion-visor-mapa { overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+.simulacion-visor-encabezado { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 16px; border-bottom: 1px solid var(--border); background: var(--panel-elevated); }
+.simulacion-visor-encabezado h3 { margin: 0; color: var(--text-primary); font-size: 14px; }
+.simulacion-visor-encabezado p { margin: 4px 0 0; color: var(--text-secondary); font-size: 12px; }
+.simulacion-visor-modo { padding: 5px 8px; border: 1px solid var(--border-active); border-radius: 4px; color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 11px; white-space: nowrap; }
+.simulacion-lienzo-contenedor { border: 0; border-radius: 0; background: var(--bg-secondary); }
+.simulacion-mapa-montevideo { pointer-events: none; }
+.simulacion-mapa-barrio { fill: var(--panel-elevated); stroke: var(--border); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.simulacion-plano-fondo { fill: var(--bg-secondary); }
+.simulacion-tramo { vector-effect: non-scaling-stroke; }
+.simulacion-estacion, .simulacion-tren { vector-effect: non-scaling-stroke; }
+.simulacion-estacion { fill: var(--text-primary); stroke: var(--border); }
+.simulacion-etiqueta-estacion { fill: var(--text-primary); }
+
+/* Mapa, selección de escenarios y herramientas. */
+#metronet-aplicacion { background: var(--bg-primary); }
+#metronet-mapa { border-color: var(--border); background: var(--bg-primary); box-shadow: none; }
+#metronet-panel-controles { border-color: var(--border); background: var(--panel); box-shadow: none; }
+#metronet-panel-controles .metronet-logo { width: var(--metronet-logo-width-map); align-self: center; }
+.metronet-logo-marca { aspect-ratio: auto; padding: 0; background: transparent; overflow: visible; }
+.metronet-panel-titulo, .metronet-informacion-jugador-titulo { color: var(--text-primary); }
+.metronet-control-perfil, .metronet-control-sesion, .metronet-control-simulacion { border-color: var(--border); color: var(--text-primary); background: var(--panel-elevated); }
+.metronet-control-perfil:hover, .metronet-control-sesion:hover, .metronet-control-simulacion:hover { border-color: var(--info-active); background: var(--info-active); }
+.metronet-juego, .metronet-editor-grupo, .metronet-editor-seleccionado { border-color: var(--border); background: var(--panel-elevated); }
+.metronet-juego-introduccion, .metronet-editor-mensaje, .metronet-editor-etiqueta, .metronet-escenario span, .metronet-editor-seleccionado span { color: var(--text-secondary); }
+.metronet-escenario { border-left-color: var(--info-active); background: var(--panel); color: var(--text-primary); }
+.metronet-escenario.activo { border-left-color: var(--success); }
+.metronet-escenario.bloqueado { border-left-color: var(--text-disabled); color: var(--text-disabled); opacity: 1; }
+.metronet-consigna strong { color: var(--info-active); }.metronet-consigna span { color: var(--text-primary); }.metronet-consigna small { color: var(--text-secondary); }.metronet-consigna b { color: var(--success); }
+.metronet-editor-red button, .metronet-editor-red input, .metronet-editor-red select { border-color: var(--border); color: var(--text-primary); background: var(--bg-secondary); }
+.metronet-editor-red button:hover, .metronet-editor-red button:focus-visible { border-color: var(--info-active); background: var(--panel-elevated); }
+.metronet-editor-mensaje.error { color: var(--danger); }
+.metronet-editor-mensaje.exito { color: var(--success); }
+.metronet-editor-mensaje.advertencia { color: var(--warning); }
+
+/* Navegación autenticada y flujo entre escenarios, edición y simulación. */
+:root { --navegacion-alto: 76px; }
+.metronet-pagina-navegable { min-height: 100svh; background: var(--bg-primary); }
+.metronet-navegacion {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: var(--navegacion-alto);
+  padding: 9px clamp(14px, 3vw, 34px);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow: visible;
+}
+.metronet-navegacion__marca { display: flex; flex: 0 0 auto; align-items: center; height: 100%; line-height: 0; }
+.metronet-navegacion__marca .metronet-logo { width: auto; height: var(--metronet-logo-alto-header); }
+.metronet-navegacion__marca .metronet-logo__imagen { width: auto; height: 100%; }
+.metronet-navegacion__enlaces { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.metronet-navegacion__enlace, .metronet-navegacion__usuario summary, .metronet-navegacion__menu-usuario button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.metronet-navegacion__enlace:hover, .metronet-navegacion__enlace:focus-visible, .metronet-navegacion__enlace.activo { border-color: var(--border-active); color: var(--text-primary); background: var(--panel-elevated); }
+.metronet-navegacion__usuario { position: relative; margin-left: auto; }
+.metronet-navegacion__usuario summary { justify-content: center; cursor: pointer; list-style: none; }
+.metronet-navegacion__usuario summary::-webkit-details-marker { display: none; }
+.metronet-navegacion__usuario summary::after { margin-left: 8px; content: '▾'; color: var(--text-secondary); }
+.metronet-navegacion__usuario[open] summary { border-color: var(--border-active); color: var(--text-primary); background: var(--panel-elevated); }
+.metronet-navegacion__menu-usuario {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  gap: 3px;
+  min-width: 174px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel-elevated);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+}
+.metronet-navegacion__menu-usuario .metronet-navegacion__enlace { display: none; }
+.metronet-navegacion__menu-usuario .metronet-navegacion__enlace-perfil { display: inline-flex; }
+.metronet-navegacion__menu-usuario button { width: 100%; color: var(--danger); text-align: left; }
+.metronet-navegacion__menu-usuario button:hover, .metronet-navegacion__menu-usuario button:focus-visible { border-color: var(--danger); color: var(--text-primary); background: color-mix(in srgb, var(--danger) 15%, var(--panel)); }
+.metronet-flujo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; color: var(--text-disabled); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.metronet-flujo__paso.actual { color: var(--info-active); }
+.metronet-flujo__separador { color: var(--border-active); font-size: 16px; line-height: 1; }
+.metronet-enlace-volver { color: var(--text-secondary); font-size: 13px; font-weight: 650; text-decoration: none; }
+.metronet-enlace-volver:hover, .metronet-enlace-volver:focus-visible { color: var(--text-primary); }
+.metronet-dialogo-cambios { width: min(92vw, 430px); padding: 0; border: 1px solid var(--border-active); border-radius: 9px; color: var(--text-primary); background: var(--panel); box-shadow: 0 18px 42px rgba(0, 0, 0, .46); }
+.metronet-dialogo-cambios::backdrop { background: rgba(0, 0, 0, .66); }
+.metronet-dialogo-cambios__contenido { display: grid; gap: 12px; padding: 22px; }
+.metronet-dialogo-cambios h2, .metronet-dialogo-cambios p { margin: 0; }
+.metronet-dialogo-cambios p { color: var(--text-secondary); line-height: 1.5; }
+.metronet-dialogo-cambios__acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.metronet-dialogo-cambios button { min-height: 37px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; color: var(--text-primary); background: var(--panel-elevated); font-weight: 650; }
+.metronet-dialogo-cambios [data-accion-salir] { border-color: var(--danger); color: var(--danger); }
+.metronet-dialogo-cambios [data-accion-guardar] { border-color: var(--success); color: var(--bg-primary); background: var(--success); }
+
+.metronet-inicio, .metronet-escenarios-pagina { width: min(100% - 32px, 1040px); margin: 0 auto; padding: clamp(30px, 6vw, 72px) 0; }
+.metronet-inicio__presentacion { max-width: 670px; }
+.metronet-inicio__etiqueta { margin: 0 0 9px; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.metronet-inicio h1, .metronet-escenarios-pagina h1 { margin: 0; color: var(--text-primary); font-size: clamp(30px, 5vw, 52px); line-height: 1.1; }
+.metronet-inicio__presentacion > p:last-child, .metronet-escenarios-pagina__encabezado p { color: var(--text-secondary); line-height: 1.6; }
+.metronet-inicio__mensaje { min-height: 22px; margin: 24px 0 0; color: var(--text-secondary); }
+.metronet-inicio__mensaje.error { color: var(--danger); }
+.metronet-inicio__acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
+.metronet-inicio__accion { display: grid; align-content: start; gap: 8px; min-height: 174px; padding: 20px; border: 1px solid var(--border); border-radius: 9px; color: var(--text-primary); background: var(--panel); text-decoration: none; }
+.metronet-inicio__accion h2, .metronet-inicio__accion p { margin: 0; }.metronet-inicio__accion h2 { font-size: 19px; }.metronet-inicio__accion p { color: var(--text-secondary); line-height: 1.5; }.metronet-inicio__accion span { align-self: end; margin-top: auto; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.metronet-inicio__accion:hover, .metronet-inicio__accion:focus-visible { border-color: var(--info-active); background: var(--panel-elevated); }.metronet-inicio__accion.principal { border-color: var(--success); }.metronet-inicio__accion.principal span { color: var(--success); }.metronet-inicio__accion.bloqueada { border-color: var(--border); color: var(--text-disabled); background: var(--bg-secondary); }.metronet-inicio__accion.bloqueada span { color: var(--text-disabled); }
+.metronet-escenarios-pagina__encabezado { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 26px; }.metronet-escenarios-pagina__encabezado > div { max-width: 700px; }.metronet-escenarios-pagina__encabezado p { margin: 9px 0 0; }
+.metronet-escenarios-pagina__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 14px; }.metronet-escenarios-pagina__tarjeta { display: grid; align-content: start; gap: 9px; min-height: 260px; padding: 18px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); }.metronet-escenarios-pagina__tarjeta > p, .metronet-escenarios-pagina__tarjeta h2, .metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small, .metronet-escenarios-pagina__tarjeta b { margin: 0; }.metronet-escenarios-pagina__tarjeta > p { color: var(--info-active); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }.metronet-escenarios-pagina__tarjeta h2 { font-size: 18px; }.metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small { color: var(--text-secondary); line-height: 1.45; }.metronet-escenarios-pagina__tarjeta b { color: var(--success); font-size: 12px; }.metronet-escenarios-pagina__tarjeta button { align-self: end; min-height: 38px; margin-top: auto; border: 1px solid var(--info-active); border-radius: 5px; color: var(--text-primary); background: var(--panel-elevated); font-weight: 700; }.metronet-escenarios-pagina__tarjeta button:hover, .metronet-escenarios-pagina__tarjeta button:focus-visible { background: var(--info-active); }.metronet-escenarios-pagina__tarjeta.bloqueada { background: var(--bg-secondary); }.metronet-escenarios-pagina__tarjeta.bloqueada > p, .metronet-escenarios-pagina__tarjeta.bloqueada b { color: var(--text-disabled); }
+
+body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
+.metronet-pantalla-editor { display: grid; grid-template-rows: var(--navegacion-alto) minmax(0, 1fr); width: 100%; height: 100svh; min-height: 0; }
+.metronet-pantalla-editor #metronet-aplicacion { min-height: 0; height: 100%; }
+.metronet-pagina-navegable .admin-aplicacion, .metronet-pagina-navegable .simulacion-aplicacion { min-height: calc(100svh - var(--navegacion-alto)); }
+.metronet-pagina-navegable .auth-page { min-height: calc(100svh - var(--navegacion-alto)); }
+
+@media (max-width: 720px) {
+  :root { --navegacion-alto: 60px; }
+  .metronet-navegacion { gap: 9px; padding: 7px 12px; }
+  .metronet-navegacion__marca .metronet-logo { width: auto; height: var(--metronet-logo-alto-header-mobile); }
+  .metronet-navegacion__enlaces { display: none; }
+  .metronet-navegacion__usuario summary { min-width: 42px; padding: 7px; font-size: 0; }.metronet-navegacion__usuario summary::after { margin: 0; font-size: 15px; content: '☰'; }.metronet-navegacion__menu-usuario .metronet-navegacion__enlace { display: flex; }
+  .metronet-inicio__acciones { grid-template-columns: 1fr; }
+  .metronet-escenarios-pagina__encabezado { align-items: start; flex-direction: column; }
+  .metronet-dialogo-cambios__acciones { justify-content: stretch; }.metronet-dialogo-cambios__acciones button { flex: 1 1 100%; }
+  .perfil-pagina { padding: 16px 12px; }
+  .perfil-encabezado, .perfil-seccion { padding: 20px; }
+  .perfil-seccion__encabezado { grid-template-columns: 1fr; gap: 9px; }
+  .perfil-formulario .primary-button { width: 100%; }
+  .perfil-informacion { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .admin-marca .metronet-logo, .simulacion-marca .metronet-logo { width: var(--metronet-logo-width-mobile); }
+}
+@media (max-width: 560px) {
+  :root { --header-height: 64px; --header-padding: 12px; --metronet-logo-width-principal: 190px; }
+  .mobile-brand .metronet-logo, .admin-marca .metronet-logo, .simulacion-marca .metronet-logo, #metronet-panel-controles .metronet-logo { width: var(--metronet-logo-width-mobile); }
+  .simulacion-visor-encabezado { align-items: flex-start; flex-direction: column; }
+}

@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 
+import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
+
 import { ZONAS, obtenerZona } from '../utilidades/ClasificadorZonas.js';
 
 export const COLORES_PUNTOS_INTERES = Object.freeze({
@@ -500,9 +502,9 @@ export default class CapaPuntosInteres {
 
     const marcador = this.escena.add.graphics();
 
-    marcador.fillStyle(0x061d32, 0.96);
+    marcador.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 0.96);
     marcador.fillCircle(0, 0, 10);
-    marcador.lineStyle(2, 0xe8f8ff, 0.9);
+    marcador.lineStyle(2, COLORES_INTERFAZ_MAPA.BORDE_ACTIVO, 0.9);
     marcador.strokeCircle(0, 0, 10);
     marcador.fillStyle(color, 1);
     marcador.fillCircle(0, 0, 4);

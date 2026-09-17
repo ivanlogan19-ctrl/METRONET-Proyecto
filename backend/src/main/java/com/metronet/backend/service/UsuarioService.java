@@ -15,10 +15,12 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, AuthService authService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authService = authService;
     }
 
     public List<UsuarioResponse> listarUsuarios() {
@@ -34,8 +36,15 @@ public class UsuarioService {
             new IllegalArgumentException("No existe el usuario solicitado")
         );
 
+        Rol rolAnterior = usuario.getRol();
         usuario.setRol(rol);
-        return convertirARespuesta(usuarioRepository.save(usuario));
+        UsuarioResponse respuesta = convertirARespuesta(usuarioRepository.save(usuario));
+
+        if (rolAnterior != rol) {
+            authService.invalidarSesionesDeUsuario(idUsuario);
+        }
+
+        return respuesta;
     }
 
     public UsuarioResponse actualizarUsuario(Integer idUsuario, ActualizarUsuarioRequest solicitud) {
@@ -52,7 +61,7 @@ public class UsuarioService {
             throw new IllegalArgumentException("Ingresá un correo electrónico válido");
         }
 
-        usuarioRepository.findByEmail(email).ifPresent(candidato -> {
+        usuarioRepository.findByEmailIgnoreCase(email).ifPresent(candidato -> {
             if (!candidato.getIdUsuario().equals(idUsuario)) {
                 throw new IllegalArgumentException("Ya existe una cuenta con ese correo electrónico");
             }
@@ -76,11 +85,19 @@ public class UsuarioService {
             usuario.setIdentificadorAdministrador(identificador);
         }
 
-        if (!esVacio(solicitud.nuevaContrasena())) {
+        boolean cambioContrasena = !esVacio(solicitud.nuevaContrasena());
+
+        if (cambioContrasena) {
             validarContrasena(solicitud.nuevaContrasena());
             usuario.setPassword(passwordEncoder.encode(solicitud.nuevaContrasena()));
         }
-        return convertirARespuesta(usuarioRepository.save(usuario));
+        UsuarioResponse respuesta = convertirARespuesta(usuarioRepository.save(usuario));
+
+        if (cambioContrasena) {
+            authService.invalidarSesionesDeUsuario(idUsuario);
+        }
+
+        return respuesta;
     }
 
     public void eliminarUsuario(Integer idUsuario) {
@@ -88,6 +105,7 @@ public class UsuarioService {
             new IllegalArgumentException("No existe el usuario solicitado")
         );
 
+        authService.invalidarSesionesDeUsuario(idUsuario);
         usuarioRepository.delete(usuario);
     }
 

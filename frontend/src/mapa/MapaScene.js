@@ -14,6 +14,8 @@ import SelectorBarrios from './controles/SelectorBarrios.js';
 import ControlZoom from './controles/ControlZoom.js';
 import LeyendaPuntosInteres from './controles/LeyendaPuntosInteres.js';
 import EditorRedMetro from './controles/EditorRedMetro.js';
+import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
+import { COLORES_INTERFAZ_MAPA } from './configuracion/ColoresMapa.js';
 
 import { obtenerZona } from './utilidades/ClasificadorZonas.js';
 
@@ -40,16 +42,14 @@ export default class MapaScene extends Phaser.Scene {
     this.leyendaPuntosInteres = null;
     this.editorRedMetro = null;
     this.controlSesion = null;
-    this.controlPerfil = null;
     this.contenedorInformacionJugador = null;
     this.mensajePuntosInteres = null;
     this.estadoPuntosInteres = { haySeleccion: false, cantidadPuntos: 0 };
 
-    this.logo = null;
-
     this.contenedorMapa = null;
 
     this.contenedorControles = null;
+    this.manejadorResize = null;
   }
 
   preload() {
@@ -94,15 +94,12 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearEditorRedMetro();
 
-    this.crearLogo();
-
     this.crearEstilosPanelSobrio();
 
     this.ajustarMapa();
 
-    this.scale.on('resize', () => {
-      this.actualizarTamano();
-    });
+    this.manejadorResize = () => this.actualizarTamano();
+    this.scale.on('resize', this.manejadorResize);
 
     this.events.once('shutdown', () => {
       this.limpiar();
@@ -123,50 +120,65 @@ export default class MapaScene extends Phaser.Scene {
       #metronet-panel-controles .metronet-leyenda-puntos-interes,
       #metronet-panel-controles .metronet-control-zoom,
       .metronet-punto-interes-panel {
-        border: 1px solid #263240 !important;
-        background: #111820 !important;
+        border: 1px solid var(--border) !important;
+        background: var(--panel) !important;
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28) !important;
-        color: #F4F7FA !important;
+        color: var(--text-primary) !important;
+      }
+      #metronet-panel-controles .metronet-leyenda-puntos-interes {
+        display: block !important;
+        flex: 0 0 auto;
+        width: 100% !important;
+        min-height: 42px;
+      }
+      #metronet-panel-controles .metronet-leyenda-puntos-interes.metronet-leyenda-abierta {
+        min-height: var(--alto-leyenda-abierta);
       }
       #metronet-panel-controles .metronet-panel-encabezado,
       #metronet-panel-controles .metronet-leyenda-encabezado {
-        background: #1B2B3B !important;
-        color: #F4F7FA !important;
+        display: flex !important;
+        background: var(--panel-elevated) !important;
+        color: var(--text-primary) !important;
         font-size: 14px !important;
       }
       #metronet-panel-controles .metronet-panel-encabezado:hover,
       #metronet-panel-controles .metronet-leyenda-encabezado:hover {
-        background: #263B50 !important;
-        color: #F4F7FA !important;
+        background: var(--info-active) !important;
+        color: var(--text-primary) !important;
       }
       #metronet-panel-controles .metronet-panel-contenido,
       #metronet-panel-controles .metronet-leyenda-contenido {
-        background: #111820 !important;
-        border-color: #263240 !important;
+        background: var(--panel) !important;
+        border-color: var(--border) !important;
       }
       #metronet-panel-controles .metronet-selector-zona-opcion,
       #metronet-panel-controles .metronet-selector-barrio-opcion,
       #metronet-panel-controles .metronet-leyenda-referencia,
       #metronet-panel-controles .metronet-control-zoom-boton {
-        color: #E8EEF3 !important;
+        color: var(--text-primary) !important;
         font-size: 14px !important;
       }
       #metronet-panel-controles .metronet-selector-zona-opcion:hover,
       #metronet-panel-controles .metronet-selector-barrio-opcion:hover,
       #metronet-panel-controles .metronet-leyenda-referencia:hover,
       #metronet-panel-controles .metronet-control-zoom-boton:hover {
-        background: #1B2B3B !important;
+        background: var(--panel-elevated) !important;
       }
-      #metronet-panel-controles input[type="checkbox"] { accent-color: #3B78C8; }
+      #metronet-panel-controles input[type="checkbox"] { accent-color: var(--info-active); }
       #metronet-panel-controles .metronet-leyenda-titulo-seccion,
       #metronet-panel-controles .metronet-leyenda-indicador,
       .metronet-punto-interes-titulo,
       .metronet-punto-interes-tipo,
       .metronet-punto-interes-descripcion,
-      .metronet-punto-interes-barrio { color: #E8EEF3 !important; }
+      .metronet-punto-interes-barrio { color: var(--text-primary) !important; }
       #metronet-panel-controles .metronet-leyenda-marcador {
-        border-color: #AAB7C4 !important;
-        background: #111820 !important;
+        border-color: var(--border-active) !important;
+        background: var(--panel) !important;
+      }
+      @media (max-width: 900px) {
+        #metronet-panel-controles .metronet-leyenda-puntos-interes {
+          grid-column: 1 / -1;
+        }
       }
     `;
     document.head.appendChild(estilos);
@@ -174,9 +186,8 @@ export default class MapaScene extends Phaser.Scene {
 
   crearCapaMapaBase() {
     this.capaMapaBase = new CapaMapaBase(this, {
-      colorFondo: 0x070a0f,
-
-      colorAgua: 0x070a0f,
+      colorFondo: COLORES_INTERFAZ_MAPA.FONDO,
+      colorAgua: COLORES_INTERFAZ_MAPA.FONDO,
     });
 
     this.capaMapaBase.crear();
@@ -273,7 +284,6 @@ export default class MapaScene extends Phaser.Scene {
 
   crearControlSesion() {
     const controlSesion = document.getElementById('metronet-control-sesion');
-    const controlPerfil = document.getElementById('metronet-control-perfil');
     const controlSimulacion = document.querySelector('.metronet-control-simulacion');
     const contenedorInformacionJugador = document.getElementById('metronet-informacion-jugador');
 
@@ -282,19 +292,12 @@ export default class MapaScene extends Phaser.Scene {
     }
 
     this.controlSesion = controlSesion;
-    this.controlPerfil = controlPerfil;
     this.contenedorInformacionJugador = contenedorInformacionJugador;
 
     if (controlSimulacion) {
-      try {
-        const sesionUsuario = JSON.parse(window.localStorage.getItem('sesionUsuario'));
-        const sesionAdministrador = JSON.parse(window.localStorage.getItem('sesionAdministrador'));
-        controlSimulacion.href = sesionUsuario?.token || sesionAdministrador?.token
-          ? '/simulacion.html'
-          : '/login.html?destino=%2Fsimulacion.html';
-      } catch {
-        controlSimulacion.href = '/login.html?destino=%2Fsimulacion.html';
-      }
+      controlSimulacion.href = obtenerSesionActiva()
+        ? '/simulacion.html'
+        : '/login.html?destino=%2Fsimulacion.html';
     }
 
     this.controlSesion.addEventListener('click', async () => {
@@ -313,42 +316,21 @@ export default class MapaScene extends Phaser.Scene {
       return;
     }
 
-    let tokenUsuario = null;
-    let tokenAdministrador = null;
+    const sesion = obtenerSesionActiva();
 
-    try {
-      tokenUsuario = JSON.parse(window.localStorage.getItem('sesionUsuario'))?.token;
-      tokenAdministrador = JSON.parse(window.localStorage.getItem('sesionAdministrador'))?.token;
-    } catch {
-      tokenUsuario = null;
-      tokenAdministrador = null;
-    }
-
-    if (tokenUsuario) {
+    if (sesion) {
       try {
-        await fetch(`${window.location.protocol}//${window.location.hostname}:8080/auth/logout`, {
+        const ruta = sesion.usuario.rol === 'ADMIN' ? '/auth/logout/admin' : '/auth/logout';
+        await fetch(`${window.location.protocol}//${window.location.hostname}:8080${ruta}`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${tokenUsuario}` },
+          headers: { Authorization: `Bearer ${sesion.token}` },
         });
       } catch {
         // La sesión local se elimina aunque el servicio ya no esté disponible.
       }
     }
 
-    if (tokenAdministrador) {
-      try {
-        await fetch(`${window.location.protocol}//${window.location.hostname}:8080/auth/logout/admin`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${tokenAdministrador}` },
-        });
-      } catch {
-        // La sesión local se elimina aunque el servicio ya no esté disponible.
-      }
-    }
-
-    window.localStorage.removeItem('usuario');
-    window.localStorage.removeItem('sesionUsuario');
-    window.localStorage.removeItem('sesionAdministrador');
+    eliminarSesiones();
     window.location.assign('/login.html');
   }
 
@@ -607,64 +589,6 @@ export default class MapaScene extends Phaser.Scene {
     this.selectorBarrios.establecerBarrios(barriosFiltrados);
   }
 
-  crearLogo() {
-    if (!this.contenedorControles) {
-      return;
-    }
-
-    this.logo = document.createElement('div');
-
-    this.logo.className = 'metronet-logo-marca';
-
-    const imagenLogo = document.createElement('img');
-
-    imagenLogo.src = '/assets/logoMETRONET.png';
-
-    imagenLogo.alt = 'METRONET';
-
-    Object.assign(this.logo.style, {
-      pointerEvents: 'none',
-      userSelect: 'none',
-    });
-
-    Object.assign(imagenLogo.style, {
-      width: '100%',
-
-      height: '100%',
-
-      objectFit: 'contain',
-
-      display: 'block',
-    });
-
-    this.logo.appendChild(imagenLogo);
-
-    this.contenedorControles.prepend(this.logo);
-
-    this.ajustarTamanoLogo();
-  }
-
-  ajustarTamanoLogo() {
-    if (!this.logo) {
-      return;
-    }
-
-    Object.assign(this.logo.style, {
-      width: this.scale.width < 520 ? '88px' : 'clamp(108px, 10vw, 132px)',
-    });
-  }
-
-  actualizarVisibilidadLogo(mostrar) {
-    if (!this.logo) {
-      return;
-    }
-
-    /* El logo está fuera del lienzo, por lo que no debe ocultarse durante el zoom. */
-    this.logo.style.opacity = '1';
-
-    this.logo.style.visibility = 'visible';
-  }
-
   ajustarMapa() {
     if (!this.capaBarrios) {
       return;
@@ -694,10 +618,12 @@ export default class MapaScene extends Phaser.Scene {
 
     this.ajustarMapa();
 
-    this.ajustarTamanoLogo();
   }
 
   limpiar() {
+    this.scale.off('resize', this.manejadorResize);
+    this.manejadorResize = null;
+    document.getElementById('metronet-estilos-panel-sobrio')?.remove();
     this.editorRedMetro?.eliminar();
     this.editorRedMetro = null;
 
@@ -756,12 +682,6 @@ export default class MapaScene extends Phaser.Scene {
       this.capaMapaBase.eliminar();
 
       this.capaMapaBase = null;
-    }
-
-    if (this.logo) {
-      this.logo.remove();
-
-      this.logo = null;
     }
 
     this.contenedorMapa = null;

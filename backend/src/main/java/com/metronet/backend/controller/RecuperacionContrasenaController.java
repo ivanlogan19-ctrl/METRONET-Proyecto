@@ -1,12 +1,12 @@
 package com.metronet.backend.controller;
 
 import com.metronet.backend.dto.SolicitudRecuperacionResponse;
+import com.metronet.backend.dto.SolicitudRecuperacionRequest;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.service.AuthService;
 import com.metronet.backend.service.ActividadAdministrativaService;
 import com.metronet.backend.service.RecuperacionContrasenaService;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,8 +35,8 @@ public class RecuperacionContrasenaController {
     }
 
     @PatchMapping("/auth/recuperar-contrasena")
-    public ResponseEntity<Void> solicitar(@RequestBody Map<String, String> solicitud) {
-        recuperacionContrasenaService.solicitarRecuperacion(solicitud.get("email"));
+    public ResponseEntity<Void> solicitar(@RequestBody SolicitudRecuperacionRequest solicitud) {
+        recuperacionContrasenaService.solicitarRecuperacion(solicitud == null ? null : solicitud.email());
         return ResponseEntity.noContent().build();
     }
 

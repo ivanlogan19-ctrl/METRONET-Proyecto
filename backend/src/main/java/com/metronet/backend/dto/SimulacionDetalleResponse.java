@@ -8,6 +8,8 @@ public record SimulacionDetalleResponse(
     List<LineaSimulacionResponse> lineas,
     List<TramoSimulacionResponse> tramos,
     List<UnidadMetroSimulacionResponse> unidadesMetro,
-    List<ResultadoSimulacionResponse> resultados
+    List<ResultadoSimulacionResponse> resultados,
+    boolean preparadoParaSimular,
+    List<String> observacionesSimulacion
 ) {
 }

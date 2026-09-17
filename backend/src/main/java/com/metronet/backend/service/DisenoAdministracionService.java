@@ -154,6 +154,9 @@ public class DisenoAdministracionService {
     @Transactional
     public void crearTramo(Integer idDiseno, ActualizarTramoRequest solicitud) {
         DatosTramo tramo = validarTramo(idDiseno, solicitud);
+        if (existeTramo(idDiseno, tramo.nombreLinea(), tramo.estacionA(), tramo.estacionB())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La conexión entre esas estaciones ya existe en la línea");
+        }
         jdbcTemplate.update("""
             INSERT INTO tramo (id_diseno, nombre_linea, nombre_estacion_a, nombre_estacion_b)
             VALUES (?, ?, ?, ?)
@@ -171,6 +174,16 @@ public class DisenoAdministracionService {
         ActualizarTramoRequest solicitud
     ) {
         DatosTramo tramo = validarTramo(idDiseno, solicitud);
+        if (!representaMismoTramo(
+            nombreLineaActual,
+            estacionAActual,
+            estacionBActual,
+            tramo.nombreLinea(),
+            tramo.estacionA(),
+            tramo.estacionB()
+        ) && existeTramo(idDiseno, tramo.nombreLinea(), tramo.estacionA(), tramo.estacionB())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La conexión entre esas estaciones ya existe en la línea");
+        }
         if (jdbcTemplate.update("""
             UPDATE tramo SET nombre_linea = ?, nombre_estacion_a = ?, nombre_estacion_b = ?
             WHERE id_diseno = ? AND nombre_linea = ? AND nombre_estacion_a = ? AND nombre_estacion_b = ?
@@ -340,6 +353,31 @@ public class DisenoAdministracionService {
             """, Boolean.class, idDiseno, nombreLinea, nombreEstacion))) {
             jdbcTemplate.update("INSERT INTO pasa (id_diseno, nombre_linea, nombre_estacion) VALUES (?, ?, ?)", idDiseno, nombreLinea, nombreEstacion);
         }
+    }
+
+    private boolean existeTramo(Integer idDiseno, String nombreLinea, String estacionA, String estacionB) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("""
+            SELECT EXISTS (
+                SELECT 1 FROM tramo
+                WHERE id_diseno = ? AND nombre_linea = ?
+                  AND ((nombre_estacion_a = ? AND nombre_estacion_b = ?)
+                    OR (nombre_estacion_a = ? AND nombre_estacion_b = ?))
+            )
+            """, Boolean.class, idDiseno, nombreLinea, estacionA, estacionB, estacionB, estacionA));
+    }
+
+    private boolean representaMismoTramo(
+        String lineaActual,
+        String estacionAActual,
+        String estacionBActual,
+        String nuevaLinea,
+        String nuevaEstacionA,
+        String nuevaEstacionB
+    ) {
+        return lineaActual.equals(nuevaLinea) && (
+            estacionAActual.equals(nuevaEstacionA) && estacionBActual.equals(nuevaEstacionB)
+                || estacionAActual.equals(nuevaEstacionB) && estacionBActual.equals(nuevaEstacionA)
+        );
     }
 
     private void verificarLinea(Integer idDiseno, String nombreLinea) {

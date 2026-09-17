@@ -22,8 +22,14 @@ import com.metronet.backend.dto.ValidacionDisenoResponse;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -150,8 +156,14 @@ public class SimulacionService {
             ), idDiseno);
         List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
         List<ResultadoSimulacionResponse> resultados = listarResultados(idUsuario, idDiseno);
+        PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
+            estadoPermiteSimular(simulacion.estado()), unidadesMetro.size()
+        );
 
-        return new SimulacionDetalleResponse(simulacion, estaciones, lineas, tramos, unidadesMetro, resultados);
+        return new SimulacionDetalleResponse(
+            simulacion, estaciones, lineas, tramos, unidadesMetro, resultados,
+            preparacion.preparado(), preparacion.observaciones()
+        );
     }
 
     @Transactional
@@ -224,7 +236,11 @@ public class SimulacionService {
 
     public SimulacionResumenResponse guardarDiseno(Integer idUsuario, Integer idDiseno) {
         obtenerResumen(idUsuario, idDiseno);
-        jdbcTemplate.update("UPDATE intento SET estado = 'GUARDADO' WHERE id_usuario = ? AND id_diseno = ?", idUsuario, idDiseno);
+        jdbcTemplate.update("""
+            UPDATE intento SET estado = 'GUARDADO'
+            WHERE id_usuario = ? AND id_diseno = ?
+              AND estado NOT IN ('VALIDADO', 'COMPLETADA', 'COMPLETADO')
+            """, idUsuario, idDiseno);
         return obtenerResumen(idUsuario, idDiseno);
     }
 
@@ -273,6 +289,9 @@ public class SimulacionService {
 
     public SimulacionResumenResponse actualizarEscenario(Integer idUsuario, Integer idDiseno, ActualizarEscenarioRequest solicitud) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
+        if (esEscenarioProgresivo(resumen.idEscenario())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No podés editar un escenario progresivo.");
+        }
         String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para el escenario");
         String dificultad = dificultadValida(solicitud == null ? null : solicitud.dificultad());
         String objetivo = textoOpcional(solicitud == null ? null : solicitud.objetivo(), "Aplicar los conceptos de diseño de una red de metro.");
@@ -287,7 +306,9 @@ public class SimulacionService {
     @Transactional
     public void eliminarDiseno(Integer idUsuario, Integer idDiseno) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
-        jdbcTemplate.update("DELETE FROM escenario WHERE id_escenario = ?", resumen.idEscenario());
+        if (!esEscenarioProgresivo(resumen.idEscenario())) {
+            jdbcTemplate.update("DELETE FROM escenario WHERE id_escenario = ?", resumen.idEscenario());
+        }
         if (jdbcTemplate.update("DELETE FROM diseno WHERE id_diseno = ?", idDiseno) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el diseño solicitado");
         }
@@ -296,14 +317,14 @@ public class SimulacionService {
     @Transactional
     public ResultadoSimulacionResponse ejecutarSimulacion(Integer idUsuario, Integer idDiseno, EjecutarSimulacionRequest solicitud) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
-        if (!"VALIDADO".equals(resumen.estado()) && !"COMPLETADA".equals(resumen.estado())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validá la red antes de ejecutar una simulación");
-        }
         if (solicitud == null || solicitud.velocidad() == null || solicitud.velocidad().signum() <= 0 || solicitud.duracion() == null || solicitud.duracion() < 10) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indicá una velocidad positiva y una duración de al menos 10 segundos");
         }
         int unidades = listarUnidades(idDiseno).size();
-        if (unidades == 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorporá al menos una unidad de metro antes de ejecutar");
+        PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(estadoPermiteSimular(resumen.estado()), unidades);
+        if (!preparacion.preparado()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(" ", preparacion.observaciones()));
+        }
         int lineas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", Integer.class, idDiseno);
         int estaciones = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
         int transbordos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ? AND transbordo = TRUE", Integer.class, idDiseno);
@@ -315,7 +336,8 @@ public class SimulacionService {
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
             """, Integer.class, idIntento, solicitud.velocidad(), solicitud.duracion(), comentarios, puntaje);
-        jdbcTemplate.update("UPDATE intento SET estado = 'COMPLETADA', puntaje = ? WHERE id_usuario = ? AND id_diseno = ?", puntaje, idUsuario, idDiseno);
+        String estadoIntento = "COMPLETADO".equals(resumen.estado()) ? "COMPLETADO" : "COMPLETADA";
+        jdbcTemplate.update("UPDATE intento SET estado = ?, puntaje = ? WHERE id_usuario = ? AND id_diseno = ?", estadoIntento, puntaje, idUsuario, idDiseno);
         return obtenerResultado(idSimulacion);
     }
 
@@ -449,8 +471,8 @@ public class SimulacionService {
     }
 
     public ValidacionDisenoResponse validarDiseno(Integer idUsuario, Integer idDiseno) {
-        obtenerResumen(idUsuario, idDiseno);
-        List<String> observaciones = new java.util.ArrayList<>();
+        SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
+        List<String> observaciones = new ArrayList<>();
         Integer cantidadEstaciones = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
         Integer cantidadLineas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", Integer.class, idDiseno);
         Integer cantidadTramos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM tramo WHERE id_diseno = ?", Integer.class, idDiseno);
@@ -473,9 +495,70 @@ public class SimulacionService {
             """, (resultado, fila) -> resultado.getString("nombre"), idDiseno);
         if (!estacionesAisladas.isEmpty()) observaciones.add("Hay estaciones sin línea asociada: " + String.join(", ", estacionesAisladas) + ".");
 
+        List<String> estacionesFueraDelMapa = jdbcTemplate.query("""
+            SELECT nombre FROM estacion
+            WHERE id_diseno = ? AND (posicion_x < 0 OR posicion_x > 1000 OR posicion_y < 0 OR posicion_y > 620)
+            ORDER BY nombre
+            """, (resultado, fila) -> resultado.getString("nombre"), idDiseno);
+        if (!estacionesFueraDelMapa.isEmpty()) observaciones.add("Hay estaciones fuera de los límites del mapa: " + String.join(", ", estacionesFueraDelMapa) + ".");
+
+        List<String> conexionesDuplicadas = jdbcTemplate.query("""
+            SELECT nombre_linea, LEAST(nombre_estacion_a, nombre_estacion_b) AS estacion_a,
+                   GREATEST(nombre_estacion_a, nombre_estacion_b) AS estacion_b
+            FROM tramo WHERE id_diseno = ?
+            GROUP BY nombre_linea, LEAST(nombre_estacion_a, nombre_estacion_b), GREATEST(nombre_estacion_a, nombre_estacion_b)
+            HAVING COUNT(*) > 1
+            """, (resultado, fila) -> resultado.getString("nombre_linea") + " ("
+                + resultado.getString("estacion_a") + " y " + resultado.getString("estacion_b") + ")", idDiseno);
+        if (!conexionesDuplicadas.isEmpty()) observaciones.add("Hay conexiones duplicadas: " + String.join(", ", conexionesDuplicadas) + ".");
+
+        validarConectividadLineas(idDiseno, observaciones);
+
         boolean valido = observaciones.isEmpty();
-        jdbcTemplate.update("UPDATE intento SET estado = ? WHERE id_usuario = ? AND id_diseno = ?", valido ? "VALIDADO" : "EN_DISENO", idUsuario, idDiseno);
-        return new ValidacionDisenoResponse(valido, observaciones);
+        PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
+            valido, listarUnidades(idDiseno).size()
+        );
+        jdbcTemplate.update(
+            "UPDATE intento SET estado = ? WHERE id_usuario = ? AND id_diseno = ?",
+            estadoLuegoDeValidacion(valido, resumen.estado()), idUsuario, idDiseno
+        );
+        return new ValidacionDisenoResponse(valido, observaciones, preparacion.preparado(), preparacion.observaciones());
+    }
+
+    private void validarConectividadLineas(Integer idDiseno, List<String> observaciones) {
+        List<String> lineas = jdbcTemplate.query(
+            "SELECT nombre FROM linea WHERE id_diseno = ? ORDER BY nombre",
+            (resultado, fila) -> resultado.getString("nombre"),
+            idDiseno
+        );
+        for (String linea : lineas) {
+            List<String> estaciones = jdbcTemplate.query("""
+                SELECT nombre_estacion FROM pasa
+                WHERE id_diseno = ? AND nombre_linea = ? ORDER BY nombre_estacion
+                """, (resultado, fila) -> resultado.getString("nombre_estacion"), idDiseno, linea);
+            if (estaciones.size() < 2) continue;
+            Map<String, Set<String>> conexiones = new HashMap<>();
+            estaciones.forEach((estacion) -> conexiones.put(estacion, new HashSet<>()));
+            jdbcTemplate.query("""
+                SELECT nombre_estacion_a, nombre_estacion_b FROM tramo
+                WHERE id_diseno = ? AND nombre_linea = ?
+                """, (resultado, fila) -> {
+                    String estacionA = resultado.getString("nombre_estacion_a");
+                    String estacionB = resultado.getString("nombre_estacion_b");
+                    conexiones.computeIfAbsent(estacionA, clave -> new HashSet<>()).add(estacionB);
+                    conexiones.computeIfAbsent(estacionB, clave -> new HashSet<>()).add(estacionA);
+                    return null;
+                }, idDiseno, linea);
+            Set<String> visitadas = new HashSet<>();
+            ArrayDeque<String> pendientes = new ArrayDeque<>();
+            pendientes.add(estaciones.getFirst());
+            while (!pendientes.isEmpty()) {
+                String estacion = pendientes.removeFirst();
+                if (!visitadas.add(estacion)) continue;
+                conexiones.getOrDefault(estacion, Set.of()).forEach(pendientes::addLast);
+            }
+            if (visitadas.size() != estaciones.size()) observaciones.add("La línea " + linea + " tiene estaciones o conexiones desconectadas.");
+        }
     }
 
     private SimulacionResumenResponse obtenerResumen(Integer idUsuario, Integer idDiseno) {
@@ -510,6 +593,29 @@ public class SimulacionService {
         ));
     }
 
+    private boolean esEscenarioProgresivo(Integer idEscenario) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM escenario WHERE id_escenario = ? AND progresivo = TRUE)", Boolean.class, idEscenario
+        ));
+    }
+
+    private PreparacionSimulacion evaluarPreparacionSimulacion(boolean redValidada, int cantidadUnidades) {
+        List<String> observaciones = new ArrayList<>();
+        if (!redValidada) observaciones.add("Validá la red antes de iniciar una simulación.");
+        if (cantidadUnidades < 1) observaciones.add("Incorporá al menos una unidad de metro antes de iniciar una simulación.");
+        return new PreparacionSimulacion(observaciones.isEmpty(), List.copyOf(observaciones));
+    }
+
+    private boolean estadoPermiteSimular(String estado) {
+        return "VALIDADO".equals(estado) || "COMPLETADA".equals(estado) || "COMPLETADO".equals(estado);
+    }
+
+    private String estadoLuegoDeValidacion(boolean valido, String estadoActual) {
+        if (!valido) return "EN_DISENO";
+        if ("COMPLETADO".equals(estadoActual) || "COMPLETADA".equals(estadoActual)) return estadoActual;
+        return "VALIDADO";
+    }
+
     private List<UnidadMetroSimulacionResponse> listarUnidades(Integer idDiseno) {
         return jdbcTemplate.query("""
             SELECT id_tren, nombre_linea, capacidad, velocidad_promedio
@@ -518,6 +624,8 @@ public class SimulacionService {
                 resultado.getInt("id_tren"), resultado.getString("nombre_linea"), resultado.getInt("capacidad"), resultado.getBigDecimal("velocidad_promedio")
             ), idDiseno);
     }
+
+    private record PreparacionSimulacion(boolean preparado, List<String> observaciones) {}
 
     private ResultadoSimulacionResponse obtenerResultado(Integer idSimulacion) {
         return jdbcTemplate.queryForObject("""

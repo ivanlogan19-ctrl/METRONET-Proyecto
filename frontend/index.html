@@ -220,44 +220,6 @@
         }
 
 
-        .metronet-control-perfil {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            min-height: 42px;
-
-            padding: 0 13px;
-
-            border-radius: 13px;
-
-            color: #1A2340;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #3B78C8,
-                    #3B78C8
-                );
-
-            font-family:
-                Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-
-            font-size: 13px;
-
-            font-weight: 600;
-
-            letter-spacing: 0.01em;
-
-            text-align: center;
-
-            text-decoration: none;
-
-        }
-
         .metronet-control-simulacion {
 
             display: flex;
@@ -296,28 +258,6 @@
         .metronet-control-simulacion:focus-visible {
 
             background: #9BC8FF;
-
-        }
-
-
-        .metronet-control-perfil:hover,
-        .metronet-control-perfil:focus-visible {
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #3B78C8,
-                    #9BC8FF
-                );
-
-        }
-
-
-        .metronet-control-perfil-indicador {
-
-            margin-left: 4px;
-
-            font-size: 13px;
 
         }
 
@@ -537,16 +477,6 @@
             color: #F4F7FA;
         }
 
-        .metronet-control-perfil {
-            color: #F4F7FA;
-            background: #1B2B3B;
-        }
-
-        .metronet-control-perfil:hover,
-        .metronet-control-perfil:focus-visible {
-            background: #263B50;
-        }
-
         .metronet-control-simulacion,
         .metronet-control-sesion {
             border: 1px solid #263240;
@@ -686,6 +616,10 @@
             background: #0D141C;
         }
 
+        .metronet-editor-grupo[hidden] {
+            display: none;
+        }
+
         .metronet-editor-etiqueta {
             color: #AAB7C4;
             font: 700 11px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
@@ -723,13 +657,16 @@
         }
 
     </style>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
 
 </head>
 
 
-<body>
+<body class="metronet-pagina-editor">
 
-    <div id="metronet-aplicacion">
+    <div class="metronet-pantalla-editor">
+        <div data-navegacion-global></div>
+        <div id="metronet-aplicacion">
 
         <main
             id="metronet-mapa"
@@ -741,17 +678,10 @@
             aria-label="Controles del mapa"
         >
             <h1 class="metronet-panel-titulo">Controles del mapa</h1>
-            <section id="metronet-informacion-jugador" class="metronet-informacion-jugador" aria-label="Información de jugador">
-                <h2 class="metronet-informacion-jugador-titulo">Información de jugador</h2>
-                <a id="metronet-control-perfil" class="metronet-control-perfil" href="/perfil.html">
-                    Actualizar mis datos <span class="metronet-control-perfil-indicador" aria-hidden="true">▼</span>
-                </a>
-            </section>
-            <button id="metronet-control-sesion" class="metronet-control-sesion" type="button">
-                Cerrar sesión
-            </button>
+            <div data-flujo-navegacion></div>
         </aside>
 
+    </div>
     </div>
 
     <script

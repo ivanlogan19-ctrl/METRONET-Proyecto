@@ -52,14 +52,15 @@ public class JuegoEducativoService {
         }
         IntentoJuego intentoExistente = obtenerIntento(idUsuario, idEscenario);
         if (intentoExistente != null) {
-            return new InicioEscenarioResponse(intentoExistente.idDiseno(), idEscenario, intentoExistente.estado());
+            return new InicioEscenarioResponse(intentoExistente.idDiseno(), idEscenario, intentoExistente.idIntento(), intentoExistente.estado());
         }
         Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
-        jdbcTemplate.update("""
+        Integer idIntento = jdbcTemplate.queryForObject("""
             INSERT INTO intento (id_usuario, id_escenario, id_diseno, estado, progreso, puntaje)
             VALUES (?, ?, ?, 'EN_DESARROLLO', 0, NULL)
-            """, idUsuario, idEscenario, idDiseno);
-        return new InicioEscenarioResponse(idDiseno, idEscenario, "EN_DESARROLLO");
+            RETURNING id_intento
+            """, Integer.class, idUsuario, idEscenario, idDiseno);
+        return new InicioEscenarioResponse(idDiseno, idEscenario, idIntento, "EN_DESARROLLO");
     }
 
     @Transactional
@@ -87,7 +88,7 @@ public class JuegoEducativoService {
         int progreso = condiciones.isEmpty() ? 100 : Math.round((aprobadas * 100f) / condiciones.size());
         boolean completado = !condiciones.contains(Boolean.FALSE);
         Integer puntaje = completado ? 100 : null;
-        String estado = completado ? "COMPLETADO" : "EN_DESARROLLO";
+        String estado = estadoLuegoDeEvaluacion(completado, intento.estado());
         jdbcTemplate.update("""
             UPDATE intento SET estado = ?, progreso = GREATEST(progreso, ?), puntaje = COALESCE(?, puntaje),
             fecha_finalizacion = CASE WHEN ? THEN COALESCE(fecha_finalizacion, ?) ELSE fecha_finalizacion END
@@ -175,6 +176,12 @@ public class JuegoEducativoService {
     private boolean tieneSimulacion(Integer idIntento) {
         Integer cantidad = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM simulacion WHERE id_intento = ?", Integer.class, idIntento);
         return cantidad != null && cantidad > 0;
+    }
+
+    private String estadoLuegoDeEvaluacion(boolean completado, String estadoActual) {
+        if (completado) return "COMPLETADO";
+        if ("VALIDADO".equals(estadoActual) || "COMPLETADA".equals(estadoActual)) return estadoActual;
+        return "EN_DESARROLLO";
     }
 
     private void agregarCondicion(List<Boolean> condiciones, boolean resultado, boolean aplica) { if (aplica) condiciones.add(resultado); }

@@ -3,152 +3,91 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Constructor de simulaciones · METRONET</title>
+    <title>Simulación · METRONET</title>
     <link rel="stylesheet" href="/src/simulacion/simulacion.css" />
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
   </head>
-  <body>
+  <body class="metronet-pagina-navegable">
+    <div data-navegacion-global></div>
     <main class="simulacion-aplicacion">
-      <aside class="simulacion-lateral">
-        <a class="simulacion-marca" href="/" aria-label="Volver al mapa">
-          <img src="/assets/logoMETRONET.png" alt="METRONET" />
-          <span>Constructor de simulaciones</span>
+      <aside class="simulacion-lateral" aria-label="Diseños disponibles">
+        <a class="simulacion-marca" href="/" aria-label="Volver a la edición de redes">
+          <span>Simulador de red de metro</span>
         </a>
-        <form id="formularioNuevaSimulacion" class="simulacion-formulario">
-          <h1>Mis simulaciones</h1>
-          <label for="nombreSimulacion">Nombre de la simulación</label>
-          <input id="nombreSimulacion" type="text" maxlength="100" placeholder="Ej.: Red metropolitana" required />
-          <button class="simulacion-primario" type="submit">Nueva simulación</button>
-        </form>
-        <form id="formularioEscenario" class="simulacion-formulario simulacion-formulario-escenario">
-          <h2>Escenario de aprendizaje</h2>
-          <p>Se crea a partir del diseño seleccionado, sin modificar el original.</p>
-          <label for="nombreEscenario">Nombre del escenario</label>
-          <input id="nombreEscenario" type="text" maxlength="100" placeholder="Ej.: Conexión del centro" required />
-          <label for="modoEscenario">Tipo de actividad</label>
-          <select id="modoEscenario">
-            <option value="NIVEL">Nivel</option>
-            <option value="EDICION_LIBRE">Edición libre</option>
-          </select>
-          <label for="dificultadEscenario">Dificultad</label>
-          <select id="dificultadEscenario">
-            <option value="Inicial">Inicial</option>
-            <option value="Intermedio">Intermedio</option>
-            <option value="Avanzado">Avanzado</option>
-          </select>
-          <label for="objetivoEscenario">Objetivo</label>
-          <input id="objetivoEscenario" type="text" maxlength="250" placeholder="Ej.: Conectar dos zonas de la ciudad" />
-          <label for="instruccionesEscenario">Instrucciones</label>
-          <textarea id="instruccionesEscenario" maxlength="500" placeholder="Indicaciones para resolver la actividad"></textarea>
-          <button class="simulacion-secundario" type="submit">Crear escenario</button>
-        </form>
-        <div class="simulacion-acciones-diseno">
-          <button id="actualizarEscenario" class="simulacion-secundario" type="button">Editar escenario</button>
-          <button id="eliminarDiseno" class="simulacion-accion-eliminar" type="button">Eliminar diseño actual</button>
-        </div>
+        <section class="simulacion-panel-lateral">
+          <p class="simulacion-etiqueta">Diseño seleccionado</p>
+          <strong id="nombreDisenoLateral">Sin diseño seleccionado</strong>
+          <p id="estadoDisenoLateral" class="simulacion-texto-secundario">Elegí una red validada para simular.</p>
+          <a id="volverEdicion" class="simulacion-volver" href="/">Volver a edición</a>
+        </section>
+        <section class="simulacion-panel-lateral">
+          <h1>Mis diseños</h1>
+          <p class="simulacion-texto-secundario">Seleccioná una red para consultar sus resultados o ejecutar una simulación.</p>
+          <div id="listaDisenos" class="simulacion-lista" aria-live="polite"></div>
+        </section>
         <p id="mensajeSimulacion" class="simulacion-mensaje" role="status" aria-live="polite"></p>
-        <div id="listaSimulaciones" class="simulacion-lista" aria-label="Simulaciones creadas"></div>
-        <a class="simulacion-volver" href="/">Volver al mapa</a>
       </aside>
-
       <section class="simulacion-contenido">
+        <div data-flujo-navegacion></div>
         <header class="simulacion-encabezado">
           <div>
-            <p class="simulacion-etiqueta">Diseño de red</p>
-            <h2 id="tituloSimulacion">Elegí o creá una simulación</h2>
+            <p class="simulacion-etiqueta">Simulación</p>
+            <h2 id="tituloSimulacion">Elegí un diseño</h2>
           </div>
-          <p id="estadoSimulacion" class="simulacion-estado"></p>
+          <span id="estadoSimulacion" class="simulacion-estado"></span>
         </header>
-
-        <section id="editorSimulacion" class="simulacion-editor" hidden>
-          <div class="simulacion-herramientas">
-            <div class="simulacion-grupo-control">
-              <label for="nombreEstacion">Estación</label>
-              <div class="simulacion-control-horizontal">
-                <input id="nombreEstacion" type="text" maxlength="100" placeholder="Nombre de la estación" />
-                <button id="crearEstacion" class="simulacion-secundario" type="button">Ubicar estación</button>
+        <section id="estadoVacio" class="simulacion-vacio">
+          <h2>Seleccioná una red para simular</h2>
+          <p>Desde Edición podés crear la red, guardarla y validarla. La simulación utiliza ese mismo diseño sin modificarlo.</p>
+        </section>
+        <section id="panelSimulacion" class="simulacion-editor" hidden>
+          <section class="simulacion-visor-mapa" aria-labelledby="tituloVistaSimulacion">
+            <header class="simulacion-visor-encabezado">
+              <div>
+                <h3 id="tituloVistaSimulacion">Mapa de la simulación</h3>
+                <p id="estadoVistaMapa">Montevideo · enfoque automático sobre la red</p>
               </div>
-            </div>
-            <div class="simulacion-grupo-control">
-              <label for="nombreLinea">Línea</label>
-              <div class="simulacion-control-horizontal">
-                <input id="nombreLinea" type="text" maxlength="100" placeholder="Nombre de la línea" />
-                <button id="crearLinea" class="simulacion-primario" type="button">Iniciar línea</button>
-              </div>
-            </div>
-            <div class="simulacion-grupo-control simulacion-validacion-control">
-              <label>Consistencia de la red</label>
-              <div class="simulacion-control-horizontal">
-                <button id="guardarDiseno" class="simulacion-secundario" type="button">Guardar progreso</button>
-                <button id="validarDiseno" class="simulacion-secundario" type="button">Revisar red</button>
-              </div>
-            </div>
-            <p id="ayudaEditor" class="simulacion-ayuda">Ingresá el nombre de una estación y elegí «Ubicar estación».</p>
-          </div>
-          <div class="simulacion-lienzo-contenedor">
-            <svg id="lienzoSimulacion" viewBox="0 0 1000 620" role="img" aria-label="Plano editable de la red de metro"></svg>
-          </div>
-          <section class="simulacion-gestion" aria-label="Gestión del diseño">
-            <div class="simulacion-gestion-grupo">
-              <h3>Estaciones</h3>
-              <div id="listaEstacionesDiseno" class="simulacion-lista-elementos"></div>
-            </div>
-            <div class="simulacion-gestion-grupo">
-              <h3>Líneas de metro</h3>
-              <div id="listaLineasDiseno" class="simulacion-lista-elementos"></div>
-            </div>
+              <span class="simulacion-visor-modo">Solo lectura</span>
+            </header>
+            <div id="visorSimulacion" class="simulacion-lienzo-contenedor" aria-label="Mapa Phaser de Montevideo con la red seleccionada"></div>
           </section>
-          <section class="simulacion-aprendizaje" aria-label="Guía de aprendizaje">
-            <article class="simulacion-panel-aprendizaje">
-              <h3>Guía de la actividad</h3>
-              <p id="guiaEscenario"></p>
-            </article>
-            <article class="simulacion-panel-aprendizaje">
-              <h3>Información de la red</h3>
-              <p id="informacionRed"></p>
-            </article>
-            <article class="simulacion-panel-aprendizaje">
-              <h3>Observación educativa</h3>
-              <p id="retroalimentacionEscenario"></p>
-            </article>
-          </section>
-          <section class="simulacion-operacion" aria-label="Ejecución de simulación">
+          <section class="simulacion-resumen" aria-label="Resumen del diseño y escenario">
             <article class="simulacion-panel-operacion">
-              <h3>Unidades de metro</h3>
-              <form id="formularioUnidadMetro" class="simulacion-formulario simulacion-formulario-integrado">
-                <label for="lineaUnidadMetro">Línea asignada</label>
-                <select id="lineaUnidadMetro" required></select>
-                <label for="capacidadUnidadMetro">Capacidad</label>
-                <input id="capacidadUnidadMetro" type="number" min="1" value="300" required />
-                <label for="velocidadUnidadMetro">Velocidad de la unidad</label>
-                <input id="velocidadUnidadMetro" type="number" min="1" value="40" required />
-                <button class="simulacion-secundario" type="submit">Incorporar unidad</button>
-              </form>
-              <div id="listaUnidadesMetro" class="simulacion-lista-elementos"></div>
+              <h3>Red seleccionada</h3>
+              <p id="resumenRed" class="simulacion-texto-secundario"></p>
             </article>
             <article class="simulacion-panel-operacion">
-              <h3>Ejecutar simulación</h3>
+              <h3>Actividad</h3>
+              <p id="instruccionesEscenario" class="simulacion-texto-secundario"></p>
+            </article>
+          </section>
+          <section class="simulacion-operacion" aria-label="Controles de simulación">
+            <article class="simulacion-panel-operacion">
+              <h3>Parámetros</h3>
               <form id="formularioEjecucion" class="simulacion-formulario simulacion-formulario-integrado">
                 <label for="velocidadSimulacion">Velocidad de simulación</label>
-                <input id="velocidadSimulacion" type="number" min="1" value="1" step="0.5" required />
+                <input id="velocidadSimulacion" type="number" min="0.5" step="0.5" value="1" required />
                 <label for="duracionSimulacion">Duración en segundos</label>
                 <input id="duracionSimulacion" type="number" min="10" value="60" required />
-                <button class="simulacion-primario" type="submit">Ejecutar simulación</button>
+                <button class="simulacion-primario" type="submit">Iniciar simulación</button>
               </form>
-              <p id="estadoEjecucion" class="simulacion-estado-ejecucion">Validá la red e incorporá unidades para comenzar.</p>
+              <div class="simulacion-acciones-ejecucion">
+                <button id="pausarSimulacion" class="simulacion-secundario" type="button" disabled>Pausar</button>
+                <button id="reanudarSimulacion" class="simulacion-secundario" type="button" disabled>Reanudar</button>
+                <button id="reiniciarSimulacion" class="simulacion-secundario" type="button" disabled>Reiniciar vista</button>
+              </div>
+              <p id="estadoEjecucion" class="simulacion-estado-ejecucion"></p>
             </article>
             <article class="simulacion-panel-operacion">
               <h3>Resultados e intentos</h3>
               <div id="listaResultadosSimulacion" class="simulacion-lista-elementos"></div>
+              <a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con escenarios</a>
             </article>
           </section>
         </section>
-
-        <section id="estadoVacio" class="simulacion-vacio">
-          <h2>Creá tu primera red</h2>
-          <p>Definí una simulación, ubicá sus estaciones y unilas en líneas de metro.</p>
-        </section>
       </section>
     </main>
+    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
     <script type="module" src="/src/simulacion/simulacion.js"></script>
   </body>
 </html>

@@ -3,6 +3,7 @@ package com.metronet.backend.service;
 import com.metronet.backend.dto.SolicitudRecuperacionResponse;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.repository.UsuarioRepository;
+import com.metronet.backend.utilidades.ValidadorDatos;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,11 @@ public class RecuperacionContrasenaService {
     }
 
     public void solicitarRecuperacion(String email) {
-        if (email == null || email.isBlank()) {
+        if (email == null || email.isBlank() || !ValidadorDatos.esCorreoElectronicoValido(email)) {
             return;
         }
 
-        usuarioRepository.findByEmailIgnoreCase(email.trim()).ifPresent(this::registrarSolicitudSiNoExiste);
+        usuarioRepository.findByEmailIgnoreCase(email.trim().toLowerCase()).ifPresent(this::registrarSolicitudSiNoExiste);
     }
 
     public List<SolicitudRecuperacionResponse> listarSolicitudes() {

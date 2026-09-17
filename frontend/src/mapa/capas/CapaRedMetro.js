@@ -1,3 +1,7 @@
+import Phaser from 'phaser';
+
+import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
+
 const COLORES_LINEAS = [0x55c3e7, 0xf3ca62, 0x9ed49c, 0xd7a9f4, 0xff9e92];
 
 export default class CapaRedMetro {
@@ -13,6 +17,7 @@ export default class CapaRedMetro {
     this.grafico = null;
     this.zonasInteractivas = [];
     this.animaciones = [];
+    this.animacionPausada = false;
     this.manejadorPointer = (puntero) => this.procesarPuntero(puntero);
   }
 
@@ -100,6 +105,10 @@ export default class CapaRedMetro {
     ) || (
       this.elementoSeleccionado?.tipo === 'linea' && this.elementoSeleccionado.valor.nombre === tramo.nombreLinea
     );
+    if (seleccionado) {
+      this.grafico.lineStyle(9, COLORES_INTERFAZ_MAPA.BORDE_ACTIVO, 0.52);
+      this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
+    }
     this.grafico.lineStyle(seleccionado ? 7 : 5, this.colorLinea(tramo.nombreLinea, indice), seleccionado ? 1 : 0.88);
     this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
   }
@@ -109,13 +118,13 @@ export default class CapaRedMetro {
     const seleccionada = this.estacionesSeleccionadas.includes(estacion.nombre);
     const activa = this.elementoSeleccionado?.tipo === 'estacion' && this.elementoSeleccionado.valor.nombre === estacion.nombre;
     const radio = seleccionada || activa ? 11 : 8;
-    this.grafico.fillStyle(estacion.transbordo ? 0xf3ca62 : 0xf4f7fa, 1);
+    this.grafico.fillStyle(estacion.transbordo ? 0xf3ca62 : COLORES_INTERFAZ_MAPA.TEXTO, 1);
     this.grafico.fillCircle(punto.x, punto.y, radio);
-    this.grafico.lineStyle(2, seleccionada || activa ? 0x55c3e7 : 0x111820, 1);
+    this.grafico.lineStyle(2, seleccionada || activa ? COLORES_INTERFAZ_MAPA.ACTIVO : COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 1);
     this.grafico.strokeCircle(punto.x, punto.y, radio);
-    this.grafico.lineStyle(1, 0xe8eef3, 0.8);
+    this.grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.BORDE, 0.8);
     this.grafico.strokeRect(punto.x + 12, punto.y - 17, Math.max(54, estacion.nombre.length * 7), 20);
-    const texto = this.escena.add.text(punto.x + 16, punto.y - 13, estacion.nombre, { color: '#e8eef3', fontFamily: 'Inter, sans-serif', fontSize: '11px' }).setDepth(4);
+    const texto = this.escena.add.text(punto.x + 16, punto.y - 13, estacion.nombre, { color: '#E3E6E5', fontFamily: 'Inter, sans-serif', fontSize: '11px' }).setDepth(4);
     this.zonasInteractivas.push(texto);
   }
 
@@ -126,7 +135,7 @@ export default class CapaRedMetro {
     const seleccionada = this.elementoSeleccionado?.tipo === 'unidad' && this.elementoSeleccionado.valor.idTren === unidad.idTren;
     this.grafico.fillStyle(this.colorLinea(unidad.nombreLinea, indice), 1);
     this.grafico.fillRoundedRect(punto.x - 8, punto.y - 6, 16, 12, 3);
-    this.grafico.lineStyle(seleccionada ? 3 : 1, 0xf4f7fa, 1);
+    this.grafico.lineStyle(seleccionada ? 3 : 1, COLORES_INTERFAZ_MAPA.TEXTO, 1);
     this.grafico.strokeRoundedRect(punto.x - 8, punto.y - 6, 16, 12, 3);
   }
 
@@ -203,6 +212,7 @@ export default class CapaRedMetro {
 
   iniciarAnimacion(velocidad, duracion) {
     this.detenerAnimacion();
+    this.animacionPausada = false;
     const duracionVisual = Math.max(2600, Math.min(9000, (Number(duracion) * 120) / Math.max(Number(velocidad), 0.5)));
     this.diseno.unidadesMetro.forEach((unidad, indice) => {
       const ruta = this.obtenerRuta(unidad.nombreLinea);
@@ -224,6 +234,17 @@ export default class CapaRedMetro {
   detenerAnimacion() {
     this.animaciones.forEach(({ evento, tren }) => { evento.remove(false); tren.destroy(); });
     this.animaciones = [];
+    this.animacionPausada = false;
+  }
+
+  pausarAnimacion() {
+    this.animaciones.forEach(({ evento }) => { evento.paused = true; });
+    this.animacionPausada = this.animaciones.length > 0;
+  }
+
+  reanudarAnimacion() {
+    this.animaciones.forEach(({ evento }) => { evento.paused = false; });
+    this.animacionPausada = false;
   }
 
   colorLinea(nombre, indice) {
