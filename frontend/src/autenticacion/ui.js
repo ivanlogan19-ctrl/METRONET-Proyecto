@@ -39,6 +39,15 @@ export function validarFormulario(formulario) {
   return false;
 }
 
+export function esContrasenaValida(contrasena) {
+  return (
+    typeof contrasena === 'string' &&
+    contrasena.length >= 6 &&
+    /[A-Z]/.test(contrasena) &&
+    /[^A-Za-z0-9]/.test(contrasena)
+  );
+}
+
 export async function obtenerMensajeError(respuesta, mensajePredeterminado) {
   try {
     const datos = await respuesta.json();

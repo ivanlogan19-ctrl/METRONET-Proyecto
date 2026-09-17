@@ -333,237 +333,75 @@ export default class PanelDinamico {
     style.id = 'metronet-panel-dinamico-styles';
 
     style.textContent = `
-
-            .metronet-panel-dinamico {
-
-                position:
-                    fixed;
-
-                z-index:
-                    1000;
-
-                box-sizing:
-                    border-box;
-
-                width:
-                    156px;
-
-                background:
-                    rgba(
-                        7,
-                        23,
-                        37,
-                        0.84
-                    );
-
-                border:
-                    1px solid rgba(155, 200, 255, 0.26);
-
-                border-radius:
-                    14px;
-
-                color:
-                    #F8FBFF;
-
-                font-family:
-                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-
-                box-shadow:
-                    0 14px 34px
-                    rgba(
-                        0,
-                        0,
-                        0,
-                        0.30
-                    ),
-                    inset 0 1px 0
-                    rgba(255, 255, 255, 0.08);
-
-                backdrop-filter:
-                    blur(14px)
-                    saturate(130%);
-
-                overflow:
-                    visible;
-            }
-
-
-            .metronet-panel-integrado {
-
-                position:
-                    static !important;
-
-                width:
-                    100% !important;
-
-                min-width:
-                    0;
-            }
-
-
-            .metronet-panel-encabezado {
-
-                box-sizing:
-                    border-box;
-
-                display:
-                    flex;
-
-                align-items:
-                    center;
-
-                justify-content:
-                    center;
-
-                width:
-                    100%;
-
-                height:
-                    42px;
-
-                padding:
-                    0 12px;
-
-                border:
-                    none;
-
-                border-radius:
-                    13px;
-
-                background:
-                    linear-gradient(
-                        135deg,
-                        #145A7B,
-                        #0B79AE
-                    );
-
-                color:
-                    #F8FBFF;
-
-                font-family:
-                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-
-                font-size:
-                    13px;
-
-                font-weight:
-                    600;
-
-                text-align:
-                    center;
-
-                letter-spacing:
-                    0.01em;
-
-                cursor:
-                    pointer;
-
-                white-space:
-                    nowrap;
-
-                transition:
-                    background 0.16s ease,
-                    filter 0.16s ease;
-            }
-
-
-            .metronet-panel-dinamico.metronet-panel-abierto
-            .metronet-panel-encabezado {
-
-                border-radius:
-                    13px 13px 0 0;
-            }
-
-
-            .metronet-panel-encabezado:hover {
-
-                background:
-                    linear-gradient(
-                        135deg,
-                        #1A6D91,
-                        #1595CF
-                    );
-
-                filter:
-                    brightness(1.05);
-            }
-
-
-            .metronet-panel-contenido {
-
-                box-sizing:
-                    border-box;
-
-                width:
-                    100%;
-
-                padding:
-                    7px;
-
-                background:
-                    rgba(
-                        4,
-                        18,
-                        29,
-                        0.93
-                    );
-
-                border-top:
-                    1px solid rgba(155, 200, 255, 0.16);
-
-                border-radius:
-                    0 0 13px 13px;
-
-                overflow:
-                    hidden;
-            }
-
-
-            @media (max-width: 700px) {
-
-                .metronet-panel-dinamico {
-
-                    width:
-                        calc(50% - 12px) !important;
-
-                    border-radius:
-                        12px;
-                }
-
-                #metronet-selector-zonas {
-
-                    top:
-                        92px !important;
-
-                    right:
-                        calc(50% + 4px) !important;
-                }
-
-                #metronet-selector-barrios {
-
-                    top:
-                        92px !important;
-
-                    right:
-                        8px !important;
-                }
-
-                .metronet-panel-encabezado {
-
-                    font-size:
-                        11px;
-
-                    padding:
-                        0 8px;
-                }
-
-                .metronet-panel-integrado {
-
-                    width:
-                        100% !important;
-                }
-            }
-        `;
+      .metronet-panel-dinamico {
+        position: fixed;
+        z-index: var(--layer-dropdown, 200);
+        box-sizing: border-box;
+        width: 156px;
+        overflow: visible;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md, 8px);
+        color: var(--text-primary);
+        background: var(--panel);
+        box-shadow: 0 14px 34px rgb(0 0 0 / .30);
+        font-family: var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+      }
+      .metronet-panel-integrado {
+        position: static !important;
+        width: 100% !important;
+        min-width: 0;
+      }
+      .metronet-panel-encabezado {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 42px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: var(--radius-md, 8px);
+        color: var(--text-primary);
+        background: var(--panel-elevated);
+        font: 700 13px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+        text-align: center;
+        white-space: nowrap;
+      }
+      .metronet-panel-dinamico.metronet-panel-abierto .metronet-panel-encabezado {
+        border-radius: var(--radius-md, 8px) var(--radius-md, 8px) 0 0;
+      }
+      .metronet-panel-encabezado:hover,
+      .metronet-panel-encabezado:focus-visible {
+        color: var(--text-primary);
+        background: color-mix(in srgb, var(--info-active) 16%, var(--panel-elevated));
+      }
+      .metronet-panel-contenido {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 7px;
+        overflow: hidden;
+        border-top: 1px solid var(--border);
+        border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+        background: var(--bg-secondary);
+      }
+      @media (max-width: 700px) {
+        .metronet-panel-dinamico {
+          width: calc(50% - 12px) !important;
+        }
+        #metronet-selector-zonas {
+          top: 92px !important;
+          right: calc(50% + 4px) !important;
+        }
+        #metronet-selector-barrios {
+          top: 92px !important;
+          right: 8px !important;
+        }
+        .metronet-panel-encabezado {
+          padding: 0 8px;
+          font-size: 11px;
+        }
+        .metronet-panel-integrado { width: 100% !important; }
+      }
+    `;
 
     document.head.appendChild(style);
   }

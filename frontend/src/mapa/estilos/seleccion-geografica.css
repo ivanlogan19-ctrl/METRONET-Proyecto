@@ -1,0 +1,84 @@
+.metronet-seleccion-geografica {
+  position: absolute;
+  z-index: var(--layer-header);
+  top: 12px;
+  left: 12px;
+  width: min(300px, calc(100% - 24px));
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--info-active);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 10px 28px rgb(0 0 0 / .25);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.metronet-seleccion-geografica__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.metronet-seleccion-geografica__titulo {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-tecnica, Inter, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.metronet-seleccion-geografica__cerrar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.metronet-seleccion-geografica__cerrar:hover,
+.metronet-seleccion-geografica__cerrar:focus-visible {
+  border-color: var(--danger);
+  color: var(--danger);
+  outline: none;
+}
+
+.metronet-seleccion-geografica__nombres {
+  margin: 10px 0 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.metronet-seleccion-geografica__detalle,
+.metronet-seleccion-geografica__indicadores {
+  margin: 7px 0 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.metronet-seleccion-geografica__indicadores {
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+  color: var(--text-disabled);
+  font-family: var(--font-tecnica, Inter, sans-serif);
+  font-size: 10px;
+}
+
+@media (max-width: 620px) {
+  .metronet-seleccion-geografica { top: 8px; left: 8px; width: min(290px, calc(100% - 16px)); }
+}

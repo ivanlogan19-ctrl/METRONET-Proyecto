@@ -1,0 +1,54 @@
+.metronet-control-zoom {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel);
+  box-shadow: 0 8px 20px rgb(0 0 0 / .28);
+}
+
+.metronet-control-zoom--superpuesto {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: var(--layer-dropdown, 200);
+}
+
+.metronet-control-zoom-integrado {
+  position: static;
+  box-sizing: border-box;
+}
+
+.metronet-control-zoom-boton {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-primary);
+  background: transparent;
+  font-family: var(--font-tecnica, ui-monospace, monospace);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.metronet-control-zoom-boton:hover,
+.metronet-control-zoom-boton:focus-visible {
+  color: var(--info-active);
+  background: var(--panel-elevated);
+  outline: none;
+}
+
+.metronet-control-zoom-boton:disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+@media (max-width: 620px) {
+  .metronet-control-zoom--superpuesto { right: 10px; bottom: 10px; }
+  .metronet-control-zoom-boton { width: 38px; height: 38px; }
+}

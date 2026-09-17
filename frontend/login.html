@@ -9,26 +9,17 @@
   </head>
   <body>
     <main class="auth-page">
-      <section class="brand-panel" aria-label="Presentación de METRONET">
-        <div class="metro-map" aria-hidden="true"></div>
-        <div class="brand-content">
-          <div data-metronet-logo></div>
-          <p class="eyebrow">Sistema de simulación</p>
-          <h1>METRONET</h1>
-          <p class="descripcion">
-            Accedé al mapa y a las herramientas de simulación de la red
-            metropolitana.
-          </p>
-        </div>
-      </section>
       <section class="auth-card" aria-labelledby="tituloLogin">
-        <div class="mobile-brand">
-          <div data-metronet-logo data-logo-alternativo=""></div>
-          <span>METRONET</span>
-        </div>
-        <p class="eyebrow">Simulador de red de metro</p>
-        <h2 id="tituloLogin">Inicio de sesión</h2>
-        <p class="auth-subtitle">Ingresá tus datos para abrir el mapa.</p>
+        <div
+          class="mobile-brand auth-marca"
+          data-metronet-logo
+          data-logo-alternativo=""
+        ></div>
+        <p class="eyebrow">Acceso a METRONET</p>
+        <h1 id="tituloLogin">Iniciar sesión</h1>
+        <p class="auth-subtitle">
+          Ingresá tus datos para continuar en la plataforma.
+        </p>
         <form id="loginForm" class="auth-form" novalidate>
           <div class="field-group">
             <label for="email">Correo electrónico</label>
@@ -62,8 +53,8 @@
             </div>
           </div>
           <button id="loginButton" class="primary-button" type="submit">
-            <span class="button-text">Ingresar</span
-            ><span class="button-loader" aria-hidden="true"></span>
+            <span class="button-text">Iniciar sesión</span>
+            <span class="button-loader" aria-hidden="true"></span>
           </button>
         </form>
         <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
@@ -71,12 +62,14 @@
           <a href="/recuperar-contrasena.html">¿Olvidaste tu contraseña?</a>
         </p>
         <p class="auth-link">
-          ¿No tenés una cuenta? <a href="/registro.html">Crear usuario</a>
+          ¿No tenés una cuenta? <a href="/registro.html">Crear cuenta</a>
         </p>
-        <p class="auth-link">
-          ¿Sos administrador?
-          <a href="/admin-login.html">Ingresar a administración</a>
-        </p>
+        <div class="auth-acceso-secundario">
+          <p class="auth-link">
+            ¿Sos administrador?
+            <a href="/admin-login.html">Acceso administrativo</a>
+          </p>
+        </div>
       </section>
     </main>
     <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>

@@ -3,7 +3,6 @@ import Phaser from 'phaser';
 import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
 import CapaZonas from './capas/CapaZonas.js';
-import { COLORES_PUNTOS_INTERES } from './capas/CapaPuntosInteres.js';
 import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
 import CapaIconosBarrios from './capas/CapaIconosBarrios.js';
 import CapaRedMetro from './capas/CapaRedMetro.js';
@@ -12,7 +11,8 @@ import SelectorZonas from './controles/SelectorZonas.js';
 import SelectorBarrios from './controles/SelectorBarrios.js';
 
 import ControlZoom from './controles/ControlZoom.js';
-import LeyendaPuntosInteres from './controles/LeyendaPuntosInteres.js';
+import PanelPuntosInteres from './controles/PanelPuntosInteres.js';
+import PanelSeleccionGeografica from './controles/PanelSeleccionGeografica.js';
 import EditorRedMetro from './controles/EditorRedMetro.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { COLORES_INTERFAZ_MAPA } from './configuracion/ColoresMapa.js';
@@ -39,17 +39,24 @@ export default class MapaScene extends Phaser.Scene {
     this.selectorBarrios = null;
 
     this.controlZoom = null;
-    this.leyendaPuntosInteres = null;
+    this.panelPuntosInteres = null;
+    this.panelSeleccionGeografica = null;
     this.editorRedMetro = null;
     this.controlSesion = null;
     this.contenedorInformacionJugador = null;
-    this.mensajePuntosInteres = null;
-    this.estadoPuntosInteres = { haySeleccion: false, cantidadPuntos: 0 };
-
     this.contenedorMapa = null;
 
     this.contenedorControles = null;
+    this.contenedorSelectoresMapa = null;
+    this.contenedorControlesMapa = null;
+    this.contenedorPuntosInteres = null;
+    this.contenedorEditorRed = null;
+    this.contenedorConsigna = null;
+    this.contenedorPieEditor = null;
     this.manejadorResize = null;
+    this.manejadorAlternarPanel = null;
+    this.consultaPanelMovil = null;
+    this.manejadorCambioPanelMovil = null;
   }
 
   preload() {
@@ -65,6 +72,8 @@ export default class MapaScene extends Phaser.Scene {
     this.contenedorMapa = document.getElementById('metronet-mapa');
 
     this.contenedorControles = document.getElementById('metronet-panel-controles');
+    this.prepararContenedoresPanel();
+    this.configurarPanelMovil();
 
     this.datosBarrios = this.cache.json.get('barriosMontevideo');
 
@@ -84,17 +93,15 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearControles();
 
-    this.crearLeyendaPuntosInteres();
+    this.crearPanelPuntosInteres();
 
-    this.crearEstadoPuntosInteres();
+    this.crearPanelSeleccionGeografica();
 
     this.crearControlZoom();
 
     this.crearControlSesion();
 
     this.crearEditorRedMetro();
-
-    this.crearEstilosPanelSobrio();
 
     this.ajustarMapa();
 
@@ -108,80 +115,31 @@ export default class MapaScene extends Phaser.Scene {
 
   update() {}
 
-  crearEstilosPanelSobrio() {
-    const id = 'metronet-estilos-panel-sobrio';
+  prepararContenedoresPanel() {
+    this.contenedorSelectoresMapa = this.contenedorControles?.querySelector('[data-contenedor-selectores-mapa]') ?? null;
+    this.contenedorControlesMapa = this.contenedorControles?.querySelector('[data-contenedor-controles-mapa]') ?? null;
+    this.contenedorPuntosInteres = this.contenedorMapa?.querySelector('[data-contenedor-puntos-interes]') ?? null;
+    this.contenedorEditorRed = this.contenedorControles?.querySelector('[data-contenedor-editor-red]') ?? null;
+    this.contenedorConsigna = this.contenedorControles?.querySelector('[data-contenedor-consigna]') ?? null;
+    this.contenedorPieEditor = this.contenedorControles?.querySelector('[data-panel-editor-pie]') ?? null;
+  }
 
-    document.getElementById(id)?.remove();
-
-    const estilos = document.createElement('style');
-    estilos.id = id;
-    estilos.textContent = `
-      #metronet-panel-controles .metronet-panel-dinamico,
-      #metronet-panel-controles .metronet-leyenda-puntos-interes,
-      #metronet-panel-controles .metronet-control-zoom,
-      .metronet-punto-interes-panel {
-        border: 1px solid var(--border) !important;
-        background: var(--panel) !important;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28) !important;
-        color: var(--text-primary) !important;
-      }
-      #metronet-panel-controles .metronet-leyenda-puntos-interes {
-        display: block !important;
-        flex: 0 0 auto;
-        width: 100% !important;
-        min-height: 42px;
-      }
-      #metronet-panel-controles .metronet-leyenda-puntos-interes.metronet-leyenda-abierta {
-        min-height: var(--alto-leyenda-abierta);
-      }
-      #metronet-panel-controles .metronet-panel-encabezado,
-      #metronet-panel-controles .metronet-leyenda-encabezado {
-        display: flex !important;
-        background: var(--panel-elevated) !important;
-        color: var(--text-primary) !important;
-        font-size: 14px !important;
-      }
-      #metronet-panel-controles .metronet-panel-encabezado:hover,
-      #metronet-panel-controles .metronet-leyenda-encabezado:hover {
-        background: var(--info-active) !important;
-        color: var(--text-primary) !important;
-      }
-      #metronet-panel-controles .metronet-panel-contenido,
-      #metronet-panel-controles .metronet-leyenda-contenido {
-        background: var(--panel) !important;
-        border-color: var(--border) !important;
-      }
-      #metronet-panel-controles .metronet-selector-zona-opcion,
-      #metronet-panel-controles .metronet-selector-barrio-opcion,
-      #metronet-panel-controles .metronet-leyenda-referencia,
-      #metronet-panel-controles .metronet-control-zoom-boton {
-        color: var(--text-primary) !important;
-        font-size: 14px !important;
-      }
-      #metronet-panel-controles .metronet-selector-zona-opcion:hover,
-      #metronet-panel-controles .metronet-selector-barrio-opcion:hover,
-      #metronet-panel-controles .metronet-leyenda-referencia:hover,
-      #metronet-panel-controles .metronet-control-zoom-boton:hover {
-        background: var(--panel-elevated) !important;
-      }
-      #metronet-panel-controles input[type="checkbox"] { accent-color: var(--info-active); }
-      #metronet-panel-controles .metronet-leyenda-titulo-seccion,
-      #metronet-panel-controles .metronet-leyenda-indicador,
-      .metronet-punto-interes-titulo,
-      .metronet-punto-interes-tipo,
-      .metronet-punto-interes-descripcion,
-      .metronet-punto-interes-barrio { color: var(--text-primary) !important; }
-      #metronet-panel-controles .metronet-leyenda-marcador {
-        border-color: var(--border-active) !important;
-        background: var(--panel) !important;
-      }
-      @media (max-width: 900px) {
-        #metronet-panel-controles .metronet-leyenda-puntos-interes {
-          grid-column: 1 / -1;
-        }
-      }
-    `;
-    document.head.appendChild(estilos);
+  configurarPanelMovil() {
+    const boton = this.contenedorControles?.querySelector('[data-panel-edicion-toggle]');
+    if (!boton || !this.contenedorControles) return;
+    this.consultaPanelMovil = window.matchMedia('(max-width: 620px)');
+    const actualizar = (colapsado) => {
+      const debeColapsar = this.consultaPanelMovil.matches && colapsado;
+      this.contenedorControles.classList.toggle('metronet-panel-colapsado', debeColapsar);
+      boton.setAttribute('aria-expanded', String(!debeColapsar));
+      boton.textContent = debeColapsar ? 'Editar red' : 'Ocultar';
+      window.requestAnimationFrame(() => this.scale.refresh?.());
+    };
+    actualizar(true);
+    this.manejadorAlternarPanel = () => actualizar(!this.contenedorControles.classList.contains('metronet-panel-colapsado'));
+    this.manejadorCambioPanelMovil = (evento) => actualizar(evento.matches);
+    boton.addEventListener('click', this.manejadorAlternarPanel);
+    this.consultaPanelMovil.addEventListener('change', this.manejadorCambioPanelMovil);
   }
 
   crearCapaMapaBase() {
@@ -213,7 +171,17 @@ export default class MapaScene extends Phaser.Scene {
 
       capaBarrios: this.capaBarrios,
 
-      onCambioSeleccion: (estado) => this.actualizarEstadoPuntosInteres(estado),
+      onCambioSeleccion: () => {},
+
+      onActualizarPuntos: (resumen) => {
+        this.panelPuntosInteres?.actualizar(resumen);
+        this.panelSeleccionGeografica?.actualizar(resumen);
+      },
+
+      onSeleccionarPunto: () => {
+        this.panelSeleccionGeografica?.ocultar();
+        this.panelPuntosInteres?.actualizar(this.capaPuntosInteres?.obtenerResumenPuntos());
+      },
     });
 
     this.capaPuntosInteres.establecerDatos(this.datosPuntosInteres);
@@ -228,6 +196,38 @@ export default class MapaScene extends Phaser.Scene {
     this.capaPuntosInteres.establecerZonasSeleccionadas([]);
 
     this.capaPuntosInteres.establecerBarriosSeleccionados([]);
+  }
+
+  crearPanelPuntosInteres() {
+    if (!this.contenedorPuntosInteres || !this.capaPuntosInteres) {
+      return;
+    }
+
+    this.panelPuntosInteres = new PanelPuntosInteres({
+      contenedorPadre: this.contenedorPuntosInteres,
+      alSeleccionar: (punto) => this.localizarReferencia(punto),
+    });
+
+    this.panelPuntosInteres.crear();
+
+    this.panelPuntosInteres.actualizar(this.capaPuntosInteres.obtenerResumenPuntos());
+  }
+
+  localizarReferencia(referencia, opciones = {}) {
+    this.panelSeleccionGeografica?.ocultar();
+    return this.capaPuntosInteres?.seleccionarPunto(referencia, {
+      ...opciones,
+      enfocar: true,
+      mostrarInformacion: true,
+    }) ?? null;
+  }
+
+  crearPanelSeleccionGeografica() {
+    if (!this.contenedorMapa) return;
+    this.panelSeleccionGeografica = new PanelSeleccionGeografica({
+      contenedorPadre: this.contenedorMapa,
+    });
+    this.panelSeleccionGeografica.crear();
   }
 
   crearCapaIconosBarrios() {
@@ -250,12 +250,19 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   crearEditorRedMetro() {
-    if (!this.contenedorControles || !this.capaRedMetro) return;
+    if (!this.contenedorEditorRed || !this.capaRedMetro) return;
     this.editorRedMetro = new EditorRedMetro(this, {
-      contenedorPadre: this.contenedorControles,
+      contenedorPadre: this.contenedorEditorRed,
+      contenedorConsigna: this.contenedorConsigna,
       capaRedMetro: this.capaRedMetro,
     });
     this.editorRedMetro.crear();
+    const seleccionarElemento = this.capaRedMetro.alSeleccionar;
+    this.capaRedMetro.alSeleccionar = (elemento) => {
+      this.capaPuntosInteres?.ocultarInformacion();
+      this.panelSeleccionGeografica?.ocultar();
+      seleccionarElemento(elemento);
+    };
   }
 
   crearControles() {
@@ -265,6 +272,7 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   crearControlZoom() {
+    const contenedorHerramientas = this.panelPuntosInteres?.obtenerContenedorHerramientas?.();
     this.controlZoom = new ControlZoom(this, {
       capaBarrios: this.capaBarrios,
 
@@ -274,12 +282,30 @@ export default class MapaScene extends Phaser.Scene {
 
       zoomMaximo: 8,
 
-      contenedorPadre: this.contenedorControles,
+      obtenerLimitesAjuste: () => this.obtenerLimitesRed(),
 
-      integrado: true,
+      permitirPan: () => true,
+
+      permitirArrastre: () => this.capaRedMetro?.modo === 'normal',
+
+      permitirArrastrePrimario: () => this.capaRedMetro?.modo === 'normal',
+
+      etiquetaAjustar: 'Ajustar red',
+
+      contenedorPadre: contenedorHerramientas ?? this.contenedorMapa,
+
+      integrado: Boolean(contenedorHerramientas),
+
+      ancladoAlMapa: !contenedorHerramientas,
+
+      mostrarControles: true,
     });
 
     this.controlZoom.crear();
+  }
+
+  obtenerLimitesRed() {
+    return this.capaRedMetro?.obtenerLimitesEstaciones?.() ?? null;
   }
 
   crearControlSesion() {
@@ -287,7 +313,7 @@ export default class MapaScene extends Phaser.Scene {
     const controlSimulacion = document.querySelector('.metronet-control-simulacion');
     const contenedorInformacionJugador = document.getElementById('metronet-informacion-jugador');
 
-    if (!controlSesion || !this.contenedorControles) {
+    if (!controlSesion || !this.contenedorPieEditor) {
       return;
     }
 
@@ -305,10 +331,10 @@ export default class MapaScene extends Phaser.Scene {
     });
 
     if (this.contenedorInformacionJugador) {
-      this.contenedorControles.appendChild(this.contenedorInformacionJugador);
+      this.contenedorPieEditor.appendChild(this.contenedorInformacionJugador);
     }
 
-    this.contenedorControles.appendChild(this.controlSesion);
+    this.contenedorPieEditor.appendChild(this.controlSesion);
   }
 
   async cerrarSesion() {
@@ -334,93 +360,6 @@ export default class MapaScene extends Phaser.Scene {
     window.location.assign('/login.html');
   }
 
-  crearLeyendaPuntosInteres() {
-    const convertirColor = (color) => `#${color.toString(16).padStart(6, '0')}`;
-
-    this.leyendaPuntosInteres = new LeyendaPuntosInteres({
-      contenedorPadre: this.contenedorControles,
-
-      integrado: true,
-
-      referencias: [
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.PATRIMONIO),
-          titulo: 'Patrimonio e historia',
-          descripcion: 'Museos, monumentos, edificios históricos y miradores.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.NATURALEZA),
-          titulo: 'Espacios verdes',
-          descripcion: 'Plazas, parques, jardines y áreas verdes.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.CULTURA),
-          titulo: 'Cultura y recreación',
-          descripcion: 'Teatros, centros culturales y bodegas.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.MOVILIDAD),
-          titulo: 'Movilidad y deporte',
-          descripcion: 'Terminales, estaciones, estadios e hipódromos.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.SALUD),
-          titulo: 'Salud',
-          descripcion: 'Hospitales y centros de atención.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.EDUCACION),
-          titulo: 'Educación',
-          descripcion: 'Universidades, facultades y bibliotecas.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.COMERCIO),
-          titulo: 'Comercio y gastronomía',
-          descripcion: 'Mercados, ferias y áreas comerciales.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.COSTA),
-          titulo: 'Costa y agua',
-          descripcion: 'Playas, ramblas, puertos y lagos.',
-        },
-        {
-          color: convertirColor(COLORES_PUNTOS_INTERES.OTROS),
-          titulo: 'Otros puntos de interés',
-          descripcion: 'Lugares sin una categoría específica.',
-        },
-      ],
-    });
-
-    this.leyendaPuntosInteres.crear();
-  }
-
-  crearEstadoPuntosInteres() {
-    if (!this.contenedorControles) {
-      return;
-    }
-
-    this.mensajePuntosInteres = document.createElement('p');
-    this.mensajePuntosInteres.className = 'metronet-estado-puntos';
-    this.mensajePuntosInteres.setAttribute('role', 'status');
-    this.mensajePuntosInteres.setAttribute('aria-live', 'polite');
-    this.contenedorControles.appendChild(this.mensajePuntosInteres);
-    this.actualizarEstadoPuntosInteres(this.estadoPuntosInteres);
-  }
-
-  actualizarEstadoPuntosInteres(estado) {
-    this.estadoPuntosInteres = estado ?? { haySeleccion: false, cantidadPuntos: 0 };
-
-    if (!this.mensajePuntosInteres) {
-      return;
-    }
-
-    const sinPuntos = this.estadoPuntosInteres.haySeleccion && this.estadoPuntosInteres.cantidadPuntos === 0;
-    this.mensajePuntosInteres.hidden = !sinPuntos;
-    this.mensajePuntosInteres.textContent = sinPuntos
-      ? 'La selección no tiene puntos de interés registrados.'
-      : '';
-  }
-
   crearSelectorZonas() {
     this.selectorZonas = new SelectorZonas({
       id: 'metronet-selector-zonas',
@@ -435,7 +374,7 @@ export default class MapaScene extends Phaser.Scene {
         right: 196,
       },
 
-      contenedorPadre: this.contenedorControles,
+      contenedorPadre: this.contenedorSelectoresMapa ?? this.contenedorControlesMapa,
 
       integrado: true,
 
@@ -457,7 +396,9 @@ export default class MapaScene extends Phaser.Scene {
          * Actualizamos la lista
          * de barrios.
          */
-        this.actualizarBarriosSegunZonas(zonasSeleccionadas);
+        const barriosSeleccionados = this.actualizarBarriosSegunZonas(zonasSeleccionadas);
+
+        this.capaBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
 
         /*
          * IMPORTANTE:
@@ -473,7 +414,7 @@ export default class MapaScene extends Phaser.Scene {
            * conservar una selección
            * anterior de barrios.
            */
-          this.capaPuntosInteres.establecerBarriosSeleccionados([]);
+          this.capaPuntosInteres.establecerBarriosSeleccionados(barriosSeleccionados);
         }
 
         /*
@@ -483,8 +424,10 @@ export default class MapaScene extends Phaser.Scene {
         if (this.capaIconosBarrios) {
           this.capaIconosBarrios.establecerZonasSeleccionadas(zonasSeleccionadas);
 
-          this.capaIconosBarrios.establecerBarriosSeleccionados([]);
+          this.capaIconosBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
         }
+
+        this.actualizarInformacionSeleccionGeografica('zona', zonasSeleccionadas);
 
         /*
          * Zoom automático de la zona.
@@ -518,7 +461,7 @@ export default class MapaScene extends Phaser.Scene {
         right: 8,
       },
 
-      contenedorPadre: this.contenedorControles,
+      contenedorPadre: this.contenedorSelectoresMapa ?? this.contenedorControlesMapa,
 
       integrado: true,
 
@@ -547,6 +490,8 @@ export default class MapaScene extends Phaser.Scene {
           this.capaIconosBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
         }
 
+        this.actualizarInformacionSeleccionGeografica('barrio', barriosSeleccionados);
+
         /*
          * Zoom automático.
          */
@@ -563,6 +508,25 @@ export default class MapaScene extends Phaser.Scene {
     this.selectorBarrios.crear(barrios);
   }
 
+  actualizarInformacionSeleccionGeografica(tipo, nombres) {
+    const seleccion = Array.isArray(nombres) ? nombres.filter(Boolean) : [];
+    const zonasSeleccionadas = this.capaZonas?.obtenerZonasSeleccionadas?.() ?? [];
+    if (!seleccion.length) {
+      if (tipo === 'barrio' && zonasSeleccionadas.length) {
+        this.actualizarInformacionSeleccionGeografica('zona', zonasSeleccionadas);
+      } else {
+        this.panelSeleccionGeografica?.ocultar();
+      }
+      return;
+    }
+    this.capaPuntosInteres?.ocultarInformacion();
+    this.panelSeleccionGeografica?.mostrar({
+      tipo,
+      nombres: seleccion,
+      resumen: this.capaPuntosInteres?.obtenerResumenPuntos(),
+    });
+  }
+
   actualizarBarriosSegunZonas(zonas) {
     if (!this.selectorBarrios || !this.capaBarrios) {
       return;
@@ -571,9 +535,9 @@ export default class MapaScene extends Phaser.Scene {
     if (!Array.isArray(zonas) || zonas.length === 0) {
       const todosLosBarrios = this.capaBarrios.obtenerNombres();
 
-      this.selectorBarrios.establecerBarrios(todosLosBarrios);
-
-      return;
+      return this.selectorBarrios.establecerBarrios(todosLosBarrios, {
+        limpiarSeleccion: true,
+      });
     }
 
     const barrios = this.capaBarrios.obtenerBarrios();
@@ -586,10 +550,12 @@ export default class MapaScene extends Phaser.Scene {
       })
       .map((barrio) => barrio.nombre);
 
-    this.selectorBarrios.establecerBarrios(barriosFiltrados);
+    return this.selectorBarrios.establecerBarrios(barriosFiltrados, {
+      limpiarSeleccion: true,
+    });
   }
 
-  ajustarMapa() {
+  ajustarMapa({ actualizarControlZoom = true } = {}) {
     if (!this.capaBarrios) {
       return;
     }
@@ -606,24 +572,33 @@ export default class MapaScene extends Phaser.Scene {
 
     this.capaRedMetro?.actualizarTamano();
 
-    if (this.controlZoom) {
+    if (actualizarControlZoom && this.controlZoom) {
       this.controlZoom.actualizar();
     }
   }
 
   actualizarTamano() {
+    const vistaAnterior = this.controlZoom?.capturarVista();
+
     if (this.capaMapaBase) {
       this.capaMapaBase.actualizar();
     }
 
-    this.ajustarMapa();
+    this.ajustarMapa({ actualizarControlZoom: false });
+
+    this.controlZoom?.restaurarVistaTrasRedimension(vistaAnterior, this.obtenerLimitesRed());
 
   }
 
   limpiar() {
     this.scale.off('resize', this.manejadorResize);
     this.manejadorResize = null;
-    document.getElementById('metronet-estilos-panel-sobrio')?.remove();
+    const botonAlternarPanel = this.contenedorControles?.querySelector('[data-panel-edicion-toggle]');
+    botonAlternarPanel?.removeEventListener('click', this.manejadorAlternarPanel);
+    this.manejadorAlternarPanel = null;
+    this.consultaPanelMovil?.removeEventListener('change', this.manejadorCambioPanelMovil);
+    this.consultaPanelMovil = null;
+    this.manejadorCambioPanelMovil = null;
     this.editorRedMetro?.eliminar();
     this.editorRedMetro = null;
 
@@ -648,11 +623,11 @@ export default class MapaScene extends Phaser.Scene {
       this.controlZoom = null;
     }
 
-    if (this.leyendaPuntosInteres) {
-      this.leyendaPuntosInteres.eliminar();
+    this.panelPuntosInteres?.eliminar();
+    this.panelPuntosInteres = null;
 
-      this.leyendaPuntosInteres = null;
-    }
+    this.panelSeleccionGeografica?.eliminar();
+    this.panelSeleccionGeografica = null;
 
     if (this.capaIconosBarrios) {
       this.capaIconosBarrios.eliminar();
@@ -685,7 +660,12 @@ export default class MapaScene extends Phaser.Scene {
     }
 
     this.contenedorMapa = null;
-
     this.contenedorControles = null;
+    this.contenedorSelectoresMapa = null;
+    this.contenedorControlesMapa = null;
+    this.contenedorPuntosInteres = null;
+    this.contenedorEditorRed = null;
+    this.contenedorConsigna = null;
+    this.contenedorPieEditor = null;
   }
 }

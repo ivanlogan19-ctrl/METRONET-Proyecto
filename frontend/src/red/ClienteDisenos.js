@@ -40,7 +40,7 @@ export default class ClienteDisenos {
 
   listar() { return this.solicitar(); }
   obtener(idDiseno) { return this.solicitar(`/${idDiseno}`); }
-  validar(idDiseno) { return this.solicitar(`/${idDiseno}/validacion`); }
+  validar(idDiseno) { return this.solicitar(`/${idDiseno}/validacion`, { method: 'POST' }); }
   ejecutar(idDiseno, datos) {
     return this.solicitar(`/${idDiseno}/ejecutar`, {
       method: 'POST',

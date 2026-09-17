@@ -10,6 +10,8 @@ module.exports = defineConfig({
         mapa: path.resolve(__dirname, 'index.html'),
         login: path.resolve(__dirname, 'login.html'),
         recuperarContrasena: path.resolve(__dirname, 'recuperar-contrasena.html'),
+        verificarCodigo: path.resolve(__dirname, 'verificar-codigo.html'),
+        nuevaContrasena: path.resolve(__dirname, 'nueva-contrasena.html'),
         registro: path.resolve(__dirname, 'registro.html'),
         perfil: path.resolve(__dirname, 'perfil.html'),
         privacidad: path.resolve(__dirname, 'privacidad.html'),

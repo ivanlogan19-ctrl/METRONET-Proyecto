@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Administración · METRONET</title>
-    <link rel="stylesheet" href="/src/administracion/administracion.css" />
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
+    <link rel="stylesheet" href="/src/administracion/administracion.css" />
   </head>
   <body class="metronet-pagina-navegable">
     <div data-navegacion-global></div>
@@ -16,9 +16,15 @@
           href="/admin.html"
           aria-label="Inicio de administración"
         >
-          <span>Gestión de administración</span>
+          <span
+            class="admin-marca__logo"
+            data-metronet-logo
+            data-logo-alternativo="Logo de METRONET"
+          ></span>
+          <span class="admin-marca__texto">Gestión de administración</span>
         </a>
         <nav class="admin-navegacion" aria-label="Módulos de administración">
+          <p class="admin-navegacion__etiqueta">Módulos</p>
           <button
             class="admin-enlace activo"
             type="button"
@@ -35,10 +41,8 @@
           <button class="admin-enlace" type="button" data-vista="actividad">
             Actividad reciente
           </button>
-          <a class="admin-enlace admin-volver-mapa" href="/simulacion.html">Crear simulación</a>
-          <a class="admin-enlace admin-volver-mapa" href="/">Vista del mapa</a>
         </nav>
-        <div class="admin-menu-pie">
+        <div class="admin-menu-pie" hidden>
           <button id="cerrarSesion" class="admin-cerrar-sesion" type="button">
             Cerrar sesión
           </button>
@@ -95,16 +99,6 @@
               <tbody id="tablaUsuarios"></tbody>
             </table>
           </div>
-          <section class="admin-solicitudes-recuperacion">
-            <h2>Solicitudes de recuperación de contraseña</h2>
-            <p id="mensajeRecuperaciones" class="admin-mensaje" role="status" aria-live="polite"></p>
-            <div class="admin-tabla-contenedor">
-              <table class="admin-tabla">
-                <thead><tr><th>Usuario</th><th>Correo electrónico</th><th>Estado</th><th>Acción</th></tr></thead>
-                <tbody id="tablaRecuperaciones"></tbody>
-              </table>
-            </div>
-          </section>
         </section>
 
         <section id="vista-disenos" class="admin-vista">

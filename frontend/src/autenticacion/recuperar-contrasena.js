@@ -1,4 +1,5 @@
-import { establecerCarga, mostrarMensaje, obtenerUrlAutenticacion, validarFormulario } from "./ui.js";
+import { establecerCarga, mostrarMensaje, validarFormulario } from './ui.js';
+import { limpiarContextoRecuperacion, solicitarCodigoRecuperacion } from './recuperacionContrasena.js';
 
 const formulario = document.getElementById("formularioRecuperacion");
 const boton = document.getElementById("botonRecuperar");
@@ -19,14 +20,13 @@ formulario.addEventListener("submit", async (evento) => {
 
   try {
     establecerCarga(boton, true);
-    const respuesta = await fetch(`${obtenerUrlAutenticacion()}/recuperar-contrasena`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (!respuesta.ok) throw new Error("No fue posible registrar la solicitud.");
-    formulario.reset();
-    mostrarMensaje("Si la cuenta existe, la solicitud fue enviada al administrador.");
+    limpiarContextoRecuperacion();
+    await solicitarCodigoRecuperacion(email);
+    mostrarMensaje('Si existe una cuenta asociada a ese correo, recibirás un código para recuperar tu contraseña.');
+
+    window.setTimeout(() => {
+      window.location.assign('/verificar-codigo.html');
+    }, 700);
   } catch (error) {
     mostrarMensaje(error.message, "error");
   } finally {

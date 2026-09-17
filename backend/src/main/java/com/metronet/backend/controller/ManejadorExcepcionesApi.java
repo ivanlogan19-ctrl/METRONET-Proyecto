@@ -1,5 +1,6 @@
 package com.metronet.backend.controller;
 
+import com.metronet.backend.service.ErrorEnvioCorreoException;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,11 @@ public class ManejadorExcepcionesApi {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> manejarDatosInvalidos(IllegalArgumentException excepcion) {
         return respuesta(HttpStatus.BAD_REQUEST, excepcion.getMessage());
+    }
+
+    @ExceptionHandler(ErrorEnvioCorreoException.class)
+    public ResponseEntity<Map<String, String>> manejarErrorCorreo(ErrorEnvioCorreoException excepcion) {
+        return respuesta(HttpStatus.SERVICE_UNAVAILABLE, "La recuperación de contraseña no está disponible en este momento. Intentá más tarde.");
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, DataIntegrityViolationException.class})

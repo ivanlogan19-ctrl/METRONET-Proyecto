@@ -9,13 +9,16 @@
   <body class="metronet-pagina-navegable">
     <div data-navegacion-global></div>
     <main class="metronet-inicio" aria-labelledby="tituloInicio">
-      <section class="metronet-inicio__presentacion">
+      <header class="metronet-inicio__presentacion metronet-inicio__cabecera">
         <p class="metronet-inicio__etiqueta">Simulador educativo de red de metro</p>
-        <h1 id="tituloInicio">Inicio</h1>
-        <p>Elegí una actividad para continuar con tu progreso, diseñar una red o consultar una simulación guardada.</p>
+        <h1 id="tituloInicio">Bienvenido a METRONET</h1>
+        <p id="descripcionInicio">Retomá tu aprendizaje, elegí un desafío o explorá una red propia desde un mismo punto de partida.</p>
+      </header>
+      <section class="metronet-inicio__contenido" aria-label="Acciones de inicio">
+        <p id="mensajeInicio" class="metronet-inicio__mensaje" role="status" aria-live="polite" hidden></p>
+        <p id="estadoInicio" class="metronet-inicio__estado-carga" role="status" aria-live="polite">Cargando tu progreso…</p>
+        <section id="accionesInicio" class="metronet-inicio__tablero" aria-label="Resumen del recorrido" aria-busy="true"></section>
       </section>
-      <p id="mensajeInicio" class="metronet-inicio__mensaje" role="status" aria-live="polite"></p>
-      <section id="accionesInicio" class="metronet-inicio__acciones" aria-label="Acciones disponibles"></section>
     </main>
     <script type="module" src="/src/navegacion/inicio.js"></script>
   </body>

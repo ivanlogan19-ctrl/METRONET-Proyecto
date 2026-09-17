@@ -10,22 +10,12 @@ metronet
 
 2. Abrir una conexión a esa base.
 
-3. Ejecutar este archivo completo.
+ 3. Ejecutar este archivo completo en una base nueva.
+
+ Este script no borra tablas existentes. Para reiniciar una base de desarrollo,
+ usar una operación explícita y separada sobre una base descartable.
 =========================================================
 */ 
-
--- Limpieza
-
-DROP TABLE IF EXISTS simulacion CASCADE;
-DROP TABLE IF EXISTS metro CASCADE;
-DROP TABLE IF EXISTS pasa CASCADE;
-DROP TABLE IF EXISTS estacion CASCADE;
-DROP TABLE IF EXISTS linea CASCADE;
-DROP TABLE IF EXISTS intento CASCADE;
-DROP TABLE IF EXISTS escenario CASCADE;
-DROP TABLE IF EXISTS diseno CASCADE;
-DROP TABLE IF EXISTS solicitud_recuperacion_contrasena CASCADE;
-DROP TABLE IF EXISTS usuario CASCADE;
 
 CREATE TABLE usuario (
   id_usuario SERIAL PRIMARY KEY,
@@ -34,15 +24,28 @@ CREATE TABLE usuario (
   password VARCHAR(255) NOT NULL,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   rol VARCHAR(20) NOT NULL,
+  numero_campana_actual INTEGER NOT NULL DEFAULT 1,
+  campana_completada_historicamente BOOLEAN NOT NULL DEFAULT FALSE,
 
   CONSTRAINT chk_usuario_rol
-  CHECK (rol IN ('ADMIN', 'JUGADOR'))
+  CHECK (rol IN ('ADMIN', 'JUGADOR')),
+
+  CONSTRAINT chk_usuario_numero_campana_actual
+  CHECK (numero_campana_actual > 0)
 );
 
 CREATE TABLE solicitud_recuperacion_contrasena (
   id_solicitud SERIAL PRIMARY KEY,
   id_usuario INTEGER NOT NULL,
   fecha_solicitud TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  codigo_hash VARCHAR(255),
+  token_recuperacion_hash VARCHAR(255),
+  fecha_expiracion TIMESTAMP,
+  fecha_ultimo_envio TIMESTAMP,
+  fecha_verificacion TIMESTAMP,
+  fecha_expiracion_autorizacion TIMESTAMP,
+  intentos_fallidos INTEGER NOT NULL DEFAULT 0,
+  utilizado BOOLEAN NOT NULL DEFAULT FALSE,
   estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
 
   CONSTRAINT fk_solicitud_recuperacion_usuario
@@ -51,8 +54,14 @@ CREATE TABLE solicitud_recuperacion_contrasena (
   ON DELETE CASCADE,
 
   CONSTRAINT chk_solicitud_recuperacion_estado
-  CHECK (estado IN ('PENDIENTE', 'ATENDIDA'))
+  CHECK (estado IN ('PENDIENTE', 'VERIFICADA', 'UTILIZADA', 'VENCIDA', 'BLOQUEADA', 'INVALIDADA', 'ATENDIDA'))
 );
+
+CREATE INDEX idx_recuperacion_contrasena_usuario_fecha
+  ON solicitud_recuperacion_contrasena (id_usuario, fecha_solicitud DESC);
+
+CREATE INDEX idx_recuperacion_contrasena_estado_expiracion
+  ON solicitud_recuperacion_contrasena (estado, fecha_expiracion);
 
 CREATE TABLE configuracion (
   clave VARCHAR(100) PRIMARY KEY,
@@ -107,6 +116,7 @@ CREATE TABLE intento (
   id_usuario INTEGER NOT NULL,
   id_escenario INTEGER NOT NULL,
   id_diseno INTEGER NOT NULL UNIQUE,
+  numero_campana INTEGER NOT NULL DEFAULT 1,
   estado VARCHAR(50),
   puntaje INTEGER,
 
@@ -126,8 +136,14 @@ CREATE TABLE intento (
   ON DELETE CASCADE,
 
   CONSTRAINT chk_intento_puntaje
-  CHECK (puntaje IS NULL OR puntaje >= 0)
+  CHECK (puntaje IS NULL OR puntaje >= 0),
+
+  CONSTRAINT chk_intento_numero_campana
+  CHECK (numero_campana > 0)
 );
+
+CREATE INDEX idx_intento_usuario_campana_escenario
+  ON intento (id_usuario, numero_campana, id_escenario, id_intento DESC);
 
 CREATE TABLE linea (
   id_diseno INTEGER NOT NULL,

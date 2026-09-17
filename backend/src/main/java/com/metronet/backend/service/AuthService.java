@@ -198,6 +198,16 @@ public class AuthService {
         invalidarSesionesDeUsuario(usuario.getIdUsuario());
     }
 
+    public void cambiarContrasenaPorRecuperacion(Usuario usuario, String nuevaContrasena) {
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La autorización para cambiar la contraseña no es válida.");
+        }
+        validarContrasena(nuevaContrasena);
+        usuario.setPassword(passwordEncoder.encode(nuevaContrasena));
+        usuarioRepository.save(usuario);
+        invalidarSesionesDeUsuario(usuario.getIdUsuario());
+    }
+
     public void cerrarSesionUsuario(String autorizacion) {
         if (autorizacion != null && autorizacion.startsWith("Bearer ")) {
             sesionesUsuario.remove(autorizacion.substring(7).trim());

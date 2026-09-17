@@ -6,9 +6,11 @@ import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
+@Profile("!test")
 public class MigradorContrasenasLegadas {
     @Bean
     CommandLineRunner migrarContrasenasLegadas(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {

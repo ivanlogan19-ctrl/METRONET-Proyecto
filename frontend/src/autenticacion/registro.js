@@ -1,6 +1,7 @@
 import {
   activarVisibilidadContrasena,
   establecerCarga,
+  esContrasenaValida,
   mostrarMensaje,
   obtenerMensajeError,
   obtenerUrlAutenticacion,
@@ -80,11 +81,3 @@ formulario.addEventListener("submit", async (evento) => {
     establecerCarga(botonRegistrar, false);
   }
 });
-
-function esContrasenaValida(contrasena) {
-  return (
-    contrasena.length >= 6 &&
-    /[A-Z]/.test(contrasena) &&
-    /[^A-Za-z0-9]/.test(contrasena)
-  );
-}

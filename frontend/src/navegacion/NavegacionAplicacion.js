@@ -11,6 +11,7 @@ const ETAPAS_FLUJO = [
 
 let controlCambios = null;
 let confirmarSalida = null;
+let limpiarEventosUsuario = null;
 
 function obtenerNombreUsuario(sesion) {
   const usuario = sesion?.usuario ?? {};
@@ -100,6 +101,8 @@ async function cerrarSesion(sesion) {
 export function inicializarNavegacion({ actual, etapa } = {}) {
   const marcador = document.querySelector('[data-navegacion-global]');
   const sesion = obtenerSesionActiva();
+  limpiarEventosUsuario?.();
+  limpiarEventosUsuario = null;
   if (!marcador || !sesion) return null;
   const contexto = obtenerContextoRuta();
   const cabecera = document.createElement('header');
@@ -121,7 +124,9 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   if (sesion.usuario?.rol === 'ADMIN') enlaces.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
   const usuario = document.createElement('details');
   usuario.className = 'metronet-navegacion__usuario';
-  usuario.innerHTML = `<summary>${obtenerNombreUsuario(sesion)}</summary>`;
+  const resumenUsuario = document.createElement('summary');
+  resumenUsuario.textContent = obtenerNombreUsuario(sesion);
+  usuario.append(resumenUsuario);
   const menuUsuario = document.createElement('div');
   menuUsuario.className = 'metronet-navegacion__menu-usuario';
   menuUsuario.append(
@@ -139,6 +144,20 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   botonCerrar.addEventListener('click', () => cerrarSesion(sesion));
   menuUsuario.append(botonCerrar);
   usuario.append(menuUsuario);
+  const cerrarMenuAlHacerClicFuera = (evento) => {
+    if (!usuario.contains(evento.target)) usuario.removeAttribute('open');
+  };
+  const cerrarMenuConEscape = (evento) => {
+    if (evento.key !== 'Escape' || !usuario.open) return;
+    usuario.removeAttribute('open');
+    resumenUsuario.focus();
+  };
+  document.addEventListener('click', cerrarMenuAlHacerClicFuera);
+  document.addEventListener('keydown', cerrarMenuConEscape);
+  limpiarEventosUsuario = () => {
+    document.removeEventListener('click', cerrarMenuAlHacerClicFuera);
+    document.removeEventListener('keydown', cerrarMenuConEscape);
+  };
   cabecera.append(inicio, enlaces, usuario);
   cabecera.addEventListener('click', (evento) => {
     const enlace = evento.target.closest('a[data-navegacion]');

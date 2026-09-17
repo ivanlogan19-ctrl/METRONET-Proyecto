@@ -25,6 +25,8 @@ const formularioContrasena = document.getElementById('contrasenaForm');
 const botonDatosPersonales = document.getElementById('guardarDatosPersonales');
 const botonCorreo = document.getElementById('guardarCorreo');
 const botonContrasena = document.getElementById('guardarContrasena');
+const contenedorPerfil = document.querySelector('.perfil-contenedor');
+const estadoCargaPerfil = document.getElementById('estadoCargaPerfil');
 let perfilInicial = null;
 
 if (!sesion) {
@@ -60,6 +62,7 @@ function registrarEventos() {
 }
 
 async function cargarPerfil() {
+  establecerCargaPerfil(true);
   try {
     const respuesta = await solicitar('/perfil');
     perfilInicial = {
@@ -76,7 +79,14 @@ async function cargarPerfil() {
     actualizarSesion(respuesta);
   } catch (error) {
     manejarErrorSesion(error);
+  } finally {
+    establecerCargaPerfil(false);
   }
+}
+
+function establecerCargaPerfil(cargando) {
+  contenedorPerfil?.setAttribute('aria-busy', String(cargando));
+  if (estadoCargaPerfil) estadoCargaPerfil.hidden = !cargando;
 }
 
 async function guardarDatosPersonales() {

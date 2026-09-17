@@ -99,13 +99,68 @@ public class DisenoAdministracionService {
 
     @Transactional
     public void eliminarDiseno(Integer idDiseno) {
-        Integer idEscenario = jdbcTemplate.query("SELECT id_escenario FROM intento WHERE id_diseno = ?", (resultado, fila) -> resultado.getInt("id_escenario"), idDiseno)
-            .stream().findFirst().orElseThrow(() -> noEncontrado("No existe el diseño solicitado"));
-        jdbcTemplate.update("DELETE FROM escenario WHERE id_escenario = ?", idEscenario);
+        Boolean existeDiseno = jdbcTemplate.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM diseno WHERE id_diseno = ?)",
+            Boolean.class,
+            idDiseno
+        );
+        if (!Boolean.TRUE.equals(existeDiseno)) {
+            throw noEncontrado("No existe el diseño solicitado");
+        }
+        verificarDisenoEditable(idDiseno);
+        List<Integer> escenariosNoProgresivos = obtenerEscenariosNoProgresivosRelacionados(idDiseno);
         jdbcTemplate.update("DELETE FROM diseno WHERE id_diseno = ?", idDiseno);
+        eliminarEscenariosSinIntentos(escenariosNoProgresivos);
+    }
+
+    public void verificarDisenoEditable(Integer idDiseno) {
+        Boolean logroProtegido = jdbcTemplate.queryForObject("""
+            SELECT EXISTS (
+                SELECT 1
+                FROM intento intento
+                JOIN escenario escenarioJuego ON escenarioJuego.id_escenario = intento.id_escenario
+                WHERE intento.id_diseno = ?
+                  AND escenarioJuego.progresivo = TRUE
+                  AND intento.estado = 'COMPLETADO'
+            )
+            """, Boolean.class, idDiseno);
+        if (Boolean.TRUE.equals(logroProtegido)) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "El diseño pertenece a un escenario progresivo completado y quedó bloqueado para conservar el logro."
+            );
+        }
+    }
+
+    private List<Integer> obtenerEscenariosNoProgresivosRelacionados(Integer idDiseno) {
+        return jdbcTemplate.query("""
+            SELECT DISTINCT e.id_escenario
+            FROM escenario e
+            WHERE COALESCE(e.progresivo, FALSE) = FALSE
+              AND (
+                  e.id_diseno_base = ?
+                  OR e.id_escenario IN (
+                      SELECT i.id_escenario FROM intento i WHERE i.id_diseno = ?
+                  )
+              )
+            """, (resultado, fila) -> resultado.getInt("id_escenario"), idDiseno, idDiseno);
+    }
+
+    private void eliminarEscenariosSinIntentos(List<Integer> idsEscenario) {
+        for (Integer idEscenario : idsEscenario) {
+            jdbcTemplate.update("""
+                DELETE FROM escenario
+                WHERE id_escenario = ?
+                  AND COALESCE(progresivo, FALSE) = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM intento WHERE id_escenario = ?
+                  )
+                """, idEscenario, idEscenario);
+        }
     }
 
     public void crearLinea(Integer idDiseno, CrearLineaAdministracionRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre de línea válido");
 
         if (existeLinea(idDiseno, nombre)) {
@@ -116,6 +171,7 @@ public class DisenoAdministracionService {
     }
 
     public void crearEstacion(Integer idDiseno, CrearEstacionAdministracionRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         if (solicitud == null || solicitud.posicionX() == null || solicitud.posicionY() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una posición válida para la estación");
         }
@@ -133,6 +189,7 @@ public class DisenoAdministracionService {
     }
 
     public void crearConexion(Integer idDiseno, CrearConexionRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         if (solicitud == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una conexión válida");
         }
@@ -153,6 +210,7 @@ public class DisenoAdministracionService {
 
     @Transactional
     public void crearTramo(Integer idDiseno, ActualizarTramoRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         DatosTramo tramo = validarTramo(idDiseno, solicitud);
         if (existeTramo(idDiseno, tramo.nombreLinea(), tramo.estacionA(), tramo.estacionB())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "La conexión entre esas estaciones ya existe en la línea");
@@ -173,6 +231,7 @@ public class DisenoAdministracionService {
         String estacionBActual,
         ActualizarTramoRequest solicitud
     ) {
+        verificarDisenoEditable(idDiseno);
         DatosTramo tramo = validarTramo(idDiseno, solicitud);
         if (!representaMismoTramo(
             nombreLineaActual,
@@ -195,6 +254,7 @@ public class DisenoAdministracionService {
     }
 
     public void eliminarTramo(Integer idDiseno, String nombreLinea, String estacionA, String estacionB) {
+        verificarDisenoEditable(idDiseno);
         if (jdbcTemplate.update("""
             DELETE FROM tramo WHERE id_diseno = ? AND nombre_linea = ? AND nombre_estacion_a = ? AND nombre_estacion_b = ?
             """, idDiseno, nombreLinea, estacionA, estacionB) == 0) {
@@ -203,6 +263,7 @@ public class DisenoAdministracionService {
     }
 
     public UnidadMetroResponse crearUnidadMetro(Integer idDiseno, ActualizarUnidadMetroRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         DatosUnidadMetro unidad = validarUnidadMetro(idDiseno, solicitud);
         Integer idTren = jdbcTemplate.queryForObject("""
             INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio)
@@ -212,6 +273,7 @@ public class DisenoAdministracionService {
     }
 
     public void actualizarUnidadMetro(Integer idDiseno, Integer idTren, ActualizarUnidadMetroRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         DatosUnidadMetro unidad = validarUnidadMetro(idDiseno, solicitud);
         if (jdbcTemplate.update("""
             UPDATE metro SET nombre_linea = ?, capacidad = ?, velocidad_promedio = ?
@@ -222,6 +284,7 @@ public class DisenoAdministracionService {
     }
 
     public void eliminarUnidadMetro(Integer idDiseno, Integer idTren) {
+        verificarDisenoEditable(idDiseno);
         if (jdbcTemplate.update("DELETE FROM metro WHERE id_diseno = ? AND id_tren = ?", idDiseno, idTren) == 0) {
             throw noEncontrado("No existe la unidad de metro solicitada");
         }
@@ -229,6 +292,7 @@ public class DisenoAdministracionService {
 
     @Transactional
     public void actualizarLinea(Integer idDiseno, String nombreActual, ActualizarLineaRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         String nuevoNombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre de línea válido");
         verificarLinea(idDiseno, nombreActual);
 
@@ -251,6 +315,7 @@ public class DisenoAdministracionService {
     }
 
     public void eliminarLinea(Integer idDiseno, String nombreLinea) {
+        verificarDisenoEditable(idDiseno);
         if (jdbcTemplate.update("DELETE FROM linea WHERE id_diseno = ? AND nombre = ?", idDiseno, nombreLinea) == 0) {
             throw noEncontrado("No existe la línea solicitada");
         }
@@ -258,6 +323,7 @@ public class DisenoAdministracionService {
 
     @Transactional
     public void actualizarEstacion(Integer idDiseno, String nombreActual, ActualizarEstacionRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         if (solicitud == null || solicitud.posicionX() == null || solicitud.posicionY() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una posición válida para la estación");
         }
@@ -288,12 +354,14 @@ public class DisenoAdministracionService {
     }
 
     public void eliminarEstacion(Integer idDiseno, String nombreEstacion) {
+        verificarDisenoEditable(idDiseno);
         if (jdbcTemplate.update("DELETE FROM estacion WHERE id_diseno = ? AND nombre = ?", idDiseno, nombreEstacion) == 0) {
             throw noEncontrado("No existe la estación solicitada");
         }
     }
 
     public void actualizarConexion(Integer idDiseno, String nombreLineaActual, String nombreEstacionActual, ActualizarConexionRequest solicitud) {
+        verificarDisenoEditable(idDiseno);
         if (solicitud == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una conexión válida");
         }
@@ -312,6 +380,7 @@ public class DisenoAdministracionService {
     }
 
     public void eliminarConexion(Integer idDiseno, String nombreLinea, String nombreEstacion) {
+        verificarDisenoEditable(idDiseno);
         if (jdbcTemplate.update("DELETE FROM pasa WHERE id_diseno = ? AND nombre_linea = ? AND nombre_estacion = ?", idDiseno, nombreLinea, nombreEstacion) == 0) {
             throw noEncontrado("No existe la conexión solicitada");
         }

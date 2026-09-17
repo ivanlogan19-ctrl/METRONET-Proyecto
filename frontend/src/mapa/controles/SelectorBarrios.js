@@ -282,18 +282,23 @@ export default class SelectorBarrios {
     this.panel.cerrarContenido();
   }
 
-  establecerBarrios(barrios = []) {
+  establecerBarrios(barrios = [], opciones = {}) {
     this.barrios = [...barrios];
 
-    const barriosDisponibles = new Set(this.barrios.map((barrio) => normalizarBarrio(barrio)));
+    if (opciones.limpiarSeleccion) {
+      this.barriosSeleccionados.clear();
+    } else {
+      const barriosDisponibles = new Set(this.barrios.map((barrio) => normalizarBarrio(barrio)));
+      const seleccionActual = [...this.barriosSeleccionados];
 
-    const seleccionActual = [...this.barriosSeleccionados];
-
-    this.barriosSeleccionados = new Set(
-      seleccionActual.filter((barrio) => barriosDisponibles.has(normalizarBarrio(barrio))),
-    );
+      this.barriosSeleccionados = new Set(
+        seleccionActual.filter((barrio) => barriosDisponibles.has(normalizarBarrio(barrio))),
+      );
+    }
 
     this.actualizarLista();
+
+    return this.obtenerSeleccion();
   }
 
   actualizarLista() {
@@ -364,132 +369,48 @@ export default class SelectorBarrios {
     style.id = 'metronet-selector-barrios-styles';
 
     style.textContent = `
-
-            .metronet-selector-barrios-lista {
-
-                display:
-                    flex;
-
-                flex-direction:
-                    column;
-
-                gap:
-                    2px;
-
-                max-height:
-                    250px;
-
-                overflow-y:
-                    auto;
-
-                overflow-x:
-                    hidden;
-            }
-
-            .metronet-selector-barrio-opcion {
-
-                display:
-                    flex;
-
-                align-items:
-                    center;
-
-                gap:
-                    8px;
-
-                padding:
-                    8px;
-
-                color:
-                    #F8FBFF;
-
-                font-family:
-                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-
-                font-size:
-                    13px;
-
-                line-height:
-                    18px;
-
-                font-weight:
-                    500;
-
-                border-radius:
-                    8px;
-
-                transition:
-                    background 0.14s ease,
-                    color 0.14s ease;
-
-                cursor:
-                    pointer;
-
-                user-select:
-                    none;
-            }
-
-            .metronet-selector-barrio-opcion:hover {
-
-                background:
-                    rgba(
-                        53,
-                        183,
-                        243,
-                        0.18
-                    );
-            }
-
-            .metronet-selector-barrio-opcion:has(input:checked) {
-
-                background:
-                    rgba(
-                        60,
-                        186,
-                        239,
-                        0.24
-                    );
-
-                color:
-                    #F8FBFF;
-            }
-
-            .metronet-selector-barrio-opcion input {
-
-                width:
-                    13px;
-
-                height:
-                    13px;
-
-                margin:
-                    0;
-
-                flex-shrink:
-                    0;
-
-                cursor:
-                    pointer;
-
-                accent-color:
-                    #49C3F2;
-            }
-
-            .metronet-selector-barrios-lista::-webkit-scrollbar {
-
-                width:
-                    6px;
-            }
-
-            .metronet-selector-barrios-lista::-webkit-scrollbar-thumb {
-
-                background:
-                    rgba(155, 200, 255, 0.42);
-
-                border-radius:
-                    99px;
-            }
-        `;
+      .metronet-selector-barrios-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 250px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-color: var(--border-active) transparent;
+        scrollbar-width: thin;
+      }
+      .metronet-selector-barrio-opcion {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: var(--radius-sm, 5px);
+        color: var(--text-primary);
+        font: 600 13px/18px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+        cursor: pointer;
+        user-select: none;
+      }
+      .metronet-selector-barrio-opcion:hover {
+        background: color-mix(in srgb, var(--info-active) 12%, var(--panel-elevated));
+      }
+      .metronet-selector-barrio-opcion:has(input:checked) {
+        color: var(--text-primary);
+        background: color-mix(in srgb, var(--info-active) 20%, var(--panel-elevated));
+      }
+      .metronet-selector-barrio-opcion input {
+        flex: 0 0 auto;
+        width: 13px;
+        height: 13px;
+        margin: 0;
+        cursor: pointer;
+        accent-color: var(--info-active);
+      }
+      .metronet-selector-barrios-lista::-webkit-scrollbar { width: 6px; }
+      .metronet-selector-barrios-lista::-webkit-scrollbar-thumb {
+        border-radius: 99px;
+        background: var(--border-active);
+      }
+    `;
 
     document.head.appendChild(style);
   }

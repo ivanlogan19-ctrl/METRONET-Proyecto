@@ -190,6 +190,23 @@ class AuthServiceTest {
     }
 
     @Test
+    void recuperacionCambiaLaContrasenaConHashEInvalidaLasSesiones() {
+        AuthService authService = crearServicio();
+        Usuario jugador = crearUsuario(1, "jugador@metronet.uy", "Clave1!", Rol.JUGADOR, null);
+        when(usuarioRepository.findByEmailIgnoreCase("jugador@metronet.uy")).thenReturn(Optional.of(jugador));
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocacion -> invocacion.getArgument(0));
+        SesionUsuarioResponse sesion = authService.iniciarSesion(new LoginRequest("jugador@metronet.uy", "Clave1!"));
+
+        authService.cambiarContrasenaPorRecuperacion(jugador, "Nueva1!");
+
+        assertFalse(passwordEncoder.matches("Clave1!", jugador.getPassword()));
+        assertTrue(passwordEncoder.matches("Nueva1!", jugador.getPassword()));
+        assertThrows(ResponseStatusException.class, () -> authService.obtenerUsuarioConSesion("Bearer " + sesion.token()));
+        assertThrows(ResponseStatusException.class, () -> authService.iniciarSesion(new LoginRequest("jugador@metronet.uy", "Clave1!")));
+        assertEquals(Rol.JUGADOR, authService.iniciarSesion(new LoginRequest("jugador@metronet.uy", "Nueva1!")).usuario().rol());
+    }
+
+    @Test
     void rechazaAccesoAdministradorSinSesion() {
         ResponseStatusException excepcion = assertThrows(
             ResponseStatusException.class,

@@ -75,11 +75,6 @@ function inicializarAdministracion(sesionAdministrador) {
       }
     });
 
-  document.getElementById("tablaRecuperaciones").addEventListener("click", (evento) => {
-    const boton = evento.target.closest("[data-atender-recuperacion]");
-    if (boton) marcarRecuperacionAtendida(boton.dataset.atenderRecuperacion, sesionAdministrador.token);
-  });
-
   document.getElementById("listaDisenos").addEventListener("click", (evento) => {
     const boton = evento.target.closest("[data-ver-diseno]");
     const botonEliminar = evento.target.closest("[data-eliminar-diseno]");
@@ -158,7 +153,6 @@ async function cargarUsuarios(token) {
 
     usuariosDisponibles = await respuesta.json();
     filtrarUsuarios();
-    cargarRecuperaciones(token);
   } catch (error) {
     mostrarMensaje(error.message, "error");
 
@@ -166,63 +160,6 @@ async function cargarUsuarios(token) {
       cerrarSesionLocal();
     }
   }
-}
-
-async function cargarRecuperaciones(token) {
-  try {
-    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/recuperaciones`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible cargar las solicitudes."));
-    renderizarRecuperaciones(await respuesta.json());
-    mostrarMensajeRecuperaciones("");
-  } catch (error) {
-    mostrarMensajeRecuperaciones(error.message, "error");
-  }
-}
-
-function renderizarRecuperaciones(solicitudes) {
-  const tabla = document.getElementById("tablaRecuperaciones");
-  tabla.replaceChildren(...(solicitudes.length ? solicitudes.map((solicitud) => {
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td>${escaparHtml(solicitud.nombreUsuario)}</td>
-      <td>${escaparHtml(solicitud.email)}</td>
-      <td>${escaparHtml(solicitud.estado)}</td>
-      <td>${solicitud.estado === "PENDIENTE" ? `<button class="admin-guardar" type="button" data-atender-recuperacion="${solicitud.idSolicitud}">Marcar atendida</button>` : "—"}</td>
-    `;
-    return fila;
-  }) : [crearFilaVaciaRecuperaciones()]));
-}
-
-function crearFilaVaciaRecuperaciones() {
-  const fila = document.createElement("tr");
-  fila.innerHTML = '<td colspan="4">No hay solicitudes de recuperación pendientes.</td>';
-  return fila;
-}
-
-async function marcarRecuperacionAtendida(idSolicitud, token) {
-  if (!window.confirm("¿Confirmás que la solicitud fue atendida?")) {
-    return;
-  }
-
-  try {
-    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/recuperaciones/${idSolicitud}/atendida`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible actualizar la solicitud."));
-    mostrarMensajeRecuperaciones("Solicitud marcada como atendida. Actualizá la contraseña desde Editar datos del usuario.");
-    cargarRecuperaciones(token);
-  } catch (error) {
-    mostrarMensajeRecuperaciones(error.message, "error");
-  }
-}
-
-function mostrarMensajeRecuperaciones(texto, tipo = "") {
-  const mensaje = document.getElementById("mensajeRecuperaciones");
-  mensaje.textContent = texto;
-  mensaje.className = `admin-mensaje ${tipo}`;
 }
 
 function renderizarUsuarios(usuarios) {

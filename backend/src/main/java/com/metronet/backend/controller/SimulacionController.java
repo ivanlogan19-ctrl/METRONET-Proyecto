@@ -58,7 +58,8 @@ public class SimulacionController {
         @RequestBody CrearSimulacionRequest solicitud,
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
-        return simulacionService.crearSimulacion(obtenerJugador(autorizacion).getIdUsuario(), solicitud);
+        Usuario usuario = obtenerJugador(autorizacion);
+        return simulacionService.crearSimulacion(usuario.getIdUsuario(), usuario.getRol(), solicitud);
     }
 
     @GetMapping("/{idDiseno}")
@@ -239,6 +240,14 @@ public class SimulacionController {
     }
 
     @GetMapping("/{idDiseno}/validacion")
+    public ValidacionDisenoResponse consultarValidacionDiseno(
+        @PathVariable Integer idDiseno,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion
+    ) {
+        return simulacionService.consultarValidacionDiseno(obtenerJugador(autorizacion).getIdUsuario(), idDiseno);
+    }
+
+    @PostMapping("/{idDiseno}/validacion")
     public ValidacionDisenoResponse validarDiseno(
         @PathVariable Integer idDiseno,
         @RequestHeader(value = "Authorization", required = false) String autorizacion

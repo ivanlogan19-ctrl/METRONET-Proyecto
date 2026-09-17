@@ -12,5 +12,9 @@ public record EscenarioJuegoResponse(
     String estado,
     Integer progreso,
     boolean desbloqueado,
-    Map<String, Boolean> herramientasHabilitadas
+    Map<String, Boolean> herramientasHabilitadas,
+    boolean completadoEnCampanaActual,
+    Integer cantidadIntentos,
+    Integer mejorPuntaje,
+    Integer ultimoPuntaje
 ) {}

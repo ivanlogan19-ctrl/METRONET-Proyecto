@@ -199,123 +199,46 @@ export default class SelectorZonas {
     style.id = 'metronet-selector-zonas-styles';
 
     style.textContent = `
-
-            .metronet-selector-zonas-lista {
-
-                display:
-                    flex;
-
-                flex-direction:
-                    column;
-
-                gap:
-                    2px;
-
-                max-height:
-                    250px;
-
-                overflow-y:
-                    auto;
-            }
-
-            .metronet-selector-zona-opcion {
-
-                display:
-                    flex;
-
-                align-items:
-                    center;
-
-                gap:
-                    8px;
-
-                padding:
-                    8px;
-
-                color:
-                    #F8FBFF;
-
-                font-family:
-                    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-
-                font-size:
-                    13px;
-
-                font-weight:
-                    500;
-
-                line-height:
-                    18px;
-
-                border-radius:
-                    8px;
-
-                transition:
-                    background 0.14s ease,
-                    color 0.14s ease;
-
-                cursor:
-                    pointer;
-
-                user-select:
-                    none;
-            }
-
-            .metronet-selector-zona-opcion:hover {
-
-                background:
-                    rgba(
-                        53,
-                        183,
-                        243,
-                        0.18
-                    );
-            }
-
-            .metronet-selector-zona-opcion:has(input:checked) {
-
-                background:
-                    rgba(
-                        60,
-                        186,
-                        239,
-                        0.24
-                    );
-            }
-
-            .metronet-selector-zona-opcion input {
-
-                width:
-                    16px;
-
-                height:
-                    16px;
-
-                margin:
-                    0;
-
-                cursor:
-                    pointer;
-
-                accent-color:
-                    #49C3F2;
-            }
-
-            .metronet-selector-zonas-lista::-webkit-scrollbar {
-
-                width:
-                    6px;
-            }
-
-            .metronet-selector-zonas-lista::-webkit-scrollbar-thumb {
-
-                background:
-                    rgba(155, 200, 255, 0.42);
-
-                border-radius:
-                    99px;
-            }
-        `;
+      .metronet-selector-zonas-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-color: var(--border-active) transparent;
+        scrollbar-width: thin;
+      }
+      .metronet-selector-zona-opcion {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: var(--radius-sm, 5px);
+        color: var(--text-primary);
+        font: 600 13px/18px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
+        cursor: pointer;
+        user-select: none;
+      }
+      .metronet-selector-zona-opcion:hover {
+        background: color-mix(in srgb, var(--info-active) 12%, var(--panel-elevated));
+      }
+      .metronet-selector-zona-opcion:has(input:checked) {
+        color: var(--text-primary);
+        background: color-mix(in srgb, var(--info-active) 20%, var(--panel-elevated));
+      }
+      .metronet-selector-zona-opcion input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        cursor: pointer;
+        accent-color: var(--info-active);
+      }
+      .metronet-selector-zonas-lista::-webkit-scrollbar { width: 6px; }
+      .metronet-selector-zonas-lista::-webkit-scrollbar-thumb {
+        border-radius: 99px;
+        background: var(--border-active);
+      }
+    `;
 
     document.head.appendChild(style);
   }
