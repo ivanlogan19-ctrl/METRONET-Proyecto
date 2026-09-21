@@ -283,13 +283,27 @@ export default class EditorRedMetro {
       const boton = document.createElement('button');
       boton.type = 'button';
       const escenarioCompletado = escenario.estado === 'COMPLETADO';
-      if (escenarioCompletado) boton.dataset.volverAJugar = String(escenario.idEscenario);
-      else boton.dataset.iniciarEscenario = String(escenario.idEscenario);
+      const esEscenarioActual = escenario.idEscenario === this.escenarioJuegoActual?.idEscenario;
+      const siguienteEscenario = this.obtenerSiguienteEscenarioDesbloqueado(escenario);
+      if (esEscenarioActual && escenarioCompletado && siguienteEscenario) {
+        boton.dataset.iniciarEscenario = String(siguienteEscenario.idEscenario);
+        boton.textContent = `Continuar con Nivel ${siguienteEscenario.numero}`;
+      } else if (escenarioCompletado) {
+        boton.dataset.volverAJugar = String(escenario.idEscenario);
+        boton.textContent = 'Volver a jugar';
+      } else {
+        boton.dataset.iniciarEscenario = String(escenario.idEscenario);
+        boton.textContent = 'Iniciar';
+      }
       boton.disabled = !escenario.desbloqueado;
-      boton.textContent = escenario.idEscenario === this.escenarioJuegoActual?.idEscenario ? 'Activo' : escenarioCompletado ? 'Volver a jugar' : 'Iniciar';
       tarjeta.append(boton);
       return tarjeta;
     }));
+  }
+
+  obtenerSiguienteEscenarioDesbloqueado(escenario) {
+    if (!Number.isInteger(escenario?.numero)) return null;
+    return this.escenariosJuego.find((candidato) => candidato.numero === escenario.numero + 1 && candidato.desbloqueado && candidato.estado !== 'COMPLETADO') ?? null;
   }
 
   async iniciarEscenario(idEscenario) {
@@ -490,12 +504,22 @@ export default class EditorRedMetro {
 
   async validarDiseno() {
     try {
-      const validacion = await this.clienteDisenos.validar(this.idDiseno());
-      await this.abrirDiseno(this.idDiseno());
+      const idDiseno = this.idDiseno();
+      const validacion = await this.clienteDisenos.validar(idDiseno);
+      await this.abrirDiseno(idDiseno);
       if (!validacion.valido) return this.mostrarMensaje(validacion.observaciones.join(' '), 'error');
+      if (this.esEscenarioSinSimulacion()) return this.evaluarEscenarioSinSimulacion(idDiseno);
       if (validacion.preparadoParaSimular) return this.mostrarMensaje('La red es consistente y está lista para simular.', 'exito');
       this.mostrarMensaje(this.obtenerMensajePreparacionSimulacion(validacion.observacionesSimulacion), 'advertencia');
     } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+  }
+
+  async evaluarEscenarioSinSimulacion(idDiseno) {
+    const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST' });
+    if (evaluacion.completado) this.cambiosPendientes = false;
+    await this.cargarJuego();
+    await this.abrirDiseno(idDiseno);
+    this.mostrarMensaje(evaluacion.mensaje, evaluacion.completado ? 'exito' : 'advertencia');
   }
 
   async crearEscenario() {
@@ -1026,7 +1050,21 @@ export default class EditorRedMetro {
     barraProgreso.append(rellenoProgreso);
     progreso.append(encabezadoProgreso, barraProgreso);
 
+    const siguienteEscenario = escenario.estado === 'COMPLETADO'
+      ? this.obtenerSiguienteEscenarioDesbloqueado(escenario)
+      : null;
+    const accionContinuar = siguienteEscenario ? this.crearAccionContinuarEscenario(siguienteEscenario) : null;
     consigna.append(cabecera, resumen, contenido, progreso);
+    if (accionContinuar) consigna.append(accionContinuar);
+  }
+
+  crearAccionContinuarEscenario(escenario) {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'metronet-consigna__continuar';
+    boton.textContent = `Continuar con Nivel ${escenario.numero}`;
+    boton.addEventListener('click', () => this.iniciarEscenario(escenario.idEscenario));
+    return boton;
   }
 
   obtenerContextoConsigna(escenario) {
@@ -1140,8 +1178,8 @@ export default class EditorRedMetro {
   obtenerMensajePreparacionSimulacion(observaciones = this.disenoActual?.observacionesSimulacion) {
     const estado = this.disenoActual?.simulacion?.estado;
     const redValidada = ['VALIDADO', 'COMPLETADA', 'COMPLETADO'].includes(estado);
-    if (redValidada && this.escenarioJuegoActual?.herramientasHabilitadas?.metros === false) {
-      return 'La red es consistente. Este nivel no requiere una simulación; continuá con el siguiente escenario.';
+    if (redValidada && this.esEscenarioSinSimulacion()) {
+      return 'La red es consistente. La consigna se completa al validarla.';
     }
     if (observaciones?.length) return observaciones.join(' ');
     return 'Validá la red y agregá al menos una unidad de metro para iniciar una simulación.';
@@ -1211,6 +1249,7 @@ export default class EditorRedMetro {
     if (!mostrar) this.obtenerContenedorConsigna().hidden = true;
   }
   esEscenarioProgresivo() { return Number.isInteger(this.escenarioJuegoActual?.numero); }
+  esEscenarioSinSimulacion() { return this.esEscenarioProgresivo() && this.escenarioJuegoActual?.herramientasHabilitadas?.simulacion === false; }
   idDiseno() { return this.disenoActual.simulacion.idDiseno; }
   obtener(selector) { return this.contenedor.querySelector(selector); }
   escapar(valor) { return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[caracter]); }

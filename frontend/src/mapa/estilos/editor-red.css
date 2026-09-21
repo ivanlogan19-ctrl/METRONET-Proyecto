@@ -214,6 +214,22 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-consigna__progreso-encabezado strong { color: var(--text-primary); font-family: var(--font-tecnica); font-size: 10px; }
 .metronet-consigna__barra-progreso { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: 999px; background: var(--bg-secondary); }
 .metronet-consigna__barra-progreso > span { display: block; width: var(--progreso-consigna); height: 100%; border-radius: inherit; background: var(--info-active); transition: width .18s ease; }
+.metronet-consigna__continuar {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--info-active);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--info-active) 20%, var(--panel));
+  font-family: var(--font-tecnica);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.metronet-consigna__continuar:hover,
+.metronet-consigna__continuar:focus-visible { border-color: var(--info-active); background: color-mix(in srgb, var(--info-active) 34%, var(--panel)); }
 .metronet-panel-selectores-mapa { display: grid; gap: 7px; min-width: 0; }
 .metronet-panel-selectores-mapa__titulo {
   margin: 0;
