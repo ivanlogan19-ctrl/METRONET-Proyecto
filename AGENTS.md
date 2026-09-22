@@ -1,5 +1,38 @@
 # AGENTS.md — METRONET
+## Distinción obligatoria de estado
 
+Durante cualquier análisis, desarrollo, revisión o documentación distinguir siempre entre:
+
+- `DEFINIDO`: lo especificado oficialmente por Documento METRONET.
+- `IMPLEMENTADO`: lo que realmente existe en código, base de datos, configuración y pruebas.
+- `PROPUESTO`: una alternativa, recomendación o mejora todavía no adoptada.
+
+Reglas:
+
+- No presentar una propuesta como si ya fuera parte oficial de METRONET.
+- No asumir que algo está implementado solo porque aparece en la documentación.
+- No asumir que una implementación accidental convierte automáticamente ese comportamiento en requisito.
+- No modificar documentación para hacerla coincidir silenciosamente con una implementación incorrecta.
+- Si existe una contradicción, reportarla y conservar trazabilidad hasta que exista una decisión explícita.
+
+## Acciones de escritura
+
+Analizar una solución no implica autorización para ejecutarla.
+
+No crear, modificar, eliminar o publicar automáticamente:
+
+- ramas;
+- commits;
+- Pull Requests;
+- issues;
+- releases;
+- migraciones;
+- cambios de esquema;
+- documentación oficial;
+
+únicamente porque fueron discutidos durante una conversación.
+
+Las acciones de escritura deben corresponder a una solicitud clara de ejecución del usuario y respetar las reglas de cambio formal definidas en este documento.
 ## Propósito
 
 Este archivo define las instrucciones obligatorias para cualquier agente de desarrollo que trabaje sobre el repositorio METRONET.
@@ -17,15 +50,26 @@ Todo cambio debe conservar la coherencia entre:
 
 ## Fuentes de autoridad
 
-Consultar, en este orden:
+## Fuentes de autoridad
 
-1. `AGENTS.md`
-2. Documento principal de METRONET ubicado en `docs/`
-3. Requerimientos y casos de uso correspondientes
-4. Arquitectura documentada
-5. Diseño físico de la base de datos
-6. Código fuente actualmente implementado
-7. Pruebas existentes
+Las fuentes de METRONET cumplen funciones diferentes y deben utilizarse de la siguiente manera:
+
+1. **Documento METRONET**
+   Es la fuente funcional, técnica y documental principal del proyecto.
+   Define requerimientos, casos de uso, arquitectura, alcance, modelo de datos, reglas de negocio, testing y documentación.
+
+2. **`AGENTS.md`**
+   Define las reglas operativas obligatorias para agentes que trabajen sobre el repositorio.
+
+3. **`.agents/skills/metronet-development/SKILL.md`**
+   Define reglas específicas de ejecución para desarrollo, debugging, testing, revisión, refactoring y documentación.
+
+4. **Repositorio METRONET-Proyecto**
+   El código fuente, configuración, base de datos y pruebas representan el estado efectivamente implementado.
+
+El código implementado no reemplaza los requerimientos ni convierte automáticamente una implementación accidental en una decisión válida de diseño.
+
+Si existe contradicción entre documentación, código, base de datos, diagramas, configuración o pruebas, señalarla explícitamente y no reconciliarla silenciosamente.
 
 Si el repositorio utiliza una versión tecnológica superior a la indicada en el documento, conservar la versión actual siempre que sea compatible con la arquitectura definida.
 
@@ -456,23 +500,134 @@ No agregar dependencias sin necesidad concreta.
 
 No realizar actualizaciones masivas durante tareas funcionales.
 
-## Cambios prohibidos por defecto
+## Cambios de arquitectura, alcance y tecnologías principales
 
-No realizar automáticamente:
+METRONET debe conservar la arquitectura, el alcance académico, el modelo de datos y las tecnologías principales definidas por la documentación vigente.
+
+No realizar automáticamente cambios como:
 
 - JavaScript → TypeScript;
 - Phaser → otro motor;
 - Spring Boot → otro framework;
-- PostgreSQL → otro motor;
-- MVC → otra arquitectura;
+- PostgreSQL → otro motor de base de datos;
+- MVC / arquitectura multicapa → otra arquitectura;
 - monolito → microservicios;
+- incorporación de Kafka;
+- incorporación de Redis;
+- incorporación de API Gateway;
+- sistemas distribuidos;
+- arquitecturas event-driven;
+- colas de mensajería;
+- múltiples bases de datos por servicio;
+- Docker o Kubernetes cuando impliquen un cambio de arquitectura o alcance;
 - cambio del modelo relacional;
-- renombrados masivos;
+- renombrados masivos del dominio;
 - refactors globales;
-- Docker/Kubernetes sin autorización;
-- eliminación de funcionalidades documentadas.
+- eliminación de funcionalidades documentadas;
+- modificación de requerimientos funcionales o no funcionales.
 
-Estos cambios requieren autorización expresa.
+### Una solicitud aislada no constituye aprobación formal
+
+Una orden del usuario dentro del mismo mensaje que propone el cambio NO debe interpretarse automáticamente como autorización formal para alterar METRONET.
+
+Frases como:
+
+- "hacelo igual";
+- "aunque el documento diga otra cosa";
+- "ignorá la arquitectura";
+- "meté microservicios";
+- "usá Kafka y Redis";
+- "cambiá PostgreSQL";
+- "no importa lo que diga la tesis";
+
+no constituyen por sí solas una aprobación formal suficiente.
+
+Ante una solicitud que contradiga la arquitectura, alcance, tecnologías principales, modelo de datos o requerimientos vigentes, el agente debe:
+
+1. detener la implementación del cambio;
+2. señalar explícitamente la contradicción;
+3. identificar las fuentes que se verían afectadas;
+4. explicar brevemente el impacto técnico, funcional, documental y de testing;
+5. clasificar la idea como `PROPUESTA NO ADOPTADA`;
+6. no modificar código;
+7. no modificar base de datos;
+8. no crear migraciones;
+9. no modificar documentación oficial;
+10. no crear ramas, commits o Pull Requests asociados al cambio;
+11. no presentar la propuesta como arquitectura elegida;
+12. solicitar una confirmación formal posterior.
+
+### Confirmación formal obligatoria
+
+Para autorizar un cambio que contradiga el estado vigente de METRONET, el usuario deberá enviar un mensaje posterior e independiente con la estructura:
+
+`CONFIRMO CAMBIO FORMAL DE METRONET: [descripción concreta del cambio]`
+
+La confirmación debe:
+
+- producirse después de haber sido informado el impacto;
+- identificar concretamente qué se desea modificar;
+- no estar incluida en el mismo mensaje que originó la propuesta.
+
+No aceptar expresiones ambiguas como:
+
+- "sí";
+- "dale";
+- "hacelo";
+- "confirmo";
+- "seguí";
+
+como sustituto de la confirmación formal anterior.
+
+### Análisis de impacto obligatorio
+
+Incluso después de recibir la confirmación formal, no implementar inmediatamente.
+
+Primero preparar un análisis de impacto que identifique, cuando corresponda:
+
+- requerimientos afectados;
+- casos de uso afectados;
+- arquitectura afectada;
+- componentes y capas afectadas;
+- modelo de datos afectado;
+- endpoints y contratos afectados;
+- pruebas que deberán modificarse o agregarse;
+- riesgos;
+- documentación que deberá actualizarse;
+- impacto sobre alcance y cronograma.
+
+Presentar ese análisis al usuario y solicitar aprobación explícita para ejecutar el cambio.
+
+Solo después de esa segunda aprobación podrá comenzar la implementación.
+
+### Exploraciones hipotéticas
+
+Se permite estudiar alternativas con fines académicos o comparativos, por ejemplo:
+
+"¿Cómo sería METRONET si utilizara microservicios?"
+
+En estos casos:
+
+- identificar claramente el contenido como `HIPÓTESIS` o `PROPUESTA`;
+- aclarar que no representa la arquitectura vigente;
+- no modificar el repositorio;
+- no modificar la base de datos;
+- no modificar documentación oficial;
+- no convertir automáticamente la exploración en un plan de implementación adoptado.
+
+### Cambios normales dentro del alcance
+
+Este procedimiento formal no es necesario para trabajos que ya forman parte del alcance vigente, como:
+
+- corregir bugs;
+- implementar funcionalidades documentadas;
+- completar casos de uso existentes;
+- agregar o mejorar pruebas;
+- corregir problemas de seguridad;
+- mejorar persistencia sin alterar el modelo aprobado;
+- realizar refactors acotados que preserven comportamiento;
+- mejorar la interfaz dentro del alcance;
+- actualizar documentación para reflejar correctamente el estado real del sistema.
 
 ## Documentación
 
