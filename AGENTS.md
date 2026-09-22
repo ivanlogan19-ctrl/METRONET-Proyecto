@@ -75,7 +75,7 @@ Si el repositorio utiliza una versión tecnológica superior a la indicada en el
 
 ## Stack tecnológico
 
-### Backend
+### Backend o versiones superiores
 
 - Java 21
 - Spring Boot 3.5.x
@@ -89,7 +89,7 @@ Si el repositorio utiliza una versión tecnológica superior a la indicada en el
 - Lombok
 - H2 para pruebas cuando corresponda
 
-### Frontend
+### Frontend o versiones superiores
 
 - JavaScript
 - Phaser 4.x
