@@ -28,7 +28,7 @@ Mantener los cambios acotados al alcance solicitado.
 
 ## Arquitectura de METRONET
 
-Respetar la arquitectura definida:
+Respetar la arquitectura definida, su version puede ser la mencionada o versiones superior:
 
 - Frontend: Phaser 3, HTML5 y JavaScript.
 - Comunicación: HTTP, API REST y JSON.
