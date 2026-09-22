@@ -32,7 +32,7 @@ No crear, modificar, eliminar o publicar automáticamente:
 
 únicamente porque fueron discutidos durante una conversación.
 
-Las acciones de escritura deben corresponder a una solicitud clara de ejecución del usuario y respetar las reglas de cambio formal definidas anteriormente.
+Las acciones de escritura deben corresponder a una solicitud clara de ejecución del usuario y respetar las reglas de cambio formal definidas en este documento.
 ## Propósito
 
 Este archivo define las instrucciones obligatorias para cualquier agente de desarrollo que trabaje sobre el repositorio METRONET.
@@ -50,15 +50,26 @@ Todo cambio debe conservar la coherencia entre:
 
 ## Fuentes de autoridad
 
-Consultar, en este orden:
+## Fuentes de autoridad
 
-1. `AGENTS.md`
-2. Documento principal de METRONET ubicado en `docs/`
-3. Requerimientos y casos de uso correspondientes
-4. Arquitectura documentada
-5. Diseño físico de la base de datos
-6. Código fuente actualmente implementado
-7. Pruebas existentes
+Las fuentes de METRONET cumplen funciones diferentes y deben utilizarse de la siguiente manera:
+
+1. **Documento METRONET**
+   Es la fuente funcional, técnica y documental principal del proyecto.
+   Define requerimientos, casos de uso, arquitectura, alcance, modelo de datos, reglas de negocio, testing y documentación.
+
+2. **`AGENTS.md`**
+   Define las reglas operativas obligatorias para agentes que trabajen sobre el repositorio.
+
+3. **`.agents/skills/metronet-development/SKILL.md`**
+   Define reglas específicas de ejecución para desarrollo, debugging, testing, revisión, refactoring y documentación.
+
+4. **Repositorio METRONET-Proyecto**
+   El código fuente, configuración, base de datos y pruebas representan el estado efectivamente implementado.
+
+El código implementado no reemplaza los requerimientos ni convierte automáticamente una implementación accidental en una decisión válida de diseño.
+
+Si existe contradicción entre documentación, código, base de datos, diagramas, configuración o pruebas, señalarla explícitamente y no reconciliarla silenciosamente.
 
 Si el repositorio utiliza una versión tecnológica superior a la indicada en el documento, conservar la versión actual siempre que sea compatible con la arquitectura definida.
 
