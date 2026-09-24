@@ -1,5 +1,7 @@
 /* Familias visuales compartidas. Los selectores existentes son adaptadores;
    los componentes nuevos pueden usar metronet-boton/panel/estado directamente. */
+/* Un layout grid/flex nunca debe revelar un estado marcado como oculto. */
+html:root body [hidden]:not([hidden='until-found']) { display: none !important; }
 
 /* Mandos: el mismo relieve y estados; solo cambia la intención de la acción. */
 html:root body :is(button, .metronet-boton, .primary-button, .secondary-button, .metronet-inicio__boton, .simulacion-volver) {
@@ -13,6 +15,8 @@ html:root body :is(button, .metronet-boton, .primary-button, .secondary-button, 
   background: var(--boton-fondo);
   font-family: var(--font-ui);
   font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .025em;
   line-height: 1.3;
   box-shadow: var(--shadow-button);
   transition: background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing), box-shadow var(--motion-fast) var(--motion-easing);
@@ -80,7 +84,7 @@ html:root body :is(input:not([type='checkbox']):not([type='radio']):not([type='r
   border: var(--border-width) solid var(--border-active);
   border-radius: var(--radius-control);
   color: var(--text-primary);
-  background: var(--bg-secondary);
+  background-color: var(--bg-secondary);
   font-family: var(--font-ui);
   box-shadow: var(--shadow-input);
 }
@@ -114,7 +118,7 @@ html:root body dialog {
 html:root body dialog.metronet-dialogo-eliminar { border-top-color: var(--danger); }
 html:root body dialog::backdrop { background: var(--backdrop); backdrop-filter: none; }
 html:root body dialog :is(h2, h3) { line-height: 1.4; overflow-wrap: anywhere; }
-html:root body dialog h2 { font-family: var(--font-arcade); font-weight: 400; font-size: clamp(20px, 3vw, 26px); }
+html:root body dialog h2 { font-family: var(--font-arcade); font-weight: 400; font-size: var(--font-size-h2); }
 
 /* Ayudas y paneles flotantes mantienen el mismo marco. El canvas no recibe efectos. */
 html:root body :is(.metronet-panel, .metronet-seleccion-geografica, .metronet-panel-dinamico,
@@ -149,6 +153,10 @@ html:root body :is(.metronet-estado, .metronet-inicio__estado, .metronet-escenar
   line-height: 1.4;
   background: var(--bg-secondary);
 }
+html:root body :is(.metronet-inicio__estado--completado, .metronet-escenarios-pagina__estado--completado) { color: var(--success); }
+html:root body :is(.metronet-inicio__estado--activo, .metronet-inicio__estado--disponible,
+  .metronet-escenarios-pagina__estado--actual, .metronet-escenarios-pagina__estado--disponible, .admin-usuario) { color: var(--info-active); }
+html:root body :is(.metronet-inicio__estado--bloqueado, .metronet-inicio__estado--neutral, .metronet-escenarios-pagina__estado--bloqueado) { color: var(--text-disabled); }
 html:root body :is(.mensaje, .admin-mensaje, .simulacion-mensaje, .metronet-inicio__mensaje):not(:empty) {
   --estado-color: var(--info-active);
   --estado-fondo: var(--info-surface);
@@ -175,6 +183,47 @@ html:root body .metronet-notificacion {
 .metronet-notificacion--exito { --estado-color: var(--success); }
 .metronet-notificacion--advertencia { --estado-color: var(--warning); }
 .metronet-notificacion--error { --estado-color: var(--danger); }
+
+/* Componentes de consola: elección, entrada de datos, ayuda y estado vacío. */
+html:root body .metronet-boton--exito {
+  --boton-fondo: var(--success-surface); --boton-texto: var(--success);
+  --boton-borde: var(--success); --boton-hover: var(--surface-selected);
+}
+html:root body select {
+  appearance: none; padding-right: 30px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--info-active) 50%), linear-gradient(135deg, var(--info-active) 50%, transparent 50%);
+  background-position: calc(100% - 15px) center, calc(100% - 10px) center;
+  background-size: 5px 5px; background-repeat: no-repeat;
+}
+html:root body :is(input[type='checkbox'], input[type='radio']) {
+  appearance: none; display: inline-grid; place-content: center;
+  width: 18px; height: 18px; min-width: 18px; min-height: 18px; padding: 0;
+  border: var(--border-width) solid var(--border-active); background: var(--bg-secondary);
+  vertical-align: middle; cursor: pointer;
+}
+html:root body input[type='radio'] { border-radius: 50%; }
+html:root body :is(input[type='checkbox'], input[type='radio'])::before { content: ''; width: 10px; height: 10px; background: var(--info-active); visibility: hidden; }
+html:root body input[type='radio']::before { border-radius: 50%; }
+html:root body :is(input[type='checkbox'], input[type='radio']):checked::before { visibility: visible; }
+html:root body :is(input, select, textarea):user-invalid { border-color: var(--danger); }
+html:root body .metronet-dialogo-sistema { width: min(92vw, 540px); max-height: 90svh; padding: 0; }
+.metronet-dialogo-sistema form { display: grid; gap: var(--space-md); padding: var(--space-lg); }
+.metronet-dialogo-sistema :is(h2, p) { margin: 0; }
+.metronet-dialogo-sistema p { line-height: 1.6; }
+.metronet-dialogo-sistema label { display: grid; gap: var(--space-xs); font-size: var(--font-size-label); }
+.metronet-dialogo-sistema input { width: 100%; min-width: 0; min-height: var(--control-height); padding: var(--space-xs); }
+.metronet-dialogo-sistema footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-xs); }
+.metronet-dialogo-sistema button { min-height: var(--control-height); padding: var(--space-xs) var(--space-md); }
+html:root body :is(.metronet-vacio, .admin-aviso, .simulacion-vacio, .metronet-inicio__vacio, .metronet-escenarios-pagina__vacio) {
+  padding: var(--space-lg); border: var(--border-width) dashed var(--border-active);
+  border-left: var(--border-system) solid var(--info-active); background: var(--bg-secondary); color: var(--text-secondary); line-height: 1.6;
+}
+html:root body :is(.metronet-vacio, .admin-aviso)::before {
+  content: 'SIN REGISTROS'; display: block; margin-bottom: var(--space-sm); font-family: var(--font-tecnica); font-weight: 700; color: var(--info-active); letter-spacing: .08em;
+}
+html:root body .metronet-tooltip { position: fixed; z-index: var(--layer-toast); max-width: min(320px, calc(100vw - 24px)); pointer-events: none; }
+html:root body .metronet-tooltip:popover-open { margin: 0; }
+html:root body .metronet-estado-sistema { border-left: var(--border-accent) solid var(--info-active); padding: var(--space-sm); color: var(--text-secondary); background: var(--bg-secondary); line-height: 1.6; }
 
 /* Carga real: señal de sistema común, sin introducir tiempos de espera. */
 html:root body :is(.metronet-inicio__estado-carga, .metronet-escenarios-pagina__estado-carga, .perfil-estado-carga) {

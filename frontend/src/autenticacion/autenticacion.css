@@ -64,13 +64,7 @@ body .auth-card h1,
 body .auth-card h2 {
   margin: 10px 0 0;
   color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: clamp(26px, 4vw, 34px);
-  font-weight: 750;
-  letter-spacing: -.03em;
-  line-height: 1.08;
   text-align: center;
-  text-transform: none;
 }
 
 body .auth-card .auth-subtitle {
@@ -404,11 +398,6 @@ body .auth-card .auth-action {
     width: min(100%, var(--metronet-logo-width));
   }
 
-  body .auth-card h1,
-  body .auth-card h2 {
-    font-size: 28px;
-  }
-
   body .auth-card .auth-subtitle {
     margin-top: 8px;
   }
@@ -456,11 +445,6 @@ body .auth-card .auth-action {
     width: min(100%, var(--metronet-logo-width));
   }
 
-  body .auth-card h1,
-  body .auth-card h2 {
-    font-size: 27px;
-  }
-
   body .auth-card .auth-subtitle {
     font-size: 14px;
   }
@@ -484,11 +468,6 @@ body .auth-card .auth-action {
 @media (max-width: 360px) {
   body .auth-card {
     padding: 20px 14px;
-  }
-
-  body .auth-card h1,
-  body .auth-card h2 {
-    font-size: 24px;
   }
 
   body .auth-card .primary-button {

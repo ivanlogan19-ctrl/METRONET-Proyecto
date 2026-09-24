@@ -35,7 +35,8 @@ export function validarFormulario(formulario) {
     return true;
   }
 
-  formulario.reportValidity();
+  // El mensaje de cada formulario usa el panel de sistema, sin globo nativo.
+  formulario.querySelector(':invalid')?.focus();
   return false;
 }
 

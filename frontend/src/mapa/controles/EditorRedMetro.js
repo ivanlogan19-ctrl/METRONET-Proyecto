@@ -1,3 +1,4 @@
+import { confirmarSistema, pedirDatoSistema } from '../../componentes/DialogoSistema.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../../red/ClienteDisenos.js';
 import { actualizarRutaEdicion, establecerContextoEnRuta, establecerIdDisenoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../../red/ContextoDiseno.js';
 import { navegarConCambiosPendientes, registrarControlCambios } from '../../navegacion/NavegacionAplicacion.js';
@@ -667,9 +668,9 @@ export default class EditorRedMetro {
 
   async editarEstacion() {
     const estacion = this.elementoSeleccionado.valor;
-    const nombre = window.prompt('Nombre de la estación:', estacion.nombre);
+    const nombre = await pedirDatoSistema('Nombre de la estación:', estacion.nombre);
     if (nombre === null || !nombre.trim()) return;
-    const transbordo = window.confirm('¿Esta estación permite transbordo entre líneas?');
+    const transbordo = await confirmarSistema('¿Esta estación permite transbordo entre líneas?');
     await this.ejecutarAccion(`/${this.idDiseno()}/estaciones/${encodeURIComponent(estacion.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...estacion, nombre: nombre.trim(), transbordo }) }, 'Estación actualizada.');
   }
 
@@ -681,7 +682,7 @@ export default class EditorRedMetro {
 
   async editarLinea() {
     const linea = this.elementoSeleccionado.valor;
-    const nombre = window.prompt('Nombre de la línea:', linea.nombre);
+    const nombre = await pedirDatoSistema('Nombre de la línea:', linea.nombre);
     if (nombre === null || !nombre.trim()) return;
     const estaciones = this.estacionesDeLinea(linea.nombre);
     await this.ejecutarAccion(`/${this.idDiseno()}/lineas/${encodeURIComponent(linea.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: nombre.trim(), estaciones }) }, 'Línea actualizada.');
@@ -695,9 +696,9 @@ export default class EditorRedMetro {
 
   async editarTramo() {
     const tramo = this.elementoSeleccionado.valor;
-    const nombreLinea = window.prompt('Línea de la conexión:', tramo.nombreLinea);
-    const estacionA = window.prompt('Estación de origen:', tramo.estacionA);
-    const estacionB = window.prompt('Estación de destino:', tramo.estacionB);
+    const nombreLinea = await pedirDatoSistema('Línea de la conexión:', tramo.nombreLinea);
+    const estacionA = await pedirDatoSistema('Estación de origen:', tramo.estacionA);
+    const estacionB = await pedirDatoSistema('Estación de destino:', tramo.estacionB);
     if (nombreLinea === null || estacionA === null || estacionB === null) return;
     const parametros = new URLSearchParams({ lineaActual: tramo.nombreLinea, estacionAActual: tramo.estacionA, estacionBActual: tramo.estacionB });
     await this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombreLinea: nombreLinea.trim(), estacionA: estacionA.trim(), estacionB: estacionB.trim() }) }, 'Conexión actualizada.');
@@ -712,9 +713,9 @@ export default class EditorRedMetro {
 
   async editarUnidad() {
     const unidad = this.elementoSeleccionado.valor;
-    const nombreLinea = window.prompt('Línea asignada:', unidad.nombreLinea);
-    const capacidad = window.prompt('Capacidad:', unidad.capacidad);
-    const velocidadPromedio = window.prompt('Velocidad promedio (km/h):', unidad.velocidadPromedio);
+    const nombreLinea = await pedirDatoSistema('Línea asignada:', unidad.nombreLinea);
+    const capacidad = await pedirDatoSistema('Capacidad:', unidad.capacidad);
+    const velocidadPromedio = await pedirDatoSistema('Velocidad promedio (km/h):', unidad.velocidadPromedio);
     if (nombreLinea === null || capacidad === null || velocidadPromedio === null) return;
     await this.ejecutarAccion(`/${this.idDiseno()}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombreLinea: nombreLinea.trim(), capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) }) }, 'Unidad actualizada.');
   }

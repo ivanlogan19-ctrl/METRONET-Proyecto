@@ -1,7 +1,5 @@
 .metronet-ranking { max-width: 1160px; margin: auto; padding: clamp(16px,4vw,40px); }
-.metronet-ranking h1, .metronet-ranking h2 { font-family: var(--font-arcade); font-weight: 400; line-height: 1.4; overflow-wrap: anywhere; }
-.metronet-ranking h1 { font-size: clamp(24px,4vw,36px); }
-.metronet-ranking h2 { font-size: 20px; }
+.metronet-ranking h1, .metronet-ranking h2 { overflow-wrap: anywhere; }
 .metronet-ranking section { margin-top: 28px; padding: clamp(14px,3vw,24px); background: var(--panel); border: var(--border-width) solid var(--border); border-top: var(--border-accent) solid var(--info-active); }
 .ranking-niveles, .ranking-clasificacion { padding: 0; list-style: none; display: grid; gap: 12px; }
 .ranking-niveles { grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); }

@@ -1,3 +1,4 @@
+import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
 import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
 
@@ -261,7 +262,7 @@ function filtrarDisenos() {
 
 function crearFilaVacia(mensaje, cantidadColumnas) {
   const fila = document.createElement("tr");
-  fila.innerHTML = `<td colspan="${cantidadColumnas}">${escaparHtml(mensaje)}</td>`;
+  fila.innerHTML = `<td colspan="${cantidadColumnas}" class="metronet-vacio">${escaparHtml(mensaje)}</td>`;
   return fila;
 }
 
@@ -277,7 +278,7 @@ function normalizarTexto(valor) {
 }
 
 async function eliminarDisenoAdministrador(idDiseno, token) {
-  if (!window.confirm(`¿Eliminar definitivamente el diseño #${idDiseno}, sus escenarios, resultados y elementos asociados?`)) return;
+  if (!await confirmarSistema(`¿Eliminar definitivamente el diseño #${idDiseno}, sus escenarios, resultados y elementos asociados?`)) return;
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` },
@@ -341,7 +342,7 @@ function renderizarDetalleDiseno(detalle) {
 function crearTablaElementos(titulo, elementos, crearFila) {
   const filas = elementos.length
     ? elementos.map(crearFila).join("")
-    : '<tr><td colspan="3">No hay elementos registrados.</td></tr>';
+    : '<tr><td colspan="3" class="metronet-vacio">No hay elementos registrados.</td></tr>';
 
   return `
     <section class="admin-elementos-diseno">
@@ -377,20 +378,20 @@ async function ejecutarAccionDiseno(boton, token) {
   let opciones = { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } };
 
   if (accion.includes("linea")) {
-    const nombre = accion === "editar-linea" ? window.prompt("Nombre de la línea:", boton.dataset.nombre) : null;
+    const nombre = accion === "editar-linea" ? await pedirDatoSistema("Nombre de la línea:", boton.dataset.nombre) : null;
     if (accion === "editar-linea" && !nombre) return;
-    if (accion === "eliminar-linea" && !window.confirm(`¿Eliminar la línea ${boton.dataset.nombre}?`)) return;
+    if (accion === "eliminar-linea" && !await confirmarSistema(`¿Eliminar la línea ${boton.dataset.nombre}?`)) return;
     url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/lineas/${encodeURIComponent(boton.dataset.nombre)}`;
     opciones = accion === "editar-linea" ? { ...opciones, body: JSON.stringify({ nombre }) } : { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
   }
 
   if (accion.includes("estacion")) {
-    if (accion === "eliminar-estacion" && !window.confirm(`¿Eliminar la estación ${boton.dataset.nombre}?`)) return;
+    if (accion === "eliminar-estacion" && !await confirmarSistema(`¿Eliminar la estación ${boton.dataset.nombre}?`)) return;
     url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/estaciones/${encodeURIComponent(boton.dataset.nombre)}`;
     if (accion === "editar-estacion") {
-      const nombre = window.prompt("Nombre de la estación:", boton.dataset.nombre);
-      const posicionX = window.prompt("Posición X:", boton.dataset.x);
-      const posicionY = window.prompt("Posición Y:", boton.dataset.y);
+      const nombre = await pedirDatoSistema("Nombre de la estación:", boton.dataset.nombre);
+      const posicionX = await pedirDatoSistema("Posición X:", boton.dataset.x);
+      const posicionY = await pedirDatoSistema("Posición Y:", boton.dataset.y);
       if (!nombre || posicionX === null || posicionY === null) return;
       opciones.body = JSON.stringify({ nombre, posicionX: Number(posicionX), posicionY: Number(posicionY), transbordo: boton.dataset.transbordo === "true" });
     } else {
@@ -401,15 +402,15 @@ async function ejecutarAccionDiseno(boton, token) {
   if (accion.includes("conexion")) {
     const consulta = new URLSearchParams({ linea: boton.dataset.linea, estacion: boton.dataset.estacion });
     if (accion === "editar-conexion") {
-      const nombreLinea = window.prompt("Línea de la conexión:", boton.dataset.linea);
-      const nombreEstacion = window.prompt("Estación de la conexión:", boton.dataset.estacion);
+      const nombreLinea = await pedirDatoSistema("Línea de la conexión:", boton.dataset.linea);
+      const nombreEstacion = await pedirDatoSistema("Estación de la conexión:", boton.dataset.estacion);
       if (!nombreLinea || !nombreEstacion) return;
       consulta.set("lineaActual", boton.dataset.linea);
       consulta.set("estacionActual", boton.dataset.estacion);
       consulta.delete("linea");
       consulta.delete("estacion");
       opciones.body = JSON.stringify({ nombreLinea, nombreEstacion });
-    } else if (!window.confirm(`¿Eliminar la conexión ${boton.dataset.linea} · ${boton.dataset.estacion}?`)) {
+    } else if (!await confirmarSistema(`¿Eliminar la conexión ${boton.dataset.linea} · ${boton.dataset.estacion}?`)) {
       return;
     } else {
       opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
@@ -420,9 +421,9 @@ async function ejecutarAccionDiseno(boton, token) {
   if (accion.includes("tramo")) {
     const consulta = new URLSearchParams({ linea: boton.dataset.linea, estacionA: boton.dataset.estacionA, estacionB: boton.dataset.estacionB });
     if (accion === "editar-tramo") {
-      const nombreLinea = window.prompt("Línea del tramo:", boton.dataset.linea);
-      const estacionA = window.prompt("Estación de origen:", boton.dataset.estacionA);
-      const estacionB = window.prompt("Estación de destino:", boton.dataset.estacionB);
+      const nombreLinea = await pedirDatoSistema("Línea del tramo:", boton.dataset.linea);
+      const estacionA = await pedirDatoSistema("Estación de origen:", boton.dataset.estacionA);
+      const estacionB = await pedirDatoSistema("Estación de destino:", boton.dataset.estacionB);
       if (!nombreLinea || !estacionA || !estacionB) return;
       consulta.set("lineaActual", boton.dataset.linea);
       consulta.set("estacionAActual", boton.dataset.estacionA);
@@ -431,7 +432,7 @@ async function ejecutarAccionDiseno(boton, token) {
       consulta.delete("estacionA");
       consulta.delete("estacionB");
       opciones.body = JSON.stringify({ nombreLinea, estacionA, estacionB });
-    } else if (!window.confirm(`¿Eliminar el tramo ${boton.dataset.estacionA} · ${boton.dataset.estacionB}?`)) {
+    } else if (!await confirmarSistema(`¿Eliminar el tramo ${boton.dataset.estacionA} · ${boton.dataset.estacionB}?`)) {
       return;
     } else {
       opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
@@ -441,12 +442,12 @@ async function ejecutarAccionDiseno(boton, token) {
 
   if (accion.includes("unidad")) {
     if (accion === "editar-unidad") {
-      const nombreLinea = window.prompt("Línea asignada:", boton.dataset.linea);
-      const capacidad = window.prompt("Capacidad:", boton.dataset.capacidad);
-      const velocidadPromedio = window.prompt("Velocidad promedio (km/h):", boton.dataset.velocidad);
+      const nombreLinea = await pedirDatoSistema("Línea asignada:", boton.dataset.linea);
+      const capacidad = await pedirDatoSistema("Capacidad:", boton.dataset.capacidad);
+      const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (km/h):", boton.dataset.velocidad);
       if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
       opciones.body = JSON.stringify({ nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) });
-    } else if (!window.confirm("¿Eliminar esta unidad de metro?")) {
+    } else if (!await confirmarSistema("¿Eliminar esta unidad de metro?")) {
       return;
     } else {
       opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
@@ -471,42 +472,42 @@ async function crearElementoDiseno(boton, token) {
   let ruta = "";
 
   if (tipo === "linea") {
-    const nombre = window.prompt("Nombre de la línea:");
+    const nombre = await pedirDatoSistema("Nombre de la línea:");
     if (!nombre) return;
     cuerpo = { nombre };
     ruta = "lineas";
   }
 
   if (tipo === "estacion") {
-    const nombre = window.prompt("Nombre de la estación:");
-    const posicionX = window.prompt("Posición X:", "500");
-    const posicionY = window.prompt("Posición Y:", "300");
+    const nombre = await pedirDatoSistema("Nombre de la estación:");
+    const posicionX = await pedirDatoSistema("Posición X:", "500");
+    const posicionY = await pedirDatoSistema("Posición Y:", "300");
     if (!nombre || posicionX === null || posicionY === null) return;
     cuerpo = { nombre, posicionX: Number(posicionX), posicionY: Number(posicionY), transbordo: false };
     ruta = "estaciones";
   }
 
   if (tipo === "conexion") {
-    const nombreLinea = window.prompt("Nombre de la línea:");
-    const nombreEstacion = window.prompt("Nombre de la estación:");
+    const nombreLinea = await pedirDatoSistema("Nombre de la línea:");
+    const nombreEstacion = await pedirDatoSistema("Nombre de la estación:");
     if (!nombreLinea || !nombreEstacion) return;
     cuerpo = { nombreLinea, nombreEstacion };
     ruta = "conexiones";
   }
 
   if (tipo === "tramo") {
-    const nombreLinea = window.prompt("Nombre de la línea:");
-    const estacionA = window.prompt("Estación de origen:");
-    const estacionB = window.prompt("Estación de destino:");
+    const nombreLinea = await pedirDatoSistema("Nombre de la línea:");
+    const estacionA = await pedirDatoSistema("Estación de origen:");
+    const estacionB = await pedirDatoSistema("Estación de destino:");
     if (!nombreLinea || !estacionA || !estacionB) return;
     cuerpo = { nombreLinea, estacionA, estacionB };
     ruta = "tramos";
   }
 
   if (tipo === "unidad") {
-    const nombreLinea = window.prompt("Nombre de la línea asignada:");
-    const capacidad = window.prompt("Capacidad:", "300");
-    const velocidadPromedio = window.prompt("Velocidad promedio (km/h):", "40");
+    const nombreLinea = await pedirDatoSistema("Nombre de la línea asignada:");
+    const capacidad = await pedirDatoSistema("Capacidad:", "300");
+    const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (km/h):", "40");
     if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
     cuerpo = { nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) };
     ruta = "unidades";
@@ -644,7 +645,7 @@ function formatearModoEscenario(modo) {
 }
 
 async function eliminarUsuario(idUsuario, nombreUsuario, token) {
-  if (!window.confirm(`¿Eliminar definitivamente a ${nombreUsuario || "este usuario"}? Esta acción no se puede deshacer.`)) {
+  if (!await confirmarSistema(`¿Eliminar definitivamente a ${nombreUsuario || "este usuario"}? Esta acción no se puede deshacer.`)) {
     return;
   }
 
@@ -732,7 +733,7 @@ async function guardarUsuarioEditado(evento, token) {
   const formulario = evento.currentTarget;
 
   if (!formulario.checkValidity()) {
-    formulario.reportValidity();
+    formulario.querySelector(':invalid')?.focus();
     mostrarMensajeEditorUsuario("Revisá los datos obligatorios del usuario.", "error");
     return;
   }
@@ -793,7 +794,7 @@ async function guardarUsuarioEditado(evento, token) {
     mostrarMensaje("Datos del usuario actualizados correctamente.");
     cargarUsuarios(token);
   } catch (error) {
-    mostrarMensaje(error.message, "error");
+    mostrarMensajeEditorUsuario(error.message, "error");
   }
 }
 
@@ -824,7 +825,7 @@ function actualizarEtiquetaAdministrador(administrador) {
 }
 
 async function cerrarSesion(token) {
-  if (!window.confirm("¿Querés cerrar la sesión de administración?")) {
+  if (!await confirmarSistema("¿Querés cerrar la sesión de administración?")) {
     return;
   }
 

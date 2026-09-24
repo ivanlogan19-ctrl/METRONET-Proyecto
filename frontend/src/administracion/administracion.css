@@ -140,17 +140,6 @@
   color: var(--text-primary);
 }
 
-.admin-encabezado h1 {
-  font-size: clamp(30px, 4vw, 44px);
-  letter-spacing: -.04em;
-  line-height: 1.08;
-}
-
-.admin-vista h2 {
-  font-size: clamp(21px, 2.4vw, 28px);
-  line-height: 1.2;
-}
-
 .admin-usuario {
   flex: 0 0 auto;
   max-width: 100%;
@@ -343,11 +332,6 @@
   color: var(--text-primary);
 }
 
-.admin-lista-disenos h3,
-.admin-detalle-diseno h3 {
-  font-size: 17px;
-}
-
 .admin-lista-disenos p,
 .admin-detalle-diseno p,
 .admin-configuracion-item p,
@@ -379,10 +363,6 @@
   align-items: center;
   gap: var(--space-md, 16px);
   padding: var(--space-md, 16px);
-}
-
-.admin-configuracion-item h3 {
-  font-size: 15px;
 }
 
 .admin-campo-configuracion {
@@ -425,10 +405,6 @@
   display: grid;
   gap: var(--space-sm, 12px);
   margin: 0;
-}
-
-.admin-elementos-diseno h4 {
-  font-size: 15px;
 }
 
 .admin-tabla-diseno {

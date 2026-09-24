@@ -146,7 +146,7 @@ function crearTarjetaModoLibre(resumen) {
   if (!resumen.modoLibreDesbloqueado) {
     tarjeta.classList.add('metronet-inicio__tarjeta--bloqueada');
     contenido.append(
-      crearTituloTarjeta('🔒 Modo Libre'),
+      crearTituloTarjeta('Modo Libre'),
       crearEstado('Bloqueado', 'bloqueado'),
       crearDescripcion('Completá los escenarios de aprendizaje para diseñar una red sin consigna obligatoria.'),
       crearMeta(`${resumen.cantidadCompletados} de ${resumen.niveles.length} niveles completados`),

@@ -77,7 +77,7 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  },{progreso});
  await pagina.getByRole('dialog').waitFor();
  assert.match(await pagina.getByRole('dialog').innerText(),/950 \/ 1000 puntos.*Tu posición: 2/s);
- assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento: 90 \/ 100/);
+ assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento:\s+90 \/ 100/);
  await pagina.getByRole('link',{name:'Ver mi desempeño y ranking',exact:true}).click();await pagina.waitForURL('**/ranking.html');
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
 });
@@ -99,5 +99,5 @@ test('Simulación finalizada presenta el puntaje evaluado en el mensaje y el his
  await pagina.getByRole('dialog').waitFor();
  assert.match(await pagina.locator('#mensajeSimulacion').innerText(),/90 \/ 100 puntos/);
  assert.match(await pagina.locator('#listaResultadosSimulacion').innerText(),/COMPLETADA · 90 puntos/);
- assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento: 90 \/ 100/);
+ assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento:\s+90 \/ 100/);
 });

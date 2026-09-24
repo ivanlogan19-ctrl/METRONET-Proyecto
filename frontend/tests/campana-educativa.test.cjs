@@ -49,9 +49,9 @@ for (const width of [1440, 768, 390]) {
     const texto = await dialogo.innerText();
     assert.match(texto, /Nivel 4.*Simulación completa/);
     assert.match(texto, /Nivel 5.*Lugares y barrios/);
-    assert.match(texto, /Puntaje del intento: 100/);
-    assert.match(texto, /Pista para el próximo nivel/);
-    assert.doesNotMatch(texto, /Contexto histórico/);
+    assert.match(texto, /Puntaje del intento:\s+100/);
+    assert.match(texto, /Pista para el próximo nivel/i);
+    assert.doesNotMatch(texto, /Contexto histórico/i);
     assert.equal(solicitudes.filter(r => r.method === 'POST').length, 0);
     assert.equal(await dialogo.evaluate(d => d.scrollWidth > d.clientWidth), false);
     assert.equal(await dialogo.evaluate(d => d.scrollTop), 0);

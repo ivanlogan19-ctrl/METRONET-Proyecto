@@ -116,11 +116,10 @@ test('selección contextual, edición de transbordo, reubicación y eliminación
   assert.equal(await pagina.locator('[data-elemento-seleccionado]').isVisible(), true);
   assert.equal(await pagina.locator('[data-editar-estacion]').isVisible(), true);
   assert.equal(await pagina.locator('[data-nombre-estacion]').isVisible(), false);
-  pagina.on('dialog', async (dialogo) => {
-    if (dialogo.type() === 'prompt') await dialogo.accept('Este nuevo');
-    else await dialogo.accept();
-  });
   await pagina.locator('[data-editar-estacion]').click();
+  await pagina.locator('.metronet-dialogo-sistema input').fill('Este nuevo');
+  await pagina.locator('.metronet-dialogo-sistema button[value="aceptar"]').click();
+  await pagina.locator('.metronet-dialogo-sistema button[value="aceptar"]').click();
   await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some((e) => e.nombre === 'Este nuevo'));
   assert.equal(solicitudes[0].metodo, 'PATCH');
   assert.equal(solicitudes[0].datos.transbordo, true);
@@ -191,13 +190,15 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
 ]) {
   test(`acciones contextuales de ${tipo}: modificar y eliminar mantienen los contratos existentes`, async (t) => {
     const { pagina, solicitudes } = await preparar(t);
-    const cola = [...respuestas];
-    pagina.on('dialog', (dialogo) => dialogo.accept(cola.shift()));
     const seleccionar = () => pagina.evaluate(({ tipo, coleccion }) => {
       editorPrueba.seleccionarElemento({ tipo, valor: editorPrueba.disenoActual[coleccion][0] });
     }, { tipo, coleccion });
     await seleccionar();
     await pagina.locator(`[data-editar-${tipo}]`).click();
+    for (const respuesta of respuestas) {
+      await pagina.locator('.metronet-dialogo-sistema input').fill(respuesta);
+      await pagina.locator('.metronet-dialogo-sistema button[value="aceptar"]').click();
+    }
     await pagina.waitForFunction((tipo) => {
       const diseno = editorPrueba.disenoActual;
       return tipo === 'linea' ? diseno.lineas[0].nombre === 'Violeta'

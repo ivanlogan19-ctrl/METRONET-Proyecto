@@ -94,11 +94,11 @@ button { cursor: pointer; }
 .perfil-encabezado, .perfil-seccion { padding: clamp(20px, 4vw, 34px); }
 .perfil-encabezado { border-bottom: var(--border-width) solid var(--border); background: var(--panel-elevated); }
 .perfil-encabezado .eyebrow, .perfil-seccion__etiqueta { margin: 0; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.perfil-encabezado h1 { margin: 8px 0 0; color: var(--text-primary); font-size: clamp(28px, 5vw, 40px); line-height: 1.1; }
+.perfil-encabezado h1 { margin: 8px 0 0; color: var(--text-primary); }
 .perfil-encabezado > p:last-child { max-width: 540px; margin: 10px 0 0; color: var(--text-secondary); line-height: 1.55; }
 .perfil-seccion + .perfil-seccion { border-top: var(--border-width) solid var(--border); }
 .perfil-seccion__encabezado { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, .9fr); align-items: start; gap: 16px; margin-bottom: 20px; }
-.perfil-seccion__encabezado h2 { margin: 5px 0 0; color: var(--text-primary); font-size: 20px; line-height: 1.2; }
+.perfil-seccion__encabezado h2 { margin: 5px 0 0; color: var(--text-primary); }
 .perfil-seccion__encabezado > p { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 .perfil-formulario { display: grid; gap: 16px; max-width: 540px; }
 .perfil-formulario .input-wrapper input[type='email'] { padding-right: 8px; }
@@ -161,7 +161,7 @@ button { cursor: pointer; }
 .simulacion-elemento span, .simulacion-resultado span, .simulacion-resultado p, .simulacion-estado-ejecucion { color: var(--text-secondary); }
 .simulacion-visor-mapa { overflow: hidden; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }
 .simulacion-visor-encabezado { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 16px; border-bottom: var(--border-width) solid var(--border); background: var(--panel-elevated); }
-.simulacion-visor-encabezado h3 { margin: 0; color: var(--text-primary); font-size: 14px; }
+.simulacion-visor-encabezado h3 { margin: 0; color: var(--text-primary); }
 .simulacion-visor-encabezado p { margin: 4px 0 0; color: var(--text-secondary); font-size: 12px; }
 .simulacion-visor-modo { padding: 5px 8px; border: var(--border-width) solid var(--border-active); border-radius: var(--radius-control); color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 11px; white-space: nowrap; }
 .simulacion-lienzo-contenedor { border: 0; border-radius: 0; background: var(--bg-secondary); }
@@ -263,8 +263,8 @@ button { cursor: pointer; }
 /* Base compartida por la preparación y el resumen educativo del nivel. */
 .metronet-preparacion { width: min(92vw, 620px); max-height: 90svh; overflow-y: auto; }
 .metronet-preparacion__contenido { gap: var(--space-md); padding: clamp(20px, 4vw, 32px); }
-.metronet-preparacion h2 { font-size: clamp(22px, 4vw, 30px); line-height: 1.2; overflow-wrap: anywhere; }
-.metronet-preparacion h3 { margin: 0; font-size: 17px; }
+.metronet-preparacion h2 { overflow-wrap: anywhere; }
+.metronet-preparacion h3 { margin: 0; }
 .metronet-preparacion__bloque { display: grid; gap: var(--space-xs); padding: var(--space-md); border: var(--border-width) solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
 .metronet-preparacion__bloque--consejo { border-left: var(--border-accent) solid var(--warning); }
 .metronet-preparacion :is([data-comenzar-nivel], [data-continuar-transicion]) { border-color: var(--success); color: var(--bg-primary); background: var(--success); }
@@ -327,7 +327,7 @@ button { cursor: pointer; }
 .metronet-inicio, .metronet-escenarios-pagina { width: min(100% - 32px, 1040px); margin: 0 auto; padding: clamp(30px, 6vw, 72px) 0; }
 .metronet-inicio__presentacion { width: 100%; max-width: none; }
 .metronet-inicio__etiqueta { margin: 0 0 9px; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.metronet-inicio h1, .metronet-escenarios-pagina h1 { margin: 0; color: var(--text-primary); font-size: clamp(30px, 5vw, 52px); line-height: 1.1; }
+.metronet-inicio h1, .metronet-escenarios-pagina h1 { margin: 0; color: var(--text-primary); }
 .metronet-inicio__presentacion > p:last-child,
 .metronet-escenarios-pagina__encabezado > div > p:not(.metronet-inicio__etiqueta) { color: var(--text-secondary); line-height: 1.6; }
 .metronet-inicio__mensaje { margin: 0; color: var(--text-secondary); }
@@ -335,7 +335,7 @@ button { cursor: pointer; }
 .metronet-escenarios-pagina__encabezado { display: block; margin-bottom: 26px; }
 .metronet-escenarios-pagina__encabezado > div { width: 100%; max-width: none; }
 .metronet-escenarios-pagina__encabezado > div > p:not(.metronet-inicio__etiqueta) { max-width: none; margin: 9px 0 0; text-wrap: pretty; }
-.metronet-escenarios-pagina__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 14px; }.metronet-escenarios-pagina__tarjeta { display: grid; align-content: start; gap: 9px; min-height: 260px; padding: 18px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }.metronet-escenarios-pagina__tarjeta > p, .metronet-escenarios-pagina__tarjeta h2, .metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small, .metronet-escenarios-pagina__tarjeta b { margin: 0; }.metronet-escenarios-pagina__tarjeta > p { color: var(--info-active); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }.metronet-escenarios-pagina__tarjeta h2 { font-size: 18px; }.metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small { color: var(--text-secondary); line-height: 1.45; }.metronet-escenarios-pagina__tarjeta b { color: var(--success); font-size: 12px; }.metronet-escenarios-pagina__tarjeta button { align-self: end; min-height: 38px; margin-top: auto; }.metronet-escenarios-pagina__tarjeta.bloqueada { background: var(--bg-secondary); }.metronet-escenarios-pagina__tarjeta.bloqueada > p, .metronet-escenarios-pagina__tarjeta.bloqueada b { color: var(--text-disabled); }
+.metronet-escenarios-pagina__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 14px; }.metronet-escenarios-pagina__tarjeta { display: grid; align-content: start; gap: 9px; min-height: 260px; padding: 18px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }.metronet-escenarios-pagina__tarjeta > p, .metronet-escenarios-pagina__tarjeta h2, .metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small, .metronet-escenarios-pagina__tarjeta b { margin: 0; }.metronet-escenarios-pagina__tarjeta > p { color: var(--info-active); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }.metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small { color: var(--text-secondary); line-height: 1.45; }.metronet-escenarios-pagina__tarjeta b { color: var(--success); font-size: 12px; }.metronet-escenarios-pagina__tarjeta button { align-self: end; min-height: 38px; margin-top: auto; }.metronet-escenarios-pagina__tarjeta.bloqueada { background: var(--bg-secondary); }.metronet-escenarios-pagina__tarjeta.bloqueada > p, .metronet-escenarios-pagina__tarjeta.bloqueada b { color: var(--text-disabled); }
 
 body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-pantalla-editor { display: grid; grid-template-rows: var(--navegacion-alto) minmax(0, 1fr); width: 100%; height: 100svh; min-height: 0; }
@@ -417,9 +417,6 @@ body.metronet-pagina-editor { overflow: hidden; }
 #metronet-panel-controles .metronet-panel-titulo {
   margin: 0;
   color: var(--text-primary);
-  font-family: var(--font-tecnica);
-  font-size: 11px;
-  letter-spacing: .08em;
 }
 #metronet-panel-controles .metronet-flujo {
   margin: 0;
@@ -536,8 +533,6 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-escenarios-pagina__seccion-cabecera h2 {
   margin: 0;
   color: var(--text-primary);
-  font-size: clamp(20px, 2.2vw, 25px);
-  line-height: 1.2;
 }
 .metronet-escenarios-pagina__seccion-cabecera > p {
   max-width: none;
@@ -577,7 +572,7 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__tarjeta h2,
 .metronet-inicio__tarjeta p { margin: 0; }
 .metronet-inicio__tarjeta-contenido { display: grid; align-content: start; gap: var(--space-sm); }
-.metronet-inicio__tarjeta h2 { color: var(--text-primary); font-size: clamp(20px, 2.2vw, 25px); line-height: 1.2; }
+.metronet-inicio__tarjeta h2 { color: var(--text-primary); }
 .metronet-inicio__tarjeta-etiqueta {
   color: var(--text-secondary);
   font-family: var(--font-tecnica);

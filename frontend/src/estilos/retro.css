@@ -1,144 +1,159 @@
 @import './componentes.css';
 
-/* Composición y encabezados; tokens y familias de componentes son compartidos. */
-/* Grilla decorativa exclusivamente fuera del mapa y de los campos. */
-html:root body .auth-page,
-html:root .perfil-pagina,
-html:root body.metronet-pagina-navegable {
+/* METRONET: consola de tránsito. Composición de módulos sobre la biblioteca base. */
+html:root body { font-family: var(--font-ui); }
+html:root body :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--text-primary);
+  font-weight: 400;
+  line-height: var(--heading-leading);
+  letter-spacing: var(--heading-tracking);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+html:root body h1 { font-family: var(--font-arcade); font-size: var(--font-size-h1); }
+html:root body h2 { font-family: var(--font-arcade); font-size: var(--font-size-h2); }
+html:root body :is(h3, h4, h5, h6) { font-family: var(--font-tecnica); font-size: var(--font-size-h3); font-weight: 700; }
+html:root body :is(.eyebrow, .metronet-inicio__etiqueta, .metronet-inicio__tarjeta-etiqueta,
+  .metronet-panel-editor-sobretitulo, .perfil-seccion__etiqueta, .simulacion-etiqueta, .admin-etiqueta) {
+  color: var(--info-active); font-family: var(--font-tecnica); font-size: var(--font-size-small); letter-spacing: .12em; text-transform: uppercase;
+}
+/* El patrón queda detrás de superficies opacas, nunca encima de mapas o campos. */
+html:root body :is(.auth-page, .perfil-pagina), html:root body.metronet-pagina-navegable {
   background-color: var(--bg-primary);
-  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
 }
+html:root :is(.admin-aplicacion, .admin-contenido) { background: transparent; }
 
-/* Ventanas y superficies. El recurso del logo no recibe filtros, texturas ni transformaciones. */
-html:root body :is(.auth-card, .perfil-contenedor, .metronet-inicio__tarjeta,
+/* Una familia de módulos: marco, carril azul superior y contenido legible. */
+html:root body :is(.metronet-modulo, .auth-card, .perfil-contenedor, .metronet-inicio__tarjeta,
   .metronet-escenarios-pagina__tarjeta, .metronet-escenarios-pagina__progreso,
   .metronet-escenarios-pagina__logros, .admin-tabla-contenedor, .admin-detalle-diseno,
-  .admin-configuracion-item, .simulacion-panel-lateral, .simulacion-consigna,
-  .simulacion-panel-operacion, .simulacion-control-operacion, .simulacion-resultado) {
+  .admin-configuracion-item, .admin-lista-disenos article, .admin-tarjetas-resumen article,
+  .simulacion-panel-lateral, .simulacion-consigna, .simulacion-panel-operacion,
+  .simulacion-control-operacion, .simulacion-resultado, .metronet-ranking section) {
+  border: var(--border-width) solid var(--border-active);
+  border-top: var(--border-accent) solid var(--info-active);
   border-radius: var(--radius-control);
-  border-color: var(--border);
-  background-color: var(--panel);
-  box-shadow: var(--retro-marco);
+  background: var(--panel);
+  box-shadow: var(--shadow-panel);
 }
-html:root body .auth-card { border-top: var(--border-accent) solid var(--info-active); }
-html:root body :is(.auth-card h1, .auth-card h2, .perfil-encabezado h1,
-  .metronet-inicio__presentacion h1, .metronet-escenarios-pagina__encabezado h1) {
-  font-family: var(--font-arcade);
-  font-size: clamp(24px, 3.8vw, 38px);
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
+html:root body :is(.auth-card, .metronet-inicio__tarjeta, .metronet-escenarios-pagina__progreso,
+  .metronet-escenarios-pagina__logros, .admin-configuracion-item, .simulacion-panel-lateral, .metronet-ranking section) {
+  background-image: linear-gradient(var(--scanline) 1px, transparent 1px);
+  background-size: 100% 4px;
 }
-html:root body :is(.auth-card h1, .auth-card h2) { font-size: clamp(24px, 3vw, 30px); }
-html:root :is(.metronet-inicio__tarjeta h2, .metronet-escenarios-pagina__tarjeta h2,
-  .metronet-preparacion h2, .simulacion-encabezado h1) {
-  font-family: var(--font-arcade);
-  font-size: clamp(20px, 2.4vw, 28px);
-  font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: 0;
-  overflow-wrap: anywhere;
+html:root body :is(.metronet-inicio__presentacion, .metronet-escenarios-pagina__encabezado,
+  .admin-encabezado, .simulacion-encabezado, .metronet-ranking > header) {
+  padding-block: var(--space-md) var(--space-lg);
+  border-bottom: var(--border-strong) solid var(--info-active);
 }
-html:root body :is(.eyebrow, .metronet-inicio__etiqueta, .metronet-inicio__tarjeta-etiqueta,
-  .metronet-panel-editor-sobretitulo, .perfil-seccion__etiqueta, .simulacion-etiqueta) {
-  color: var(--info-active);
-  font-family: var(--font-tecnica);
-  letter-spacing: .1em;
+html:root body :is(.metronet-inicio__presentacion, .metronet-escenarios-pagina__encabezado,
+  .metronet-ranking > header)::after {
+  content: ''; display: block; width: 72px; height: 5px; margin-top: var(--space-md); background: var(--module-stripe);
 }
-html:root :is(.metronet-inicio__presentacion, .metronet-escenarios-pagina__encabezado) {
-  padding-bottom: 24px;
-  border-bottom: var(--border-strong) solid var(--border);
-  background-image: linear-gradient(90deg, var(--info-active) 0 80px, var(--retro-acento) 80px 112px, transparent 112px);
-  background-size: 100% 3px;
-  background-repeat: no-repeat;
-  background-position: bottom;
+html:root body :is(.perfil-encabezado, .metronet-panel-editor-cabecera, .simulacion-visor-encabezado) {
+  border-bottom: var(--border-width) solid var(--info-active); background: var(--panel-elevated); box-shadow: var(--shadow-header);
 }
-html:root .perfil-encabezado,
-html:root .metronet-panel-editor-cabecera,
-html:root .simulacion-visor-encabezado {
-  border-bottom: var(--border-width) solid var(--border);
-  background: var(--panel-elevated);
-  box-shadow: var(--shadow-header);
+html:root body :is(.perfil-seccion__encabezado, .admin-detalle-encabezado, .admin-modal-encabezado) {
+  padding-bottom: var(--space-md); border-bottom: var(--border-width) solid var(--border);
+}
+html:root body .auth-form-section legend { font: 700 var(--font-size-small)/1.5 var(--font-tecnica); letter-spacing: .1em; }
+
+/* Navegación como teclas de consola. El logo y sus ancestros no reciben filtros. */
+html:root .metronet-navegacion { background: var(--bg-secondary); border-bottom: var(--border-strong) solid var(--info-active); box-shadow: var(--shadow-floating); }
+html:root :is(.metronet-navegacion__enlace, .metronet-navegacion__usuario > summary, .metronet-navegacion__menu-usuario) { border-radius: var(--radius-control); }
+html:root .metronet-navegacion__enlace { font-family: var(--font-tecnica); text-transform: uppercase; font-size: var(--font-size-small); letter-spacing: .03em; }
+html:root :is(.metronet-navegacion__enlace.activo, .admin-enlace.activo) { color: var(--text-primary); border-color: var(--info-active); background: var(--surface-selected); box-shadow: var(--shadow-selection); }
+html:root .metronet-flujo { padding: var(--space-xs); border: var(--border-width) solid var(--border); background: var(--bg-secondary); }
+html:root .metronet-flujo__paso.actual { color: var(--primary-ink); background: var(--info-active); padding-inline: var(--space-2xs); }
+html:root .admin-menu { border-right: var(--border-width) solid var(--info-active); background: var(--bg-secondary); }
+html:root .admin-menu .admin-enlace { text-transform: uppercase; letter-spacing: .04em; }
+
+/* Selector de misiones: filas conectadas, números de estación y acciones alineadas. */
+html:root .metronet-escenarios-pagina__lista { display: grid; grid-template-columns: 1fr; gap: var(--space-md); }
+html:root body .metronet-escenarios-pagina__tarjeta {
+  display: grid; grid-template-columns: 200px minmax(0, 1fr) 180px;
+  grid-template-rows: auto 1fr; gap: var(--space-sm) var(--space-lg);
+  min-height: 0; padding: var(--space-lg); border-top-width: var(--border-width);
+  border-left: var(--border-system) solid var(--estado-nivel, var(--info-active));
+}
+html:root .metronet-escenarios-pagina__tarjeta-cabecera { grid-column: 1; grid-row: 1; display: grid; justify-content: start; gap: var(--space-xs); }
+html:root .metronet-escenarios-pagina__tarjeta > h2 { grid-column: 2; grid-row: 1; margin: 0; }
+html:root .metronet-escenarios-pagina__tarjeta-contenido { grid-column: 2; grid-row: 2; }
+html:root .metronet-escenarios-pagina__acciones { grid-column: 3; grid-row: 1 / 3; align-self: center; margin: 0; }
+html:root .metronet-escenarios-pagina__tarjeta--completado { --estado-nivel: var(--success); }
+html:root .metronet-escenarios-pagina__tarjeta--bloqueado { --estado-nivel: var(--text-disabled); border-style: dashed; }
+html:root .metronet-escenarios-pagina__tarjeta-cabecera > p { font-family: var(--font-arcade); font-size: 16px; color: var(--estado-nivel, var(--info-active)); line-height: 1.5; }
+html:root :is(.metronet-escenarios-pagina__paso-progreso, .metronet-inicio__paso, .metronet-escenarios-pagina__logro, .perfil-informacion > div) { border-radius: var(--radius-control); }
+
+/* Instrumentos y displays: valores reales, sin datos decorativos inventados. */
+html:root body :is(.metronet-dato, .simulacion-datos-tiempo-real dd, .metronet-viaje__porcentaje,
+  .metronet-transicion__puntaje, .ranking-clasificacion li > :first-child, .ranking-clasificacion li > :nth-child(3)) {
+  color: var(--info-active); font-family: var(--font-tecnica); font-weight: 700;
+  font-variant-numeric: tabular-nums; letter-spacing: .06em;
+}
+html:root body :is(.metronet-score, .metronet-viaje__porcentaje) { font-size: var(--font-size-display); }
+html:root .metronet-transicion__puntaje > span { display: block; color: var(--text-secondary); font-size: var(--font-size-label); margin-bottom: var(--space-xs); }
+html:root .simulacion-datos-tiempo-real dd { font-size: clamp(15px, 1.6vw, 20px); overflow-wrap: anywhere; }
+html:root .simulacion-datos-tiempo-real > div { border: var(--border-width) solid var(--border); border-left: var(--border-accent) solid var(--info-active); padding: var(--space-sm); }
+html:root .simulacion-datos-tiempo-real dt { font-size: var(--font-size-small); }
+html:root .metronet-transicion__puntaje { padding: var(--space-lg); border: var(--border-width) solid var(--info-active); background: var(--bg-secondary); }
+html:root :is(.metronet-consigna__barra-progreso, .metronet-escenarios-pagina__barra-progreso, .simulacion-consigna__barra, .simulacion-consigna__barra-compacta) { border-radius: 0; background: var(--bg-secondary); }
+html:root :is(.metronet-consigna__barra-progreso, .metronet-escenarios-pagina__barra-progreso, .simulacion-consigna__barra, .simulacion-consigna__barra-compacta) > span {
+  border-radius: 0; background-image: repeating-linear-gradient(90deg, transparent 0 10px, var(--bg-primary) 10px 12px);
 }
 
-/* Navegación de sistema. No se aplican efectos a la marca ni a sus ancestros. */
-html:root .metronet-navegacion { background: var(--bg-secondary); border-bottom: var(--border-width) solid var(--border); box-shadow: var(--shadow-floating); }
-html:root :is(.metronet-navegacion__enlace, .metronet-navegacion__usuario > summary,
-  .metronet-navegacion__menu-usuario) { border-radius: var(--radius-control); }
-html:root .metronet-navegacion__enlace { font-family: var(--font-tecnica); }
-html:root :is(.metronet-navegacion__enlace.activo, .admin-enlace.activo) {
-  color: var(--text-primary);
-  border-color: var(--info-active);
-  background: var(--surface-selected);
-  box-shadow: var(--shadow-selection);
-}
+/* Tablas y registros, incluida la tabla de récords. */
+html:root body :is(table, .ranking-clasificacion) { font-family: var(--font-ui); font-size: var(--font-size-control); }
+html:root body th { color: var(--info-active); background: var(--bg-secondary); font-family: var(--font-tecnica); font-size: var(--font-size-small); letter-spacing: .08em; text-transform: uppercase; }
+html:root body td { color: var(--text-primary); border-bottom-color: var(--border); }
+html:root body :is(tbody tr, .ranking-clasificacion li):nth-child(even) { background: var(--bg-secondary); }
+html:root body :is(tbody tr, .ranking-clasificacion li):hover { background: var(--surface-selected); }
+html:root table:has(td.metronet-vacio) { min-width: 0; table-layout: auto; }
+html:root table:has(td.metronet-vacio) th { padding: var(--space-xs); white-space: normal; }
+html:root body table td.metronet-vacio { display: table-cell; min-width: 0; white-space: normal; overflow-wrap: break-word; }
+html:root .ranking-clasificacion { border: var(--border-width) solid var(--border); gap: 0; }
+html:root .ranking-clasificacion li { border: 0; border-bottom: var(--border-width) solid var(--border); min-height: 64px; }
+html:root .ranking-clasificacion .ranking-propio { border-left: var(--border-system) solid var(--success); }
+html:root .ranking-clasificacion li > :first-child { font-size: var(--font-size-h2); }
+html:root .ranking-niveles li { border-left: var(--border-accent) solid var(--info-active); }
+html:root .ranking-niveles li > span { color: var(--info-active); font-variant-numeric: tabular-nums; }
 
-/* HUD de nivel y simulación: números visibles, barras segmentadas sin movimiento constante. */
-html:root :is(.metronet-inicio__estado, .metronet-escenarios-pagina__estado,
-  .metronet-consigna__estado, .simulacion-estado, .simulacion-estado-ejecucion,
-  .metronet-escenarios-pagina__paso-progreso, .metronet-inicio__paso,
-  .metronet-escenarios-pagina__logro, .perfil-informacion > div) { border-radius: var(--radius-control); }
-html:root :is(.metronet-consigna__barra-progreso, .metronet-escenarios-pagina__barra-progreso,
-  .simulacion-consigna__barra, .simulacion-consigna__barra-compacta) { border-radius: 0; background-color: var(--bg-secondary); }
-html:root :is(.metronet-consigna__barra-progreso, .metronet-escenarios-pagina__barra-progreso,
-  .simulacion-consigna__barra, .simulacion-consigna__barra-compacta) > span {
-  border-radius: 0;
-  background-image: repeating-linear-gradient(90deg, transparent 0 10px, rgb(6 12 28 / .7) 10px 12px);
+/* Editor: el mapa queda limpio; módulos compactos sostienen su prioridad. */
+html:root #metronet-mapa, html:root #metronet-panel-controles, html:root .simulacion-visor-mapa { border-radius: var(--radius-control); border-color: var(--border-active); }
+html:root body #metronet-panel-controles h1 { font-size: 18px; }
+html:root body #metronet-panel-controles :is(h2, h3) { font-family: var(--font-tecnica); font-size: var(--font-size-small); font-weight: 700; }
+/* Cabeceras de instrumentos comparten la escala compacta del HUD, no la de página. */
+html:root body :is(.metronet-panel-titulo, .metronet-panel-puntos-titulo, .metronet-panel-puntos-subtitulo, .metronet-punto-interes-panel-titulo) {
+  font-family: var(--font-tecnica); font-size: var(--font-size-small); font-weight: 700;
+  line-height: 1.4; white-space: normal;
 }
-html:root .simulacion-datos-tiempo-real :is(strong, dd),
-html:root .metronet-escenarios-pagina__numero { font-family: var(--font-arcade); font-size: 14px; font-weight: 400; font-variant-numeric: tabular-nums; }
-
-/* Constructor: todo el tratamiento queda en los marcos; el canvas permanece limpio. */
-html:root #metronet-mapa,
-html:root #metronet-panel-controles,
-html:root .simulacion-visor-mapa { border-radius: var(--radius-control); border-color: var(--border); }
-html:root #metronet-panel-controles .metronet-panel-titulo { font-family: var(--font-arcade); font-size: 18px; font-weight: 400; line-height: 1.3; }
-html:root #metronet-panel-controles :is(.metronet-consigna, .metronet-panel-acordeon-mapa,
-  .metronet-editor-seleccionado, .metronet-juego, .metronet-editor-grupo,
-  .metronet-editor-panel, .metronet-territorio, button, input, select) { border-radius: var(--radius-control); }
-html:root :is(.metronet-panel-puntos-interes, .metronet-punto-interes-panel, .metronet-panel-dinamico,
-  .metronet-seleccion-geografica, .metronet-control-zoom,
-  .metronet-panel-puntos-item, .metronet-punto-interes-estado) { border-radius: var(--radius-control); }
-html:root .metronet-punto-interes-panel { border-top: var(--border-strong) solid var(--info-active); box-shadow: var(--retro-marco); }
-html:root :is(.metronet-panel-puntos-titulo, .metronet-punto-interes-panel-titulo) { font-family: var(--font-tecnica); }
+html:root #metronet-panel-controles :is(.metronet-consigna, .metronet-panel-acordeon-mapa, .metronet-editor-seleccionado, .metronet-juego, .metronet-editor-grupo, .metronet-editor-panel, .metronet-territorio) { border-radius: var(--radius-control); }
+html:root .metronet-punto-interes-panel { border-top: var(--border-strong) solid var(--info-active); }
 html:root .metronet-panel-puntos-item.es-seleccionado { box-shadow: var(--shadow-selection); }
+html:root body .simulacion-panel-lateral h2 { font-size: var(--font-size-h2); }
 
-/* Administración usa la misma familia, con títulos de terminal más sobrios. */
-html:root .admin-aplicacion { --retro-marco: 2px 2px 0 var(--retro-sombra); }
-html:root .admin-menu { border-right: var(--border-width) solid var(--border); background: var(--bg-secondary); }
-html:root body :is(.admin-encabezado h1, .admin-vista h2, dialog.admin-modal h2) {
-  font-family: var(--font-tecnica);
-  font-size: clamp(20px, 2.4vw, 28px);
-  font-weight: 700;
-  letter-spacing: .01em;
-  line-height: 1.4;
-}
-html:root :is(.admin-enlace, .admin-usuario, .admin-filtros, .admin-lista-disenos article, .admin-tarjetas-resumen article) { border-radius: var(--radius-control); }
-html:root .admin-tabla th { font-family: var(--font-tecnica); font-weight: 700; color: var(--text-primary); background: var(--panel-elevated); }
-html:root .admin-tabla tbody tr:hover { background: var(--panel-elevated); }
-html:root .admin-tabla td { color: var(--text-primary); }
-
-/* El perfil comparte el ancho y la alineación de los campos del acceso. */
+/* Perfil y acceso comparten campos, títulos y ayudas. */
 html:root .perfil-contenedor .input-wrapper { position: relative; width: 100%; }
 html:root .perfil-contenedor .input-wrapper input { width: 100%; min-height: 44px; }
 html:root .perfil-contenedor .input-wrapper input:is([type='password'], [autocomplete='current-password'], [autocomplete='new-password']) { padding-right: 90px; }
 html:root .perfil-contenedor .toggle-password { position: absolute; top: 6px; right: 6px; min-height: 32px; padding: 4px 8px; transform: none; }
-html:root .perfil-contenedor .requisitos-contrasena { margin-top: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.5; border-left: var(--border-strong) solid var(--border-active); }
+html:root .perfil-contenedor .requisitos-contrasena { margin-top: var(--space-xs); }
 
+@media (max-width: 900px) {
+  html:root body .metronet-escenarios-pagina__tarjeta { grid-template-columns: 150px minmax(0, 1fr); }
+  html:root .metronet-escenarios-pagina__acciones { grid-column: 2; grid-row: 3; }
+}
 @media (max-width: 620px) {
-  html:root body :is(.auth-card h1, .auth-card h2) { font-size: 24px; }
-  html:root #metronet-panel-controles .metronet-panel-titulo { font-size: 16px; }
-  html:root .metronet-preparacion h2 { font-size: 22px; }
-  html:root body .auth-card { box-shadow: var(--shadow-panel); }
+  html:root body .metronet-escenarios-pagina__tarjeta { grid-template-columns: minmax(0, 1fr); padding: var(--space-md); }
+  html:root .metronet-escenarios-pagina__tarjeta > :is(header, h2, div, footer) { grid-column: 1; grid-row: auto; }
+  html:root .metronet-escenarios-pagina__tarjeta-cabecera { display: flex; justify-content: space-between; flex-wrap: wrap; }
   html:root body :is(.input-wrapper input, .admin-formulario-editor input, .admin-filtros input) { font-size: 16px; }
+  html:root .perfil-seccion__encabezado { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   html *, html *::before, html *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  html .button-loader { border-color: var(--retro-tinta); border-right-color: transparent; }
 }
 @media (forced-colors: active) {
   html body :is(button, input, select, textarea, dialog) { border: var(--border-width) solid ButtonText; box-shadow: none; }

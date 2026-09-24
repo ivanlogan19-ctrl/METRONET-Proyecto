@@ -1,3 +1,4 @@
+import { confirmarSistema } from '../componentes/DialogoSistema.js';
 import Phaser from 'phaser';
 
 import CapaMapaBase from './capas/CapaMapaBase.js';
@@ -345,7 +346,7 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   async cerrarSesion() {
-    if (!window.confirm('¿Querés cerrar la sesión actual?')) {
+    if (!await confirmarSistema('¿Querés cerrar la sesión actual?')) {
       return;
     }
 

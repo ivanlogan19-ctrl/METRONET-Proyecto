@@ -417,6 +417,7 @@ async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
 function renderizarResultados() {
   const contenedor = document.getElementById('listaResultadosSimulacion');
   const resultados = disenoActual.resultados ?? [];
+  contenedor.classList.toggle('metronet-vacio', !resultados.length);
   contenedor.replaceChildren(...resultados.map((resultado) => {
     const elemento = document.createElement('article');
     elemento.className = 'simulacion-resultado';

@@ -52,7 +52,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   letter-spacing: .09em;
   text-transform: uppercase;
 }
-#metronet-panel-controles .metronet-panel-titulo { margin: 0; color: var(--text-primary); font-family: var(--font-ui); font-size: 20px; font-weight: 750; letter-spacing: -.02em; }
+#metronet-panel-controles .metronet-panel-titulo { margin: 0; color: var(--text-primary); }
 .metronet-panel-editor-toggle {
   display: none;
   min-height: 34px;
@@ -156,11 +156,6 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-consigna__referencias h3 {
   margin: 0;
   color: var(--text-secondary);
-  font-family: var(--font-tecnica);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
 }
 .metronet-consigna__lista-objetivos { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .metronet-consigna__lista-objetivos li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; min-height: 24px; gap: 6px; color: var(--text-secondary); font-size: 11px; line-height: 1.35; }
@@ -467,7 +462,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   border-top: var(--border-width) solid var(--border);
   background: var(--panel);
 }
-.metronet-editor-finalizar h3 { margin: 0; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.metronet-editor-finalizar h3 { margin: 0; color: var(--text-primary); }
 #metronet-panel-controles .metronet-editor-finalizar__acciones { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones > button { width: 100%; min-width: 0; flex: 0 1 auto; }
 .metronet-editor-finalizar__ayuda { margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
@@ -483,7 +478,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-zona-peligro > summary { color: var(--danger); cursor: pointer; font-size: 12px; }
 .metronet-editor-zona-peligro[open] > summary { margin-bottom: 12px; }
 .metronet-editor-zona-peligro__etiqueta { margin: 0; color: var(--danger); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.metronet-editor-zona-peligro h4 { margin: 0; color: var(--text-primary); font-size: 13px; }
+.metronet-editor-zona-peligro h4 { margin: 0; color: var(--text-primary); }
 .metronet-editor-zona-peligro > p:not(.metronet-editor-zona-peligro__etiqueta) { max-width: 310px; margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
 .metronet-editor-zona-peligro button { min-height: 34px; margin-top: 2px; padding: 6px 11px; font-size: 11px; }
 .metronet-panel-editor-pie:empty { display: none; }
@@ -499,7 +494,6 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   .metronet-pantalla-editor #metronet-aplicacion { padding: 8px; }
   #metronet-mapa { min-height: clamp(400px, 62svh, 560px); }
   .metronet-panel-editor-cabecera { padding: 11px 12px; }
-  #metronet-panel-controles .metronet-panel-titulo { font-size: 18px; }
   .metronet-panel-editor-toggle { display: inline-flex; align-items: center; justify-content: center; }
   #metronet-panel-controles.metronet-panel-colapsado .metronet-panel-editor-contenido { display: none; }
   #metronet-aplicacion:has(#metronet-panel-controles.metronet-panel-colapsado) #metronet-mapa { min-height: calc(100svh - var(--navegacion-alto) - 24px); }

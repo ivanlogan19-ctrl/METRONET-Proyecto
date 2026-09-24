@@ -45,9 +45,6 @@ button { cursor: pointer; }
 .simulacion-vacio h2,
 .simulacion-visor-encabezado h3,
 .simulacion-panel-operacion h3 { margin: 0; color: var(--text-primary); }
-.simulacion-panel-lateral h2,
-.simulacion-panel-operacion h3,
-.simulacion-visor-encabezado h3 { font-size: 14px; }
 .simulacion-texto-secundario,
 .simulacion-mensaje,
 .simulacion-estado-ejecucion,
@@ -88,7 +85,7 @@ button { cursor: pointer; }
   padding-bottom: 12px;
   border-bottom: var(--border-width) solid var(--border);
 }
-.simulacion-encabezado h1 { margin-top: 4px; font-size: clamp(23px, 2.6vw, 32px); }
+.simulacion-encabezado h1 { margin-top: 4px; }
 .simulacion-estado {
   align-self: center;
   padding: 5px 8px;

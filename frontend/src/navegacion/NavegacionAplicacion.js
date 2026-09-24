@@ -1,4 +1,5 @@
 import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
+import { inicializarAyudasSistema } from '../componentes/AyudasSistema.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
 
@@ -99,6 +100,7 @@ async function cerrarSesion(sesion) {
 }
 
 export function inicializarNavegacion({ actual, etapa } = {}) {
+  inicializarAyudasSistema();
   const marcador = document.querySelector('[data-navegacion-global]');
   const sesion = obtenerSesionActiva();
   limpiarEventosUsuario?.();

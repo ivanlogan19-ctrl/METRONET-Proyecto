@@ -11,6 +11,7 @@ if (sesion) {
 async function cargar() {
   const mensaje = document.getElementById('mensajeRanking'), boton = document.getElementById('reintentarRanking');
   boton.hidden = true; mensaje.textContent = 'Consultando resultados…';
+  mensaje.classList.remove('error', 'metronet-vacio');
   try {
     const [ranking, progreso] = await Promise.all([consultarJuego('/ranking'), consultarJuego('/progreso')]);
     if (!Array.isArray(ranking?.jugadores) || !Array.isArray(progreso?.escenarios)) throw new Error('No hay resultados disponibles.');
@@ -29,5 +30,6 @@ async function cargar() {
       return item;
     }));
     mensaje.textContent = ranking.jugadores.length ? 'Se suma el mejor puntaje por nivel de todos tus intentos; reiniciar no borra esos logros.' : 'Todavía no hay jugadores clasificados.';
-  } catch (error) { mensaje.textContent = error.message; boton.hidden = false; }
+    mensaje.classList.toggle('metronet-vacio', !ranking.jugadores.length);
+  } catch (error) { mensaje.textContent = error.message; mensaje.classList.add('error'); boton.hidden = false; }
 }

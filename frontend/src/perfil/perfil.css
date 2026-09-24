@@ -17,13 +17,7 @@
 
 .perfil-contenedor h1,
 .perfil-contenedor h2 {
-  font-family: var(--font-ui);
   text-align: left;
-  text-transform: none;
-}
-
-.perfil-encabezado h1 {
-  letter-spacing: -.02em;
 }
 
 .perfil-encabezado .eyebrow,
@@ -59,10 +53,6 @@
 
 .perfil-seccion__encabezado {
   gap: var(--space-lg);
-}
-
-.perfil-seccion__encabezado h2 {
-  letter-spacing: -.01em;
 }
 
 .perfil-seccion__encabezado > p {

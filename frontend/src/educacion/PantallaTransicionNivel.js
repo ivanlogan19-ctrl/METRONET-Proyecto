@@ -20,7 +20,11 @@ export async function mostrarTransicionNivel(anterior, siguiente, { puntaje, fin
   titulo.tabIndex = -1;
   cuerpo.append(texto('p', final ? 'Campaña completa' : 'Aprender · Conectar · Avanzar', 'metronet-inicio__etiqueta'), titulo,
     texto('p', anterior?.nombre || `Nivel ${anterior?.numero ?? ''}`));
-  if (Number.isFinite(puntaje)) cuerpo.append(texto('p', `Puntaje del intento: ${puntaje}${desempeno ? ` / ${desempeno.puntajeMaximo}` : ""}`, 'metronet-transicion__puntaje'));
+  if (Number.isFinite(puntaje)) {
+    const display = document.createElement('p'); display.className = 'metronet-transicion__puntaje';
+    display.append(texto('span', 'Puntaje del intento: '), texto('strong', `${puntaje}${desempeno ? ` / ${desempeno.puntajeMaximo}` : ''}`, 'metronet-score'));
+    cuerpo.append(display);
+  }
   const agregarBloque = (titulo, valor) => {
     if (typeof valor !== 'string' || !valor.trim()) return;
     const bloque = document.createElement('section');
