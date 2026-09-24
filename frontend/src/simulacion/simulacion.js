@@ -1,5 +1,6 @@
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
+import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
 import { presentarResultadoNivel } from '../educacion/TransicionNivel.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
@@ -12,6 +13,7 @@ const sesion = obtenerSesionActiva();
 const idDisenoInicial = obtenerIdDisenoDeRuta();
 let cliente = null;
 let visor = null;
+let organizacion = null;
 let disenoActual = null;
 let parametrosUltimaEjecucion = null;
 let estadoMotor = null;
@@ -32,6 +34,9 @@ if (!sesion) {
 
 async function inicializar() {
   inicializarNavegacion({ actual: 'simulacion', etapa: 'simulacion' });
+  organizacion = inicializarOrganizacionSimulacion(() => {
+    if (visor?.escena.scale.getParentBounds()) visor.escena.scale.refresh();
+  });
   aplicarConfiguracionPredeterminada(await obtenerConfiguracionAplicacion(sesion));
   cliente = new ClienteDisenos(sesion);
   document.getElementById('formularioEjecucion').addEventListener('submit', ejecutarSimulacion);
@@ -120,10 +125,11 @@ function actualizarPantalla() {
   const cantidadEstaciones = disenoActual.estaciones.length;
   document.getElementById('estadoVacio').hidden = true;
   document.getElementById('panelSimulacion').hidden = false;
+  organizacion.mostrarDiseno(resumen.idDiseno);
   document.getElementById('tituloSimulacion').textContent = resumen.nombre;
   document.getElementById('nombreDisenoLateral').textContent = resumen.nombre;
   document.getElementById('estadoSimulacion').textContent = formatearEstado(resumen.estado);
-  document.getElementById('estadoDisenoLateral').textContent = `${formatearEstado(resumen.estado)} · ${resumen.dificultad}`;
+  document.getElementById('estadoDisenoLateral').textContent = [formatearEstado(resumen.estado), resumen.dificultad].filter(Boolean).join(' · ');
   document.getElementById('volverEdicion').href = establecerIdDisenoEnRuta('/', resumen.idDiseno, obtenerContextoDiseno(resumen.idDiseno));
   actualizarConsignaSimulacion(resumen);
   document.getElementById('estadoVistaMapa').textContent = cantidadEstaciones
@@ -145,6 +151,7 @@ function actualizarConsignaSimulacion(resumen) {
   estadoConsigna.hidden = !estado;
   document.getElementById('tituloConsigna').textContent = resumen.nombre || 'Actividad de simulación';
   document.getElementById('objetivoConsigna').textContent = resumen.objetivo || 'Sin objetivo registrado para este escenario.';
+  document.getElementById('objetivoCompactoSimulacion').textContent = document.getElementById('objetivoConsigna').textContent;
   const informacionAdicional = document.getElementById('informacionAdicionalConsigna');
   document.getElementById('descripcionConsigna').textContent = resumen.instrucciones || '';
   informacionAdicional.hidden = !resumen.instrucciones;
@@ -401,6 +408,7 @@ async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
   try { desempeno = await consultarJuego(`/disenos/${idDiseno}/desempeno`); } catch { /* Mantener disponible la simulación habitual. */ }
   if (disenoActual?.simulacion?.idDiseno !== idDiseno) return;
   if (!Number.isFinite(desempeno?.puntajeMaximo)) desempeno = null;
+  document.getElementById('puntajeCompactoSimulacion').textContent = desempeno ? `${desempeno.puntaje} / ${desempeno.puntajeMaximo}` : '—';
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
   if (actualizarMotor) visor?.escena.establecerDiseno(disenoActual);
   renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, async (unidad, velocidadPromedio) => {
@@ -535,7 +543,7 @@ function restablecerSeguimientoMetro() {
 }
 
 function mostrarResultados() {
-  document.getElementById('tituloResultadosSimulacion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  organizacion.abrirSeccion('seccionResultados');
 }
 
 function detenerAnimacion() {
@@ -555,6 +563,7 @@ function actualizarPanelTiempoReal(estado) {
   const campoVelocidades = document.querySelector('[data-controles-circulacion]');
   if (campoVelocidades) campoVelocidades.disabled = estado.estado === 'EN_CURSO' || estado.estado === 'PAUSADA';
   const metro = estado.metroActivo;
+  document.getElementById('velocidadActualSimulacion').textContent = metro?.velocidadKmh ? `${metro.velocidadKmh} km/h` : '—';
   document.getElementById('tiempoSimulacion').textContent = formatearTiempo(estado.tiempoTranscurrido);
   document.getElementById('metroSimulacion').textContent = metro?.identificador ? `${metro.identificador} · ${metro.velocidadKmh || '—'} km/h` : 'Sin unidad activa';
   document.getElementById('lineaSimulacion').textContent = metro?.nombreLinea ?? '—';
@@ -622,13 +631,18 @@ function actualizarControlesSimulacion(estado) {
   const estadoActual = estado?.estado;
   const enCurso = estadoActual === 'EN_CURSO';
   const pausada = estadoActual === 'PAUSADA';
+  const controlConFoco = document.activeElement;
   const puedeReiniciar = Boolean(parametrosUltimaEjecucion);
   document.getElementById('pausarSimulacion').disabled = !enCurso;
+  document.getElementById('pausarSimulacion').hidden = pausada;
   document.getElementById('reanudarSimulacion').disabled = !pausada;
+  document.getElementById('reanudarSimulacion').hidden = !pausada;
   document.getElementById('detenerSimulacion').disabled = !enCurso && !pausada;
   document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar;
   document.getElementById('seguirMetro').disabled = !estado?.metroActivo?.transitable;
   actualizarDisponibilidadEjecucion();
+  if (controlConFoco?.id === 'pausarSimulacion' && pausada) document.getElementById('reanudarSimulacion').focus({ preventScroll: true });
+  if (controlConFoco?.id === 'reanudarSimulacion' && enCurso) document.getElementById('pausarSimulacion').focus({ preventScroll: true });
 }
 
 function actualizarDisponibilidadEjecucion() {
@@ -682,12 +696,14 @@ function mostrarEstadoVacio() {
   disenoActual = null;
   document.getElementById('estadoVacio').hidden = false;
   document.getElementById('panelSimulacion').hidden = true;
+  organizacion.mostrarDiseno(null);
 }
 
 function mostrarMensaje(texto, tipo = '') {
   const mensaje = document.getElementById('mensajeSimulacion');
   mensaje.textContent = texto;
   mensaje.className = `simulacion-mensaje ${tipo}`;
+  if (tipo === 'error') mensaje.scrollIntoView({ block: 'nearest' });
 }
 
 function formatearEstado(estado) {

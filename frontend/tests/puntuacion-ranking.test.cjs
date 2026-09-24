@@ -55,6 +55,7 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
   if(path.endsWith('/unidades/1')){velocidad=req.postDataJSON().velocidadPromedio;return {status:204};}
   if(path.endsWith('/validacion'))return {json:{valido:true,preparadoParaSimular:true,observaciones:[]}};
  }});
+ await pagina.locator('#seccionCirculacion > summary').click();
  const campo=pagina.getByRole('spinbutton',{name:'Velocidad del metro 1 en km/h',exact:true});await campo.waitFor();
  assert.equal(await pagina.locator('#desempenoNivel').evaluate(e=>getComputedStyle(e).display),'grid');
  assert.ok(await campo.evaluate(e=>e.getBoundingClientRect().height>=40));
@@ -93,11 +94,12 @@ test('Simulación finalizada presenta el puntaje evaluado en el mensaje y el his
   if(path.endsWith('/ejecutar')){red.resultados=[resultado];return {json:resultado};}
   if(path.endsWith('/evaluar'))return {json:{completado:true,puntaje:90,progreso:100,desempeno,mensaje:desempeno.explicacion}};
  }});
+ await pagina.locator('#seccionConfiguracion > summary').click();
  await pagina.locator('#duracionSimulacion').fill('10');
  await pagina.locator('[data-velocidad="4"]').click();
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.getByRole('dialog').waitFor();
  assert.match(await pagina.locator('#mensajeSimulacion').innerText(),/90 \/ 100 puntos/);
- assert.match(await pagina.locator('#listaResultadosSimulacion').innerText(),/COMPLETADA · 90 puntos/);
+ assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(),/COMPLETADA · 90 puntos/);
  assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento:\s+90 \/ 100/);
 });

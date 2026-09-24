@@ -3,13 +3,14 @@ const texto = (tag, valor) => { const e = document.createElement(tag); e.textCon
 export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
   contenedor.replaceChildren();
   const disponible = Number.isFinite(desempeno?.puntajeMaximo);
-  contenedor.append(texto('h3', 'Circulación y desempeño'));
   const contexto = texto('p', 'Velocidad promedio de circulación en km/h. Los tiempos son estimaciones de distancia / velocidad, sin paradas ni tráfico. El ritmo × solo acelera la reproducción y no otorga puntos.');
-  contenedor.append(contexto);
+  const ayuda = document.createElement('details');
+  ayuda.className = 'simulacion-ayuda-desempeno';
+  ayuda.append(texto('summary', 'Cómo se calcula'), contexto);
   if (disponible) {
     const etapa = { RED: '1 · Resolver la red', VELOCIDAD: '2 · Ajustar velocidades', SIMULACION: '3 · Simular la configuración actual', LISTO: 'Resultado listo para registrar' }[desempeno.etapa];
     contenedor.append(texto('strong', etapa), texto('p', desempeno.explicacion));
-    contenedor.append(texto('p', `Puntaje estimado: ${desempeno.puntaje} / ${desempeno.puntajeMaximo}. Se registra al completar la consigna y evaluar la simulación.`));
+    ayuda.append(texto('p', `Puntaje estimado: ${desempeno.puntaje} / ${desempeno.puntajeMaximo}. Se registra al completar la consigna y evaluar la simulación.`));
   }
   const campo = document.createElement('fieldset');
   campo.dataset.controlesCirculacion = '';
@@ -32,5 +33,5 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
     campo.append(form);
   }
   if (!diseno.unidadesMetro?.length) campo.append(texto('p', 'Agregá una unidad desde el Constructor para configurar su circulación.'));
-  contenedor.append(campo);
+  contenedor.append(campo, ayuda);
 }

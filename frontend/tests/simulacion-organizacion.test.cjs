@@ -1,0 +1,132 @@
+// Phaser real; API interceptada, sin escrituras en la base de datos.
+const { test, before, after } = require('node:test');
+const assert = require('node:assert/strict');
+const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirPantalla } = require('./soporte/pantallas.cjs');
+let navegador;
+before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
+after(async () => { await navegador?.close(); });
+async function abrir(t, width = 1440, responder) {
+  const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', {
+    viewport: { width, height: width === 390 ? 844 : 1000 },
+    responder: async req => {
+      const personalizada = await responder?.(req);
+      if (personalizada) return personalizada;
+      if (req.url().endsWith('/ejecutar')) return { json: { idSimulacion: 1, estado: 'COMPLETADA', puntaje: 0, ...req.postDataJSON() } };
+    },
+  });
+  t.after(() => vista.contexto.close());
+  t.after(() => assert.deepEqual(vista.errores, []));
+  await vista.pagina.route('**/src/simulacion/EscenaSimulacion.js*', async route => {
+    const response = await route.fetch();
+    await route.fulfill({ response, body: (await response.text()).replace('resolver({ escena: this, destruir });', 'window.escenaOrganizacion = this; resolver({ escena: this, destruir });') });
+  });
+  await vista.pagina.reload();
+  await vista.pagina.waitForFunction(() => window.escenaOrganizacion?.disenoActual);
+  await vista.pagina.locator('#desempenoNivel fieldset').waitFor({ state: 'attached' });
+  await cuadros(vista.pagina);
+  return vista;
+}
+async function cuadros(p, n = 5) {
+  await p.evaluate(n => new Promise(resolve => {
+    const juego = escenaOrganizacion.game;
+    const contar = () => { if (--n === 0) { juego.events.off('postrender', contar); resolve(); } };
+    juego.events.on('postrender', contar);
+  }), n);
+}
+async function geometria(p) {
+  return p.evaluate(() => {
+    const r = document.getElementById('visorSimulacion').getBoundingClientRect(), s = escenaOrganizacion;
+    return { width: r.width, height: r.height, x: r.x + scrollX, y: r.y + scrollY, zoom: s.cameras.main.zoom, scrollX: s.cameras.main.scrollX, scrollY: s.cameras.main.scrollY };
+  });
+}
+for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominante, secciones por teclado y ampliación con simulación activa`, async t => {
+  const { pagina: p, solicitudes } = await abrir(t, width);
+  const inicial = await geometria(p);
+  assert.ok(inicial.height >= 340);
+  assert.ok(inicial.width / width > (width > 1050 ? .72 : .9));
+  assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  for (const id of ['consignaSimulacion', 'seccionCirculacion', 'seccionConfiguracion', 'seccionMetricas', 'seccionResultados', 'seccionDisenos']) {
+    const resumen = p.locator(`#${id} > summary`);
+    assert.equal(await p.locator(`#${id}`).evaluate(e => e.open), false);
+    await resumen.focus(); await p.keyboard.press('Enter');
+    assert.equal(await p.locator(`#${id}`).evaluate(e => e.open), true);
+    await resumen.focus(); await p.keyboard.press('Enter'); await cuadros(p);
+    assert.deepEqual(await geometria(p), inicial, `${id} no debe cambiar el mapa`);
+  }
+  await p.locator('#formularioEjecucion button[type=submit]').click();
+  await p.waitForFunction(() => escenaOrganizacion.motorSimulacion.estado === 'EN_CURSO');
+  await cuadros(p);
+  const solicitudesPrevias = solicitudes.length;
+  const unidadesAntes = await p.evaluate(() => [...escenaOrganizacion.capaRedMetro.unidadesSimulacion.values()].map(u => ({ x: u.x, y: u.y })));
+  await p.locator('#ampliarMapa').click(); await cuadros(p, 20);
+  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), false);
+  assert.equal(await p.locator('#ampliarMapa').getAttribute('aria-pressed'), 'true');
+  const ampliada = await geometria(p);
+  assert.ok(ampliada.width * ampliada.height > inicial.width * inicial.height * 1.15);
+  assert.equal(await p.evaluate(() => escenaOrganizacion.motorSimulacion.estado), 'EN_CURSO');
+  assert.notDeepEqual(await p.evaluate(() => [...escenaOrganizacion.capaRedMetro.unidadesSimulacion.values()].map(u => ({ x: u.x, y: u.y }))), unidadesAntes);
+  await p.locator('#pausarSimulacion').click();
+  assert.equal(await p.evaluate(() => document.activeElement.id), 'reanudarSimulacion');
+  await p.keyboard.press('Enter');
+  assert.equal(await p.evaluate(() => document.activeElement.id), 'pausarSimulacion');
+  await p.keyboard.press('Enter');
+  await p.locator('#ampliarMapa').click(); await cuadros(p, 20);
+  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
+  assert.equal(await p.evaluate(() => escenaOrganizacion.motorSimulacion.estado), 'PAUSADA');
+  const restaurada = await geometria(p);
+  assert.equal(restaurada.width, inicial.width); assert.equal(restaurada.height, inicial.height);
+  assert.equal(solicitudes.length, solicitudesPrevias, 'Cambiar la vista no debe generar llamadas a la API');
+  await p.locator('#verConsignaCompleta').click();
+  assert.equal(await p.locator('#objetivoConsigna').isVisible(), true);
+});
+test('Validación de ventana plegada: abre configuración y enfoca el campo sin ejecutar', async t => {
+  const { pagina: p, solicitudes } = await abrir(t, 390);
+  await p.locator('#duracionSimulacion').evaluate(e => { e.value = '1'; });
+  await p.locator('#ampliarMapa').click();
+  await p.locator('#formularioEjecucion button[type=submit]').click();
+  await p.locator('.metronet-notificacion--error').waitFor();
+  assert.equal(await p.locator('#seccionConfiguracion').evaluate(e => e.open), true);
+  assert.equal(await p.locator('#duracionSimulacion').evaluate(e => e === document.activeElement), true);
+  assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);
+});
+test('Los errores permanecen fuera del panel al ampliar y los resultados se abren bajo demanda', async t => {
+  const { pagina: p } = await abrir(t, 1440, req => req.url().endsWith('/ejecutar') ? { status: 503, json: { detail: 'Servicio temporalmente no disponible.' } } : null);
+  await p.locator('#ampliarMapa').click();
+  await p.locator('#formularioEjecucion button[type=submit]').click();
+  await p.locator('#mensajeSimulacion.error').waitFor();
+  assert.match(await p.locator('#mensajeSimulacion').innerText(), /Servicio temporalmente/);
+  const mensaje = await p.locator('#mensajeSimulacion').boundingBox();
+  const mandos = await p.locator('.simulacion-mandos').boundingBox();
+  assert.ok(mensaje.y >= mandos.y + mandos.height, 'El aviso no debe tapar los controles');
+  assert.ok(mensaje.y >= 0 && mensaje.y + mensaje.height <= 1000, 'El error debe quedar a la vista');
+  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), false);
+  await p.locator('#ampliarMapa').click();
+  await p.locator('#seccionResultados > summary').click();
+  assert.match(await p.locator('#listaResultadosSimulacion').innerText(), /Aún no se registraron/);
+});
+test('Sin diseño en la URL, el selector sigue disponible y permite cargar una red', async t => {
+  const { pagina: p } = await abrir(t);
+  await p.goto('http://127.0.0.1:5173/simulacion.html');
+  await p.locator('#listaDisenos button').first().waitFor();
+  assert.equal(await p.locator('#estadoVacio').isVisible(), true);
+  assert.equal(await p.locator('#seccionDisenos').evaluate(e => e.open), true);
+  await p.locator('#listaDisenos button').first().click();
+  await p.locator('#panelSimulacion').waitFor();
+  assert.equal(await p.locator('#seccionDisenos').evaluate(e => e.open), false);
+});
+
+for (const width of [320, 360]) test(`Móvil estrecho ${width}: controles completos, sin recortes ni saltos al iniciar`, async t => {
+  const { pagina: p } = await abrir(t, width);
+  const antes = await geometria(p);
+  await p.locator('#formularioEjecucion button[type=submit]').click();
+  await p.waitForFunction(() => escenaOrganizacion.motorSimulacion.estado === 'EN_CURSO');
+  await cuadros(p);
+  assert.deepEqual(await geometria(p), antes);
+  assert.deepEqual(await p.evaluate(() => [...document.querySelectorAll('.simulacion-visor-mapa button, .simulacion-banda-estado dd')].filter(e => {
+    const r = e.getBoundingClientRect();
+    return r.width && (r.x < 0 || r.right > innerWidth || e.scrollWidth > e.clientWidth + 1);
+  }).map(e => e.textContent)), []);
+  const captura = process.env.METRONET_CAPTURAS_SIMULACION;
+  if (captura) await p.screenshot({ path: `${captura}/movil-${width}.png`, fullPage: true });
+});
