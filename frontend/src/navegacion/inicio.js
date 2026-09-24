@@ -1,7 +1,7 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
-import { prepararNivel } from '../educacion/PreparacionNivel.js';
+import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import { obtenerAnteriorCompletado } from '../educacion/TransicionNivel.js';
 
 const URL_API_JUEGO = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
@@ -297,22 +297,25 @@ async function iniciarEscenario(escenario, boton) {
   navegacionEnCurso = true;
   boton.disabled = true;
   const textoOriginal = boton.textContent;
-  if (!await prepararNivel(escenario, obtenerAnteriorCompletado(escenario, escenariosActuales))) {
-    navegacionEnCurso = false;
-    boton.disabled = false;
-    boton.focus();
-    return;
-  }
+  let navegando = false;
   boton.textContent = 'Preparando…';
   mostrarMensaje('Preparando el escenario…');
   try {
-    const inicio = await solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST' });
+    const inicio = await iniciarNivelConTransicion(escenario,
+      () => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST' }),
+      { anterior: obtenerAnteriorCompletado(escenario, escenariosActuales) });
+    if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
+    navegando = true;
   } catch (error) {
-    boton.disabled = false;
-    boton.textContent = textoOriginal;
-    navegacionEnCurso = false;
     mostrarMensaje(error.message, 'error');
+  } finally {
+    if (!navegando) {
+      boton.disabled = false;
+      boton.textContent = textoOriginal;
+      navegacionEnCurso = false;
+      boton.focus({ preventScroll: true });
+    }
   }
 }
 

@@ -66,7 +66,7 @@ for (const completados of [0, 5, 8, 9]) {
   test(`Acceso al nivel ${completados + 1}: preparación/transición y destino real`, async t => {
     const { pagina } = await abrir(t, '/escenarios.html', { progreso: progreso(completados) });
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
-    await pagina.locator(completados ? '[data-continuar-transicion]' : '[data-comenzar-nivel]').click();
+    if (completados) await pagina.locator('[data-continuar-transicion]').click();
     await pagina.waitForURL(`**/?idDiseno=200&idEscenario=${101 + completados}&idIntento=300`);
   });
 }
@@ -89,7 +89,6 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
   await pagina.reload();
   await pagina.getByRole('button', { name: 'Continuar', exact: true }).click();
   await pagina.getByRole('dialog', { name: niveles[9].nombre }).waitFor();
-  await pagina.locator('[data-comenzar-nivel]').click();
   await pagina.waitForURL('**/?idDiseno=200&idEscenario=110&idIntento=300');
 });
 test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', async t => {

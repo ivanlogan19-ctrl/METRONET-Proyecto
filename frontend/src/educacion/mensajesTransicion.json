@@ -1,0 +1,52 @@
+[
+  { "numero": 1, "mensajes": [
+    { "id": "estaciones", "categoria": "Movilidad", "texto": "Las estaciones son los puntos de una red. Una línea las agrupa para organizar el recorrido." },
+    { "id": "nombres", "categoria": "Consejo", "texto": "Dale a cada estación un nombre que te ayude a reconocerla al construir la red." },
+    { "id": "primera-linea", "categoria": "Pista", "texto": "Empezá por una línea y ubicá sus estaciones dentro del territorio permitido." }
+  ] },
+  { "numero": 2, "mensajes": [
+    { "id": "tramos", "categoria": "Movilidad", "texto": "Un tramo une dos estaciones de una línea. Varios tramos forman un recorrido." },
+    { "id": "continuidad", "categoria": "Consejo", "texto": "Seguí la línea de una estación a la siguiente para detectar conexiones que falten." },
+    { "id": "recorrido", "categoria": "Pista", "texto": "Organizá las tres estaciones en un recorrido continuo con dos conexiones." }
+  ] },
+  { "numero": 3, "mensajes": [
+    { "id": "unidad", "categoria": "Movilidad", "texto": "Una unidad de metro circula por la línea a la que está asignada." },
+    { "id": "parametros", "categoria": "Consejo", "texto": "La capacidad y la velocidad promedio son parámetros de la unidad que podés configurar." },
+    { "id": "linea-valida", "categoria": "Pista", "texto": "Revisá que la línea tenga un recorrido válido antes de asignarle un metro." }
+  ] },
+  { "numero": 4, "mensajes": [
+    { "id": "poi", "categoria": "Puntos de interés", "texto": "Palacio Legislativo y Rambla de Carrasco son los objetivos de cobertura de este desafío." },
+    { "id": "simular", "categoria": "Movilidad", "texto": "La simulación permite observar cómo circula una unidad por la red que diseñaste." },
+    { "id": "validar", "categoria": "Consejo", "texto": "Revisá la cobertura de los puntos de interés y validá la red antes de simular." }
+  ] },
+  { "numero": 5, "mensajes": [
+    { "id": "barrio", "categoria": "Barrios", "texto": "Estar cerca de un POI y pertenecer a su barrio son condiciones distintas. Revisá ambas." },
+    { "id": "lugares", "categoria": "Puntos de interés", "texto": "Ubicá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio antes de trazar la línea." },
+    { "id": "capas", "categoria": "Consejo", "texto": "Usá las fichas de POI y los límites de barrios para decidir dónde colocar cada estación." }
+  ] },
+  { "numero": 6, "mensajes": [
+    { "id": "zonas", "categoria": "Barrios", "texto": "Las zonas de METRONET agrupan barrios. Este nivel conecta Centro, Oeste y Este." },
+    { "id": "mirador", "categoria": "Puntos de interés", "texto": "El Mirador de la Intendencia se incorpora a los lugares que debe atender tu red." },
+    { "id": "velocidad", "categoria": "Movilidad", "texto": "Los km/h describen la velocidad del metro. El control × de simulación cambia el ritmo de reproducción." }
+  ] },
+  { "numero": 7, "mensajes": [
+    { "id": "intercambio", "categoria": "Movilidad", "texto": "Una estación compartida permite relacionar dos líneas mediante un transbordo." },
+    { "id": "brazo", "categoria": "Barrios", "texto": "La cobertura de este desafío se extiende hasta Brazo Oriental." },
+    { "id": "marca", "categoria": "Pista", "texto": "Compartí una estación entre las dos líneas y activá su atributo de transbordo." }
+  ] },
+  { "numero": 8, "mensajes": [
+    { "id": "estadio", "categoria": "Puntos de interés", "texto": "El Estadio Centenario se suma a la cobertura de esta red de tres líneas." },
+    { "id": "lineas", "categoria": "Movilidad", "texto": "Los intercambios conectan líneas sin necesidad de bifurcar cada recorrido." },
+    { "id": "unidades", "categoria": "Consejo", "texto": "Revisá la continuidad de cada línea y asignale una unidad antes de simular." }
+  ] },
+  { "numero": 9, "mensajes": [
+    { "id": "radio", "categoria": "Movilidad", "texto": "Un radio de cobertura menor exige ubicar las estaciones más cerca de los POI." },
+    { "id": "limite", "categoria": "Pista", "texto": "Planificá la cobertura antes de construir: este nivel admite hasta nueve estaciones." },
+    { "id": "precision", "categoria": "Consejo", "texto": "Contrastá cada ubicación con las condiciones de la consigna antes de agregar otra estación." }
+  ] },
+  { "numero": 10, "mensajes": [
+    { "id": "conjunto", "categoria": "Movilidad", "texto": "Cobertura, territorio, recorridos y transbordos deben funcionar juntos en la misma red." },
+    { "id": "territorio", "categoria": "Barrios", "texto": "El desafío final reúne ocho POI, ocho barrios y cuatro zonas de METRONET." },
+    { "id": "revision", "categoria": "Consejo", "texto": "Revisá la red completa y sus tres transbordos antes de registrar la simulación final." }
+  ] }
+]

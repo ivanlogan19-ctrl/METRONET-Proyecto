@@ -352,14 +352,11 @@ button:disabled, input:disabled, select:disabled, textarea:disabled {
 .metronet-dialogo-cambios [data-accion-salir] { border-color: var(--danger); color: var(--danger); }
 .metronet-dialogo-cambios [data-accion-guardar] { border-color: var(--success); color: var(--bg-primary); background: var(--success); }
 
-/* Introducción educativa: recorrido decorativo estático, sin carga simulada. */
+/* Base compartida por la preparación y el resumen educativo del nivel. */
 .metronet-preparacion { width: min(92vw, 620px); max-height: 90svh; overflow-y: auto; }
 .metronet-preparacion__contenido { gap: var(--space-md); padding: clamp(20px, 4vw, 32px); }
 .metronet-preparacion h2 { font-size: clamp(22px, 4vw, 30px); line-height: 1.2; overflow-wrap: anywhere; }
 .metronet-preparacion h3 { margin: 0; font-size: 17px; }
-.metronet-preparacion__recorrido { display: flex; align-items: center; justify-content: space-between; height: 24px; background: linear-gradient(var(--info-active), var(--info-active)) center / 100% 3px no-repeat; }
-.metronet-preparacion__recorrido span { width: 16px; height: 16px; border: 3px solid var(--info-active); border-radius: 50%; background: var(--panel); }
-.metronet-preparacion__recorrido span:last-child { border-color: var(--success); }
 .metronet-preparacion__bloque { display: grid; gap: var(--space-xs); padding: var(--space-md); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
 .metronet-preparacion__bloque--consejo { border-left: 3px solid var(--warning); }
 .metronet-preparacion :is([data-comenzar-nivel], [data-continuar-transicion]) { border-color: var(--success); color: var(--bg-primary); background: var(--success); }

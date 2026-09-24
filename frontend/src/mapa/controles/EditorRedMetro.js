@@ -3,7 +3,7 @@ import { actualizarRutaEdicion, establecerContextoEnRuta, establecerIdDisenoEnRu
 import { navegarConCambiosPendientes, registrarControlCambios } from '../../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../../configuracion/ConfiguracionAplicacion.js';
 import { mostrarNotificacion } from '../../componentes/NotificacionesMetronet.js';
-import { prepararNivel } from '../../educacion/PreparacionNivel.js';
+import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
 import { obtenerAnteriorCompletado, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
 import PanelHerramientasEditor from './PanelHerramientasEditor.js';
 import '../estilos/editor-red.css';
@@ -304,8 +304,10 @@ export default class EditorRedMetro {
     this.aperturaEscenarioEnCurso = true;
     try {
       const escenario = this.escenariosJuego.find((candidato) => candidato.idEscenario === idEscenario);
-      if (!preparado && !await prepararNivel(escenario, obtenerAnteriorCompletado(escenario, this.escenariosJuego))) return;
-      const inicio = await this.solicitarJuego(ruta, { method: 'POST' });
+      const inicio = await iniciarNivelConTransicion(escenario,
+        () => this.solicitarJuego(ruta, { method: 'POST' }),
+        { anterior: obtenerAnteriorCompletado(escenario, this.escenariosJuego), preparado });
+      if (!inicio) return;
       window.history.replaceState({}, '', establecerContextoEnRuta('/', inicio));
       this.cambiosPendientes = false;
       await this.cargarJuego();

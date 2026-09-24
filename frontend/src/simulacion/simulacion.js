@@ -1,6 +1,7 @@
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { presentarResultadoNivel } from '../educacion/TransicionNivel.js';
+import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
 import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
 import { crearVisorSimulacion } from './EscenaSimulacion.js';
@@ -600,9 +601,12 @@ async function finalizarEjecucionVisible() {
         if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
         const accion = await presentarResultadoNivel(progreso, disenoActual.simulacion.idEscenario, evaluacion);
         if (accion?.siguiente) {
-          const inicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/iniciar`, { method: 'POST', headers });
-          if (!inicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Escenarios.');
-          window.location.assign(establecerContextoEnRuta('/', await inicio.json()));
+          const inicio = await iniciarNivelConTransicion(accion.siguiente, async () => {
+            const respuestaInicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/iniciar`, { method: 'POST', headers });
+            if (!respuestaInicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Escenarios.');
+            return respuestaInicio.json();
+          });
+          if (inicio) window.location.assign(establecerContextoEnRuta('/', inicio));
         } else if (accion) window.location.assign('/escenarios.html');
       } catch (error) { mostrarMensaje(`Resultado guardado. ${error.message}`, 'advertencia'); }
     }

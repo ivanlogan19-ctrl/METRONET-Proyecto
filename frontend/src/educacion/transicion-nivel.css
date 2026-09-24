@@ -1,0 +1,34 @@
+.metronet-viaje { width: min(94vw, 680px); max-height: 94svh; }
+.metronet-viaje__contenido { gap: 16px; padding: clamp(18px, 4vw, 32px); }
+.metronet-viaje__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.metronet-viaje__cabecera .metronet-logo__imagen { width: 112px; height: auto; max-width: 100%; }
+.metronet-viaje__nivel { color: var(--info-active); font-family: var(--font-arcade); font-size: 16px; white-space: nowrap; }
+.metronet-viaje__recorrido { border: 1px solid var(--border); background-color: var(--bg-secondary); background-image: linear-gradient(rgb(72 180 255 / .06) 1px, transparent 1px), linear-gradient(90deg, rgb(72 180 255 / .06) 1px, transparent 1px); background-size: 20px 20px; }
+.metronet-viaje__recorrido svg { display: block; width: 100%; height: auto; }
+.metronet-viaje__riel { fill: none; stroke: var(--border); stroke-width: 5; }
+.metronet-viaje__linea { fill: none; stroke: var(--info-active); stroke-width: 5; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.metronet-viaje__estaciones circle { fill: var(--panel); stroke: var(--border-active); stroke-width: 3; }
+.metronet-viaje__estaciones .activa { fill: var(--info-active); stroke: var(--text-primary); }
+.metronet-viaje__metro { fill: var(--info-active); stroke: var(--text-primary); stroke-width: 2; }
+.metronet-viaje__ventanas { fill: var(--bg-primary); stroke: none; }
+.metronet-viaje__ruedas { stroke: var(--text-primary); stroke-width: 4; }
+.metronet-viaje__progreso { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 12px; }
+.metronet-viaje__porcentaje { color: var(--info-active); font-family: var(--font-arcade); font-size: 24px; font-variant-numeric: tabular-nums; }
+.metronet-viaje__dato, .metronet-viaje__consigna { display: grid; gap: 8px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); }
+.metronet-viaje__dato h3 { color: var(--info-active); }
+.metronet-viaje__consigna { border-left: 3px solid var(--warning); opacity: 0; transform: translateY(8px); transition: opacity .24s ease-out, transform .24s ease-out; }
+.metronet-viaje__consigna h3 { color: var(--warning); }
+.metronet-viaje--consigna-visible .metronet-viaje__consigna { opacity: 1; transform: none; }
+.metronet-viaje .metronet-viaje__estado { font-size: 13px; min-height: 2.8em; }
+.metronet-viaje button { min-height: 44px; }
+.metronet-viaje button[aria-pressed="true"] { border-color: var(--info-active); background: var(--panel-elevated); }
+@media (max-width: 480px) {
+  .metronet-viaje__contenido { gap: 12px; }
+  .metronet-viaje__dato, .metronet-viaje__consigna { padding: 12px; }
+  .metronet-viaje__cabecera .metronet-logo__imagen { width: 84px; }
+  .metronet-viaje__nivel { font-size: 14px; }
+  .metronet-viaje .metronet-dialogo-cambios__acciones { display: grid; grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .metronet-viaje__consigna { transition: none; transform: none; opacity: 1; }
+}

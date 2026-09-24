@@ -1,7 +1,7 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
-import { prepararNivel } from '../educacion/PreparacionNivel.js';
+import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import { obtenerAnteriorCompletado } from '../educacion/TransicionNivel.js';
 
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
@@ -222,24 +222,27 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
   if (accionEnCurso) return;
   accionEnCurso = true;
   const textoOriginal = boton.textContent;
+  let navegando = false;
   boton.disabled = true;
-  if (!await prepararNivel(escenario, obtenerAnteriorCompletado(escenario, progresoActual?.escenarios ?? []))) {
-    accionEnCurso = false;
-    boton.disabled = false;
-    boton.focus();
-    return;
-  }
   boton.textContent = 'Preparando…';
   mostrarMensaje(volverAJugar ? 'Creando un nuevo intento…' : 'Preparando el escenario…');
   try {
     const ruta = volverAJugar ? `/escenarios/${escenario.idEscenario}/volver-a-jugar` : `/escenarios/${escenario.idEscenario}/iniciar`;
-    const inicio = await solicitar(ruta, { method: 'POST' });
+    const inicio = await iniciarNivelConTransicion(escenario,
+      () => solicitar(ruta, { method: 'POST' }),
+      { anterior: obtenerAnteriorCompletado(escenario, progresoActual?.escenarios ?? []) });
+    if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
+    navegando = true;
   } catch (error) {
-    accionEnCurso = false;
-    boton.disabled = false;
-    boton.textContent = textoOriginal;
     mostrarMensaje(error.message, 'error');
+  } finally {
+    if (!navegando) {
+      accionEnCurso = false;
+      boton.disabled = false;
+      boton.textContent = textoOriginal;
+      boton.focus({ preventScroll: true });
+    }
   }
 }
 
