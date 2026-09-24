@@ -18,11 +18,11 @@ body .auth-card {
   width: min(100%, 540px);
   gap: 0;
   padding: clamp(24px, 5vw, 42px);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-primary);
   background: var(--panel);
-  box-shadow: 0 18px 44px color-mix(in srgb, var(--bg-primary) 74%, transparent);
+  box-shadow: var(--shadow-floating);
 }
 
 body .auth-card.auth-card--amplia {
@@ -34,7 +34,7 @@ body .auth-card > .auth-marca {
   place-items: center;
   margin-bottom: clamp(22px, 4vw, 30px);
   padding: 0 0 clamp(18px, 3vw, 24px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 body .auth-card > .auth-marca .metronet-logo {
@@ -104,7 +104,7 @@ body .auth-card .auth-form-section + .auth-form-section,
 body .auth-card .auth-form-section + .auth-privacidad-seccion {
   margin-top: 8px;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
 }
 
 body .auth-card .auth-form-section legend,
@@ -143,14 +143,9 @@ body .auth-card .input-wrapper input {
   width: 100%;
   min-height: 46px;
   padding: 11px 88px 11px 13px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
   outline: 0;
-  color: var(--text-primary);
-  background: var(--bg-secondary);
   font-size: 15px;
   line-height: 1.3;
-  transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
 }
 
 body .auth-card .input-wrapper input:not([type='password']) {
@@ -162,32 +157,15 @@ body .auth-card .input-wrapper input::placeholder {
   opacity: 1;
 }
 
-body .auth-card .input-wrapper input:focus {
-  border-color: var(--info-active);
-  background: var(--panel-elevated);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--info-active) 20%, transparent);
-}
-
 body .auth-card .toggle-password {
   position: absolute;
   top: 50%;
   right: 8px;
   min-height: 28px;
   padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text-secondary);
-  background: var(--panel-elevated);
   font-size: 12px;
-  font-weight: 700;
   line-height: 1;
   transform: translateY(-50%);
-}
-
-body .auth-card .toggle-password:hover,
-body .auth-card .toggle-password:focus-visible {
-  border-color: var(--border-active);
-  color: var(--text-primary);
 }
 
 body .auth-card .requisitos-contrasena {
@@ -198,11 +176,11 @@ body .auth-card .requisitos-contrasena {
   display: none;
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   background: var(--panel-elevated);
-  box-shadow: 0 12px 26px color-mix(in srgb, var(--bg-primary) 68%, transparent);
+  box-shadow: var(--shadow-floating);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -216,8 +194,8 @@ body .auth-card .consentimiento {
   align-items: flex-start;
   gap: 10px;
   padding: 13px;
-  border: 1px solid var(--danger);
-  border-radius: 7px;
+  border: var(--border-width) solid var(--danger);
+  border-radius: var(--radius-control);
   color: var(--text-primary);
   background: color-mix(in srgb, var(--danger) 9%, var(--panel));
   font-size: 13px;
@@ -256,26 +234,12 @@ body .auth-card .primary-button {
   min-height: 48px;
   margin-top: 4px;
   padding: 10px 16px;
-  border: 1px solid var(--success);
-  border-radius: 7px;
-  color: var(--bg-primary);
-  background: var(--success);
-  font-family: var(--font-tecnica);
   font-size: 14px;
-  font-weight: 800;
   letter-spacing: .04em;
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
-  transition: border-color .16s ease, background-color .16s ease, color .16s ease;
-}
-
-body .auth-card .primary-button:hover,
-body .auth-card .primary-button:focus-visible {
-  border-color: var(--success);
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--success) 76%, var(--panel));
 }
 
 body .auth-card .primary-button:disabled {
@@ -285,21 +249,8 @@ body .auth-card .primary-button:disabled {
 body .auth-card .secondary-button {
   min-height: 40px;
   padding: 8px 14px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-primary);
-  background: var(--panel-elevated);
-  font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 700;
   line-height: 1.2;
-  transition: border-color .16s ease, background-color .16s ease;
-}
-
-body .auth-card .secondary-button:hover,
-body .auth-card .secondary-button:focus-visible {
-  border-color: var(--info-active);
-  background: color-mix(in srgb, var(--info-active) 14%, var(--panel-elevated));
 }
 
 body .auth-card .secondary-button:disabled {
@@ -315,9 +266,7 @@ body .auth-card .secondary-button:disabled {
   display: none;
   width: 17px;
   height: 17px;
-  border: 2px solid color-mix(in srgb, var(--bg-primary) 30%, transparent);
   border-top-color: var(--bg-primary);
-  border-radius: 50%;
   animation: giro .75s linear infinite;
 }
 
@@ -364,7 +313,7 @@ body .auth-card .auth-link a:focus-visible {
 body .auth-card .auth-acceso-secundario {
   margin-top: 24px;
   padding-top: 18px;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
 }
 
 body .auth-card .auth-acceso-secundario .auth-link {
@@ -381,9 +330,7 @@ body .auth-card .auth-ayuda {
 
 body .auth-card .input-codigo {
   padding-right: 13px;
-  font-family: var(--font-tecnica);
   font-size: 18px;
-  font-weight: 700;
   letter-spacing: .22em;
   text-align: center;
 }
@@ -394,7 +341,7 @@ body .auth-card .auth-reenvio {
   gap: 8px;
   margin-top: 22px;
   padding-top: 18px;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
 }
 
 body .auth-card .auth-reenvio .auth-link,
@@ -417,16 +364,16 @@ body .auth-card .privacy-content p {
 
 body .auth-card .privacy-contexto {
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 body .auth-card .privacy-notice {
   display: grid;
   gap: 14px;
   padding: clamp(16px, 3vw, 24px);
-  border: 1px solid var(--warning);
+  border: var(--border-width) solid var(--warning);
   border-left-width: 4px;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   color: var(--text-primary);
   background: color-mix(in srgb, var(--warning) 9%, var(--panel));
 }
@@ -497,7 +444,7 @@ body .auth-card .auth-action {
 
   body .auth-card {
     padding: 22px 18px;
-    border-radius: 10px;
+    border-radius: var(--radius-control);
   }
 
   body .auth-card > .auth-marca {

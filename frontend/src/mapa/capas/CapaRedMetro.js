@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
+import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
 const COLORES_LINEAS = [0x55c3e7, 0xf3ca62, 0x9ed49c, 0xd7a9f4, 0xff9e92];
 const PROFUNDIDAD_RED = 8;
@@ -13,7 +13,7 @@ const ANCHO_MARCADOR_ESTACION = 18;
 const ALTO_MARCADOR_ESTACION = 16;
 const ALCANCE_MARCADOR_ESTACION = DESPLAZAMIENTO_MARCADOR_ESTACION + ALTO_MARCADOR_ESTACION / 2;
 const ESCALA_MINIMA_MARCADOR = 0.125;
-const FUENTE_ETIQUETA = '"IBM Plex Mono", "Roboto Mono", monospace';
+const FUENTE_ETIQUETA = FUENTES_INTERFAZ_MAPA.SISTEMA;
 const COLOR_TEXTO = convertirColorAHex(COLORES_INTERFAZ_MAPA.TEXTO);
 const COLOR_FONDO = convertirColorAHex(COLORES_INTERFAZ_MAPA.FONDO);
 

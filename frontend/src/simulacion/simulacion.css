@@ -33,8 +33,8 @@ button { cursor: pointer; }
 .simulacion-panel-operacion,
 .simulacion-visor-mapa,
 .simulacion-resultado {
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
 }
 
@@ -69,24 +69,12 @@ button { cursor: pointer; }
 .simulacion-volver {
   min-height: 38px;
   padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-primary);
-  background: var(--panel-elevated);
   font-size: 12px;
-  font-weight: 650;
   text-align: left;
   text-decoration: none;
 }
 .simulacion-tarjeta { display: grid; gap: 3px; width: 100%; }
-.simulacion-tarjeta span { color: var(--text-secondary); font-size: 11px; }
-.simulacion-tarjeta.activa { border-color: var(--info-active); background: color-mix(in srgb, var(--info-active) 20%, var(--panel)); }
-.simulacion-tarjeta:hover,
-.simulacion-tarjeta:focus-visible,
-.simulacion-secundario:hover,
-.simulacion-secundario:focus-visible,
-.simulacion-volver:hover,
-.simulacion-volver:focus-visible { border-color: var(--info-active); background: var(--panel-elevated); }
+.simulacion-tarjeta span { font-size: 11px; }
 .simulacion-volver { text-align: center; }
 .simulacion-mensaje { min-height: 18px; }
 .simulacion-mensaje.error { color: var(--danger); }
@@ -98,14 +86,14 @@ button { cursor: pointer; }
   justify-content: space-between;
   gap: 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 .simulacion-encabezado h1 { margin-top: 4px; font-size: clamp(23px, 2.6vw, 32px); }
 .simulacion-estado {
   align-self: center;
   padding: 5px 8px;
-  border: 1px solid var(--border-active);
-  border-radius: 5px;
+  border: var(--border-width) solid var(--border-active);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   font-family: var(--font-tecnica, ui-monospace, monospace);
   font-size: 11px;
@@ -138,7 +126,7 @@ button { cursor: pointer; }
   justify-content: space-between;
   gap: 12px;
   padding: 11px 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
   background: var(--panel-elevated);
 }
 .simulacion-visor-acciones { display: flex; align-items: center; gap: 8px; }
@@ -147,29 +135,24 @@ button { cursor: pointer; }
   min-height: 0;
   margin: 0;
   padding: 2px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--bg-secondary);
   box-shadow: none;
 }
 #controlesCamaraSimulacion .metronet-control-zoom-boton {
   width: 28px;
   height: 28px;
-  border: 0;
-  border-left: 1px solid var(--border);
-  border-radius: 0;
-  color: var(--text-primary);
+  border-left: var(--border-width) solid var(--border);
   font-size: 16px;
   line-height: 28px;
 }
 #controlesCamaraSimulacion .metronet-control-zoom-boton:first-child { border-left: 0; }
-#controlesCamaraSimulacion .metronet-control-zoom-boton:hover,
-#controlesCamaraSimulacion .metronet-control-zoom-boton:focus-visible { background: var(--panel-elevated); color: var(--info-active); }
-#controlesCamaraSimulacion .metronet-control-zoom-restaurar { margin: 0; border-top: 0; border-left: 1px solid var(--border); border-radius: 0; }
+#controlesCamaraSimulacion .metronet-control-zoom-restaurar { margin: 0; border-top: 0; border-left: var(--border-width) solid var(--border); }
 .simulacion-visor-modo {
   padding: 4px 7px;
-  border: 1px solid var(--border-active);
-  border-radius: 4px;
+  border: var(--border-width) solid var(--border-active);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   font-family: var(--font-tecnica, ui-monospace, monospace);
   font-size: 10px;
@@ -198,15 +181,15 @@ button { cursor: pointer; }
 .simulacion-panel-operacion { display: grid; align-content: start; gap: 10px; padding: 12px; }
 .simulacion-desempeno { grid-column: 1 / -1; }
 .simulacion-desempeno p { margin: 0; line-height: 1.55; }
-.simulacion-desempeno fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--border); }
+.simulacion-desempeno fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; min-width: 0; margin: 0; padding: 16px; border: var(--border-width) solid var(--border); }
 .simulacion-desempeno legend { padding: 0 6px; color: var(--text-secondary); }
 .simulacion-velocidad-unidad { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
 .simulacion-velocidad-unidad label { display: grid; gap: 8px; min-width: 0; }
-.simulacion-velocidad-unidad input, .simulacion-velocidad-unidad button { width: 100%; min-width: 0; min-height: 40px; padding: 8px; border: 1px solid var(--border-active); color: var(--text-primary); background: var(--bg-secondary); }
+.simulacion-velocidad-unidad input, .simulacion-velocidad-unidad button { width: 100%; min-width: 0; min-height: 40px; padding: 8px; }
 .simulacion-velocidad-unidad p { grid-column: 1 / -1; color: var(--text-secondary); }
 .simulacion-consigna {
   min-width: 0;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--panel);
   overflow: hidden;
@@ -263,7 +246,7 @@ button { cursor: pointer; }
   min-width: 40px;
   height: 3px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   background: var(--bg-secondary);
 }
 .simulacion-consigna__barra-compacta > span {
@@ -272,7 +255,7 @@ button { cursor: pointer; }
   height: 100%;
   border-radius: inherit;
   background: var(--text-disabled);
-  transition: width 180ms ease-out;
+  transition: width var(--motion-fast) ease-out;
 }
 .simulacion-consigna__progreso-compacto[data-estado='PARCIAL'] .simulacion-consigna__barra-compacta > span { background: var(--info-active); }
 .simulacion-consigna__progreso-compacto[data-estado='LISTO'] .simulacion-consigna__barra-compacta > span,
@@ -282,7 +265,7 @@ button { cursor: pointer; }
   grid-row: 1;
   justify-self: end;
   padding: 3px 6px;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-family: var(--font-tecnica, ui-monospace, monospace);
@@ -301,7 +284,7 @@ button { cursor: pointer; }
   align-content: start;
   gap: 12px;
   padding: 0 14px 14px;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
 }
 .simulacion-consigna__objetivo {
   margin: 0;
@@ -333,7 +316,7 @@ button { cursor: pointer; }
 .simulacion-consigna__aviso {
   margin: 0;
   padding: 8px 9px;
-  border-left: 2px solid var(--warning);
+  border-left: var(--border-strong) solid var(--warning);
   color: var(--text-secondary);
   background: var(--bg-secondary);
   font-size: 12px;
@@ -380,7 +363,7 @@ button { cursor: pointer; }
   align-items: center;
   gap: 7px;
   padding: 7px 8px;
-  border-left: 2px solid var(--border-active);
+  border-left: var(--border-strong) solid var(--border-active);
   background: var(--bg-secondary);
 }
 .simulacion-consigna__objetivo-item.es-completado { border-left-color: var(--success); }
@@ -411,7 +394,7 @@ button { cursor: pointer; }
   gap: 8px;
   min-width: 0;
   padding: 7px 8px;
-  border-left: 2px solid var(--info-active);
+  border-left: var(--border-strong) solid var(--info-active);
   background: var(--bg-secondary);
 }
 .simulacion-consigna__referencia.es-cubierta { border-left-color: var(--success); }
@@ -437,7 +420,7 @@ button { cursor: pointer; }
   flex: 0 0 auto;
   min-height: 28px;
   padding: 4px 7px;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   background: var(--panel-elevated);
@@ -463,10 +446,10 @@ button { cursor: pointer; }
 .simulacion-consigna__barra {
   height: 6px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   background: var(--bg-secondary);
 }
-.simulacion-consigna__barra-relleno { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--text-disabled); transition: width 180ms ease-out; }
+.simulacion-consigna__barra-relleno { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--text-disabled); transition: width var(--motion-fast) ease-out; }
 .simulacion-consigna__barra[data-estado='EN_CURSO'] .simulacion-consigna__barra-relleno { background: var(--info-active); }
 .simulacion-consigna__barra[data-estado='PAUSADA'] .simulacion-consigna__barra-relleno { background: var(--warning); }
 .simulacion-consigna__barra[data-estado='FINALIZADA'] .simulacion-consigna__barra-relleno { background: var(--success); }
@@ -491,39 +474,25 @@ button { cursor: pointer; }
   min-width: 0;
   min-height: 38px;
   padding: 8px 9px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-primary);
-  background: var(--bg-secondary);
 }
-.simulacion-formulario input:focus { outline: 0; border-color: var(--info-active); }
+.simulacion-formulario input:focus { outline: 0; }
 .simulacion-primario {
-  border-color: var(--success);
-  color: var(--bg-primary);
-  background: var(--success);
   text-align: center;
 }
-.simulacion-primario:hover,
-.simulacion-primario:focus-visible { color: var(--text-primary); background: color-mix(in srgb, var(--success) 76%, var(--panel)); }
 .simulacion-secundario { min-width: 0; text-align: center; }
-.simulacion-secundario:disabled { cursor: not-allowed; color: var(--text-disabled); opacity: .68; }
+.simulacion-secundario:disabled { cursor: not-allowed; opacity: .68; }
 .simulacion-selector-velocidad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
 .simulacion-selector-velocidad button,
 .simulacion-seguimiento,
 .simulacion-accion-detener {
   min-height: 36px;
   padding: 7px 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   background: var(--bg-secondary);
   font-size: 11px;
   font-weight: 700;
-}
-.simulacion-selector-velocidad button[aria-pressed='true'] {
-  border-color: var(--info-active);
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--info-active) 22%, var(--panel));
 }
 .simulacion-selector-velocidad button:hover,
 .simulacion-selector-velocidad button:focus-visible,
@@ -537,9 +506,6 @@ button { cursor: pointer; }
   color: var(--text-primary);
   background: color-mix(in srgb, var(--info-active) 22%, var(--panel));
 }
-.simulacion-accion-detener { border-color: var(--danger); color: var(--text-primary); }
-.simulacion-accion-detener:hover,
-.simulacion-accion-detener:focus-visible { background: color-mix(in srgb, var(--danger) 22%, var(--panel)); }
 .simulacion-accion-detener:disabled,
 .simulacion-seguimiento:disabled { cursor: not-allowed; color: var(--text-disabled); opacity: .68; }
 .simulacion-acciones-ejecucion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
@@ -548,7 +514,7 @@ button { cursor: pointer; }
 .simulacion-datos-tiempo-real > div {
   min-width: 0;
   padding: 8px;
-  border-left: 2px solid var(--border-active);
+  border-left: var(--border-strong) solid var(--border-active);
   background: var(--bg-secondary);
 }
 .simulacion-datos-tiempo-real dt {

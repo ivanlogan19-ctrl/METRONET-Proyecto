@@ -7,10 +7,10 @@
   width: min(340px, calc(100% - 24px));
   max-width: calc(100% - 24px);
   padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel-elevated);
-  box-shadow: 0 10px 28px rgb(0 0 0 / .25);
+  box-shadow: var(--shadow-floating);
   color: var(--text-primary);
   box-sizing: border-box;
 }
@@ -44,7 +44,7 @@
   display: flex;
   align-items: center;
   padding-left: 6px;
-  border-left: 1px solid var(--border);
+  border-left: var(--border-width) solid var(--border);
 }
 
 .metronet-panel-puntos-herramientas .metronet-control-zoom {
@@ -59,7 +59,6 @@
 .metronet-panel-puntos-herramientas .metronet-control-zoom-boton {
   width: 28px;
   height: 28px;
-  border-radius: 4px;
   font-size: 14px;
 }
 
@@ -83,8 +82,8 @@
 .metronet-panel-puntos-contador,
 .metronet-punto-interes-estado {
   padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   font-family: var(--font-tecnica, Inter, sans-serif);
   font-size: 9px;
@@ -100,18 +99,12 @@
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--panel);
-  color: var(--text-primary);
   cursor: pointer;
   font-size: 10px;
 }
 
 .metronet-panel-puntos-alternar:hover,
 .metronet-panel-puntos-alternar:focus-visible {
-  border-color: var(--border-active);
-  background: var(--panel-elevated);
   outline: none;
 }
 
@@ -127,8 +120,8 @@
   width: 100%;
   min-height: 34px;
   padding: 7px 9px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
   color: var(--text-primary);
   box-sizing: border-box;
@@ -172,9 +165,9 @@
   width: 100%;
   min-height: 42px;
   padding: 7px 8px;
-  border: 1px solid transparent;
-  border-left: 3px solid var(--border);
-  border-radius: 5px;
+  border: var(--border-width) solid transparent;
+  border-left: var(--border-accent) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
   color: var(--text-primary);
   cursor: pointer;
@@ -190,7 +183,7 @@
 
 .metronet-panel-puntos-item.es-seleccionado {
   border-left-color: var(--info-active);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--info-active) 36%, transparent);
+  box-shadow: var(--shadow-selection);
 }
 
 .metronet-panel-puntos-item.es-objetivo { border-left-color: var(--warning); }
@@ -210,7 +203,7 @@
   place-items: center;
   width: 16px;
   height: 16px;
-  border: 1px solid var(--border-active);
+  border: var(--border-width) solid var(--border-active);
   border-radius: 50%;
   color: var(--text-primary);
   font-family: var(--font-tecnica, Inter, sans-serif);
@@ -263,11 +256,11 @@
   overflow-y: auto;
   padding: 14px;
   transform: translate(-50%, -50%);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--info-active);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--border);
+  border-left: var(--border-accent) solid var(--info-active);
+  border-radius: var(--radius-control);
   background: var(--panel);
-  box-shadow: 0 16px 40px rgb(0 0 0 / .45);
+  box-shadow: var(--shadow-floating);
   color: var(--text-primary);
   box-sizing: border-box;
 }
@@ -278,8 +271,8 @@
   width: 26px;
   height: 26px;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel-elevated);
   color: var(--text-primary);
   cursor: pointer;
@@ -296,8 +289,8 @@
   flex: 1 1 0;
   min-height: 32px;
   padding: 6px 9px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel-elevated);
   color: var(--text-primary);
   font: inherit;

@@ -6,7 +6,7 @@ import CapaPuntosInteres from '../mapa/capas/CapaPuntosInteres.js';
 import CapaRedMetro from '../mapa/capas/CapaRedMetro.js';
 import CapaTerritorial from '../mapa/capas/CapaTerritorial.js';
 import TerritorioMapa from '../mapa/utilidades/TerritorioMapa.js';
-import { COLORES_INTERFAZ_MAPA } from '../mapa/configuracion/ColoresMapa.js';
+import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../mapa/configuracion/ColoresMapa.js';
 import ControlZoom from '../mapa/controles/ControlZoom.js';
 import MotorSimulacion from './MotorSimulacion.js';
 
@@ -296,21 +296,21 @@ class EscenaSimulacion extends Phaser.Scene {
       .setScrollFactor(0);
     this.etiquetaEstado = this.add.text(0, 0, '', {
       color: COLOR_TEXTO,
-      fontFamily: 'Inter, Arial, sans-serif',
+      fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
       fontSize: '11px',
       fontStyle: '700',
       letterSpacing: 0.7,
     }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0);
     this.etiquetaRed = this.add.text(0, 0, '', {
       color: COLOR_TEXTO_SECUNDARIO,
-      fontFamily: 'Inter, Arial, sans-serif',
+      fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
       fontSize: '10px',
       fontStyle: '600',
       letterSpacing: 0.4,
     }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0).setOrigin(1, 0);
     this.etiquetaSeleccion = this.add.text(0, 0, '', {
       color: COLOR_TEXTO,
-      fontFamily: 'Inter, Arial, sans-serif',
+      fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
       fontSize: '10px',
       fontStyle: '700',
       letterSpacing: 0.45,

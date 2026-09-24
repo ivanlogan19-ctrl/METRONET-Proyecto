@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import '../estilos/puntos-interes.css';
 
-import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
+import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
 import { ZONAS, obtenerZona, normalizarBarrio } from '../utilidades/ClasificadorZonas.js';
 
@@ -1189,7 +1189,7 @@ export default class CapaPuntosInteres {
 
     const texto = this.escena.add.text(0, 0, etiqueta, {
       color: `#${COLORES_INTERFAZ_MAPA.TEXTO.toString(16).padStart(6, '0')}`,
-      fontFamily: '"IBM Plex Mono", "Roboto Mono", monospace',
+      fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
       fontSize: '9px',
       fontStyle: 'bold',
       resolution: 2,

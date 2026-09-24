@@ -10,7 +10,7 @@
   flex-direction: column;
   min-width: 0;
   padding: var(--space-xl, 32px) var(--space-lg, 24px);
-  border-right: 1px solid var(--border);
+  border-right: var(--border-width) solid var(--border);
   background: var(--bg-secondary);
 }
 
@@ -19,7 +19,7 @@
   justify-items: start;
   gap: var(--space-md, 16px);
   padding: 0 0 var(--space-xl, 32px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
   color: var(--text-primary);
   text-decoration: none;
 }
@@ -61,8 +61,8 @@
   width: 100%;
   min-height: 44px;
   padding: 10px var(--space-sm, 12px);
-  border: 1px solid transparent;
-  border-radius: 7px;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   background: transparent;
   font: inherit;
@@ -71,7 +71,7 @@
   line-height: 1.3;
   text-align: left;
   text-decoration: none;
-  transition: border-color .16s ease, background-color .16s ease, color .16s ease;
+  transition: border-color var(--motion-fast) ease, background-color var(--motion-fast) ease, color var(--motion-fast) ease;
 }
 
 .admin-enlace:hover,
@@ -94,7 +94,7 @@
   bottom: 9px;
   left: -1px;
   width: 3px;
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
   background: var(--info-active);
   content: '';
 }
@@ -102,17 +102,6 @@
 .admin-menu-pie {
   margin-top: auto;
   padding-top: var(--space-xl, 32px);
-}
-
-.admin-cerrar-sesion {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.admin-cerrar-sesion:hover,
-.admin-cerrar-sesion:focus-visible {
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--danger) 18%, var(--panel));
 }
 
 .admin-contenido {
@@ -132,7 +121,7 @@
   justify-content: space-between;
   gap: var(--space-lg, 24px);
   padding-bottom: var(--space-xl, 32px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .admin-etiqueta {
@@ -167,8 +156,8 @@
   max-width: 100%;
   margin: 0;
   padding: var(--space-xs, 8px) var(--space-sm, 12px);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   background: var(--panel);
   font-size: 13px;
@@ -215,8 +204,8 @@
   gap: var(--space-md, 16px);
   margin: 0;
   padding: var(--space-md, 16px);
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
 }
 
@@ -238,8 +227,8 @@
   width: 100%;
   min-height: 40px;
   padding: 9px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-primary);
   background: var(--bg-secondary);
   font: inherit;
@@ -257,8 +246,8 @@
 
 .admin-tabla-contenedor {
   overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
 }
 
@@ -271,7 +260,7 @@
 .admin-tabla th,
 .admin-tabla td {
   padding: 14px var(--space-md, 16px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
   text-align: left;
   vertical-align: middle;
 }
@@ -314,58 +303,8 @@
 .admin-eliminar {
   min-height: 36px;
   padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-primary);
-  background: var(--panel-elevated);
-  font-family: var(--font-tecnica);
   font-size: 12px;
-  font-weight: 700;
   line-height: 1.2;
-  transition: border-color .16s ease, background-color .16s ease, color .16s ease;
-}
-
-.admin-guardar {
-  border-color: var(--success);
-  color: var(--bg-primary);
-  background: var(--success);
-}
-
-.admin-guardar:hover,
-.admin-guardar:focus-visible {
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--success) 78%, var(--panel));
-}
-
-.admin-secundario[data-editar-usuario],
-.admin-secundario[data-accion-diseno^='editar-'] {
-  border-color: var(--warning);
-  color: var(--bg-primary);
-  background: var(--warning);
-}
-
-.admin-secundario[data-editar-usuario]:hover,
-.admin-secundario[data-editar-usuario]:focus-visible,
-.admin-secundario[data-accion-diseno^='editar-']:hover,
-.admin-secundario[data-accion-diseno^='editar-']:focus-visible {
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--warning) 76%, var(--panel));
-}
-
-.admin-secundario:hover,
-.admin-secundario:focus-visible {
-  border-color: var(--info-active);
-  background: var(--info-active);
-}
-
-.admin-eliminar {
-  border-color: var(--danger);
-  background: var(--danger);
-}
-
-.admin-eliminar:hover,
-.admin-eliminar:focus-visible {
-  background: color-mix(in srgb, var(--danger) 72%, var(--panel));
 }
 
 .admin-lista-disenos,
@@ -383,8 +322,8 @@
 .admin-detalle-diseno,
 .admin-configuracion-item,
 .admin-tarjetas-resumen article {
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
 }
 
@@ -429,8 +368,8 @@
 
 .admin-aviso {
   padding: var(--space-md, 16px);
-  border: 1px dashed var(--border);
-  border-radius: 8px;
+  border: var(--border-width) dashed var(--border);
+  border-radius: var(--radius-control);
   background: var(--bg-secondary);
 }
 
@@ -479,7 +418,7 @@
   justify-content: space-between;
   gap: var(--space-md, 16px);
   padding-bottom: var(--space-md, 16px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .admin-elementos-diseno {
@@ -501,8 +440,8 @@
   max-height: min(90vh, 760px);
   padding: 0;
   overflow: auto;
-  border: 1px solid var(--border-active);
-  border-radius: 10px;
+  border: var(--border-width) solid var(--border-active);
+  border-radius: var(--radius-control);
   color: var(--text-primary);
   background: var(--panel);
 }
@@ -578,7 +517,7 @@
     gap: var(--space-md, 16px);
     padding: var(--space-md, 16px);
     border-right: 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--border-width) solid var(--border);
   }
 
   .admin-marca {

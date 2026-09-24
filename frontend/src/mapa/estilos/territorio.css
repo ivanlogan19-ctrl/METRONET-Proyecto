@@ -1,4 +1,4 @@
-.metronet-territorio { margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; color: var(--text-secondary); }
+.metronet-territorio { margin-top: 10px; padding: 10px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); font-size: 12px; color: var(--text-secondary); }
 .metronet-territorio label { display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
 .metronet-territorio input { width: auto; margin: 0; accent-color: #75b49c; }
 .metronet-territorio p { margin: 8px 0; line-height: 1.45; }

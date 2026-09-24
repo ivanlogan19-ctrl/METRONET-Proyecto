@@ -2,12 +2,12 @@
 .metronet-ranking h1, .metronet-ranking h2 { font-family: var(--font-arcade); font-weight: 400; line-height: 1.4; overflow-wrap: anywhere; }
 .metronet-ranking h1 { font-size: clamp(24px,4vw,36px); }
 .metronet-ranking h2 { font-size: 20px; }
-.metronet-ranking section { margin-top: 28px; padding: clamp(14px,3vw,24px); background: var(--panel); border: 1px solid var(--border); border-top: 3px solid var(--info-active); }
+.metronet-ranking section { margin-top: 28px; padding: clamp(14px,3vw,24px); background: var(--panel); border: var(--border-width) solid var(--border); border-top: var(--border-accent) solid var(--info-active); }
 .ranking-niveles, .ranking-clasificacion { padding: 0; list-style: none; display: grid; gap: 12px; }
 .ranking-niveles { grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); }
-.ranking-niveles li { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--border); background: var(--bg-secondary); }
-.ranking-clasificacion li { display: grid; grid-template-columns: 44px minmax(0,1fr) auto auto; gap: 16px; align-items: center; padding: 16px; border: 1px solid var(--border); }
+.ranking-niveles li { display: grid; gap: 8px; padding: 16px; border: var(--border-width) solid var(--border); background: var(--bg-secondary); }
+.ranking-clasificacion li { display: grid; grid-template-columns: 44px minmax(0,1fr) auto auto; gap: 16px; align-items: center; padding: 16px; border: var(--border-width) solid var(--border); }
 .ranking-clasificacion li > :first-child { color: var(--info-active); font-family: var(--font-arcade); }
-.ranking-clasificacion .ranking-propio { border: 2px solid var(--success); background: var(--bg-secondary); }
+.ranking-clasificacion .ranking-propio { border: var(--border-strong) solid var(--success); background: var(--bg-secondary); }
 .metronet-ranking small { color: var(--text-secondary); }
 @media(max-width:600px) { .ranking-clasificacion li { grid-template-columns: 32px minmax(0,1fr); gap: 10px; } .ranking-clasificacion li > :nth-child(n+3) { grid-column: 2; } }

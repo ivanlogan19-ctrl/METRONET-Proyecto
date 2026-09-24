@@ -213,7 +213,7 @@ export default class SelectorZonas {
         align-items: center;
         gap: 8px;
         padding: 8px;
-        border-radius: var(--radius-sm, 5px);
+        border-radius: var(--radius-sm);
         color: var(--text-primary);
         font: 600 13px/18px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
         cursor: pointer;
@@ -235,7 +235,7 @@ export default class SelectorZonas {
       }
       .metronet-selector-zonas-lista::-webkit-scrollbar { width: 6px; }
       .metronet-selector-zonas-lista::-webkit-scrollbar-thumb {
-        border-radius: 99px;
+        border-radius: var(--radius-control);
         background: var(--border-active);
       }
     `;

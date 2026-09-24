@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { COLORES_INTERFAZ_MAPA } from './mapa/configuracion/ColoresMapa.js';
 
 import MapaScene from './mapa/MapaScene.js';
 import { requerirSesion } from './autenticacion/sesion.js';
@@ -11,7 +12,7 @@ const config = {
 
   parent: 'metronet-mapa',
 
-  backgroundColor: '#0B0D0E',
+  backgroundColor: COLORES_INTERFAZ_MAPA.FONDO,
 
   scale: {
     mode: Phaser.Scale.RESIZE,

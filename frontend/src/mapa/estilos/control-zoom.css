@@ -2,10 +2,10 @@
   display: inline-flex;
   gap: 2px;
   padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
-  box-shadow: 0 8px 20px rgb(0 0 0 / .28);
+  box-shadow: var(--shadow-floating);
 }
 
 .metronet-control-zoom--superpuesto {
@@ -26,25 +26,16 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 0;
-  border-radius: 4px;
-  color: var(--text-primary);
-  background: transparent;
-  font-family: var(--font-tecnica, ui-monospace, monospace);
   font-size: 16px;
-  font-weight: 700;
   cursor: pointer;
 }
 
 .metronet-control-zoom-boton:hover,
 .metronet-control-zoom-boton:focus-visible {
-  color: var(--info-active);
-  background: var(--panel-elevated);
   outline: none;
 }
 
 .metronet-control-zoom-boton:disabled {
-  color: var(--text-disabled);
   cursor: default;
 }
 

@@ -340,10 +340,10 @@ export default class PanelDinamico {
         width: 156px;
         overflow: visible;
         border: 1px solid var(--border);
-        border-radius: var(--radius-md, 8px);
+        border-radius: var(--radius-md);
         color: var(--text-primary);
         background: var(--panel);
-        box-shadow: 0 14px 34px rgb(0 0 0 / .30);
+        box-shadow: var(--shadow-floating);
         font-family: var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
       }
       .metronet-panel-integrado {
@@ -359,7 +359,7 @@ export default class PanelDinamico {
         min-height: 42px;
         padding: 0 12px;
         border: 0;
-        border-radius: var(--radius-md, 8px);
+        border-radius: var(--radius-md);
         color: var(--text-primary);
         background: var(--panel-elevated);
         font: 700 13px var(--font-ui, Inter, ui-sans-serif, system-ui, sans-serif);
@@ -367,7 +367,7 @@ export default class PanelDinamico {
         white-space: nowrap;
       }
       .metronet-panel-dinamico.metronet-panel-abierto .metronet-panel-encabezado {
-        border-radius: var(--radius-md, 8px) var(--radius-md, 8px) 0 0;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
       }
       .metronet-panel-encabezado:hover,
       .metronet-panel-encabezado:focus-visible {
@@ -380,7 +380,7 @@ export default class PanelDinamico {
         padding: 7px;
         overflow: hidden;
         border-top: 1px solid var(--border);
-        border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
         background: var(--bg-secondary);
       }
       @media (max-width: 700px) {

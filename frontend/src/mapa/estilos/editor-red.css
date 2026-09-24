@@ -15,8 +15,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--bg-primary);
   box-shadow: none;
 }
@@ -27,8 +27,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel);
   box-shadow: none;
   scrollbar-color: var(--border-active) transparent;
@@ -40,7 +40,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   justify-content: space-between;
   gap: 12px;
   padding: 14px 15px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
   background: var(--panel-elevated);
 }
 .metronet-panel-editor-sobretitulo {
@@ -57,12 +57,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   display: none;
   min-height: 34px;
   padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--text-primary);
-  background: var(--panel);
   font-size: 12px;
-  font-weight: 700;
 }
 .metronet-panel-editor-contenido { display: grid; gap: 10px; padding: 12px; }
 #metronet-panel-controles .metronet-flujo { margin: 0; padding: 0 2px; font-size: 10px; }
@@ -71,8 +66,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   min-width: 0;
   gap: var(--space-xs);
   padding: var(--space-sm);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--info-active);
+  border: var(--border-width) solid var(--border);
+  border-left: var(--border-accent) solid var(--info-active);
   border-radius: var(--radius-md);
   background: var(--panel-elevated);
 }
@@ -101,7 +96,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   overflow: hidden;
   max-width: 132px;
   padding: 2px 5px;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-size: 10px;
@@ -113,15 +108,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   flex: 0 0 auto;
   min-height: 34px;
   padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  background: var(--panel);
   font-size: 11px;
-  font-weight: 700;
 }
-.metronet-consigna__alternar:hover,
-.metronet-consigna__alternar:focus-visible { border-color: var(--info-active); color: var(--text-primary); background: var(--bg-secondary); }
 .metronet-consigna__titulo {
   min-width: 0;
   margin: 0;
@@ -136,7 +124,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   opacity: 1;
-  transition: grid-template-rows .18s ease, opacity .14s ease;
+  transition: grid-template-rows var(--motion-fast) ease, opacity var(--motion-fast) ease;
 }
 .metronet-consigna__contenido-interno { display: grid; min-height: 0; gap: var(--space-xs); overflow: hidden; }
 .metronet-consigna.es-compacta .metronet-consigna__contenido { display: none; }
@@ -154,7 +142,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-consigna__disponibilidad {
   margin: 0;
   padding: 6px 7px;
-  border-left: 2px solid var(--warning);
+  border-left: var(--border-strong) solid var(--warning);
   color: var(--text-secondary);
   background: color-mix(in srgb, var(--warning) 8%, var(--panel));
   font-size: 11px;
@@ -191,7 +179,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   min-height: 36px;
   gap: var(--space-xs);
   padding: 5px 7px;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   background: var(--panel);
@@ -213,13 +201,13 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-consigna__progreso { display: grid; gap: 5px; min-height: 31px; padding-top: 2px; }
 .metronet-consigna__progreso-encabezado { color: var(--text-secondary); font-size: 10px; }
 .metronet-consigna__progreso-encabezado strong { color: var(--text-primary); font-family: var(--font-tecnica); font-size: 10px; }
-.metronet-consigna__barra-progreso { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: 999px; background: var(--bg-secondary); }
-.metronet-consigna__barra-progreso > span { display: block; width: var(--progreso-consigna); height: 100%; border-radius: inherit; background: var(--info-active); transition: width .18s ease; }
+.metronet-consigna__barra-progreso { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: var(--radius-control); background: var(--bg-secondary); }
+.metronet-consigna__barra-progreso > span { display: block; width: var(--progreso-consigna); height: 100%; border-radius: inherit; background: var(--info-active); transition: width var(--motion-fast) ease; }
 .metronet-consigna__continuar {
   width: 100%;
   min-height: 36px;
   padding: 7px 10px;
-  border: 1px solid var(--info-active);
+  border: var(--border-width) solid var(--info-active);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   background: color-mix(in srgb, var(--info-active) 20%, var(--panel));
@@ -247,24 +235,16 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   width: 100% !important;
   min-width: 0;
   margin: 0;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px;
+  border: var(--border-width) solid var(--border) !important;
+  border-radius: var(--radius-control);
   color: var(--text-primary) !important;
   background: var(--panel) !important;
   box-shadow: none !important;
 }
 #metronet-panel-controles [data-contenedor-selectores-mapa] .metronet-panel-encabezado {
   min-height: 38px;
-  border: 0;
-  border-radius: 5px;
-  color: var(--text-primary) !important;
-  background: var(--panel) !important;
-  font-family: var(--font-ui);
   font-size: 12px !important;
-  font-weight: 700;
 }
-#metronet-panel-controles [data-contenedor-selectores-mapa] .metronet-panel-encabezado:hover,
-#metronet-panel-controles [data-contenedor-selectores-mapa] .metronet-panel-encabezado:focus-visible { background: var(--panel-elevated) !important; }
 #metronet-panel-controles [data-contenedor-selectores-mapa] .metronet-panel-contenido {
   border-color: var(--border) !important;
   background: var(--bg-secondary) !important;
@@ -279,14 +259,14 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 #metronet-panel-controles [data-contenedor-selectores-mapa] .metronet-selector-barrio-opcion:hover { background: var(--panel-elevated) !important; }
 #metronet-panel-controles [data-contenedor-selectores-mapa] input[type='checkbox'] { accent-color: var(--info-active); }
 .metronet-panel-puntos-zona { min-width: 0; }
-#metronet-panel-controles .metronet-panel-puntos-interes { padding: 10px; border-color: var(--border); border-radius: 7px; background: var(--panel-elevated); }
+#metronet-panel-controles .metronet-panel-puntos-interes { padding: 10px; border-color: var(--border); border-radius: var(--radius-control); background: var(--panel-elevated); }
 #metronet-panel-controles .metronet-panel-puntos-lista { max-height: 190px; }
-#metronet-panel-controles .metronet-panel-puntos-accion { min-height: 34px; border: 1px solid var(--border); border-radius: 5px; color: var(--text-primary); background: var(--panel); }
+#metronet-panel-controles .metronet-panel-puntos-accion { min-height: 34px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); color: var(--text-primary); background: var(--panel); }
 #metronet-panel-controles .metronet-panel-puntos-accion:hover,
 #metronet-panel-controles .metronet-panel-puntos-accion:focus-visible { border-color: var(--info-active); background: var(--panel-elevated); }
 .metronet-panel-acordeon-mapa {
-  border: 1px solid var(--border);
-  border-radius: 7px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--panel-elevated);
 }
 .metronet-panel-acordeon-mapa > summary {
@@ -302,7 +282,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 }
 .metronet-panel-acordeon-mapa > summary::-webkit-details-marker { display: none; }
 .metronet-panel-acordeon-mapa > summary::after { margin-left: auto; color: var(--text-secondary); content: '▾'; font-family: var(--font-tecnica); }
-.metronet-panel-acordeon-mapa[open] > summary { border-bottom: 1px solid var(--border); color: var(--info-active); }
+.metronet-panel-acordeon-mapa[open] > summary { border-bottom: var(--border-width) solid var(--border); color: var(--info-active); }
 .metronet-panel-acordeon-mapa[open] > summary::after { transform: rotate(180deg); }
 .metronet-panel-acordeon-mapa__contenido { display: grid; gap: 8px; padding: 9px; }
 #metronet-panel-controles [data-contenedor-controles-mapa] .metronet-panel-dinamico,
@@ -312,8 +292,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   width: 100% !important;
   min-width: 0;
   margin: 0;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px;
+  border: var(--border-width) solid var(--border) !important;
+  border-radius: var(--radius-control);
   color: var(--text-primary) !important;
   background: var(--panel) !important;
   box-shadow: none !important;
@@ -322,7 +302,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 #metronet-panel-controles [data-contenedor-controles-mapa] .metronet-leyenda-encabezado {
   min-height: 38px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   color: var(--text-primary) !important;
   background: var(--panel) !important;
   font-family: var(--font-ui);
@@ -342,10 +322,10 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 #metronet-panel-controles [data-contenedor-controles-mapa] input[type='checkbox'] { accent-color: var(--info-active); }
 #metronet-panel-controles [data-contenedor-controles-mapa] .metronet-leyenda-titulo-seccion { margin: 8px 0 0; color: var(--text-secondary) !important; font-family: var(--font-tecnica); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 #metronet-panel-controles [data-contenedor-controles-mapa] .metronet-leyenda-contenido { max-height: 210px; }
-.metronet-estado-puntos { padding: 9px; border-left: 3px solid var(--warning); color: var(--text-secondary); background: color-mix(in srgb, var(--warning) 8%, var(--panel)); font-size: 11px; line-height: 1.4; }
+.metronet-estado-puntos { padding: 9px; border-left: var(--border-accent) solid var(--warning); color: var(--text-secondary); background: color-mix(in srgb, var(--warning) 8%, var(--panel)); font-size: 11px; line-height: 1.4; }
 .metronet-panel-editor-herramientas { min-width: 0; }
 .metronet-editor-red { display: grid; gap: 10px; min-width: 0; }
-.metronet-editor-contexto { border: 1px solid var(--border); border-radius: 7px; padding: 10px; }
+.metronet-editor-contexto { border: var(--border-width) solid var(--border); border-radius: var(--radius-control); padding: 10px; }
 .metronet-editor-contexto > summary { color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 700; }
 .metronet-editor-contexto > :not(summary) { margin-top: 10px; }
 .metronet-editor-contexto__titulo { margin: 0; color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -366,33 +346,13 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-red select {
   min-height: 37px;
   padding: 8px 9px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--text-primary);
-  background: var(--bg-secondary);
-  font-family: var(--font-ui);
   font-size: 12px;
 }
 .metronet-editor-red input::placeholder { color: var(--text-disabled); }
 .metronet-editor-red input:focus,
-.metronet-editor-red select:focus { border-color: var(--info-active); outline: 0; box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-active) 20%, transparent); }
-.metronet-editor-red button:hover,
-.metronet-editor-red button:focus-visible { border-color: var(--border-active); background: var(--panel-elevated); }
-.metronet-editor-red .metronet-accion-primaria { border-color: var(--success); color: var(--bg-primary); background: var(--success); font-family: var(--font-tecnica); font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
-.metronet-editor-red .metronet-accion-primaria:hover,
-.metronet-editor-red .metronet-accion-primaria:focus-visible { border-color: var(--success); color: var(--text-primary); background: color-mix(in srgb, var(--success) 76%, var(--panel)); }
-.metronet-editor-red .metronet-accion-neutra { border-color: var(--info-active); color: var(--text-primary); background: var(--panel-elevated); font-weight: 700; }
-.metronet-editor-red .metronet-accion-neutra:hover,
-.metronet-editor-red .metronet-accion-neutra:focus-visible { border-color: var(--info-active); background: color-mix(in srgb, var(--info-active) 22%, var(--panel)); }
-.metronet-editor-red .metronet-accion-advertencia { border-color: var(--warning); color: var(--bg-primary); background: var(--warning); font-family: var(--font-tecnica); font-weight: 700; }
-.metronet-editor-red .metronet-accion-advertencia:hover,
-.metronet-editor-red .metronet-accion-advertencia:focus-visible { border-color: var(--warning); color: var(--text-primary); background: color-mix(in srgb, var(--warning) 76%, var(--panel)); }
-.metronet-editor-red .metronet-accion-simulacion { border-color: var(--simulation-action); color: var(--text-primary); background: var(--simulation-action); font-family: var(--font-tecnica); font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
-.metronet-editor-red .metronet-accion-simulacion:hover,
-.metronet-editor-red .metronet-accion-simulacion:focus-visible { border-color: var(--simulation-action); background: color-mix(in srgb, var(--simulation-action) 76%, var(--panel)); }
-.metronet-editor-red .metronet-accion-peligrosa { border-color: var(--danger); color: var(--danger); background: transparent; }
-.metronet-editor-red .metronet-accion-peligrosa:hover,
-.metronet-editor-red .metronet-accion-peligrosa:focus-visible { color: var(--text-primary); background: color-mix(in srgb, var(--danger) 16%, var(--panel)); }
+.metronet-editor-red select:focus { outline: 0; }
+.metronet-editor-red .metronet-accion-primaria { letter-spacing: .02em; text-transform: uppercase; }
+.metronet-editor-red .metronet-accion-simulacion { letter-spacing: .02em; text-transform: uppercase; }
 .metronet-herramientas { display: grid; gap: 14px; min-width: 0; }
 .metronet-herramientas__barra { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px 8px; }
 .metronet-herramientas__barra fieldset { display: flex; gap: 5px; min-width: 0; margin: 0; padding: 0; border: 0; }
@@ -400,10 +360,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-herramientas__barra fieldset:last-child { grid-column: 1 / -1; }
 .metronet-herramientas__barra legend { margin-bottom: 6px; padding: 0; color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .metronet-herramientas__barra button { flex: 1; min-width: 0; padding-inline: 5px; }
-.metronet-editor-red [data-elegir-herramienta][aria-pressed='true'] { border-color: var(--info-active); color: var(--text-primary); background: color-mix(in srgb, var(--info-active) 24%, var(--panel)); box-shadow: inset 0 -3px var(--info-active); }
-.metronet-editor-red button:disabled,
-.metronet-editor-red button:disabled:hover { cursor: not-allowed; border-color: var(--border); color: var(--text-disabled); background: var(--bg-secondary); box-shadow: none; opacity: .7; }
-.metronet-herramientas__ayuda { margin: 0; padding: 10px 12px; border-left: 3px solid var(--info-active); background: var(--bg-secondary); color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+.metronet-herramientas__ayuda { margin: 0; padding: 10px 12px; border-left: var(--border-accent) solid var(--info-active); background: var(--bg-secondary); color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
 .operacion-en-curso .metronet-herramientas__ayuda { border-color: var(--warning); color: var(--text-primary); }
 .metronet-herramientas__opciones { min-width: 0; }
 .metronet-herramientas .metronet-editor-grupo { display: grid; gap: 12px; }
@@ -416,7 +373,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-red [data-cancelar-herramienta] { border-color: var(--warning); color: var(--warning); }
 .metronet-editor-red [hidden] { display: none !important; }
 .metronet-editor-acordeones { display: grid; gap: 7px; }
-.metronet-editor-acordeon { border: 1px solid var(--border); border-radius: 7px; background: var(--panel-elevated); }
+.metronet-editor-acordeon { border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel-elevated); }
 .metronet-editor-acordeon[hidden] { display: none; }
 .metronet-editor-acordeon > summary {
   display: grid;
@@ -436,7 +393,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-acordeon__titulo span { color: var(--text-secondary); font-size: 10px; line-height: 1.25; }
 .metronet-editor-acordeon__indicador { color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 13px; }
 .metronet-editor-acordeon[open] { border-color: var(--border-active); }
-.metronet-editor-acordeon[open] > summary { border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--info-active) 8%, var(--panel-elevated)); }
+.metronet-editor-acordeon[open] > summary { border-bottom: var(--border-width) solid var(--border); background: color-mix(in srgb, var(--info-active) 8%, var(--panel-elevated)); }
 .metronet-editor-acordeon[open] .metronet-editor-acordeon__indicador { color: var(--info-active); transform: rotate(180deg); }
 .metronet-editor-acordeon-contenido { display: grid; gap: 9px; padding: 11px; }
 .metronet-editor-acordeon > .metronet-editor-grupo { display: grid; gap: 9px; padding: 11px; border: 0; border-radius: 0; background: transparent; }
@@ -454,8 +411,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   min-height: 34px;
   gap: 8px;
   padding: 7px 8px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
   color: var(--text-primary);
   background: var(--panel);
   text-align: left;
@@ -464,16 +421,16 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-item-lista:focus-visible,
 .metronet-editor-item-lista.es-seleccionado { border-color: var(--info-active); background: color-mix(in srgb, var(--info-active) 13%, var(--panel)); }
 .metronet-editor-item-lista__identidad { display: flex; align-items: center; min-width: 0; gap: 7px; }
-.metronet-editor-item-lista__color { flex: 0 0 auto; width: 9px; height: 9px; border: 1px solid var(--text-primary); border-radius: 50%; }
+.metronet-editor-item-lista__color { flex: 0 0 auto; width: 9px; height: 9px; border: var(--border-width) solid var(--text-primary); border-radius: 50%; }
 .metronet-editor-item-lista__nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .metronet-editor-item-lista__meta { flex: 0 0 auto; color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 10px; }
 .metronet-editor-seleccionado {
   display: grid;
   gap: 7px;
   padding: 10px;
-  border: 1px solid var(--border-active);
-  border-left: 3px solid var(--info-active);
-  border-radius: 6px;
+  border: var(--border-width) solid var(--border-active);
+  border-left: var(--border-accent) solid var(--info-active);
+  border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--info-active) 9%, var(--panel));
 }
 .metronet-editor-seleccionado__tipo { color: var(--info-active); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
@@ -485,16 +442,16 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-seleccionado [data-eliminar-linea],
 .metronet-editor-seleccionado [data-eliminar-tramo],
 .metronet-editor-seleccionado [data-eliminar-unidad] { border-color: var(--danger); color: var(--danger); }
-.metronet-editor-juego { border: 1px solid var(--border); border-radius: 7px; background: var(--panel-elevated); }
+.metronet-editor-juego { border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel-elevated); }
 .metronet-editor-juego > summary { display: flex; align-items: center; min-height: 38px; padding: 0 11px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; letter-spacing: .08em; list-style: none; text-transform: uppercase; }
 .metronet-editor-juego > summary::-webkit-details-marker { display: none; }
 .metronet-editor-juego > summary::after { margin-left: auto; content: '▾'; }
-.metronet-editor-juego[open] > summary { border-bottom: 1px solid var(--border); color: var(--text-primary); }
+.metronet-editor-juego[open] > summary { border-bottom: var(--border-width) solid var(--border); color: var(--text-primary); }
 .metronet-editor-juego[open] > summary::after { transform: rotate(180deg); }
 .metronet-juego-contenido { display: grid; gap: 8px; padding: 10px; }
 .metronet-juego-introduccion { margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
 .metronet-lista-escenarios { display: grid; gap: 6px; max-height: min(25svh, 210px); overflow-y: auto; }
-.metronet-escenario { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; padding: 8px; border-left: 3px solid var(--info-active); background: var(--panel); color: var(--text-primary); font-size: 11px; }
+.metronet-escenario { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; padding: 8px; border-left: var(--border-accent) solid var(--info-active); background: var(--panel); color: var(--text-primary); font-size: 11px; }
 .metronet-escenario strong { min-width: 0; }
 .metronet-escenario span { color: var(--text-secondary); font-size: 10px; }
 .metronet-escenario button { grid-row: 1 / span 2; grid-column: 2; align-self: center; min-height: 30px; padding: 5px 7px; font-size: 10px; }
@@ -507,7 +464,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   box-sizing: border-box;
   margin-top: 2px;
   padding: 12px 0 0;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
   background: var(--panel);
 }
 .metronet-editor-finalizar h3 { margin: 0; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
@@ -518,8 +475,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   display: block;
   margin-top: 2px;
   padding: 13px 12px;
-  border: 1px solid color-mix(in srgb, var(--danger) 56%, var(--border));
-  border-radius: 7px;
+  border: var(--border-width) solid color-mix(in srgb, var(--danger) 56%, var(--border));
+  border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--danger) 7%, var(--panel));
   text-align: left;
 }
