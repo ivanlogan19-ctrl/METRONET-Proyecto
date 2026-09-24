@@ -10,6 +10,7 @@ public record SimulacionDetalleResponse(
     List<UnidadMetroSimulacionResponse> unidadesMetro,
     List<ResultadoSimulacionResponse> resultados,
     boolean preparadoParaSimular,
-    List<String> observacionesSimulacion
+    List<String> observacionesSimulacion,
+    ConfiguracionTerritorialResponse territorio
 ) {
 }

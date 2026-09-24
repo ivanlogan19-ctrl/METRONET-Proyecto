@@ -51,7 +51,7 @@ class SimulacionServiceEstadoTest {
         );
 
         assertEquals(HttpStatus.FORBIDDEN, excepcion.getStatusCode());
-        assertEquals("Completá los cuatro niveles para desbloquear el Modo Libre", excepcion.getReason());
+        assertEquals("Completá todos los niveles de una campaña para desbloquear el Modo Libre", excepcion.getReason());
         verifyNoInteractions(jdbcTemplate);
     }
 
@@ -151,8 +151,8 @@ class SimulacionServiceEstadoTest {
         return new SimulacionService(
             jdbcTemplate,
             disenoAdministracionService,
-            new ObjetivosPuntosInteresService(new ObjectMapper()),
-            juegoEducativoService
+            new ObjetivosPuntosInteresService(new ObjectMapper(), new GeografiaService(new ObjectMapper())),
+            juegoEducativoService, org.mockito.Mockito.mock(RestriccionesGeograficasService.class)
         );
     }
 

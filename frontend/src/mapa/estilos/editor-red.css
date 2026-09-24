@@ -2,7 +2,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-pantalla-editor { display: grid; grid-template-rows: var(--navegacion-alto) minmax(0, 1fr); width: 100%; height: 100svh; min-height: 0; }
 .metronet-pantalla-editor #metronet-aplicacion {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(270px, 24vw, 420px);
+  grid-template-columns: minmax(0, 1fr) clamp(270px, 22vw, 360px);
   gap: clamp(8px, 1vw, 14px);
   width: 100%;
   height: 100%;
@@ -76,6 +76,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   border-radius: var(--radius-md);
   background: var(--panel-elevated);
 }
+#metronet-panel-controles .metronet-consigna[hidden] { display: none; }
 .metronet-consigna__cabecera,
 .metronet-consigna__progreso-encabezado {
   display: flex;
@@ -344,7 +345,9 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-estado-puntos { padding: 9px; border-left: 3px solid var(--warning); color: var(--text-secondary); background: color-mix(in srgb, var(--warning) 8%, var(--panel)); font-size: 11px; line-height: 1.4; }
 .metronet-panel-editor-herramientas { min-width: 0; }
 .metronet-editor-red { display: grid; gap: 10px; min-width: 0; }
-.metronet-editor-contexto { display: grid; gap: 8px; }
+.metronet-editor-contexto { border: 1px solid var(--border); border-radius: 7px; padding: 10px; }
+.metronet-editor-contexto > summary { color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 700; }
+.metronet-editor-contexto > :not(summary) { margin-top: 10px; }
 .metronet-editor-contexto__titulo { margin: 0; color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .metronet-editor-contexto__ayuda { margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
 .metronet-editor-nueva,
@@ -390,6 +393,28 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-editor-red .metronet-accion-peligrosa { border-color: var(--danger); color: var(--danger); background: transparent; }
 .metronet-editor-red .metronet-accion-peligrosa:hover,
 .metronet-editor-red .metronet-accion-peligrosa:focus-visible { color: var(--text-primary); background: color-mix(in srgb, var(--danger) 16%, var(--panel)); }
+.metronet-herramientas { display: grid; gap: 14px; min-width: 0; }
+.metronet-herramientas__barra { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px 8px; }
+.metronet-herramientas__barra fieldset { display: flex; gap: 5px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.metronet-herramientas__barra fieldset:first-child,
+.metronet-herramientas__barra fieldset:last-child { grid-column: 1 / -1; }
+.metronet-herramientas__barra legend { margin-bottom: 6px; padding: 0; color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.metronet-herramientas__barra button { flex: 1; min-width: 0; padding-inline: 5px; }
+.metronet-editor-red [data-elegir-herramienta][aria-pressed='true'] { border-color: var(--info-active); color: var(--text-primary); background: color-mix(in srgb, var(--info-active) 24%, var(--panel)); box-shadow: inset 0 -3px var(--info-active); }
+.metronet-editor-red button:disabled,
+.metronet-editor-red button:disabled:hover { cursor: not-allowed; border-color: var(--border); color: var(--text-disabled); background: var(--bg-secondary); box-shadow: none; opacity: .7; }
+.metronet-herramientas__ayuda { margin: 0; padding: 10px 12px; border-left: 3px solid var(--info-active); background: var(--bg-secondary); color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+.operacion-en-curso .metronet-herramientas__ayuda { border-color: var(--warning); color: var(--text-primary); }
+.metronet-herramientas__opciones { min-width: 0; }
+.metronet-herramientas .metronet-editor-grupo { display: grid; gap: 12px; }
+.metronet-herramientas .metronet-editor-fila,
+.metronet-herramientas .metronet-editor-acciones { flex-wrap: wrap; }
+.metronet-herramientas .metronet-editor-fila > input,
+.metronet-herramientas .metronet-editor-fila > select,
+.metronet-herramientas .metronet-editor-fila > button,
+.metronet-herramientas .metronet-editor-acciones > button { flex: 1 1 100%; width: 100%; }
+.metronet-editor-red [data-cancelar-herramienta] { border-color: var(--warning); color: var(--warning); }
+.metronet-editor-red [hidden] { display: none !important; }
 .metronet-editor-acordeones { display: grid; gap: 7px; }
 .metronet-editor-acordeon { border: 1px solid var(--border); border-radius: 7px; background: var(--panel-elevated); }
 .metronet-editor-acordeon[hidden] { display: none; }
@@ -490,16 +515,16 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 #metronet-panel-controles .metronet-editor-finalizar__acciones > button { width: 100%; min-width: 0; flex: 0 1 auto; }
 .metronet-editor-finalizar__ayuda { margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
 .metronet-editor-zona-peligro {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
+  display: block;
   margin-top: 2px;
   padding: 13px 12px;
   border: 1px solid color-mix(in srgb, var(--danger) 56%, var(--border));
   border-radius: 7px;
   background: color-mix(in srgb, var(--danger) 7%, var(--panel));
-  text-align: center;
+  text-align: left;
 }
+.metronet-editor-zona-peligro > summary { color: var(--danger); cursor: pointer; font-size: 12px; }
+.metronet-editor-zona-peligro[open] > summary { margin-bottom: 12px; }
 .metronet-editor-zona-peligro__etiqueta { margin: 0; color: var(--danger); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .metronet-editor-zona-peligro h4 { margin: 0; color: var(--text-primary); font-size: 13px; }
 .metronet-editor-zona-peligro > p:not(.metronet-editor-zona-peligro__etiqueta) { max-width: 310px; margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }

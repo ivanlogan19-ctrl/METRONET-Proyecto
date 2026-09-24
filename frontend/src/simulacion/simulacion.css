@@ -181,6 +181,8 @@ button { cursor: pointer; }
   height: 100%;
   background: var(--bg-primary);
 }
+/* El canvas inline agrega espacio de línea al padre que Scale.RESIZE vuelve a medir. */
+.simulacion-lienzo-contenedor > canvas { display: block; }
 
 .simulacion-contexto {
   display: grid;
@@ -194,6 +196,14 @@ button { cursor: pointer; }
 .simulacion-control-operacion { display: grid; grid-template-columns: minmax(250px, 1.15fr) minmax(220px, 1fr) minmax(240px, 1fr); gap: 12px; }
 .simulacion-control-operacion { grid-area: controles; }
 .simulacion-panel-operacion { display: grid; align-content: start; gap: 10px; padding: 12px; }
+.simulacion-desempeno { grid-column: 1 / -1; }
+.simulacion-desempeno p { margin: 0; line-height: 1.55; }
+.simulacion-desempeno fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--border); }
+.simulacion-desempeno legend { padding: 0 6px; color: var(--text-secondary); }
+.simulacion-velocidad-unidad { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.simulacion-velocidad-unidad label { display: grid; gap: 8px; min-width: 0; }
+.simulacion-velocidad-unidad input, .simulacion-velocidad-unidad button { width: 100%; min-width: 0; min-height: 40px; padding: 8px; border: 1px solid var(--border-active); color: var(--text-primary); background: var(--bg-secondary); }
+.simulacion-velocidad-unidad p { grid-column: 1 / -1; color: var(--text-secondary); }
 .simulacion-consigna {
   min-width: 0;
   border: 1px solid var(--border);

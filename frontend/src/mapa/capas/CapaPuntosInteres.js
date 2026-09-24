@@ -4,7 +4,7 @@ import '../estilos/puntos-interes.css';
 
 import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
-import { ZONAS, obtenerZona } from '../utilidades/ClasificadorZonas.js';
+import { ZONAS, obtenerZona, normalizarBarrio } from '../utilidades/ClasificadorZonas.js';
 
 export const COLORES_PUNTOS_INTERES = Object.freeze({
   PATRIMONIO: 0xf3c86b,
@@ -37,7 +37,6 @@ const UMBRAL_ZOOM_CONTEXTO_SALIDA = 1.52;
 const UMBRAL_ZOOM_LOCAL_ENTRADA = 2.48;
 const UMBRAL_ZOOM_LOCAL_SALIDA = 2.26;
 const MAXIMO_REFERENCIAS_POR_GRUPO = 12;
-const MAXIMO_ETIQUETAS_LOCALES = 8;
 const ZOOM_ENFOQUE_REFERENCIA = 2.1;
 const ZOOM_ENFOQUE_REFERENCIA_MINIMO = 1.65;
 const ZOOM_ENFOQUE_REFERENCIA_MAXIMO = 2.35;
@@ -263,8 +262,6 @@ export default class CapaPuntosInteres {
   }
 
   limpiarPuntoSeleccionado() {
-    this.puntoSeleccionado = null;
-
     this.ocultarInformacion();
   }
 
@@ -500,7 +497,8 @@ export default class CapaPuntosInteres {
 
         const latitud = Number(punto.latitud);
 
-        if (!Number.isFinite(longitud) || !Number.isFinite(latitud)) {
+        if (punto.longitud == null || punto.latitud == null || punto.longitud === '' || punto.latitud === '' ||
+          !Number.isFinite(longitud) || !Number.isFinite(latitud)) {
           continue;
         }
 
@@ -724,6 +722,7 @@ export default class CapaPuntosInteres {
       nombre,
       estado: this.normalizarEstado(objetivo.estado, ESTADOS_PUNTOS_INTERES.OBJETIVO),
       etiqueta: objetivo.etiqueta ?? null,
+      radioCobertura: Number(objetivo.radioCobertura),
     };
   }
 
@@ -737,16 +736,12 @@ export default class CapaPuntosInteres {
 
   obtenerObjetivoPunto(punto) {
     return this.objetivos.find((objetivo) => {
-      const coincideId =
-        objetivo.id !== null &&
-        objetivo.id !== undefined &&
-        String(objetivo.id) === String(punto.id);
-
-      const coincideNombre =
-        objetivo.nombre &&
-        this.normalizarNombre(objetivo.nombre) === this.normalizarNombre(punto.nombre);
-
-      return coincideId || coincideNombre;
+      if (objetivo.id !== null && objetivo.id !== undefined) {
+        return String(objetivo.id) === String(punto.id);
+      }
+      const nombre = this.normalizarNombre(objetivo.nombre);
+      return nombre && nombre === this.normalizarNombre(punto.nombre) &&
+        this.puntos.filter((candidato) => this.normalizarNombre(candidato.nombre) === nombre).length === 1;
     }) ?? null;
   }
 
@@ -783,6 +778,8 @@ export default class CapaPuntosInteres {
       : this.puntos.find((punto) => String(punto.id) === String(referencia.id));
 
     if (puntoPorId) return puntoPorId;
+    // Un ID explícito nunca se sustituye por otra referencia con el mismo nombre.
+    if (typeof identificador === 'object' && referencia.id !== null) return null;
 
     if (!referencia.nombre) return null;
 
@@ -1049,6 +1046,19 @@ export default class CapaPuntosInteres {
 
     const colorEstado = this.obtenerColorEstado(estado);
 
+    const radio = objetivo?.radioCobertura;
+    const escalaMapa = this.capaBarrios?.calcularEscalaMapa?.();
+    if (this.esObjetivoActivo(objetivo) && Number.isFinite(radio) && radio > 0 && escalaMapa) {
+      const cobertura = this.escena.add.graphics().setDepth(7).setName(`cobertura-poi-${punto.id}`);
+      cobertura.fillStyle(colorEstado, 0.07);
+      cobertura.lineStyle(1, colorEstado, 0.4);
+      const ancho = 2 * radio / 1000 * escalaMapa.anchoMapa;
+      const alto = 2 * radio / 620 * escalaMapa.altoMapa;
+      cobertura.fillEllipse(posicion.x, posicion.y, ancho, alto);
+      cobertura.strokeEllipse(posicion.x, posicion.y, ancho, alto);
+      this.elementos.push(cobertura);
+    }
+
     const marcador = this.escena.add.graphics();
 
     if (seleccionado || estado !== ESTADOS_PUNTOS_INTERES.REFERENCIA) {
@@ -1072,7 +1082,9 @@ export default class CapaPuntosInteres {
       marcador.strokeCircle(0, 0, 20);
     }
 
-    const etiqueta = this.crearEtiquetaPunto(punto, objetivo, estado, posicion, indice);
+    const etiqueta = seleccionado || this.esObjetivoActivo(objetivo)
+      ? this.crearEtiquetaPunto(punto, objetivo, estado, posicion, indice)
+      : null;
 
     const elementosContenedor = etiqueta ? [marcador, etiqueta] : [marcador];
 
@@ -1431,12 +1443,10 @@ export default class CapaPuntosInteres {
 
     const escala = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.16, 1);
 
-    for (const elemento of this.elementos) {
-      if (!elemento) {
-        continue;
-      }
-
-      elemento.setScale(escala);
+    // Los marcadores mantienen tamaño de pantalla; el radio conserva unidades del mapa.
+    for (const { contenedor, areaInteraccion } of this.representaciones) {
+      contenedor.setScale(escala);
+      areaInteraccion.setScale(escala);
     }
   }
 
@@ -1595,25 +1605,10 @@ export default class CapaPuntosInteres {
     );
   }
 
-  obtenerClavesEtiquetas(contextosVisibles, nivelDetalle) {
-    const claves = new Set();
-
-    contextosVisibles.forEach((contexto) => {
-      if (contexto.esObjetivoActivo || contexto.esSeleccionado) {
-        claves.add(this.clavePunto(contexto.representacion.punto));
-      }
-    });
-
-    if (nivelDetalle !== NIVELES_DETALLE_REFERENCIAS.LOCAL) {
-      return claves;
-    }
-
-    contextosVisibles
-      .filter((contexto) => contexto.enAreaVisible)
-      .slice(0, MAXIMO_ETIQUETAS_LOCALES)
-      .forEach((contexto) => claves.add(this.clavePunto(contexto.representacion.punto)));
-
-    return claves;
+  obtenerClavesEtiquetas(contextosVisibles) {
+    return new Set(contextosVisibles
+      .filter((contexto) => contexto.esObjetivoActivo || contexto.esSeleccionado)
+      .map((contexto) => this.clavePunto(contexto.representacion.punto)));
   }
 
   limitarReferencias(contextos) {
@@ -1659,7 +1654,7 @@ export default class CapaPuntosInteres {
   }
 
   mostrarInformacion(punto) {
-    this.ocultarInformacion();
+    this.ocultarInformacion({ conservarSeleccion: true });
 
     this.panelInformacion = document.createElement('section');
 
@@ -1697,7 +1692,7 @@ export default class CapaPuntosInteres {
 
     estado.className = 'metronet-punto-interes-estado';
 
-    estado.textContent = this.obtenerEtiquetaEstado(punto.estado);
+    estado.textContent = punto.objetivo ? `Objetivo del escenario · ${this.obtenerEtiquetaEstado(punto.estado)}` : 'Referencia del mapa';
 
     const tipo = document.createElement('p');
 
@@ -1711,15 +1706,28 @@ export default class CapaPuntosInteres {
 
     descripcion.textContent = punto.descripcion || 'Sin descripción disponible.';
 
-    const barrio = document.createElement('p');
-
-    barrio.className = 'metronet-punto-interes-panel-barrio';
-
-    barrio.textContent = `Barrio: ${punto.barrio}`;
-
     const estacionMasCercana = punto.estacionMasCercana ?? this.obtenerEstacionMasCercana(punto);
-
-    const elementos = [cabecera, estado, tipo, descripcion, barrio];
+    const elementos = [cabecera, estado];
+    if (typeof punto.tipo === 'string' && punto.tipo.trim()) elementos.push(tipo);
+    if (typeof punto.descripcion === 'string' && punto.descripcion.trim()) elementos.push(descripcion);
+    const agregarDato = (texto) => {
+      const dato = document.createElement('p');
+      dato.className = 'metronet-punto-interes-panel-barrio';
+      dato.textContent = texto;
+      elementos.push(dato);
+    };
+    if (punto.barrioGeografico) agregarDato(`Barrio según el mapa: ${punto.barrioGeografico}`);
+    if (punto.barrio && normalizarBarrio(punto.barrio) !== normalizarBarrio(punto.barrioGeografico)) {
+      agregarDato(`Barrio del catálogo: ${punto.barrio}`);
+    }
+    if (punto.zonaGeografica) agregarDato(`Zona: ${punto.zonaGeografica.replace(/^ZONA /, '')}`);
+    if (Number.isFinite(punto.latitud) && Number.isFinite(punto.longitud)) {
+      agregarDato(`Coordenadas: ${punto.latitud.toFixed(5)}, ${punto.longitud.toFixed(5)}`);
+    }
+    const objetivo = this.obtenerObjetivoPunto(punto);
+    if (Number.isFinite(objetivo?.radioCobertura) && objetivo.radioCobertura > 0) {
+      agregarDato(`Cobertura requerida: hasta ${objetivo.radioCobertura} unidades del mapa desde este punto.`);
+    }
 
     if (estacionMasCercana?.nombre) {
       const estacion = document.createElement('p');
@@ -1786,6 +1794,7 @@ export default class CapaPuntosInteres {
     this.cancelarCierreInformacionAlClicFuera();
 
     this.manejadorClicFueraInformacion = (evento) => {
+      if (evento.target.closest?.('.metronet-control-zoom')) return;
       if (this.panelInformacion && !this.panelInformacion.contains(evento.target)) {
         this.ocultarInformacion();
       }
@@ -1814,13 +1823,17 @@ export default class CapaPuntosInteres {
     }
   }
 
-  ocultarInformacion() {
+  ocultarInformacion({ conservarSeleccion = false } = {}) {
     this.cancelarCierreInformacionAlClicFuera();
 
     if (this.panelInformacion) {
       this.panelInformacion.remove();
 
       this.panelInformacion = null;
+    }
+    if (!conservarSeleccion && this.puntoSeleccionado !== null) {
+      this.puntoSeleccionado = null;
+      this.dibujar();
     }
   }
 
@@ -1845,7 +1858,7 @@ export default class CapaPuntosInteres {
       this.escena.events.off(Phaser.Scenes.Events.UPDATE, this.actualizar, this);
     }
 
-    this.ocultarInformacion();
+    this.ocultarInformacion({ conservarSeleccion: true });
 
     this.eliminarElementos();
 

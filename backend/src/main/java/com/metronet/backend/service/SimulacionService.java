@@ -40,6 +40,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class SimulacionService {
     private final JdbcTemplate jdbcTemplate;
+    private final RestriccionesGeograficasService restriccionesGeograficas;
     private final DisenoAdministracionService disenoAdministracionService;
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
     private final JuegoEducativoService juegoEducativoService;
@@ -48,9 +49,11 @@ public class SimulacionService {
         JdbcTemplate jdbcTemplate,
         DisenoAdministracionService disenoAdministracionService,
         ObjetivosPuntosInteresService objetivosPuntosInteresService,
-        JuegoEducativoService juegoEducativoService
+        JuegoEducativoService juegoEducativoService,
+        RestriccionesGeograficasService restriccionesGeograficas
     ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.restriccionesGeograficas = restriccionesGeograficas;
         this.disenoAdministracionService = disenoAdministracionService;
         this.objetivosPuntosInteresService = objetivosPuntosInteresService;
         this.juegoEducativoService = juegoEducativoService;
@@ -71,7 +74,7 @@ public class SimulacionService {
     @Transactional
     public SimulacionResumenResponse crearSimulacion(Integer idUsuario, Rol rol, CrearSimulacionRequest solicitud) {
         if (rol == Rol.JUGADOR && !juegoEducativoService.tieneModoLibreDesbloqueado(idUsuario)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Completá los cuatro niveles para desbloquear el Modo Libre");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Completá todos los niveles de una campaña para desbloquear el Modo Libre");
         }
         String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para la simulación");
         Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
@@ -96,6 +99,7 @@ public class SimulacionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validá el diseño antes de crear un escenario de aprendizaje");
         }
 
+        restriccionesGeograficas.validarDiseno(idDisenoBase);
         String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para el escenario");
         String modo = modoValido(solicitud == null ? null : solicitud.modo());
         String dificultad = dificultadValida(solicitud == null ? null : solicitud.dificultad());
@@ -166,7 +170,7 @@ public class SimulacionService {
 
         return new SimulacionDetalleResponse(
             simulacion, estaciones, lineas, tramos, unidadesMetro, resultados,
-            preparacion.preparado(), preparacion.observaciones()
+            preparacion.preparado(), preparacion.observaciones(), restriccionesGeograficas.obtenerConfiguracion(idDiseno)
         );
     }
 
@@ -178,13 +182,14 @@ public class SimulacionService {
     ) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para la estación");
-        BigDecimal posicionX = solicitud == null ? null : solicitud.posicionX();
-        BigDecimal posicionY = solicitud == null ? null : solicitud.posicionY();
+        BigDecimal posicionX = RestriccionesGeograficasService.redondear(solicitud == null ? null : solicitud.posicionX());
+        BigDecimal posicionY = RestriccionesGeograficasService.redondear(solicitud == null ? null : solicitud.posicionY());
 
         if (posicionX == null || posicionY == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí una posición válida para la estación");
         }
 
+        restriccionesGeograficas.validarEstacion(idDiseno, null, posicionX, posicionY);
         if (existeEstacion(idDiseno, nombre)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una estación con ese nombre");
         }
@@ -223,6 +228,7 @@ public class SimulacionService {
             }
         }
 
+        restriccionesGeograficas.validarRecorrido(idDiseno, estaciones);
         jdbcTemplate.update("INSERT INTO linea (id_diseno, nombre, modificable) VALUES (?, ?, TRUE)", idDiseno, nombre);
         for (String estacion : estaciones) {
             jdbcTemplate.update("INSERT INTO pasa (id_diseno, nombre_linea, nombre_estacion) VALUES (?, ?, ?)", idDiseno, nombre, estacion);
@@ -238,8 +244,10 @@ public class SimulacionService {
         return new LineaSimulacionResponse(nombre);
     }
 
+    @Transactional
     public SimulacionResumenResponse guardarDiseno(Integer idUsuario, Integer idDiseno) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
+        restriccionesGeograficas.validarDiseno(idDiseno);
         jdbcTemplate.update("""
             UPDATE intento SET estado = 'GUARDADO'
             WHERE id_usuario = ? AND id_diseno = ?
@@ -320,8 +328,8 @@ public class SimulacionService {
     @Transactional
     public ResultadoSimulacionResponse ejecutarSimulacion(Integer idUsuario, Integer idDiseno, EjecutarSimulacionRequest solicitud) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
-        if (solicitud == null || solicitud.velocidad() == null || solicitud.velocidad().signum() <= 0 || solicitud.duracion() == null || solicitud.duracion() < 10) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indicá una velocidad positiva y una duración de al menos 10 segundos");
+        if (solicitud == null || solicitud.velocidad() == null || !java.util.Set.of(new BigDecimal("0.5"), BigDecimal.ONE, new BigDecimal("2"), new BigDecimal("4")).contains(solicitud.velocidad().stripTrailingZeros()) || solicitud.duracion() == null || solicitud.duracion() < 10) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de reproducción de 0.5×, 1×, 2× o 4× y una duración de al menos 10 segundos");
         }
         List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
         int unidades = unidadesMetro.size();
@@ -338,12 +346,20 @@ public class SimulacionService {
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + solicitud.duracion()
             + " segundos. La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
         Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
+        boolean progresivo = juegoEducativoService.esDisenoProgresivo(idUsuario, idDiseno);
+        if (progresivo) {
+            comentarios += " Circulación estimada (sin paradas): " + juegoEducativoService.medirCirculacion(idDiseno).stream()
+                .map(u -> String.format(java.util.Locale.ROOT, "%s: %.1f km/h, %.1f min", u.linea(), u.velocidadKmh(), u.tiempoMinutos()))
+                .collect(java.util.stream.Collectors.joining("; "));
+            comentarios += juegoEducativoService.marcaRedSimulada(idDiseno);
+            puntaje = 0; // Los puntos oficiales se otorgan exclusivamente al evaluar la consigna completa.
+        }
         Integer idSimulacion = jdbcTemplate.queryForObject("""
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
             """, Integer.class, idIntento, solicitud.velocidad(), solicitud.duracion(), comentarios, puntaje);
         String estadoIntento = "COMPLETADO".equals(resumen.estado()) ? "COMPLETADO" : "COMPLETADA";
-        jdbcTemplate.update("UPDATE intento SET estado = ?, puntaje = ? WHERE id_usuario = ? AND id_diseno = ?", estadoIntento, puntaje, idUsuario, idDiseno);
+        jdbcTemplate.update("UPDATE intento SET estado = ?, puntaje = CASE WHEN ? THEN puntaje ELSE ? END WHERE id_usuario = ? AND id_diseno = ?", estadoIntento, progresivo, puntaje, idUsuario, idDiseno);
         return obtenerResultado(idSimulacion);
     }
 
@@ -363,8 +379,11 @@ public class SimulacionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una posición válida para la estación");
         }
 
+        solicitud = new ActualizarEstacionRequest(solicitud.nombre(), RestriccionesGeograficasService.redondear(solicitud.posicionX()),
+            RestriccionesGeograficasService.redondear(solicitud.posicionY()), solicitud.transbordo());
         String nuevoNombre = nombreValido(solicitud.nombre(), "Ingresá un nombre de estación válido");
         verificarEstacion(idDiseno, nombreActual);
+        restriccionesGeograficas.validarEstacion(idDiseno, nombreActual, solicitud.posicionX(), solicitud.posicionY());
 
         if (nombreActual.equals(nuevoNombre)) {
             jdbcTemplate.update("""
@@ -405,6 +424,7 @@ public class SimulacionService {
         verificarLinea(idDiseno, nombreActual);
         List<String> estaciones = estacionesValidas(solicitud == null ? null : solicitud.estaciones());
         for (String estacion : estaciones) verificarEstacion(idDiseno, estacion);
+        restriccionesGeograficas.validarRecorrido(idDiseno, estaciones);
 
         if (existeLinea(idDiseno, nuevoNombre)) {
             if (!nombreActual.equals(nuevoNombre)) {
@@ -515,12 +535,7 @@ public class SimulacionService {
             """, (resultado, fila) -> resultado.getString("nombre"), idDiseno);
         if (!estacionesAisladas.isEmpty()) observaciones.add("Hay estaciones sin línea asociada: " + String.join(", ", estacionesAisladas) + ".");
 
-        List<String> estacionesFueraDelMapa = jdbcTemplate.query("""
-            SELECT nombre FROM estacion
-            WHERE id_diseno = ? AND (posicion_x < 0 OR posicion_x > 1000 OR posicion_y < 0 OR posicion_y > 620)
-            ORDER BY nombre
-            """, (resultado, fila) -> resultado.getString("nombre"), idDiseno);
-        if (!estacionesFueraDelMapa.isEmpty()) observaciones.add("Hay estaciones fuera de los límites del mapa: " + String.join(", ", estacionesFueraDelMapa) + ".");
+        observaciones.addAll(restriccionesGeograficas.observarDiseno(idDiseno));
 
         List<String> conexionesDuplicadas = jdbcTemplate.query("""
             SELECT nombre_linea, LEAST(nombre_estacion_a, nombre_estacion_b) AS estacion_a,
@@ -677,6 +692,7 @@ public class SimulacionService {
     ) {
         List<String> observaciones = new ArrayList<>();
         if (!redValidada) observaciones.add("Validá la red antes de iniciar una simulación.");
+        if (redValidada) observaciones.addAll(restriccionesGeograficas.observarDiseno(idDiseno));
         if (unidadesMetro.isEmpty()) {
             observaciones.add("Incorporá al menos una unidad de metro antes de iniciar una simulación.");
         } else {
@@ -748,7 +764,7 @@ public class SimulacionService {
             resultado.getInt("duracion"),
             resultado.getString("estado"),
             resultado.getInt("puntaje"),
-            resultado.getString("comentarios"),
+            PuntuacionService.comentarioVisible(resultado.getString("comentarios")),
             resultado.getTimestamp("fecha_ejecucion").toLocalDateTime()
         );
     }

@@ -1,6 +1,9 @@
 package com.metronet.backend.controller;
 
 import com.metronet.backend.dto.EscenarioJuegoResponse;
+import com.metronet.backend.dto.DesempenoNivelResponse;
+import com.metronet.backend.dto.RankingResponse;
+import com.metronet.backend.service.PuntuacionService;
 import com.metronet.backend.dto.ConsignaDisenoResponse;
 import com.metronet.backend.dto.EvaluacionEscenarioResponse;
 import com.metronet.backend.dto.InicioEscenarioResponse;
@@ -25,10 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class JuegoEducativoController {
     private final AuthService authService;
     private final JuegoEducativoService juegoEducativoService;
+    private final PuntuacionService puntuacionService;
 
     public JuegoEducativoController(AuthService authService, JuegoEducativoService juegoEducativoService) {
+        this(authService, juegoEducativoService, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public JuegoEducativoController(AuthService authService, JuegoEducativoService juegoEducativoService, PuntuacionService puntuacionService) {
         this.authService = authService;
         this.juegoEducativoService = juegoEducativoService;
+        this.puntuacionService = puntuacionService;
     }
 
     @GetMapping("/escenarios")
@@ -80,6 +90,16 @@ public class JuegoEducativoController {
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
         return juegoEducativoService.obtenerConsigna(obtenerUsuario(autorizacion), idDiseno);
+    }
+
+    @GetMapping("/disenos/{idDiseno}/desempeno")
+    public DesempenoNivelResponse desempeno(@PathVariable Integer idDiseno, @RequestHeader(value = "Authorization", required = false) String autorizacion) {
+        return juegoEducativoService.obtenerDesempeno(obtenerUsuario(autorizacion).getIdUsuario(), idDiseno);
+    }
+
+    @GetMapping("/ranking")
+    public RankingResponse ranking(@RequestHeader(value = "Authorization", required = false) String autorizacion) {
+        return puntuacionService.ranking(obtenerUsuario(autorizacion).getIdUsuario());
     }
 
     private Usuario obtenerUsuario(String autorizacion) { return authService.obtenerUsuarioConSesion(autorizacion); }

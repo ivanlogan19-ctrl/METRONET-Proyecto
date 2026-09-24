@@ -43,13 +43,43 @@ class JuegoEducativoControllerTest {
     @Mock
     private JuegoEducativoService juegoEducativoService;
 
+    @Mock
+    private com.metronet.backend.service.PuntuacionService puntuacionService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void prepararMockMvc() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new JuegoEducativoController(authService, juegoEducativoService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new JuegoEducativoController(authService, juegoEducativoService, puntuacionService))
             .setControllerAdvice(new ManejadorExcepcionesApi())
             .build();
+    }
+
+    @Test
+    void rankingAutenticadoNoExponeDatosPersonales() throws Exception {
+        when(authService.obtenerUsuarioConSesion(AUTORIZACION)).thenReturn(usuario());
+        when(puntuacionService.ranking(ID_USUARIO)).thenReturn(new com.metronet.backend.dto.RankingResponse(
+            List.of(new com.metronet.backend.dto.RankingResponse.Entrada(1, "Jugador 7", 90, 1, true)), 1, 90, 1000));
+        mockMvc.perform(get("/api/juego/ranking").header("Authorization", AUTORIZACION)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.jugadores[0].jugador").value("Jugador 7"))
+            .andExpect(jsonPath("$.jugadores[0].email").doesNotExist()).andExpect(jsonPath("$.tuPosicion").value(1));
+    }
+
+    @Test
+    void rankingSinSesionSeRechazaAntesDeConsultarPuntos() throws Exception {
+        when(authService.obtenerUsuarioConSesion(null)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        mockMvc.perform(get("/api/juego/ranking")).andExpect(status().isUnauthorized());
+        verifyNoInteractions(puntuacionService);
+    }
+
+    @Test
+    void evaluarNoAceptaPuntosNiPosicionEnviadosPorElNavegador() throws Exception {
+        when(authService.obtenerUsuarioConSesion(AUTORIZACION)).thenReturn(usuario());
+        when(juegoEducativoService.evaluarEscenario(ID_USUARIO, 55)).thenReturn(new com.metronet.backend.dto.EvaluacionEscenarioResponse(true,100,88,"Evaluado en backend",null,false));
+        mockMvc.perform(post("/api/juego/disenos/55/evaluar").header("Authorization", AUTORIZACION)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"puntaje\":999999,\"idUsuario\":9,\"posicion\":1}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.puntaje").value(88));
+        verify(juegoEducativoService).evaluarEscenario(ID_USUARIO, 55);
     }
 
     @Test

@@ -59,6 +59,32 @@
 	</dependencies>
 
 	<build>
+        <resources>
+            <resource><directory>src/main/resources</directory></resource>
+            <!-- El mapa y la evaluación usan el mismo catálogo estático, sin copias manuales. -->
+            <resource>
+                <directory>${project.basedir}/../frontend/src/mapa/datos</directory>
+                <targetPath>geografia</targetPath>
+                <includes>
+                    <include>puntos-interes.json</include>
+                    <include>barrios_wgs84.geojson</include>
+                    <include>zonas.json</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/../frontend/src/educacion</directory>
+                <targetPath>educacion</targetPath>
+                <includes><include>niveles.json</include></includes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource><directory>src/test/resources</directory></testResource>
+            <testResource>
+                <directory>${project.basedir}/../frontend/tests/fixtures</directory>
+                <targetPath>fixtures</targetPath>
+                <includes><include>geometria-territorial.json</include></includes>
+            </testResource>
+        </testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

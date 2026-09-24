@@ -6,6 +6,8 @@ import CapaZonas from './capas/CapaZonas.js';
 import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
 import CapaIconosBarrios from './capas/CapaIconosBarrios.js';
 import CapaRedMetro from './capas/CapaRedMetro.js';
+import CapaTerritorial from './capas/CapaTerritorial.js';
+import TerritorioMapa from './utilidades/TerritorioMapa.js';
 
 import SelectorZonas from './controles/SelectorZonas.js';
 import SelectorBarrios from './controles/SelectorBarrios.js';
@@ -87,6 +89,11 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearCapaPuntosInteres();
 
+    this.territorioMapa = new TerritorioMapa(this.capaBarrios);
+    this.capaTerritorial = new CapaTerritorial(this, {
+      territorio: this.territorioMapa, capaBarrios: this.capaBarrios,
+      puntos: this.capaPuntosInteres.puntos, contenedor: this.contenedorSelectoresMapa,
+    });
     this.crearCapaIconosBarrios();
 
     this.crearCapaRedMetro();
@@ -570,6 +577,7 @@ export default class MapaScene extends Phaser.Scene {
       this.capaIconosBarrios.dibujar();
     }
 
+    this.capaTerritorial?.dibujar();
     this.capaRedMetro?.actualizarTamano();
 
     if (actualizarControlZoom && this.controlZoom) {
@@ -602,6 +610,9 @@ export default class MapaScene extends Phaser.Scene {
     this.editorRedMetro?.eliminar();
     this.editorRedMetro = null;
 
+    this.capaTerritorial?.eliminar();
+    this.capaTerritorial = null;
+    this.territorioMapa = null;
     this.capaRedMetro?.eliminar();
     this.capaRedMetro = null;
 

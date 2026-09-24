@@ -3,6 +3,7 @@ package com.metronet.backend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metronet.backend.dto.CondicionConsignaResponse;
+import com.metronet.backend.dto.DesempenoNivelResponse;
 import com.metronet.backend.dto.ConsignaDisenoResponse;
 import com.metronet.backend.dto.EscenarioJuegoResponse;
 import com.metronet.backend.dto.EvaluacionEscenarioResponse;
@@ -26,7 +27,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class JuegoEducativoService {
-    private static final int CANTIDAD_NIVELES = 4;
     private static final String ESTADO_BLOQUEADO = "BLOQUEADO";
     private static final String ESTADO_COMPLETADO = "COMPLETADO";
     private static final String ESTADO_EN_DESARROLLO = "EN_DESARROLLO";
@@ -34,15 +34,25 @@ public class JuegoEducativoService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
+    private final CondicionesGeograficasService condicionesGeograficasService;
+    private final PuntuacionService puntuacion;
 
+    public JuegoEducativoService(JdbcTemplate jdbc, ObjectMapper mapper, ObjetivosPuntosInteresService objetivos, CondicionesGeograficasService condiciones) {
+        this(jdbc, mapper, objetivos, condiciones, new PuntuacionService(jdbc, mapper, new GeografiaService(mapper)));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
     public JuegoEducativoService(
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
-        ObjetivosPuntosInteresService objetivosPuntosInteresService
+        ObjetivosPuntosInteresService objetivosPuntosInteresService,
+        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.objetivosPuntosInteresService = objetivosPuntosInteresService;
+        this.condicionesGeograficasService = condicionesGeograficasService;
+        this.puntuacion = puntuacion;
     }
 
     public List<EscenarioJuegoResponse> obtenerProgreso(Integer idUsuario) {
@@ -64,11 +74,11 @@ public class JuegoEducativoService {
             respuesta.add(new EscenarioJuegoResponse(
                 escenario.idEscenario(), escenario.numero(), escenario.nombre(), escenario.objetivo(), escenario.dificultad(),
                 escenario.instrucciones(), estado, progreso, desbloqueado, leerHerramientas(escenario.herramientas()),
-                completadoEnCampanaActual, estadisticas.cantidadIntentos(), estadisticas.mejorPuntaje(), estadisticas.ultimoPuntaje()
+                completadoEnCampanaActual, estadisticas.cantidadIntentos(), estadisticas.mejorPuntaje(), estadisticas.ultimoPuntaje(), escenario.numero() == null ? null : puntuacion.maximo(escenario.reglasExito())
             ));
         }
         int cantidadNiveles = (int) escenarios.stream().filter(escenario -> escenario.numero() != null).count();
-        int nivelesCompletados = contarNivelesCompletados(idUsuario, progresoUsuario.numeroCampanaActual(), cantidadNiveles);
+        int nivelesCompletados = contarNivelesCompletados(idUsuario, progresoUsuario.numeroCampanaActual(), escenarios);
         boolean campanaCompletada = cantidadNiveles > 0 && nivelesCompletados == cantidadNiveles;
         return new ProgresoJuegoResponse(
             respuesta,
@@ -77,12 +87,12 @@ public class JuegoEducativoService {
             nivelesCompletados,
             campanaCompletada,
             progresoUsuario.campanaCompletadaHistoricamente(),
-            progresoUsuario.campanaCompletadaHistoricamente()
+            esAdministrador(idUsuario) || progresoUsuario.campanaCompletadaHistoricamente()
         );
     }
 
     public boolean tieneModoLibreDesbloqueado(Integer idUsuario) {
-        return obtenerProgresoUsuario(idUsuario).campanaCompletadaHistoricamente();
+        return esAdministrador(idUsuario) || obtenerProgresoUsuario(idUsuario).campanaCompletadaHistoricamente();
     }
 
     @Transactional
@@ -164,15 +174,25 @@ public class JuegoEducativoService {
         }
         EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
         int progreso = evaluacion.progreso();
-        boolean completado = evaluacion.completado();
-        Integer puntaje = completado ? 100 : null;
+        DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
+        boolean completado = evaluacion.completado() && (desempeno == null || (desempeno.velocidadCumplida() && desempeno.simulacionActual()));
+        if (!completado) progreso = Math.min(progreso, 99);
+        Integer puntaje = completado ? (desempeno == null ? 100 : desempeno.puntaje()) : null;
         String estado = estadoLuegoDeEvaluacion(completado, intento.estado());
         jdbcTemplate.update("""
-            UPDATE intento SET estado = ?, progreso = GREATEST(progreso, ?), puntaje = COALESCE(?, puntaje),
+            UPDATE intento SET estado = ?, progreso = GREATEST(progreso, ?), puntaje = CASE WHEN CAST(? AS INTEGER) IS NULL THEN puntaje ELSE GREATEST(COALESCE(puntaje, 0), ?) END,
             fecha_finalizacion = CASE WHEN ? THEN COALESCE(fecha_finalizacion, ?) ELSE fecha_finalizacion END
             WHERE id_intento = ?
-            """, estado, progreso, puntaje, completado, LocalDateTime.now(), intento.idIntento());
-        Integer siguiente = completado && intento.numero() < CANTIDAD_NIVELES ? obtenerIdNivel(intento.numero() + 1) : null;
+            """, estado, progreso, puntaje, puntaje, completado, LocalDateTime.now(), intento.idIntento());
+        if (completado && desempeno != null && booleano(leerJson(intento.reglasExito()), "requiereSimulacion")) {
+            // El historial conserva el resultado de esta ejecución; el intento conserva su mejor puntaje.
+            jdbcTemplate.update("""
+                UPDATE simulacion SET puntaje = ?
+                WHERE id_simulacion = (SELECT MAX(id_simulacion) FROM simulacion WHERE id_intento = ?)
+                  AND comentarios LIKE ?
+                """, puntaje, intento.idIntento(), "%" + puntuacion.marcaRed(idDiseno));
+        }
+        Integer siguiente = completado ? obtenerIdSiguienteNivel(intento.numero()) : null;
         boolean campanaCompletada = completado && nivelesCompletados(idUsuario, progresoUsuario.numeroCampanaActual());
         if (campanaCompletada) {
             jdbcTemplate.update("""
@@ -180,11 +200,34 @@ public class JuegoEducativoService {
                 WHERE id_usuario = ?
                 """, idUsuario);
         }
-        boolean modoLibre = campanaCompletada || progresoUsuario.campanaCompletadaHistoricamente();
+        boolean modoLibre = esAdministrador(idUsuario) || campanaCompletada || progresoUsuario.campanaCompletadaHistoricamente();
         String mensaje = completado
             ? (modoLibre ? "¡Nivel completado! Modo Libre desbloqueado." : "¡Consigna completada! El siguiente nivel ya está disponible.")
             : mensajePendiente(progreso, evaluacion.requiereCoberturaPuntosInteres(), evaluacion.coberturaPuntosInteres());
-        return new EvaluacionEscenarioResponse(completado, progreso, puntaje, mensaje, siguiente, modoLibre);
+        if (desempeno != null) mensaje = (completado ? "Nivel completado. " : "") + desempeno.explicacion();
+        return new EvaluacionEscenarioResponse(completado, completado ? 100 : Math.min(progreso, 99), puntaje, mensaje, siguiente, modoLibre, desempeno);
+    }
+
+    @Transactional(readOnly = true)
+    public DesempenoNivelResponse obtenerDesempeno(Integer idUsuario, Integer idDiseno) {
+        IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
+        if (intento == null || MODO_EDICION_LIBRE.equals(intento.modo())) return null;
+        return calcularDesempeno(intento, idDiseno, evaluarCondiciones(intento, idDiseno));
+    }
+
+    private DesempenoNivelResponse calcularDesempeno(IntentoEvaluable intento, int idDiseno, EvaluacionCondiciones evaluacion) {
+        boolean principal = evaluacion.condiciones().stream().filter(c -> !c.clave().equals("requiereSimulacion"))
+            .allMatch(CondicionConsignaResponse::completado);
+        return puntuacion.calcular(idDiseno, intento.idIntento(), intento.reglasExito(), principal,
+            booleano(leerJson(intento.reglasExito()), "requiereSimulacion"));
+    }
+
+    public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
+
+    public String marcaRedSimulada(Integer idDiseno) { return puntuacion.marcaRed(idDiseno); }
+
+    public boolean esDisenoProgresivo(Integer idUsuario, Integer idDiseno) {
+        return obtenerIntentoPorDiseno(idUsuario, idDiseno) != null;
     }
 
     @Transactional(readOnly = true)
@@ -194,17 +237,23 @@ public class JuegoEducativoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe una consigna disponible para este diseño");
         }
         EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
-        return new ConsignaDisenoResponse(
-            determinarEstadoGlobal(intento, evaluacion),
-            evaluacion.progreso(),
-            evaluacion.condiciones(),
-            evaluacion.referenciasObjetivo()
-        );
+        DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
+        if (desempeno == null) return new ConsignaDisenoResponse(determinarEstadoGlobal(intento, evaluacion),
+            evaluacion.progreso(), evaluacion.condiciones(), evaluacion.referenciasObjetivo());
+        List<CondicionConsignaResponse> condiciones = new ArrayList<>(evaluacion.condiciones());
+        if (desempeno.velocidadObjetivoKmh() != null) condiciones.add(new CondicionConsignaResponse("velocidadCirculacion",
+            "Después de resolver la red: circulación de " + desempeno.velocidadObjetivoKmh() + " km/h ± " + desempeno.toleranciaKmh(),
+            desempeno.velocidadCumplida() ? 1 : 0, 1, desempeno.velocidadCumplida()));
+        if (booleano(leerJson(intento.reglasExito()), "requiereSimulacion")) condiciones.add(new CondicionConsignaResponse("simulacionActual",
+            "Simular la red y velocidades actuales", desempeno.simulacionActual() ? 1 : 0, 1, desempeno.simulacionActual()));
+        int progreso = Math.round(100f * condiciones.stream().filter(CondicionConsignaResponse::completado).count() / condiciones.size());
+        String estado = progreso == 100 ? (ESTADO_COMPLETADO.equals(intento.estado()) ? ESTADO_COMPLETADO : "LISTO") : progreso == 0 ? "INICIADO" : "PARCIAL";
+        return new ConsignaDisenoResponse(estado, progreso, condiciones, evaluacion.referenciasObjetivo());
     }
 
     private List<EscenarioBase> listarEscenariosProgresivos() {
         return jdbcTemplate.query("""
-            SELECT id_escenario, numero, nombre, objetivo, dificultad, instrucciones, modo, reglas_exito::text, herramientas_habilitadas::text
+            SELECT id_escenario, numero, nombre, objetivo, dificultad, instrucciones, modo, reglas_exito::text AS reglas_exito, herramientas_habilitadas::text AS herramientas_habilitadas
             FROM escenario WHERE progresivo = TRUE ORDER BY numero NULLS LAST, id_escenario
             """, (resultado, fila) -> new EscenarioBase(
                 resultado.getInt("id_escenario"), resultado.getObject("numero", Integer.class), resultado.getString("nombre"),
@@ -243,7 +292,7 @@ public class JuegoEducativoService {
 
     private IntentoEvaluable obtenerIntentoPorDiseno(Integer idUsuario, Integer idDiseno) {
         return jdbcTemplate.query("""
-            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo, e.reglas_exito::text
+            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo, e.reglas_exito::text AS reglas_exito
             FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
             WHERE i.id_usuario = ? AND i.id_diseno = ? AND e.progresivo = TRUE
             """, (resultado, fila) -> new IntentoEvaluable(
@@ -255,7 +304,7 @@ public class JuegoEducativoService {
     private IntentoEvaluable obtenerIntentoParaConsigna(Usuario solicitante, Integer idDiseno) {
         String filtroPropietario = solicitante.getRol() == Rol.ADMIN ? "" : " AND i.id_usuario = ?";
         String consulta = """
-            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo, e.reglas_exito::text
+            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo, e.reglas_exito::text AS reglas_exito
             FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
             WHERE i.id_diseno = ? AND e.progresivo = TRUE%s
             ORDER BY i.id_intento DESC LIMIT 1
@@ -272,11 +321,17 @@ public class JuegoEducativoService {
         );
     }
 
+    private boolean esAdministrador(Integer idUsuario) {
+        return Integer.valueOf(1).equals(jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM usuario WHERE id_usuario = ? AND rol = 'ADMIN'", Integer.class, idUsuario));
+    }
+
     private boolean esDesbloqueado(Integer idUsuario, EscenarioBase escenario, ProgresoUsuario progresoUsuario) {
+        if (esAdministrador(idUsuario)) return true;
         if (MODO_EDICION_LIBRE.equals(escenario.modo())) return progresoUsuario.campanaCompletadaHistoricamente();
-        return escenario.numero() != null && (
-            escenario.numero() == 1 || nivelCompletado(idUsuario, escenario.numero() - 1, progresoUsuario.numeroCampanaActual())
-        );
+        return escenario.numero() != null && listarEscenariosProgresivos().stream()
+            .filter(anterior -> anterior.numero() != null && anterior.numero() < escenario.numero())
+            .allMatch(anterior -> nivelCompletado(idUsuario, anterior.numero(), progresoUsuario.numeroCampanaActual()));
     }
 
     private boolean nivelCompletado(Integer idUsuario, int numero, int numeroCampana) {
@@ -289,23 +344,18 @@ public class JuegoEducativoService {
     }
 
     private boolean nivelesCompletados(Integer idUsuario, int numeroCampana) {
-        for (int numero = 1; numero <= CANTIDAD_NIVELES; numero++) {
-            if (!nivelCompletado(idUsuario, numero, numeroCampana)) return false;
-        }
-        return true;
+        List<EscenarioBase> niveles = listarEscenariosProgresivos().stream().filter(e -> e.numero() != null).toList();
+        return !niveles.isEmpty() && niveles.stream().allMatch(e -> nivelCompletado(idUsuario, e.numero(), numeroCampana));
     }
 
-    private int contarNivelesCompletados(Integer idUsuario, int numeroCampana, int cantidadNiveles) {
-        int completados = 0;
-        for (int numero = 1; numero <= cantidadNiveles; numero++) {
-            if (nivelCompletado(idUsuario, numero, numeroCampana)) completados++;
-        }
-        return completados;
+    private int contarNivelesCompletados(Integer idUsuario, int numeroCampana, List<EscenarioBase> escenarios) {
+        return (int) escenarios.stream().filter(e -> e.numero() != null)
+            .filter(e -> nivelCompletado(idUsuario, e.numero(), numeroCampana)).count();
     }
 
     private EstadisticasIntento obtenerEstadisticas(Integer idUsuario, Integer idEscenario) {
         return jdbcTemplate.query("""
-            SELECT COUNT(*) AS cantidad_intentos, MAX(i.puntaje) AS mejor_puntaje,
+            SELECT COUNT(*) AS cantidad_intentos, MAX(CASE WHEN i.estado='COMPLETADO' THEN i.puntaje ELSE NULL END) AS mejor_puntaje,
                    (
                        SELECT reciente.puntaje
                        FROM intento reciente
@@ -323,8 +373,10 @@ public class JuegoEducativoService {
             );
     }
 
-    private Integer obtenerIdNivel(int numero) {
-        return jdbcTemplate.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo = TRUE AND numero = ?", Integer.class, numero);
+    private Integer obtenerIdSiguienteNivel(int numero) {
+        return listarEscenariosProgresivos().stream()
+            .filter(e -> e.numero() != null && e.numero() > numero)
+            .map(EscenarioBase::idEscenario).findFirst().orElse(null);
     }
 
     private int contar(String consulta, Integer idDiseno) {
@@ -371,6 +423,14 @@ public class JuegoEducativoService {
             entero(reglas, "minimoMetros"),
             reglas.containsKey("minimoMetros")
         );
+        if (reglas.containsKey("maximoEstaciones")) {
+            int maximo = entero(reglas, "maximoEstaciones");
+            boolean valido = reglas.get("maximoEstaciones") instanceof Integer && maximo > 0
+                && maximo >= entero(reglas, "minimoEstaciones");
+            condiciones.add(new CondicionConsignaResponse("maximoEstaciones",
+                valido ? "Usar como máximo " + maximo + " estaciones" : "Límite de estaciones inválido en la consigna",
+                estaciones, maximo, valido && estaciones <= maximo));
+        }
         boolean redEsValida = redValida(idDiseno);
         agregarCondicion(
             condiciones,
@@ -390,7 +450,7 @@ public class JuegoEducativoService {
             booleano(reglas, "requiereSimulacion")
         );
         boolean requiereCoberturaPuntosInteres = booleano(reglas, "requiereCoberturaPuntosInteres");
-        List<PuntoInteresObjetivoResponse> puntosInteresObjetivo = requiereCoberturaPuntosInteres
+        List<PuntoInteresObjetivoResponse> puntosInteresObjetivo = requiereCoberturaPuntosInteres || booleano(reglas, "requiereObjetivosMismaLinea")
             ? objetivosPuntosInteresService.obtenerObjetivos(intento.reglasExito())
             : List.of();
         List<ReferenciaObjetivoConsignaResponse> referenciasObjetivo = obtenerReferenciasObjetivo(idDiseno, puntosInteresObjetivo);
@@ -407,6 +467,10 @@ public class JuegoEducativoService {
                 coberturaPuntosInteres
             ));
         }
+        for (String error : objetivosPuntosInteresService.obtenerErrores(intento.reglasExito())) {
+            condiciones.add(new CondicionConsignaResponse("configuracionPuntosInteres", error, 0, 1, false));
+        }
+        condiciones.addAll(condicionesGeograficasService.evaluar(idDiseno, reglas, puntosInteresObjetivo));
         int aprobadas = (int) condiciones.stream().filter(CondicionConsignaResponse::completado).count();
         int progreso = condiciones.isEmpty() ? 100 : Math.round((aprobadas * 100f) / condiciones.size());
         boolean completado = condiciones.stream().allMatch(CondicionConsignaResponse::completado);
@@ -485,9 +549,7 @@ public class JuegoEducativoService {
     }
 
     private boolean cubrePunto(CoordenadaEstacion estacion, PuntoInteresObjetivoResponse punto) {
-        BigDecimal diferenciaX = estacion.posicionX().subtract(punto.posicionX());
-        BigDecimal diferenciaY = estacion.posicionY().subtract(punto.posicionY());
-        return Math.hypot(diferenciaX.doubleValue(), diferenciaY.doubleValue()) <= punto.radioCobertura().doubleValue();
+        return CondicionesGeograficasService.cubre(estacion.posicionX(), estacion.posicionY(), punto);
     }
 
     private String mensajePendiente(int progreso, boolean requiereCobertura, boolean coberturaCumplida) {
@@ -498,6 +560,7 @@ public class JuegoEducativoService {
     }
 
     private String estadoLuegoDeEvaluacion(boolean completado, String estadoActual) {
+        if ("COMPLETADO".equals(estadoActual)) return estadoActual;
         if (completado) return "COMPLETADO";
         if ("VALIDADO".equals(estadoActual) || "COMPLETADA".equals(estadoActual)) return estadoActual;
         return "EN_DESARROLLO";

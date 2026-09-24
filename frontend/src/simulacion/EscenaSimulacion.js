@@ -4,6 +4,8 @@ import CapaBarrios from '../mapa/capas/CapaBarrios.js';
 import CapaMapaBase from '../mapa/capas/CapaMapaBase.js';
 import CapaPuntosInteres from '../mapa/capas/CapaPuntosInteres.js';
 import CapaRedMetro from '../mapa/capas/CapaRedMetro.js';
+import CapaTerritorial from '../mapa/capas/CapaTerritorial.js';
+import TerritorioMapa from '../mapa/utilidades/TerritorioMapa.js';
 import { COLORES_INTERFAZ_MAPA } from '../mapa/configuracion/ColoresMapa.js';
 import ControlZoom from '../mapa/controles/ControlZoom.js';
 import MotorSimulacion from './MotorSimulacion.js';
@@ -52,6 +54,8 @@ class EscenaSimulacion extends Phaser.Scene {
       capaBarrios: this.capaBarrios,
     });
     this.capaPuntosInteres.establecerDatos(this.cache.json.get('puntosInteresSimulacion'));
+    this.territorioMapa = new TerritorioMapa(this.capaBarrios);
+    this.capaTerritorial = new CapaTerritorial(this, { territorio: this.territorioMapa, capaBarrios: this.capaBarrios, puntos: this.capaPuntosInteres.puntos });
     this.capaRedMetro = new CapaRedMetro(this, {
       capaBarrios: this.capaBarrios,
       alSeleccionar: (elemento) => this.seleccionarElementoRed(elemento),
@@ -73,7 +77,10 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   establecerDiseno(diseno) {
+    const cambiaDiseno = !this.disenoActual || this.disenoActual.simulacion?.idDiseno !== diseno.simulacion?.idDiseno;
     this.disenoActual = diseno;
+    this.territorioMapa?.configurar(diseno.territorio);
+    this.capaTerritorial?.dibujar();
     this.motorSimulacion = new MotorSimulacion(diseno);
     this.capaRedMetro.establecerDiseno(diseno);
     this.capaPuntosInteres?.establecerPuntosObjetivo(this.obtenerPuntosInteresObjetivo());
@@ -84,7 +91,8 @@ class EscenaSimulacion extends Phaser.Scene {
     this.detenerPulsoActividad();
     this.actualizarContextoVisual();
     this.sincronizarEstadoMotor(this.motorSimulacion.obtenerEstado(), true);
-    this.controlZoom?.ajustarRed();
+    // Recargar resultados o métricas del mismo diseño no es una solicitud de reencuadre.
+    if (cambiaDiseno) this.controlZoom?.ajustarRed();
   }
 
   iniciarAnimacion(velocidad, duracion) {
@@ -195,14 +203,17 @@ class EscenaSimulacion extends Phaser.Scene {
   estacionCubrePuntoObjetivo(objetivo) {
     const posicionX = Number(objetivo.posicionX);
     const posicionY = Number(objetivo.posicionY);
-    const radioCobertura = Number(objetivo.radioCobertura) || 60;
-    if (!Number.isFinite(posicionX) || !Number.isFinite(posicionY)) return false;
+    const radioCobertura = Number(objetivo.radioCobertura);
+    if (objetivo.posicionX == null || objetivo.posicionY == null ||
+      !Number.isFinite(posicionX) || !Number.isFinite(posicionY) ||
+      !Number.isFinite(radioCobertura) || radioCobertura <= 0) return false;
     return (this.disenoActual?.estaciones ?? []).some((estacion) => {
       return Math.hypot(Number(estacion.posicionX) - posicionX, Number(estacion.posicionY) - posicionY) <= radioCobertura;
     });
   }
 
   actualizarSeguimientoMetro(estado, diferencia) {
+    if (estado.estado !== 'EN_CURSO') return;
     const metro = this.obtenerMetroParaSeguimiento(estado);
     if (!this.seguimientoMetroActivo || !metro?.transitable) return;
     const ruta = this.capaRedMetro.obtenerRuta(metro.nombreLinea);
@@ -241,11 +252,14 @@ class EscenaSimulacion extends Phaser.Scene {
     this.alActualizarEstado(estado);
   }
 
-  actualizarTamano() {
+  actualizarTamano(tamano, _tamanoBase, _tamanoVisible, anchoAnterior, altoAnterior) {
+    // Scale.RESIZE también avisa cuando el canvas cambia de posición al desplazar la página.
+    if (tamano?.width === anchoAnterior && tamano?.height === altoAnterior) return;
     const vistaAnterior = this.controlZoom?.capturarVista();
     this.capaMapaBase?.actualizar();
     this.capaBarrios?.ajustarMapa(this.scale.width, this.scale.height);
     this.capaPuntosInteres?.dibujar();
+    this.capaTerritorial?.dibujar();
     this.capaRedMetro?.actualizarTamano();
     this.controlZoom?.restaurarVistaTrasRedimension(vistaAnterior, this.obtenerLimitesRed());
     this.dibujarMarcoVisor();
@@ -372,6 +386,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.etiquetaRed?.destroy();
     this.etiquetaSeleccion?.destroy();
     this.controlZoom?.eliminar();
+    this.capaTerritorial?.eliminar();
     this.capaRedMetro?.eliminar();
     this.capaPuntosInteres?.eliminar();
     this.capaBarrios?.eliminar();

@@ -121,6 +121,6 @@ class DisenoAdministracionServiceTest {
     }
 
     private DisenoAdministracionService crearServicio() {
-        return new DisenoAdministracionService(jdbcTemplate);
+        return new DisenoAdministracionService(jdbcTemplate, org.mockito.Mockito.mock(RestriccionesGeograficasService.class));
     }
 }

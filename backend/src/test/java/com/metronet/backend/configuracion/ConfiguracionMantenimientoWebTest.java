@@ -24,6 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = JuegoEducativoController.class)
 @Import({ConfiguracionMantenimientoWeb.class, ControlMantenimientoInterceptor.class})
 class ConfiguracionMantenimientoWebTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.metronet.backend.service.PuntuacionService puntuacionService;
     @Autowired
     private MockMvc clienteHttp;
 

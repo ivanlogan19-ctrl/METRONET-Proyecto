@@ -333,7 +333,7 @@ function renderizarDetalleDiseno(detalle) {
       <tr><td>${escaparHtml(tramo.nombreLinea)}</td><td>${escaparHtml(tramo.estacionA)} · ${escaparHtml(tramo.estacionB)}</td><td>${botonesAccion("tramo", diseno.idDiseno, { linea: tramo.nombreLinea, estacionA: tramo.estacionA, estacionB: tramo.estacionB })}</td></tr>`)}
     <button class="admin-guardar" type="button" data-crear-diseno="tramo" data-id-diseno="${diseno.idDiseno}">Agregar tramo</button>
     ${crearTablaElementos("Unidades de metro", unidadesMetro, (unidad) => `
-      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Capacidad: ${unidad.capacidad} · Velocidad: ${unidad.velocidadPromedio}</td><td>${botonesAccion("unidad", diseno.idDiseno, { idTren: unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
+      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Capacidad: ${unidad.capacidad} · Velocidad: ${unidad.velocidadPromedio} km/h</td><td>${botonesAccion("unidad", diseno.idDiseno, { idTren: unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
     <button class="admin-guardar" type="button" data-crear-diseno="unidad" data-id-diseno="${diseno.idDiseno}">Agregar unidad de metro</button>
   `;
 }
@@ -443,7 +443,7 @@ async function ejecutarAccionDiseno(boton, token) {
     if (accion === "editar-unidad") {
       const nombreLinea = window.prompt("Línea asignada:", boton.dataset.linea);
       const capacidad = window.prompt("Capacidad:", boton.dataset.capacidad);
-      const velocidadPromedio = window.prompt("Velocidad promedio:", boton.dataset.velocidad);
+      const velocidadPromedio = window.prompt("Velocidad promedio (km/h):", boton.dataset.velocidad);
       if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
       opciones.body = JSON.stringify({ nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) });
     } else if (!window.confirm("¿Eliminar esta unidad de metro?")) {
@@ -506,7 +506,7 @@ async function crearElementoDiseno(boton, token) {
   if (tipo === "unidad") {
     const nombreLinea = window.prompt("Nombre de la línea asignada:");
     const capacidad = window.prompt("Capacidad:", "300");
-    const velocidadPromedio = window.prompt("Velocidad promedio:", "40");
+    const velocidadPromedio = window.prompt("Velocidad promedio (km/h):", "40");
     if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
     cuerpo = { nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) };
     ruta = "unidades";
@@ -552,13 +552,16 @@ function renderizarConfiguracion(configuraciones) {
   lista.replaceChildren(...configuraciones.map((configuracion) => {
     const elemento = document.createElement("article");
     const esCapacidadUnidad = configuracion.clave === "capacidad_unidad";
+    const esRitmoReproduccion = configuracion.clave === "velocidad_simulacion";
     const tipoCampo = esCapacidadUnidad ? "number" : "text";
     const restricciones = esCapacidadUnidad ? 'min="1" step="1"' : "";
-    const unidad = esCapacidadUnidad ? '<span class="admin-unidad-configuracion">pasajeros</span>' : "";
+    const unidad = esCapacidadUnidad ? '<span class="admin-unidad-configuracion">pasajeros</span>' : esRitmoReproduccion ? '<span class="admin-unidad-configuracion">×</span>' : "";
+    const titulo = esRitmoReproduccion ? "Ritmo de reproducción (×)" : formatearClave(configuracion.clave);
+    const descripcion = esRitmoReproduccion ? "Ritmo inicial de la animación: 0.5×, 1×, 2× o 4×. No modifica los km/h de las unidades ni los puntos." : configuracion.descripcion;
     elemento.className = "admin-configuracion-item";
     elemento.innerHTML = `
-      <div><h3>${escaparHtml(formatearClave(configuracion.clave))}</h3><p>${escaparHtml(configuracion.descripcion)}</p></div>
-      <div class="admin-campo-configuracion"><input class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" type="${tipoCampo}" ${restricciones} value="${escaparHtml(configuracion.valor)}" aria-label="Valor de ${escaparHtml(configuracion.descripcion)}" />${unidad}</div>
+      <div><h3>${escaparHtml(titulo)}</h3><p>${escaparHtml(descripcion)}</p></div>
+      <div class="admin-campo-configuracion"><input class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" type="${tipoCampo}" ${restricciones} value="${escaparHtml(configuracion.valor)}" aria-label="Valor de ${escaparHtml(titulo)}" />${unidad}</div>
       <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
     `;
     return elemento;

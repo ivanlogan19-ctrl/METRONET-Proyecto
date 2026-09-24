@@ -25,9 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class DisenoAdministracionService {
     private final JdbcTemplate jdbcTemplate;
+    private final RestriccionesGeograficasService restriccionesGeograficas;
 
-    public DisenoAdministracionService(JdbcTemplate jdbcTemplate) {
+    public DisenoAdministracionService(JdbcTemplate jdbcTemplate, RestriccionesGeograficasService restriccionesGeograficas) {
         this.jdbcTemplate = jdbcTemplate;
+        this.restriccionesGeograficas = restriccionesGeograficas;
     }
 
     public List<DisenoResumenResponse> listarDisenos() {
@@ -170,12 +172,16 @@ public class DisenoAdministracionService {
         jdbcTemplate.update("INSERT INTO linea (id_diseno, nombre, modificable) VALUES (?, ?, TRUE)", idDiseno, nombre);
     }
 
+    @Transactional
     public void crearEstacion(Integer idDiseno, CrearEstacionAdministracionRequest solicitud) {
         verificarDisenoEditable(idDiseno);
         if (solicitud == null || solicitud.posicionX() == null || solicitud.posicionY() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una posición válida para la estación");
         }
 
+        solicitud = new CrearEstacionAdministracionRequest(solicitud.nombre(), RestriccionesGeograficasService.redondear(solicitud.posicionX()),
+            RestriccionesGeograficasService.redondear(solicitud.posicionY()), solicitud.transbordo());
+        restriccionesGeograficas.validarEstacion(idDiseno, null, solicitud.posicionX(), solicitud.posicionY());
         String nombre = nombreValido(solicitud.nombre(), "Ingresá un nombre de estación válido");
 
         if (existeEstacion(idDiseno, nombre)) {
@@ -328,8 +334,11 @@ public class DisenoAdministracionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una posición válida para la estación");
         }
 
+        solicitud = new ActualizarEstacionRequest(solicitud.nombre(), RestriccionesGeograficasService.redondear(solicitud.posicionX()),
+            RestriccionesGeograficasService.redondear(solicitud.posicionY()), solicitud.transbordo());
         String nuevoNombre = nombreValido(solicitud.nombre(), "Ingresá un nombre de estación válido");
         verificarEstacion(idDiseno, nombreActual);
+        restriccionesGeograficas.validarEstacion(idDiseno, nombreActual, solicitud.posicionX(), solicitud.posicionY());
 
         if (nombreActual.equals(nuevoNombre)) {
             jdbcTemplate.update("""
@@ -402,6 +411,7 @@ public class DisenoAdministracionService {
         verificarLinea(idDiseno, nombreLinea);
         verificarEstacion(idDiseno, estacionA);
         verificarEstacion(idDiseno, estacionB);
+        restriccionesGeograficas.validarRecorrido(idDiseno, List.of(estacionA, estacionB));
         return new DatosTramo(nombreLinea, estacionA, estacionB);
     }
 

@@ -6,6 +6,7 @@
     <title>Simulación · METRONET</title>
     <link rel="stylesheet" href="/src/simulacion/simulacion.css" />
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
+    <link rel="stylesheet" href="/src/estilos/retro.css" />
   </head>
   <body class="metronet-pagina-navegable">
     <div data-navegacion-global></div>
@@ -111,18 +112,19 @@
             </details>
           </section>
           <section class="simulacion-operacion simulacion-control-operacion" aria-label="Controles de simulación">
+            <article id="desempenoNivel" class="simulacion-panel-operacion simulacion-desempeno" aria-label="Desempeño y velocidad de circulación"></article>
             <article class="simulacion-panel-operacion">
               <h3>Controles de simulación</h3>
               <form id="formularioEjecucion" class="simulacion-formulario simulacion-formulario-integrado">
                 <input id="velocidadSimulacion" type="hidden" value="1" />
-                <span class="simulacion-etiqueta-control">Velocidad</span>
-                <div class="simulacion-selector-velocidad" role="group" aria-label="Velocidad de simulación">
+                <span class="simulacion-etiqueta-control">Ritmo de reproducción (×)</span>
+                <div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
                   <button type="button" data-velocidad="0.5" aria-pressed="false">x0.5</button>
                   <button type="button" data-velocidad="1" aria-pressed="true">x1</button>
                   <button type="button" data-velocidad="2" aria-pressed="false">x2</button>
                   <button type="button" data-velocidad="4" aria-pressed="false">x4</button>
                 </div>
-                <label for="duracionSimulacion">Duración en segundos</label>
+                <label for="duracionSimulacion">Ventana visual (s)</label>
                 <input id="duracionSimulacion" type="number" min="10" value="60" required />
                 <button class="simulacion-primario" type="submit">▶ Iniciar simulación</button>
               </form>

@@ -109,8 +109,8 @@ export default class CapaRedMetro {
       punto.y < transformacion.offsetY || punto.y > transformacion.offsetY + transformacion.altoMapa
     ) return null;
     return {
-      posicionX: Math.round(((punto.x - transformacion.offsetX) / transformacion.anchoMapa) * 1000),
-      posicionY: Math.round(((punto.y - transformacion.offsetY) / transformacion.altoMapa) * 620),
+      posicionX: Number((((punto.x - transformacion.offsetX) / transformacion.anchoMapa) * 1000).toFixed(2)),
+      posicionY: Number((((punto.y - transformacion.offsetY) / transformacion.altoMapa) * 620).toFixed(2)),
       punto,
     };
   }
@@ -384,11 +384,12 @@ export default class CapaRedMetro {
     }
 
     const convertido = this.convertirPuntero(puntero);
-    if (!convertido || !this.diseno) return;
+    if (!this.diseno) return;
     if (this.modo === 'crearEstacion' || this.modo === 'reubicarEstacion') {
       this.alUbicarEstacion(convertido, this.modo);
       return;
     }
+    if (!convertido) return;
     const unidad = this.obtenerUnidadCercana(convertido.punto);
     if (unidad) {
       this.alSeleccionar({ tipo: 'unidad', valor: unidad });

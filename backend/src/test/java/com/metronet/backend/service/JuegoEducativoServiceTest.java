@@ -40,6 +40,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class JuegoEducativoServiceTest {
+    @org.junit.jupiter.api.BeforeEach
+    void permisoPredeterminado() {
+        org.mockito.Mockito.lenient().when(jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM usuario WHERE id_usuario = ? AND rol = 'ADMIN'", Integer.class, ID_USUARIO)).thenReturn(0);
+    }
     private static final Integer ID_USUARIO = 7;
     private static final Integer ID_ESCENARIO = 1;
     private static final int NUMERO_CAMPANA = 3;
@@ -248,7 +253,8 @@ class JuegoEducativoServiceTest {
     }
 
     private JuegoEducativoService crearServicio() {
-        return new JuegoEducativoService(jdbcTemplate, new ObjectMapper(), objetivosPuntosInteresService);
+        return new JuegoEducativoService(jdbcTemplate, new ObjectMapper(), objetivosPuntosInteresService,
+            new CondicionesGeograficasService(jdbcTemplate, new ObjectMapper(), new GeografiaService(new ObjectMapper()), org.mockito.Mockito.mock(RestriccionesGeograficasService.class)));
     }
 
     private Usuario usuario(Rol rol) {

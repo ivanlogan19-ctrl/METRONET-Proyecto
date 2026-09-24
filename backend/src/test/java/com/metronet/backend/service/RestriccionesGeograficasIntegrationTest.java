@@ -1,0 +1,127 @@
+package com.metronet.backend.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metronet.backend.dto.*;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.web.server.ResponseStatusException;
+
+class RestriccionesGeograficasIntegrationTest {
+    private SingleConnectionDataSource fuente;
+    private JdbcTemplate jdbc;
+    private RestriccionesGeograficasService restricciones;
+    private DisenoAdministracionService admin;
+    private SimulacionService simulacion;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final GeografiaService geografia = new GeografiaService(mapper);
+    private BigDecimal n(double x) { return BigDecimal.valueOf(x); }
+
+    @BeforeEach
+    void preparar() {
+        fuente = new SingleConnectionDataSource("jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE", "sa", "", true);
+        jdbc = new JdbcTemplate(fuente);
+        jdbc.execute("CREATE TABLE diseno(id_diseno INT PRIMARY KEY)");
+        jdbc.execute("CREATE TABLE escenario(id_escenario INT, nombre VARCHAR, modo VARCHAR, dificultad VARCHAR, objetivo VARCHAR, instrucciones VARCHAR, id_diseno_base INT, progresivo BOOLEAN, reglas_exito VARCHAR)");
+        jdbc.execute("CREATE TABLE intento(id_intento INT, id_diseno INT, id_escenario INT, id_usuario INT, estado VARCHAR)");
+        jdbc.execute("CREATE TABLE estacion(id_diseno INT, nombre VARCHAR, posicion_x NUMERIC(10,2), posicion_y NUMERIC(10,2), transbordo BOOLEAN, modificable BOOLEAN)");
+        jdbc.execute("CREATE TABLE linea(id_diseno INT, nombre VARCHAR, modificable BOOLEAN)");
+        jdbc.execute("CREATE TABLE tramo(id_diseno INT, nombre_linea VARCHAR, nombre_estacion_a VARCHAR, nombre_estacion_b VARCHAR)");
+        jdbc.execute("CREATE TABLE pasa(id_diseno INT, nombre_linea VARCHAR, nombre_estacion VARCHAR)");
+        jdbc.execute("CREATE TABLE metro(id_diseno INT, nombre_linea VARCHAR)");
+        jdbc.update("INSERT INTO diseno VALUES (1)");
+        jdbc.update("INSERT INTO escenario VALUES (1,'Prueba','NIVEL','Inicial','Objetivo','Instrucciones',NULL,FALSE,'{}')");
+        jdbc.update("INSERT INTO intento VALUES (1,1,1,7,'EN_DISENO')");
+        restricciones = new RestriccionesGeograficasService(jdbc, mapper, geografia);
+        admin = new DisenoAdministracionService(jdbc, restricciones);
+        simulacion = new SimulacionService(jdbc, admin, new ObjetivosPuntosInteresService(mapper, geografia), org.mockito.Mockito.mock(JuegoEducativoService.class), restricciones);
+    }
+
+    @AfterEach
+    void cerrar() { fuente.destroy(); }
+    private void reglas(String reglas) { jdbc.update("UPDATE escenario SET reglas_exito=?", reglas); }
+    private void estacion(String nombre, double x, double y) { admin.crearEstacion(1, new CrearEstacionAdministracionRequest(nombre, n(x), n(y), false)); }
+    private void rechaza(Runnable accion, String causa) {
+        var error = assertThrows(ResponseStatusException.class, accion::run);
+        assertEquals(400, error.getStatusCode().value()); assertTrue(error.getReason().contains(causa), error.getReason());
+    }
+
+    @Test
+    void crearMoverGuardarYRecuperarNoPersisteUnaPosicionInvalidaPorNingunaRuta() {
+        estacion("A", 580, 470);
+        simulacion.crearEstacion(7, 1, new CrearEstacionSimulacionRequest("B", n(700), n(460)));
+        rechaza(() -> estacion("Agua", 600, 600), "territorio");
+        rechaza(() -> simulacion.crearEstacion(7, 1, new CrearEstacionSimulacionRequest("Fuera", n(-1), n(100))), "territorio");
+        rechaza(() -> admin.actualizarEstacion(1, "A", new ActualizarEstacionRequest("A", n(600), n(600), false)), "territorio");
+        rechaza(() -> simulacion.actualizarEstacion(7, 1, "B", new ActualizarEstacionRequest("B", n(600), n(600), false)), "territorio");
+        assertEquals(2, jdbc.queryForObject("SELECT COUNT(*) FROM estacion", Integer.class));
+        assertEquals(n(580).setScale(2), jdbc.queryForObject("SELECT posicion_x FROM estacion WHERE nombre='A'", BigDecimal.class));
+        simulacion.actualizarEstacion(7, 1, "B", new ActualizarEstacionRequest("B", n(710.1234), n(460), false));
+        assertEquals(n(710.12), jdbc.queryForObject("SELECT posicion_x FROM estacion WHERE nombre='B'", BigDecimal.class));
+        simulacion.guardarDiseno(7, 1);
+        assertEquals("GUARDADO", jdbc.queryForObject("SELECT estado FROM intento", String.class));
+        assertTrue(restricciones.observarDiseno(1).isEmpty());
+    }
+
+    @Test
+    void rechazaLineasYTramosConExtremosValidosQueSalenDelTerritorio() {
+        estacion("A", 666, 167); estacion("B", 264, 84); estacion("C", 666, 170);
+        rechaza(() -> simulacion.crearLinea(7, 1, new CrearLineaSimulacionRequest("Fuera", List.of("A", "B"))), "sale del territorio");
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM linea", Integer.class));
+        simulacion.crearLinea(7, 1, new CrearLineaSimulacionRequest("Azul", List.of("A", "C")));
+        rechaza(() -> simulacion.actualizarLinea(7, 1, "Azul", new ActualizarLineaSimulacionRequest("Cambio", List.of("A", "B"))), "sale del territorio");
+        rechaza(() -> admin.crearTramo(1, new ActualizarTramoRequest("Azul", "A", "B")), "sale del territorio");
+        rechaza(() -> admin.actualizarTramo(1, "Azul", "A", "C", new ActualizarTramoRequest("Azul", "A", "B")), "sale del territorio");
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM tramo", Integer.class));
+        assertEquals("Azul", jdbc.queryForObject("SELECT nombre FROM linea", String.class));
+        rechaza(() -> simulacion.actualizarEstacion(7, 1, "C", new ActualizarEstacionRequest("C", n(264), n(84), false)), "sale del territorio");
+        assertEquals(n(666).setScale(2), jdbc.queryForObject("SELECT posicion_x FROM estacion WHERE nombre='C'", BigDecimal.class));
+    }
+
+    @Test
+    void referenciasNoBloqueanYLasProhibicionesDeEstacionesYTramosSonIndependientes() {
+        var palacio = geografia.resolverPunto(1, null);
+        var x = RestriccionesGeograficasService.redondear(geografia.posicionX(palacio));
+        var y = RestriccionesGeograficasService.redondear(geografia.posicionY(palacio));
+        reglas("{\"restriccionesGeograficas\":[{\"tipo\":\"barrio\",\"nombre\":\"AGUADA\"}]}");
+        admin.crearEstacion(1, new CrearEstacionAdministracionRequest("Palacio", x, y, false));
+        reglas("{\"restriccionesGeograficas\":[{\"tipo\":\"barrio\",\"nombre\":\"AGUADA\",\"prohibirEstaciones\":true}]}");
+        rechaza(() -> admin.crearEstacion(1, new CrearEstacionAdministracionRequest("Otra", x, y, false)), "No se permiten estaciones");
+        assertNull(restricciones.errorTramo(x, y, x, y, restricciones.obtenerConfiguracion(1)));
+        reglas("{\"restriccionesGeograficas\":[{\"tipo\":\"barrio\",\"nombre\":\"AGUADA\",\"prohibirTramos\":true}]}");
+        assertNull(restricciones.errorEstacion(x, y, restricciones.obtenerConfiguracion(1)));
+        // Los extremos están fuera de Aguada, pero el segmento la cruza.
+        assertNotNull(restricciones.errorTramo(n(580), n(470), n(750), n(500), restricciones.obtenerConfiguracion(1)));
+        assertNull(restricciones.errorTramo(n(700), n(460), n(810), n(480), restricciones.obtenerConfiguracion(1)));
+    }
+
+    @Test
+    void configuraMultiplesAreasYBloqueaConfiguracionSinGeometria() {
+        reglas("{\"restriccionesGeograficas\":[{\"tipo\":\"barrio\",\"nombre\":\"AGUADA\",\"prohibirEstaciones\":true},{\"tipo\":\"zona\",\"nombre\":\"ZONA ESTE\",\"prohibirTramos\":true}]}");
+        assertEquals(2, restricciones.obtenerConfiguracion(1).areas().size());
+        assertNotNull(restricciones.errorTramo(n(700), n(460), n(810), n(480), restricciones.obtenerConfiguracion(1)));
+        reglas("{\"restriccionesGeograficas\":[{\"tipo\":\"barrio\",\"nombre\":\"Inexistente\",\"prohibirTramos\":true}]}");
+        rechaza(() -> estacion("A", 580, 470), "sin geometría");
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM estacion", Integer.class));
+    }
+
+    @Test
+    void redAnteriorIncompatibleSeInformaSinReescribirlaYCuentaEnLaConsigna() {
+        jdbc.update("INSERT INTO estacion VALUES (1,'Anterior',600,600,FALSE,TRUE)");
+        assertEquals(1, restricciones.observarDiseno(1).size());
+        rechaza(() -> simulacion.guardarDiseno(7, 1), "territorio");
+        assertEquals(n(600).setScale(2), jdbc.queryForObject("SELECT posicion_y FROM estacion", BigDecimal.class));
+        var servicio = new CondicionesGeograficasService(jdbc, mapper, geografia, restricciones);
+        assertFalse(servicio.evaluar(1, Map.of("requiereGeografiaValida", true), List.of()).getFirst().completado());
+        assertTrue(servicio.evaluar(1, Map.of(), List.of()).isEmpty());
+        admin.actualizarEstacion(1, "Anterior", new ActualizarEstacionRequest("Anterior", n(580), n(470), false));
+        assertTrue(servicio.evaluar(1, Map.of("requiereGeografiaValida", true), List.of()).getFirst().completado());
+    }
+}

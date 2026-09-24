@@ -10,6 +10,7 @@ export default class MotorSimulacion {
     this.estado = 'DETENIDA';
     this.velocidad = 1;
     this.duracion = 60;
+    this.ventanaVisual = 60;
     this.duracionVisual = this.calcularDuracionVisual(this.duracion);
     this.marcaInicio = null;
     this.tiempoAcumulado = 0;
@@ -19,8 +20,9 @@ export default class MotorSimulacion {
 
   iniciar({ velocidad = 1, duracion = 60, ahora = 0 } = {}) {
     this.velocidad = normalizarVelocidad(velocidad);
-    this.duracion = normalizarDuracion(duracion);
-    this.duracionVisual = this.calcularDuracionVisual(this.duracion);
+    this.ventanaVisual = normalizarDuracion(duracion);
+    this.duracion = Math.max(0, ...this.rutas.map(r => r.tiempoMinutos * 60)) || normalizarDuracion(duracion);
+    this.duracionVisual = this.calcularDuracionVisual(normalizarDuracion(duracion));
     this.marcaInicio = Number(ahora);
     this.tiempoAcumulado = 0;
     this.progreso = 0;
@@ -56,7 +58,7 @@ export default class MotorSimulacion {
   }
 
   reiniciar(ahora = 0) {
-    return this.iniciar({ velocidad: this.velocidad, duracion: this.duracion, ahora });
+    return this.iniciar({ velocidad: this.velocidad, duracion: this.ventanaVisual, ahora });
   }
 
   establecerVelocidad(velocidad, ahora = 0) {
@@ -105,6 +107,8 @@ export default class MotorSimulacion {
     return this.obtenerUnidadesMetro().map((unidad) => ({
       idTren: unidad.idTren,
       nombreLinea: unidad.nombreLinea,
+      tiempoMinutos: this.diseno.metricasUnidades?.find(m => m.idTren === unidad.idTren)?.tiempoMinutos || 0,
+      velocidadKmh: Number(unidad.velocidadPromedio) || 0,
       ruta: construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea),
     }));
   }
@@ -114,7 +118,7 @@ export default class MotorSimulacion {
     const cantidadTramos = Math.max(0, nombresEstaciones.length - 1);
     const desfaseInicial = cantidadTramos && this.rutas.length > 1 ? Math.min(indice * 0.08, 0.3) : 0;
     const progresoRuta = cantidadTramos
-      ? Math.min(1, Math.max(0, (this.progreso - desfaseInicial) / (1 - desfaseInicial)))
+      ? Math.min(1, Math.max(0, (this.progreso - desfaseInicial) / (1 - desfaseInicial)) * (unidad.tiempoMinutos > 0 ? this.duracion / (unidad.tiempoMinutos * 60) : 1))
       : 0;
     const indiceTramo = cantidadTramos ? Math.min(Math.floor(progresoRuta * cantidadTramos), cantidadTramos - 1) : -1;
     const esFinal = cantidadTramos > 0 && progresoRuta >= 1;
@@ -126,6 +130,7 @@ export default class MotorSimulacion {
       idTren: unidad.idTren,
       identificador: formatearIdentificadorMetro(unidad.idTren, indice),
       nombreLinea: unidad.nombreLinea,
+      velocidadKmh: unidad.velocidadKmh,
       progresoRuta,
       estacionActual,
       proximaEstacion,

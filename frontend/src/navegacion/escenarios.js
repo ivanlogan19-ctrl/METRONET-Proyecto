@@ -1,6 +1,8 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
+import { prepararNivel } from '../educacion/PreparacionNivel.js';
+import { obtenerAnteriorCompletado } from '../educacion/TransicionNivel.js';
 
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
 const sesion = requerirSesion('/escenarios.html');
@@ -62,7 +64,7 @@ function renderizarProgreso(progreso) {
   const niveles = obtenerNiveles(progreso.escenarios);
   const descripcion = document.getElementById('descripcionProgresoEscenarios');
   descripcion.textContent = niveles.length
-    ? `${progreso.nivelesCompletados} de ${progreso.cantidadNiveles} niveles completados en la campaña actual.`
+    ? `${progreso.campanaCompletada ? "Campaña completada. " : ""}${progreso.nivelesCompletados} de ${progreso.cantidadNiveles} niveles completados en la campaña actual.`
     : 'Todavía no hay niveles configurados.';
   const lista = document.getElementById('progresoEscenarios');
   const pasoActual = niveles.find((escenario) => obtenerEstadoVisual(escenario).id === 'actual')?.idEscenario
@@ -90,7 +92,7 @@ function renderizarLogros(progreso) {
     progreso.modoLibreDesbloqueado ? 'Desbloqueado' : 'Bloqueado',
     progreso.modoLibreDesbloqueado
       ? 'Podés crear y simular redes sin consigna obligatoria.'
-      : 'Completá los cuatro niveles de una campaña para habilitarlo.',
+      : 'Completá todos los niveles de una campaña para habilitarlo.',
     progreso.modoLibreDesbloqueado
   ));
   if (progreso.campanaCompletadaHistoricamente) {
@@ -160,7 +162,7 @@ function crearTarjetaEscenario(escenario) {
   boton.disabled = !escenario.desbloqueado || accionEnCurso;
   boton.textContent = estado.accion;
   if (estado.id !== 'bloqueado') {
-    boton.addEventListener('click', () => iniciarEscenario(escenario.idEscenario, boton, estado.id === 'completado'));
+    boton.addEventListener('click', () => iniciarEscenario(escenario, boton, estado.id === 'completado'));
   }
   acciones.append(boton);
   tarjeta.append(encabezado, titulo, contenido, acciones);
@@ -206,25 +208,31 @@ function crearProgresoTarjeta(escenario, estado) {
 }
 
 function crearEstadisticas(escenario) {
-  if (!escenario.cantidadIntentos) return null;
+  if (!Number.isInteger(escenario.numero)) return null;
   const estadisticas = document.createElement('p');
   estadisticas.className = 'metronet-escenarios-pagina__estadisticas';
-  const datos = [`Intentos: ${escenario.cantidadIntentos}`];
-  if (escenario.mejorPuntaje !== null && escenario.mejorPuntaje !== undefined) datos.push(`Mejor puntaje: ${escenario.mejorPuntaje}`);
-  if (escenario.ultimoPuntaje !== null && escenario.ultimoPuntaje !== undefined) datos.push(`Último puntaje: ${escenario.ultimoPuntaje}`);
+  const datos = [`Intentos: ${escenario.cantidadIntentos ?? 0}`, `Máximo: ${escenario.puntajeMaximo ?? 100} puntos`];
+  if (escenario.mejorPuntaje !== null && escenario.mejorPuntaje !== undefined) datos.push(`Mejor puntaje: ${escenario.mejorPuntaje} / ${escenario.puntajeMaximo ?? 100}`);
+  if (escenario.ultimoPuntaje !== null && escenario.ultimoPuntaje !== undefined) datos.push(`Mejor del último intento: ${escenario.ultimoPuntaje}`);
   estadisticas.textContent = datos.join(' · ');
   return estadisticas;
 }
 
-async function iniciarEscenario(idEscenario, boton, volverAJugar) {
+async function iniciarEscenario(escenario, boton, volverAJugar) {
   if (accionEnCurso) return;
   accionEnCurso = true;
   const textoOriginal = boton.textContent;
   boton.disabled = true;
+  if (!await prepararNivel(escenario, obtenerAnteriorCompletado(escenario, progresoActual?.escenarios ?? []))) {
+    accionEnCurso = false;
+    boton.disabled = false;
+    boton.focus();
+    return;
+  }
   boton.textContent = 'Preparando…';
   mostrarMensaje(volverAJugar ? 'Creando un nuevo intento…' : 'Preparando el escenario…');
   try {
-    const ruta = volverAJugar ? `/escenarios/${idEscenario}/volver-a-jugar` : `/escenarios/${idEscenario}/iniciar`;
+    const ruta = volverAJugar ? `/escenarios/${escenario.idEscenario}/volver-a-jugar` : `/escenarios/${escenario.idEscenario}/iniciar`;
     const inicio = await solicitar(ruta, { method: 'POST' });
     window.location.assign(establecerContextoEnRuta('/', inicio));
   } catch (error) {

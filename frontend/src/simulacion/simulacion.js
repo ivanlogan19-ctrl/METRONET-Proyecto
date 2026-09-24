@@ -1,5 +1,8 @@
+import { consultarJuego } from '../educacion/ClientePuntuacion.js';
+import { renderizarDesempeno } from './PanelDesempeno.js';
+import { presentarResultadoNivel } from '../educacion/TransicionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
-import { establecerIdDisenoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
+import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
 import { crearVisorSimulacion } from './EscenaSimulacion.js';
 import { crearFlujoNavegacion, inicializarNavegacion } from '../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../configuracion/ConfiguracionAplicacion.js';
@@ -98,7 +101,10 @@ async function abrirDiseno(idDiseno) {
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
     visor.escena.establecerDiseno(disenoActual);
     actualizarPantalla();
+    // Phaser se crea con el panel oculto. Medir al mostrarlo evita un resize tardío al iniciar.
+    if (visor.escena.scale.getParentBounds()) visor.escena.scale.refresh();
     await cargarConsignaReal(idDiseno);
+    await actualizarDesempeno(idDiseno);
     document.querySelectorAll('[data-id-diseno]').forEach((boton) => {
       boton.classList.toggle('activa', Number(boton.dataset.idDiseno) === idDiseno);
     });
@@ -389,13 +395,31 @@ function actualizarProgresoEjecucion(estado) {
   document.getElementById('estadoProgresoEjecucion').textContent = formatearEstadoMotor(estadoEjecucion);
 }
 
+async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
+  let desempeno = null;
+  try { desempeno = await consultarJuego(`/disenos/${idDiseno}/desempeno`); } catch { /* Mantener disponible la simulación habitual. */ }
+  if (disenoActual?.simulacion?.idDiseno !== idDiseno) return;
+  if (!Number.isFinite(desempeno?.puntajeMaximo)) desempeno = null;
+  disenoActual.metricasUnidades = desempeno?.unidades ?? [];
+  if (actualizarMotor) visor?.escena.establecerDiseno(disenoActual);
+  renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, async (unidad, velocidadPromedio) => {
+    try {
+      await cliente.solicitar(`/${idDiseno}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombreLinea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidadPromedio }) });
+      await cliente.validar(idDiseno);
+      await abrirDiseno(idDiseno);
+      mostrarMensaje(`Velocidad actualizada a ${velocidadPromedio} km/h. Revisá el tiempo estimado y ejecutá una nueva simulación.`, 'exito');
+    } catch (error) { mostrarMensaje(error.message, 'error'); }
+  });
+}
+
 function renderizarResultados() {
   const contenedor = document.getElementById('listaResultadosSimulacion');
   const resultados = disenoActual.resultados ?? [];
   contenedor.replaceChildren(...resultados.map((resultado) => {
     const elemento = document.createElement('article');
     elemento.className = 'simulacion-resultado';
-    elemento.innerHTML = `<strong>${escapar(resultado.estado)} · ${resultado.puntaje} puntos</strong><span>${resultado.duracion}s · velocidad ${resultado.velocidad}</span><p>${escapar(resultado.comentarios)}</p>`;
+    elemento.innerHTML = `<strong>${escapar(resultado.estado)} · ${resultado.puntaje} puntos</strong><span>${resultado.duracion}s de ventana visual · reproducción ${resultado.velocidad}×</span><p>${escapar(resultado.comentarios)}</p>`;
     return elemento;
   }));
   if (!resultados.length) contenedor.textContent = 'Aún no se registraron ejecuciones para este diseño.';
@@ -418,7 +442,7 @@ async function ejecutarSimulacion(evento) {
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
   const duracion = Number(document.getElementById('duracionSimulacion').value);
   if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion < 10) {
-    mostrarMensaje('Elegí una velocidad disponible y una duración mínima de 10 segundos.', 'error');
+    mostrarMensaje('Elegí un ritmo de reproducción disponible (×) y una ventana visual mínima de 10 segundos.', 'error');
     return;
   }
   try {
@@ -526,9 +550,11 @@ function actualizarPanelTiempoReal(estado) {
   if (!estado) return;
   estadoMotor = estado;
   actualizarProgresoEjecucion(estado);
+  const campoVelocidades = document.querySelector('[data-controles-circulacion]');
+  if (campoVelocidades) campoVelocidades.disabled = estado.estado === 'EN_CURSO' || estado.estado === 'PAUSADA';
   const metro = estado.metroActivo;
   document.getElementById('tiempoSimulacion').textContent = formatearTiempo(estado.tiempoTranscurrido);
-  document.getElementById('metroSimulacion').textContent = metro?.identificador ?? 'Sin unidad activa';
+  document.getElementById('metroSimulacion').textContent = metro?.identificador ? `${metro.identificador} · ${metro.velocidadKmh || '—'} km/h` : 'Sin unidad activa';
   document.getElementById('lineaSimulacion').textContent = metro?.nombreLinea ?? '—';
   document.getElementById('proximaEstacionSimulacion').textContent = metro?.proximaEstacion ?? (metro?.estacionActual ? `Finalizó en ${metro.estacionActual}` : '—');
   document.getElementById('estadoTiempoReal').textContent = formatearEstadoMotor(estado.estado);
@@ -548,12 +574,38 @@ async function finalizarEjecucionVisible() {
     if (!correspondeAlDisenoActual) return;
     if (evaluacion?.completado) {
       disenoActual.simulacion.estado = 'COMPLETADO';
+      if (evaluacion.desempeno) {
+        const resultado = disenoActual.resultados?.find(r => r.idSimulacion === pendiente.resultado.idSimulacion);
+        if (resultado) resultado.puntaje = evaluacion.puntaje;
+      }
       actualizarPantalla();
     }
     await cargarConsignaReal(pendiente.idDiseno);
+    await actualizarDesempeno(pendiente.idDiseno, false);
+    // El resultado se muestra sin reiniciar la animación que acaba de finalizar.
     document.getElementById('continuarEscenarios').hidden = false;
     const detalleEvaluacion = evaluacion ? ` ${evaluacion.mensaje}` : '';
-    mostrarMensaje(`Recorrido finalizado: ${pendiente.resultado.puntaje} puntos.${detalleEvaluacion}`, 'exito');
+    const puntos = evaluacion?.desempeno
+      ? (evaluacion.completado ? `${evaluacion.puntaje} / ${evaluacion.desempeno.puntajeMaximo} puntos.` : 'Consigna pendiente; todavía no se registran puntos.')
+      : `${pendiente.resultado.puntaje} puntos.`;
+    mostrarMensaje(`Recorrido finalizado: ${puntos}${detalleEvaluacion}`, evaluacion && !evaluacion.completado ? 'advertencia' : 'exito');
+    if (evaluacion?.completado) {
+      // Consultar el progreso persistido también permite retomar desde Escenarios tras una recarga.
+      try {
+        const base = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
+        const headers = { Authorization: `Bearer ${sesion.token}` };
+        const respuesta = await fetch(`${base}/progreso`, { headers });
+        if (!respuesta.ok) return;
+        const progreso = await respuesta.json();
+        if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
+        const accion = await presentarResultadoNivel(progreso, disenoActual.simulacion.idEscenario, evaluacion);
+        if (accion?.siguiente) {
+          const inicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/iniciar`, { method: 'POST', headers });
+          if (!inicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Escenarios.');
+          window.location.assign(establecerContextoEnRuta('/', await inicio.json()));
+        } else if (accion) window.location.assign('/escenarios.html');
+      } catch (error) { mostrarMensaje(`Resultado guardado. ${error.message}`, 'advertencia'); }
+    }
   } catch (error) {
     if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
     document.getElementById('continuarEscenarios').hidden = false;

@@ -7,6 +7,7 @@ module.exports = defineConfig({
       input: {
         inicio: path.resolve(__dirname, 'inicio.html'),
         escenarios: path.resolve(__dirname, 'escenarios.html'),
+        ranking: path.resolve(__dirname, 'ranking.html'),
         mapa: path.resolve(__dirname, 'index.html'),
         login: path.resolve(__dirname, 'login.html'),
         recuperarContrasena: path.resolve(__dirname, 'recuperar-contrasena.html'),

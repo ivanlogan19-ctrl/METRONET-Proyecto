@@ -1,6 +1,8 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
+import { prepararNivel } from '../educacion/PreparacionNivel.js';
+import { obtenerAnteriorCompletado } from '../educacion/TransicionNivel.js';
 
 const URL_API_JUEGO = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
 const ESTADOS_CON_INTENTO_ACTIVO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
@@ -14,6 +16,7 @@ const CONSEJOS_METRONET = Object.freeze([
 const sesion = requerirSesion('/inicio.html');
 const consejoActual = CONSEJOS_METRONET[Math.floor(Math.random() * CONSEJOS_METRONET.length)];
 let navegacionEnCurso = false;
+let escenariosActuales = [];
 
 if (sesion) inicializar();
 
@@ -30,6 +33,7 @@ async function cargarTablero() {
   tablero.replaceChildren();
   try {
     const progreso = await solicitar('/progreso');
+    escenariosActuales = Array.isArray(progreso.escenarios) ? progreso.escenarios : [];
     renderizarTablero(tablero, progreso);
   } catch (error) {
     mostrarMensaje(error.message, 'error');
@@ -100,7 +104,7 @@ function crearTarjetaContinuar(resumen) {
     const boton = crearBoton(
       ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado) ? 'Continuar escenario' : 'Comenzar escenario',
       'azul',
-      () => iniciarEscenario(escenario.idEscenario, boton),
+      () => iniciarEscenario(escenario, boton),
     );
     tarjeta.append(contenido, crearPieTarjeta(boton, '/escenarios.html', 'Ver todos los escenarios'));
     return tarjeta;
@@ -157,7 +161,7 @@ function crearTarjetaModoLibre(resumen) {
       ? 'Logro permanente desbloqueado. Creá una red propia sin reiniciar tus avances anteriores.'
       : 'Creá una red propia, definí líneas, estaciones, conexiones y unidades de metro antes de simularla.'),
   );
-  const boton = crearBoton('Iniciar Modo Libre', 'verde', () => iniciarEscenario(modoLibre.idEscenario, boton));
+  const boton = crearBoton('Iniciar Modo Libre', 'verde', () => iniciarEscenario(modoLibre, boton));
   tarjeta.append(contenido, crearPieTarjeta(boton, '/', 'Abrir mis diseños'));
   return tarjeta;
 }
@@ -288,15 +292,21 @@ function crearEnlace(ruta, texto) {
   return enlace;
 }
 
-async function iniciarEscenario(idEscenario, boton) {
+async function iniciarEscenario(escenario, boton) {
   if (navegacionEnCurso) return;
   navegacionEnCurso = true;
   boton.disabled = true;
   const textoOriginal = boton.textContent;
+  if (!await prepararNivel(escenario, obtenerAnteriorCompletado(escenario, escenariosActuales))) {
+    navegacionEnCurso = false;
+    boton.disabled = false;
+    boton.focus();
+    return;
+  }
   boton.textContent = 'Preparando…';
   mostrarMensaje('Preparando el escenario…');
   try {
-    const inicio = await solicitar(`/escenarios/${idEscenario}/iniciar`, { method: 'POST' });
+    const inicio = await solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST' });
     window.location.assign(establecerContextoEnRuta('/', inicio));
   } catch (error) {
     boton.disabled = false;

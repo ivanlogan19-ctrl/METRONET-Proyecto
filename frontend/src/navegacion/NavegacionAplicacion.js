@@ -119,6 +119,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   enlaces.append(
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
     crearEnlace('Escenarios', '/escenarios.html', actual === 'escenarios'),
+    crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/', contexto), actual === 'edicion' || actual === 'simulacion'),
   );
   if (sesion.usuario?.rol === 'ADMIN') enlaces.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
@@ -132,6 +133,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   menuUsuario.append(
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
     crearEnlace('Escenarios', '/escenarios.html', actual === 'escenarios'),
+    crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/', contexto), actual === 'edicion' || actual === 'simulacion'),
   );
   if (sesion.usuario?.rol === 'ADMIN') menuUsuario.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
