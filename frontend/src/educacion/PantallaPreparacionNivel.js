@@ -28,15 +28,18 @@ export function crearPreparacionNivel(escenario) {
   cuerpo.className = 'metronet-dialogo-cambios__contenido metronet-viaje__contenido';
   const cabecera = document.createElement('header');
   cabecera.className = 'metronet-viaje__cabecera';
-  cabecera.append(crearLogoMetronet(), texto('span', `NIVEL ${escenario.numero}`, 'metronet-viaje__nivel'));
+  const identidad = document.createElement('div');
+  identidad.className = 'metronet-viaje__identidad';
   const titulo = texto('h2', escenario.nombre || `Nivel ${escenario.numero}`);
   titulo.id = 'tituloPreparacionNivel';
   titulo.tabIndex = -1;
+  identidad.append(texto('span', `NIVEL ${escenario.numero}`, 'metronet-viaje__nivel'), titulo);
+  cabecera.append(crearLogoMetronet(), identidad);
   const recorrido = document.createElement('div');
   recorrido.className = 'metronet-viaje__recorrido';
   recorrido.setAttribute('aria-hidden', 'true');
   // Riel azul, nodos y metro con ventanas: geometría liviana en el lenguaje del mapa.
-  recorrido.innerHTML = `<svg viewBox="0 0 560 100" focusable="false">
+  recorrido.innerHTML = `<svg viewBox="0 0 560 80" focusable="false">
     <path class="metronet-viaje__riel" d="M30 62 H530"/>
     <path class="metronet-viaje__linea" d="M30 62 H530" pathLength="100"/>
     <g class="metronet-viaje__estaciones">${[30, 155, 280, 405, 530].map(x => `<circle cx="${x}" cy="62" r="8"/>`).join('')}</g>
@@ -59,7 +62,10 @@ export function crearPreparacionNivel(escenario) {
   dato.append(texto('h3', mensaje.categoria), texto('p', mensaje.texto));
   const consigna = document.createElement('section');
   consigna.className = 'metronet-viaje__consigna';
-  consigna.append(texto('h3', 'Tu desafío'), texto('p', escenario.objetivo || escenario.instrucciones || contenido?.objetivo || 'Explorá el mapa y revisá la consigna de tu red.'));
+  consigna.append(texto('h3', 'Próximo desafío'), texto('p', escenario.objetivo || contenido?.objetivo || 'Explorá el mapa y revisá la consigna completa dentro del nivel.'));
+  const informacion = document.createElement('div');
+  informacion.className = 'metronet-viaje__informacion';
+  informacion.append(dato, consigna);
   const estado = texto('p', 'Entrarás automáticamente al terminar el viaje.', 'metronet-viaje__estado');
   estado.setAttribute('role', 'status');
   const acciones = document.createElement('div');
@@ -70,7 +76,10 @@ export function crearPreparacionNivel(escenario) {
   leer.type = 'button';
   leer.setAttribute('aria-pressed', 'false');
   acciones.append(volver, leer);
-  cuerpo.append(cabecera, titulo, recorrido, progreso, dato, consigna, estado, acciones);
+  const pie = document.createElement('footer');
+  pie.className = 'metronet-viaje__pie';
+  pie.append(estado, acciones);
+  cuerpo.append(cabecera, recorrido, progreso, informacion, pie);
   dialogo.append(cuerpo);
 
   let frame = null, pausaFinal = null, cerrado = false, cancelada = false;

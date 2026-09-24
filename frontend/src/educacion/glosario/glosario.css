@@ -1,0 +1,22 @@
+html:root body button.metronet-glosario-termino {
+  display: inline; width: auto; min-width: 0; min-height: 24px; margin: 0; padding: 2px 0;
+  border: 0; border-radius: 0; background: transparent; color: var(--info-active);
+  box-shadow: none; font: inherit; letter-spacing: inherit; text-transform: none;
+  white-space: normal; text-align: inherit; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 4px;
+}
+html:root body button.metronet-glosario-termino:not(:disabled):is(:hover, :active) {
+  color: var(--text-primary); background: var(--surface-selected); box-shadow: none;
+}
+html:root body .metronet-glosario-ventana {
+  width: min(440px, calc(100vw - 32px)); max-height: calc(100svh - 32px);
+  padding: var(--space-lg); overflow: auto; margin: auto;
+  font-family: var(--font-ui); font-size: 15px; line-height: 1.6;
+  animation: metronet-concepto-entrada var(--motion-enter) var(--motion-easing);
+}
+html:root body .metronet-glosario-ventana > * + * { margin-top: var(--space-md); }
+html:root body .metronet-glosario-ventana h2 { font-size: 18px; }
+html:root body .metronet-glosario-ventana button { min-height: var(--control-touch-height); width: 100%; padding: var(--space-xs); }
+html:root body .metronet-glosario-categoria { color: var(--info-active); font: 12px/1.5 var(--font-ui); letter-spacing: .05em; }
+@keyframes metronet-concepto-entrada { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { html:root body .metronet-glosario-ventana { animation: none; } }

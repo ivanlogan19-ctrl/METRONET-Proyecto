@@ -7,6 +7,8 @@ import { mostrarNotificacion } from '../../componentes/NotificacionesMetronet.js
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
 import { obtenerAnteriorCompletado, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
 import PanelHerramientasEditor from './PanelHerramientasEditor.js';
+import { destacarConceptos } from '../../educacion/glosario/GlosarioContextual.js';
+import { conceptosDelNivel } from '../../educacion/glosario/ContextoConceptos.js';
 import '../estilos/editor-red.css';
 
 const MAXIMO_REFERENCIAS_VISIBLES_EN_CONSIGNA = 3;
@@ -845,6 +847,8 @@ export default class EditorRedMetro {
     const consigna = this.obtenerContenedorConsigna();
     consigna.hidden = !this.escenarioJuegoActual;
     if (this.escenarioJuegoActual) this.renderizarConsigna();
+    const conceptos = conceptosDelNivel(this.escenarioJuegoActual ?? this.disenoActual?.simulacion);
+    this.contenedor.querySelectorAll('[data-herramienta] > p.metronet-editor-etiqueta').forEach(texto => destacarConceptos(texto, conceptos));
   }
 
   prepararConsigna() {
@@ -1073,6 +1077,7 @@ export default class EditorRedMetro {
     const accionContinuar = siguienteEscenario ? this.crearAccionContinuarEscenario(siguienteEscenario) : null;
     consigna.append(cabecera, resumen, contenido, progreso);
     if (accionContinuar) consigna.append(accionContinuar);
+    destacarConceptos(contenidoInterno, conceptosDelNivel(escenario));
   }
 
   crearAccionContinuarEscenario(escenario) {

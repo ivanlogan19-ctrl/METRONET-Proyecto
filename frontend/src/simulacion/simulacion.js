@@ -8,6 +8,8 @@ import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta
 import { crearVisorSimulacion } from './EscenaSimulacion.js';
 import { crearFlujoNavegacion, inicializarNavegacion } from '../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../configuracion/ConfiguracionAplicacion.js';
+import { destacarConceptos, cerrarDefinicion } from '../educacion/glosario/GlosarioContextual.js';
+import { conceptosDelNivel, CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js';
 
 const sesion = obtenerSesionActiva();
 const idDisenoInicial = obtenerIdDisenoDeRuta();
@@ -22,6 +24,7 @@ let consignaActual = null;
 let idDisenoConsigna = null;
 let mensajeConsigna = '';
 let numeroSolicitudConsigna = 0;
+let escenariosGlosario = [];
 const VELOCIDADES_SIMULACION = new Set([0.5, 1, 2, 4]);
 const CANTIDAD_ELEMENTOS_VISIBLES_CONSIGNA = 3;
 
@@ -34,6 +37,18 @@ if (!sesion) {
 
 async function inicializar() {
   inicializarNavegacion({ actual: 'simulacion', etapa: 'simulacion' });
+  // Consulta educativa independiente: una falla nunca demora la simulación.
+  consultarJuego('/progreso').then(progreso => {
+    escenariosGlosario = Array.isArray(progreso?.escenarios) ? progreso.escenarios : [];
+    if (disenoActual) actualizarGlosarioConsigna();
+  }).catch(() => {});
+  destacarConceptos(document.querySelector('.simulacion-etiqueta-control'), CONCEPTOS_SIMULACION);
+  const etiquetaVentana = document.querySelector('label[for="duracionSimulacion"]');
+  const ayudaVentana = document.createElement('p');
+  ayudaVentana.className = 'simulacion-ayuda';
+  ayudaVentana.textContent = 'Consultar duración y tiempo estimado.';
+  etiquetaVentana.parentElement.append(ayudaVentana);
+  destacarConceptos(ayudaVentana, CONCEPTOS_SIMULACION);
   organizacion = inicializarOrganizacionSimulacion(() => {
     if (visor?.escena.scale.getParentBounds()) visor.escena.scale.refresh();
   });
@@ -94,6 +109,7 @@ async function seleccionarDiseno(evento) {
 
 async function abrirDiseno(idDiseno) {
   try {
+    cerrarDefinicion();
     numeroSolicitudConsigna += 1;
     consignaActual = null;
     idDisenoConsigna = null;
@@ -160,6 +176,17 @@ function actualizarConsignaSimulacion(resumen) {
   renderizarObjetivosConsigna(consignaDisponible ? consignaActual.condiciones : []);
   renderizarReferenciasConsigna(consignaDisponible ? consignaActual.referenciasObjetivo : []);
   actualizarProgresoEjecucion(estadoMotor ?? crearEstadoInicial());
+  actualizarGlosarioConsigna();
+}
+
+function actualizarGlosarioConsigna() {
+  const resumen = disenoActual?.simulacion;
+  if (!resumen) return;
+  const escenario = escenariosGlosario.find(e => e.idEscenario === resumen.idEscenario) ?? resumen;
+  const ids = conceptosDelNivel(escenario);
+  for (const selector of ['#objetivoConsigna', '#descripcionConsigna', '#listaObjetivosConsigna', '#listaObjetivosAdicionalesConsigna']) {
+    destacarConceptos(document.querySelector(selector), ids);
+  }
 }
 
 function obtenerContextoConsigna(resumen) {

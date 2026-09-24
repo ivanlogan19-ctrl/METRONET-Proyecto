@@ -1,4 +1,6 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
+import { destacarConceptos } from '../educacion/glosario/GlosarioContextual.js';
+import { conceptosDelNivel } from '../educacion/glosario/ContextoConceptos.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
@@ -152,6 +154,10 @@ function crearTarjetaEscenario(escenario) {
   const instrucciones = document.createElement('p');
   instrucciones.className = 'metronet-escenarios-pagina__instrucciones';
   instrucciones.textContent = escenario.instrucciones ?? 'Sin instrucciones disponibles.';
+  if (escenario.desbloqueado) {
+    destacarConceptos(objetivo, conceptosDelNivel(escenario));
+    destacarConceptos(instrucciones, conceptosDelNivel(escenario));
+  }
   contenido.append(objetivo, instrucciones, crearProgresoTarjeta(escenario, estado));
   const estadisticas = crearEstadisticas(escenario);
   if (estadisticas) contenido.append(estadisticas);

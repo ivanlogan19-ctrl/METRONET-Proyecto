@@ -1,3 +1,5 @@
+import { destacarConceptos } from '../educacion/glosario/GlosarioContextual.js';
+import { CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js';
 const texto = (tag, valor) => { const e = document.createElement(tag); e.textContent = valor; return e; };
 
 export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
@@ -34,4 +36,5 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
   }
   if (!diseno.unidadesMetro?.length) campo.append(texto('p', 'Agregá una unidad desde el Constructor para configurar su circulación.'));
   contenedor.append(campo, ayuda);
+  destacarConceptos(ayuda, CONCEPTOS_SIMULACION);
 }
