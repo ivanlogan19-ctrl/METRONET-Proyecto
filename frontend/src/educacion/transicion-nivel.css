@@ -5,15 +5,7 @@
 .metronet-viaje__identidad { display: grid; gap: 4px; min-width: 0; }
 .metronet-viaje__nivel { color: var(--info-active); font-family: var(--font-arcade); font-size: 14px; }
 .metronet-viaje h2 { margin: 0; }
-.metronet-viaje__recorrido { border: var(--border-width) solid var(--border); background-color: var(--bg-secondary); background-image: linear-gradient(rgb(72 180 255 / .06) 1px, transparent 1px), linear-gradient(90deg, rgb(72 180 255 / .06) 1px, transparent 1px); background-size: 20px 20px; }
-.metronet-viaje__recorrido svg { display: block; width: 100%; height: auto; max-height: clamp(48px, 10svh, 76px); }
-.metronet-viaje__riel { fill: none; stroke: var(--border); stroke-width: 5; }
-.metronet-viaje__linea { fill: none; stroke: var(--info-active); stroke-width: 5; stroke-dasharray: 100; stroke-dashoffset: 100; }
-.metronet-viaje__estaciones circle { fill: var(--panel); stroke: var(--border-active); stroke-width: 3; }
-.metronet-viaje__estaciones .activa { fill: var(--info-active); stroke: var(--text-primary); }
-.metronet-viaje__metro { fill: var(--info-active); stroke: var(--text-primary); stroke-width: 2; }
-.metronet-viaje__ventanas { fill: var(--bg-primary); stroke: none; }
-.metronet-viaje__ruedas { stroke: var(--text-primary); stroke-width: 4; }
+.metronet-viaje__recorrido svg { height: clamp(150px, 24svh, 240px); }
 .metronet-viaje__progreso { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 12px; }
 html:root body .metronet-viaje__porcentaje { color: var(--info-active); font-family: var(--font-arcade); font-size: 24px; font-variant-numeric: tabular-nums; }
 .metronet-viaje__informacion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

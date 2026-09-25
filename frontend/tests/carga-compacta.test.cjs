@@ -32,6 +32,7 @@ async function cargar(p, nivel, indice) {
     finally { Math.random = aleatorio; }
   }, { nivel, indice });
   await p.clock.runFor(1800);
+  await p.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__consigna')).opacity === '1');
   return p.locator('.metronet-viaje');
 }
 
@@ -72,9 +73,9 @@ for (const [width, height] of [[1366,768], [1440,900], [1920,1080], [1024,768], 
       const datos = await verificar(dialogo, viewport, width >= 768);
       assert.equal(await dialogo.locator('.metronet-viaje__consigna p').textContent(), nivel.objetivo);
       assert.equal(await dialogo.locator('[data-mensaje-id] p').textContent(), mensajes[indice].texto);
-      const antes = await dialogo.locator('.metronet-viaje__metro').getAttribute('style');
+      const antes = await dialogo.locator('.recorrido-tren').getAttribute('transform');
       await p.clock.runFor(500);
-      assert.notEqual(await dialogo.locator('.metronet-viaje__metro').getAttribute('style'), antes);
+      assert.notEqual(await dialogo.locator('.recorrido-tren').getAttribute('transform'), antes);
       if (process.env.METRONET_CARGA_CAPTURAS && [1,10].includes(numero)) {
         fs.mkdirSync(process.env.METRONET_CARGA_CAPTURAS, { recursive: true });
         const base = path.join(process.env.METRONET_CARGA_CAPTURAS, `nivel-${numero}-${width}x${height}`);
@@ -122,6 +123,6 @@ test('Sin objetivo ni catálogo: no inserta instrucciones largas ni bloquea el a
   await verificar(dialogo,{width:1366,height:768},true);
   assert.equal(await dialogo.locator('.metronet-viaje__consigna p').textContent(),'Explorá el mapa y revisá la consigna completa dentro del nivel.');
   await p.evaluate(() => { cargaCompacta.marcarDatosListos(); cargaCompacta.finalizada.then(valor => window.resultadoCarga = valor); });
-  await p.clock.runFor(2000);
+  await p.clock.runFor(2800);
   assert.equal(await p.evaluate(() => window.resultadoCarga),true);
 });

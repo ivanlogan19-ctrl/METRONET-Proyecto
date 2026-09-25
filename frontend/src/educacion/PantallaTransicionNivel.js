@@ -1,4 +1,5 @@
-import { CONFIGURACION_VICTORIA } from './ConfiguracionTransicion.js';
+import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
+import { crearRecorridoNivel } from './RecorridoNivel.js';
 import './victoria-nivel.css';
 
 let victoriaActiva = null;
@@ -14,11 +15,10 @@ function texto(etiqueta, valor, clase = '') {
 // Presenta datos ya evaluados por el servidor; no registra puntos ni desbloqueos.
 export function mostrarTransicionNivel(anterior, siguiente, {
   puntaje, mejorPuntajeAnterior, final = false, desempeno = null, resumen = null,
-  ranking = null, signal, duracionMs = CONFIGURACION_VICTORIA.duracionMs,
+  ranking = null, signal,
 } = {}) {
   victoriaActiva?.();
   if (signal?.aborted) return Promise.resolve(null);
-  const duracion = Number.isFinite(duracionMs) && duracionMs > 0 ? duracionMs : CONFIGURACION_VICTORIA.duracionMs;
   const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const focoAnterior = document.activeElement;
   const dialogo = document.createElement('dialog');
@@ -32,28 +32,9 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   titulo.id = 'tituloVictoriaNivel'; titulo.tabIndex = -1;
   cabecera.append(texto('p', FELICITACIONES[Math.floor(Math.random() * FELICITACIONES.length)], 'metronet-victoria__felicitacion'), titulo,
     texto('p', anterior.nombre || `Nivel ${anterior.numero}`));
-  const recorrido = texto('div', '', 'metronet-victoria__recorrido');
-  recorrido.setAttribute('aria-hidden', 'true');
-  // Geometría original: dos andenes, estaciones intermedias y un metro con puertas.
-  recorrido.innerHTML = `<svg viewBox="0 0 960 320" focusable="false">
-    <path class="victoria-ciudad" d="M0 164 H50 V118 H104 V164 H162 V92 H208 V164 H285 V132 H347 V164 H426 V72 H477 V164 H528 V109 H572 V164 H650 V130 H713 V164 H773 V86 H831 V164 H898 V119 H960"/>
-    <g class="victoria-anden"><path d="M30 246 H212 V262 H30 Z M748 246 H930 V262 H748 Z"/><path d="M42 82 H201 M54 82 V210 M189 82 V210 M759 82 H918 M771 82 V210 M906 82 V210"/></g>
-    <path class="victoria-riel" d="M45 220 H915 M45 232 H915"/>
-    <path class="victoria-linea" d="M124 283 H836" pathLength="100"/>
-    <g class="victoria-estaciones">${[124, 302, 480, 658, 836].map(x => `<circle cx="${x}" cy="283" r="8"/>`).join('')}</g>
-    <g class="victoria-senal"><rect x="69" y="94" width="110" height="29"/><text x="124" y="114">COMPLETADO</text></g>
-    <g class="victoria-destino"><rect x="781" y="94" width="110" height="29"/><text x="836" y="114">${final ? 'META' : 'DESTINO'}</text></g>
-    <g class="victoria-tren"><path class="victoria-carroceria" d="M-82 202 V155 L-70 143 H58 L82 164 V202 Z"/>
-      <path class="victoria-ventanas" d="M-68 153 H-43 V174 H-68 Z M15 153 H40 V174 H15 Z M48 153 H57 L71 168 V174 H48 Z"/>
-      <rect class="victoria-interior" x="-31" y="151" width="34" height="49"/>
-      <path class="victoria-puerta victoria-puerta--izquierda" d="M-31 151 H-14 V200 H-31 Z"/>
-      <path class="victoria-puerta victoria-puerta--derecha" d="M-14 151 H3 V200 H-14 Z"/>
-      <path class="victoria-franja" d="M-82 186 H-35 M7 186 H81"/>
-      <path class="victoria-luz" d="M71 182 H79 V192 H71 Z"/>
-      <path class="victoria-ruedas" d="M-64 204 H-42 M39 204 H61"/>
-    </g>
-    <g class="victoria-destellos"><path d="M108 46 V62 M100 54 H116 M855 40 V56 M847 48 H863 M482 103 V119 M474 111 H490"/></g>
-  </svg>`;
+  const animacion = crearRecorridoNivel({ variante: 'outro', final });
+  const recorrido = animacion.elemento;
+  recorrido.classList.add('metronet-victoria__recorrido');
   const estaciones = texto('div', '', 'metronet-victoria__estaciones');
   estaciones.append(texto('span', `SALIDA · NIVEL ${anterior.numero}`), texto('span', final ? 'FIN DEL RECORRIDO' : siguiente ? `DESTINO · NIVEL ${siguiente.numero}` : 'RED COMPLETADA'));
   recorrido.append(estaciones);
@@ -91,16 +72,13 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   cuerpo.append(cabecera, recorrido, resultado, progreso, destino, estado, cierre, acciones);
   dialogo.append(cuerpo);
 
-  let cerrado = false, frame = null, resolver, ultimoPorcentaje = -1;
+  let cerrado = false, resolver;
   const finalizada = new Promise(resolve => { resolver = resolve; });
-  const tren = recorrido.querySelector('.victoria-tren');
-  const linea = recorrido.querySelector('.victoria-linea');
-  const nodos = [...recorrido.querySelectorAll('circle')];
   const observador = new MutationObserver(() => { if (!dialogo.isConnected) cancelar(); });
   function terminar(accion = null) {
     if (cerrado) return;
     cerrado = true;
-    cancelAnimationFrame(frame);
+    animacion.destruir();
     observador.disconnect();
     window.removeEventListener('pagehide', cancelar);
     window.removeEventListener('popstate', cancelar);
@@ -119,35 +97,9 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     totales.textContent = `${resumen?.nivelesCompletados ?? 0} / ${resumen?.cantidadNiveles ?? niveles.length} niveles completados · ${total}${maximo ? ` / ${maximo}` : ''} puntos acumulados.`;
     posicion.textContent = datos?.tuPosicion ? `Tu posición: ${datos.tuPosicion}.` : 'Consultá tus mejores resultados en el ranking.';
   }
-  function mostrarProgreso(fraccion) {
-    const entero = Math.floor(fraccion * 100);
-    if (entero !== ultimoPorcentaje) {
-      ultimoPorcentaje = entero;
-      porcentaje.textContent = `${entero}%`;
-      progreso.setAttribute('aria-valuenow', String(entero));
-      progreso.style.setProperty('--avance', `${entero}%`);
-      linea.style.strokeDashoffset = String(100 - entero);
-      nodos.forEach((nodo, i) => nodo.classList.toggle('activa', entero >= i * 25));
-    }
-    tren.setAttribute('transform', `translate(${reducido ? (fraccion === 1 ? 836 : 124) : 124 + fraccion * 712} 0)`);
-    // En móvil la cámara acompaña al tren y mantiene su tamaño legible.
-    const desplazamiento = reducido ? (fraccion === 1 ? 480 : 0) : fraccion * 480;
-    recorrido.querySelector('svg').setAttribute('viewBox', matchMedia('(max-width: 600px)').matches ? `${desplazamiento} 55 480 250` : '0 0 960 320');
-  }
-  const inicio = performance.now();
-  function animar(ahora) {
-    frame = null;
+  function finalizarRecorrido() {
     if (cerrado) return;
-    if (!dialogo.isConnected) { cancelar(); return; }
-    const tiempo = Math.min(1, (ahora - inicio) / duracion);
-    // Puertas y señal de victoria antes de salir; recorrido y porcentaje comparten avance.
-    const recorridoActual = Math.min(1, Math.max(0, (tiempo - 0.16) / (CONFIGURACION_VICTORIA.llegadaEn - 0.16)));
-    const avance = recorridoActual * recorridoActual * (3 - 2 * recorridoActual);
-    dialogo.classList.toggle('metronet-victoria--puertas', !reducido && tiempo < 0.12);
-    dialogo.classList.toggle('metronet-victoria--destino', reducido || tiempo >= CONFIGURACION_VICTORIA.revelarDestinoEn);
-    mostrarProgreso(avance);
-    if (tiempo < 1) frame = requestAnimationFrame(animar);
-    else if (final) {
+    if (final) {
       dialogo.classList.add('metronet-victoria--llegada');
       cierre.hidden = false; destino.hidden = true;
       estado.textContent = 'Llegaste a destino. Podés consultar el ranking o elegir otro nivel.';
@@ -165,12 +117,15 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     victoriaActiva = cancelar;
     actualizarResumen(null);
     Promise.resolve(ranking).then(actualizarResumen).catch(() => {});
-    mostrarProgreso(0);
     window.addEventListener('pagehide', cancelar);
     window.addEventListener('popstate', cancelar);
     signal?.addEventListener('abort', cancelar, { once: true });
     observador.observe(document.body, { childList: true });
-    frame = requestAnimationFrame(animar);
+    animacion.iniciar({
+      progreso, porcentaje,
+      alAvanzar: tiempo => dialogo.classList.toggle('metronet-victoria--destino', reducido || tiempo >= CONFIGURACION_TRANSICION.revelarDestinoEn),
+      alFinalizar: finalizarRecorrido,
+    });
     return finalizada;
   } catch (error) { cancelar(); throw error; }
 }

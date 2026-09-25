@@ -2,6 +2,7 @@ import { obtenerContenidoNivel } from './ContenidoPreparacion.js';
 import { seleccionarMensajeTransicion } from './MensajesTransicion.js';
 import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
 import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
+import { crearRecorridoNivel } from './RecorridoNivel.js';
 import './transicion-nivel.css';
 
 let transicionActiva = null;
@@ -35,19 +36,9 @@ export function crearPreparacionNivel(escenario) {
   titulo.tabIndex = -1;
   identidad.append(texto('span', `NIVEL ${escenario.numero}`, 'metronet-viaje__nivel'), titulo);
   cabecera.append(crearLogoMetronet(), identidad);
-  const recorrido = document.createElement('div');
-  recorrido.className = 'metronet-viaje__recorrido';
-  recorrido.setAttribute('aria-hidden', 'true');
-  // Riel azul, nodos y metro con ventanas: geometría liviana en el lenguaje del mapa.
-  recorrido.innerHTML = `<svg viewBox="0 0 560 80" focusable="false">
-    <path class="metronet-viaje__riel" d="M30 62 H530"/>
-    <path class="metronet-viaje__linea" d="M30 62 H530" pathLength="100"/>
-    <g class="metronet-viaje__estaciones">${[30, 155, 280, 405, 530].map(x => `<circle cx="${x}" cy="62" r="8"/>`).join('')}</g>
-    <g class="metronet-viaje__metro"><path d="M-23 47 V24 H15 L23 32 V47 Z"/>
-      <path class="metronet-viaje__ventanas" d="M-16 29 H-5 V37 H-16 Z M2 29 H12 L17 34 V37 H2 Z"/>
-      <path class="metronet-viaje__ruedas" d="M-16 48 H-8 M8 48 H16"/>
-    </g>
-  </svg>`;
+  const animacion = crearRecorridoNivel({ variante: 'intro' });
+  const recorrido = animacion.elemento;
+  recorrido.classList.add('metronet-viaje__recorrido');
   const progreso = document.createElement('div');
   progreso.className = 'metronet-viaje__progreso';
   progreso.setAttribute('role', 'progressbar');
@@ -70,7 +61,7 @@ export function crearPreparacionNivel(escenario) {
   estado.setAttribute('role', 'status');
   const acciones = document.createElement('div');
   acciones.className = 'metronet-dialogo-cambios__acciones';
-  const volver = texto('button', 'Volver');
+  const volver = texto('button', 'Volver', 'metronet-boton--peligro-secundario');
   volver.type = 'button';
   const leer = texto('button', 'Leer sin prisa');
   leer.type = 'button';
@@ -82,14 +73,10 @@ export function crearPreparacionNivel(escenario) {
   cuerpo.append(cabecera, recorrido, progreso, informacion, pie);
   dialogo.append(cuerpo);
 
-  let frame = null, pausaFinal = null, cerrado = false, cancelada = false;
-  let retenerLectura = false, recorridoTerminado = false, datosListos = false, ultimoPorcentaje = -1;
+  let cerrado = false, cancelada = false;
+  let retenerLectura = false, recorridoTerminado = false, datosListos = false;
   let resolver;
   const finalizada = new Promise(resolve => { resolver = resolve; });
-  const metro = recorrido.querySelector('.metronet-viaje__metro');
-  const linea = recorrido.querySelector('.metronet-viaje__linea');
-  const estaciones = [...recorrido.querySelectorAll('circle')];
-
   function actualizarEstado() {
     if (cerrado) return;
     if (retenerLectura) estado.textContent = 'Leé a tu ritmo. Elegí Continuar al nivel cuando estés listo.';
@@ -98,42 +85,14 @@ export function crearPreparacionNivel(escenario) {
     if (recorridoTerminado && datosListos && !retenerLectura) resolver(true);
   }
   function finalizarRecorrido() {
-    pausaFinal = null;
     recorridoTerminado = true;
     actualizarEstado();
-  }
-  function mostrarProgreso(fraccion) {
-    const entero = Math.floor(fraccion * 100);
-    if (entero !== ultimoPorcentaje) {
-      ultimoPorcentaje = entero;
-      porcentaje.textContent = `${entero}%`;
-      progreso.setAttribute('aria-valuenow', String(entero));
-      // En modo reducido se encienden estaciones sin un desplazamiento continuo.
-      linea.style.strokeDashoffset = String(100 - (movimientoReducido ? Math.floor(entero / 25) * 25 : entero));
-      estaciones.forEach((estacion, indice) => estacion.classList.toggle('activa', entero >= indice * 25));
-    }
-    metro.style.transform = `translateX(${movimientoReducido ? 30 : 30 + fraccion * 500}px)`;
-    if (movimientoReducido || fraccion >= CONFIGURACION_TRANSICION.revelarConsignaEn) dialogo.classList.add('metronet-viaje--consigna-visible');
-  }
-  const inicio = performance.now();
-  function animar(ahora) {
-    frame = null;
-    if (cerrado) return;
-    if (!dialogo.isConnected) { cerrar(); return; }
-    const tiempo = Math.min(1, (ahora - inicio) / CONFIGURACION_TRANSICION.duracionMs);
-    // Acelera y desacelera entre estaciones, sin saltos ni porcentajes decrecientes.
-    const tramo = tiempo * 4, parcial = tramo % 1;
-    const avance = tiempo === 1 ? 1 : (Math.floor(tramo) + parcial * parcial * (3 - 2 * parcial)) / 4;
-    mostrarProgreso(avance);
-    if (tiempo < 1) frame = requestAnimationFrame(animar);
-    else pausaFinal = setTimeout(finalizarRecorrido, CONFIGURACION_TRANSICION.pausaFinalMs);
   }
   function cerrar() {
     if (cerrado) return;
     cerrado = true;
     cancelada = true;
-    cancelAnimationFrame(frame);
-    clearTimeout(pausaFinal);
+    animacion.destruir();
     window.removeEventListener('pagehide', cerrar);
     window.removeEventListener('popstate', cerrar);
     observador.disconnect();
@@ -162,12 +121,17 @@ export function crearPreparacionNivel(escenario) {
     document.body.append(dialogo);
     dialogo.showModal();
     titulo.focus({ preventScroll: true });
-    mostrarProgreso(0);
     transicionActiva = controlador;
     window.addEventListener('pagehide', cerrar);
     window.addEventListener('popstate', cerrar);
     observador.observe(document.body, { childList: true });
-    frame = requestAnimationFrame(animar);
+    animacion.iniciar({
+      progreso, porcentaje,
+      alAvanzar: tiempo => {
+        if (movimientoReducido || tiempo >= CONFIGURACION_TRANSICION.revelarConsignaEn) dialogo.classList.add('metronet-viaje--consigna-visible');
+      },
+      alFinalizar: finalizarRecorrido,
+    });
     return controlador;
   } catch (error) { cerrar(); throw error; }
 }

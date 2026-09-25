@@ -1,0 +1,24 @@
+.metronet-recorrido-nivel { position: relative; background-color: var(--bg-primary); background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px); background-size: 24px 24px; border: 1px solid var(--border); }
+.metronet-recorrido-nivel svg { display: block; width: 100%; height: clamp(190px, 36svh, 380px); }
+.recorrido-ciudad { fill: var(--panel); stroke: var(--border); stroke-width: 1; }
+.recorrido-anden { fill: var(--panel-elevated); stroke: var(--border-active); stroke-width: 4; }
+.recorrido-riel { stroke: var(--border); stroke-width: 3; fill: none; }
+.recorrido-linea { stroke: var(--info-active); stroke-width: 5; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.recorrido-estaciones circle { fill: var(--panel); stroke: var(--border-active); stroke-width: 3; }
+.recorrido-estaciones .activa { fill: var(--success); stroke: var(--success); }
+.recorrido-senal rect { fill: var(--success); }
+.recorrido-destino rect { fill: var(--info-active); }
+.recorrido-senal text, .recorrido-destino text { fill: var(--bg-primary); font: bold 12px var(--font-tecnica); text-anchor: middle; }
+.recorrido-carroceria { fill: var(--primary); stroke: var(--text-primary); stroke-width: 3; }
+.recorrido-ventanas, .recorrido-interior { fill: var(--bg-primary); }
+.recorrido-puerta { fill: var(--primary-hover); stroke: var(--primary-edge); stroke-width: 2; transition: transform 160ms ease-out; }
+.metronet-recorrido-nivel--puertas .recorrido-puerta--izquierda { transform: translateX(-12px); }
+.metronet-recorrido-nivel--puertas .recorrido-puerta--derecha { transform: translateX(12px); }
+.recorrido-franja { stroke: var(--text-primary); stroke-width: 4; }
+.recorrido-luz { fill: var(--warning); }
+.recorrido-ruedas { stroke: var(--text-primary); stroke-width: 9; }
+.recorrido-destellos { stroke: var(--success); stroke-width: 3; opacity: .6; }
+.metronet-recorrido-nivel[data-final="true"] .recorrido-destellos { stroke: var(--warning); stroke-width: 5; }
+@media (prefers-reduced-motion: reduce) {
+  .recorrido-puerta { transition: none; }
+}

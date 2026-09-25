@@ -50,14 +50,14 @@ async function abrir(t, escenarios, ruta = '/escenarios.html', opciones = {}) {
 }
 async function viajar(pagina) {
   await pagina.locator('.metronet-viaje').waitFor();
-  await pagina.clock.runFor(3300);
+  await pagina.clock.runFor(4600);
 }
 async function destino(pagina, escenario) {
   await pagina.waitForURL(`${BASE}/?idDiseno=101&idEscenario=${escenario.idEscenario}&idIntento=202`);
 }
 for (const ruta of ['/escenarios.html', '/inicio.html']) {
   test(`${ruta}: entra automáticamente en cada nivel, con API en paralelo y consigna correcta`, async t => {
-    for (const numero of [1, 4, 6, 10]) await t.test(`nivel ${numero}`, async t => {
+    for (const numero of niveles.map(n => n.numero)) await t.test(`nivel ${numero}`, async t => {
       const escenario = nivel(numero);
       const { pagina, solicitudes } = await abrir(t, [escenario], ruta);
       await pagina.getByRole('button', { name: ruta === '/inicio.html' ? 'Comenzar escenario' : 'Comenzar', exact: true }).click();
@@ -82,7 +82,7 @@ test('API lenta: progreso monótono, 100% visible, mensaje estable y sin navegac
   const mensaje = await dialogo.locator('[data-mensaje-id]').innerText();
   assert.equal(solicitudes.length, 1);
   let anterior = -1;
-  for (const ms of [750, 750, 750, 750, 300]) {
+  for (const ms of [1000, 1000, 1000, 1000, 600]) {
     await pagina.clock.runFor(ms);
     const actual = Number(await dialogo.getByRole('progressbar').getAttribute('aria-valuenow'));
     assert.ok(actual >= anterior); anterior = actual;
@@ -115,7 +115,7 @@ test('volver, Escape y doble clic no duplican viajes; cada reingreso cambia el m
       if (accion === 'volver') await dialogo.getByRole('button', { name: 'Volver', exact: true }).click();
       else await pagina.keyboard.press('Escape');
       await dialogo.waitFor({ state: 'detached' });
-      await pagina.clock.runFor(4000);
+      await pagina.clock.runFor(5000);
       assert.equal(new URL(pagina.url()).pathname, '/escenarios.html');
       assert.equal(await boton.isEnabled(), true);
       assert.equal(await boton.evaluate(b => b === document.activeElement), true);
@@ -149,7 +149,7 @@ test('errores de API y niveles bloqueados conservan sus restricciones', async t 
   assert.equal(await pagina.getByRole('button', { name: 'Bloqueado', exact: true }).isDisabled(), true);
   await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
   await pagina.getByText('El escenario está bloqueado.', { exact: true }).waitFor();
-  await pagina.clock.runFor(4000);
+  await pagina.clock.runFor(5000);
   assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
   assert.equal(new URL(pagina.url()).pathname, '/escenarios.html');
   assert.equal(await pagina.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
@@ -161,9 +161,9 @@ for (const width of [1440, 768, 375]) for (const reducedMotion of ['no-preferenc
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
     const dialogo = pagina.locator('.metronet-viaje'); await dialogo.waitFor();
     assert.equal(await pagina.evaluate(() => document.activeElement.id), 'tituloPreparacionNivel');
-    const antes = await dialogo.locator('.metronet-viaje__metro').getAttribute('style');
+    const antes = await dialogo.locator('.recorrido-tren').getAttribute('transform');
     await pagina.clock.runFor(1500);
-    const despues = await dialogo.locator('.metronet-viaje__metro').getAttribute('style');
+    const despues = await dialogo.locator('.recorrido-tren').getAttribute('transform');
     assert.equal(antes === despues, reducedMotion === 'reduce');
     await pagina.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__consigna')).opacity === '1');
     const medidas = await dialogo.evaluate(d => ({ ancho: d.getBoundingClientRect().width, alto: d.getBoundingClientRect().height, desborde: d.scrollWidth > d.clientWidth, opacidad: getComputedStyle(d.querySelector('.metronet-viaje__consigna')).opacity }));
@@ -239,18 +239,18 @@ test('desmontaje, ruta, reinicio y salida cancelan frames y timers sin actualiza
     window.setTimeout = (cb, ms, ...args) => { const id = timeout(() => { timersViaje.delete(id); cb(...args); }, ms); timersViaje.add(id); return id; };
     window.clearTimeout = id => { timersViaje.delete(id); clear(id); };
   });
-  for (const modo of ['desmontaje', 'popstate', 'pagehide', 'reinicio', 'pausaFinal']) {
+  for (const modo of ['desmontaje', 'popstate', 'pagehide', 'reinicio', 'llegada']) {
     await pagina.evaluate(() => { window.viajePrueba = crearViaje(); window.elementoViejo = document.querySelector('.metronet-viaje'); });
-    await pagina.clock.runFor(modo === 'pausaFinal' ? 3050 : 300);
+    await pagina.clock.runFor(modo === 'llegada' ? 4300 : 300);
     await pagina.evaluate(modo => {
       if (modo === 'desmontaje') elementoViejo.remove();
       else if (modo === 'reinicio') { const nuevo = crearViaje(); nuevo.cerrar(); }
-      else if (modo === 'pausaFinal') viajePrueba.cerrar();
+      else if (modo === 'llegada') viajePrueba.cerrar();
       else window.dispatchEvent(new Event(modo));
     }, modo);
     assert.equal(await pagina.evaluate(() => viajePrueba.finalizada), false);
     const porcentaje = await pagina.evaluate(() => elementoViejo.querySelector('[role="progressbar"]').getAttribute('aria-valuenow'));
-    await pagina.clock.runFor(4000);
+    await pagina.clock.runFor(5000);
     assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
     assert.equal(await pagina.evaluate(() => elementoViejo.querySelector('[role="progressbar"]').getAttribute('aria-valuenow')), porcentaje);
     assert.deepEqual(await pagina.evaluate(() => ({ frames: framesViaje.size, timers: timersViaje.size })), { frames: 0, timers: 0 });
