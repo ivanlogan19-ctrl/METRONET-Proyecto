@@ -141,9 +141,9 @@ for (const width of [1440, 768, 390, 320]) test(`ASSIST compacto y referencias u
   assert.equal(await p.locator('[data-assist-mensaje] > p').evaluate(e => getComputedStyle(e).animationName), 'none');
   await capturar(p, `assist-${width}`);
   await p.locator('.metronet-panel-puntos-titulo').scrollIntoViewIfNeeded();
-  assert.equal(await p.locator('.metronet-panel-puntos-titulo').innerText(), 'REFERENCIAS TERRITORIALES');
-  await p.getByRole('button', { name: 'Abrir referencias del mapa', exact: true }).click();
-  await p.getByRole('button', { name: 'Cerrar referencias del mapa', exact: true }).click();
+  assert.equal(await p.locator('.metronet-panel-puntos-titulo').innerText(), 'BUSCAR POI');
+  await p.getByRole('button', { name: 'Abrir buscador POI', exact: true }).click();
+  await p.getByRole('button', { name: 'Cerrar buscador POI', exact: true }).click();
   assert.deepEqual(await p.locator('.metronet-panel-puntos-cabecera').evaluate(e => {
     const r = e.getBoundingClientRect();
     return [...e.children].filter(c => { const b = c.getBoundingClientRect(); return b.width && (b.left < r.left - 1 || b.right > r.right + 1); }).map(c => c.className);

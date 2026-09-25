@@ -53,14 +53,14 @@ test('seleccionar, usar botones de zoom y cerrar conserva y después elimina nom
 
 test('búsqueda localiza el POI y muestra nombre; sin resultados no selecciona otro', async (t) => {
   const { pagina } = await preparar(t);
-  await pagina.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
+  await pagina.getByRole('button', { name: 'Abrir buscador POI' }).click();
   const busqueda = pagina.getByRole('searchbox', { name: 'Buscar POI' });
   await busqueda.fill('Palacio Legislativo');
   await pagina.locator('.metronet-panel-puntos-lista button').first().click();
   await pagina.getByRole('dialog', { name: 'Información de Palacio Legislativo' }).waitFor();
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), 'id:1');
   await pagina.getByRole('button', { name: 'Cerrar', exact: true }).click();
-  await pagina.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
+  await pagina.getByRole('button', { name: 'Abrir buscador POI' }).click();
   await busqueda.fill('zz-no-existe-zz');
   assert.equal(await pagina.locator('.metronet-panel-puntos-lista button').count(), 0);
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), null);

@@ -1,8 +1,10 @@
-// Catálogo real y Phaser real; HTTP interceptado para no modificar datos de cuentas.
+// Catálogo y Phaser reales; API interceptada para no modificar cuentas ni diseños.
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirEditor } = require('./soporte/editor.cjs');
+const CATEGORIAS = ['POI', 'ESPACIOS_VERDES', 'INFRAESTRUCTURA', 'AGUA'];
+const ETIQUETAS = ['POI', 'Espacios verdes', 'Infraestructura', 'Agua'];
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
@@ -12,191 +14,168 @@ async function abrir(t, opciones) {
   await vista.pagina.evaluate(() => { window.poi = editorPrueba.escena.capaPuntosInteres; });
   return vista;
 }
+async function establecer(p, mascara) {
+  for (let i = 0; i < ETIQUETAS.length; i++) {
+    const boton = p.getByRole('button', { name: ETIQUETAS[i], exact: true });
+    if ((await boton.getAttribute('aria-pressed') === 'true') !== Boolean(mascara & (1 << i))) await boton.click();
+  }
+}
 
-test('Categorías derivadas: todo el catálogo, identidad intacta y tipos sin falsos positivos', async t => {
+test('Cuatro categorías derivadas del catálogo; espacios verdes separados y coordenadas intactas', async t => {
   const { pagina: p } = await abrir(t);
   const resultado = await p.evaluate(async () => {
     const { obtenerCategoriaReferencia: categoria } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
     const fuente = (await import('/src/mapa/datos/puntos-interes.json')).default;
     const originales = Object.values(fuente.barrios).flatMap(b => b.puntos);
     return {
-      total: poi.puntos.length,
-      grupos: Object.fromEntries(['POI','INFRAESTRUCTURA','AGUA'].map(c => [c, poi.puntos.filter(p => categoria(p) === c).length])),
+      grupos: Object.fromEntries(['POI', 'ESPACIOS_VERDES', 'INFRAESTRUCTURA', 'AGUA'].map(c => [c, poi.puntos.filter(p => categoria(p) === c).length])),
       intactos: originales.every(o => poi.puntos.some(p => p.id === o.id && p.nombre === o.nombre && p.tipo === o.tipo && p.latitud === o.latitud && p.longitud === o.longitud)),
-      casos: ['Hospital universitario','Patrimonio ferroviario','Museo ferroviario','Edificio histórico','Río','Arroyo','Estación ferroviaria','Puerto'].map(tipo => categoria({ tipo })),
+      casos: ['Hospital universitario', 'Patrimonio ferroviario', 'Museo ferroviario', 'Espacio público', 'Parque', 'Plaza mirador', 'Jardín histórico', 'Río', 'Arroyo', 'Estación ferroviaria', 'Puerto'].map(tipo => categoria({ tipo })),
+      colores: [1, 85, 20, 29].map(id => poi.obtenerColorMarcador(poi.puntos.find(p => p.id === id))),
     };
   });
-  assert.equal(resultado.total, 121); assert.equal(resultado.intactos, true);
-  assert.deepEqual(resultado.grupos, { POI: 105, INFRAESTRUCTURA: 7, AGUA: 9 });
-  assert.deepEqual(resultado.casos, ['POI','POI','POI','POI','AGUA','AGUA','INFRAESTRUCTURA','INFRAESTRUCTURA']);
+  assert.equal(resultado.intactos, true);
+  assert.deepEqual(resultado.grupos, { POI: 73, ESPACIOS_VERDES: 32, INFRAESTRUCTURA: 7, AGUA: 9 });
+  assert.deepEqual(resultado.casos, ['POI','POI','POI','POI','ESPACIOS_VERDES','ESPACIOS_VERDES','ESPACIOS_VERDES','AGUA','AGUA','INFRAESTRUCTURA','INFRAESTRUCTURA']);
+  assert.equal(new Set(resultado.colores).size, 4);
+  assert.equal(resultado.colores[1], 0x75b49c);
 });
 
-test('Filtros compartidos: búsqueda, selección, ondas/cuadrados, objetivos y cero persistencia adicional', async t => {
-  const { pagina: p, solicitudes } = await abrir(t, { objetivos: [{ idPunto: 20, radioCobertura: 60 }] });
-  await p.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  const buscar = p.getByRole('searchbox');
-  await buscar.fill('Lago del Parque Rivera');
-  const lago = p.locator('.metronet-panel-puntos-lista button').first();
-  assert.match(await lago.innerText(), /Agua · Lago/);
-  await lago.click();
-  const ficha = p.getByRole('dialog');
-  assert.match(await ficha.innerText(), /Agua · Lago/);
-  const geometria = await p.evaluate(() => {
-    const seleccionado = poi.puntos.find(p => poi.clavePunto(p) === poi.puntoSeleccionado);
-    const puerto = poi.puntos.find(p => p.id === 20);
-    return { agua: poi.obtenerFormaMarcador(seleccionado), infraestructura: poi.obtenerFormaMarcador(puerto), colores: [poi.obtenerColorMarcador(seleccionado), poi.obtenerColorMarcador(puerto)] };
-  });
-  assert.equal(geometria.agua, 'ondas'); assert.equal(geometria.infraestructura, 'cuadrado');
-  assert.notEqual(...geometria.colores);
-  await ficha.getByRole('button', { name: 'Cerrar', exact: true }).click();
-  await p.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  await p.getByRole('button', { name: 'Agua', exact: true }).click();
-  assert.equal(await p.locator('.metronet-panel-puntos-lista button').count(), 1, 'La búsqueda no depende de las capas visibles');
-  await p.getByRole('button', { name: 'Infraestructura', exact: true }).click();
-  await p.getByRole('button', { name: 'POI', exact: true }).click();
-  await buscar.fill('Puerto del Buceo');
-  assert.equal(await p.locator('.metronet-panel-puntos-lista button').count(), 1);
-  const objetivos = await p.evaluate(() => ({
-    visible: poi.representaciones.find(r => r.punto.id === 20).contenedor.visible,
-    habilitado: poi.representaciones.find(r => r.punto.id === 20).areaInteraccion.input.enabled,
-    resultados: poi.obtenerResumenPuntos().puntosBusqueda.length,
+test('Dieciséis combinaciones repetidas: capas, indicadores, contexto verde y cámara independientes sin duplicados', async t => {
+  const { pagina: p, solicitudes } = await abrir(t);
+  await p.evaluate(() => document.fonts.ready);
+  await p.waitForFunction(() => !document.querySelector('.metronet-estado-editor__mensaje [role="status"]')?.textContent);
+  await p.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const inicial = await p.evaluate(() => ({
+    objetos: poi.escena.children.list.length,
+    visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id).sort(),
+    camara: [poi.escena.cameras.main.scrollX, poi.escena.cameras.main.scrollY, poi.escena.cameras.main.zoom],
   }));
-  assert.deepEqual(objetivos, { visible: true, habilitado: true, resultados: 121 });
-  const activos = await p.evaluate(() => {
-    poi.seleccionarPunto(20, { mostrarInformacion: false });
-    return { visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id), categorias: [...poi.categoriasVisibles] };
-  });
-  assert.deepEqual(activos, { visibles: [20], categorias: [] }, 'Seleccionar un objetivo no reactiva las categorías ocultas');
-  await p.getByRole('button', { name: 'Agua', exact: true }).click();
-  await buscar.fill('Lago del Parque Rivera');
-  assert.equal(await p.locator('.metronet-panel-puntos-lista button').count(), 1);
+  for (let vuelta = 0; vuelta < 2; vuelta++) for (let mascara = 0; mascara < 16; mascara++) {
+    await establecer(p, mascara);
+    const estado = await p.evaluate(async () => {
+      const { obtenerCategoriaReferencia: categoria } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
+      return {
+        categorias: [...poi.categoriasVisibles].sort(),
+        objetos: poi.escena.children.list.length,
+        verdes: editorPrueba.escena.capaTerritorial.mostrarReferencias,
+        formasVerdes: editorPrueba.escena.capaTerritorial.grafico.commandBuffer.length,
+        indebidos: poi.representaciones.filter(r => !poi.categoriasVisibles.has(categoria(r.punto)) && (r.contenedor.visible || r.areaInteraccion.input.enabled)).length,
+        visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id).sort(),
+        etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).length,
+        camara: [poi.escena.cameras.main.scrollX, poi.escena.cameras.main.scrollY, poi.escena.cameras.main.zoom],
+        catalogo: poi.obtenerResumenPuntos().puntosBusqueda.length,
+      };
+    });
+    const esperadas = CATEGORIAS.filter((_, i) => mascara & (1 << i)).sort();
+    assert.deepEqual(estado.categorias, esperadas);
+    assert.deepEqual(await p.locator('.metronet-capas-activas > span:visible').evaluateAll(es => es.map(e => e.dataset.categoria).sort()), esperadas);
+    assert.equal(await p.locator('.metronet-capas-activas > span').count(), 4);
+    assert.equal(estado.verdes, Boolean(mascara & 2));
+    assert.equal(estado.formasVerdes > 0, Boolean(mascara & 2));
+    assert.equal(estado.indebidos, 0); assert.equal(estado.etiquetas, 0); assert.equal(estado.catalogo, 73);
+    assert.equal(estado.objetos, inicial.objetos); assert.deepEqual(estado.camara, inicial.camara);
+    if (mascara === 15) assert.deepEqual(estado.visibles, inicial.visibles);
+  }
+  assert.deepEqual(solicitudes, []);
+});
+
+test('Solo POI tiene búsqueda; cerrar la ficha mantiene el punto y borrar la consulta lo retira', async t => {
+  const { pagina: p, solicitudes } = await abrir(t);
+  await establecer(p, 0);
+  await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
+  const buscar = p.getByRole('searchbox', { name: 'Buscar POI' });
+  assert.equal(await p.getByRole('searchbox').count(), 1);
+  for (const [nombre, id] of [['Parque Rodó', 85], ['Puerto del Buceo', 20], ['Lago del Parque Rivera', 29]]) {
+    await buscar.fill(nombre);
+    assert.equal(await p.locator(`.metronet-panel-puntos-lista button[data-id-punto="${id}"]`).count(), 0);
+    assert.equal(await p.locator('.metronet-panel-puntos-lista button:not([data-categoria="POI"])').count(), 0);
+  }
+  for (const nombre of ['Palacio Legislativo', 'Hospital de Clínicas']) {
+    await buscar.fill(nombre);
+    await p.locator('.metronet-panel-puntos-lista button').first().click();
+    await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
+    const estado = await p.evaluate(() => ({
+      buscado: poi.puntoBuscado, seleccionado: poi.puntoSeleccionado,
+      visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => poi.clavePunto(r.punto)),
+      etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).length,
+      categorias: [...poi.categoriasVisibles],
+    }));
+    assert.deepEqual(estado.visibles, [estado.buscado]); assert.ok(estado.buscado);
+    assert.equal(estado.seleccionado, null); assert.equal(estado.etiquetas, 1); assert.deepEqual(estado.categorias, []);
+    await p.getByRole('button', { name: 'Agua', exact: true }).click();
+    await p.getByRole('button', { name: 'Agua', exact: true }).click();
+    assert.equal(await p.evaluate(() => poi.puntoBuscado), estado.buscado);
+    await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
+    assert.equal(await buscar.inputValue(), nombre);
+    await buscar.fill('');
+    assert.equal(await p.evaluate(() => poi.puntoBuscado), null);
+    assert.equal(await p.evaluate(() => poi.representaciones.filter(r => r.contenedor.visible).length), 0);
+  }
   await p.keyboard.press('Escape');
   assert.equal(await buscar.isVisible(), false);
   assert.deepEqual(solicitudes, []);
 });
 
-for (const width of [1440, 1024, 768, 390, 320]) test(`Barra geográfica ${width}: distribución, teclado, cámara estable y sin palabras cortadas`, async t => {
+test('Objetivos territoriales siguen disponibles con categorías apagadas, sin entrar en el buscador POI', async t => {
+  const { pagina: p } = await abrir(t, { objetivos: [{ idPunto: 85, radioCobertura: 60 }, { idPunto: 20, radioCobertura: 60 }] });
+  await establecer(p, 0);
+  const estado = await p.evaluate(() => ({
+    visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id).sort(),
+    catalogo: poi.obtenerResumenPuntos().puntosBusqueda.map(p => p.id),
+  }));
+  assert.deepEqual(estado.visibles, [20, 85]);
+  assert.equal(estado.catalogo.includes(20) || estado.catalogo.includes(85), false);
+  await p.evaluate(() => poi.seleccionarPunto(20));
+  assert.match(await p.getByRole('dialog').innerText(), /Infraestructura · Puerto/);
+});
+
+for (const width of [1440, 1024, 768, 390, 320]) test(`Layout ${width}: cuatro capas alineadas, búsqueda separada, Territorio sin doble relieve`, async t => {
   const { pagina: p } = await abrir(t, { viewport: { width, height: 1000 } });
   await p.evaluate(() => document.fonts.ready);
-  const barra = p.locator('.metronet-barra-geografica');
-  const ref = await p.locator('[data-contenedor-puntos-interes]').boundingBox();
-  const territorio = await p.locator('.metronet-territorio-selectores').boundingBox();
-  if (width >= 768) assert.ok(Math.abs(ref.y - territorio.y) < 1);
-  else assert.ok(territorio.y >= ref.y + ref.height);
-  const antes = await p.locator('#metronet-mapa').boundingBox();
-  const camara = await p.evaluate(() => { const c = poi.escena.cameras.main; return [c.scrollX, c.scrollY, c.zoom]; });
-  for (const id of ['zonas','barrios']) {
+  const capas = p.locator('.metronet-referencias-territoriales');
+  assert.equal(await capas.getByRole('searchbox').count(), 0);
+  assert.equal(await capas.getByRole('button').count(), 4);
+  assert.equal(await p.getByRole('heading', { name: 'Referencias territoriales', exact: true }).count(), 1);
+  const medidas = await p.locator('.metronet-referencias-controles button, .metronet-territorio-selectores .metronet-panel-encabezado').evaluateAll(botones => botones.map(b => {
+    const r = b.getBoundingClientRect(), c = getComputedStyle(b);
+    return { alto: r.height, y: r.y, x: r.x, ancho: r.width, padding: c.padding, lineHeight: c.lineHeight, sombra: c.boxShadow, desborda: b.scrollWidth > b.clientWidth };
+  }));
+  assert.equal(medidas.length, 6);
+  assert.equal(new Set(medidas.map(c => c.alto)).size, 1, JSON.stringify(medidas));
+  assert.equal(new Set(medidas.map(c => c.padding)).size, 1);
+  assert.equal(new Set(medidas.map(c => c.lineHeight)).size, 1);
+  assert.ok(medidas.every(c => !c.desborda && c.x >= 0 && c.x + c.ancho <= width));
+  if (width === 1440) assert.equal(new Set(medidas.slice(0, 4).map(c => c.y)).size, 1);
+  for (const frame of await p.locator('.metronet-territorio-selectores .metronet-panel-dinamico').all()) {
+    assert.deepEqual(await frame.evaluate(e => ({ borde: getComputedStyle(e).borderWidth, sombra: getComputedStyle(e).boxShadow })), { borde: '0px', sombra: 'none' });
+  }
+  for (const id of ['zonas', 'barrios']) {
     const boton = p.locator(`#metronet-selector-${id} button`).first();
     await boton.focus(); await boton.press('Enter');
     assert.equal(await boton.getAttribute('aria-expanded'), 'true');
-    const contenido = p.locator(`#metronet-selector-${id}-contenido`);
-    assert.ok(await contenido.isVisible());
-    const caja = await contenido.boundingBox();
-    assert.ok(caja.x >= 0 && caja.x + caja.width <= width);
-    await boton.press('Escape');
-    assert.equal(await boton.getAttribute('aria-expanded'), 'false');
+    await boton.press('Escape'); assert.equal(await boton.getAttribute('aria-expanded'), 'false');
   }
-  await p.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(), antes);
-  assert.deepEqual(await p.evaluate(() => { const c = poi.escena.cameras.main; return [c.scrollX, c.scrollY, c.zoom]; }), camara);
-  assert.equal(await p.getByRole('heading', { name: 'Referencias territoriales', exact: true }).count(), 1);
-  assert.equal(await p.getByRole('heading', { name: 'Referencias', exact: true }).count(), 0);
-  assert.equal(await p.locator('.metronet-referencias-leyenda input').count(), 0);
-  const cajas = await p.locator('.metronet-referencias-controles button').evaluateAll(botones => botones.map(b => {
-    const r = b.getBoundingClientRect(); return { x: r.x, y: r.y, alto: r.height, ancho: r.width, desborda: b.scrollWidth > b.clientWidth };
-  }));
-  assert.equal(cajas.length, 3);
-  assert.equal(new Set(cajas.map(c => c.alto)).size, 1, 'Altura común, incluso cuando las filas se apilan');
-  assert.ok(cajas.every(c => !c.desborda && c.x >= 0 && c.x + c.ancho <= width));
-  if (width === 1440) assert.equal(new Set(cajas.map(c => c.y)).size, 1, 'Una fila en desktop');
-  await p.keyboard.press('Escape');
-  for (const boton of await barra.locator('button:visible').all()) {
-    assert.equal(await boton.evaluate(e => e.scrollWidth > e.clientWidth + 1), false, await boton.textContent());
-  }
+  const mapa = await p.locator('#metronet-mapa').boundingBox();
+  await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
+  assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(), mapa);
   assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  assert.equal(await p.locator('#metronet-panel-controles [data-contenedor-selectores-mapa]').count(), 0);
+  assert.equal(await p.locator('.metronet-capas-activas').evaluate(e => getComputedStyle(e).pointerEvents), 'none');
 });
 
-test('Ocho combinaciones de capas y alternancia repetida sin duplicar objetos ni afectar cámara o Territorio', async t => {
-  const { pagina: p, solicitudes } = await abrir(t);
-  await p.evaluate(() => document.fonts.ready);
-  // El aviso inicial se retira a los 4,2 s y reajusta el encuadre de la red.
-  // Esperar ese cambio independiente antes de medir el efecto de las capas.
-  await p.waitForFunction(() => !document.querySelector('.metronet-estado-editor__mensaje [role="status"]')?.textContent);
-  await p.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  await p.waitForFunction(() => !poi.escena.cameras.main.zoomEffect.isRunning && !poi.escena.cameras.main.panEffect.isRunning);
-  await p.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  const categorias = ['POI', 'Infraestructura', 'Agua'];
-  const inicial = await p.evaluate(() => ({
-    objetos: poi.escena.children.list.length,
-    visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id).sort(),
-    camara: [poi.escena.cameras.main.scrollX, poi.escena.cameras.main.scrollY, poi.escena.cameras.main.zoom],
-    territorio: [poi.zonasSeleccionadas, poi.barriosSeleccionados],
-  }));
-  for (let vuelta = 0; vuelta < 3; vuelta++) for (let mascara = 0; mascara < 8; mascara++) {
-    for (let i = 0; i < categorias.length; i++) {
-      const boton = p.getByRole('button', { name: categorias[i], exact: true });
-      if ((await boton.getAttribute('aria-pressed') === 'true') !== Boolean(mascara & (1 << i))) await boton.click();
-    }
-    const estado = await p.evaluate(async () => {
-      const { obtenerCategoriaReferencia } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
-      return {
-        categorias: [...poi.categoriasVisibles].sort(),
-        objetos: poi.escena.children.list.length,
-        visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id).sort(),
-        verdes: editorPrueba.escena.capaTerritorial.mostrarReferencias,
-        indebidos: poi.representaciones.filter(r => !poi.categoriasVisibles.has(obtenerCategoriaReferencia(r.punto))
-          && (r.contenedor.visible || r.areaInteraccion.input.enabled)).length,
-        camara: [poi.escena.cameras.main.scrollX, poi.escena.cameras.main.scrollY, poi.escena.cameras.main.zoom],
-        territorio: [poi.zonasSeleccionadas, poi.barriosSeleccionados],
-        catalogo: poi.obtenerResumenPuntos().puntosBusqueda.length,
-      };
-    });
-    assert.deepEqual(estado.categorias, categorias.filter((_, i) => mascara & (1 << i)).map(c => c.toUpperCase()).sort());
-    assert.equal(estado.verdes, Boolean(mascara & 1));
-    assert.equal(estado.indebidos, 0); assert.equal(estado.catalogo, 121);
-    assert.equal(estado.objetos, inicial.objetos, 'No se acumulan sprites ni etiquetas');
-    if (mascara === 7) assert.deepEqual(estado.visibles, inicial.visibles, 'Reactivar las capas restaura los marcadores');
-    assert.deepEqual(estado.camara, inicial.camara); assert.deepEqual(estado.territorio, inicial.territorio);
-  }
-  assert.deepEqual(solicitudes, []);
-});
-
-test('Buscar una referencia oculta destaca solo la selección; cerrar restaura las capas apagadas', async t => {
-  const { pagina: p, solicitudes } = await abrir(t);
-  await p.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  for (const nombre of ['POI', 'Infraestructura', 'Agua']) {
-    const boton = p.getByRole('button', { name: nombre, exact: true });
-    await boton.focus(); await boton.press('Space');
-    assert.equal(await boton.getAttribute('aria-pressed'), 'false');
-  }
-  for (const nombre of ['Lago del Parque Rivera', 'Puerto del Buceo', 'Parque Rodó']) {
-    await p.getByRole('searchbox', { name: 'Buscar POI' }).fill(nombre);
-    await p.locator('.metronet-panel-puntos-lista button').first().click();
-    assert.match(await p.getByRole('dialog').innerText(), new RegExp(nombre, 'i'));
-    const seleccion = await p.evaluate(() => ({
-      categorias: [...poi.categoriasVisibles],
-      visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => poi.clavePunto(r.punto)),
-      seleccionado: poi.puntoSeleccionado,
-    }));
-    assert.deepEqual(seleccion.categorias, []);
-    assert.deepEqual(seleccion.visibles, [seleccion.seleccionado]);
-    assert.equal(await p.evaluate(async () => {
-      const { obtenerCategoriaReferencia } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
-      const punto = poi.puntos.find(p => poi.clavePunto(p) === poi.puntoSeleccionado);
-      const otra = obtenerCategoriaReferencia(punto) === 'AGUA' ? 'INFRAESTRUCTURA' : 'AGUA';
-      const antes = poi.puntoSeleccionado;
-      poi.establecerCategoriasVisibles([otra]);
-      poi.establecerCategoriasVisibles([]);
-      return poi.puntoSeleccionado === antes;
-    }), true, 'Cambiar otra capa no elimina la selección explícita');
-    await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
-    assert.equal(await p.evaluate(() => poi.representaciones.filter(r => r.contenedor.visible).length), 0);
-    await p.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  }
-  await p.keyboard.press('Escape');
+test('Recarga, limpieza de búsqueda y cambio de diseño no dejan indicadores o selecciones duplicados', async t => {
+  const { pagina: p } = await abrir(t);
+  await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
+  await p.getByRole('searchbox').fill('Palacio Legislativo');
+  await p.locator('.metronet-panel-puntos-lista button').first().click();
+  await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
   await p.evaluate(() => editorPrueba.abrirDiseno(77));
-  assert.equal(await p.locator('.metronet-referencias-controles').count(), 1);
-  assert.equal(await p.locator('.metronet-referencias-controles [aria-pressed="false"]').count(), 3);
-  assert.deepEqual(solicitudes, []);
+  assert.equal(await p.evaluate(() => poi.puntoBuscado), 'id:1', 'Recargar el mismo diseño conserva la búsqueda');
+  await p.evaluate(() => { editorPrueba.disenoActual.simulacion.idDiseno = 78; return editorPrueba.abrirDiseno(77); });
+  assert.equal(await p.evaluate(() => poi.puntoBuscado), null, 'Cambiar de diseño limpia la búsqueda anterior');
+  await p.reload();
+  await p.waitForFunction(() => window.juegoPrueba?.scene?.getScene('MapaScene')?.editorRedMetro?.disenoActual?.simulacion?.idDiseno === 77);
+  assert.equal(await p.locator('.metronet-capas-activas').count(), 1);
+  assert.equal(await p.locator('.metronet-capas-activas > span:visible').count(), 4);
+  assert.equal(await p.locator('.metronet-referencias-controles [aria-pressed=true]').count(), 4);
 });

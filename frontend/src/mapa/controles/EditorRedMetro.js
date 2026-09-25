@@ -411,6 +411,7 @@ export default class EditorRedMetro {
       this.disenoActual = await this.clienteDisenos.obtener(idDiseno);
       this.errorAyuda = null;
       if (cambioDeDiseno) {
+        this.escena.panelPuntosInteres?.limpiarBusqueda();
         this.escena.capaPuntosInteres?.limpiarPuntoSeleccionado();
         this.restablecerModo();
         this.panelHerramientas?.seleccionar('seleccion', false);

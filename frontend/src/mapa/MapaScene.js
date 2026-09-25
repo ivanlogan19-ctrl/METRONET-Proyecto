@@ -15,6 +15,7 @@ import SelectorBarrios from './controles/SelectorBarrios.js';
 
 import ControlZoom from './controles/ControlZoom.js';
 import PanelPuntosInteres from './controles/PanelPuntosInteres.js';
+import PanelReferenciasTerritoriales from './controles/PanelReferenciasTerritoriales.js';
 import PanelSeleccionGeografica from './controles/PanelSeleccionGeografica.js';
 import EditorRedMetro from './controles/EditorRedMetro.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
@@ -94,7 +95,7 @@ export default class MapaScene extends Phaser.Scene {
     this.capaTerritorial = new CapaTerritorial(this, {
       territorio: this.territorioMapa, capaBarrios: this.capaBarrios,
       puntos: this.capaPuntosInteres.puntos,
-      referenciasVisibles: () => this.capaPuntosInteres.categoriasVisibles.has('POI'),
+      referenciasVisibles: () => this.capaPuntosInteres.categoriasVisibles.has('ESPACIOS_VERDES'),
     });
     this.crearCapaIconosBarrios();
 
@@ -184,6 +185,7 @@ export default class MapaScene extends Phaser.Scene {
       onCambioSeleccion: () => {},
 
       onActualizarPuntos: (resumen) => {
+        this.panelReferencias?.actualizar(resumen.categoriasVisibles);
         this.panelPuntosInteres?.actualizar(resumen);
         this.editorRedMetro?.actualizarReferenciaAyuda(resumen.puntoSeleccionado);
         this.panelSeleccionGeografica?.actualizar(resumen);
@@ -216,16 +218,22 @@ export default class MapaScene extends Phaser.Scene {
 
     this.panelPuntosInteres = new PanelPuntosInteres({
       contenedorPadre: this.contenedorPuntosInteres,
-      alSeleccionar: (punto) => this.localizarReferencia(punto),
+      alSeleccionar: (punto) => this.localizarReferencia(punto, { desdeBusqueda: true }),
+      alLimpiarBusqueda: () => this.capaPuntosInteres.limpiarPuntoBuscado(),
+    });
+    this.panelReferencias = new PanelReferenciasTerritoriales({
+      contenedor: this.contenedorMapa.closest('.metronet-area-mapa').querySelector('[data-contenedor-referencias]'),
+      mapa: this.contenedorMapa,
       alCambiarCategorias: (categorias) => {
         this.capaPuntosInteres.establecerCategoriasVisibles(categorias);
         this.capaTerritorial.dibujar();
       },
     });
 
+    this.panelReferencias.crear();
+    this.panelReferencias.elemento.append(this.capaTerritorial.elemento);
     this.panelPuntosInteres.crear();
-    this.panelPuntosInteres.incorporarReferenciasTerritoriales(this.capaTerritorial.elemento);
-
+    this.panelReferencias.actualizar([...this.capaPuntosInteres.categoriasVisibles]);
     this.panelPuntosInteres.actualizar(this.capaPuntosInteres.obtenerResumenPuntos());
   }
 
@@ -646,6 +654,8 @@ export default class MapaScene extends Phaser.Scene {
     }
 
     this.panelPuntosInteres?.eliminar();
+    this.panelReferencias?.eliminar();
+    this.panelReferencias = null;
     this.panelPuntosInteres = null;
 
     this.panelSeleccionGeografica?.eliminar();

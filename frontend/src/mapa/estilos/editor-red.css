@@ -564,6 +564,7 @@ html:root body .metronet-estado-editor [data-revisar-error] { flex-shrink: 0; mi
   grid-template-columns: minmax(290px, 1fr) minmax(340px, 1.2fr); gap: 8px; min-width: 0;
 }
 .metronet-barra-geografica > section { min-width: 0; }
+.metronet-barra-geografica [data-contenedor-referencias] { grid-column: 1 / -1; }
 .metronet-barra-geografica .metronet-panel-puntos-interes {
   position: relative; inset: auto; width: 100%; max-width: none; max-height: none;
   height: 100%; padding-inline: 8px; box-shadow: none;
@@ -585,9 +586,10 @@ html:root body .metronet-estado-editor [data-revisar-error] { flex-shrink: 0; mi
 .metronet-territorio-selectores [data-contenedor-selectores-mapa] {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex: 1; min-width: 0;
 }
-.metronet-territorio-selectores .metronet-panel-dinamico { border: 0; box-shadow: none; }
-html:root body .metronet-territorio-selectores .metronet-panel-encabezado {
-  min-height: 36px; height: 100%; padding: 4px 6px; font-size: 12px; font-family: var(--control-fuente); white-space: normal; line-height: 1.35;
+html:root body .metronet-territorio-selectores .metronet-panel-dinamico { border: 0; box-shadow: none; background: transparent; }
+html:root body :is(.metronet-territorio-selectores .metronet-panel-encabezado, .metronet-referencias-controles button) {
+  min-height: var(--control-touch-height); height: 100%; padding: 4px 8px; font-size: 13px;
+  font-family: var(--control-fuente); white-space: normal; line-height: 1.45; border-bottom-color: var(--boton-borde);
 }
 .metronet-territorio-selectores .metronet-panel-contenido {
   position: absolute; top: calc(100% + 4px); right: 0; width: 100%;
@@ -601,9 +603,6 @@ html:root body .metronet-territorio-selectores .metronet-panel-encabezado {
   .metronet-barra-geografica { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .metronet-territorio-selectores { min-height: 44px; }
   .metronet-panel-puntos-interes:has(.metronet-panel-puntos-contenido:not([hidden])) { z-index: calc(var(--layer-dropdown) + 1); }
-}
-@container (max-width: 400px) {
-  html:root body .metronet-territorio-selectores .metronet-panel-encabezado { font-size: 11px; padding-inline: 4px; white-space: nowrap; }
 }
 @media (max-width: 920px) {
   .metronet-area-mapa { display: flex; flex-direction: column; min-height: auto; }

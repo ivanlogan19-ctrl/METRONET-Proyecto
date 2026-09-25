@@ -320,23 +320,38 @@
 .metronet-panel-puntos-contenido .metronet-territorio p { margin: 0; }
 .metronet-panel-puntos-etiqueta-busqueda { display: block; margin-top: 12px; color: var(--text-primary); font-weight: 700; font-size: 13px; }
 
-/* Leyenda y filtros comparten símbolos y colores con los marcadores del mapa. */
-.metronet-referencias-leyenda {
-  display: grid; gap: 8px;
-  min-width: 0; margin: 0; padding: 0 0 8px; border: 0; border-bottom: 1px solid var(--border);
+/* Categorías y estado comparten símbolos y tokens del mapa. */
+.metronet-referencias-territoriales {
+  display: grid; grid-template-columns: minmax(180px, auto) minmax(0, 1fr); align-items: center;
+  gap: 8px 16px; padding: 6px 8px; border: 1px solid var(--border); background: var(--panel-elevated);
 }
-.metronet-referencias-leyenda legend { padding: 0 0 8px; font: 700 13px/1.4 var(--font-ui); color: var(--text-primary); }
-.metronet-referencias-controles { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 6px; align-items: stretch; }
-html:root body .metronet-referencias-controles button {
-  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--control-touch-height);
-}
+.metronet-referencias-territoriales h2 { margin: 0; }
+.metronet-referencias-territoriales .metronet-territorio { grid-column: 1 / -1; margin: 0; border: 0; padding: 0; }
+.metronet-referencias-controles { display: grid; grid-template-columns: .65fr 1.5fr 1.5fr .75fr; gap: 6px; align-items: stretch; }
+html:root body .metronet-referencias-controles button { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .metronet-referencia-simbolo { color: var(--info-active); font-size: 17px; line-height: 1; }
+[data-categoria='ESPACIOS_VERDES'] { --referencia-color: var(--referencia-verde); }
 [data-categoria='INFRAESTRUCTURA'] { --referencia-color: var(--referencia-infraestructura); }
 [data-categoria='AGUA'] { --referencia-color: var(--referencia-agua); }
 [data-categoria] .metronet-referencia-simbolo { color: var(--referencia-color, var(--info-active)); }
-.metronet-referencias-leyenda small { color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
+.metronet-panel-puntos-contenido small { display: block; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
 .metronet-panel-puntos-item[data-categoria]:not(.es-objetivo):not(.estado-atendido):not(.estado-completado) { border-left-color: var(--referencia-color, var(--border)); }
 .metronet-panel-puntos-nombre, .metronet-panel-puntos-tipo { white-space: normal; overflow-wrap: anywhere; }
 .metronet-panel-puntos-estado { max-width: 78px; white-space: normal; }
-@container (max-width: 419px) { .metronet-referencias-controles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@container (max-width: 339px) { .metronet-referencias-controles { grid-template-columns: minmax(0, 1fr); } }
+.metronet-capas-activas {
+  position: absolute; left: 8px; bottom: 8px; z-index: var(--layer-header);
+  display: flex; flex-wrap: wrap; gap: 4px; max-width: calc(100% - 16px); pointer-events: none;
+}
+.metronet-capas-activas > span {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 6px;
+  border: 1px solid var(--referencia-color, var(--info-active)); background: var(--bg-secondary);
+  color: var(--text-primary); font: 600 11px/1.3 var(--font-ui);
+}
+.metronet-capas-activas .metronet-referencia-simbolo { font-size: 13px; }
+@container (max-width: 1000px) { .metronet-referencias-territoriales { grid-template-columns: minmax(0, 1fr); } }
+@container (max-width: 640px) { .metronet-referencias-controles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 350px) {
+  .metronet-referencias-controles { grid-template-columns: minmax(0, 1fr); }
+  .metronet-territorio-selectores { flex-wrap: wrap; }
+  .metronet-territorio-selectores h2 { flex-basis: 100%; }
+}

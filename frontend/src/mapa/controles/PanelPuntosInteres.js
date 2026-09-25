@@ -1,5 +1,5 @@
 import '../estilos/puntos-interes.css';
-import { CATEGORIAS_REFERENCIAS, describirReferencia, obtenerCategoriaReferencia } from '../configuracion/CategoriasReferencias.js';
+import { describirReferencia, obtenerCategoriaReferencia } from '../configuracion/CategoriasReferencias.js';
 
 const PRIORIDAD_ESTADO = Object.freeze({ OBJETIVO: 0, PENDIENTE: 1, ATENDIDO: 2, COMPLETADO: 3, REFERENCIA: 4 });
 const CAMPOS_CERCA_RED = Object.freeze(['puntosCercaRed', 'puntosCercaDeRed', 'puntosCercanos', 'referenciasCercaDeRed', 'cercaDeRed']);
@@ -10,7 +10,7 @@ export default class PanelPuntosInteres {
   constructor(opciones = {}) {
     this.contenedorPadre = opciones.contenedorPadre ?? null;
     this.alSeleccionar = opciones.alSeleccionar ?? (() => {});
-    this.alCambiarCategorias = opciones.alCambiarCategorias ?? (() => {});
+    this.alLimpiarBusqueda = opciones.alLimpiarBusqueda ?? (() => {});
     this.manejadorClicFuera = null;
     this.elemento = null;
     this.botonAlternar = null;
@@ -40,13 +40,13 @@ export default class PanelPuntosInteres {
     this.eliminar();
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-panel-puntos-interes';
-    this.elemento.setAttribute('aria-label', 'Referencias territoriales');
+    this.elemento.setAttribute('aria-label', 'Buscador POI');
 
     const cabecera = document.createElement('div');
     cabecera.className = 'metronet-panel-puntos-cabecera';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-panel-puntos-titulo';
-    titulo.textContent = 'Referencias territoriales';
+    titulo.textContent = 'Buscar POI';
     const acciones = document.createElement('div');
     acciones.className = 'metronet-panel-puntos-acciones';
     this.contador = document.createElement('span');
@@ -80,6 +80,7 @@ export default class PanelPuntosInteres {
     this.campoBusqueda.setAttribute('aria-controls', `${this.identificador}-lista`);
     this.campoBusqueda.addEventListener('input', () => {
       this.terminoBusqueda = this.campoBusqueda.value;
+      if (!this.terminoBusqueda.trim()) this.alLimpiarBusqueda();
       this.renderizarLista();
     });
     this.lista = document.createElement('div');
@@ -89,7 +90,9 @@ export default class PanelPuntosInteres {
     this.estado = document.createElement('p');
     this.estado.className = 'metronet-panel-puntos-estado-contexto';
     this.estado.setAttribute('aria-live', 'polite');
-    this.contenido.append(this.crearLeyendaFiltros(), etiquetaBusqueda, this.campoBusqueda, this.estado, this.lista);
+    const ayuda = document.createElement('small');
+    ayuda.textContent = 'El punto buscado permanece marcado hasta borrar la búsqueda.';
+    this.contenido.append(etiquetaBusqueda, this.campoBusqueda, ayuda, this.estado, this.lista);
     this.manejadorClicFuera = (evento) => {
       if (this.estaAbierto && !this.elemento.contains(evento.target)) this.establecerAbierto(false);
     };
@@ -106,44 +109,11 @@ export default class PanelPuntosInteres {
     this.renderizar();
   }
 
-  crearLeyendaFiltros() {
-    const leyenda = document.createElement('fieldset');
-    leyenda.className = 'metronet-referencias-leyenda';
-    const titulo = document.createElement('legend');
-    titulo.textContent = 'Capas visibles';
-    leyenda.append(titulo);
-    const controles = document.createElement('div');
-    controles.className = 'metronet-referencias-controles';
-    for (const [categoria, datos] of Object.entries(CATEGORIAS_REFERENCIAS)) {
-      const control = document.createElement('button');
-      control.type = 'button';
-      control.className = 'metronet-boton--compacto';
-      control.dataset.categoria = categoria;
-      control.title = datos.descripcion;
-      control.setAttribute('aria-pressed', 'true');
-      control.setAttribute('aria-label', datos.etiqueta);
-      control.addEventListener('click', () => {
-        const visibles = new Set(this.resumen.categoriasVisibles ?? Object.keys(CATEGORIAS_REFERENCIAS));
-        if (visibles.has(categoria)) visibles.delete(categoria);
-        else visibles.add(categoria);
-        this.alCambiarCategorias([...visibles]);
-      });
-      const simbolo = document.createElement('span');
-      simbolo.className = 'metronet-referencia-simbolo';
-      simbolo.setAttribute('aria-hidden', 'true');
-      simbolo.textContent = datos.simbolo;
-      control.append(simbolo, document.createTextNode(datos.etiqueta));
-      controles.append(control);
-    }
-    leyenda.append(controles);
-    const nota = document.createElement('small');
-    nota.textContent = 'Botón presionado: capa visible. Los objetivos y el punto seleccionado permanecen visibles.';
-    leyenda.append(nota);
-    return leyenda;
-  }
-
-  incorporarReferenciasTerritoriales(elemento) {
-    this.contenido?.querySelector('.metronet-referencias-leyenda')?.append(elemento);
+  limpiarBusqueda() {
+    this.terminoBusqueda = '';
+    if (this.campoBusqueda) this.campoBusqueda.value = '';
+    this.alLimpiarBusqueda();
+    this.renderizarLista();
   }
 
   obtenerContenedorHerramientas() {
@@ -159,9 +129,6 @@ export default class PanelPuntosInteres {
       cantidadObjetivos: Number(resumen.cantidadObjetivos) || 0,
       puntoSeleccionado: resumen.puntoSeleccionado ?? null,
     };
-    for (const control of this.elemento?.querySelectorAll('.metronet-referencias-controles button') ?? []) {
-      control.setAttribute('aria-pressed', String((resumen.categoriasVisibles ?? Object.keys(CATEGORIAS_REFERENCIAS)).includes(control.dataset.categoria)));
-    }
     this.renderizar();
   }
 
@@ -170,7 +137,7 @@ export default class PanelPuntosInteres {
     if (!this.contenido || !this.botonAlternar) return;
     this.contenido.hidden = !this.estaAbierto;
     this.botonAlternar.setAttribute('aria-expanded', String(this.estaAbierto));
-    this.botonAlternar.setAttribute('aria-label', this.estaAbierto ? 'Cerrar referencias del mapa' : 'Abrir referencias del mapa');
+    this.botonAlternar.setAttribute('aria-label', this.estaAbierto ? 'Cerrar buscador POI' : 'Abrir buscador POI');
     this.botonAlternar.textContent = this.estaAbierto ? '▲' : '▼';
     if (this.estaAbierto) this.renderizarLista();
   }
@@ -243,6 +210,8 @@ export default class PanelPuntosInteres {
     estado.textContent = this.obtenerEtiquetaEstado(punto.estado);
     boton.append(identidad, estado);
     boton.addEventListener('click', () => {
+      this.terminoBusqueda = punto.nombre;
+      this.campoBusqueda.value = punto.nombre;
       this.alSeleccionar(punto);
       this.establecerAbierto(false);
     });
@@ -254,7 +223,7 @@ export default class PanelPuntosInteres {
     const areaVisible = this.obtenerPuntosResumen(CAMPOS_AREA_VISIBLE);
     const tieneContexto = cercaDeRed.encontrado || areaVisible.encontrado;
     if (!tieneContexto) {
-      return [{ titulo: 'Referencias disponibles', puntos: this.ordenarPuntos(this.resumen.puntos) }];
+      return [{ titulo: 'Referencias disponibles', puntos: this.ordenarPuntos(this.resumen.puntos.filter(p => obtenerCategoriaReferencia(p) === 'POI')) }];
     }
     const clavesIncluidas = new Set();
     const grupos = [];
@@ -290,14 +259,14 @@ export default class PanelPuntosInteres {
       ? this.resumen.puntosBusqueda
       : this.obtenerPuntosContextuales();
 
-    return this.sinDuplicados(puntos, new Set());
+    return this.sinDuplicados(puntos, new Set()).filter(punto => obtenerCategoriaReferencia(punto) === 'POI');
   }
 
   obtenerPuntosResumen(campos) {
     for (const campo of campos) {
       const valor = this.resumen[campo];
-      if (Array.isArray(valor)) return { encontrado: true, puntos: valor };
-      if (valor && Array.isArray(valor.puntos)) return { encontrado: true, puntos: valor.puntos };
+      if (Array.isArray(valor)) return { encontrado: true, puntos: valor.filter(p => obtenerCategoriaReferencia(p) === 'POI') };
+      if (valor && Array.isArray(valor.puntos)) return { encontrado: true, puntos: valor.puntos.filter(p => obtenerCategoriaReferencia(p) === 'POI') };
     }
     return { encontrado: false, puntos: [] };
   }

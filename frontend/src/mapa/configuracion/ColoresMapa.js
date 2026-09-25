@@ -17,6 +17,7 @@ const TOKENS_COLOR = {
   PELIGRO: '--danger',
   REFERENCIA_INFRAESTRUCTURA: '--referencia-infraestructura',
   REFERENCIA_AGUA: '--referencia-agua',
+  REFERENCIA_VERDE: '--referencia-verde',
 };
 export const COLORES_INTERFAZ_MAPA = Object.freeze(Object.fromEntries(
   Object.entries(TOKENS_COLOR).map(([nombre, token]) => [nombre, parseInt(estilo.getPropertyValue(token).trim().replace('#', ''), 16)]),

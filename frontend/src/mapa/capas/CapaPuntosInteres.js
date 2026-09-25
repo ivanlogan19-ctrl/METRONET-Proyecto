@@ -81,6 +81,7 @@ export default class CapaPuntosInteres {
     this.objetivos = [];
 
     this.puntoSeleccionado = null;
+    this.puntoBuscado = null;
 
     this.elementos = [];
 
@@ -306,6 +307,9 @@ export default class CapaPuntosInteres {
     }
 
     this.puntoSeleccionado = this.clavePunto(punto);
+    if (opciones.desdeBusqueda && obtenerCategoriaReferencia(punto) === 'POI') {
+      this.puntoBuscado = this.clavePunto(punto);
+    }
 
     this.dibujar();
 
@@ -415,6 +419,18 @@ export default class CapaPuntosInteres {
     };
   }
 
+  limpiarPuntoBuscado() {
+    const anterior = this.puntoBuscado;
+    this.puntoBuscado = null;
+    if (anterior && anterior === this.puntoSeleccionado) this.ocultarInformacion();
+    else if (anterior) this.dibujar();
+  }
+
+  esPuntoDestacado(punto) {
+    const clave = this.clavePunto(punto);
+    return clave === this.puntoSeleccionado || clave === this.puntoBuscado;
+  }
+
   establecerCategoriasVisibles(categorias) {
     const anteriores = this.categoriasVisibles;
     this.categoriasVisibles = new Set(categorias.filter((categoria) => categoria in CATEGORIAS_REFERENCIAS));
@@ -430,7 +446,7 @@ export default class CapaPuntosInteres {
 
   categoriaEsVisible(punto) {
     // La selección explícita y los objetivos permanecen visibles sin activar su categoría.
-    return this.clavePunto(punto) === this.puntoSeleccionado
+    return this.esPuntoDestacado(punto)
       || Boolean(this.obtenerObjetivoPunto(punto)) || this.categoriasVisibles.has(obtenerCategoriaReferencia(punto));
   }
 
@@ -448,7 +464,7 @@ export default class CapaPuntosInteres {
       }).length,
       puntos,
       categoriasVisibles: [...this.categoriasVisibles],
-      puntosBusqueda: this.puntos.map((punto) => this.resumirPunto(punto)),
+      puntosBusqueda: this.puntos.filter(punto => obtenerCategoriaReferencia(punto) === 'POI').map((punto) => this.resumirPunto(punto)),
       puntosCercaRed: this.referenciasCercaRed.map((punto) => this.resumirPunto(punto)),
       puntosAreaVisible: this.referenciasAreaVisible.map((punto) => this.resumirPunto(punto)),
       referenciasVisibles: this.obtenerReferenciasVisibles(),
@@ -881,6 +897,7 @@ export default class CapaPuntosInteres {
     const categoria = obtenerCategoriaReferencia(punto);
     if (categoria === 'INFRAESTRUCTURA') return COLORES_INTERFAZ_MAPA.REFERENCIA_INFRAESTRUCTURA;
     if (categoria === 'AGUA') return COLORES_INTERFAZ_MAPA.REFERENCIA_AGUA;
+    if (categoria === 'ESPACIOS_VERDES') return COLORES_INTERFAZ_MAPA.REFERENCIA_VERDE;
     const tipo = this.normalizarNombre(punto.tipo);
 
     if (
@@ -1068,7 +1085,7 @@ export default class CapaPuntosInteres {
 
     const estado = objetivo?.estado ?? ESTADOS_PUNTOS_INTERES.REFERENCIA;
 
-    const seleccionado = this.clavePunto(punto) === this.puntoSeleccionado;
+    const seleccionado = this.esPuntoDestacado(punto);
 
     const colorCategoria = this.obtenerColorMarcador(punto);
 
@@ -1568,7 +1585,7 @@ export default class CapaPuntosInteres {
     const contextoRed = this.obtenerContextoRedPunto(punto);
     const categoriaVisible = this.categoriaEsVisible(punto);
     const esObjetivoActivo = this.esObjetivoActivo(objetivo);
-    const esSeleccionado = this.clavePunto(punto) === this.puntoSeleccionado;
+    const esSeleccionado = this.esPuntoDestacado(punto);
     const perteneceSeleccion = this.puntoPerteneceASeleccion(punto);
     const enAreaVisible = categoriaVisible && this.posicionEstaEnVista(posicion, vista);
     const cercaRed = categoriaVisible && Boolean(contextoRed?.cercaRed);
@@ -1676,7 +1693,7 @@ export default class CapaPuntosInteres {
     const contextoRed = this.obtenerContextoRedPunto(punto);
     let prioridad = 0;
 
-    if (this.clavePunto(punto) === this.puntoSeleccionado) {
+    if (this.esPuntoDestacado(punto)) {
       prioridad += 10000;
     }
 
@@ -1925,6 +1942,7 @@ export default class CapaPuntosInteres {
     this.puntoSeleccionado = null;
 
     this.datos = null;
+    this.puntoBuscado = null;
 
     this.zonasSeleccionadas = [];
 

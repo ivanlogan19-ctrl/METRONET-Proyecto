@@ -112,7 +112,7 @@ html:root body .metronet-titulo.metronet-titulo--subsection {
 html:root body #metronet-panel-controles h1,
 html:root body .metronet-viaje h2 { font-size: var(--titulo-tamano-section-compacto); }
 html:root body #metronet-panel-controles h2,
-html:root body :is(.metronet-panel-puntos-titulo, .metronet-punto-interes-panel-titulo, .metronet-territorio-selectores h2,
+html:root body :is(.metronet-panel-puntos-titulo, .metronet-punto-interes-panel-titulo, .metronet-territorio-selectores h2, .metronet-referencias-territoriales h2,
   .metronet-panel-acordeon-mapa > summary, .metronet-editor-juego > summary,
   .simulacion-seccion > summary) { font-size: var(--titulo-tamano-panel-compacto); }
 html:root body .metronet-bienvenida h1 { margin: 0; max-width: 850px; line-height: 1.25; letter-spacing: 0; }

@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import '../estilos/territorio.css';
+import { obtenerCategoriaReferencia } from '../configuracion/CategoriasReferencias.js';
+import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
 export default class CapaTerritorial {
   constructor(escena, { territorio, capaBarrios, puntos = [], referenciasVisibles = () => true }) {
@@ -11,11 +13,9 @@ export default class CapaTerritorial {
     this.grafico = escena.add.graphics().setDepth(3);
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-territorio';
-    const ayuda = document.createElement('p');
-    ayuda.textContent = 'POI · Verde: parques y espacios verdes del catálogo. Son referencias y no prohíben construir.';
     this.lista = document.createElement('ul');
     this.lista.setAttribute('aria-label', 'Áreas territoriales del escenario');
-    this.elemento.append(ayuda, this.lista);
+    this.elemento.append(this.lista);
     this.dibujar();
   }
 
@@ -28,11 +28,11 @@ export default class CapaTerritorial {
     const convertir = p => this.capaBarrios.convertirCoordenada(p, transformacion);
     if (this.mostrarReferencias) {
       for (const punto of this.puntos) {
-        if (!/parque|plaza|jard[ií]n|bot[aá]nico|espacio verde/i.test(punto.tipo ?? '')) continue;
+        if (obtenerCategoriaReferencia(punto) !== 'ESPACIOS_VERDES') continue;
         if (!Number.isFinite(punto.longitud) || !Number.isFinite(punto.latitud)) continue;
         const p = convertir([punto.longitud, punto.latitud]);
-        this.grafico.fillStyle(0x75b49c, 0.16).fillCircle(p.x, p.y, 6);
-        this.grafico.lineStyle(1, 0x75b49c, 0.5).strokeCircle(p.x, p.y, 6);
+        this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.REFERENCIA_VERDE, 0.16).fillCircle(p.x, p.y, 6);
+        this.grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.REFERENCIA_VERDE, 0.5).strokeCircle(p.x, p.y, 6);
       }
     }
     this.lista.replaceChildren();
@@ -43,8 +43,8 @@ export default class CapaTerritorial {
       const prohibiciones = [area.prohibirEstaciones && 'estaciones', area.prohibirTramos && 'tramos'].filter(Boolean).join(' ni ');
       item.textContent = restringida ? `${area.nombre}: sin ${prohibiciones}.` : `${area.nombre}: referencia, permite construir.`;
       this.lista.append(item);
-      if (!restringida && !this.mostrarReferencias) continue;
-      const color = restringida ? 0xe79b72 : 0x75b49c;
+      // Las áreas de la consigna no son parques: conservan su propia geometría y reglas.
+      const color = restringida ? 0xe79b72 : COLORES_INTERFAZ_MAPA.BORDE_ACTIVO;
       for (const geometria of area.geometrias) {
         const poligonos = geometria.type === 'Polygon' ? [geometria.coordinates] : geometria.coordinates;
         for (const anillos of poligonos) {
@@ -68,6 +68,7 @@ export default class CapaTerritorial {
       const item = document.createElement('li'); item.className = 'es-restriccion'; item.textContent = error; this.lista.append(item);
     }
     this.lista.hidden = !this.lista.childElementCount;
+    this.elemento.hidden = this.lista.hidden;
   }
 
   eliminar() { this.grafico.destroy(); this.elemento.remove(); }
