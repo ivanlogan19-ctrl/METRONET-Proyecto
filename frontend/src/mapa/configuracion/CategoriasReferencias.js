@@ -4,7 +4,7 @@ export const CATEGORIAS_REFERENCIAS = Object.freeze({
   POI: Object.freeze({ etiqueta: 'POI', descripcion: 'Puntos de interés', simbolo: '●' }),
   ESPACIOS_VERDES: Object.freeze({ etiqueta: 'Espacios verdes', descripcion: 'Parques, plazas y jardines del catálogo; no prohíben construir', simbolo: '●' }),
   INFRAESTRUCTURA: Object.freeze({ etiqueta: 'Infraestructura', descripcion: 'Infraestructura territorial', simbolo: '■' }),
-  AGUA: Object.freeze({ etiqueta: 'Agua', descripcion: 'Hidrografía y referencias costeras; no implica una restricción de construcción', simbolo: '≈' }),
+  AGUA: Object.freeze({ etiqueta: 'Hidrografía', descripcion: 'Cursos y cuerpos de agua y referencias costeras del catálogo; no implica una restricción de construcción', simbolo: '≈' }),
 });
 
 export function obtenerCategoriaReferencia(punto) {

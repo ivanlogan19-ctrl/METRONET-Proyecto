@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirEditor } = require('./soporte/editor.cjs');
 const CATEGORIAS = ['POI', 'ESPACIOS_VERDES', 'INFRAESTRUCTURA', 'AGUA'];
-const ETIQUETAS = ['POI', 'Espacios verdes', 'Infraestructura', 'Agua'];
+const ETIQUETAS = ['POI', 'Espacios verdes', 'Infraestructura', 'Hidrografía'];
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
@@ -41,7 +41,7 @@ test('Cuatro categorías derivadas del catálogo; espacios verdes separados y co
   assert.equal(resultado.colores[1], 0x75b49c);
 });
 
-test('Dieciséis combinaciones repetidas: capas, indicadores, contexto verde y cámara independientes sin duplicados', async t => {
+test('Dieciséis combinaciones repetidas: marcadores, indicadores y cámara independientes sin duplicados', async t => {
   const { pagina: p, solicitudes } = await abrir(t);
   await p.evaluate(() => document.fonts.ready);
   await p.waitForFunction(() => !document.querySelector('.metronet-estado-editor__mensaje [role="status"]')?.textContent);
@@ -58,8 +58,7 @@ test('Dieciséis combinaciones repetidas: capas, indicadores, contexto verde y c
       return {
         categorias: [...poi.categoriasVisibles].sort(),
         objetos: poi.escena.children.list.length,
-        verdes: editorPrueba.escena.capaTerritorial.mostrarReferencias,
-        formasVerdes: editorPrueba.escena.capaTerritorial.grafico.commandBuffer.length,
+        formasAdicionales: editorPrueba.escena.capaTerritorial.grafico.commandBuffer.length,
         indebidos: poi.representaciones.filter(r => !poi.categoriasVisibles.has(categoria(r.punto)) && (r.contenedor.visible || r.areaInteraccion.input.enabled)).length,
         visibles: poi.representaciones.filter(r => r.contenedor.visible).map(r => r.punto.id).sort(),
         etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).length,
@@ -71,11 +70,41 @@ test('Dieciséis combinaciones repetidas: capas, indicadores, contexto verde y c
     assert.deepEqual(estado.categorias, esperadas);
     assert.deepEqual(await p.locator('.metronet-capas-activas > span:visible').evaluateAll(es => es.map(e => e.dataset.categoria).sort()), esperadas);
     assert.equal(await p.locator('.metronet-capas-activas > span').count(), 4);
-    assert.equal(estado.verdes, Boolean(mascara & 2));
-    assert.equal(estado.formasVerdes > 0, Boolean(mascara & 2));
+    assert.equal(estado.formasAdicionales, 0, 'Los verdes usan los mismos marcadores individuales que infraestructura');
     assert.equal(estado.indebidos, 0); assert.equal(estado.etiquetas, 0); assert.equal(estado.catalogo, 73);
     assert.equal(estado.objetos, inicial.objetos); assert.deepEqual(estado.camara, inicial.camara);
     if (mascara === 15) assert.deepEqual(estado.visibles, inicial.visibles);
+  }
+  assert.deepEqual(solicitudes, []);
+});
+
+test('Capas territoriales visibles desde el mapa inicial sin red ni zoom; ninguna categoría activa queda desplazada', async t => {
+  const { pagina: p, solicitudes } = await abrir(t, { estaciones: [], tramos: [] });
+  await p.waitForFunction(() => !document.querySelector('.metronet-estado-editor__mensaje [role="status"]')?.textContent);
+  for (const categorias of [['AGUA'], ['ESPACIOS_VERDES'], ['INFRAESTRUCTURA'], CATEGORIAS]) {
+    const estado = await p.evaluate(async categorias => {
+      const { obtenerCategoriaReferencia: categoria } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
+      poi.establecerCategoriasVisibles(categorias);
+      const visibles = poi.representaciones.filter(r => r.contenedor.visible);
+      return {
+        zoom: poi.obtenerZoomActual(),
+        seleccion: poi.haySeleccionGeografica(),
+        categorias: [...new Set(visibles.map(r => categoria(r.punto)))].sort(),
+        cantidad: visibles.length,
+        etiquetas: visibles.filter(r => r.etiqueta?.visible).length,
+        interacciones: visibles.every(r => r.areaInteraccion.input.enabled),
+        superposiciones: visibles.some((r, i) => visibles.slice(i + 1).some(otro => (
+          Math.abs(r.posicion.x - otro.posicion.x) < 36 && Math.abs(r.posicion.y - otro.posicion.y) < 36
+        ))),
+      };
+    }, categorias);
+    assert.equal(estado.zoom, 1);
+    assert.equal(estado.seleccion, false);
+    assert.deepEqual(estado.categorias, categorias.filter(c => c !== 'POI').sort());
+    assert.ok(estado.cantidad > 0 && estado.cantidad <= 8, JSON.stringify(estado));
+    assert.equal(estado.etiquetas, 0);
+    assert.equal(estado.interacciones, true);
+    assert.equal(estado.superposiciones, false, 'Las referencias conservan áreas de clic independientes');
   }
   assert.deepEqual(solicitudes, []);
 });
@@ -103,8 +132,8 @@ test('Solo POI tiene búsqueda; cerrar la ficha mantiene el punto y borrar la co
     }));
     assert.deepEqual(estado.visibles, [estado.buscado]); assert.ok(estado.buscado);
     assert.equal(estado.seleccionado, null); assert.equal(estado.etiquetas, 1); assert.deepEqual(estado.categorias, []);
-    await p.getByRole('button', { name: 'Agua', exact: true }).click();
-    await p.getByRole('button', { name: 'Agua', exact: true }).click();
+    await p.getByRole('button', { name: 'Hidrografía', exact: true }).click();
+    await p.getByRole('button', { name: 'Hidrografía', exact: true }).click();
     assert.equal(await p.evaluate(() => poi.puntoBuscado), estado.buscado);
     await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
     assert.equal(await buscar.inputValue(), nombre);

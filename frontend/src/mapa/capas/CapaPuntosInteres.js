@@ -38,6 +38,7 @@ const UMBRAL_ZOOM_CONTEXTO_SALIDA = 1.52;
 const UMBRAL_ZOOM_LOCAL_ENTRADA = 2.48;
 const UMBRAL_ZOOM_LOCAL_SALIDA = 2.26;
 const MAXIMO_REFERENCIAS_POR_GRUPO = 12;
+const TAMANO_INTERACCION_REFERENCIA = 36;
 const ZOOM_ENFOQUE_REFERENCIA = 2.1;
 const ZOOM_ENFOQUE_REFERENCIA_MINIMO = 1.65;
 const ZOOM_ENFOQUE_REFERENCIA_MAXIMO = 2.35;
@@ -1137,7 +1138,7 @@ export default class CapaPuntosInteres {
 
     contenedor.setDepth(100).setName(`punto-interes-${punto.id}`);
 
-    const areaInteraccion = this.escena.add.zone(posicion.x, posicion.y, 36, 36);
+    const areaInteraccion = this.escena.add.zone(posicion.x, posicion.y, TAMANO_INTERACCION_REFERENCIA, TAMANO_INTERACCION_REFERENCIA);
 
     areaInteraccion.setOrigin(0.5, 0.5);
     areaInteraccion.setDepth(101);
@@ -1573,10 +1574,33 @@ export default class CapaPuntosInteres {
       .filter((contexto) => contexto.esSeleccionado || contexto.esObjetivoActivo)
       .forEach((contexto) => claves.add(this.clavePunto(contexto.representacion.punto)));
     const limite = MAXIMO_MARCADORES_POR_NIVEL[nivelDetalle] ?? MAXIMO_MARCADORES_POR_NIVEL.GENERAL;
-    contextos
-      .filter((contexto) => !claves.has(this.clavePunto(contexto.representacion.punto)))
-      .slice(0, limite)
-      .forEach((contexto) => claves.add(this.clavePunto(contexto.representacion.punto)));
+    // Repartir el cupo entre categorías evita que los POI o parques oculten
+    // toda la hidrografía/infraestructura. Conserva prioridad dentro de cada capa.
+    const grupos = Object.keys(CATEGORIAS_REFERENCIAS).map(categoria => contextos.filter(contexto => (
+      !claves.has(this.clavePunto(contexto.representacion.punto))
+      && obtenerCategoriaReferencia(contexto.representacion.punto) === categoria
+    )));
+    const posiciones = contextos.filter(contexto => claves.has(this.clavePunto(contexto.representacion.punto)))
+      .map(contexto => contexto.representacion.posicion);
+    const separacion = TAMANO_INTERACCION_REFERENCIA * Phaser.Math.Clamp(1 / this.obtenerZoomActual(), 0.16, 1);
+    const seSuperpone = posicion => posiciones.some(otra => (
+      Math.abs(otra.x - posicion.x) < separacion && Math.abs(otra.y - posicion.y) < separacion
+    ));
+    let restantes = limite;
+    while (restantes > 0 && grupos.some(grupo => grupo.length)) {
+      for (const grupo of grupos) {
+        if (!restantes) break;
+        // No superponer las zonas de clic. El zoom recupera las referencias
+        // próximas sin desplazar sus coordenadas reales ni agruparlas en un punto.
+        let candidato;
+        do { candidato = grupo.shift(); }
+        while (candidato && seSuperpone(candidato.representacion.posicion));
+        if (!candidato) continue;
+        claves.add(this.clavePunto(candidato.representacion.punto));
+        posiciones.push(candidato.representacion.posicion);
+        restantes--;
+      }
+    }
     return claves;
   }
 
@@ -1584,6 +1608,7 @@ export default class CapaPuntosInteres {
     const { punto, objetivo, posicion } = representacion;
     const contextoRed = this.obtenerContextoRedPunto(punto);
     const categoriaVisible = this.categoriaEsVisible(punto);
+    const esReferenciaTerritorial = obtenerCategoriaReferencia(punto) !== 'POI';
     const esObjetivoActivo = this.esObjetivoActivo(objetivo);
     const esSeleccionado = this.esPuntoDestacado(punto);
     const perteneceSeleccion = this.puntoPerteneceASeleccion(punto);
@@ -1607,6 +1632,7 @@ export default class CapaPuntosInteres {
       enAreaVisible,
       esCandidataArea,
       mostrarMarcador: categoriaVisible && this.debeMostrarMarcador({
+        esReferenciaTerritorial,
         esObjetivoActivo,
         esSeleccionado,
         perteneceSeleccion,
@@ -1625,6 +1651,12 @@ export default class CapaPuntosInteres {
 
     if (!contexto.enAreaVisible) {
       return false;
+    }
+
+    // Las capas territoriales son contexto del mapa: no requieren una red
+    // construida ni alcanzar el umbral de zoom reservado a los POI generales.
+    if (contexto.esReferenciaTerritorial) {
+      return true;
     }
 
     if (contexto.perteneceSeleccion) {

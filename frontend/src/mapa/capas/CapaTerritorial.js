@@ -1,15 +1,12 @@
 import Phaser from 'phaser';
 import '../estilos/territorio.css';
-import { obtenerCategoriaReferencia } from '../configuracion/CategoriasReferencias.js';
 import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
 export default class CapaTerritorial {
-  constructor(escena, { territorio, capaBarrios, puntos = [], referenciasVisibles = () => true }) {
+  constructor(escena, { territorio, capaBarrios }) {
     this.escena = escena;
     this.territorio = territorio;
     this.capaBarrios = capaBarrios;
-    this.puntos = puntos;
-    this.referenciasVisibles = referenciasVisibles;
     this.grafico = escena.add.graphics().setDepth(3);
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-territorio';
@@ -19,22 +16,11 @@ export default class CapaTerritorial {
     this.dibujar();
   }
 
-  get mostrarReferencias() { return this.referenciasVisibles(); }
-
   dibujar() {
     this.grafico.clear();
     const transformacion = this.capaBarrios.calcularEscalaMapa();
     if (!transformacion) return;
     const convertir = p => this.capaBarrios.convertirCoordenada(p, transformacion);
-    if (this.mostrarReferencias) {
-      for (const punto of this.puntos) {
-        if (obtenerCategoriaReferencia(punto) !== 'ESPACIOS_VERDES') continue;
-        if (!Number.isFinite(punto.longitud) || !Number.isFinite(punto.latitud)) continue;
-        const p = convertir([punto.longitud, punto.latitud]);
-        this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.REFERENCIA_VERDE, 0.16).fillCircle(p.x, p.y, 6);
-        this.grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.REFERENCIA_VERDE, 0.5).strokeCircle(p.x, p.y, 6);
-      }
-    }
     this.lista.replaceChildren();
     for (const area of this.territorio.areas) {
       const restringida = area.prohibirEstaciones || area.prohibirTramos;
