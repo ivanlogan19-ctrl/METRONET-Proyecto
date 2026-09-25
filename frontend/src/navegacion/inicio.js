@@ -2,7 +2,6 @@ import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
-import { obtenerAnteriorCompletado } from '../educacion/TransicionNivel.js';
 
 const URL_API_JUEGO = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
 const ESTADOS_CON_INTENTO_ACTIVO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
@@ -302,8 +301,7 @@ async function iniciarEscenario(escenario, boton) {
   mostrarMensaje('Preparando el escenario…');
   try {
     const inicio = await iniciarNivelConTransicion(escenario,
-      () => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST' }),
-      { anterior: obtenerAnteriorCompletado(escenario, escenariosActuales) });
+      () => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST' }));
     if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;

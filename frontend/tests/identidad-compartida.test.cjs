@@ -95,7 +95,6 @@ test('modales administrativos, educativos y de eliminación comparten marco y fo
   });
   await niveles.clock.install();
   await niveles.getByRole('button', { name: 'Comenzar', exact: true }).click();
-  await niveles.locator('[data-continuar-transicion]').click();
   await niveles.locator('.metronet-viaje[open]').waitFor();
   assert.deepEqual(await estilo(niveles.locator('.metronet-viaje'), propiedades), marco);
 });

@@ -1,25 +1,30 @@
 import { consultarJuego } from './ClientePuntuacion.js';
-// La transición es opcional; un fallo de contenido nunca invalida el resultado persistido.
-export function obtenerAnteriorCompletado(escenario, escenarios = []) {
-  if (escenario?.estado !== 'DISPONIBLE' || !Number.isInteger(escenario.numero)) return null;
-  return escenarios.find(e => e.numero === escenario.numero - 1 && e.estado === 'COMPLETADO') ?? null;
-}
 
-export async function presentarResultadoNivel(progreso, idEscenario, evaluacion) {
+export async function consultarMejorPuntajeAnterior(idEscenario) {
+  if (idEscenario == null) return undefined;
+  try {
+    const progreso = await consultarJuego('/progreso');
+    return progreso?.escenarios?.find(e => e.idEscenario === idEscenario)?.mejorPuntaje;
+  } catch { return undefined; } // Sin referencia fiable no se anuncia un récord.
+}
+// La transición es opcional; un fallo de contenido nunca invalida el resultado persistido.
+export async function presentarResultadoNivel(progreso, idEscenario, evaluacion, opciones = {}) {
   if (!evaluacion?.completado || !Array.isArray(progreso?.escenarios)) return null;
   const anterior = progreso.escenarios.find(e => e.idEscenario === idEscenario && e.estado === 'COMPLETADO');
   if (!anterior || !Number.isInteger(anterior.numero)) return null;
   const siguiente = progreso.escenarios.find(e => e.idEscenario === evaluacion.idSiguienteEscenario
-    && e.desbloqueado && e.estado !== 'COMPLETADO');
+    && Number.isInteger(e.numero) && e.desbloqueado);
+  const final = !evaluacion.idSiguienteEscenario && anterior.numero === Math.max(...progreso.escenarios.filter(e => Number.isInteger(e.numero)).map(e => e.numero));
   try {
     const { mostrarTransicionNivel } = await import('./PantallaTransicionNivel.js');
-    let ranking = null;
-    if (progreso.campanaCompletada && !evaluacion.idSiguienteEscenario) {
-      try { ranking = await consultarJuego('/ranking'); } catch { /* El cierre sigue disponible si falla el ranking. */ }
-    }
-    const continuar = await mostrarTransicionNivel(anterior, siguiente, {
-      puntaje: evaluacion.puntaje, desempeno: evaluacion.desempeno, resumen: progreso, ranking, final: progreso.campanaCompletada && !evaluacion.idSiguienteEscenario,
+    // La consulta de ranking no retrasa ni bloquea la celebración.
+    const ranking = final ? consultarJuego('/ranking').catch(() => null) : null;
+    const accion = await mostrarTransicionNivel(anterior, siguiente, {
+      ...opciones, puntaje: evaluacion.puntaje, desempeno: evaluacion.desempeno, resumen: progreso, ranking, final,
     });
-    return continuar ? { siguiente: siguiente ?? null } : null;
+    if (accion === 'siguiente') return { siguiente };
+    if (accion === 'selector') return { destino: '/escenarios.html' };
+    if (accion === 'ranking') return { destino: '/ranking.html' };
+    return null;
   } catch { return null; }
 }

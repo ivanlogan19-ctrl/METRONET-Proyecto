@@ -21,7 +21,7 @@ const diseno = {
 
 async function abrirPantalla(navegador, ruta, opciones = {}) {
   const contexto = await navegador.newContext({ viewport: opciones.viewport || { width: 1440, height: 1000 }, reducedMotion: opciones.reducedMotion || 'no-preference' });
-  const admin = ruta.startsWith('/admin.html');
+  const admin = opciones.administrador ?? ruta.startsWith('/admin.html');
   const publica = /login|registro|contrasena|codigo|privacidad/.test(ruta);
   await contexto.addInitScript(({ admin, publica, usuario }) => {
     if (!publica) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));

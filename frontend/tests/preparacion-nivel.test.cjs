@@ -196,7 +196,7 @@ test('recarga: se reinicia el viaje y se evita el último mensaje de la misma se
   assert.ok(Number(await pagina.getByRole('progressbar', { name: 'Progreso del viaje visual' }).getAttribute('aria-valuenow')) < 50);
   await viajar(pagina); await destino(pagina, nivel(6));
 });
-test('editor: resumen anterior, viaje y repetición conservan IDs y cambios hasta abrir la red', async t => {
+test('editor: preparación manual, viaje y repetición conservan IDs y cambios hasta abrir la red', async t => {
   const escenarios = [nivel(1, 'COMPLETADO'), nivel(2)];
   const { pagina, solicitudes } = await abrir(t, escenarios, '/__prueba-editor');
   await pagina.evaluate(async escenarios => {
@@ -209,14 +209,13 @@ test('editor: resumen anterior, viaje y repetición conservan IDs y cambios hast
     document.querySelector('main').append(editorPrueba.crearAccionContinuarEscenario(escenarios[1]));
   }, escenarios);
   await pagina.getByRole('button', { name: 'Continuar con Nivel 2' }).dblclick();
-  await pagina.getByRole('button', { name: 'Revisar mi red' }).click();
+  await pagina.getByRole('button', { name: 'Volver', exact: true }).click();
   await pagina.waitForFunction(() => !editorPrueba.aperturaEscenarioEnCurso);
-  assert.equal(solicitudes.length, 0);
+  assert.equal(solicitudes.length, 1);
   assert.equal(await pagina.evaluate(() => editorPrueba.cambiosPendientes), true);
   await pagina.getByRole('button', { name: 'Continuar con Nivel 2' }).click();
-  await pagina.locator('[data-continuar-transicion]').click();
   await pagina.locator('.metronet-viaje').waitFor();
-  assert.equal(solicitudes.length, 1);
+  assert.equal(solicitudes.length, 2);
   assert.equal(await pagina.evaluate(() => editorPrueba.cambiosPendientes), true);
   await viajar(pagina);
   await pagina.waitForFunction(() => window.disenoAbierto === 101 && !editorPrueba.aperturaEscenarioEnCurso);
@@ -225,7 +224,7 @@ test('editor: resumen anterior, viaje y repetición conservan IDs y cambios hast
   await pagina.evaluate(() => { void editorPrueba.volverAJugar(41); });
   await viajar(pagina);
   await pagina.waitForFunction(() => !editorPrueba.aperturaEscenarioEnCurso);
-  assert.deepEqual(solicitudes.map(s => s.ruta), ['/api/juego/escenarios/42/iniciar', '/api/juego/escenarios/41/volver-a-jugar']);
+  assert.deepEqual(solicitudes.map(s => s.ruta), ['/api/juego/escenarios/42/iniciar', '/api/juego/escenarios/42/iniciar', '/api/juego/escenarios/41/volver-a-jugar']);
 });
 test('desmontaje, ruta, reinicio y salida cancelan frames y timers sin actualizaciones tardías', async t => {
   const { pagina } = await abrir(t, [nivel(1)], '/__prueba-editor');

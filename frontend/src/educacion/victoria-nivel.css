@@ -1,0 +1,61 @@
+.metronet-victoria { width: min(96vw, 1120px); max-height: 96svh; border-top: 3px solid var(--success); }
+.metronet-victoria::backdrop { background: rgb(2 6 17 / .96); }
+.metronet-victoria__contenido { display: grid; gap: 12px; padding: clamp(16px, 2.4vw, 28px); text-align: center; }
+.metronet-victoria__cabecera { display: grid; gap: 6px; }
+html:root body .metronet-victoria h2 { font-size: clamp(21px, 3vw, 32px); line-height: 1.3; margin: 0; }
+html:root body .metronet-victoria .metronet-victoria__felicitacion { color: var(--success); font-family: var(--font-arcade); font-size: 15px; }
+.metronet-victoria__recorrido { position: relative; background-color: var(--bg-primary); background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px); background-size: 24px 24px; border: 1px solid var(--border); }
+.metronet-victoria__recorrido svg { display: block; width: 100%; height: clamp(190px, 36svh, 380px); }
+.victoria-ciudad { fill: var(--panel); stroke: var(--border); stroke-width: 1; }
+.victoria-anden { fill: var(--panel-elevated); stroke: var(--border-active); stroke-width: 4; }
+.victoria-riel { stroke: var(--border); stroke-width: 3; fill: none; }
+.victoria-linea { stroke: var(--info-active); stroke-width: 5; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.victoria-estaciones circle { fill: var(--panel); stroke: var(--border-active); stroke-width: 3; }
+.victoria-estaciones .activa { fill: var(--success); stroke: var(--success); }
+.victoria-senal rect { fill: var(--success); }
+.victoria-destino rect { fill: var(--info-active); }
+.victoria-senal text, .victoria-destino text { fill: var(--bg-primary); font: bold 12px var(--font-tecnica); text-anchor: middle; }
+.victoria-carroceria { fill: var(--primary); stroke: var(--text-primary); stroke-width: 3; }
+.victoria-ventanas, .victoria-interior { fill: var(--bg-primary); }
+.victoria-puerta { fill: var(--primary-hover); stroke: var(--primary-edge); stroke-width: 2; transition: transform 160ms ease-out; }
+.metronet-victoria--puertas .victoria-puerta--izquierda { transform: translateX(-12px); }
+.metronet-victoria--puertas .victoria-puerta--derecha { transform: translateX(12px); }
+.victoria-franja { stroke: var(--text-primary); stroke-width: 4; }
+.victoria-luz { fill: var(--warning); }
+.victoria-ruedas { stroke: var(--text-primary); stroke-width: 9; }
+.victoria-destellos { stroke: var(--success); stroke-width: 3; opacity: .6; }
+.metronet-victoria--final .victoria-destellos { stroke: var(--warning); stroke-width: 5; }
+.metronet-victoria__estaciones { display: flex; justify-content: space-between; gap: 12px; padding: 8px 16px; color: var(--text-secondary); font-size: 12px; }
+.metronet-victoria__resultado { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.metronet-victoria__resultado strong { font-family: var(--font-arcade); font-size: 24px; color: var(--info-active); }
+.metronet-victoria__record { color: var(--success); font-size: 14px; border-bottom: 2px solid currentColor; }
+.metronet-victoria__progreso { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0 14px; position: relative; font-size: 13px; font-variant-numeric: tabular-nums; }
+.metronet-victoria__progreso::after { content: ''; position: absolute; inset: auto 0 0; height: 5px; background: linear-gradient(to right, var(--info-active) var(--avance), var(--panel-elevated) var(--avance)); }
+.metronet-victoria__destino { display: grid; gap: 4px; opacity: 0; transition: opacity 200ms ease-out; }
+.metronet-victoria--destino .metronet-victoria__destino { opacity: 1; }
+html:root body .metronet-victoria__destino > :first-child { color: var(--info-active); font-family: var(--font-arcade); font-size: 15px; }
+html:root body .metronet-victoria__destino > :last-child { font-size: 15px; }
+html:root body .metronet-victoria__estado { font-size: 12px; }
+.metronet-victoria__acciones { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+html:root body .metronet-victoria button { min-height: 44px; font-size: 13px; }
+.metronet-victoria__resumen { display: grid; justify-items: center; gap: 8px; }
+.metronet-victoria__resumen h3 { margin: 0; color: var(--success); }
+.metronet-victoria--llegada .metronet-victoria__recorrido svg { height: clamp(130px, 22svh, 230px); }
+@media (max-height: 800px) and (min-width: 700px) {
+  .metronet-victoria__contenido { gap: 9px; padding: 18px 24px; }
+  .metronet-victoria__recorrido svg { height: 30svh; }
+}
+@media (max-width: 600px) {
+  .metronet-victoria__contenido { gap: 10px; padding: 14px; }
+  .metronet-victoria__recorrido svg { height: 220px; }
+  .metronet-victoria__resultado strong { font-size: 20px; }
+  .metronet-victoria__estaciones { padding: 8px; font-size: 11px; }
+  .metronet-victoria__acciones button { flex: 1; }
+}
+@media (max-height: 700px) and (max-width: 600px) {
+  .metronet-victoria__recorrido svg { height: 145px; }
+  .metronet-victoria__contenido { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .metronet-victoria__destino, .victoria-puerta { transition: none; }
+}

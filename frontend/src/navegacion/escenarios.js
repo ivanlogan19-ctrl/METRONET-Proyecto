@@ -4,7 +4,6 @@ import { conceptosDelNivel } from '../educacion/glosario/ContextoConceptos.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
-import { obtenerAnteriorCompletado } from '../educacion/TransicionNivel.js';
 
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
 const sesion = requerirSesion('/escenarios.html');
@@ -235,8 +234,7 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
   try {
     const ruta = volverAJugar ? `/escenarios/${escenario.idEscenario}/volver-a-jugar` : `/escenarios/${escenario.idEscenario}/iniciar`;
     const inicio = await iniciarNivelConTransicion(escenario,
-      () => solicitar(ruta, { method: 'POST' }),
-      { anterior: obtenerAnteriorCompletado(escenario, progresoActual?.escenarios ?? []) });
+      () => solicitar(ruta, { method: 'POST' }));
     if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;

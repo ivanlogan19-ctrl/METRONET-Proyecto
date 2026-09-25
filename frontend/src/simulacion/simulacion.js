@@ -1,7 +1,7 @@
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
-import { presentarResultadoNivel } from '../educacion/TransicionNivel.js';
+import { consultarMejorPuntajeAnterior, presentarResultadoNivel } from '../educacion/TransicionNivel.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
 import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
@@ -20,6 +20,7 @@ let disenoActual = null;
 let parametrosUltimaEjecucion = null;
 let estadoMotor = null;
 let ejecucionPendiente = null;
+let resultadoEnCurso = false;
 let consignaActual = null;
 let idDisenoConsigna = null;
 let mensajeConsigna = '';
@@ -471,7 +472,7 @@ function obtenerEstadoEjecucion() {
 
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
-  if (!disenoActual) return;
+  if (!disenoActual || resultadoEnCurso) return;
   if (!disenoActual.preparadoParaSimular) {
     mostrarMensaje(obtenerMensajePreparacionSimulacion(), 'error');
     return;
@@ -534,7 +535,7 @@ function detenerSimulacion() {
 }
 
 function reiniciarSimulacion() {
-  if (!parametrosUltimaEjecucion || !visor) return;
+  if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
   const estado = visor.escena.reiniciarAnimacion();
   actualizarPanelTiempoReal(estado);
   document.getElementById('verResultadosSimulacion').hidden = true;
@@ -606,10 +607,19 @@ async function finalizarEjecucionVisible() {
   const pendiente = ejecucionPendiente;
   if (!pendiente) return;
   ejecucionPendiente = null;
+  resultadoEnCurso = true;
+  actualizarControlesSimulacion(estadoMotor);
+  const controlador = new AbortController();
+  const cancelar = () => controlador.abort();
+  window.addEventListener('pagehide', cancelar);
+  window.addEventListener('popstate', cancelar);
   try {
+    const idEscenario = disenoActual?.simulacion?.idEscenario;
+    const mejorPuntajeAnterior = await consultarMejorPuntajeAnterior(idEscenario);
+    if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
     const evaluacion = await evaluarEscenarioProgresivo(pendiente.idDiseno);
     const correspondeAlDisenoActual = disenoActual?.simulacion?.idDiseno === pendiente.idDiseno;
-    if (!correspondeAlDisenoActual) return;
+    if (!correspondeAlDisenoActual || controlador.signal.aborted) return;
     if (evaluacion?.completado) {
       disenoActual.simulacion.estado = 'COMPLETADO';
       if (evaluacion.desempeno) {
@@ -635,22 +645,30 @@ async function finalizarEjecucionVisible() {
         const respuesta = await fetch(`${base}/progreso`, { headers });
         if (!respuesta.ok) return;
         const progreso = await respuesta.json();
-        if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
-        const accion = await presentarResultadoNivel(progreso, disenoActual.simulacion.idEscenario, evaluacion);
+        if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
+        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { mejorPuntajeAnterior, signal: controlador.signal });
         if (accion?.siguiente) {
-          const inicio = await iniciarNivelConTransicion(accion.siguiente, async () => {
-            const respuestaInicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/iniciar`, { method: 'POST', headers });
+          const inicio = await iniciarNivelConTransicion(accion.siguiente, async signal => {
+            const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
+            const respuestaInicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/${operacion}`, { method: 'POST', headers, signal });
             if (!respuestaInicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Escenarios.');
             return respuestaInicio.json();
-          });
-          if (inicio) window.location.assign(establecerContextoEnRuta('/', inicio));
-        } else if (accion) window.location.assign('/escenarios.html');
+          }, { preparado: true });
+          if (inicio && !controlador.signal.aborted && disenoActual?.simulacion?.idDiseno === pendiente.idDiseno) {
+            window.location.assign(establecerContextoEnRuta('/', inicio));
+          }
+        } else if (accion?.destino) window.location.assign(accion.destino);
       } catch (error) { mostrarMensaje(`Resultado guardado. ${error.message}`, 'advertencia'); }
     }
   } catch (error) {
     if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
     document.getElementById('continuarEscenarios').hidden = false;
     mostrarMensaje(`El recorrido terminó, pero no se pudo evaluar el escenario: ${error.message}`, 'error');
+  } finally {
+    resultadoEnCurso = false;
+    actualizarControlesSimulacion(estadoMotor);
+    window.removeEventListener('pagehide', cancelar);
+    window.removeEventListener('popstate', cancelar);
   }
 }
 
@@ -665,7 +683,7 @@ function actualizarControlesSimulacion(estado) {
   document.getElementById('reanudarSimulacion').disabled = !pausada;
   document.getElementById('reanudarSimulacion').hidden = !pausada;
   document.getElementById('detenerSimulacion').disabled = !enCurso && !pausada;
-  document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar;
+  document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar || resultadoEnCurso;
   document.getElementById('seguirMetro').disabled = !estado?.metroActivo?.transitable;
   actualizarDisponibilidadEjecucion();
   if (controlConFoco?.id === 'pausarSimulacion' && pausada) document.getElementById('reanudarSimulacion').focus({ preventScroll: true });
@@ -676,7 +694,7 @@ function actualizarDisponibilidadEjecucion() {
   const boton = document.querySelector('#formularioEjecucion button[type="submit"]');
   if (!boton) return;
   const ejecucionActiva = estadoMotor?.estado === 'EN_CURSO' || estadoMotor?.estado === 'PAUSADA';
-  boton.disabled = !disenoActual?.preparadoParaSimular || ejecucionActiva;
+  boton.disabled = !disenoActual?.preparadoParaSimular || ejecucionActiva || resultadoEnCurso;
   boton.title = !disenoActual?.preparadoParaSimular
     ? obtenerMensajePreparacionSimulacion()
     : (ejecucionActiva ? 'Detené o reiniciá la simulación actual antes de iniciar otra.' : '');

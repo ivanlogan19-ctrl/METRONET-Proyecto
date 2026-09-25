@@ -5,7 +5,7 @@ import { navegarConCambiosPendientes, registrarControlCambios } from '../../nave
 import { obtenerConfiguracionAplicacion } from '../../configuracion/ConfiguracionAplicacion.js';
 import { mostrarNotificacion } from '../../componentes/NotificacionesMetronet.js';
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
-import { obtenerAnteriorCompletado, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
+import { consultarMejorPuntajeAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
 import PanelHerramientasEditor from './PanelHerramientasEditor.js';
 import { destacarConceptos } from '../../educacion/glosario/GlosarioContextual.js';
 import { conceptosDelNivel } from '../../educacion/glosario/ContextoConceptos.js';
@@ -305,12 +305,13 @@ export default class EditorRedMetro {
   async abrirEscenario(ruta, idEscenario, preparado = false) {
     if (this.aperturaEscenarioEnCurso) return;
     this.aperturaEscenarioEnCurso = true;
+    const idDisenoOrigen = this.disenoActual?.simulacion?.idDiseno;
     try {
       const escenario = this.escenariosJuego.find((candidato) => candidato.idEscenario === idEscenario);
       const inicio = await iniciarNivelConTransicion(escenario,
-        () => this.solicitarJuego(ruta, { method: 'POST' }),
-        { anterior: obtenerAnteriorCompletado(escenario, this.escenariosJuego), preparado });
-      if (!inicio) return;
+        signal => this.solicitarJuego(ruta, { method: 'POST', signal }),
+        { preparado });
+      if (!inicio || (preparado && this.disenoActual?.simulacion?.idDiseno !== idDisenoOrigen)) return;
       window.history.replaceState({}, '', establecerContextoEnRuta('/', inicio));
       this.cambiosPendientes = false;
       await this.cargarJuego();
@@ -516,29 +517,50 @@ export default class EditorRedMetro {
   }
 
   async validarDiseno() {
+    if (this.validacionEnCurso || this.evaluacionEnCurso) return;
+    this.validacionEnCurso = true;
     try {
       const idDiseno = this.idDiseno();
       const validacion = await this.clienteDisenos.validar(idDiseno);
       await this.abrirDiseno(idDiseno);
       if (!validacion.valido) return this.mostrarMensaje(validacion.observaciones.join(' '), 'error');
-      if (this.esEscenarioSinSimulacion()) return this.evaluarEscenarioSinSimulacion(idDiseno);
+      if (this.esEscenarioSinSimulacion()) return await this.evaluarEscenarioSinSimulacion(idDiseno);
       if (validacion.preparadoParaSimular) return this.mostrarMensaje('La red es consistente y está lista para simular.', 'exito');
       this.mostrarMensaje(this.obtenerMensajePreparacionSimulacion(validacion.observacionesSimulacion), 'advertencia');
     } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    finally { this.validacionEnCurso = false; }
   }
 
   async evaluarEscenarioSinSimulacion(idDiseno) {
-    const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST' });
-    if (evaluacion.completado) this.cambiosPendientes = false;
-    await this.cargarJuego();
-    await this.abrirDiseno(idDiseno);
-    this.mostrarMensaje(evaluacion.mensaje, evaluacion.completado ? 'exito' : 'advertencia');
-    if (evaluacion.completado) {
-      const progreso = await this.solicitarJuego('/progreso');
+    if (this.evaluacionEnCurso) return;
+    this.evaluacionEnCurso = true;
+    const controlador = new AbortController();
+    const cancelar = () => controlador.abort();
+    window.addEventListener('pagehide', cancelar);
+    window.addEventListener('popstate', cancelar);
+    try {
       const idEscenario = this.disenoActual?.simulacion?.idEscenario;
-      const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion);
-      if (accion?.siguiente) await this.abrirEscenario(`/escenarios/${accion.siguiente.idEscenario}/iniciar`, accion.siguiente.idEscenario, true);
-      else if (accion) window.location.assign('/escenarios.html');
+      const mejorPuntajeAnterior = await consultarMejorPuntajeAnterior(idEscenario);
+      if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
+      const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST' });
+      if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
+      if (evaluacion.completado) this.cambiosPendientes = false;
+      await this.cargarJuego();
+      await this.abrirDiseno(idDiseno);
+      this.mostrarMensaje(evaluacion.mensaje, evaluacion.completado ? 'exito' : 'advertencia');
+      if (evaluacion.completado) {
+        const progreso = await this.solicitarJuego('/progreso');
+        if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
+        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { mejorPuntajeAnterior, signal: controlador.signal });
+        if (accion?.siguiente) {
+          const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
+          await this.abrirEscenario(`/escenarios/${accion.siguiente.idEscenario}/${operacion}`, accion.siguiente.idEscenario, true);
+        } else if (accion?.destino) window.location.assign(accion.destino);
+      }
+    } finally {
+      this.evaluacionEnCurso = false;
+      window.removeEventListener('pagehide', cancelar);
+      window.removeEventListener('popstate', cancelar);
     }
   }
 

@@ -74,12 +74,14 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  const {pagina,solicitudes}=await abrir(t,'/escenarios.html');
  await pagina.evaluate(async({progreso})=>{
   const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');
-  void presentarResultadoNivel(progreso,10,{completado:true,puntaje:90,idSiguienteEscenario:null,desempeno:{puntajeMaximo:100,explicacion:'Red correcta. Existe margen para optimizar la velocidad.'}});
+  window.cierre = presentarResultadoNivel(progreso,10,{completado:true,puntaje:90,idSiguienteEscenario:null,desempeno:{puntajeMaximo:100,explicacion:'Red correcta. Existe margen para optimizar la velocidad.'}});
  },{progreso});
  await pagina.getByRole('dialog').waitFor();
+ await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).waitFor();
  assert.match(await pagina.getByRole('dialog').innerText(),/950 \/ 1000 puntos.*Tu posición: 2/s);
- assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento:\s+90 \/ 100/);
- await pagina.getByRole('link',{name:'Ver mi desempeño y ranking',exact:true}).click();await pagina.waitForURL('**/ranking.html');
+ assert.match(await pagina.getByRole('dialog').innerText(),/90 \/ 100 PTS/);
+ await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).click();
+ assert.deepEqual(await pagina.evaluate(()=>window.cierre),{destino:'/ranking.html'});
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
 });
 test('Simulación finalizada presenta el puntaje evaluado en el mensaje y el historial',async t=>{
@@ -101,5 +103,5 @@ test('Simulación finalizada presenta el puntaje evaluado en el mensaje y el his
  await pagina.getByRole('dialog').waitFor();
  assert.match(await pagina.locator('#mensajeSimulacion').innerText(),/90 \/ 100 puntos/);
  assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(),/COMPLETADA · 90 puntos/);
- assert.match(await pagina.getByRole('dialog').innerText(),/Puntaje del intento:\s+90 \/ 100/);
+ assert.match(await pagina.getByRole('dialog').innerText(),/90 \/ 100 PTS/);
 });

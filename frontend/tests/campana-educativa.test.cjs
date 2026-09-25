@@ -44,20 +44,13 @@ for (const width of [1440, 768, 390]) {
     assert.equal(await pagina.locator('#progresoEscenarios > li').count(), 10);
     assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /4 de 10/);
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
-    const dialogo = pagina.getByRole('dialog', { name: 'Nivel completado', exact: true });
+    const dialogo = pagina.getByRole('dialog', { name: niveles[4].nombre, exact: true });
     await dialogo.waitFor();
-    const texto = await dialogo.innerText();
-    assert.match(texto, /Nivel 4.*Simulación completa/);
-    assert.match(texto, /Nivel 5.*Lugares y barrios/);
-    assert.match(texto, /Puntaje del intento:\s+100/);
-    assert.match(texto, /Pista para el próximo nivel/i);
-    assert.doesNotMatch(texto, /Contexto histórico/i);
-    assert.equal(solicitudes.filter(r => r.method === 'POST').length, 0);
+    assert.equal(await pagina.locator('.metronet-victoria').count(), 0);
+    assert.match(await dialogo.innerText(), /Nivel 5.*Lugares y barrios/i);
     assert.equal(await dialogo.evaluate(d => d.scrollWidth > d.clientWidth), false);
-    assert.equal(await dialogo.evaluate(d => d.scrollTop), 0);
-    assert.equal(await pagina.evaluate(() => document.activeElement.id), 'tituloTransicionNivel');
+    assert.equal(await pagina.evaluate(() => document.activeElement.id), 'tituloPreparacionNivel');
     assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-    await pagina.locator('[data-continuar-transicion]').click();
     await pagina.waitForURL('**/?idDiseno=200&idEscenario=105&idIntento=300');
     assert.equal(solicitudes.filter(r => r.method === 'POST').length, 1);
   });
@@ -66,7 +59,6 @@ for (const completados of [0, 5, 8, 9]) {
   test(`Acceso al nivel ${completados + 1}: preparación/transición y destino real`, async t => {
     const { pagina } = await abrir(t, '/escenarios.html', { progreso: progreso(completados) });
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
-    if (completados) await pagina.locator('[data-continuar-transicion]').click();
     await pagina.waitForURL(`**/?idDiseno=200&idEscenario=${101 + completados}&idIntento=300`);
   });
 }
@@ -81,7 +73,7 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
   assert.equal(await pagina.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
   await pagina.reload();
   assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /9 de 10/);
-  assert.equal(solicitudes.filter(r => r.method === 'POST').length, 0);
+  assert.equal(solicitudes.filter(r => r.method === 'POST').length, 1);
   await pagina.getByRole('button', { name: 'Volver a jugar', exact: true }).first().click();
   await pagina.getByRole('dialog', { name: niveles[0].nombre }).waitFor();
   await pagina.keyboard.press('Escape');
@@ -99,10 +91,11 @@ test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', a
     const { presentarResultadoNivel } = await import('/src/educacion/TransicionNivel.js');
     window.resultadoTransicion = presentarResultadoNivel(resumen, 110, { completado: true, puntaje: 100, idSiguienteEscenario: null });
   }, resumen);
-  await pagina.getByRole('dialog', { name: 'Recorrido completado', exact: true }).waitFor();
+  await pagina.getByRole('dialog', { name: 'Nivel final completado', exact: true }).waitFor();
   assert.equal(await pagina.getByText('Continuar con Nivel 11').count(), 0);
-  await pagina.locator('[data-continuar-transicion]').click();
-  assert.deepEqual(await pagina.evaluate(() => window.resultadoTransicion), { siguiente: null });
+  await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor();
+  await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
+  assert.deepEqual(await pagina.evaluate(() => window.resultadoTransicion), { destino: '/escenarios.html' });
   assert.equal(solicitudes.filter(r => r.method === 'POST').length, 0);
 });
 test('Sin datos educativos usa una transición genérica; fallo de módulo no bloquea navegación', async t => {
@@ -112,8 +105,7 @@ test('Sin datos educativos usa una transición genérica; fallo de módulo no bl
     window.transicionDesconocida = mostrarTransicionNivel({ numero: 97, nombre: 'Desafío externo' }, { numero: 98, nombre: 'Siguiente externo' });
   });
   assert.match(await pagina.getByRole('dialog').innerText(), /Siguiente externo/);
-  await pagina.locator('[data-continuar-transicion]').click();
-  assert.equal(await pagina.evaluate(() => window.transicionDesconocida), true);
+  assert.equal(await pagina.evaluate(() => window.transicionDesconocida), 'siguiente');
   await pagina.route('**/educacion/PantallaTransicionNivel.js*', route => route.abort());
   await pagina.reload();
   await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
@@ -151,10 +143,12 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
   await pagina.locator('#duracionSimulacion').fill('10');
   await pagina.locator('[data-velocidad="4"]').click();
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
-  await pagina.getByRole('dialog', { name: numero === 10 ? 'Recorrido completado' : 'Nivel completado', exact: true }).waitFor();
+  await pagina.getByRole('dialog', { name: numero === 10 ? 'Nivel final completado' : 'Nivel completado', exact: true }).waitFor();
   assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 1);
-  await pagina.locator('[data-continuar-transicion]').click();
+  assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
   if (numero === 10) {
+    await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor();
+    await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
     await pagina.waitForURL('**/escenarios.html');
     assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10 de 10/);
     assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);

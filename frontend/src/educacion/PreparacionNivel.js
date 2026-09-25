@@ -1,13 +1,6 @@
-// El resultado anterior conserva su confirmación. El viaje de entrada avanza solo.
-export async function iniciarNivelConTransicion(escenario, iniciar, { anterior = null, preparado = false } = {}) {
-  if (anterior && !preparado) {
-    let continuar = true;
-    try {
-      const { mostrarTransicionNivel } = await import('./PantallaTransicionNivel.js');
-      continuar = await mostrarTransicionNivel(anterior, escenario, { puntaje: anterior.ultimoPuntaje });
-    } catch { /* Un fallo de presentación no bloquea el acceso. */ }
-    if (!continuar) return null;
-  }
+// El acceso manual prepara el nivel; una victoria ya realizó el viaje de entrada.
+export async function iniciarNivelConTransicion(escenario, iniciar, { preparado = false } = {}) {
+  if (preparado) return iniciarSinViaje(iniciar);
   // Modo Libre no tiene introducción propia. Los niveles sin mensajes usan el genérico.
   if (!Number.isInteger(escenario?.numero)) return iniciar();
   let viaje = null;
@@ -25,5 +18,25 @@ export async function iniciarNivelConTransicion(escenario, iniciar, { anterior =
   } finally {
     // También limpia en errores de red, render, cancelación o navegación.
     (await pantalla)?.cerrar();
+  }
+}
+
+async function iniciarSinViaje(iniciar) {
+  const controlador = new AbortController();
+  let cancelar;
+  const cancelacion = new Promise(resolve => {
+    cancelar = () => { controlador.abort(); resolve(null); };
+  });
+  window.addEventListener('pagehide', cancelar);
+  window.addEventListener('popstate', cancelar);
+  try {
+    const datos = await Promise.race([Promise.resolve().then(() => iniciar(controlador.signal)), cancelacion]);
+    return controlador.signal.aborted ? null : datos;
+  } catch (error) {
+    if (controlador.signal.aborted) return null;
+    throw error;
+  } finally {
+    window.removeEventListener('pagehide', cancelar);
+    window.removeEventListener('popstate', cancelar);
   }
 }
