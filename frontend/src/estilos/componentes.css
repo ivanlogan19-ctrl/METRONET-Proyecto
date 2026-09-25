@@ -6,7 +6,7 @@ html:root body [hidden]:not([hidden='until-found']) { display: none !important; 
 /* Mandos nativos y enlaces de acción. Las clases antiguas son adaptadores. */
 html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
   .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
-  .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a) {
+  .metronet-navegacion__enlace, :where(.perfil-volver) a) {
   --boton-fondo: var(--control-secundario);
   --boton-texto: var(--text-primary);
   --boton-borde: var(--border-active);
@@ -30,7 +30,7 @@ html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary
   transition: background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing);
 }
 html:root body :is(a.metronet-boton, a.primary-button, a.secondary-button,
-  .metronet-inicio__enlace, .simulacion-volver, .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a) {
+  .metronet-inicio__enlace, .simulacion-volver, .metronet-navegacion__enlace, :where(.perfil-volver) a) {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; max-width: 100%;
 }
 html:root body :is(.metronet-boton--primario, .primary-button, .metronet-inicio__boton--azul,
@@ -81,12 +81,12 @@ html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton,
 }
 html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
   .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
-  .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):hover {
+  .metronet-navegacion__enlace, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):hover {
   color: var(--boton-texto); border-color: var(--boton-borde); background: var(--boton-hover);
 }
 html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
   .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
-  .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):active {
+  .metronet-navegacion__enlace, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):active {
   box-shadow: var(--control-presionado); translate: 1px 1px;
 }
 html:root body :is(button[aria-pressed='true'], button.activo, button.activa, button.es-seleccionado,
@@ -346,7 +346,7 @@ html:root body :is(.simulacion-tarjeta, .metronet-panel-puntos-item, .metronet-e
 }
 @media (pointer: coarse) {
   html:root body .input-wrapper:has(.toggle-password) input { min-height: 56px; }
-  html:root body :is(button, summary, select, .metronet-boton, :where(.auth-link) a, :where(.perfil-volver) a, .metronet-inicio__enlace) { min-height: var(--control-touch-height); }
+  html:root body :is(button, summary, select, .metronet-boton, :where(.perfil-volver) a, .metronet-inicio__enlace) { min-height: var(--control-touch-height); }
   html:root body :is(.metronet-boton--icono, .metronet-control-zoom-boton, .metronet-panel-puntos-alternar) { min-width: var(--control-touch-height); }
   html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar) { min-width: var(--control-touch-height); min-height: var(--control-touch-height); }
   html:root body .metronet-panel-puntos-cabecera { flex-wrap: wrap; padding-block: 4px; }
@@ -363,3 +363,14 @@ html:root body :is(.simulacion-tarjeta, .metronet-panel-puntos-item, .metronet-e
 
 /* La fila de reproducción conserva palabras completas sin inflar su altura. */
 html:root body .simulacion-acciones-ejecucion button { padding-inline: 6px; font-size: 13px; }
+
+/* Accesos de autenticación: enlaces de texto, separados de las acciones del formulario. */
+html:root body .auth-link a {
+  display: inline; padding: 0; border: 0; border-radius: 0;
+  background: transparent; box-shadow: none; color: var(--info-active);
+  font-family: var(--font-ui); font-size: inherit; font-weight: 700;
+  text-transform: none; text-decoration: underline dotted; text-underline-offset: 4px;
+  text-decoration-thickness: 1px; line-height: 1.7; translate: none;
+}
+html:root body .auth-link a:hover { color: var(--text-primary); text-decoration-thickness: 2px; }
+html:root body .auth-link a:focus-visible { outline: 2px solid var(--info-active); outline-offset: 4px; }

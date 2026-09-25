@@ -45,10 +45,6 @@ test('Eliminar y cerrar sesión comparten rojo sólido; cancelar comparte rojo s
   await editor.locator('[data-agregar-estacion]').click();
   assert.deepEqual(await estilo(editor.locator('[data-cancelar-herramienta]')), cancelar);
   await editor.locator('[data-cancelar-herramienta]').click();
-  for (const ruta of ['/recuperar-contrasena.html', '/nueva-contrasena.html', '/verificar-codigo.html']) {
-    const p = (await abrir(t, ruta)).pagina;
-    assert.deepEqual(await estilo(p.locator('.auth-link a').last()), cancelar);
-  }
 });
 
 test('Rol nativo: teclado y guardar conservan JUGADOR ↔ ADMIN y contrato REST', async t => {
