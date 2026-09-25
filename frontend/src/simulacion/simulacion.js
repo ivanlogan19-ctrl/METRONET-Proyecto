@@ -1,3 +1,4 @@
+import PanelAyudaContextual from '../educacion/PanelAyudaContextual.js';
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
@@ -16,6 +17,8 @@ const idDisenoInicial = obtenerIdDisenoDeRuta();
 let cliente = null;
 let visor = null;
 let organizacion = null;
+let panelAyuda = null;
+let errorAyuda = null;
 let disenoActual = null;
 let parametrosUltimaEjecucion = null;
 let estadoMotor = null;
@@ -37,11 +40,12 @@ if (!sesion) {
 }
 
 async function inicializar() {
+  panelAyuda = new PanelAyudaContextual(document.querySelector('[data-ayuda-contextual]'));
   inicializarNavegacion({ actual: 'simulacion', etapa: 'simulacion' });
   // Consulta educativa independiente: una falla nunca demora la simulación.
   consultarJuego('/progreso').then(progreso => {
     escenariosGlosario = Array.isArray(progreso?.escenarios) ? progreso.escenarios : [];
-    if (disenoActual) actualizarGlosarioConsigna();
+    if (disenoActual) { actualizarGlosarioConsigna(); actualizarAyuda(); }
   }).catch(() => {});
   destacarConceptos(document.querySelector('.simulacion-etiqueta-control'), CONCEPTOS_SIMULACION);
   const etiquetaVentana = document.querySelector('label[for="duracionSimulacion"]');
@@ -111,6 +115,8 @@ async function seleccionarDiseno(evento) {
 async function abrirDiseno(idDiseno) {
   try {
     cerrarDefinicion();
+    errorAyuda = null;
+    panelAyuda?.actualizar({});
     numeroSolicitudConsigna += 1;
     consignaActual = null;
     idDisenoConsigna = null;
@@ -178,6 +184,7 @@ function actualizarConsignaSimulacion(resumen) {
   renderizarReferenciasConsigna(consignaDisponible ? consignaActual.referenciasObjetivo : []);
   actualizarProgresoEjecucion(estadoMotor ?? crearEstadoInicial());
   actualizarGlosarioConsigna();
+  actualizarAyuda();
 }
 
 function actualizarGlosarioConsigna() {
@@ -197,6 +204,7 @@ function obtenerContextoConsigna(resumen) {
 
 async function cargarConsignaReal(idDiseno) {
   const solicitud = ++numeroSolicitudConsigna;
+  errorAyuda = null;
   consignaActual = null;
   idDisenoConsigna = null;
   mensajeConsigna = 'Consultando el estado real de los objetivos del escenario…';
@@ -580,13 +588,16 @@ function detenerAnimacion() {
 }
 
 function limpiarVisor() {
+  panelAyuda?.eliminar();
   visor?.destruir();
   visor = null;
 }
 
 function actualizarPanelTiempoReal(estado) {
   if (!estado) return;
+  const cambioEstado = estadoMotor?.estado !== estado.estado;
   estadoMotor = estado;
+  if (cambioEstado) { errorAyuda = null; actualizarAyuda(); }
   actualizarProgresoEjecucion(estado);
   const campoVelocidades = document.querySelector('[data-controles-circulacion]');
   if (campoVelocidades) campoVelocidades.disabled = estado.estado === 'EN_CURSO' || estado.estado === 'PAUSADA';
@@ -739,12 +750,27 @@ function obtenerMensajePreparacionSimulacion() {
 
 function mostrarEstadoVacio() {
   disenoActual = null;
+  actualizarAyuda();
   document.getElementById('estadoVacio').hidden = false;
   document.getElementById('panelSimulacion').hidden = true;
   organizacion.mostrarDiseno(null);
 }
 
+function actualizarAyuda() {
+  const resumen = disenoActual?.simulacion;
+  panelAyuda?.actualizar({
+    diseno: disenoActual,
+    escenario: escenariosGlosario.find(e => e.idEscenario === resumen?.idEscenario),
+    consigna: consignaActual,
+    estadoConsigna: consignaActual && idDisenoConsigna === resumen?.idDiseno ? 'disponible' : 'noDisponible',
+    pantalla: 'simulacion', estadoMotor: estadoMotor?.estado, error: errorAyuda,
+  });
+}
+
 function mostrarMensaje(texto, tipo = '') {
+  if (tipo === 'error') errorAyuda = texto;
+  else if (tipo === 'exito') errorAyuda = null;
+  actualizarAyuda();
   const mensaje = document.getElementById('mensajeSimulacion');
   mensaje.textContent = texto;
   mensaje.className = `simulacion-mensaje ${tipo}`;

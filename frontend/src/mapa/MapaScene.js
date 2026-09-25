@@ -183,6 +183,7 @@ export default class MapaScene extends Phaser.Scene {
 
       onActualizarPuntos: (resumen) => {
         this.panelPuntosInteres?.actualizar(resumen);
+        this.editorRedMetro?.actualizarReferenciaAyuda(resumen.puntoSeleccionado);
         this.panelSeleccionGeografica?.actualizar(resumen);
       },
 
@@ -299,6 +300,8 @@ export default class MapaScene extends Phaser.Scene {
       permitirArrastrePrimario: () => this.capaRedMetro?.modo === 'normal',
 
       etiquetaAjustar: 'Ajustar red',
+
+      mostrarAyudaNavegacion: false,
 
       contenedorPadre: contenedorHerramientas ?? this.contenedorMapa,
 

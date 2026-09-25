@@ -2,7 +2,7 @@
 .metronet-victoria::backdrop { background: rgb(2 6 17 / .96); }
 .metronet-victoria__contenido { display: grid; gap: 12px; padding: clamp(16px, 2.4vw, 28px); text-align: center; }
 .metronet-victoria__cabecera { display: grid; gap: 6px; }
-html:root body .metronet-victoria h2 { font-size: clamp(21px, 3vw, 32px); line-height: 1.3; margin: 0; }
+.metronet-victoria h2 { margin: 0; }
 html:root body .metronet-victoria .metronet-victoria__felicitacion { color: var(--success); font-family: var(--font-arcade); font-size: 15px; }
 .metronet-victoria__recorrido { position: relative; background-color: var(--bg-primary); background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px); background-size: 24px 24px; border: 1px solid var(--border); }
 .metronet-victoria__recorrido svg { display: block; width: 100%; height: clamp(190px, 36svh, 380px); }

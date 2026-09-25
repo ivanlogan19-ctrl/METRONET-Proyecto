@@ -1,18 +1,8 @@
 @import './componentes.css';
+@import './titulos.css';
 
 /* METRONET: consola de tránsito. Composición de módulos sobre la biblioteca base. */
 html:root body { font-family: var(--font-ui); }
-html:root body :is(h1, h2, h3, h4, h5, h6) {
-  color: var(--text-primary);
-  font-weight: 400;
-  line-height: var(--heading-leading);
-  letter-spacing: var(--heading-tracking);
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-html:root body h1 { font-family: var(--font-arcade); font-size: var(--font-size-h1); }
-html:root body h2 { font-family: var(--font-arcade); font-size: var(--font-size-h2); }
-html:root body :is(h3, h4, h5, h6) { font-family: var(--font-tecnica); font-size: var(--font-size-h3); font-weight: 700; }
 html:root body :is(.eyebrow, .metronet-inicio__etiqueta, .metronet-inicio__tarjeta-etiqueta,
   .metronet-panel-editor-sobretitulo, .perfil-seccion__etiqueta, .simulacion-etiqueta, .admin-etiqueta) {
   color: var(--info-active); font-family: var(--font-tecnica); font-size: var(--font-size-small); letter-spacing: .12em; text-transform: uppercase;
@@ -122,17 +112,9 @@ html:root .ranking-niveles li > span { color: var(--info-active); font-variant-n
 
 /* Editor: el mapa queda limpio; módulos compactos sostienen su prioridad. */
 html:root #metronet-mapa, html:root #metronet-panel-controles, html:root .simulacion-visor-mapa { border-radius: var(--radius-control); border-color: var(--border-active); }
-html:root body #metronet-panel-controles h1 { font-size: 18px; }
-html:root body #metronet-panel-controles :is(h2, h3) { font-family: var(--font-tecnica); font-size: var(--font-size-small); font-weight: 700; }
-/* Cabeceras de instrumentos comparten la escala compacta del HUD, no la de página. */
-html:root body :is(.metronet-panel-titulo, .metronet-panel-puntos-titulo, .metronet-panel-puntos-subtitulo, .metronet-punto-interes-panel-titulo) {
-  font-family: var(--font-tecnica); font-size: var(--font-size-small); font-weight: 700;
-  line-height: 1.4; white-space: normal;
-}
 html:root #metronet-panel-controles :is(.metronet-consigna, .metronet-panel-acordeon-mapa, .metronet-editor-seleccionado, .metronet-juego, .metronet-editor-grupo, .metronet-editor-panel, .metronet-territorio) { border-radius: var(--radius-control); }
 html:root .metronet-punto-interes-panel { border-top: var(--border-strong) solid var(--info-active); }
 html:root .metronet-panel-puntos-item.es-seleccionado { box-shadow: var(--shadow-selection); }
-html:root body .simulacion-panel-lateral h2 { font-size: var(--font-size-h2); }
 
 /* Perfil y acceso comparten campos, títulos y ayudas. */
 html:root .perfil-contenedor .input-wrapper { position: relative; width: 100%; }

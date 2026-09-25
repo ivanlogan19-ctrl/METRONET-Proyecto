@@ -50,10 +50,51 @@ function mostrarDefinicion(id, origen) {
   } catch { limpiar(); } // Una explicación nunca bloquea el nivel.
 }
 
+function mostrarDefinicionContextual(id, origen, contenedor) {
+  const entrada = obtenerConcepto(id);
+  if (!entrada?.definicion) return;
+  cerrarDefinicion();
+  const panel = document.createElement('aside');
+  panel.className = 'metronet-glosario-contextual';
+  panel.id = 'explicacionContextualMetronet';
+  panel.setAttribute('aria-label', tituloConcepto(entrada));
+  const cerrar = texto('button', 'Cerrar explicación');
+  cerrar.type = 'button';
+  const definicion = texto('p', entrada.definicion);
+  // La definición puede estar en una región compacta con desplazamiento propio.
+  definicion.tabIndex = 0;
+  panel.append(texto('strong', tituloConcepto(entrada)), definicion, cerrar);
+  origen.setAttribute('aria-expanded', 'true');
+  origen.setAttribute('aria-controls', panel.id);
+  let observador;
+  const limpiar = (devolverFoco = false) => {
+    observador?.disconnect();
+    window.removeEventListener('pagehide', alSalir);
+    panel.remove();
+    origen.setAttribute('aria-expanded', 'false');
+    origen.removeAttribute('aria-controls');
+    if (cerrarActual === limpiar) cerrarActual = null;
+    if (devolverFoco && origen.isConnected) origen.focus({ preventScroll: true });
+  };
+  const alSalir = () => limpiar();
+  cerrarActual = limpiar;
+  cerrar.addEventListener('click', () => limpiar(true));
+  panel.addEventListener('keydown', evento => {
+    if (evento.key === 'Escape') { evento.preventDefault(); evento.stopPropagation(); limpiar(true); }
+  });
+  if (contenedor.matches('p')) contenedor.after(panel);
+  else contenedor.append(panel);
+  panel.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  cerrar.focus({ preventScroll: true });
+  observador = new MutationObserver(() => { if (!origen.isConnected || !panel.isConnected || contenedor.closest('[hidden]')) limpiar(); });
+  observador.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  window.addEventListener('pagehide', alSalir);
+}
+
 // Conserva exactamente los nodos de texto. Evita botones anidados y formularios.
 // La primera aparición de cada concepto por bloque es interactiva; las repeticiones
 // siguen legibles y no agregan pasos redundantes de teclado.
-export function destacarConceptos(contenedor, ids, { alConsultar } = {}) {
+export function destacarConceptos(contenedor, ids, { alConsultar, contextual = false } = {}) {
   if (!contenedor) return;
   contenedor.querySelectorAll('button[data-concepto]').forEach(boton => boton.replaceWith(document.createTextNode(boton.textContent)));
   contenedor.normalize();
@@ -62,7 +103,7 @@ export function destacarConceptos(contenedor, ids, { alConsultar } = {}) {
   const cursor = document.createTreeWalker(contenedor, NodeFilter.SHOW_TEXT);
   while (cursor.nextNode()) {
     const nodo = cursor.currentNode;
-    if (!nodo.parentElement.closest('button, a, label, input, textarea, select, summary, [contenteditable], .metronet-glosario-ventana')) nodos.push(nodo);
+    if (!nodo.parentElement.closest('button, a, label, input, textarea, select, summary, [contenteditable], .metronet-glosario-ventana, .metronet-glosario-contextual')) nodos.push(nodo);
   }
   for (const nodo of nodos) {
     const fragmento = document.createDocumentFragment();
@@ -71,9 +112,16 @@ export function destacarConceptos(contenedor, ids, { alConsultar } = {}) {
       vistos.add(segmento.id);
       const boton = texto('button', segmento.texto, 'metronet-glosario-termino');
       boton.type = 'button'; boton.dataset.concepto = segmento.id;
-      boton.setAttribute('aria-haspopup', 'dialog');
+      if (contextual) boton.setAttribute('aria-expanded', 'false');
+      else boton.setAttribute('aria-haspopup', 'dialog');
       boton.setAttribute('aria-label', `${segmento.texto}: consultar ${tituloConcepto(obtenerConcepto(segmento.id))}`);
-      boton.addEventListener('click', e => { e.stopPropagation(); alConsultar?.(); mostrarDefinicion(segmento.id, boton); });
+      boton.addEventListener('click', e => {
+        e.stopPropagation();
+        if (contextual && boton.getAttribute('aria-expanded') === 'true') { cerrarDefinicion(); return; }
+        alConsultar?.();
+        if (contextual) mostrarDefinicionContextual(segmento.id, boton, contenedor);
+        else mostrarDefinicion(segmento.id, boton);
+      });
       fragmento.append(boton);
     }
     nodo.replaceWith(fragmento);

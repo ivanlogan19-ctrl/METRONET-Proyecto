@@ -1,3 +1,11 @@
+let destinoContextual = null;
+
+// Las pantallas con una barra reservada pueden reutilizar también los avisos globales.
+export function registrarDestinoNotificaciones(mostrar) {
+  destinoContextual = mostrar;
+  return () => { if (destinoContextual === mostrar) destinoContextual = null; };
+}
+
 const DURACIONES_POR_TIPO = Object.freeze({
   info: 4200,
   exito: 4200,
@@ -22,6 +30,7 @@ function obtenerContenedor() {
 
 export function mostrarNotificacion(texto, tipo = 'info', opciones = {}) {
   if (!texto) return;
+  if (destinoContextual) { destinoContextual(texto, tipo); return; }
   const tipoNormalizado = normalizarTipo(tipo);
   const notificacion = document.createElement('article');
   const duracion = opciones.duracion ?? DURACIONES_POR_TIPO[tipoNormalizado];

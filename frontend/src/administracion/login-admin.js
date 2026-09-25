@@ -1,3 +1,4 @@
+import { continuarConBienvenida, reanudarBienvenida } from "../autenticacion/BienvenidaAcceso.js";
 import {
   activarVisibilidadContrasena,
   establecerCarga,
@@ -5,15 +6,27 @@ import {
   obtenerMensajeError,
   obtenerUrlAutenticacion,
 } from "../autenticacion/ui.js";
-import { guardarSesionAdministrador } from "../autenticacion/sesion.js";
+import { guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
 
 const formulario = document.getElementById("loginAdminForm");
 const botonIngresar = document.getElementById("loginAdminButton");
 
 activarVisibilidadContrasena();
 
+let envioEnCurso = reanudarBienvenida(obtenerSesionAdministrador());
+let paginaActiva = true;
+window.addEventListener('pagehide', () => { paginaActiva = false; });
+window.addEventListener('pageshow', evento => {
+  paginaActiva = true;
+  if (evento.persisted) {
+    envioEnCurso = reanudarBienvenida(obtenerSesionAdministrador());
+    establecerCarga(botonIngresar, envioEnCurso);
+  }
+});
+
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+  if (envioEnCurso || !paginaActiva) return;
 
   const datos = {
     usuario: document.getElementById("usuario").value.trim(),
@@ -25,6 +38,8 @@ formulario.addEventListener("submit", async (evento) => {
     return;
   }
 
+  envioEnCurso = true;
+  let navegando = false;
   try {
     establecerCarga(botonIngresar, true);
     mostrarMensaje("Validando permisos de administrador…");
@@ -42,15 +57,12 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     const sesion = await respuesta.json();
+    if (!paginaActiva) return;
     guardarSesionAdministrador(sesion);
-    mostrarMensaje("Acceso autorizado. Abriendo administración…");
-
-    window.setTimeout(() => {
-      window.location.assign("/admin.html");
-    }, 600);
+    navegando = await continuarConBienvenida(sesion, "/admin.html");
   } catch (error) {
     mostrarMensaje(error.message, "error");
   } finally {
-    establecerCarga(botonIngresar, false);
+    if (!navegando) { envioEnCurso = false; establecerCarga(botonIngresar, false); }
   }
 });

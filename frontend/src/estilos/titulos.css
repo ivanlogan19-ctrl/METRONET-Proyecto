@@ -1,0 +1,148 @@
+/* Encabezados compartidos. API: metronet-titulo + --hero/--section/--panel/--subsection.
+   Los alias semánticos integran las pantallas existentes sin alterar su DOM o conducta.
+   h1 = SECTION; h2 = PANEL; h3–h6 = SUBSECTION, salvo los alias explícitos de abajo. */
+html:root body :is(h1, h2, h3, h4, h5, h6, .metronet-titulo,
+  .simulacion-seccion > summary, .metronet-panel-acordeon-mapa > summary,
+  .metronet-editor-juego > summary, .metronet-glosario-contextual > strong) {
+  --titulo-tamano: var(--titulo-tamano-subsection);
+  --titulo-fuente: var(--font-tecnica);
+  --titulo-peso: 700;
+  --titulo-color: var(--info-active);
+  --titulo-contorno: 0px;
+  --titulo-brillo: none;
+  --titulo-marco: 0px;
+  --titulo-relleno: 0 0 0 var(--space-sm);
+  --titulo-fondo: transparent;
+  --titulo-sombra: none;
+  --titulo-animacion: none;
+  min-width: 0;
+  max-width: 100%;
+  position: relative;
+  padding: var(--titulo-relleno);
+  border: var(--titulo-marco) solid var(--titulo-color-marco);
+  border-radius: 0;
+  background-color: var(--titulo-fondo);
+  color: var(--titulo-color);
+  font-family: var(--titulo-fuente);
+  font-size: var(--titulo-tamano);
+  font-weight: var(--titulo-peso);
+  line-height: var(--heading-leading);
+  letter-spacing: var(--heading-tracking);
+  text-transform: uppercase;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  -webkit-text-stroke: var(--titulo-contorno) var(--info-active);
+  paint-order: stroke fill;
+  text-shadow: var(--titulo-brillo);
+  box-shadow: var(--titulo-sombra);
+  animation: var(--titulo-animacion);
+}
+
+/* PANEL: borde parcial y brillo sutil; escala legible también en instrumentos. */
+html:root body :is(h2:not(.metronet-titulo), .metronet-titulo--panel,
+  .simulacion-visor-encabezado h3, .simulacion-seccion > summary,
+  .metronet-panel-acordeon-mapa > summary, .metronet-editor-juego > summary,
+  .metronet-glosario-contextual > strong) {
+  --titulo-tamano: var(--titulo-tamano-panel);
+  --titulo-fuente: var(--font-arcade);
+  --titulo-peso: 400;
+  --titulo-color: var(--text-primary);
+  --titulo-contorno: .35px;
+  --titulo-brillo: var(--titulo-glow-sutil);
+  --titulo-relleno: var(--space-2xs) 0 var(--space-2xs) var(--space-sm);
+  --titulo-sombra: inset var(--border-accent) 0 0 var(--primary);
+}
+
+/* SECTION: marco técnico recto, texto sólido, contorno y un único encendido. */
+html:root body :is(h1:not(.metronet-titulo), .metronet-titulo--section, .metronet-viaje h2, .metronet-victoria h2) {
+  --titulo-tamano: var(--titulo-tamano-section);
+  --titulo-fuente: var(--font-arcade);
+  --titulo-peso: 400;
+  --titulo-color: var(--text-primary);
+  --titulo-contorno: .6px;
+  --titulo-brillo: var(--titulo-glow-medio);
+  --titulo-marco: var(--border-width);
+  --titulo-relleno: var(--space-xs) var(--space-sm);
+  --titulo-fondo: var(--bg-secondary);
+  --titulo-sombra: inset var(--border-accent) 0 0 var(--info-active);
+  --titulo-animacion: metronet-titulo-encender var(--titulo-encendido-duracion) ease-out 1;
+}
+
+/* HERO se reserva para la bienvenida, no se extiende al logo ni a sus ancestros. */
+html:root body :is(.metronet-titulo--hero, .metronet-bienvenida h1) {
+  --titulo-tamano: var(--titulo-tamano-hero);
+  --titulo-fuente: var(--font-arcade);
+  --titulo-peso: 400;
+  --titulo-color: var(--text-primary);
+  --titulo-contorno: .9px;
+  --titulo-brillo: var(--titulo-glow-fuerte);
+  --titulo-marco: 0px;
+  --titulo-relleno: var(--space-xs) 0;
+  --titulo-fondo: transparent;
+  --titulo-sombra: none;
+  --titulo-animacion: metronet-titulo-encender var(--titulo-encendido-duracion) ease-out 1;
+}
+
+/* SUBSECTION: un indicador corto, sin glow ni marco completo. */
+html:root body :is(h3:not(.metronet-titulo), h4:not(.metronet-titulo), h5:not(.metronet-titulo), h6:not(.metronet-titulo), .metronet-titulo--subsection):not(.simulacion-visor-encabezado h3):not(:empty)::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: .55em;
+  width: 4px;
+  height: 8px;
+  background: var(--info-active);
+  pointer-events: none;
+}
+html:root body .metronet-titulo.metronet-titulo--subsection {
+  --titulo-tamano: var(--titulo-tamano-subsection);
+  --titulo-fuente: var(--font-tecnica);
+  --titulo-peso: 700;
+  --titulo-color: var(--info-active);
+  --titulo-contorno: 0px;
+  --titulo-brillo: none;
+  --titulo-marco: 0px;
+  --titulo-relleno: 0 0 0 var(--space-sm);
+  --titulo-fondo: transparent;
+  --titulo-sombra: none;
+  --titulo-animacion: none;
+}
+
+/* Escala compacta compartida por mapas y ventanas educativas. */
+html:root body #metronet-panel-controles h1,
+html:root body .metronet-viaje h2 { font-size: var(--titulo-tamano-section-compacto); }
+html:root body #metronet-panel-controles h2,
+html:root body :is(.metronet-panel-puntos-titulo, .metronet-punto-interes-panel-titulo,
+  .metronet-panel-acordeon-mapa > summary, .metronet-editor-juego > summary,
+  .simulacion-seccion > summary) { font-size: var(--titulo-tamano-panel-compacto); }
+html:root body .metronet-bienvenida h1 { margin: 0; max-width: 850px; line-height: 1.25; letter-spacing: 0; }
+
+/* Se conserva la señal de apertura de los paneles interactivos existentes. */
+html:root body :is(.simulacion-seccion[open], .metronet-panel-acordeon-mapa[open], .metronet-editor-juego[open]) > summary {
+  color: var(--info-active);
+}
+html:root body :is(.metronet-panel-acordeon-mapa[open], .metronet-editor-juego[open]) > summary {
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+/* Solo cambia la luz; nunca oculta el texto ni mueve la composición. */
+@keyframes metronet-titulo-encender {
+  from { text-shadow: none; border-color: var(--border); }
+  to { text-shadow: var(--titulo-brillo); border-color: var(--titulo-color-marco); }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  html:root body .metronet-bienvenida h1 { font-size: var(--titulo-tamano-section-compacto); padding-block: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:root body :is(h1, h2, h3, h4, h5, h6, .metronet-titulo,
+    .simulacion-seccion > summary, .metronet-panel-acordeon-mapa > summary,
+    .metronet-editor-juego > summary, .metronet-glosario-contextual > strong) { animation: none; }
+}
+@media (forced-colors: active) {
+  html:root body :is(h1, h2, h3, h4, h5, h6, .metronet-titulo,
+    .simulacion-seccion > summary, .metronet-panel-acordeon-mapa > summary,
+    .metronet-editor-juego > summary, .metronet-glosario-contextual > strong) {
+    -webkit-text-stroke: 0; text-shadow: none; box-shadow: none;
+  }
+}

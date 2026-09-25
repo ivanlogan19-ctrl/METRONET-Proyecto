@@ -101,6 +101,17 @@
   --font-size-display: clamp(26px, 4vw, 40px);
   --heading-leading: 1.45;
   --heading-tracking: .035em;
+  --titulo-color-marco: var(--info-active);
+  --titulo-tamano-hero: clamp(24px, 4vw, 48px);
+  --titulo-tamano-section: var(--font-size-h1);
+  --titulo-tamano-section-compacto: clamp(18px, 2vw, 22px);
+  --titulo-tamano-panel: clamp(14px, 1.4vw, 18px);
+  --titulo-tamano-panel-compacto: 14px;
+  --titulo-tamano-subsection: 14px;
+  --titulo-glow-fuerte: 0 0 6px color-mix(in srgb, var(--info-active) 48%, transparent), 0 0 18px color-mix(in srgb, var(--primary) 24%, transparent);
+  --titulo-glow-medio: 0 0 7px color-mix(in srgb, var(--info-active) 32%, transparent);
+  --titulo-glow-sutil: 0 0 4px color-mix(in srgb, var(--info-active) 18%, transparent);
+  --titulo-encendido-duracion: 380ms;
   --glow-selection: 0 0 0 1px var(--info-active);
   --module-stripe: repeating-linear-gradient(90deg, var(--info-active) 0 3px, transparent 3px 6px);
   --scanline: rgb(72 180 255 / .025);

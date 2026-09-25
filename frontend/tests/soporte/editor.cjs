@@ -22,6 +22,7 @@ async function abrirEditor(navegador, opciones = {}) {
   };
   if (opciones.estaciones) diseno.estaciones = opciones.estaciones;
   if (opciones.tramos) diseno.tramos = opciones.tramos;
+  if (opciones.lineas) diseno.lineas = opciones.lineas;
   diseno.territorio = opciones.territorio || { areas: [], errores: [] };
   await pagina.route('**/src/main.js*', async (route) => {
     const respuesta = await route.fetch();
@@ -39,7 +40,7 @@ async function abrirEditor(navegador, opciones = {}) {
     let respuesta = {};
     if (ruta === '/api/configuraciones') respuesta = [];
     else if (ruta === '/api/juego/escenarios') respuesta = opciones.escenario ? [opciones.escenario] : [{ idEscenario: 45, numero: null, nombre: 'Modo Libre', estado: 'DISPONIBLE', desbloqueado: true, progreso: 0 }];
-    else if (ruta.endsWith('/consigna')) respuesta = { estadoGlobal: 'PARCIAL', progreso: 0, condiciones: [], referenciasObjetivo: [] };
+    else if (ruta.endsWith('/consigna')) respuesta = opciones.consigna?.(diseno) ?? { estadoGlobal: 'PARCIAL', progreso: 0, condiciones: [], referenciasObjetivo: [] };
     else if (ruta === '/api/simulaciones') respuesta = [{ idDiseno: 77, nombre: diseno.simulacion.nombre, estado: diseno.simulacion.estado }];
     else if (ruta === '/api/simulaciones/77') respuesta = diseno;
     else if (ruta.endsWith('/estaciones') && metodo === 'POST') diseno.estaciones.push(datos);

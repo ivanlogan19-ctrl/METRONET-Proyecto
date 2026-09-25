@@ -1,0 +1,112 @@
+.metronet-assist {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--primary-border);
+  background: var(--bg-secondary);
+  box-shadow: inset 2px 0 8px color-mix(in srgb, var(--primary) 9%, transparent);
+}
+.metronet-assist[hidden] { display: none; }
+html:root body .metronet-assist h2 {
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  background: none;
+  box-shadow: none;
+  animation: none;
+}
+.metronet-assist h2 span { color: var(--text-secondary); font-size: 12px; text-shadow: none; -webkit-text-stroke: 0; }
+html:root body .metronet-assist [data-assist-mensaje] > p {
+  margin: 0;
+  color: var(--text-primary);
+  font: 400 14px/1.5 var(--font-ui);
+  text-shadow: none;
+  overflow-wrap: anywhere;
+  animation: metronet-assist-entrada 180ms ease-out both;
+}
+html:root body .metronet-assist [data-assist-pista] {
+  min-height: 32px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  font: 400 12px/1.4 var(--font-ui);
+  text-transform: none;
+  white-space: normal;
+}
+@keyframes metronet-assist-entrada { from { opacity: .6; } to { opacity: 1; } }
+.metronet-assist__acciones { display: flex; flex-wrap: wrap; gap: 6px; }
+/* HUD del editor: una sola franja, altura natural y acciones secundarias. */
+.metronet-assist--integrado {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: 6px 14px; padding: 0;
+  border: 0; background: transparent; box-shadow: none;
+}
+.metronet-assist__cabecera { display: contents; }
+html:root body .metronet-assist--integrado h2 {
+  grid-column: 1; grid-row: 1; margin: 0; padding-left: 8px;
+  border-left: 2px solid var(--info-active);
+  font-size: 11px; line-height: 1.5; letter-spacing: .02em;
+  color: var(--info-active); text-shadow: none; -webkit-text-stroke: 0;
+}
+html:root body .metronet-assist--integrado h2 > span {
+  color: inherit; font: inherit; letter-spacing: inherit;
+}
+.metronet-assist--integrado [data-assist-mensaje] { grid-column: 2; grid-row: 1; min-width: 0; }
+html:root body .metronet-assist--integrado [data-assist-mensaje] > p { line-height: 1.4; }
+.metronet-assist--integrado .metronet-assist__acciones { grid-column: 3; grid-row: 1; flex-wrap: nowrap; gap: 6px; }
+html:root body .metronet-assist--integrado .metronet-assist__acciones button,
+html:root body .metronet-assist--integrado [data-assist-alternar],
+html:root body .metronet-assist--integrado .metronet-glosario-contextual > button {
+  min-height: 28px; margin: 0; padding: 3px 5px; border: 1px solid transparent;
+  background: transparent; color: var(--text-secondary); box-shadow: none;
+  font: 400 12px/1.4 var(--font-ui); letter-spacing: 0; white-space: nowrap;
+  text-transform: none; transform: none;
+}
+html:root body .metronet-assist--integrado .metronet-assist__acciones button:is(:hover, :active, [aria-pressed='true']),
+html:root body .metronet-assist--integrado .metronet-glosario-contextual > button:is(:hover, :active) {
+  border-color: var(--border); color: var(--info-active); background: var(--surface-hover); box-shadow: none;
+}
+/* Separador gráfico entre acciones; no forma parte del texto de los botones. */
+.metronet-assist--integrado [data-assist-pista]:not([hidden]) + [data-assist-controles] { position: relative; margin-left: 6px; }
+.metronet-assist--integrado [data-assist-pista]:not([hidden]) + [data-assist-controles]::before {
+  content: ''; position: absolute; left: -4px; top: 6px; bottom: 6px; width: 1px;
+  background: var(--border-active); pointer-events: none;
+}
+html:root body .metronet-assist--integrado .metronet-assist__acciones [data-assist-pista] { text-transform: uppercase; font-size: 11px; }
+.metronet-assist--integrado [data-assist-mensaje]:focus-visible { outline: 2px solid var(--info-active); outline-offset: 2px; }
+/* El glosario reutiliza el lugar del texto; su definición larga sigue accesible. */
+.metronet-assist--integrado [data-assist-mensaje]:has(.metronet-glosario-contextual) > p { display: none; }
+html:root body .metronet-assist--integrado .metronet-glosario-contextual {
+  grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 8px;
+  margin: 0; padding: 0; border: 0; background: transparent;
+}
+html:root body .metronet-assist--integrado .metronet-glosario-contextual > strong {
+  min-width: 0; margin: 0; padding: 0; border: 0; background: none; box-shadow: none;
+  font: 600 12px/1.4 var(--font-ui); letter-spacing: 0; text-transform: none;
+  text-shadow: none; -webkit-text-stroke: 0; animation: none;
+}
+html:root body .metronet-assist--integrado .metronet-glosario-contextual > p {
+  grid-column: 1 / -1; grid-row: 2; max-height: 3.9em; overflow: auto; scrollbar-width: thin;
+  font: 400 14px/1.3 var(--font-ui); text-shadow: none;
+}
+.metronet-assist--integrado .metronet-glosario-contextual > button { grid-column: 2; grid-row: 1; }
+html:root body .metronet-assist--integrado button.metronet-glosario-termino { min-height: 0; padding: 0; line-height: inherit; }
+@media (max-width: 920px) {
+  .metronet-assist--integrado { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+  .metronet-assist__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+}
+@media (max-width: 620px) {
+  html:root body .metronet-assist--integrado h2 { padding: 0; border: 0; }
+  html:root body .metronet-assist--integrado [data-assist-alternar] {
+    display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 0;
+    color: var(--info-active); font: inherit;
+  }
+  html:root body .metronet-assist--integrado [data-assist-alternar] span { color: inherit; font: inherit; }
+  .metronet-assist--integrado .metronet-assist__acciones { gap: 2px; }
+  html:root body .metronet-assist--integrado .metronet-assist__acciones button { min-height: 32px; padding-inline: 4px; font-size: 11px; }
+  html:root body .metronet-assist--integrado [data-assist-alternar]:is(:hover, :active) { background: transparent; box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:root body .metronet-assist [data-assist-mensaje] > p { animation: none; }
+}

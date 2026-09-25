@@ -35,7 +35,9 @@ export default class ClienteDisenos {
     } catch {
       // La respuesta no incluyó un detalle legible.
     }
-    throw new Error(mensaje);
+    const error = new Error(mensaje);
+    error.estadoHttp = respuesta.status;
+    throw error;
   }
 
   listar() { return this.solicitar(); }

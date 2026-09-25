@@ -43,7 +43,7 @@ export default class PanelPuntosInteres {
     cabecera.className = 'metronet-panel-puntos-cabecera';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-panel-puntos-titulo';
-    titulo.textContent = 'Referencias del mapa';
+    titulo.textContent = 'Referencias';
     const acciones = document.createElement('div');
     acciones.className = 'metronet-panel-puntos-acciones';
     this.contador = document.createElement('span');

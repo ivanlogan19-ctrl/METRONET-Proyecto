@@ -29,6 +29,8 @@ export default class ControlZoom {
 
     this.etiquetaAjustar = opciones.etiquetaAjustar ?? 'Ajustar red';
 
+    this.mostrarAyudaNavegacion = opciones.mostrarAyudaNavegacion ?? true;
+
     this.zoomMaximoEnfoquePuntual = Math.min(
       opciones.zoomMaximoEnfoquePuntual ?? ZOOM_MAXIMO_ENFOQUE_PUNTUAL,
       this.zoomMaximo,
@@ -782,7 +784,7 @@ export default class ControlZoom {
 
       lienzo.style.touchAction = 'none';
 
-      lienzo.title = 'Usá la rueda para acercar. Arrastrá el mapa cuando la herramienta activa lo permita.';
+      if (this.mostrarAyudaNavegacion) lienzo.title = 'Usá la rueda para acercar. Arrastrá el mapa cuando la herramienta activa lo permita.';
     }
 
     this.interaccionHabilitada = true;

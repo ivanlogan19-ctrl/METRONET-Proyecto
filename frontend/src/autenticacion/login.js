@@ -1,3 +1,4 @@
+import { continuarConBienvenida, reanudarBienvenida } from "./BienvenidaAcceso.js";
 import {
   activarVisibilidadContrasena,
   establecerCarga,
@@ -7,7 +8,7 @@ import {
   validarFormulario,
 } from "./ui.js";
 import { inicializarLogosMetronet } from "../componentes/LogoMetronet.js";
-import { guardarSesionUsuario } from "./sesion.js";
+import { guardarSesionUsuario, obtenerSesionUsuario } from "./sesion.js";
 
 const formulario = document.getElementById("loginForm");
 const botonIngresar = document.getElementById("loginButton");
@@ -15,8 +16,20 @@ const botonIngresar = document.getElementById("loginButton");
 inicializarLogosMetronet();
 activarVisibilidadContrasena();
 
+let envioEnCurso = reanudarBienvenida(obtenerSesionUsuario());
+let paginaActiva = true;
+window.addEventListener('pagehide', () => { paginaActiva = false; });
+window.addEventListener('pageshow', evento => {
+  paginaActiva = true;
+  if (evento.persisted) {
+    envioEnCurso = reanudarBienvenida(obtenerSesionUsuario());
+    establecerCarga(botonIngresar, envioEnCurso);
+  }
+});
+
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+  if (envioEnCurso || !paginaActiva) return;
 
   if (!validarFormulario(formulario)) {
     mostrarMensaje("Revisá el correo electrónico y la contraseña.", "error");
@@ -33,6 +46,8 @@ formulario.addEventListener("submit", async (evento) => {
     return;
   }
 
+  envioEnCurso = true;
+  let navegando = false;
   try {
     establecerCarga(botonIngresar, true);
     mostrarMensaje("Validando credenciales…");
@@ -50,18 +65,15 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     const sesionUsuario = await respuesta.json();
+    if (!paginaActiva) return;
     guardarSesionUsuario(sesionUsuario);
 
     const destino = obtenerDestino();
-    mostrarMensaje(destino === "/inicio.html" ? "Ingreso correcto. Abriendo Inicio…" : "Ingreso correcto. Abriendo la sección solicitada…");
-
-    window.setTimeout(() => {
-      window.location.assign(destino);
-    }, 600);
+    navegando = await continuarConBienvenida(sesionUsuario, destino);
   } catch (error) {
     mostrarMensaje(error.message, "error");
   } finally {
-    establecerCarga(botonIngresar, false);
+    if (!navegando) { envioEnCurso = false; establecerCarga(botonIngresar, false); }
   }
 });
 

@@ -117,9 +117,9 @@ test('selección contextual, edición de transbordo, reubicación y eliminación
   assert.equal(await pagina.locator('[data-editar-estacion]').isVisible(), true);
   assert.equal(await pagina.locator('[data-nombre-estacion]').isVisible(), false);
   await pagina.locator('[data-editar-estacion]').click();
-  await pagina.locator('.metronet-dialogo-sistema input').fill('Este nuevo');
-  await pagina.locator('.metronet-dialogo-sistema button[value="aceptar"]').click();
-  await pagina.locator('.metronet-dialogo-sistema button[value="aceptar"]').click();
+  await pagina.getByLabel('Nombre de la estación', { exact: true }).fill('Este nuevo');
+  await pagina.getByLabel('Permite transbordo').check();
+  await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
   await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some((e) => e.nombre === 'Este nuevo'));
   assert.equal(solicitudes[0].metodo, 'PATCH');
   assert.equal(solicitudes[0].datos.transbordo, true);
@@ -195,10 +195,11 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
     }, { tipo, coleccion });
     await seleccionar();
     await pagina.locator(`[data-editar-${tipo}]`).click();
-    for (const respuesta of respuestas) {
-      await pagina.locator('.metronet-dialogo-sistema input').fill(respuesta);
-      await pagina.locator('.metronet-dialogo-sistema button[value="aceptar"]').click();
+    for (const [indice, respuesta] of respuestas.entries()) {
+      await pagina.locator('[data-editar-elemento] input').nth(indice).fill(respuesta);
     }
+    assert.equal(await pagina.locator('dialog[open]').count(), 0);
+    await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
     await pagina.waitForFunction((tipo) => {
       const diseno = editorPrueba.disenoActual;
       return tipo === 'linea' ? diseno.lineas[0].nombre === 'Violeta'

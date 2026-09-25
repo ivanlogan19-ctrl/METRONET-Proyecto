@@ -4,7 +4,7 @@
 .metronet-viaje__cabecera .metronet-logo__imagen { width: 88px; height: auto; max-width: 100%; }
 .metronet-viaje__identidad { display: grid; gap: 4px; min-width: 0; }
 .metronet-viaje__nivel { color: var(--info-active); font-family: var(--font-arcade); font-size: 14px; }
-html:root body .metronet-viaje h2 { margin: 0; font-size: 20px; line-height: 1.4; }
+.metronet-viaje h2 { margin: 0; }
 .metronet-viaje__recorrido { border: var(--border-width) solid var(--border); background-color: var(--bg-secondary); background-image: linear-gradient(rgb(72 180 255 / .06) 1px, transparent 1px), linear-gradient(90deg, rgb(72 180 255 / .06) 1px, transparent 1px); background-size: 20px 20px; }
 .metronet-viaje__recorrido svg { display: block; width: 100%; height: auto; max-height: clamp(48px, 10svh, 76px); }
 .metronet-viaje__riel { fill: none; stroke: var(--border); stroke-width: 5; }
@@ -19,7 +19,7 @@ html:root body .metronet-viaje__porcentaje { color: var(--info-active); font-fam
 .metronet-viaje__informacion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .metronet-viaje__dato, .metronet-viaje__consigna { display: grid; align-content: start; gap: 6px; padding: 12px; background: var(--bg-secondary); border: var(--border-width) solid var(--border); }
 html:root body .metronet-viaje__informacion p { font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
-html:root body .metronet-viaje__informacion h3 { margin: 0; font-size: 14px; line-height: 1.4; }
+.metronet-viaje__informacion h3 { margin: 0; }
 .metronet-viaje__dato h3 { color: var(--info-active); }
 .metronet-viaje__consigna { border-left: var(--border-accent) solid var(--warning); opacity: 0; transform: translateY(8px); transition: opacity .24s ease-out, transform .24s ease-out; }
 .metronet-viaje__consigna h3 { color: var(--warning); }
@@ -36,7 +36,6 @@ html:root body .metronet-viaje button { min-height: 44px; flex: none; }
   .metronet-viaje__contenido { gap: 10px; }
   .metronet-viaje__cabecera { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
   .metronet-viaje__cabecera .metronet-logo__imagen { width: 64px; }
-  html:root body .metronet-viaje h2 { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .metronet-viaje__consigna { transition: none; transform: none; opacity: 1; }

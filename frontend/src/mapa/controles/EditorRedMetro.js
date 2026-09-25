@@ -1,9 +1,9 @@
-import { confirmarSistema, pedirDatoSistema } from '../../componentes/DialogoSistema.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../../red/ClienteDisenos.js';
 import { actualizarRutaEdicion, establecerContextoEnRuta, establecerIdDisenoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../../red/ContextoDiseno.js';
 import { navegarConCambiosPendientes, registrarControlCambios } from '../../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../../configuracion/ConfiguracionAplicacion.js';
-import { mostrarNotificacion } from '../../componentes/NotificacionesMetronet.js';
+import BarraEstadoEditor from './BarraEstadoEditor.js';
+import { mostrarFormularioElemento } from './FormularioElemento.js';
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
 import { consultarMejorPuntajeAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
 import PanelHerramientasEditor from './PanelHerramientasEditor.js';
@@ -93,6 +93,21 @@ export default class EditorRedMetro {
       </div>`;
     this.contenedorPadre.append(this.contenedor);
     this.organizarInterfaz();
+    this.barraEstado = new BarraEstadoEditor(document.querySelector('[data-estado-editor]'), {
+      // Phaser comprueba tamaños por intervalos; el HUD puede variar entre esas comprobaciones.
+      alCambiarTamano: () => {
+        const controlZoom = this.escena.controlZoom;
+        const vista = controlZoom?.capturarVista();
+        this.escena.scale.getParentBounds();
+        this.escena.scale.refresh();
+        // Conservar la vista anterior a la actualización de tamaño de las cámaras de Phaser.
+        if (vista?.estadoVista === 'manual') controlZoom.restaurarVistaTrasRedimension(vista);
+      },
+    });
+    this.panelAyuda = this.barraEstado.panelAyuda;
+    this.contenedor.addEventListener('change', () => {
+      if (this.errorAyuda) this.actualizarAyuda(true);
+    });
     this.contenedor.addEventListener('click', (evento) => this.procesarAccion(evento));
     this.manejadorCancelarHerramienta = (evento) => {
       if (evento.key !== 'Escape' || evento.defaultPrevented || this.modo === 'normal' || document.querySelector('dialog[open]')) return;
@@ -218,7 +233,7 @@ export default class EditorRedMetro {
     if (boton.matches('[data-iniciar-escenario]')) return this.iniciarEscenario(Number(boton.dataset.iniciarEscenario));
     if (boton.matches('[data-volver-a-jugar]')) return this.volverAJugar(Number(boton.dataset.volverAJugar));
     if (boton.matches('[data-quitar-seleccion]')) return this.restablecerModo();
-    if (!this.disenoActual) return this.mostrarMensaje('Elegí o creá una red primero.', 'error');
+    if (!this.disenoActual) return this.mostrarMensaje('Elegí o creá una red primero.', 'advertencia');
     if (boton.matches('[data-agregar-estacion]')) return this.activarEstacion();
     if (boton.matches('[data-crear-linea]')) return this.crearLinea();
     if (boton.matches('[data-seleccionar-linea-directa]')) return this.seleccionarLineaDesdeLista(boton.dataset.seleccionarLineaDirecta);
@@ -259,7 +274,7 @@ export default class EditorRedMetro {
     try {
       this.escenariosJuego = await this.solicitarJuego('/escenarios');
       this.renderizarEscenarios();
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
   }
 
   renderizarEscenarios() {
@@ -317,7 +332,7 @@ export default class EditorRedMetro {
       await this.cargarJuego();
       await this.cargarDisenos(inicio.idDiseno);
       this.mostrarMensaje('Escenario listo. Leé la consigna y resolvela en el mapa.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
     finally { this.aperturaEscenarioEnCurso = false; }
   }
 
@@ -342,7 +357,7 @@ export default class EditorRedMetro {
       this.actualizarPuntosInteresObjetivo();
       this.aplicarHerramientas();
       this.cambiarVisibilidadEditor(false);
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
   }
 
   filtrarDisenos(termino) {
@@ -380,13 +395,13 @@ export default class EditorRedMetro {
   async crearDiseno() {
     const campo = this.obtener('[data-nombre-diseno]');
     const nombre = campo.value.trim();
-    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para la nueva red.', 'error');
+    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para la nueva red.', 'advertencia');
     try {
       const diseno = await this.clienteDisenos.solicitar('', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre }) });
       campo.value = '';
       await this.cargarDisenos(diseno.idDiseno);
-      this.mostrarMensaje('Red creada. Ahora ubicá sus estaciones en el mapa.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+      this.mostrarMensaje('Red creada. Ahora ubicá sus estaciones en el mapa.', 'exito');
+    } catch (error) { this.mostrarError(error); }
   }
 
   async abrirDiseno(idDiseno) {
@@ -394,6 +409,7 @@ export default class EditorRedMetro {
     try {
       const cambioDeDiseno = this.disenoActual?.simulacion?.idDiseno !== idDiseno;
       this.disenoActual = await this.clienteDisenos.obtener(idDiseno);
+      this.errorAyuda = null;
       if (cambioDeDiseno) {
         this.escena.capaPuntosInteres?.limpiarPuntoSeleccionado();
         this.restablecerModo();
@@ -412,8 +428,11 @@ export default class EditorRedMetro {
       this.escena.controlZoom?.ajustarRed();
       this.cambiarVisibilidadEditor(true);
       await this.actualizarConsigna();
-      this.mostrarMensaje(`Red «${this.disenoActual.simulacion.nombre}» cargada.`);
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+      if (cambioDeDiseno) {
+        this.mostrarMensaje(`Red «${this.disenoActual.simulacion.nombre}» cargada.`);
+      }
+      return true;
+    } catch (error) { this.mostrarError(error); return false; }
   }
 
   actualizarPuntosInteresObjetivo() {
@@ -427,17 +446,16 @@ export default class EditorRedMetro {
 
   activarEstacion() {
     const nombre = this.obtener('[data-nombre-estacion]').value.trim();
-    if (!nombre) return this.mostrarMensaje('Ingresá el nombre antes de ubicar la estación.', 'error');
+    if (!nombre) return this.mostrarMensaje('Ingresá el nombre antes de ubicar la estación.', 'advertencia');
     this.modo = 'crearEstacion';
     this.capaRedMetro.establecerModo(this.modo);
-    this.panelHerramientas?.actualizarOperacion(this.modo, this.estacionesSeleccionadas);
-    this.mostrarMensaje('Hacé clic dentro de Montevideo para ubicar la estación.');
+    this.actualizarOperacionAyuda();
   }
 
   async ubicarEstacion(posicion, modo) {
     const estacion = modo === 'reubicarEstacion' ? this.elementoSeleccionado?.valor : null;
     const error = this.escena.territorioMapa?.errorMovimiento(posicion, estacion?.nombre, this.disenoActual);
-    if (error) return this.mostrarMensaje(error, 'error');
+    if (error) return this.mostrarMensaje(error, 'advertencia');
     const nombre = estacion?.nombre ?? this.obtener('[data-nombre-estacion]').value.trim();
     if (!nombre) return;
     const ruta = estacion ? `/${this.idDiseno()}/estaciones/${encodeURIComponent(estacion.nombre)}` : `/${this.idDiseno()}/estaciones`;
@@ -447,67 +465,67 @@ export default class EditorRedMetro {
       this.obtener('[data-nombre-estacion]').value = '';
       this.restablecerModo();
       await this.actualizarDiseno('Estación guardada.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
   }
 
   crearLinea() {
     const nombre = this.obtener('[data-nombre-linea]').value.trim();
-    if (!nombre) return this.mostrarMensaje('Ingresá el nombre de la línea.', 'error');
+    if (!nombre) return this.mostrarMensaje('Ingresá el nombre de la línea.', 'advertencia');
     if (this.modo !== 'crearLinea') {
       this.modo = 'crearLinea';
       this.estacionesSeleccionadas = [];
       this.capaRedMetro.establecerModo(this.modo);
-      this.panelHerramientas?.actualizarOperacion(this.modo, this.estacionesSeleccionadas);
+      this.actualizarOperacionAyuda();
       this.capaRedMetro.establecerEstacionesSeleccionadas([]);
-      return this.mostrarMensaje('Seleccioná en orden al menos dos estaciones y elegí «Crear línea».');
+      return;
     }
-    if (this.estacionesSeleccionadas.length < 2) return this.mostrarMensaje('Seleccioná al menos dos estaciones.', 'error');
+    if (this.estacionesSeleccionadas.length < 2) return this.mostrarMensaje('Seleccioná al menos dos estaciones.', 'advertencia');
     this.guardarLinea(nombre);
   }
 
   async guardarLinea(nombre) {
     const error = this.escena.territorioMapa?.errorRecorrido(this.estacionesSeleccionadas, this.disenoActual);
-    if (error) return this.mostrarMensaje(error, 'error');
+    if (error) return this.mostrarMensaje(error, 'advertencia');
     try {
       await this.clienteDisenos.solicitar(`/${this.idDiseno()}/lineas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, estaciones: this.estacionesSeleccionadas }) });
       this.obtener('[data-nombre-linea]').value = '';
       this.restablecerModo();
       await this.actualizarDiseno(`Línea «${nombre}» creada.`);
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
   }
 
   crearTramo() {
     const nombreLinea = this.obtener('[data-linea-conexion]').value;
-    if (!nombreLinea) return this.mostrarMensaje('Primero creá una línea.', 'error');
+    if (!nombreLinea) return this.mostrarMensaje('Primero creá una línea.', 'advertencia');
     if (this.modo !== 'crearTramo') {
       this.modo = 'crearTramo';
       this.estacionesSeleccionadas = [];
       this.capaRedMetro.establecerModo(this.modo);
-      this.panelHerramientas?.actualizarOperacion(this.modo, this.estacionesSeleccionadas);
+      this.actualizarOperacionAyuda();
       this.capaRedMetro.establecerEstacionesSeleccionadas([]);
-      return this.mostrarMensaje('Seleccioná dos estaciones para crear la conexión.');
+      return;
     }
-    if (this.estacionesSeleccionadas.length !== 2) return this.mostrarMensaje('Seleccioná exactamente dos estaciones.', 'error');
+    if (this.estacionesSeleccionadas.length !== 2) return this.mostrarMensaje('Seleccioná exactamente dos estaciones.', 'advertencia');
     this.guardarTramo(nombreLinea, this.estacionesSeleccionadas[0], this.estacionesSeleccionadas[1]);
   }
 
   async guardarTramo(nombreLinea, estacionA, estacionB) {
     const error = this.escena.territorioMapa?.errorRecorrido([estacionA, estacionB], this.disenoActual);
-    if (error) return this.mostrarMensaje(error, 'error');
+    if (error) return this.mostrarMensaje(error, 'advertencia');
     try {
       await this.clienteDisenos.solicitar(`/${this.idDiseno()}/tramos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombreLinea, estacionA, estacionB }) });
       this.restablecerModo();
       await this.actualizarDiseno('Conexión creada.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
   }
 
   async agregarUnidad() {
     const datos = { nombreLinea: this.obtener('[data-linea-unidad]').value, capacidad: Number(this.obtener('[data-capacidad]').value), velocidadPromedio: Number(this.obtener('[data-velocidad-unidad]').value) };
-    if (!datos.nombreLinea) return this.mostrarMensaje('Elegí la línea para el metro.', 'error');
+    if (!datos.nombreLinea) return this.mostrarMensaje('Elegí la línea para el metro.', 'advertencia');
     try {
       await this.clienteDisenos.solicitar(`/${this.idDiseno()}/unidades`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
       await this.actualizarDiseno('Unidad de metro agregada.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
   }
 
   async guardarDiseno() {
@@ -522,12 +540,12 @@ export default class EditorRedMetro {
     try {
       const idDiseno = this.idDiseno();
       const validacion = await this.clienteDisenos.validar(idDiseno);
-      await this.abrirDiseno(idDiseno);
-      if (!validacion.valido) return this.mostrarMensaje(validacion.observaciones.join(' '), 'error');
+      if (!await this.abrirDiseno(idDiseno)) return;
+      if (!validacion.valido) return this.mostrarMensaje(validacion.observaciones.join(' '), 'advertencia');
       if (this.esEscenarioSinSimulacion()) return await this.evaluarEscenarioSinSimulacion(idDiseno);
       if (validacion.preparadoParaSimular) return this.mostrarMensaje('La red es consistente y está lista para simular.', 'exito');
-      this.mostrarMensaje(this.obtenerMensajePreparacionSimulacion(validacion.observacionesSimulacion), 'advertencia');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+      this.mostrarMensaje(this.obtenerMensajePreparacionSimulacion(validacion.observacionesSimulacion), 'advertencia', { orientarError: false });
+    } catch (error) { this.mostrarError(error); }
     finally { this.validacionEnCurso = false; }
   }
 
@@ -547,7 +565,7 @@ export default class EditorRedMetro {
       if (evaluacion.completado) this.cambiosPendientes = false;
       await this.cargarJuego();
       await this.abrirDiseno(idDiseno);
-      this.mostrarMensaje(evaluacion.mensaje, evaluacion.completado ? 'exito' : 'advertencia');
+      this.mostrarMensaje(evaluacion.mensaje, evaluacion.completado ? 'exito' : 'advertencia', { orientarError: false });
       if (evaluacion.completado) {
         const progreso = await this.solicitarJuego('/progreso');
         if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
@@ -566,14 +584,14 @@ export default class EditorRedMetro {
 
   async crearEscenario() {
     const nombre = this.obtener('[data-nombre-escenario]').value.trim();
-    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para el escenario.', 'error');
+    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para el escenario.', 'advertencia');
     const datos = { nombre, modo: this.obtener('[data-modo-escenario]').value, dificultad: this.obtener('[data-dificultad-escenario]').value };
     try {
       const escenario = await this.clienteDisenos.solicitar(`/${this.idDiseno()}/escenarios`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
       this.obtener('[data-nombre-escenario]').value = '';
       await this.cargarDisenos(escenario.idDiseno);
-      this.mostrarMensaje('Escenario creado desde el diseño validado.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+      this.mostrarMensaje('Escenario creado desde el diseño validado.', 'exito');
+    } catch (error) { this.mostrarError(error); }
   }
 
   async actualizarEscenario() {
@@ -588,7 +606,7 @@ export default class EditorRedMetro {
   }
 
   async eliminarDiseno() {
-    if (this.esEscenarioProgresivo()) return this.mostrarMensaje('Los diseños de los niveles se conservan para proteger el progreso.', 'error');
+    if (this.esEscenarioProgresivo()) return this.mostrarMensaje('Los diseños de los niveles se conservan para proteger el progreso.', 'advertencia');
     const nombre = this.disenoActual?.simulacion?.nombre ?? 'este diseño';
     if (!await this.confirmarEliminacion({ titulo: 'Eliminar diseño', mensaje: `¿Querés eliminar «${nombre}»?`, detalle: 'Esta acción no se puede deshacer. La información protegida por el progreso permanecerá disponible.' })) return;
     try {
@@ -598,8 +616,8 @@ export default class EditorRedMetro {
       this.cambiosPendientes = false;
       window.history.replaceState({}, '', '/');
       await this.cargarDisenos();
-      this.mostrarMensaje('Diseño eliminado.');
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+      this.mostrarMensaje('Diseño eliminado.', 'exito');
+    } catch (error) { this.mostrarError(error); }
   }
 
   obtenerDialogoEliminar() {
@@ -632,9 +650,10 @@ export default class EditorRedMetro {
       this.estacionesSeleccionadas = this.estacionesSeleccionadas.includes(nombre) ? this.estacionesSeleccionadas.filter((item) => item !== nombre) : [...this.estacionesSeleccionadas, nombre];
       if (this.modo === 'crearTramo' && this.estacionesSeleccionadas.length > 2) this.estacionesSeleccionadas.shift();
       this.capaRedMetro.establecerEstacionesSeleccionadas(this.estacionesSeleccionadas);
-      this.panelHerramientas?.actualizarOperacion(this.modo, this.estacionesSeleccionadas);
-      return this.mostrarMensaje(`${this.estacionesSeleccionadas.length} estación(es) seleccionada(s).`);
+      this.actualizarOperacionAyuda();
+      return;
     }
+    this.actualizarAyuda(true);
     this.elementoSeleccionado = elemento;
     this.capaRedMetro.establecerElementoSeleccionado(elemento);
     this.renderizarElementoSeleccionado();
@@ -686,16 +705,18 @@ export default class EditorRedMetro {
   reubicarEstacion() {
     this.modo = 'reubicarEstacion';
     this.capaRedMetro.establecerModo(this.modo);
-    this.panelHerramientas?.actualizarOperacion(this.modo, this.estacionesSeleccionadas);
-    this.mostrarMensaje('Hacé clic en la nueva ubicación de la estación.');
+    this.actualizarOperacionAyuda();
   }
 
-  async editarEstacion() {
+  editarEstacion() {
     const estacion = this.elementoSeleccionado.valor;
-    const nombre = await pedirDatoSistema('Nombre de la estación:', estacion.nombre);
-    if (nombre === null || !nombre.trim()) return;
-    const transbordo = await confirmarSistema('¿Esta estación permite transbordo entre líneas?');
-    await this.ejecutarAccion(`/${this.idDiseno()}/estaciones/${encodeURIComponent(estacion.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...estacion, nombre: nombre.trim(), transbordo }) }, 'Estación actualizada.');
+    this.editarEnPanel([
+      { nombre: 'nombre', etiqueta: 'Nombre de la estación', valor: estacion.nombre },
+      { nombre: 'transbordo', etiqueta: 'Permite transbordo', valor: estacion.transbordo, tipo: 'checkbox' },
+    ], datos => {
+      if (!datos.nombre) return this.mostrarMensaje('Ingresá el nombre de la estación.', 'advertencia');
+      return this.ejecutarAccion(`/${this.idDiseno()}/estaciones/${encodeURIComponent(estacion.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...estacion, ...datos }) }, 'Estación actualizada.');
+    });
   }
 
   async eliminarEstacion() {
@@ -704,12 +725,13 @@ export default class EditorRedMetro {
     await this.ejecutarAccion(`/${this.idDiseno()}/estaciones/${encodeURIComponent(estacion.nombre)}`, { method: 'DELETE' }, 'Estación eliminada.');
   }
 
-  async editarLinea() {
+  editarLinea() {
     const linea = this.elementoSeleccionado.valor;
-    const nombre = await pedirDatoSistema('Nombre de la línea:', linea.nombre);
-    if (nombre === null || !nombre.trim()) return;
     const estaciones = this.estacionesDeLinea(linea.nombre);
-    await this.ejecutarAccion(`/${this.idDiseno()}/lineas/${encodeURIComponent(linea.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: nombre.trim(), estaciones }) }, 'Línea actualizada.');
+    this.editarEnPanel([{ nombre: 'nombre', etiqueta: 'Nombre de la línea', valor: linea.nombre }], datos => {
+      if (!datos.nombre) return this.mostrarMensaje('Ingresá el nombre de la línea.', 'advertencia');
+      return this.ejecutarAccion(`/${this.idDiseno()}/lineas/${encodeURIComponent(linea.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...datos, estaciones }) }, 'Línea actualizada.');
+    });
   }
 
   async eliminarLinea() {
@@ -718,14 +740,14 @@ export default class EditorRedMetro {
     await this.ejecutarAccion(`/${this.idDiseno()}/lineas/${encodeURIComponent(linea.nombre)}`, { method: 'DELETE' }, 'Línea eliminada.');
   }
 
-  async editarTramo() {
+  editarTramo() {
     const tramo = this.elementoSeleccionado.valor;
-    const nombreLinea = await pedirDatoSistema('Línea de la conexión:', tramo.nombreLinea);
-    const estacionA = await pedirDatoSistema('Estación de origen:', tramo.estacionA);
-    const estacionB = await pedirDatoSistema('Estación de destino:', tramo.estacionB);
-    if (nombreLinea === null || estacionA === null || estacionB === null) return;
     const parametros = new URLSearchParams({ lineaActual: tramo.nombreLinea, estacionAActual: tramo.estacionA, estacionBActual: tramo.estacionB });
-    await this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombreLinea: nombreLinea.trim(), estacionA: estacionA.trim(), estacionB: estacionB.trim() }) }, 'Conexión actualizada.');
+    this.editarEnPanel([
+      { nombre: 'nombreLinea', etiqueta: 'Línea de la conexión', valor: tramo.nombreLinea },
+      { nombre: 'estacionA', etiqueta: 'Estación de origen', valor: tramo.estacionA },
+      { nombre: 'estacionB', etiqueta: 'Estación de destino', valor: tramo.estacionB },
+    ], datos => this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }, 'Conexión actualizada.'));
   }
 
   async eliminarTramo() {
@@ -735,13 +757,22 @@ export default class EditorRedMetro {
     await this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'DELETE' }, 'Conexión eliminada.');
   }
 
-  async editarUnidad() {
+  editarUnidad() {
     const unidad = this.elementoSeleccionado.valor;
-    const nombreLinea = await pedirDatoSistema('Línea asignada:', unidad.nombreLinea);
-    const capacidad = await pedirDatoSistema('Capacidad:', unidad.capacidad);
-    const velocidadPromedio = await pedirDatoSistema('Velocidad promedio (km/h):', unidad.velocidadPromedio);
-    if (nombreLinea === null || capacidad === null || velocidadPromedio === null) return;
-    await this.ejecutarAccion(`/${this.idDiseno()}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombreLinea: nombreLinea.trim(), capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) }) }, 'Unidad actualizada.');
+    this.editarEnPanel([
+      { nombre: 'nombreLinea', etiqueta: 'Línea asignada', valor: unidad.nombreLinea },
+      { nombre: 'capacidad', etiqueta: 'Capacidad', valor: unidad.capacidad, tipo: 'number' },
+      { nombre: 'velocidadPromedio', etiqueta: 'Velocidad promedio (km/h)', valor: unidad.velocidadPromedio, tipo: 'number' },
+    ], datos => this.ejecutarAccion(`/${this.idDiseno()}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...datos, capacidad: Number(datos.capacidad), velocidadPromedio: Number(datos.velocidadPromedio) }) }, 'Unidad actualizada.'));
+  }
+
+  editarEnPanel(campos, guardar) {
+    const panel = this.obtener('[data-elemento-seleccionado]');
+    const cancelar = () => {
+      this.renderizarElementoSeleccionado();
+      panel.querySelector('button')?.focus();
+    };
+    mostrarFormularioElemento(panel, campos, guardar, cancelar);
   }
 
   async eliminarUnidad() {
@@ -754,11 +785,11 @@ export default class EditorRedMetro {
     try {
       await this.clienteDisenos.solicitar(ruta, opciones);
       this.restablecerModo();
-      await this.abrirDiseno(this.idDiseno());
       this.cambiosPendientes = true;
+      if (!await this.abrirDiseno(this.idDiseno())) return false;
       this.mostrarMensaje(mensaje, 'exito');
       return true;
-    } catch (error) { this.mostrarMensaje(error.message, 'error'); }
+    } catch (error) { this.mostrarError(error); }
     return false;
   }
 
@@ -870,13 +901,14 @@ export default class EditorRedMetro {
     consigna.hidden = !this.escenarioJuegoActual;
     if (this.escenarioJuegoActual) this.renderizarConsigna();
     const conceptos = conceptosDelNivel(this.escenarioJuegoActual ?? this.disenoActual?.simulacion);
-    this.contenedor.querySelectorAll('[data-herramienta] > p.metronet-editor-etiqueta').forEach(texto => destacarConceptos(texto, conceptos));
+    this.contenedor.querySelectorAll('[data-herramienta] > p.metronet-editor-etiqueta').forEach(texto => destacarConceptos(texto, conceptos, { contextual: true }));
   }
 
   prepararConsigna() {
     this.versionConsigna += 1;
     this.consignaActual = null;
     this.estadoConsigna = this.escenarioJuegoActual ? 'cargando' : 'sinDatos';
+    this.actualizarAyuda(true);
   }
 
   async actualizarConsigna() {
@@ -884,6 +916,7 @@ export default class EditorRedMetro {
     if (!this.escenarioJuegoActual || !idDiseno) {
       this.consignaActual = null;
       this.estadoConsigna = 'sinDatos';
+      this.actualizarAyuda(true);
       return;
     }
     const version = ++this.versionConsigna;
@@ -933,6 +966,7 @@ export default class EditorRedMetro {
   }
 
   renderizarConsigna() {
+    this.actualizarAyuda();
     const consigna = this.obtenerContenedorConsigna();
     const escenario = this.escenarioJuegoActual;
     if (!consigna || !escenario) return;
@@ -1099,7 +1133,7 @@ export default class EditorRedMetro {
     const accionContinuar = siguienteEscenario ? this.crearAccionContinuarEscenario(siguienteEscenario) : null;
     consigna.append(cabecera, resumen, contenido, progreso);
     if (accionContinuar) consigna.append(accionContinuar);
-    destacarConceptos(contenidoInterno, conceptosDelNivel(escenario));
+    destacarConceptos(contenidoInterno, conceptosDelNivel(escenario), { contextual: true });
   }
 
   crearAccionContinuarEscenario(escenario) {
@@ -1235,8 +1269,8 @@ export default class EditorRedMetro {
   }
 
   async actualizarDiseno(mensaje) {
-    await this.abrirDiseno(this.idDiseno());
     this.cambiosPendientes = true;
+    if (!await this.abrirDiseno(this.idDiseno())) return;
     this.mostrarMensaje(mensaje, 'exito');
   }
 
@@ -1265,7 +1299,7 @@ export default class EditorRedMetro {
     this.capaRedMetro.establecerEstacionesSeleccionadas([]);
     this.capaRedMetro.establecerElementoSeleccionado(null);
     this.renderizarElementoSeleccionado();
-    this.panelHerramientas?.actualizarOperacion(this.modo);
+    this.actualizarOperacionAyuda();
     this.renderizarListaLineas(this.disenoActual?.lineas ?? []);
     this.renderizarListaUnidades(this.disenoActual?.unidadesMetro ?? []);
   }
@@ -1288,7 +1322,10 @@ export default class EditorRedMetro {
   }
   cambiarVisibilidadEditor(mostrar) {
     this.obtener('[data-editor-activo]').hidden = !mostrar;
-    if (!mostrar) this.obtenerContenedorConsigna().hidden = true;
+    if (!mostrar) {
+      this.obtenerContenedorConsigna().hidden = true;
+      this.panelAyuda?.actualizar({});
+    }
   }
   esEscenarioProgresivo() { return Number.isInteger(this.escenarioJuegoActual?.numero); }
   esEscenarioSinSimulacion() { return this.esEscenarioProgresivo() && this.escenarioJuegoActual?.herramientasHabilitadas?.simulacion === false; }
@@ -1296,8 +1333,35 @@ export default class EditorRedMetro {
   obtener(selector) { return this.contenedor.querySelector(selector); }
   escapar(valor) { return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[caracter]); }
   formatearEstado(estado) { return ({ INICIADO: 'Iniciado', PARCIAL: 'En curso', LISTO: 'Listo', EN_DESARROLLO: 'En diseño', EN_DISENO: 'En diseño', GUARDADO: 'Guardado', VALIDADO: 'Validado', COMPLETADA: 'Completada', COMPLETADO: 'Completado' })[estado] ?? estado; }
-  mostrarMensaje(texto, tipo = 'info') { mostrarNotificacion(texto, tipo || 'info'); }
-  eliminar() { document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.contenedor?.remove(); this.contenedor = null; }
+  mostrarError(error) {
+    const tipo = [400, 409, 422].includes(error.estadoHttp) ? 'advertencia' : 'error';
+    this.mostrarMensaje(error.message, tipo);
+  }
+  actualizarOperacionAyuda() {
+    this.panelHerramientas?.actualizarOperacion(this.modo, this.estacionesSeleccionadas);
+    this.actualizarAyuda(true);
+  }
+  actualizarReferenciaAyuda(referencia) {
+    if (this.referenciaAyuda?.id === referencia?.id) return;
+    this.referenciaAyuda = referencia;
+    this.actualizarAyuda(true);
+  }
+  actualizarAyuda(limpiarError = false) {
+    if (limpiarError) this.errorAyuda = null;
+    this.panelAyuda?.actualizar({
+      diseno: this.disenoActual, escenario: this.escenarioJuegoActual,
+      consigna: this.consignaActual, estadoConsigna: this.estadoConsigna,
+      modo: this.modo, seleccionadas: this.estacionesSeleccionadas,
+      referencia: this.referenciaAyuda, error: this.errorAyuda,
+    });
+  }
+  mostrarMensaje(texto, tipo = 'info', { orientarError = true } = {}) {
+    this.barraEstado?.mostrar(texto, tipo || 'info');
+    if (orientarError && ['advertencia', 'error'].includes(tipo)) this.errorAyuda = texto;
+    else if (tipo === 'exito' || !orientarError) this.errorAyuda = null;
+    this.actualizarAyuda();
+  }
+  eliminar() { document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
 }
 
 function establecerRutaSimulacion(idDiseno, contexto) { return establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto); }
