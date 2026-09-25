@@ -24,7 +24,7 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
   const admin = opciones.administrador ?? ruta.startsWith('/admin.html');
   const publica = /login|registro|contrasena|codigo|privacidad/.test(ruta);
   await contexto.addInitScript(({ admin, publica, usuario }) => {
-    if (!publica) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
+    if (!publica && !/login|registro|contrasena|codigo|privacidad/.test(location.pathname)) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
     sessionStorage.setItem(`${location.hostname}:recuperacionContrasena`, JSON.stringify({ email: usuario.email, idSolicitud: 99, tokenRecuperacion: 'prueba-local', reenvioDisponibleEn: 0 }));
   }, { admin, publica, usuario });
   const pagina = await contexto.newPage();

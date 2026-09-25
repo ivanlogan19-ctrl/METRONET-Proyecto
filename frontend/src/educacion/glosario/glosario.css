@@ -1,13 +1,3 @@
-html:root body button.metronet-glosario-termino {
-  display: inline; width: auto; min-width: 0; min-height: 24px; margin: 0; padding: 2px 0;
-  border: 0; border-radius: 0; background: transparent; color: var(--info-active);
-  box-shadow: none; font: inherit; letter-spacing: inherit; text-transform: none;
-  white-space: normal; text-align: inherit; cursor: pointer;
-  text-decoration: underline dotted; text-underline-offset: 4px;
-}
-html:root body button.metronet-glosario-termino:not(:disabled):is(:hover, :active) {
-  color: var(--text-primary); background: var(--surface-selected); box-shadow: none;
-}
 html:root body .metronet-glosario-ventana {
   width: min(440px, calc(100vw - 32px)); max-height: calc(100svh - 32px);
   padding: var(--space-lg); overflow: auto; margin: auto;

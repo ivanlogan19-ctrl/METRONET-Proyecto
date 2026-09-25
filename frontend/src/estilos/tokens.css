@@ -115,4 +115,23 @@
   --glow-selection: 0 0 0 1px var(--info-active);
   --module-stripe: repeating-linear-gradient(90deg, var(--info-active) 0 3px, transparent 3px 6px);
   --scanline: rgb(72 180 255 / .025);
+  /* Controles de consola: intención, bisel y selección compartidos. */
+  --control-fuente: var(--font-arcade);
+  --control-bisel-claro: rgb(255 255 255 / .25);
+  --control-bisel-oscuro: var(--shadow-color);
+  --control-relieve: inset 1px 1px 0 var(--control-bisel-claro), inset -1px -1px 0 var(--control-bisel-oscuro), 2px 2px 0 var(--shadow-color);
+  --control-presionado: inset 2px 2px 0 var(--control-bisel-oscuro), inset -1px -1px 0 var(--control-bisel-claro);
+  --control-primario: var(--primary);
+  --control-primario-hover: var(--primary-hover);
+  --control-secundario: var(--panel-elevated);
+  --control-secundario-hover: var(--surface-hover);
+  --control-peligro: var(--danger);
+  --control-peligro-hover: color-mix(in srgb, var(--danger) 80%, var(--text-primary));
+  --control-peligro-secundario: var(--danger-surface);
+  --control-peligro-secundario-hover: color-mix(in srgb, var(--danger) 20%, var(--panel));
+  --control-deshabilitado: var(--bg-secondary);
+  --control-foco: var(--focus-color);
+  --selector-lateral: var(--panel-elevated);
+  --lista-seleccion: var(--surface-selected);
+  --lista-indicador: var(--info-active);
 }

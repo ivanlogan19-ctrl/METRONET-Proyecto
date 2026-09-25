@@ -1,3 +1,4 @@
+import { obtenerConfiguracionAplicacion } from '../configuracion/ConfiguracionAplicacion.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 
 export { obtenerSesionActiva };
@@ -24,6 +25,8 @@ export default class ClienteDisenos {
       const contenido = await respuesta.text();
       return contenido.trim() ? JSON.parse(contenido) : null;
     }
+    // La decisión sigue siendo del backend; refrescamos el aviso ante su rechazo.
+    if (respuesta.status === 503) void obtenerConfiguracionAplicacion(this.sesion);
     if (respuesta.status === 401) {
       eliminarSesiones();
       window.location.replace(`/login.html?destino=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);

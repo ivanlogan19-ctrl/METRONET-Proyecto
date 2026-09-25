@@ -1,6 +1,18 @@
 package com.metronet.backend.configuracion;
 
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import com.metronet.backend.controller.SimulacionController;
+import com.metronet.backend.controller.AuthController;
+import com.metronet.backend.service.SimulacionService;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,11 +33,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = JuegoEducativoController.class)
+@WebMvcTest(controllers = {JuegoEducativoController.class, SimulacionController.class, AuthController.class})
 @Import({ConfiguracionMantenimientoWeb.class, ControlMantenimientoInterceptor.class})
 class ConfiguracionMantenimientoWebTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     private com.metronet.backend.service.PuntuacionService puntuacionService;
+    @MockitoBean
+    private SimulacionService simulacionService;
+
     @Autowired
     private MockMvc clienteHttp;
 
@@ -76,6 +91,56 @@ class ConfiguracionMantenimientoWebTest {
 
         verify(juegoEducativoService, never()).volverAJugar(7, 2);
         verify(juegoEducativoService, never()).reiniciarRecorrido(7, null);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "POST,/api/simulaciones", "DELETE,/api/simulaciones/21",
+        "POST,/api/simulaciones/21/estaciones", "PATCH,/api/simulaciones/21/estaciones/Centro", "DELETE,/api/simulaciones/21/estaciones/Centro",
+        "POST,/api/simulaciones/21/lineas", "PATCH,/api/simulaciones/21/lineas/Azul", "DELETE,/api/simulaciones/21/lineas/Azul",
+        "POST,/api/simulaciones/21/tramos", "PATCH,/api/simulaciones/21/tramos", "DELETE,/api/simulaciones/21/tramos",
+        "POST,/api/simulaciones/21/unidades", "PATCH,/api/simulaciones/21/unidades/1", "DELETE,/api/simulaciones/21/unidades/1",
+        "POST,/api/simulaciones/21/escenarios", "PATCH,/api/simulaciones/21/escenario",
+        "POST,/api/simulaciones/21/guardar", "POST,/api/simulaciones/21/validacion", "POST,/api/simulaciones/21/ejecutar",
+        "POST,/api/juego/escenarios/2/iniciar"
+    })
+    void rechazaLlamadasDirectasAntesDeModificarDatos(String metodo, String ruta) throws Exception {
+        when(configuracionService.estaModoMantenimientoActivo()).thenReturn(true);
+        when(authService.obtenerUsuarioConSesion("Bearer jugador")).thenReturn(usuario(Rol.JUGADOR));
+        clienteHttp.perform(request(HttpMethod.valueOf(metodo), ruta)
+                .header("Authorization", "Bearer jugador").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .andExpect(status().isServiceUnavailable());
+        verifyNoInteractions(simulacionService, juegoEducativoService);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"JUGADOR,false", "ADMIN,false", "ADMIN,true"})
+    void permiteModificarYSimularSegunRolYEstado(Rol rol, boolean mantenimiento) throws Exception {
+        when(configuracionService.estaModoMantenimientoActivo()).thenReturn(mantenimiento);
+        when(authService.obtenerUsuarioConSesion("Bearer sesion")).thenReturn(usuario(rol));
+        clienteHttp.perform(post("/api/simulaciones/21/guardar").header("Authorization", "Bearer sesion"))
+            .andExpect(status().isOk());
+        clienteHttp.perform(post("/api/simulaciones/21/ejecutar").header("Authorization", "Bearer sesion")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"velocidad\":1,\"duracion\":10}"))
+            .andExpect(status().isOk());
+        verify(simulacionService).guardarDiseno(7, 21);
+        verify(simulacionService).ejecutarSimulacion(eq(7), eq(21), any());
+    }
+
+    @Test
+    void mantenimientoNoImpideLeerAutenticarseOCerrarSesion() throws Exception {
+        when(configuracionService.estaModoMantenimientoActivo()).thenReturn(true);
+        when(authService.obtenerUsuarioConSesion("Bearer jugador")).thenReturn(usuario(Rol.JUGADOR));
+        clienteHttp.perform(get("/api/simulaciones/21").header("Authorization", "Bearer jugador"))
+            .andExpect(status().isOk());
+        clienteHttp.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"jugador@example.test\",\"password\":\"prueba\"}"))
+            .andExpect(status().isOk());
+        clienteHttp.perform(post("/auth/logout").header("Authorization", "Bearer jugador"))
+            .andExpect(status().isNoContent());
+        verify(authService).iniciarSesion(any());
+        verify(authService).cerrarSesionUsuario("Bearer jugador");
+        verify(simulacionService).obtenerSimulacion(7, 21);
     }
 
     private Usuario usuario(Rol rol) {

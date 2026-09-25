@@ -8,7 +8,7 @@ import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
 import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
 import { crearVisorSimulacion } from './EscenaSimulacion.js';
 import { crearFlujoNavegacion, inicializarNavegacion } from '../navegacion/NavegacionAplicacion.js';
-import { obtenerConfiguracionAplicacion } from '../configuracion/ConfiguracionAplicacion.js';
+import { obtenerConfiguracionAplicacion, estaMantenimientoActivo, EVENTO_CONFIGURACION, MENSAJE_MANTENIMIENTO } from '../configuracion/ConfiguracionAplicacion.js';
 import { destacarConceptos, cerrarDefinicion } from '../educacion/glosario/GlosarioContextual.js';
 import { conceptosDelNivel, CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js';
 
@@ -70,6 +70,7 @@ async function inicializar() {
   document.getElementById('verResultadosSimulacion').addEventListener('click', mostrarResultados);
   document.getElementById('referenciasConsigna').addEventListener('click', localizarReferenciaConsigna);
   window.addEventListener('pagehide', limpiarVisor);
+  window.addEventListener(EVENTO_CONFIGURACION, actualizarMantenimiento);
   visor = await crearVisorSimulacion(document.getElementById('visorSimulacion'), { alActualizarEstado: actualizarPanelTiempoReal });
   await cargarDisenos();
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
@@ -472,6 +473,7 @@ function renderizarResultados() {
 }
 
 function obtenerEstadoEjecucion() {
+  if (estaMantenimientoActivo(sesion)) return 'La red puede consultarse. La ejecución se habilitará al finalizar el mantenimiento.';
   if (!disenoActual) return '';
   if (!disenoActual.preparadoParaSimular) return obtenerMensajePreparacionSimulacion();
   if (disenoActual.simulacion.estado === 'COMPLETADO') return 'Escenario completado. Podés consultar los resultados, repetir la simulación o continuar con los escenarios.';
@@ -480,7 +482,7 @@ function obtenerEstadoEjecucion() {
 
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
-  if (!disenoActual || resultadoEnCurso) return;
+  if (!disenoActual || resultadoEnCurso || estaMantenimientoActivo(sesion)) return;
   if (!disenoActual.preparadoParaSimular) {
     mostrarMensaje(obtenerMensajePreparacionSimulacion(), 'error');
     return;
@@ -496,6 +498,7 @@ async function ejecutarSimulacion(evento) {
     await abrirDiseno(disenoActual.simulacion.idDiseno);
     parametrosUltimaEjecucion = { velocidad, duracion };
     ejecucionPendiente = { idDiseno: disenoActual.simulacion.idDiseno, resultado };
+    if (estaMantenimientoActivo(sesion)) return;
     const estado = visor.escena.iniciarAnimacion(velocidad, duracion);
     actualizarPanelTiempoReal(estado);
     crearFlujoNavegacion('resultados');
@@ -531,6 +534,7 @@ function pausarSimulacion() {
 }
 
 function reanudarSimulacion() {
+  if (estaMantenimientoActivo(sesion)) return;
   const estado = visor?.escena.reanudarAnimacion();
   actualizarPanelTiempoReal(estado);
   mostrarMensaje('Animación reanudada.');
@@ -543,6 +547,7 @@ function detenerSimulacion() {
 }
 
 function reiniciarSimulacion() {
+  if (estaMantenimientoActivo(sesion)) return;
   if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
   const estado = visor.escena.reiniciarAnimacion();
   actualizarPanelTiempoReal(estado);
@@ -683,6 +688,14 @@ async function finalizarEjecucionVisible() {
   }
 }
 
+function actualizarMantenimiento() {
+  if (estaMantenimientoActivo(sesion) && estadoMotor?.estado === 'EN_CURSO') {
+    actualizarPanelTiempoReal(visor?.escena.pausarAnimacion());
+  }
+  actualizarControlesSimulacion(estadoMotor);
+  document.getElementById('estadoEjecucion').textContent = obtenerMensajeEstadoMotor(estadoMotor ?? crearEstadoInicial());
+}
+
 function actualizarControlesSimulacion(estado) {
   const estadoActual = estado?.estado;
   const enCurso = estadoActual === 'EN_CURSO';
@@ -691,10 +704,10 @@ function actualizarControlesSimulacion(estado) {
   const puedeReiniciar = Boolean(parametrosUltimaEjecucion);
   document.getElementById('pausarSimulacion').disabled = !enCurso;
   document.getElementById('pausarSimulacion').hidden = pausada;
-  document.getElementById('reanudarSimulacion').disabled = !pausada;
+  document.getElementById('reanudarSimulacion').disabled = !pausada || estaMantenimientoActivo(sesion);
   document.getElementById('reanudarSimulacion').hidden = !pausada;
   document.getElementById('detenerSimulacion').disabled = !enCurso && !pausada;
-  document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar || resultadoEnCurso;
+  document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar || resultadoEnCurso || estaMantenimientoActivo(sesion);
   document.getElementById('seguirMetro').disabled = !estado?.metroActivo?.transitable;
   actualizarDisponibilidadEjecucion();
   if (controlConFoco?.id === 'pausarSimulacion' && pausada) document.getElementById('reanudarSimulacion').focus({ preventScroll: true });
@@ -705,8 +718,8 @@ function actualizarDisponibilidadEjecucion() {
   const boton = document.querySelector('#formularioEjecucion button[type="submit"]');
   if (!boton) return;
   const ejecucionActiva = estadoMotor?.estado === 'EN_CURSO' || estadoMotor?.estado === 'PAUSADA';
-  boton.disabled = !disenoActual?.preparadoParaSimular || ejecucionActiva || resultadoEnCurso;
-  boton.title = !disenoActual?.preparadoParaSimular
+  boton.disabled = !disenoActual?.preparadoParaSimular || ejecucionActiva || resultadoEnCurso || estaMantenimientoActivo(sesion);
+  boton.title = estaMantenimientoActivo(sesion) ? MENSAJE_MANTENIMIENTO : !disenoActual?.preparadoParaSimular
     ? obtenerMensajePreparacionSimulacion()
     : (ejecucionActiva ? 'Detené o reiniciá la simulación actual antes de iniciar otra.' : '');
 }
@@ -734,6 +747,7 @@ function formatearEstadoMotor(estado) {
 }
 
 function obtenerMensajeEstadoMotor(estado) {
+  if (estaMantenimientoActivo(sesion)) return obtenerEstadoEjecucion();
   if (estado.estado === 'EN_CURSO') return 'La red permanece visible mientras los metros recorren sus conexiones.';
   if (estado.estado === 'PAUSADA') return 'La animación está pausada. Podés reanudarla, detenerla o reiniciarla.';
   if (estado.estado === 'FINALIZADA') return 'El recorrido terminó. La red continúa visible para revisar el resultado.';

@@ -1,3 +1,4 @@
+import { inicializarAvisoMantenimiento } from '../configuracion/AvisoMantenimiento.js';
 import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 import { inicializarAyudasSistema } from '../componentes/AyudasSistema.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
@@ -13,6 +14,7 @@ const ETAPAS_FLUJO = [
 let controlCambios = null;
 let confirmarSalida = null;
 let limpiarEventosUsuario = null;
+let limpiarMantenimiento = null;
 
 function obtenerNombreUsuario(sesion) {
   const usuario = sesion?.usuario ?? {};
@@ -103,6 +105,8 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   inicializarAyudasSistema();
   const marcador = document.querySelector('[data-navegacion-global]');
   const sesion = obtenerSesionActiva();
+  limpiarMantenimiento?.();
+  limpiarMantenimiento = null;
   limpiarEventosUsuario?.();
   limpiarEventosUsuario = null;
   if (!marcador || !sesion) return null;
@@ -145,6 +149,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   const botonCerrar = document.createElement('button');
   botonCerrar.type = 'button';
   botonCerrar.textContent = 'Cerrar sesión';
+  botonCerrar.className = 'metronet-boton--peligro';
   botonCerrar.addEventListener('click', () => cerrarSesion(sesion));
   menuUsuario.append(botonCerrar);
   usuario.append(menuUsuario);
@@ -170,6 +175,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     navegarConCambiosPendientes(enlace.href);
   });
   marcador.replaceChildren(cabecera);
+  limpiarMantenimiento = inicializarAvisoMantenimiento(marcador, sesion);
   crearFlujoNavegacion(etapa);
   return cabecera;
 }

@@ -86,7 +86,7 @@ test('controles solo bajo demanda en la misma asistencia; sin tooltip del canvas
   const mapa = await pagina.locator('#metronet-mapa').boundingBox();
   await pagina.locator('[data-assist-controles]').click();
   assert.match(await pagina.locator('[data-assist-mensaje]').innerText(), /Arrastrá con Seleccionar.*rueda.*pinza.*acción de la herramienta/);
-  assert.equal(await pagina.locator('[data-assist-controles]').innerText(), 'Volver a pista');
+  assert.equal(await pagina.locator('[data-assist-controles]').textContent(), 'Volver a pista');
   assert.deepEqual(await pagina.locator('#metronet-mapa').boundingBox(), mapa);
   const zoom = await pagina.evaluate(() => juegoPrueba.scene.getScene('MapaScene').cameras.main.zoom);
   await pagina.locator('#metronet-mapa canvas').hover({ position: { x: 150, y: 150 } });

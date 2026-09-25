@@ -26,6 +26,7 @@ export function mostrarFormularioElemento(panel, campos, guardar, cancelar) {
   const volver = document.createElement('button');
   volver.type = 'button';
   volver.textContent = 'Cancelar edición';
+  volver.className = 'metronet-boton--peligro-secundario';
   volver.addEventListener('click', cancelar);
   acciones.append(aceptar, volver);
   formulario.append(acciones);

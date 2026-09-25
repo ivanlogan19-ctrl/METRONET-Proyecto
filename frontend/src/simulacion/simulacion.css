@@ -393,6 +393,6 @@ html:root body.simulacion-pagina .simulacion-consigna { border: 0; border-top: v
   .simulacion-banda-estado dt { min-height: 0; }
   .simulacion-formulario { display: grid; grid-template-columns: minmax(0, 1fr); }
   .simulacion-selector-velocidad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .simulacion-acciones-ejecucion { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .simulacion-acciones-ejecucion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .simulacion-acciones-ejecucion button { min-width: 0; white-space: normal; }
 }

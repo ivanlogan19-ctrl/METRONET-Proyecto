@@ -3,63 +3,130 @@
 /* Un layout grid/flex nunca debe revelar un estado marcado como oculto. */
 html:root body [hidden]:not([hidden='until-found']) { display: none !important; }
 
-/* Mandos: el mismo relieve y estados; solo cambia la intención de la acción. */
-html:root body :is(button, .metronet-boton, .primary-button, .secondary-button, .metronet-inicio__boton, .simulacion-volver) {
-  --boton-fondo: var(--panel-elevated);
+/* Mandos nativos y enlaces de acción. Las clases antiguas son adaptadores. */
+html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
+  .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
+  .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a) {
+  --boton-fondo: var(--control-secundario);
   --boton-texto: var(--text-primary);
   --boton-borde: var(--border-active);
-  --boton-hover: var(--surface-hover);
+  --boton-hover: var(--control-secundario-hover);
+  min-height: var(--control-height);
+  padding: 8px 12px;
   border: var(--border-width) solid var(--boton-borde);
   border-radius: var(--radius-control);
   color: var(--boton-texto);
   background: var(--boton-fondo);
-  font-family: var(--font-ui);
-  font-weight: 650;
+  font: 400 var(--font-size-control)/1.45 var(--control-fuente);
   text-transform: uppercase;
-  letter-spacing: .025em;
-  line-height: 1.3;
-  box-shadow: var(--shadow-button);
-  transition: background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing), box-shadow var(--motion-fast) var(--motion-easing);
+  text-align: center;
+  text-decoration: none;
+  letter-spacing: 0;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  cursor: pointer;
+  box-shadow: var(--control-relieve);
+  transition: background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing);
+}
+html:root body :is(a.metronet-boton, a.primary-button, a.secondary-button,
+  .metronet-inicio__enlace, .simulacion-volver, .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; max-width: 100%;
 }
 html:root body :is(.metronet-boton--primario, .primary-button, .metronet-inicio__boton--azul,
   .metronet-inicio__boton--verde, .metronet-escenarios-pagina__acciones button, .simulacion-primario,
   .admin-guardar, .metronet-accion-primaria, .metronet-accion-advertencia, .metronet-accion-simulacion,
-  [data-continuar-transicion], [data-accion-guardar], [data-comenzar-nivel]) {
-  --boton-fondo: var(--primary);
+  .metronet-consigna__continuar, [data-continuar-transicion], [data-accion-guardar], [data-comenzar-nivel],
+  [data-crear-diseno], [data-crear-escenario], [data-crear-tramo], [data-continuar-bienvenida], #reanudarSimulacion, #continuarEscenarios) {
+  --boton-fondo: var(--control-primario);
   --boton-texto: var(--primary-ink);
   --boton-borde: var(--primary-border);
-  --boton-hover: var(--primary-hover);
-  border-bottom-width: var(--border-accent);
-  border-bottom-color: var(--primary-edge);
+  --boton-hover: var(--control-primario-hover);
 }
 html:root body :is(.metronet-boton--peligro, .admin-eliminar, .admin-cerrar-sesion,
-  .simulacion-accion-detener, .simulacion-accion-eliminar, .metronet-accion-peligrosa,
-  [data-confirmar-eliminar], [data-accion-salir], [data-eliminar-estacion],
-  [data-eliminar-linea], [data-eliminar-tramo], [data-eliminar-unidad]) {
-  --boton-fondo: var(--danger-surface);
+  .simulacion-accion-eliminar, .metronet-accion-peligrosa, [data-confirmar-eliminar],
+  [data-eliminar-diseno], [data-eliminar-estacion], [data-eliminar-linea], [data-eliminar-tramo], [data-eliminar-unidad]) {
+  --boton-fondo: var(--control-peligro);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--danger);
+  --boton-hover: var(--control-peligro-hover);
+}
+html:root body :is(.metronet-boton--peligro-secundario, [value='cancelar'], [data-cancelar-reinicio],
+  [data-cancelar-herramienta], [data-accion-salir], .simulacion-accion-detener, #cerrarEditorUsuario) {
+  --boton-fondo: var(--control-peligro-secundario);
   --boton-texto: var(--danger);
   --boton-borde: var(--danger);
-  --boton-hover: color-mix(in srgb, var(--danger) 20%, var(--panel));
+  --boton-hover: var(--control-peligro-secundario-hover);
 }
 html:root body :is(.metronet-boton--herramienta, [data-elegir-herramienta], .metronet-control-zoom-boton) {
   --boton-fondo: var(--bg-secondary);
-  font-family: var(--font-tecnica);
 }
-html:root body :is(button, .metronet-boton, .primary-button, .secondary-button, .metronet-inicio__boton, .simulacion-volver):not(:disabled):hover {
-  color: var(--boton-texto);
-  border-color: var(--boton-borde);
-  background: var(--boton-hover);
+html:root body :is(.metronet-boton--icono, .metronet-control-zoom-boton,
+  .metronet-panel-puntos-alternar, .metronet-seleccion-geografica__cerrar,
+  .metronet-punto-interes-panel-cerrar, .metronet-notificacion button) {
+  min-width: var(--control-height); min-height: var(--control-height); padding: 4px;
+  font-size: 18px; line-height: 1;
 }
-html:root body :is(button, .metronet-boton, .metronet-inicio__boton):not(:disabled):active { box-shadow: var(--shadow-pressed); }
-html:root body :is(button[aria-pressed='true'], button.activo, button.activa, button.es-seleccionado, .simulacion-tarjeta.activa, .admin-enlace.activo) {
-  --boton-fondo: var(--surface-selected);
+/* Las etiquetas de herramientas se redistribuyen sin cortar palabras. */
+html:root body .metronet-herramientas__barra fieldset { flex-wrap: wrap; align-items: start; align-content: start; }
+html:root body .metronet-herramientas__barra button {
+  flex: 1 1 auto; min-width: max-content; max-width: 100%; padding-inline: 6px;
+  font-size: 13px; overflow-wrap: normal;
+}
+/* Mandos agrupados del mapa: bisel común con densidad compacta. */
+html:root body .metronet-panel-puntos-cabecera .metronet-panel-puntos-titulo { flex-shrink: 0; white-space: nowrap; }
+html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar) {
+  width: var(--control-compact-height); height: var(--control-compact-height);
+  min-width: var(--control-compact-height); min-height: var(--control-compact-height); padding: 2px; font-size: 14px;
+}
+html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
+  .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
+  .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):hover {
+  color: var(--boton-texto); border-color: var(--boton-borde); background: var(--boton-hover);
+}
+html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
+  .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
+  .metronet-navegacion__enlace, :where(.auth-link) a, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):active {
+  box-shadow: var(--control-presionado); translate: 1px 1px;
+}
+html:root body :is(button[aria-pressed='true'], button.activo, button.activa, button.es-seleccionado,
+  .simulacion-tarjeta.activa, .admin-enlace.activo, .metronet-navegacion__enlace.activo, details[open] > summary) {
+  --boton-fondo: var(--lista-seleccion);
   --boton-texto: var(--text-primary);
-  --boton-borde: var(--info-active);
-  background: var(--boton-fondo);
-  color: var(--boton-texto);
-  border-color: var(--boton-borde);
-  box-shadow: var(--shadow-selection);
+  --boton-borde: var(--lista-indicador);
+  background: var(--boton-fondo); color: var(--boton-texto); border-color: var(--boton-borde);
+  box-shadow: var(--control-presionado), inset 4px 0 0 var(--lista-indicador);
 }
+/* El summary conserva su comportamiento HTML; la flecha es solo presentación. */
+html:root body :is(summary, .metronet-desplegable) { position: relative; list-style: none; padding-right: 44px; text-align: left; }
+html:root body summary::-webkit-details-marker { display: none; }
+html:root body summary::marker { content: ''; }
+html:root body summary::after {
+  content: ''; position: absolute; right: 8px; top: calc(50% - 4px);
+  width: 8px; height: 8px; border: 0; border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor; transform: rotate(45deg); pointer-events: none;
+}
+html:root body details[open] > summary::after { transform: rotate(225deg); top: calc(50% - 1px); }
+html:root body :is(.metronet-boton--compacto, .toggle-password) { min-height: 32px; padding: 4px 8px; font-size: 13px; }
+/* Espacio reservado al mando Mostrar/Ocultar, incluso al revelar la contraseña. */
+html:root body .input-wrapper:has(.toggle-password) input { padding-right: 104px; }
+html:root body .metronet-navegacion__menu-usuario { width: min(240px, calc(100vw - 24px)); }
+/* Las rutas del dropdown son el fallback móvil, nunca un segundo navbar. */
+html:root body .metronet-navegacion__menu-usuario .metronet-navegacion__enlace:not(.metronet-navegacion__enlace-perfil) { display: none; }
+@media (max-width: 1024px) {
+  html:root body .metronet-navegacion__enlaces { display: none; }
+  html:root body .metronet-navegacion__menu-usuario .metronet-navegacion__enlace:not(.metronet-navegacion__enlace-perfil) { display: flex; }
+}
+/* Los conceptos son texto consultable, también durante hover/pressed. */
+html:root body button.metronet-glosario-termino,
+html:root body button.metronet-glosario-termino:not(:disabled):not([aria-disabled='true']):is(:hover, :active) {
+  display: inline; width: auto; min-width: 0; min-height: 0; margin: 0; padding: 0;
+  font: inherit; font-weight: 700; letter-spacing: inherit; text-transform: none; text-align: inherit;
+  border: 0; border-radius: 0; background: transparent; color: var(--info-active);
+  box-shadow: none; translate: none; text-shadow: none; cursor: help;
+  text-decoration: underline dotted; text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+html:root body button.metronet-glosario-termino:is(:hover, :focus-visible) { text-decoration-thickness: 2px; }
 /* Los marcadores de cobertura conservan su significado dentro de los mandos. */
 html:root body .metronet-panel-puntos-item { border-left: var(--border-accent) solid var(--estado-color, var(--border)); }
 .metronet-panel-puntos-item.es-objetivo { --estado-color: var(--warning); }
@@ -70,17 +137,17 @@ html:root body :is(button, input, select, textarea):disabled {
   opacity: 1 !important;
   color: var(--text-disabled) !important;
   border-color: var(--border) !important;
-  background: var(--bg-secondary) !important;
+  background-color: var(--control-deshabilitado) !important;
   box-shadow: none !important;
   cursor: not-allowed;
 }
 html:root body :is(button, a, summary, input, select, textarea):focus-visible {
-  outline: var(--focus-width) solid var(--focus-color) !important;
+  outline: var(--focus-width) solid var(--control-foco) !important;
   outline-offset: var(--focus-offset);
 }
 
 /* Campos de lectura: sin tipografía pixel ni colores diferentes por pantalla. */
-html:root body :is(input:not([type='checkbox']):not([type='radio']):not([type='range']), select, textarea) {
+html:root body :is(input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea) {
   border: var(--border-width) solid var(--border-active);
   border-radius: var(--radius-control);
   color: var(--text-primary);
@@ -104,7 +171,7 @@ html:root body :is(input, select, textarea):focus {
 html:root body :is(input, select, textarea)[aria-invalid='true'] { border-color: var(--danger); }
 html:root body :is(input, select, textarea)[readonly] { color: var(--text-secondary); background: var(--panel-elevated); }
 html:root body :is(input[type='checkbox'], input[type='radio']) { accent-color: var(--info-active); }
-html:root body :is(.auth-link a, .perfil-volver a, .consentimiento a) { color: var(--info-active); text-underline-offset: 3px; }
+html:root body .consentimiento a { color: var(--info-active); text-underline-offset: 3px; }
 
 /* Ventanas: confirmación, eliminación, administración y educación. */
 html:root body dialog {
@@ -189,17 +256,32 @@ html:root body .metronet-boton--exito {
   --boton-fondo: var(--success-surface); --boton-texto: var(--success);
   --boton-borde: var(--success); --boton-hover: var(--surface-selected);
 }
+/* Select nativo: teclado, touch y popup del sistema conservados. */
 html:root body select {
-  appearance: none; padding-right: 30px;
-  background-image: linear-gradient(45deg, transparent 50%, var(--info-active) 50%), linear-gradient(135deg, var(--info-active) 50%, transparent 50%);
-  background-position: calc(100% - 15px) center, calc(100% - 10px) center;
-  background-size: 5px 5px; background-repeat: no-repeat;
+  appearance: none; min-height: var(--control-height); max-width: 100%; min-width: 0;
+  color: var(--text-primary); background-color: var(--bg-secondary);
+  padding: 8px 44px 8px 10px; cursor: pointer;
+  font: 400 var(--font-size-control)/1.45 var(--control-fuente);
+  border: var(--border-width) solid var(--border-active); border-radius: 0;
+  box-shadow: var(--control-relieve);
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-primary) 50%),
+    linear-gradient(135deg, var(--text-primary) 50%, transparent 50%),
+    linear-gradient(var(--border-active), var(--border-active)),
+    linear-gradient(var(--selector-lateral), var(--selector-lateral));
+  background-position: right 19px center, right 13px center, right 35px top, right top;
+  background-size: 6px 6px, 6px 6px, 1px 100%, 35px 100%; background-repeat: no-repeat;
 }
+html:root body select:not(:disabled):hover { border-color: var(--info-active); }
+html:root body select:focus { box-shadow: var(--control-presionado); }
+html:root body select option { color: var(--text-primary); background: var(--panel); }
+html:root body select option:checked { color: var(--primary-ink); background: var(--primary); }
+html:root body select:disabled { cursor: not-allowed; }
+html:root body .admin-rol { min-width: 190px; }
 html:root body :is(input[type='checkbox'], input[type='radio']) {
   appearance: none; display: inline-grid; place-content: center;
   width: 18px; height: 18px; min-width: 18px; min-height: 18px; padding: 0;
   border: var(--border-width) solid var(--border-active); background: var(--bg-secondary);
-  vertical-align: middle; cursor: pointer;
+  box-shadow: var(--control-presionado); vertical-align: middle; cursor: pointer;
 }
 html:root body input[type='radio'] { border-radius: 50%; }
 html:root body :is(input[type='checkbox'], input[type='radio'])::before { content: ''; width: 10px; height: 10px; background: var(--info-active); visibility: hidden; }
@@ -246,3 +328,38 @@ html:root body :is(.metronet-notificacion button, .metronet-seleccion-geografica
   html:root body :is(.primary-button, .secondary-button, .admin-guardar, .admin-secundario, .admin-eliminar,
     .metronet-dialogo-cambios button, .metronet-dialogo-eliminar button) { min-height: var(--control-touch-height); }
 }
+
+/* Listas de trabajo: selección rectangular sin convertir filas informativas en botones. */
+html:root body :is(.admin-tabla-contenedor, .metronet-escenarios-pagina__lista, .ranking-clasificacion,
+  .simulacion-lista-disenos, .metronet-editor-lista) { scrollbar-color: var(--border-active) var(--bg-secondary); }
+html:root body :is(.admin-tabla, .simulacion-tabla) :is(th, td) { padding: 10px 12px; }
+html:root body :is(.admin-tabla, .simulacion-tabla) th { font-family: var(--control-fuente); }
+html:root body :is(tbody tr, .metronet-escenarios-pagina__tarjeta):focus-within {
+  background: var(--lista-seleccion); box-shadow: inset 4px 0 0 var(--lista-indicador);
+  outline: 1px solid var(--lista-indicador); outline-offset: -1px;
+}
+html:root body :is(.simulacion-tarjeta, .metronet-editor-item-lista, .metronet-panel-puntos-item) {
+  border-radius: 0; text-align: left; padding: 8px 10px;
+}
+html:root body :is(.simulacion-tarjeta, .metronet-panel-puntos-item, .metronet-editor-item-lista) :is(span, small) {
+  font-family: var(--font-ui); text-transform: none;
+}
+@media (pointer: coarse) {
+  html:root body .input-wrapper:has(.toggle-password) input { min-height: 56px; }
+  html:root body :is(button, summary, select, .metronet-boton, :where(.auth-link) a, :where(.perfil-volver) a, .metronet-inicio__enlace) { min-height: var(--control-touch-height); }
+  html:root body :is(.metronet-boton--icono, .metronet-control-zoom-boton, .metronet-panel-puntos-alternar) { min-width: var(--control-touch-height); }
+  html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar) { min-width: var(--control-touch-height); min-height: var(--control-touch-height); }
+  html:root body .metronet-panel-puntos-cabecera { flex-wrap: wrap; padding-block: 4px; }
+  .metronet-panel-puntos-herramientas { margin-left: auto; }
+  .metronet-panel-puntos-titulo { flex-shrink: 0; }
+}
+@media (forced-colors: active) {
+  html:root body :is(select, input[type='checkbox'], input[type='radio']) { appearance: auto; background-image: none; }
+}
+
+@media (max-width: 360px) {
+  html:root body .metronet-panel-puntos-cabecera .metronet-panel-puntos-titulo { font-size: 12px; padding-left: 6px; letter-spacing: 0; }
+}
+
+/* La fila de reproducción conserva palabras completas sin inflar su altura. */
+html:root body .simulacion-acciones-ejecucion button { padding-inline: 6px; font-size: 13px; }

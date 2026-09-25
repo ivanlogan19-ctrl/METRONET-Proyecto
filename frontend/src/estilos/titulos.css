@@ -1,9 +1,7 @@
 /* Encabezados compartidos. API: metronet-titulo + --hero/--section/--panel/--subsection.
    Los alias semánticos integran las pantallas existentes sin alterar su DOM o conducta.
    h1 = SECTION; h2 = PANEL; h3–h6 = SUBSECTION, salvo los alias explícitos de abajo. */
-html:root body :is(h1, h2, h3, h4, h5, h6, .metronet-titulo,
-  .simulacion-seccion > summary, .metronet-panel-acordeon-mapa > summary,
-  .metronet-editor-juego > summary, .metronet-glosario-contextual > strong) {
+html:root body :is(h1, h2, h3, h4, h5, h6, .metronet-titulo, .metronet-glosario-contextual > strong) {
   --titulo-tamano: var(--titulo-tamano-subsection);
   --titulo-fuente: var(--font-tecnica);
   --titulo-peso: 700;
@@ -39,6 +37,7 @@ html:root body :is(h1, h2, h3, h4, h5, h6, .metronet-titulo,
   animation: var(--titulo-animacion);
 }
 
+/* Los summary reciben el marco y los estados de control en componentes.css. */
 /* PANEL: borde parcial y brillo sutil; escala legible también en instrumentos. */
 html:root body :is(h2:not(.metronet-titulo), .metronet-titulo--panel,
   .simulacion-visor-encabezado h3, .simulacion-seccion > summary,

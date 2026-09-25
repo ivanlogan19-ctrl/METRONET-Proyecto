@@ -372,6 +372,7 @@
 }
 
 .admin-configuracion-valor {
+  width: 100%;
   min-width: 0;
   font-family: var(--font-tecnica);
   font-weight: 700;

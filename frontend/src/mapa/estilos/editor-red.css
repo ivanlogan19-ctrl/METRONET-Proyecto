@@ -524,7 +524,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 
 /* La misma zona de asistencia crece con su contenido, sin filas vacías reservadas. */
 body.metronet-pagina-editor { overflow: hidden; }
-body .metronet-pantalla-editor { height: 100svh; min-height: 0; grid-template-rows: var(--navegacion-alto) auto minmax(0, 1fr); }
+body .metronet-pantalla-editor { height: 100svh; min-height: 0; grid-template-rows: auto auto minmax(0, 1fr); }
 .metronet-estado-editor {
   display: grid; gap: 4px; min-width: 0;
   margin: 6px 14px 0; padding: 5px 10px;

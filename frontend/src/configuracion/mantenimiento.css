@@ -1,0 +1,9 @@
+.metronet-aviso-mantenimiento {
+  padding: 8px max(12px, 2vw);
+  border-bottom: 1px solid var(--warning);
+  background: var(--panel); color: var(--text-primary);
+}
+.metronet-aviso-mantenimiento strong {
+  color: var(--warning); font: 400 12px/1.5 var(--font-arcade);
+}
+.metronet-aviso-mantenimiento p { margin: 3px 0 0; font: 400 14px/1.4 var(--font-ui); }

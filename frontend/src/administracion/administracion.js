@@ -178,7 +178,7 @@ function renderizarUsuarios(usuarios) {
       fila.innerHTML = `
         <td>${escaparHtml(`${usuario.nombre ?? ""} ${usuario.apellido ?? ""}`.trim())}</td>
         <td>${escaparHtml(usuario.email)}</td>
-        <td><select id="rol-${usuario.idUsuario}" class="admin-rol">${opciones}</select></td>
+        <td><select id="rol-${usuario.idUsuario}" class="admin-rol" aria-label="Rol de ${escaparHtml(`${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`.trim())}">${opciones}</select></td>
         <td>
           <button class="admin-guardar" type="button" data-guardar-rol="${usuario.idUsuario}">Guardar rol</button>
           <button class="admin-secundario" type="button" data-editar-usuario="${usuario.idUsuario}" data-nombre="${escaparHtml(usuario.nombre)}" data-apellido="${escaparHtml(usuario.apellido ?? "")}" data-email="${escaparHtml(usuario.email)}" data-rol="${usuario.rol}" data-identificador-administrador="${escaparHtml(usuario.identificadorAdministrador ?? usuario.nombre)}">Editar datos</button>
@@ -554,15 +554,21 @@ function renderizarConfiguracion(configuraciones) {
     const elemento = document.createElement("article");
     const esCapacidadUnidad = configuracion.clave === "capacidad_unidad";
     const esRitmoReproduccion = configuracion.clave === "velocidad_simulacion";
+    const esMantenimiento = configuracion.clave === "modo_mantenimiento";
+    const modo = String(configuracion.valor).trim().toLowerCase();
     const tipoCampo = esCapacidadUnidad ? "number" : "text";
     const restricciones = esCapacidadUnidad ? 'min="1" step="1"' : "";
     const unidad = esCapacidadUnidad ? '<span class="admin-unidad-configuracion">pasajeros</span>' : esRitmoReproduccion ? '<span class="admin-unidad-configuracion">×</span>' : "";
     const titulo = esRitmoReproduccion ? "Ritmo de reproducción (×)" : formatearClave(configuracion.clave);
     const descripcion = esRitmoReproduccion ? "Ritmo inicial de la animación: 0.5×, 1×, 2× o 4×. No modifica los km/h de las unidades ni los puntos." : configuracion.descripcion;
+    const atributos = `class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" aria-label="Valor de ${escaparHtml(titulo)}"`;
+    const campo = esMantenimiento
+      ? `<select ${atributos}>${["activado", "desactivado"].includes(modo) ? "" : '<option value="" selected disabled>Seleccioná un estado</option>'}${["desactivado", "activado"].map(valor => `<option value="${valor}" ${modo === valor ? "selected" : ""}>${valor.toUpperCase()}</option>`).join("")}</select>`
+      : `<input ${atributos} type="${tipoCampo}" ${restricciones} value="${escaparHtml(configuracion.valor)}" />`;
     elemento.className = "admin-configuracion-item";
     elemento.innerHTML = `
       <div><h3>${escaparHtml(titulo)}</h3><p>${escaparHtml(descripcion)}</p></div>
-      <div class="admin-campo-configuracion"><input class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" type="${tipoCampo}" ${restricciones} value="${escaparHtml(configuracion.valor)}" aria-label="Valor de ${escaparHtml(titulo)}" />${unidad}</div>
+      <div class="admin-campo-configuracion">${campo}${unidad}</div>
       <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
     `;
     return elemento;

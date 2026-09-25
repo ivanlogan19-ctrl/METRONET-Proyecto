@@ -93,6 +93,10 @@ export default class PanelPuntosInteres {
     this.renderizar();
   }
 
+  incorporarReferenciasTerritoriales(elemento) {
+    this.contenido?.prepend(elemento);
+  }
+
   obtenerContenedorHerramientas() {
     return this.contenedorHerramientas;
   }
