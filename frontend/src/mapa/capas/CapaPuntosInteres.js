@@ -307,12 +307,13 @@ export default class CapaPuntosInteres {
       return null;
     }
 
+    const puntosActualizados = new Set([this.puntoSeleccionado, this.puntoBuscado, this.clavePunto(punto)]);
     this.puntoSeleccionado = this.clavePunto(punto);
     if (opciones.desdeBusqueda && obtenerCategoriaReferencia(punto) === 'POI') {
       this.puntoBuscado = this.clavePunto(punto);
     }
 
-    this.dibujar();
+    this.dibujar(puntosActualizados);
 
     if (opciones.enfocar) {
       this.enfocarPunto(punto, opciones.duracion);
@@ -424,7 +425,7 @@ export default class CapaPuntosInteres {
     const anterior = this.puntoBuscado;
     this.puntoBuscado = null;
     if (anterior && anterior === this.puntoSeleccionado) this.ocultarInformacion();
-    else if (anterior) this.dibujar();
+    else if (anterior) this.dibujar(new Set([anterior]));
   }
 
   esPuntoDestacado(punto) {
@@ -439,10 +440,9 @@ export default class CapaPuntosInteres {
     if (seleccionado && !this.obtenerObjetivoPunto(seleccionado)
       && anteriores.has(obtenerCategoriaReferencia(seleccionado))
       && !this.categoriasVisibles.has(obtenerCategoriaReferencia(seleccionado))) {
-      this.puntoSeleccionado = null;
       this.ocultarInformacion();
     }
-    this.dibujar();
+    this.actualizarVisibilidad();
   }
 
   categoriaEsVisible(punto) {
@@ -1041,19 +1041,20 @@ export default class CapaPuntosInteres {
     );
   }
 
-  dibujar() {
-    this.eliminarElementos();
+  dibujar(claves = null) {
+    this.eliminarElementos(claves);
 
-    this.limitesEtiquetas = [];
+    this.limitesEtiquetas = claves ? this.limitesEtiquetas.filter(limite => !claves.has(limite.clave)) : [];
 
     this.recalcularContextoRed();
 
     const puntos = this.puntos
+      .filter(punto => !claves || claves.has(this.clavePunto(punto)))
       .sort((primero, segundo) => {
         return this.obtenerPrioridadReferencia(segundo) - this.obtenerPrioridadReferencia(primero);
       });
 
-    puntos.forEach((punto, indice) => this.dibujarPunto(punto, indice));
+    puntos.forEach(punto => this.dibujarPunto(punto, this.puntos.indexOf(punto)));
 
     this.actualizarVisibilidad(this.obtenerZoomActual(), { notificar: false });
     this.actualizarTamanoIconos();
@@ -1081,6 +1082,7 @@ export default class CapaPuntosInteres {
     );
 
     if (!posicion) return;
+    const elementos = [];
 
     const objetivo = this.obtenerObjetivoPunto(punto);
 
@@ -1102,7 +1104,7 @@ export default class CapaPuntosInteres {
       const alto = 2 * radio / 620 * escalaMapa.altoMapa;
       cobertura.fillEllipse(posicion.x, posicion.y, ancho, alto);
       cobertura.strokeEllipse(posicion.x, posicion.y, ancho, alto);
-      this.elementos.push(cobertura);
+      elementos.push(cobertura);
     }
 
     const marcador = this.escena.add.graphics();
@@ -1156,7 +1158,8 @@ export default class CapaPuntosInteres {
       contenedor.setAlpha(1);
     });
 
-    this.elementos.push(contenedor, areaInteraccion);
+    elementos.push(contenedor, areaInteraccion);
+    this.elementos.push(...elementos);
 
     this.representaciones.push({
       punto,
@@ -1166,6 +1169,7 @@ export default class CapaPuntosInteres {
       etiqueta,
       areaInteraccion,
       posicion,
+      elementos,
     });
   }
 
@@ -1258,7 +1262,7 @@ export default class CapaPuntosInteres {
 
     const alto = 21;
 
-    const desplazamiento = this.calcularPosicionEtiqueta(posicion, ancho, alto, indice);
+    const desplazamiento = this.calcularPosicionEtiqueta(posicion, ancho, alto, indice, this.clavePunto(punto));
 
     if (!desplazamiento) {
       texto.destroy();
@@ -1291,7 +1295,7 @@ export default class CapaPuntosInteres {
     return prefijo ? `${prefijo} · ${reducido}` : reducido;
   }
 
-  calcularPosicionEtiqueta(posicion, ancho, alto, indice) {
+  calcularPosicionEtiqueta(posicion, ancho, alto, indice, clave) {
     const distancia = 27;
 
     const candidatos = [
@@ -1319,6 +1323,7 @@ export default class CapaPuntosInteres {
     }
 
     this.limitesEtiquetas.push({
+      clave,
       x: posicion.x + elegido.x - ancho / 2,
       y: posicion.y + elegido.y - alto / 2,
       ancho,
@@ -1574,30 +1579,22 @@ export default class CapaPuntosInteres {
       .filter((contexto) => contexto.esSeleccionado || contexto.esObjetivoActivo)
       .forEach((contexto) => claves.add(this.clavePunto(contexto.representacion.punto)));
     const limite = MAXIMO_MARCADORES_POR_NIVEL[nivelDetalle] ?? MAXIMO_MARCADORES_POR_NIVEL.GENERAL;
-    // Repartir el cupo entre categorías evita que los POI o parques oculten
-    // toda la hidrografía/infraestructura. Conserva prioridad dentro de cada capa.
-    const grupos = Object.keys(CATEGORIAS_REFERENCIAS).map(categoria => contextos.filter(contexto => (
-      !claves.has(this.clavePunto(contexto.representacion.punto))
-      && obtenerCategoriaReferencia(contexto.representacion.punto) === categoria
-    )));
-    const posiciones = contextos.filter(contexto => claves.has(this.clavePunto(contexto.representacion.punto)))
-      .map(contexto => contexto.representacion.posicion);
+    // Cada categoría calcula su cupo y separación sin consultar las demás:
+    // para una misma vista, activar A+B conserva exactamente la unión de A y B.
     const separacion = TAMANO_INTERACCION_REFERENCIA * Phaser.Math.Clamp(1 / this.obtenerZoomActual(), 0.16, 1);
-    const seSuperpone = posicion => posiciones.some(otra => (
-      Math.abs(otra.x - posicion.x) < separacion && Math.abs(otra.y - posicion.y) < separacion
-    ));
-    let restantes = limite;
-    while (restantes > 0 && grupos.some(grupo => grupo.length)) {
-      for (const grupo of grupos) {
+    for (const categoria of Object.keys(CATEGORIAS_REFERENCIAS)) {
+      const grupo = contextos.filter(contexto => obtenerCategoriaReferencia(contexto.representacion.punto) === categoria);
+      const posiciones = grupo.filter(contexto => claves.has(this.clavePunto(contexto.representacion.punto)))
+        .map(contexto => contexto.representacion.posicion);
+      let restantes = limite;
+      for (const candidato of grupo) {
         if (!restantes) break;
-        // No superponer las zonas de clic. El zoom recupera las referencias
-        // próximas sin desplazar sus coordenadas reales ni agruparlas en un punto.
-        let candidato;
-        do { candidato = grupo.shift(); }
-        while (candidato && seSuperpone(candidato.representacion.posicion));
-        if (!candidato) continue;
-        claves.add(this.clavePunto(candidato.representacion.punto));
-        posiciones.push(candidato.representacion.posicion);
+        const clave = this.clavePunto(candidato.representacion.punto);
+        const posicion = candidato.representacion.posicion;
+        if (claves.has(clave)) continue;
+        if (posiciones.some(otra => Math.abs(otra.x - posicion.x) < separacion && Math.abs(otra.y - posicion.y) < separacion)) continue;
+        claves.add(clave);
+        posiciones.push(posicion);
         restantes--;
       }
     }
@@ -1923,21 +1920,25 @@ export default class CapaPuntosInteres {
       this.panelInformacion = null;
     }
     if (!conservarSeleccion && this.puntoSeleccionado !== null) {
+      const anterior = this.puntoSeleccionado;
       this.puntoSeleccionado = null;
-      this.dibujar();
+      this.dibujar(new Set([anterior]));
     }
   }
 
-  eliminarElementos() {
-    for (const elemento of this.elementos) {
+  eliminarElementos(claves = null) {
+    const eliminados = new Set(claves
+      ? this.representaciones.filter(r => claves.has(this.clavePunto(r.punto))).flatMap(r => r.elementos)
+      : this.elementos);
+    for (const elemento of eliminados) {
       if (elemento) {
         elemento.destroy();
       }
     }
 
-    this.elementos = [];
+    this.elementos = this.elementos.filter(elemento => !eliminados.has(elemento));
 
-    this.representaciones = [];
+    this.representaciones = claves ? this.representaciones.filter(r => !claves.has(this.clavePunto(r.punto))) : [];
   }
 
   eliminar() {

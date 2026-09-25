@@ -91,20 +91,22 @@ test('Capas territoriales visibles desde el mapa inicial sin red ni zoom; ningun
         seleccion: poi.haySeleccionGeografica(),
         categorias: [...new Set(visibles.map(r => categoria(r.punto)))].sort(),
         cantidad: visibles.length,
+        cantidadesPorCategoria: Object.fromEntries(categorias.map(c => [c, visibles.filter(r => categoria(r.punto) === c).length])),
         etiquetas: visibles.filter(r => r.etiqueta?.visible).length,
         interacciones: visibles.every(r => r.areaInteraccion.input.enabled),
         superposiciones: visibles.some((r, i) => visibles.slice(i + 1).some(otro => (
-          Math.abs(r.posicion.x - otro.posicion.x) < 36 && Math.abs(r.posicion.y - otro.posicion.y) < 36
+          categoria(r.punto) === categoria(otro.punto)
+          && Math.abs(r.posicion.x - otro.posicion.x) < 36 && Math.abs(r.posicion.y - otro.posicion.y) < 36
         ))),
       };
     }, categorias);
     assert.equal(estado.zoom, 1);
     assert.equal(estado.seleccion, false);
     assert.deepEqual(estado.categorias, categorias.filter(c => c !== 'POI').sort());
-    assert.ok(estado.cantidad > 0 && estado.cantidad <= 8, JSON.stringify(estado));
+    assert.ok(estado.cantidad > 0 && Object.values(estado.cantidadesPorCategoria).every(n => n <= 8), JSON.stringify(estado));
     assert.equal(estado.etiquetas, 0);
     assert.equal(estado.interacciones, true);
-    assert.equal(estado.superposiciones, false, 'Las referencias conservan áreas de clic independientes');
+    assert.equal(estado.superposiciones, false, 'La separación se calcula dentro de cada categoría, sin ocultar otras capas');
   }
   assert.deepEqual(solicitudes, []);
 });
