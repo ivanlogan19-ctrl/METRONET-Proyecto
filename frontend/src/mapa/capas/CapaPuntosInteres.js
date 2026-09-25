@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { CATEGORIAS_REFERENCIAS, obtenerCategoriaReferencia, describirReferencia } from '../configuracion/CategoriasReferencias.js';
 
 import '../estilos/puntos-interes.css';
 
@@ -60,6 +61,8 @@ export default class CapaPuntosInteres {
     this.datos = opciones.datos || null;
 
     this.puntos = [];
+
+    this.categoriasVisibles = new Set(Object.keys(CATEGORIAS_REFERENCIAS));
 
     this.estacionesReferencia = [];
 
@@ -302,6 +305,7 @@ export default class CapaPuntosInteres {
       return null;
     }
 
+    if (!this.obtenerObjetivoPunto(punto)) this.categoriasVisibles.add(obtenerCategoriaReferencia(punto));
     this.puntoSeleccionado = this.clavePunto(punto);
 
     this.dibujar();
@@ -412,6 +416,21 @@ export default class CapaPuntosInteres {
     };
   }
 
+  establecerCategoriasVisibles(categorias) {
+    this.categoriasVisibles = new Set(categorias.filter((categoria) => categoria in CATEGORIAS_REFERENCIAS));
+    const seleccionado = this.puntos.find((punto) => this.clavePunto(punto) === this.puntoSeleccionado);
+    if (seleccionado && !this.categoriaEsVisible(seleccionado)) {
+      this.puntoSeleccionado = null;
+      this.ocultarInformacion();
+    }
+    this.dibujar();
+  }
+
+  categoriaEsVisible(punto) {
+    // Las referencias requeridas por la consigna no desaparecen al filtrar contexto.
+    return Boolean(this.obtenerObjetivoPunto(punto)) || this.categoriasVisibles.has(obtenerCategoriaReferencia(punto));
+  }
+
   obtenerResumenPuntos() {
     const puntos = this.obtenerPuntosRelevantes();
     const puntoSeleccionado = this.puntos.find((punto) => {
@@ -425,7 +444,8 @@ export default class CapaPuntosInteres {
         return this.esObjetivoActivo(this.obtenerObjetivoPunto(punto));
       }).length,
       puntos,
-      puntosBusqueda: this.puntos.map((punto) => this.resumirPunto(punto)),
+      categoriasVisibles: [...this.categoriasVisibles],
+      puntosBusqueda: this.puntos.filter((punto) => this.categoriaEsVisible(punto)).map((punto) => this.resumirPunto(punto)),
       puntosCercaRed: this.referenciasCercaRed.map((punto) => this.resumirPunto(punto)),
       puntosAreaVisible: this.referenciasAreaVisible.map((punto) => this.resumirPunto(punto)),
       referenciasVisibles: this.obtenerReferenciasVisibles(),
@@ -464,6 +484,8 @@ export default class CapaPuntosInteres {
 
   extraerPuntos() {
     this.puntos = [];
+
+    this.categoriasVisibles = new Set(Object.keys(CATEGORIAS_REFERENCIAS));
 
     this.contextoRedPorPunto.clear();
 
@@ -853,6 +875,9 @@ export default class CapaPuntosInteres {
   }
 
   obtenerColorMarcador(punto) {
+    const categoria = obtenerCategoriaReferencia(punto);
+    if (categoria === 'INFRAESTRUCTURA') return COLORES_INTERFAZ_MAPA.REFERENCIA_INFRAESTRUCTURA;
+    if (categoria === 'AGUA') return COLORES_INTERFAZ_MAPA.REFERENCIA_AGUA;
     const tipo = this.normalizarNombre(punto.tipo);
 
     if (
@@ -1124,6 +1149,9 @@ export default class CapaPuntosInteres {
   }
 
   obtenerFormaMarcador(punto) {
+    const categoria = obtenerCategoriaReferencia(punto);
+    if (categoria === 'INFRAESTRUCTURA') return 'cuadrado';
+    if (categoria === 'AGUA') return 'ondas';
     const tipo = this.normalizarNombre(punto.tipo);
 
     if (tipo.includes('HOSPITAL') || tipo.includes('SALUD')) return 'cruz';
@@ -1135,6 +1163,16 @@ export default class CapaPuntosInteres {
   }
 
   dibujarFormaMarcador(grafico, forma, color) {
+    if (forma === 'ondas') {
+      grafico.lineStyle(2, color, 1);
+      for (const y of [-3, 3]) {
+        grafico.lineBetween(-6, y + 2, -2, y - 1);
+        grafico.lineBetween(-2, y - 1, 2, y + 1);
+        grafico.lineBetween(2, y + 1, 6, y - 2);
+      }
+      return;
+    }
+
     if (forma === 'cruz') {
       grafico.fillStyle(color, 1);
       grafico.fillRect(-2, -6, 4, 12);
@@ -1525,11 +1563,12 @@ export default class CapaPuntosInteres {
   obtenerContextoVisual(representacion, vista, zoom, nivelDetalle) {
     const { punto, objetivo, posicion } = representacion;
     const contextoRed = this.obtenerContextoRedPunto(punto);
+    const categoriaVisible = this.categoriaEsVisible(punto);
     const esObjetivoActivo = this.esObjetivoActivo(objetivo);
     const esSeleccionado = this.clavePunto(punto) === this.puntoSeleccionado;
     const perteneceSeleccion = this.puntoPerteneceASeleccion(punto);
-    const enAreaVisible = this.posicionEstaEnVista(posicion, vista);
-    const cercaRed = Boolean(contextoRed?.cercaRed);
+    const enAreaVisible = categoriaVisible && this.posicionEstaEnVista(posicion, vista);
+    const cercaRed = categoriaVisible && Boolean(contextoRed?.cercaRed);
     const cumpleZoomSeleccion = zoom + 0.001 >= this.zoomMinimoVisible;
     const esCandidataArea = (
       esObjetivoActivo ||
@@ -1547,7 +1586,7 @@ export default class CapaPuntosInteres {
       cercaRed,
       enAreaVisible,
       esCandidataArea,
-      mostrarMarcador: this.debeMostrarMarcador({
+      mostrarMarcador: categoriaVisible && this.debeMostrarMarcador({
         esObjetivoActivo,
         esSeleccionado,
         perteneceSeleccion,
@@ -1698,7 +1737,7 @@ export default class CapaPuntosInteres {
 
     tipo.className = 'metronet-punto-interes-panel-tipo';
 
-    tipo.textContent = punto.tipo || 'Punto de interés';
+    tipo.textContent = describirReferencia(punto);
 
     const descripcion = document.createElement('p');
 
@@ -1863,6 +1902,8 @@ export default class CapaPuntosInteres {
     this.eliminarElementos();
 
     this.puntos = [];
+
+    this.categoriasVisibles = new Set(Object.keys(CATEGORIAS_REFERENCIAS));
 
     this.estacionesReferencia = [];
 

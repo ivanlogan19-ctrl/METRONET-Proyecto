@@ -62,6 +62,15 @@ export default class PanelDinamico {
     const contenido = document.createElement('div');
 
     contenido.className = 'metronet-panel-contenido';
+    contenido.id = `${this.id}-contenido`;
+    encabezado.setAttribute('aria-controls', contenido.id);
+    encabezado.setAttribute('aria-expanded', 'false');
+    panel.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape' && this.abierto) {
+        this.cerrarContenido();
+        encabezado.focus();
+      }
+    });
 
     panel.appendChild(encabezado);
 
@@ -95,6 +104,7 @@ export default class PanelDinamico {
       return;
     }
 
+    this.encabezado.setAttribute('aria-expanded', String(this.abierto));
     this.encabezado.textContent = this.abierto ? `${this.titulo} ▲` : `${this.titulo} ▼`;
   }
 

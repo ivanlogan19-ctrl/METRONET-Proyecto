@@ -50,7 +50,6 @@ test('inicio: herramientas agrupadas, un solo panel y acciones de proyecto acces
   await pagina.locator('.metronet-editor-contexto > summary').click();
   assert.equal(await pagina.locator('[data-selector-diseno]').isVisible(), true);
   assert.equal(await pagina.locator('[data-crear-diseno]').isVisible(), true);
-  await pagina.locator('.metronet-panel-acordeon-mapa > summary').click();
   assert.equal(await pagina.locator('[data-contenedor-selectores-mapa]').isVisible(), true);
 });
 

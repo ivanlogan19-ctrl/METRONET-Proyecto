@@ -9,6 +9,8 @@
 }
 
 :root {
+  --referencia-infraestructura: #ffb36b;
+  --referencia-agua: #60dec9;
   --bg-primary: #060c1c;
   --bg-secondary: #091326;
   --panel: #0d1b32;

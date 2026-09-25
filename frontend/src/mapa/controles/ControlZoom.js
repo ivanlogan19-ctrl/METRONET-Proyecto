@@ -46,6 +46,8 @@ export default class ControlZoom {
 
     this.limitesCamara = null;
 
+    this.limitesMapaVista = null;
+
     this.contenedorPadre = opciones.contenedorPadre ?? document.body;
 
     this.integrado = Boolean(opciones.integrado);
@@ -568,6 +570,8 @@ export default class ControlZoom {
       return;
     }
 
+    this.limitesMapaVista = limitesMapa;
+
     const margen = Math.max(28, Math.min(this.escena.scale.width, this.escena.scale.height) * 0.08);
 
     this.limitesCamara = {
@@ -598,25 +602,10 @@ export default class ControlZoom {
       return;
     }
 
-    const anchoVisible = this.escena.scale.width / camara.zoom;
-
-    const altoVisible = this.escena.scale.height / camara.zoom;
-
-    const anchoLimites = this.limitesCamara.maximoX - this.limitesCamara.minimoX;
-
-    const altoLimites = this.limitesCamara.maximoY - this.limitesCamara.minimoY;
-
-    const maximoX = this.limitesCamara.maximoX - anchoVisible;
-
-    const maximoY = this.limitesCamara.maximoY - altoVisible;
-
-    camara.scrollX = anchoVisible >= anchoLimites
-      ? this.limitesCamara.minimoX + (anchoLimites - anchoVisible) / 2
-      : Math.min(Math.max(camara.scrollX, this.limitesCamara.minimoX), maximoX);
-
-    camara.scrollY = altoVisible >= altoLimites
-      ? this.limitesCamara.minimoY + (altoLimites - altoVisible) / 2
-      : Math.min(Math.max(camara.scrollY, this.limitesCamara.minimoY), maximoY);
+    // Los límites nativos incluyen el origen y el zoom de la cámara.
+    // Recortar scroll contra coordenadas del mapa desplazaba la vista al redimensionar.
+    camara.scrollX = camara.clampX(camara.scrollX);
+    camara.scrollY = camara.clampY(camara.scrollY);
   }
 
   marcarVistaManual() {
@@ -626,7 +615,9 @@ export default class ControlZoom {
 
   capturarVista() {
     const camara = this.obtenerCamara();
-    const limitesMapa = this.obtenerLimitesMapa();
+    // Phaser actualiza scale antes de emitir resize. El centro todavía pertenece
+    // al mapa anterior: normalizarlo con los límites nuevos desplaza el encuadre.
+    const limitesMapa = this.limitesMapaVista ?? this.obtenerLimitesMapa();
     if (!camara || !limitesMapa) return null;
     const anchoMapa = limitesMapa.maximoX - limitesMapa.minimoX;
     const altoMapa = limitesMapa.maximoY - limitesMapa.minimoY;

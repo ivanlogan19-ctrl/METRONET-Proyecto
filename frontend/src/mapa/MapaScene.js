@@ -124,9 +124,10 @@ export default class MapaScene extends Phaser.Scene {
   update() {}
 
   prepararContenedoresPanel() {
-    this.contenedorSelectoresMapa = this.contenedorControles?.querySelector('[data-contenedor-selectores-mapa]') ?? null;
+    const areaMapa = this.contenedorMapa?.closest('.metronet-area-mapa');
+    this.contenedorSelectoresMapa = areaMapa?.querySelector('[data-contenedor-selectores-mapa]') ?? null;
     this.contenedorControlesMapa = this.contenedorControles?.querySelector('[data-contenedor-controles-mapa]') ?? null;
-    this.contenedorPuntosInteres = this.contenedorMapa?.querySelector('[data-contenedor-puntos-interes]') ?? null;
+    this.contenedorPuntosInteres = areaMapa?.querySelector('[data-contenedor-puntos-interes]') ?? null;
     this.contenedorEditorRed = this.contenedorControles?.querySelector('[data-contenedor-editor-red]') ?? null;
     this.contenedorConsigna = this.contenedorControles?.querySelector('[data-contenedor-consigna]') ?? null;
     this.contenedorPieEditor = this.contenedorControles?.querySelector('[data-panel-editor-pie]') ?? null;
@@ -215,6 +216,7 @@ export default class MapaScene extends Phaser.Scene {
     this.panelPuntosInteres = new PanelPuntosInteres({
       contenedorPadre: this.contenedorPuntosInteres,
       alSeleccionar: (punto) => this.localizarReferencia(punto),
+      alCambiarCategorias: (categorias) => this.capaPuntosInteres.establecerCategoriasVisibles(categorias),
     });
 
     this.panelPuntosInteres.crear();
@@ -376,7 +378,7 @@ export default class MapaScene extends Phaser.Scene {
     this.selectorZonas = new SelectorZonas({
       id: 'metronet-selector-zonas',
 
-      titulo: 'Seleccionar zonas',
+      titulo: 'Zonas',
 
       ancho: 180,
 
@@ -463,7 +465,7 @@ export default class MapaScene extends Phaser.Scene {
     this.selectorBarrios = new SelectorBarrios({
       id: 'metronet-selector-barrios',
 
-      titulo: 'Seleccionar barrios',
+      titulo: 'Barrios',
 
       ancho: 180,
 

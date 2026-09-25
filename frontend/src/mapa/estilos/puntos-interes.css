@@ -317,3 +317,23 @@
 .metronet-panel-puntos-interes { max-height: calc(100% - 24px); grid-template-rows: auto minmax(0, 1fr); }
 .metronet-panel-puntos-contenido { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .metronet-panel-puntos-contenido .metronet-territorio { margin: 0 0 10px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--border); }
+
+/* Leyenda y filtros comparten símbolos y colores con los marcadores del mapa. */
+.metronet-referencias-leyenda {
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 10px;
+  min-width: 0; margin: 0; padding: 0 0 8px; border: 0; border-bottom: 1px solid var(--border);
+}
+.metronet-referencias-leyenda label {
+  display: flex; gap: 5px; align-items: center; min-height: 30px; cursor: pointer;
+  font: 600 12px/1.4 var(--font-ui); color: var(--text-primary);
+}
+.metronet-referencia-simbolo { color: var(--info-active); font-size: 17px; line-height: 1; }
+[data-categoria='INFRAESTRUCTURA'] { --referencia-color: var(--referencia-infraestructura); }
+[data-categoria='AGUA'] { --referencia-color: var(--referencia-agua); }
+[data-categoria] .metronet-referencia-simbolo { color: var(--referencia-color, var(--info-active)); }
+.metronet-referencias-leyenda-territorio { align-self: center; color: var(--text-secondary); font-size: 12px; }
+.metronet-referencias-leyenda small { grid-column: 1 / -1; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
+.metronet-panel-puntos-item[data-categoria]:not(.es-objetivo):not(.estado-atendido):not(.estado-completado) { border-left-color: var(--referencia-color, var(--border)); }
+.metronet-panel-puntos-nombre, .metronet-panel-puntos-tipo { white-space: normal; overflow-wrap: anywhere; }
+.metronet-panel-puntos-estado { max-width: 78px; white-space: normal; }
+@media (pointer: coarse) { .metronet-referencias-leyenda label { min-height: 44px; } }

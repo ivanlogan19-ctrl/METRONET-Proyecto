@@ -27,12 +27,16 @@
         <section class="metronet-estado-editor" data-estado-editor aria-label="Asistencia y mensajes del editor"></section>
         <div id="metronet-aplicacion">
 
-        <main
-            id="metronet-mapa"
-            aria-label="Mapa de Montevideo"
-        >
-            <section data-contenedor-puntos-interes aria-label="Referencias del mapa"></section>
-        </main>
+        <div class="metronet-area-mapa">
+            <section class="metronet-barra-geografica" aria-label="Referencias y territorio">
+                <section data-contenedor-puntos-interes aria-label="Referencias del mapa"></section>
+                <section class="metronet-territorio-selectores" aria-label="Selección geográfica">
+                    <h2>Territorio</h2>
+                    <div data-contenedor-selectores-mapa></div>
+                </section>
+            </section>
+            <main id="metronet-mapa" aria-label="Mapa de Montevideo"></main>
+        </div>
 
         <aside
             id="metronet-panel-controles"
@@ -48,10 +52,6 @@
             <div class="metronet-panel-editor-contenido" data-panel-edicion-contenido>
                 <div data-flujo-navegacion></div>
                 <section class="metronet-consigna" data-contenedor-consigna hidden aria-live="polite"></section>
-                <details class="metronet-panel-acordeon-mapa" aria-label="Selección geográfica">
-                    <summary>Mapa: zonas y barrios</summary>
-                    <div class="metronet-panel-acordeon-mapa__contenido" data-contenedor-selectores-mapa></div>
-                </details>
                 <section class="metronet-panel-editor-herramientas" data-contenedor-editor-red></section>
                 <footer class="metronet-panel-editor-pie" data-panel-editor-pie></footer>
             </div>
