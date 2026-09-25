@@ -2,29 +2,24 @@ import Phaser from 'phaser';
 import '../estilos/territorio.css';
 
 export default class CapaTerritorial {
-  constructor(escena, { territorio, capaBarrios, puntos = [], contenedor = null }) {
+  constructor(escena, { territorio, capaBarrios, puntos = [], referenciasVisibles = () => true }) {
     this.escena = escena;
     this.territorio = territorio;
     this.capaBarrios = capaBarrios;
     this.puntos = puntos;
-    this.mostrarReferencias = true;
+    this.referenciasVisibles = referenciasVisibles;
     this.grafico = escena.add.graphics().setDepth(3);
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-territorio';
-    const etiqueta = document.createElement('label');
-    const alternar = document.createElement('input');
-    alternar.type = 'checkbox';
-    alternar.checked = true;
-    alternar.addEventListener('change', () => { this.mostrarReferencias = alternar.checked; this.dibujar(); });
-    etiqueta.append(alternar, document.createTextNode('Referencias territoriales'));
     const ayuda = document.createElement('p');
-    ayuda.textContent = 'Verde: parques y espacios verdes del catálogo. Son referencias y no prohíben construir.';
+    ayuda.textContent = 'POI · Verde: parques y espacios verdes del catálogo. Son referencias y no prohíben construir.';
     this.lista = document.createElement('ul');
     this.lista.setAttribute('aria-label', 'Áreas territoriales del escenario');
-    this.elemento.append(etiqueta, ayuda, this.lista);
-    contenedor?.append(this.elemento);
+    this.elemento.append(ayuda, this.lista);
     this.dibujar();
   }
+
+  get mostrarReferencias() { return this.referenciasVisibles(); }
 
   dibujar() {
     this.grafico.clear();

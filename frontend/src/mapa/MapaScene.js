@@ -94,6 +94,7 @@ export default class MapaScene extends Phaser.Scene {
     this.capaTerritorial = new CapaTerritorial(this, {
       territorio: this.territorioMapa, capaBarrios: this.capaBarrios,
       puntos: this.capaPuntosInteres.puntos,
+      referenciasVisibles: () => this.capaPuntosInteres.categoriasVisibles.has('POI'),
     });
     this.crearCapaIconosBarrios();
 
@@ -216,7 +217,10 @@ export default class MapaScene extends Phaser.Scene {
     this.panelPuntosInteres = new PanelPuntosInteres({
       contenedorPadre: this.contenedorPuntosInteres,
       alSeleccionar: (punto) => this.localizarReferencia(punto),
-      alCambiarCategorias: (categorias) => this.capaPuntosInteres.establecerCategoriasVisibles(categorias),
+      alCambiarCategorias: (categorias) => {
+        this.capaPuntosInteres.establecerCategoriasVisibles(categorias);
+        this.capaTerritorial.dibujar();
+      },
     });
 
     this.panelPuntosInteres.crear();

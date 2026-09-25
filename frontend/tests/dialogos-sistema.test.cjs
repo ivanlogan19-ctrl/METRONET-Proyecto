@@ -117,7 +117,7 @@ for (const width of [1440, 768, 390]) test(`cabecera de referencias ${width}: zo
   await pagina.evaluate(() => document.fonts.ready);
   const panel = pagina.locator('.metronet-panel-puntos-interes');
   const caja = await panel.boundingBox();
-  for (const boton of await panel.locator('button').all()) {
+  for (const boton of await panel.locator('.metronet-panel-puntos-cabecera button').all()) {
     const rect = await boton.boundingBox();
     assert.ok(rect.x >= caja.x && rect.x + rect.width <= caja.x + caja.width, 'Control visible sin desplazar el mapa');
   }

@@ -40,13 +40,13 @@ export default class PanelPuntosInteres {
     this.eliminar();
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-panel-puntos-interes';
-    this.elemento.setAttribute('aria-label', 'Referencias del mapa');
+    this.elemento.setAttribute('aria-label', 'Referencias territoriales');
 
     const cabecera = document.createElement('div');
     cabecera.className = 'metronet-panel-puntos-cabecera';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-panel-puntos-titulo';
-    titulo.textContent = 'Referencias';
+    titulo.textContent = 'Referencias territoriales';
     const acciones = document.createElement('div');
     acciones.className = 'metronet-panel-puntos-acciones';
     this.contador = document.createElement('span');
@@ -68,14 +68,14 @@ export default class PanelPuntosInteres {
     this.contenido.className = 'metronet-panel-puntos-contenido';
     this.contenido.hidden = true;
     const etiquetaBusqueda = document.createElement('label');
-    etiquetaBusqueda.className = 'metronet-solo-lectores';
+    etiquetaBusqueda.className = 'metronet-panel-puntos-etiqueta-busqueda';
     etiquetaBusqueda.htmlFor = `${this.identificador}-busqueda`;
-    etiquetaBusqueda.textContent = 'Buscar referencias del mapa';
+    etiquetaBusqueda.textContent = 'Buscar POI';
     this.campoBusqueda = document.createElement('input');
     this.campoBusqueda.id = `${this.identificador}-busqueda`;
     this.campoBusqueda.className = 'metronet-panel-puntos-busqueda';
     this.campoBusqueda.type = 'search';
-    this.campoBusqueda.placeholder = 'Buscar referencia';
+    this.campoBusqueda.placeholder = 'Nombre, tipo o barrio';
     this.campoBusqueda.autocomplete = 'off';
     this.campoBusqueda.setAttribute('aria-controls', `${this.identificador}-lista`);
     this.campoBusqueda.addEventListener('input', () => {
@@ -110,41 +110,40 @@ export default class PanelPuntosInteres {
     const leyenda = document.createElement('fieldset');
     leyenda.className = 'metronet-referencias-leyenda';
     const titulo = document.createElement('legend');
-    titulo.className = 'metronet-solo-lectores';
-    titulo.textContent = 'Capas de referencias';
+    titulo.textContent = 'Capas visibles';
     leyenda.append(titulo);
+    const controles = document.createElement('div');
+    controles.className = 'metronet-referencias-controles';
     for (const [categoria, datos] of Object.entries(CATEGORIAS_REFERENCIAS)) {
-      const etiqueta = document.createElement('label');
-      etiqueta.dataset.categoria = categoria;
-      etiqueta.title = datos.descripcion;
-      const control = document.createElement('input');
-      control.type = 'checkbox';
-      control.checked = true;
-      control.value = categoria;
+      const control = document.createElement('button');
+      control.type = 'button';
+      control.className = 'metronet-boton--compacto';
+      control.dataset.categoria = categoria;
+      control.title = datos.descripcion;
+      control.setAttribute('aria-pressed', 'true');
       control.setAttribute('aria-label', datos.etiqueta);
-      control.addEventListener('change', () => this.alCambiarCategorias(
-        [...leyenda.querySelectorAll('input:checked')].map((entrada) => entrada.value),
-      ));
+      control.addEventListener('click', () => {
+        const visibles = new Set(this.resumen.categoriasVisibles ?? Object.keys(CATEGORIAS_REFERENCIAS));
+        if (visibles.has(categoria)) visibles.delete(categoria);
+        else visibles.add(categoria);
+        this.alCambiarCategorias([...visibles]);
+      });
       const simbolo = document.createElement('span');
       simbolo.className = 'metronet-referencia-simbolo';
       simbolo.setAttribute('aria-hidden', 'true');
       simbolo.textContent = datos.simbolo;
-      etiqueta.append(control, simbolo, document.createTextNode(datos.etiqueta));
-      leyenda.append(etiqueta);
+      control.append(simbolo, document.createTextNode(datos.etiqueta));
+      controles.append(control);
     }
-    const territorio = document.createElement('span');
-    territorio.className = 'metronet-referencias-leyenda-territorio';
-    territorio.textContent = '▱ Barrio/Zona';
-    territorio.title = 'Límites geográficos; selección en los controles de Territorio';
-    leyenda.append(territorio);
+    leyenda.append(controles);
     const nota = document.createElement('small');
-    nota.textContent = 'Los objetivos del escenario permanecen disponibles.';
+    nota.textContent = 'Botón presionado: capa visible. Los objetivos y el punto seleccionado permanecen visibles.';
     leyenda.append(nota);
     return leyenda;
   }
 
   incorporarReferenciasTerritoriales(elemento) {
-    this.contenido?.append(elemento);
+    this.contenido?.querySelector('.metronet-referencias-leyenda')?.append(elemento);
   }
 
   obtenerContenedorHerramientas() {
@@ -160,8 +159,8 @@ export default class PanelPuntosInteres {
       cantidadObjetivos: Number(resumen.cantidadObjetivos) || 0,
       puntoSeleccionado: resumen.puntoSeleccionado ?? null,
     };
-    for (const control of this.elemento?.querySelectorAll('.metronet-referencias-leyenda input') ?? []) {
-      control.checked = (resumen.categoriasVisibles ?? Object.keys(CATEGORIAS_REFERENCIAS)).includes(control.value);
+    for (const control of this.elemento?.querySelectorAll('.metronet-referencias-controles button') ?? []) {
+      control.setAttribute('aria-pressed', String((resumen.categoriasVisibles ?? Object.keys(CATEGORIAS_REFERENCIAS)).includes(control.dataset.categoria)));
     }
     this.renderizar();
   }

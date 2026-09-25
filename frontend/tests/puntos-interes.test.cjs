@@ -54,7 +54,7 @@ test('seleccionar, usar botones de zoom y cerrar conserva y después elimina nom
 test('búsqueda localiza el POI y muestra nombre; sin resultados no selecciona otro', async (t) => {
   const { pagina } = await preparar(t);
   await pagina.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
-  const busqueda = pagina.getByRole('searchbox', { name: 'Buscar referencias del mapa' });
+  const busqueda = pagina.getByRole('searchbox', { name: 'Buscar POI' });
   await busqueda.fill('Palacio Legislativo');
   await pagina.locator('.metronet-panel-puntos-lista button').first().click();
   await pagina.getByRole('dialog', { name: 'Información de Palacio Legislativo' }).waitFor();

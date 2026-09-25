@@ -305,7 +305,6 @@ export default class CapaPuntosInteres {
       return null;
     }
 
-    if (!this.obtenerObjetivoPunto(punto)) this.categoriasVisibles.add(obtenerCategoriaReferencia(punto));
     this.puntoSeleccionado = this.clavePunto(punto);
 
     this.dibujar();
@@ -417,9 +416,12 @@ export default class CapaPuntosInteres {
   }
 
   establecerCategoriasVisibles(categorias) {
+    const anteriores = this.categoriasVisibles;
     this.categoriasVisibles = new Set(categorias.filter((categoria) => categoria in CATEGORIAS_REFERENCIAS));
     const seleccionado = this.puntos.find((punto) => this.clavePunto(punto) === this.puntoSeleccionado);
-    if (seleccionado && !this.categoriaEsVisible(seleccionado)) {
+    if (seleccionado && !this.obtenerObjetivoPunto(seleccionado)
+      && anteriores.has(obtenerCategoriaReferencia(seleccionado))
+      && !this.categoriasVisibles.has(obtenerCategoriaReferencia(seleccionado))) {
       this.puntoSeleccionado = null;
       this.ocultarInformacion();
     }
@@ -427,8 +429,9 @@ export default class CapaPuntosInteres {
   }
 
   categoriaEsVisible(punto) {
-    // Las referencias requeridas por la consigna no desaparecen al filtrar contexto.
-    return Boolean(this.obtenerObjetivoPunto(punto)) || this.categoriasVisibles.has(obtenerCategoriaReferencia(punto));
+    // La selección explícita y los objetivos permanecen visibles sin activar su categoría.
+    return this.clavePunto(punto) === this.puntoSeleccionado
+      || Boolean(this.obtenerObjetivoPunto(punto)) || this.categoriasVisibles.has(obtenerCategoriaReferencia(punto));
   }
 
   obtenerResumenPuntos() {
@@ -445,7 +448,7 @@ export default class CapaPuntosInteres {
       }).length,
       puntos,
       categoriasVisibles: [...this.categoriasVisibles],
-      puntosBusqueda: this.puntos.filter((punto) => this.categoriaEsVisible(punto)).map((punto) => this.resumirPunto(punto)),
+      puntosBusqueda: this.puntos.map((punto) => this.resumirPunto(punto)),
       puntosCercaRed: this.referenciasCercaRed.map((punto) => this.resumirPunto(punto)),
       puntosAreaVisible: this.referenciasAreaVisible.map((punto) => this.resumirPunto(punto)),
       referenciasVisibles: this.obtenerReferenciasVisibles(),

@@ -86,7 +86,7 @@ test('referencias territoriales permiten construir y las áreas restringidas exp
   assert.match(await pagina.locator('body').innerText(), /No se permiten estaciones en AGUADA/);
   await pagina.getByRole('button', { name: 'Abrir referencias del mapa' }).click();
   assert.match(await pagina.getByRole('list', { name: 'Áreas territoriales del escenario' }).innerText(), /AGUADA: sin estaciones/);
-  await pagina.getByRole('checkbox', { name: 'Referencias territoriales' }).uncheck();
+  await pagina.getByRole('button', { name: 'POI', exact: true }).click();
   assert.equal(await pagina.evaluate(() => editorPrueba.escena.territorioMapa.errorEstacion({ posicionX: 595.82, posicionY: 492.99 }) !== null), true);
 });
 

@@ -74,7 +74,7 @@ html:root body .metronet-herramientas__barra button {
   font-size: 13px; overflow-wrap: normal;
 }
 /* Mandos agrupados del mapa: bisel común con densidad compacta. */
-html:root body .metronet-panel-puntos-cabecera .metronet-panel-puntos-titulo { flex-shrink: 0; white-space: nowrap; }
+html:root body .metronet-panel-puntos-cabecera .metronet-panel-puntos-titulo { flex-shrink: 1; white-space: normal; }
 html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar) {
   width: var(--control-compact-height); height: var(--control-compact-height);
   min-width: var(--control-compact-height); min-height: var(--control-compact-height); padding: 2px; font-size: 14px;
