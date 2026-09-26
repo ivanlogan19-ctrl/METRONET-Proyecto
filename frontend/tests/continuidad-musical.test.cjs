@@ -43,11 +43,11 @@ test('Misma pista menu→admin y carga de 200ms no tocan play, pause ni volumen'
  assert.ok((await medir(p))[0].tiempo>25);
 });
 
-test('Cambio de pista mezcla durante 900ms y respeta 40% maestro',async t=>{
+test('Cambio de pista mezcla durante 180ms y respeta 40% maestro',async t=>{
  const {pagina:p}=await abrir(t);
  await p.evaluate(()=>{gestorPrueba.establecerVolumen(.4);gestorPrueba.establecerContexto('gameplay');});
  await p.waitForFunction(()=>gestorPrueba.obtenerEstado().mezclando&&document.querySelector('[data-musica-metronet]')?.currentTime>0);
- await p.waitForTimeout(300);
+ await p.waitForTimeout(35);
  const mezcla=await medir(p);assert.equal(mezcla.length,2);
  assert.ok(mezcla.every(a=>!a.pausado&&a.volumen>0&&a.volumen<.4),JSON.stringify(mezcla));
  assert.ok(Math.abs(mezcla.reduce((s,a)=>s+a.volumen,0)-.4)<.025);
@@ -59,7 +59,7 @@ test('Cambio de pista mezcla durante 900ms y respeta 40% maestro',async t=>{
 test('A→B→A reutiliza A sin reinicio; A→B→C→A nunca deja pistas duplicadas',async t=>{
  const {pagina:p}=await abrir(t);
  await p.evaluate(()=>{window.originalAudio=gestorPrueba.audio;originalAudio.currentTime=45;gestorPrueba.establecerContexto('gameplay');});
- await p.waitForTimeout(250);await p.evaluate(()=>gestorPrueba.establecerContexto('admin'));
+ await p.waitForTimeout(40);await p.evaluate(()=>gestorPrueba.establecerContexto('admin'));
  assert.equal(await p.evaluate(()=>originalAudio===gestorPrueba.audio),true);
  await estable(p);assert.ok((await medir(p))[0].tiempo>=45);
  for(const contexto of ['gameplay','auth','menu','gameplay','admin']) {

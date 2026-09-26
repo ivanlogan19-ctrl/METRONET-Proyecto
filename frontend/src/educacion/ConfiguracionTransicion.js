@@ -1,9 +1,18 @@
 // Tiempo visual compartido; independiente de cualquier solicitud de red.
 export const CONFIGURACION_TRANSICION = Object.freeze({
-  duracionMs: 4500,
-  salidaEn: 0.16,
-  cerrarPuertasEn: 0.12,
+  duracionMs: 1800,
+  identificacionMs: 1000,
+  audioNivelEstimadoMs: 14968,
+  esperaMaximaAudioMs: 20000,
+  cartelEn: 0.78,
+  salidaEn: 0.06,
+  cerrarPuertasEn: 0.04,
   llegadaEn: 0.94,
-  revelarConsignaEn: 0.24,
-  revelarDestinoEn: 0.6,
+  revelarConsignaEn: 0,
+  revelarDestinoEn: 0,
+});
+
+export const MENSAJES_TRANSICION = Object.freeze({
+  accion: 'Jugar',
+  entrada: 'Entrarás al terminar la música. Pulsá Jugar para comenzar ahora.',
 });

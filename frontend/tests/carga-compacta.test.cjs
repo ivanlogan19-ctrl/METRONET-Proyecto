@@ -14,6 +14,7 @@ after(async () => { await navegador?.close(); });
 async function abrir(t, viewport) {
   const vista = await abrirPantalla(navegador, '/escenarios.html', { viewport });
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
+  await vista.pagina.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
   await vista.pagina.clock.install();
   return vista.pagina;
 }
@@ -31,14 +32,14 @@ async function cargar(p, nivel, indice) {
     try { window.cargaCompacta = crearPreparacionNivel(nivel); }
     finally { Math.random = aleatorio; }
   }, { nivel, indice });
-  await p.clock.runFor(1800);
+  await p.clock.runFor(700);
   await p.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__consigna')).opacity === '1');
   return p.locator('.metronet-viaje');
 }
 
 async function verificar(dialogo, viewport, sinScroll) {
   assert.equal(await dialogo.locator('[data-concepto], [data-concepto-destacado], [aria-haspopup], [role=tooltip], [popover], dialog, .metronet-glosario-preparacion').count(), 0);
-  assert.equal(await dialogo.locator('button').count(), 2, 'Solo Volver y Leer sin prisa');
+  assert.equal(await dialogo.locator('button').count(), 2, 'Solo Volver y Jugar');
   assert.equal(await dialogo.locator('[data-mensaje-id]').count(), 1);
   assert.equal(await dialogo.locator('.metronet-viaje__recorrido svg').count(), 1);
   assert.equal(await dialogo.getByRole('progressbar').count(), 1);
@@ -98,17 +99,17 @@ test('Los 30 mensajes reales entran a 1366×768 sin scroll, enlaces ni definicio
   await p.evaluate(() => cargaCompacta.cerrar());
 });
 
-test('La recarga varía el mensaje y mantiene una sola consigna; lectura/cancelación conservan el foco', async t => {
+test('La recarga varía el mensaje y mantiene una sola consigna; Jugar/cancelación conservan el foco', async t => {
   const p = await abrir(t, {width:1366,height:768});
   for (const numero of [1,6,10]) {
     const nivel = niveles.find(n => n.numero === numero);
     const dialogo = await cargar(p, nivel);
     const anterior = await dialogo.locator('[data-mensaje-id]').getAttribute('data-mensaje-id');
-    await dialogo.getByRole('button',{name:'Leer sin prisa'}).click();
+    assert.equal(await dialogo.getByRole('button',{name:'Jugar',exact:true}).isDisabled(),true);
     await p.evaluate(() => { window.resultadoCarga = undefined; cargaCompacta.marcarDatosListos(); cargaCompacta.finalizada.then(valor => window.resultadoCarga = valor); });
-    await p.clock.runFor(3300);
+    await p.clock.runFor(1);
     assert.equal(await p.evaluate(() => window.resultadoCarga), undefined);
-    await dialogo.getByRole('button',{name:'Continuar al nivel'}).press('Enter');
+    await dialogo.getByRole('button',{name:'Jugar',exact:true}).press('Enter');
     assert.equal(await p.evaluate(() => window.resultadoCarga), true);
     await cargar(p, nivel);
     assert.notEqual(await dialogo.locator('[data-mensaje-id]').getAttribute('data-mensaje-id'), anterior);

@@ -31,12 +31,13 @@ html:root body .metronet-bienvenida {
   min-height: 0; min-width: 0; text-align: center; gap: clamp(8px, 2vh, 20px);
 }
 html:root body .metronet-bienvenida .metronet-logo {
-  width: clamp(140px, 25vmin, 280px); max-width: 100%; margin: 0; padding: 0;
+  width: clamp(220px, 42vmin, 500px); max-width: 100%; margin: 0; padding: 0;
+  aspect-ratio: 3 / 2;
 }
 html:root body .metronet-bienvenida .metronet-logo__imagen {
   width: 100%; height: auto; max-height: none; object-fit: contain;
   filter: none; transform: none; opacity: 1; mix-blend-mode: normal;
-  image-rendering: auto; animation: none;
+  image-rendering: pixelated; animation: none;
 }
 .metronet-bienvenida__saludo { max-width: 100%; }
 .metronet-bienvenida__saludo p { margin: 0; }
@@ -78,13 +79,17 @@ html:root body .metronet-bienvenida button { flex-shrink: 0; min-height: 44px; p
   html:root body .metronet-bienvenida button { padding: 8px 12px; font-size: 12px; }
 }
 @media (max-height: 740px) {
-  html:root body .metronet-bienvenida .metronet-logo { width: clamp(110px, 22vh, 180px); }
+  html:root body .metronet-bienvenida .metronet-logo { width: clamp(160px, 42vmin, 320px); }
   .metronet-bienvenida__centro { gap: 8px; }
+}
+@media (max-width: 600px) and (max-height: 650px) {
+  html:root body .metronet-bienvenida { padding: 16px; gap: 6px; }
+  html:root body .metronet-bienvenida .metronet-logo { width: clamp(120px, calc((100svh - 460px) * 1.5), 230px); }
 }
 @media (max-height: 520px) and (orientation: landscape) {
   html:root body .metronet-bienvenida { padding: 16px 24px; gap: 6px; }
   .metronet-bienvenida__centro { flex-direction: row; gap: 24px; }
-  html:root body .metronet-bienvenida .metronet-logo { width: 86px; }
+  html:root body .metronet-bienvenida .metronet-logo { width: clamp(110px, 35vh, 170px); }
   html:root body .metronet-bienvenida h1 { font-size: 22px; }
   .metronet-bienvenida__rotulo { font-size: 10px; padding-top: 3px; }
 }

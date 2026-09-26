@@ -1,5 +1,8 @@
 .metronet-recorrido-nivel { position: relative; background-color: var(--bg-primary); background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px); background-size: 24px 24px; border: 1px solid var(--border); }
-.metronet-recorrido-nivel svg { display: block; width: 100%; height: clamp(190px, 36svh, 380px); }
+.metronet-viaje, .metronet-victoria { --recorrido-alto: clamp(150px, 30svh, 300px); width: min(96vw, 1120px); }
+.metronet-recorrido-nivel svg { display: block; width: 100%; height: var(--recorrido-alto); }
+@media (max-width: 600px) { .metronet-viaje, .metronet-victoria { --recorrido-alto: 220px; } }
+@media (max-height: 700px) and (max-width: 600px) { .metronet-viaje, .metronet-victoria { --recorrido-alto: 145px; } }
 .recorrido-ciudad { fill: var(--panel); stroke: var(--border); stroke-width: 1; }
 .recorrido-anden { fill: var(--panel-elevated); stroke: var(--border-active); stroke-width: 4; }
 .recorrido-riel { stroke: var(--border); stroke-width: 3; fill: none; }

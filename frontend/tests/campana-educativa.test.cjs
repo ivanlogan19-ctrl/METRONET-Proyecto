@@ -27,6 +27,8 @@ async function abrir(t, ruta = '/escenarios.html', opciones = {}) {
   } });
   t.after(() => resultado.contexto.close());
   t.after(() => assert.deepEqual(resultado.errores, []));
+  // La secuencia musical completa dura casi 15 s, más la navegación posterior.
+  resultado.pagina.setDefaultNavigationTimeout(26000);
   await resultado.pagina.route('**/?idDiseno=200*', route => route.fulfill({ contentType: 'text/html', body: '<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Constructor de destino</h1>' }));
   return resultado;
 }

@@ -234,7 +234,7 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
   try {
     const ruta = volverAJugar ? `/escenarios/${escenario.idEscenario}/volver-a-jugar` : `/escenarios/${escenario.idEscenario}/iniciar`;
     const inicio = await iniciarNivelConTransicion(escenario,
-      () => solicitar(ruta, { method: 'POST' }));
+      signal => solicitar(ruta, { method: 'POST', signal }));
     if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;

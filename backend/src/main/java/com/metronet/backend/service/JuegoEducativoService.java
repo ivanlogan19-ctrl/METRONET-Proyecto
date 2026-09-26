@@ -107,9 +107,9 @@ public class JuegoEducativoService {
             if (ESTADO_COMPLETADO.equals(intentoExistente.estado())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Este escenario ya fue completado. Elegí Volver a jugar para crear un nuevo intento");
             }
-            return new InicioEscenarioResponse(intentoExistente.idDiseno(), idEscenario, intentoExistente.idIntento(), intentoExistente.estado());
+            return new InicioEscenarioResponse(intentoExistente.idDiseno(), idEscenario, intentoExistente.idIntento(), intentoExistente.estado(), progresoUsuario.numeroCampanaActual(), false);
         }
-        return crearIntento(idUsuario, escenario, progresoUsuario.numeroCampanaActual());
+        return crearIntento(idUsuario, escenario, progresoUsuario.numeroCampanaActual(), escenario.numero() != null);
     }
 
     @Transactional
@@ -124,12 +124,12 @@ public class JuegoEducativoService {
         }
         IntentoJuego intentoActual = obtenerIntentoActual(idUsuario, idEscenario, progresoUsuario.numeroCampanaActual());
         if (intentoActual != null && !ESTADO_COMPLETADO.equals(intentoActual.estado())) {
-            return new InicioEscenarioResponse(intentoActual.idDiseno(), idEscenario, intentoActual.idIntento(), intentoActual.estado());
+            return new InicioEscenarioResponse(intentoActual.idDiseno(), idEscenario, intentoActual.idIntento(), intentoActual.estado(), progresoUsuario.numeroCampanaActual(), false);
         }
         if (!nivelCompletado(idUsuario, escenario.numero(), progresoUsuario.numeroCampanaActual())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este escenario todavía no fue completado en el recorrido actual");
         }
-        return crearIntento(idUsuario, escenario, progresoUsuario.numeroCampanaActual());
+        return crearIntento(idUsuario, escenario, progresoUsuario.numeroCampanaActual(), false);
     }
 
     @Transactional
@@ -149,14 +149,14 @@ public class JuegoEducativoService {
         return obtenerResumenProgreso(idUsuario);
     }
 
-    private InicioEscenarioResponse crearIntento(Integer idUsuario, EscenarioBase escenario, int numeroCampana) {
+    private InicioEscenarioResponse crearIntento(Integer idUsuario, EscenarioBase escenario, int numeroCampana, boolean primeraPasada) {
         Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
         Integer idIntento = jdbcTemplate.queryForObject("""
             INSERT INTO intento (id_usuario, id_escenario, id_diseno, numero_campana, estado, progreso, puntaje)
             VALUES (?, ?, ?, ?, 'EN_DESARROLLO', 0, NULL)
             RETURNING id_intento
             """, Integer.class, idUsuario, escenario.idEscenario(), idDiseno, numeroCampana);
-        return new InicioEscenarioResponse(idDiseno, escenario.idEscenario(), idIntento, ESTADO_EN_DESARROLLO);
+        return new InicioEscenarioResponse(idDiseno, escenario.idEscenario(), idIntento, ESTADO_EN_DESARROLLO, numeroCampana, primeraPasada);
     }
 
     @Transactional

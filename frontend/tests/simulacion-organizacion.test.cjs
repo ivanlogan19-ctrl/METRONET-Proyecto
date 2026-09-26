@@ -107,6 +107,7 @@ test('Los errores permanecen fuera del panel al ampliar y los resultados se abre
 });
 test('Sin diseño en la URL, Mis diseños conserva la apertura sin duplicar el selector', async t => {
   const { pagina:p } = await abrir(t);
+  await p.route('**/api/juego/progreso', route => route.fulfill({json:{modoLibreDesbloqueado:true,escenarios:[]},headers:{'access-control-allow-origin':'*'}}));
   await p.goto('http://127.0.0.1:5173/simulacion.html');
   await p.locator('#estadoVacio').waitFor();
   assert.equal(await p.locator('#listaDisenos').count(),0);

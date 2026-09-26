@@ -1,0 +1,46 @@
+.metronet-identificacion {
+  position: fixed; inset: var(--navegacion-alto, 72px) 0 0; z-index: var(--layer-modal);
+  display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 24px; box-sizing: border-box;
+  background: var(--bg-primary); color: var(--text-primary);
+}
+.metronet-identificacion__cartel {
+  width: fit-content; min-width: 0; max-width: 100%; box-sizing: border-box; padding: 18px 24px;
+  border-block: 2px solid var(--info-active); border-inline: 1px solid var(--border);
+  text-align: center; background: var(--panel); outline: none;
+  animation: metronet-identificar var(--identificacion-duracion) linear both;
+}
+.metronet-identificacion__cartel[hidden] { display: none; }
+.metronet-identificacion__cartel strong {
+  display: block; font: 700 clamp(20px, 3vw, 32px)/1.4 var(--font-arcade);
+  text-shadow: var(--titulo-glow-sutil); overflow-wrap: anywhere; white-space: normal; text-wrap: balance;
+}
+.metronet-identificacion__cartel p {
+  margin: 10px 0 0; color: var(--text-secondary); font: 14px/1.5 var(--font-ui); text-wrap: balance;
+}
+@keyframes metronet-identificar {
+  0%, 100% { opacity: 0; }
+  15%, 80% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .metronet-identificacion__cartel { animation: none; }
+}
+
+/* Segunda fase del mismo viaje: sin desmontar el diálogo ni cambiar de página. */
+.metronet-cartel-transicion {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  padding: clamp(16px, 4vw, 32px); box-sizing: border-box;
+  background: var(--bg-primary); pointer-events: none;
+  animation: metronet-cartel-entrada 180ms linear both;
+}
+.metronet-cartel-transicion[hidden] { display: none; }
+.metronet-cartel-transicion .metronet-identificacion__cartel { animation: none; }
+/* Al mostrar el nivel, ocultar también las acciones del viaje sin mover el cartel. */
+.metronet-transicion--cartel > section:first-child { visibility: hidden; }
+@keyframes metronet-cartel-entrada { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .metronet-cartel-transicion { animation: none; } }
+@media (max-width: 620px) and (max-height: 700px) {
+  :is(.metronet-viaje, .metronet-victoria) :is(.metronet-viaje__pie, .metronet-victoria__acciones) {
+    position: sticky; bottom: 0; z-index: 2; background: var(--panel);
+    border-top: 1px solid var(--border); padding-block: 8px;
+  }
+}

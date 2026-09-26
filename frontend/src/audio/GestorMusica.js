@@ -48,8 +48,9 @@ class GestorMusica {
     document.addEventListener('visibilitychange', () => this.sincronizar());
     window.addEventListener('pagehide', () => {
       const canal = this.actual;
-      guardar('sessionStorage', CLAVE_CONTINUIDAD, canal?.audio.loop && !canal.audio.paused
-        ? { pista: canal.pista, contexto: this.obtenerContexto(), instante: Date.now() } : null);
+      guardar('sessionStorage', CLAVE_CONTINUIDAD, canal && ((canal.audio.loop && !canal.audio.paused) || this.obtenerContexto() === 'inicioNivel')
+        ? { pista: canal.pista, contexto: this.obtenerContexto(), instante: Date.now(), posicion: canal.audio.currentTime,
+          finalizada: canal.finalizada, idUsuario: obtenerSesionActiva()?.usuario?.idUsuario } : null);
       this.paginaActiva = false; this.pausar();
     });
     window.addEventListener('pageshow', () => { this.paginaActiva = true; this.sincronizar(); });
@@ -76,6 +77,13 @@ class GestorMusica {
     return Number.isFinite(antiguedad) && antiguedad >= 0 && antiguedad < 10000;
   }
 
+  tieneEntradaNivelPendiente() {
+    return this.tieneContinuidadReciente() && this.continuidad?.contexto === 'inicioNivel'
+      && this.continuidad.idUsuario === obtenerSesionActiva()?.usuario?.idUsuario
+      && ['/', '/index.html'].includes(location.pathname) && new URLSearchParams(location.search).has('idDiseno')
+      && !['reload', 'back_forward'].includes(performance.getEntriesByType('navigation')[0]?.type);
+  }
+
   reanudarAlCargarDocumento(contexto) {
     // Solo anticipar una pista que ya sonaba. Una entrada tardía nunca debe
     // reemplazar el contexto decidido por la pantalla o una presentación.
@@ -87,9 +95,9 @@ class GestorMusica {
     if (contexto === 'general') {
       // Editor/simulador: adelantar descarga y seek, pero el contexto real solo
       // lo confirma la pantalla al cargar el diseño. Nunca sonar sobre el nivel previo.
-      if (this.continuidad.pista !== PISTAS_MUSICA.gameplay) return;
+      if (this.continuidad.pista !== PISTAS_MUSICA.gameplay && !this.tieneEntradaNivelPendiente()) return;
       this.inicializar();
-      this.seleccionarPista(PISTAS_MUSICA.gameplay);
+      this.seleccionarPista(this.continuidad.pista);
       this.actual.preparado = true;
       this.actual.ganancia = 0;
       this.aplicarVolumen();
@@ -136,14 +144,20 @@ class GestorMusica {
     const audio = new Audio();
     audio.hidden = true; audio.preload = 'auto';
     audio.loop = !CONTEXTOS_MUSICA_PUNTUAL.some(contexto => PISTAS_MUSICA[contexto] === pista);
-    const reanudado = audio.loop && this.continuidad?.pista === pista && this.tieneContinuidadReciente();
+    const entradaNivel = pista === PISTAS_MUSICA.inicioNivel && this.tieneEntradaNivelPendiente();
+    const continuidadEntrada = entradaNivel ? this.continuidad : null;
+    const reanudado = (audio.loop && this.continuidad?.pista === pista && this.tieneContinuidadReciente()) || entradaNivel;
     const canal = { audio, pista, ganancia: reanudado ? 1 : 0, finalizada: false, error: false,
       esperandoGesto: false, pendiente: null, eliminado: false, eventos: [] };
     const escuchar = (evento, funcion) => { audio.addEventListener(evento, funcion); canal.eventos.push([evento, funcion]); };
     escuchar('loadedmetadata', () => {
-      const posicion = this.posiciones[pista];
-      if (audio.loop && Number.isFinite(posicion) && posicion >= 0 && Number.isFinite(audio.duration)) {
-        try { audio.currentTime = posicion % audio.duration; } catch { /* Seek no disponible todavía. */ }
+      const posicion = entradaNivel ? continuidadEntrada.posicion : this.posiciones[pista];
+      if ((audio.loop || entradaNivel) && Number.isFinite(posicion) && posicion >= 0 && Number.isFinite(audio.duration)) {
+        try { audio.currentTime = audio.loop ? posicion % audio.duration : Math.min(posicion, audio.duration); } catch { /* Seek no disponible todavía. */ }
+      }
+      if (entradaNivel) {
+        canal.finalizada = continuidadEntrada.finalizada === true;
+        if (this.continuidad === continuidadEntrada) this.continuidad = null;
       }
       this.notificar();
     });

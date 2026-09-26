@@ -45,12 +45,14 @@ async function abrir(t, escenarios, ruta = '/escenarios.html', opciones = {}) {
     Storage.prototype.setItem = function(k, v) { if (k.startsWith('metronet:transicion:')) throw new Error('No disponible'); return set.call(this, k, v); };
   });
   await pagina.goto(`${BASE}${ruta}`);
+  // Las pruebas de flujo usan el respaldo silencioso; el MP3 real se verifica en musica-inicio-nivel.
+  await pagina.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
   await pagina.clock.install();
   return { pagina, solicitudes, liberar };
 }
 async function viajar(pagina) {
   await pagina.locator('.metronet-viaje').waitFor();
-  await pagina.clock.runFor(4600);
+  await pagina.clock.runFor(1900);
 }
 async function destino(pagina, escenario) {
   await pagina.waitForURL(`${BASE}/?idDiseno=101&idEscenario=${escenario.idEscenario}&idIntento=202`);
@@ -92,12 +94,8 @@ test('API lenta: progreso monótono, 100% visible, mensaje estable y sin navegac
   assert.equal(await dialogo.locator('circle.activa').count(), 5);
   assert.match(await dialogo.innerText(), /Esperando la respuesta/);
   assert.equal(new URL(pagina.url()).pathname, '/escenarios.html');
-  // También se puede detener el avance cuando la animación ya terminó y falta el servidor.
-  await dialogo.getByRole('button', { name: 'Leer sin prisa' }).click();
+  assert.equal(await dialogo.getByRole('button', { name: 'Jugar', exact: true }).isDisabled(), true);
   liberar();
-  await pagina.clock.runFor(100);
-  assert.equal(await dialogo.count(), 1);
-  await dialogo.getByRole('button', { name: 'Continuar al nivel' }).click();
   await destino(pagina, escenario);
 });
 test('volver, Escape y doble clic no duplican viajes; cada reingreso cambia el mensaje', async t => {
@@ -162,16 +160,13 @@ for (const width of [1440, 768, 375]) for (const reducedMotion of ['no-preferenc
     const dialogo = pagina.locator('.metronet-viaje'); await dialogo.waitFor();
     assert.equal(await pagina.evaluate(() => document.activeElement.id), 'tituloPreparacionNivel');
     const antes = await dialogo.locator('.recorrido-tren').getAttribute('transform');
-    await pagina.clock.runFor(1500);
+    await pagina.clock.runFor(700);
     const despues = await dialogo.locator('.recorrido-tren').getAttribute('transform');
     assert.equal(antes === despues, reducedMotion === 'reduce');
     await pagina.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__consigna')).opacity === '1');
     const medidas = await dialogo.evaluate(d => ({ ancho: d.getBoundingClientRect().width, alto: d.getBoundingClientRect().height, desborde: d.scrollWidth > d.clientWidth, opacidad: getComputedStyle(d.querySelector('.metronet-viaje__consigna')).opacity }));
     assert.ok(medidas.ancho <= width && medidas.alto <= 800); assert.equal(medidas.desborde, false); assert.equal(medidas.opacidad, '1');
-    await dialogo.getByRole('button', { name: 'Leer sin prisa' }).click();
-    await pagina.clock.runFor(3000);
-    assert.equal(await dialogo.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
-    await dialogo.getByRole('button', { name: 'Continuar al nivel' }).press('Enter');
+    await dialogo.getByRole('button', { name: 'Jugar', exact: true }).press('Enter');
     await destino(pagina, nivel(10));
   });
 }

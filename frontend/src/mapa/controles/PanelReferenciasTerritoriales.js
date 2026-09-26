@@ -29,6 +29,10 @@ export default class PanelReferenciasTerritoriales {
     this.geografico = document.createElement('section'); this.geografico.className='metronet-poi__geografia'; this.geografico.hidden=true;
     this.geografico.innerHTML='<h3>Barrios / Zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
     this.seleccion = this.geografico.querySelector('[data-contenedor-selectores-mapa]');
+    this.seleccion.addEventListener('click', evento => {
+      const encabezado = evento.target.closest('.metronet-panel-encabezado');
+      if (encabezado?.getAttribute('aria-expanded') === 'true') this.mostrarListaGeografica(encabezado);
+    });
     for (const tipo of ['barrios','zonas']) {
       const b=document.createElement('button'); b.type='button'; b.textContent=`Mostrar ${tipo}`; b.dataset.capaGeografica=tipo;
       b.addEventListener('click',()=>{this.geografia[tipo]=!this.geografia[tipo];this.alCambiarGeografia?.({...this.geografia});this.actualizarGeografia();});
@@ -67,6 +71,16 @@ export default class PanelReferenciasTerritoriales {
     this.actualizarGeografia();
   }
   cerrar(foco=false){this.elemento.open=false;if(foco)this.elemento.querySelector('summary').focus();}
+  mostrarListaGeografica(encabezado) {
+    const contenido = encabezado.parentElement.querySelector('.metronet-panel-contenido');
+    if (!contenido) return;
+    const panel = this.panel.getBoundingClientRect();
+    const margen = parseFloat(getComputedStyle(this.panel).paddingTop) || 0;
+    const recorte = contenido.getBoundingClientRect().bottom - panel.bottom + margen;
+    // Desplazar solo este menú y conservar ambos accesos visibles en pantallas bajas.
+    const espacioEncabezado = encabezado.getBoundingClientRect().top - panel.top - margen;
+    if (recorte > 0 && espacioEncabezado > 0) this.panel.scrollTop += Math.min(recorte, espacioEncabezado);
+  }
   actualizarGeografia(){
     this.geografico.querySelectorAll('[data-capa-geografica]').forEach(b=>b.setAttribute('aria-pressed',String(this.geografia[b.dataset.capaGeografica])));
     const activa=this.geografia.barrios||this.geografia.zonas;

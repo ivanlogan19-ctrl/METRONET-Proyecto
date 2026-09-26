@@ -43,7 +43,7 @@ for(const [width,height] of [[1920,1080],[1440,900],[1366,768],[1280,720],[390,8
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 for(const origen of ['/inicio.html','/escenarios.html','/ranking.html'])test(`Mis Diseños desde ${origen}, atrás y adelante`,async t=>{
- const {pagina:p}=await abrir(t,origen);await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Mis diseños',exact:true}).click();await p.getByRole('link',{name:'Abrir diseño: Red de Montevideo'}).click();await esperarMapa(p);
+ const {pagina:p}=await abrir(t,origen,{responder:req=>new URL(req.url()).pathname==='/api/juego/progreso'?{json:{...progreso,modoLibreDesbloqueado:true}}:responder(req)});await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Mis diseños',exact:true}).click();await p.getByRole('link',{name:'Abrir diseño: Red de Montevideo'}).click();await esperarMapa(p);
  const base=await medidas(p);await p.goBack();await p.goForward();await esperarMapa(p);assert.deepEqual(await medidas(p),base);
 });
 for(const ruta of ['/login.html','/admin-login.html','/registro.html','/recuperar-contrasena.html','/nueva-contrasena.html','/verificar-codigo.html'])test(`Música ${ruta}: icono común y formulario estable`,async t=>{

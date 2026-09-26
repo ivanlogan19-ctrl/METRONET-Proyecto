@@ -59,7 +59,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
       const s = getComputedStyle(img), r = img.getBoundingClientRect();
       return { src: img.getAttribute('src'), filter: s.filter, transform: s.transform, opacity: s.opacity, mezcla: s.mixBlendMode, ratio: r.width / r.height, natural: img.naturalWidth / img.naturalHeight };
     });
-    assert.equal(logo.src, '/assets/logoMETRONET-transparente.png');
+    assert.equal(logo.src, '/assets/metronet-logo-pixel.png');
     assert.equal(logo.filter, 'none'); assert.equal(logo.transform, 'none'); assert.equal(logo.opacity, '1'); assert.equal(logo.mezcla, 'normal');
     assert.ok(Math.abs(logo.ratio - logo.natural) < .01);
     assert.equal(await pantalla(p).locator('canvas').isVisible(), true);
@@ -215,7 +215,7 @@ for (const fallo of ['modulo', 'css', 'logo', 'render', 'canvas', 'dibujo', 'fra
     if (fallo === 'css') await p.route('**/bienvenida.css*', route => route.abort());
     let fallosLogo = 0;
     if (fallo === 'logo') {
-      await p.route('**/assets/logoMETRONET-transparente.png*', route => { fallosLogo++; return route.abort(); });
+      await p.route('**/assets/metronet-logo-pixel.png*', route => { fallosLogo++; return route.abort(); });
       await p.reload();
     }
     if (fallo === 'render') await p.route('**/PantallaBienvenida.js*', route => route.fulfill({ contentType: 'application/javascript', body: 'export function crearPantallaBienvenida(){throw new Error("Fallo visual simulado");}' }));
@@ -299,7 +299,7 @@ test('vía, metro pixelado hacia la derecha y salida de túnel sin alterar el lo
   assert.equal(await p.locator('.metronet-bienvenida__salida').evaluate(e => getComputedStyle(e).animationName), 'bienvenida-tunel');
   assert.deepEqual(await pantalla(p).locator('img').evaluate(e => {
     const s = getComputedStyle(e); return [s.opacity, s.filter, s.transform, s.animationName, s.imageRendering];
-  }), ['1', 'none', 'none', 'none', 'auto']);
+  }), ['1', 'none', 'none', 'none', 'pixelated']);
   await p.waitForTimeout(150);
   await capturar(p, '04-salida-tunel');
   await p.waitForURL('**/inicio.html');

@@ -1,6 +1,31 @@
-.metronet-hud .metronet-tutorial { position:static; width:auto; margin:0; padding:0; border:0; box-shadow:none; background:none; }
-.metronet-tutorial [data-tutorial-contenido] { font:14px/1.5 var(--font-ui); }
-.metronet-tutorial :is(strong,summary) { display:flex; align-items:center; gap:8px; }
-.metronet-tutorial .metronet-icono { flex-shrink:0; width:24px; height:24px; }
-.metronet-tutorial p { margin:8px 0; }
+.metronet-accesos-ayuda { display:flex; align-items:center; gap:8px; }
+.metronet-tutorial > summary { list-style:none; }
+.metronet-tutorial > summary::-webkit-details-marker { display:none; }
+.metronet-tutorial[hidden] { display:none; }
+html:root body .metronet-tutorial__panel, html:root body dialog.metronet-recorrido {
+  box-sizing:border-box; padding:14px; border:2px solid var(--tutorial-acento); border-radius:0;
+  background:var(--tutorial-superficie); color:var(--tutorial-tinta); box-shadow:var(--shadow-floating);
+  font:14px/1.5 var(--font-ui); text-align:left;
+}
+.metronet-tutorial__panel { overflow:auto; }
+.metronet-tutorial__panel header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+html:root body .metronet-tutorial__panel h2, html:root body dialog.metronet-recorrido h2 { margin:0; color:var(--tutorial-acento); font:16px/1.5 var(--font-arcade); }
+.metronet-tutorial p, .metronet-recorrido p { margin:8px 0; }
+.metronet-tutorial__acciones, .metronet-recorrido__acciones { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.metronet-tutorial__acciones button, .metronet-recorrido__acciones button { white-space:normal; min-height:40px; }
+.metronet-tutorial__repetir { margin-top:8px; }
+.metronet-tutorial__error { color:var(--warning-text, #ffe59b); border-left:2px solid currentColor; padding-left:8px; }
 .metronet-tutorial details + details { margin-top:6px; }
+.metronet-recorrido { position:fixed; inset:auto; margin:0; width:min(310px, calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:visible; }
+.metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%); }
+.metronet-recorrido__marca { position:fixed; pointer-events:none; border:3px solid var(--tutorial-acento); box-shadow:0 0 0 2px var(--bg-primary), 4px 4px 0 var(--shadow-color); }
+.metronet-recorrido [data-recorrido-progreso] { color:var(--text-secondary); font-size:12px; }
+.metronet-editor-acceso-teclado { font:14px/1.5 var(--font-ui); }
+.metronet-editor-acceso-teclado label { display:grid; gap:6px; }
+/* Al envolver en móvil, los accesos conservan su ventana alineada al borde derecho. */
+.metronet-barra-geografica > [data-hud-mapa] { margin-left:auto; }
+html:root body dialog.metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%); }
+
+/* El libro comparte el acento educativo sin cambiar el rojo de acciones destructivas. */
+html:root body .metronet-tutorial > summary.metronet-boton-icono { color:var(--tutorial-acento); border-color:var(--tutorial-acento); }
+html:root body .metronet-tutorial__panel.metronet-panel-superpuesto { background:var(--tutorial-superficie); border-color:var(--tutorial-acento); color:var(--tutorial-tinta); }

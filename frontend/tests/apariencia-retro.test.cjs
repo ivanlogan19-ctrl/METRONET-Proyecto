@@ -29,10 +29,10 @@ async function comprobarMarcaYAnchura(pagina) {
     };
   });
   assert.equal(resultado.desborde, false);
-  assert.equal(resultado.logos.length, 1);
+  assert.equal(resultado.logos.length, new URL(pagina.url()).pathname === '/inicio.html' ? 2 : 1);
   for (const logo of resultado.logos) {
     assert.equal(logo.cargado && logo.intacto && logo.proporcion, true, JSON.stringify(logo));
-    assert.equal(logo.src, '/assets/logoMETRONET-transparente.png');
+    assert.equal(logo.src, '/assets/metronet-logo-pixel.png');
   }
 }
 const rutas = ['/login.html', '/registro.html', '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/admin-login.html', '/privacidad.html', '/inicio.html', '/escenarios.html', '/perfil.html', '/admin.html', '/simulacion.html?idDiseno=77'];

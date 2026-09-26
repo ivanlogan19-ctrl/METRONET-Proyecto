@@ -28,18 +28,43 @@ export function herramientasIntroducidas(escenario, catalogo = []) {
     && !anteriores.some(n => n.herramientasHabilitadas?.[clave] === true));
 }
 
-export function siguienteLeccion(contexto, aprendidas = new Set()) {
-  const { diseno, escenario, catalogo, consigna } = contexto;
+// La guía observa el diseño confirmado por el servidor y las selecciones reales.
+// No completa consignas ni introduce una validación alternativa a la del juego.
+export function pasoPractico(contexto, estado) {
+  const { diseno, escenario, modo, seleccionadas = [], consigna } = contexto;
   if (!diseno) return null;
-  const disponibles = herramientasIntroducidas(escenario, catalogo);
-  const usado = {
-    estaciones: diseno.estaciones?.length > 0,
-    lineas: diseno.lineas?.length > 0,
-    conexiones: consigna?.condiciones?.some(c => c.clave === 'minimoTramos' && c.completado),
-    metros: diseno.unidadesMetro?.length > 0,
-    simulacion: consigna?.condiciones?.some(c => ['requiereSimulacion', 'simulacionActual'].includes(c.clave) && c.completado),
-  };
-  for (const clave of disponibles) if (usado[clave]) aprendidas.add(clave);
-  const clave = disponibles.find(clave => !aprendidas.has(clave));
-  return clave ? { clave, titulo: LECCIONES[clave][0], texto: LECCIONES[clave][1] } : null;
+  const nuevas = herramientasIntroducidas(escenario, contexto.catalogo);
+  const paso = (clave, titulo, texto) => ({ clave, titulo, texto });
+  if (escenario?.numero === 1) {
+    const estaciones = diseno.estaciones?.length ?? 0;
+    const minimo = consigna?.condiciones?.find(c => c.clave === 'minimoEstaciones')?.requerido
+      ?? escenario.reglasExito?.minimoEstaciones;
+    if (Number.isFinite(minimo) && estaciones < minimo) {
+      if (modo !== 'crearEstacion') return paso('elegir-estacion', 'Estación', 'Seleccioná el símbolo de estación en la barra de herramientas.');
+      return paso('colocar-estacion', 'Estación', estaciones === 0
+        ? 'Colocá una estación en una ubicación válida del mapa. Su nombre se genera automáticamente.'
+        : 'La estación ya está creada. Colocá otra en un lugar diferente para poder unirlas.');
+    }
+    const lineas = consigna?.condiciones?.find(c => c.clave === 'minimoLineas')?.requerido
+      ?? escenario.reglasExito?.minimoLineas;
+    if (Number.isFinite(lineas) && (diseno.lineas?.length ?? 0) < lineas) {
+      if (modo !== 'crearLinea') return paso('elegir-linea', 'Línea', 'Ya podés unir estaciones. Seleccioná el símbolo de línea.');
+      return paso(seleccionadas.length ? 'destino-linea' : 'origen-linea', 'Línea', seleccionadas.length
+        ? 'Seleccioná una estación diferente como destino. La línea aparecerá cuando la creación se confirme.'
+        : 'Seleccioná una estación del mapa como origen de la línea.');
+    }
+    if (!Number.isFinite(minimo) || !Number.isFinite(lineas)) return null;
+    const completa = consigna?.condiciones?.length && consigna.condiciones.every(c => c.completado);
+    if (estado.aprendidas.has('guardar') && completa) return paso('terminado', 'Práctica completada', 'Guardaste tu red y cumpliste las condiciones. Podés seguir explorando las herramientas.');
+    return paso('guardar', 'Guardar', 'Usá el disquete para guardar. METRONET revisará la consigna e indicará si queda algo pendiente.');
+  }
+  for (const clave of nuevas) {
+    const completada = clave === 'conexiones'
+      ? consigna?.condiciones?.some(c => c.clave === 'minimoTramos' && c.completado)
+      : clave === 'metros' ? diseno.unidadesMetro?.length > 0
+      : clave === 'simulacion' ? consigna?.condiciones?.some(c => ['requiereSimulacion', 'simulacionActual'].includes(c.clave) && c.completado) : false;
+    if (completada || estado.aprendidas.has(clave)) continue;
+    return paso(clave, `Nueva herramienta: ${LECCIONES[clave][0]}`, LECCIONES[clave][1]);
+  }
+  return null;
 }

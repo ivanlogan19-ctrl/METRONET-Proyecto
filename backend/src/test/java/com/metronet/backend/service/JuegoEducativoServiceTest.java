@@ -76,6 +76,8 @@ class JuegoEducativoServiceTest {
         assertEquals(ID_ESCENARIO, respuesta.idEscenario());
         assertEquals(41, respuesta.idIntento());
         assertEquals("EN_DESARROLLO", respuesta.estado());
+        assertEquals(NUMERO_CAMPANA, respuesta.numeroCampana());
+        assertFalse(respuesta.mostrarTutorial());
         ArgumentCaptor<Object[]> argumentosIntento = ArgumentCaptor.forClass(Object[].class);
         verify(jdbcTemplate).queryForObject(
             contains("INSERT INTO intento"), eq(Integer.class), argumentosIntento.capture()
@@ -96,12 +98,28 @@ class JuegoEducativoServiceTest {
         assertEquals(ID_ESCENARIO, respuesta.idEscenario());
         assertEquals(12, respuesta.idIntento());
         assertEquals("EN_DESARROLLO", respuesta.estado());
+        assertEquals(NUMERO_CAMPANA, respuesta.numeroCampana());
+        assertFalse(respuesta.mostrarTutorial());
         verify(jdbcTemplate, never()).queryForObject(
             contains("INSERT INTO diseno"), eq(Integer.class)
         );
         verify(jdbcTemplate, never()).queryForObject(
             contains("INSERT INTO intento"), eq(Integer.class), any(Object[].class)
         );
+    }
+
+    @Test
+    void primeraEntradaDeCadaCampanaOfreceTutorialSinUnFlagPersistido() throws Exception {
+        for (int campana : List.of(NUMERO_CAMPANA, NUMERO_CAMPANA + 1)) {
+            prepararUsuario(campana, false);
+            prepararEscenarioNivelUno();
+            prepararIntentosActualesVacios();
+            when(jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class)).thenReturn(91);
+            when(jdbcTemplate.queryForObject(contains("INSERT INTO intento"), eq(Integer.class), any(Object[].class))).thenReturn(41);
+            InicioEscenarioResponse respuesta = crearServicio().iniciarEscenario(ID_USUARIO, ID_ESCENARIO);
+            assertEquals(campana, respuesta.numeroCampana());
+            assertTrue(respuesta.mostrarTutorial());
+        }
     }
 
     @Test

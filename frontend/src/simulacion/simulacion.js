@@ -5,7 +5,8 @@ import { gestorMusica } from '../audio/GestorMusica.js';
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
-import { consultarMejorPuntajeAnterior, presentarResultadoNivel } from '../educacion/TransicionNivel.js';
+import { consultarEstadoAnterior, presentarResultadoNivel } from '../educacion/TransicionNivel.js';
+import { registrarEntradaRecorrido } from '../educacion/IdentificacionNivel.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
 import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
@@ -97,7 +98,6 @@ function aplicarConfiguracionPredeterminada(configuracion) {
 
 async function abrirDiseno(idDiseno) {
   const version = ++versionDiseno;
-  const liberarMusica = gestorMusica.usarContextoTemporal('loading');
   try {
     cerrarDefinicion();
     errorAyuda = null;
@@ -128,7 +128,7 @@ async function abrirDiseno(idDiseno) {
   } catch (error) {
     if (version === versionDiseno && paginaActiva) { mostrarMensaje(error.message, 'error'); mostrarEstadoVacio(); }
     return false;
-  } finally { liberarMusica(); }
+  }
 }
 
 function actualizarPantalla() {
@@ -619,7 +619,7 @@ async function finalizarEjecucionVisible() {
   window.addEventListener('popstate', cancelar);
   try {
     const idEscenario = disenoActual?.simulacion?.idEscenario;
-    const mejorPuntajeAnterior = await consultarMejorPuntajeAnterior(idEscenario);
+    const estadoAnterior = await consultarEstadoAnterior(idEscenario);
     if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
     const evaluacion = await evaluarEscenarioProgresivo(pendiente.idDiseno);
     const correspondeAlDisenoActual = disenoActual?.simulacion?.idDiseno === pendiente.idDiseno;
@@ -650,7 +650,7 @@ async function finalizarEjecucionVisible() {
         if (!respuesta.ok) return;
         const progreso = await respuesta.json();
         if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
-        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { mejorPuntajeAnterior, signal: controlador.signal });
+        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { ...estadoAnterior, signal: controlador.signal });
         if (accion?.siguiente) {
           const inicio = await iniciarNivelConTransicion(accion.siguiente, async signal => {
             const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
@@ -659,6 +659,7 @@ async function finalizarEjecucionVisible() {
             return respuestaInicio.json();
           }, { preparado: true });
           if (inicio && !controlador.signal.aborted && disenoActual?.simulacion?.idDiseno === pendiente.idDiseno) {
+            if (accion.celebrarRecorrido) registrarEntradaRecorrido(inicio);
             window.location.assign(establecerContextoEnRuta('/', inicio));
           }
         } else if (accion?.destino) window.location.assign(accion.destino);

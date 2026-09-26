@@ -4,6 +4,7 @@ import { inicializarNavegacion, navegarConCambiosPendientes } from './Navegacion
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { establecerIdDisenoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
+import { consultarAccesoMisDisenos, MENSAJE_DISENOS_BLOQUEADOS } from './AccesoMisDisenos.js';
 
 const sesion = requerirSesion();
 if (sesion) iniciar();
@@ -81,6 +82,20 @@ function iniciar() {
     const version = versionListado;
     lista.setAttribute('aria-busy', 'true'); reintentar.hidden = true;
     try {
+      if (!administrador) {
+        formulario.hidden = true;
+        buscar.closest('label').hidden = true;
+        disenos = []; lista.replaceChildren();
+      }
+      const permitido = await consultarAccesoMisDisenos();
+      if (!permitido) {
+        mensaje.textContent = MENSAJE_DISENOS_BLOQUEADOS;
+        document.getElementById('disenosCreacionEstado').textContent = '';
+        document.getElementById('volverEscenariosDisenos').hidden = false;
+        return;
+      }
+      document.getElementById('volverEscenariosDisenos').hidden = true;
+      buscar.closest('label').hidden = false;
       const [redes, juego] = await Promise.allSettled([gestion.listar(), administrador ? Promise.resolve([]) : consultarJuego('/escenarios')]);
       // Una respuesta iniciada antes de borrar no puede restaurar el registro eliminado.
       if (version !== versionListado) return;
@@ -96,6 +111,9 @@ function iniciar() {
         mensaje.textContent = redes.reason?.message || 'No fue posible cargar los diseños.';
       }
       reintentar.hidden = redes.status === 'fulfilled' && Array.isArray(redes.value) && catalogoDisponible;
+    } catch (error) {
+      mensaje.textContent = 'No se pudo verificar el acceso a Mis diseños. Volvé a intentarlo.';
+      reintentar.hidden = false;
     } finally {
       cargando = false; lista.setAttribute('aria-busy', 'false');
       recargarSiPendiente();

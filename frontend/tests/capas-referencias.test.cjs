@@ -76,6 +76,48 @@ test('Multiselección por UI: barrios y zonas independientes, ocultar/restaurar 
   assert.deepEqual(await seleccion(),restaurada); assert.deepEqual(solicitudes,[]);
 });
 
+for (const viewport of [{width:1440,height:900},{width:320,height:568},{width:844,height:390}]) {
+  test(`Listas de barrios y zonas legibles al abrir a ${viewport.width}x${viewport.height}`, async t => {
+    const {pagina:p}=await abrir(t,{viewport});
+    await panel(p);
+    await p.getByRole('button',{name:'Barrios / Zonas',exact:true}).click();
+    const camara=()=>p.evaluate(()=>{
+      const c=editorPrueba.escena.cameras.main;
+      return {scrollX:c.scrollX,scrollY:c.scrollY,zoom:c.zoom,paginaY:window.scrollY};
+    });
+    const antes=await camara();
+    for (const tipo of ['barrios','zonas','barrios']) {
+      const encabezado=p.locator(`#metronet-selector-${tipo} > button`);
+      await encabezado.focus();
+      await p.keyboard.press('Enter');
+      const medidas=await p.locator('.metronet-poi__panel').evaluate((panel,tipo)=>{
+        const caja=panel.getBoundingClientRect();
+        const contenedor=panel.querySelector('[data-contenedor-selectores-mapa]').getBoundingClientRect();
+        const contenido=panel.querySelector(`#metronet-selector-${tipo} .metronet-panel-contenido`).getBoundingClientRect();
+        const visibles=[...panel.querySelectorAll(`#metronet-selector-${tipo} label`)].filter(e=>{
+          const r=e.getBoundingClientRect();
+          return r.top>=caja.top && r.bottom<=caja.bottom && r.height>=44;
+        });
+        const botones=[...panel.querySelectorAll('.metronet-panel-encabezado')].map(e=>e.getBoundingClientRect());
+        return {
+          visibles:visibles.length, ancho:contenido.width, anchoDisponible:contenedor.width,
+          alineados:Math.abs(botones[0].top-botones[1].top)<1 && botones[0].height===botones[1].height,
+          accesibles:botones.every(r=>r.top>=caja.top && r.bottom<=caja.bottom),
+          dentro:caja.left>=0 && caja.right<=innerWidth && caja.bottom<=innerHeight,
+          overflow:document.documentElement.scrollWidth>innerWidth,
+        };
+      },tipo);
+      assert.ok(medidas.visibles>=2,'Las primeras opciones deben verse sin desplazar manualmente el menú');
+      assert.equal(medidas.ancho,medidas.anchoDisponible);
+      assert.equal(medidas.alineados,true);
+      assert.equal(medidas.accesibles,true);
+      assert.equal(medidas.dentro,true);
+      assert.equal(medidas.overflow,false);
+    }
+    assert.deepEqual(await camara(),antes,'Abrir listas no debe mover el mapa ni la página');
+  });
+}
+
 test('Objetivos visibles con capas apagadas y búsqueda persistente sin modificar selección territorial', async t=>{
   const {pagina:p}=await abrir(t,{objetivos:[{idPunto:85,radioCobertura:60}]});
   await p.evaluate(()=>{poi.establecerCategoriasVisibles([]); editorPrueba.escena.selectorBarrios.seleccionarBarrio('AGUADA');});

@@ -179,9 +179,19 @@ test('Recuperación, código y cambio de contraseña mantienen música y contrat
 
 for (const width of [320, 390, 768, 1440]) test(`Audio en formularios: teclado, controles y mapa de clics a ${width}px`, async t => {
   const { pagina: p } = await abrir(t, '/registro.html', { viewport: { width, height: 900 } });
+  const formulario = await p.locator('form').boundingBox();
+  const logo = await p.locator('.auth-card img').first().boundingBox();
+  assert.equal(await p.locator('.auth-card > .metronet-audio--autenticacion:first-child').count(),1);
+  const acceso = await p.locator('.metronet-audio summary').boundingBox();
+  assert.ok(acceso.y + acceso.height <= logo.y);
+  assert.ok(acceso.width >= 44 && acceso.height >= 44);
   await p.locator('.metronet-audio summary').press('Enter');
   await p.locator('.metronet-audio__panel:popover-open').waitFor();
+  assert.deepEqual(await p.locator('form').boundingBox(),formulario);
+  assert.deepEqual(await p.locator('.auth-card img').first().boundingBox(),logo);
+  const control = await p.locator('.metronet-audio summary').boundingBox();
   const caja = await p.locator('.metronet-audio__panel').boundingBox();
+  assert.ok(Math.abs(caja.y - control.y - control.height - 6) < 2);
   assert.ok(caja.x >= 0 && caja.x + caja.width <= width && caja.y >= 0 && caja.y + caja.height <= 900);
   assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   const slider = p.getByRole('slider', { name: 'Volumen de música' });

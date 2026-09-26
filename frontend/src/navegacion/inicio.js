@@ -1,7 +1,9 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
+import { aplicarAccesoMisDisenos } from './AccesoMisDisenos.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
+import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 
 const URL_API_JUEGO = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
 const ESTADOS_CON_INTENTO_ACTIVO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
@@ -21,6 +23,7 @@ if (sesion) inicializar();
 
 async function inicializar() {
   inicializarNavegacion({ actual: 'inicio' });
+  document.querySelector('[data-marca-inicio]').append(crearLogoMetronet());
   establecerSaludo();
   await cargarTablero();
 }
@@ -183,9 +186,11 @@ function crearTarjetaProgreso(resumen) {
   const accesos = document.createElement('nav');
   accesos.className = 'metronet-inicio__accesos';
   accesos.setAttribute('aria-label', 'Accesos al jugador');
+  const misDisenos = crearEnlace('/disenos.html', 'Mis diseños');
+  aplicarAccesoMisDisenos(misDisenos, sesion.usuario?.rol === 'ADMIN' || resumen.modoLibreDesbloqueado);
   accesos.append(
     crearEnlace('/escenarios.html', 'Escenarios'),
-    crearEnlace('/disenos.html', 'Mis diseños'),
+    misDisenos,
     crearEnlace('/simulacion.html', 'Simulaciones'),
   );
   tarjeta.append(encabezado, pasos, accesos);
@@ -301,7 +306,7 @@ async function iniciarEscenario(escenario, boton) {
   mostrarMensaje('Preparando el escenario…');
   try {
     const inicio = await iniciarNivelConTransicion(escenario,
-      () => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST' }));
+      signal => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST', signal }));
     if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;

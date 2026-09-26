@@ -3,7 +3,8 @@ import { gestorMusica } from './GestorMusica.js';
 // Reloj común de las presentaciones con una pista puntual. No evalúa niveles
 // ni autentica usuarios: avisa al terminar el audio o al agotarse su respaldo.
 export function iniciarAudioPresentacion({ contexto, inicio = performance.now(), duracionVisualMs,
-  duracionAudioEstimadaMs, demoraSinAudioMs = duracionVisualMs, esperaMaximaMs, alTerminar }) {
+  duracionAudioEstimadaMs, demoraSinAudioMs = duracionVisualMs, esperaMaximaMs, alTerminar,
+  contextoAlFinalizar = 'transition' }) {
   let eliminada = false, finalizada = false, audioIniciado = false, sinAudio = false;
   let desuscribir = () => {};
   let liberar = gestorMusica.usarContextoTemporal(contexto, { reiniciar: true });
@@ -13,7 +14,7 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
     clearTimeout(limiteInicio); clearTimeout(limiteAbsoluto); desuscribir();
     // El resumen puede permanecer abierto. También ante un fallo, mantener
     // silencio hasta que su dueño lo cierre, sin reiniciar gameplay detrás.
-    const mantenerSilencio = gestorMusica.usarContextoTemporal('transition');
+    const mantenerSilencio = gestorMusica.usarContextoTemporal(contextoAlFinalizar);
     liberar(); liberar = mantenerSilencio;
     alTerminar();
   };

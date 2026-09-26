@@ -4,6 +4,7 @@ const ALTO = 96;
 const CUADRO_MS = 1000 / 24;
 const INICIO_TREN = 1400;
 const FIN_TREN = 4700;
+const CANTIDAD_VAGONES = 5;
 const C = Object.freeze({ fondo: '#060c1c', tunel: '#020611', marco: '#26415d', acero: '#afc1db', luz: '#edf5ff', azul: '#299fee', ventana: '#76c7ff', sombra: '#132641', ambar: '#ffd078', verde: '#70e5b1' });
 
 function pintarVagon(ctx, x, y, cabina, cuadro) {
@@ -47,7 +48,7 @@ export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar, obt
     r(senal + 3, 31, 2, 41, C.marco); r(senal, 23, 9, 18, C.acero); r(senal + 1, 24, 7, 16, C.tunel);
     r(senal + 3, 27, 3, 3, !reducido && tiempo < INICIO_TREN ? C.ambar : C.sombra);
     r(senal + 3, 34, 3, 3, reducido || tiempo >= INICIO_TREN ? C.verde : C.sombra);
-    const vagones = ancho >= 300 ? 3 : 2;
+    const vagones = CANTIDAD_VAGONES;
     const largo = vagones * 58 - 4;
     const avance = (tiempo - INICIO_TREN) / (FIN_TREN - INICIO_TREN);
     const x = reducido ? Math.floor((ancho - largo) / 2) : Math.floor(-largo + avance * (ancho + largo));
@@ -66,8 +67,11 @@ export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar, obt
   function redimensionar() {
     const disponible = Math.max(1, Math.floor(canvas.parentElement.clientWidth));
     const escalaPorAncho = disponible >= 1100 ? 4 : disponible >= 500 ? 3 : 2;
-    const escalaPorAlto = window.innerHeight <= 520 ? 1 : window.innerHeight <= 740 ? 2 : 4;
-    const escala = Math.min(escalaPorAncho, escalaPorAlto);
+    // Reservar espacio para la marca sin superponerla a la vía; píxeles enteros.
+    const escalaPorAlto = window.innerHeight <= 520 ? 1 : window.innerHeight <= 900 ? 2 : 3;
+    // En movimiento reducido debe poder verse la formación completa, inmóvil.
+    const escalaPorTren = reducido ? Math.max(1, Math.floor(disponible / (CANTIDAD_VAGONES * 58 + 40))) : escalaPorAncho;
+    const escala = Math.min(escalaPorAncho, escalaPorAlto, escalaPorTren);
     ancho = Math.max(1, Math.floor(disponible / escala));
     canvas.width = ancho; canvas.height = ALTO;
     canvas.style.width = `${ancho * escala}px`;

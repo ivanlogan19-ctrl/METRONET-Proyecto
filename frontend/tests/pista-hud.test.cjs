@@ -19,7 +19,7 @@ async function preparar(t, width = 320, browser = navegador) {
   t.after(() => vista.contexto.close());
   t.after(() => assert.deepEqual(vista.errores, []));
   await vista.pagina.waitForFunction(() => editorPrueba.estadoConsigna === 'disponible');
-  await vista.pagina.waitForFunction(() => document.querySelector('[data-estado-editor] [role=status]').textContent.includes('cargada'));
+  await vista.pagina.waitForFunction(() => !editorPrueba.identificacion && editorPrueba.disenoActual);
   await vista.pagina.waitForFunction(() => document.querySelector('[data-estado-editor] [role=status]').textContent === '');
   return vista;
 }
@@ -33,12 +33,12 @@ async function abrirHud(p, vista) {
   if(vista) await p.locator(`[data-hud-vista="${vista}"]`).click();
 }
 
-for(const width of [1440,768,390,320]) test(`HUD ${width}px: cuatro vistas exclusivas, música real, sin peticiones ni acciones detrás`, async t=>{
+for(const width of [1440,768,390,320]) test(`HUD ${width}px: tres vistas exclusivas y tutorial independiente, música real, sin peticiones ni acciones detrás`, async t=>{
   const {pagina:p,solicitudes}=await preparar(t,width);
   assert.equal(await p.locator('.metronet-hud').evaluate(e=>e.open),false);
   assert.equal(await p.locator('[data-control-musica]').count(),1);
   const antes=await p.locator('#metronet-mapa').boundingBox();
-  for(const vista of ['controles','tutorial','pista','musica']){
+  for(const vista of ['controles','pista','musica']){
     await abrirHud(p,vista);
     const cuenta=await p.locator('.metronet-hud__contenido').evaluate(e=>[...e.children].filter(c=>!c.hidden).length);
     assert.equal(cuenta,1);
@@ -68,7 +68,7 @@ for (const porcentaje of [125,200,300]) test(`Zoom real Chrome ${porcentaje}%: P
   const ajustes=contexto.pages()[0];await ajustes.goto('chrome://settings/appearance',{waitUntil:'domcontentloaded'});await ajustes.locator('#zoomLevel').selectOption({label:`${porcentaje}%`});
   const {pagina:p,errores}=await abrirEditor({newContext:async()=>contexto},opciones);
   assert.ok(Math.abs(await p.evaluate(()=>devicePixelRatio)-porcentaje/100)<.02);
-  for(const vista of ['controles','tutorial','pista','musica']){
+  for(const vista of ['controles','pista','musica']){
     await abrirHud(p,vista);
     const r=await p.locator('.metronet-hud__panel').evaluate(e=>{const r=e.getBoundingClientRect();return {cabe:r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,desborde:document.documentElement.scrollWidth>innerWidth};});
     assert.equal(r.cabe,true);assert.equal(r.desborde,false);

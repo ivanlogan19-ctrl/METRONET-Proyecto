@@ -23,15 +23,21 @@ export function crearControlMusica({ integrado = false } = {}) {
     const cabecera = elemento.closest('header');
     const borde = cabecera?.getBoundingClientRect().bottom ?? elemento.getBoundingClientRect().bottom;
     panel.style.setProperty('--audio-panel-superior', `${Math.max(8, borde + 6)}px`);
+    if (elemento.classList.contains('metronet-audio--autenticacion')) {
+      const r = elemento.getBoundingClientRect();
+      panel.style.left = `${Math.max(12, Math.min(r.right - panel.offsetWidth, innerWidth - panel.offsetWidth - 12))}px`;
+      panel.style.right = 'auto';
+    }
   };
   if (!integrado) elemento.addEventListener('toggle', () => {
     if (!elemento.isConnected) return;
     acceso.setAttribute('aria-expanded', String(elemento.open));
     acceso.setAttribute('aria-pressed', String(elemento.open));
-    if (elemento.open) { posicionar(); panel.showPopover(); }
+    if (elemento.open) { panel.showPopover(); posicionar(); }
     else if (panel.matches(':popover-open')) panel.hidePopover();
   });
   if (!integrado) window.addEventListener('resize', posicionar);
+  if (!integrado) window.addEventListener('scroll', posicionar, true);
   const volumen = elemento.querySelector('input[type="range"]');
   const estado = elemento.querySelector('[data-estado-musica]');
   const activar = elemento.querySelector('[data-activar-musica]');
@@ -58,6 +64,7 @@ export function crearControlMusica({ integrado = false } = {}) {
   return { elemento, eliminar() {
     desuscribir(); document.removeEventListener('click', cerrarFuera);
     window.removeEventListener('resize', posicionar);
+    window.removeEventListener('scroll', posicionar, true);
     if (panel.matches(':popover-open')) panel.hidePopover();
     elemento.remove();
   } };

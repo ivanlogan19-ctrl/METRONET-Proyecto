@@ -1,8 +1,9 @@
 // Una pista por contexto. Los contextos sin pista quedan disponibles para futuros assets.
 export const PISTAS_MUSICA = Object.freeze({
   gameplay: '/audio/gameplay-theme.mp3',
+  inicioNivel: '/audio/victory-theme.mp3',
   loading: null,
-  transition: null,
+  transition: '/audio/gameplay-theme.mp3',
   auth: '/audio/auth-theme.mp3',
   welcome: '/audio/welcome-theme.mp3',
   victory: '/audio/victory-theme.mp3',
@@ -11,8 +12,8 @@ export const PISTAS_MUSICA = Object.freeze({
   general: null,
 });
 
-export const CONTEXTOS_MUSICA_PUNTUAL = Object.freeze(['welcome', 'victory']);
+export const CONTEXTOS_MUSICA_PUNTUAL = Object.freeze(['welcome', 'inicioNivel', 'victory']);
 
 export const VOLUMEN_MUSICA_INICIAL = 0.35;
-export const DURACION_MEZCLA_MS = 900;
+export const DURACION_MEZCLA_MS = 180;
 export const UMBRAL_CARGA_MUSICAL_MS = 600;

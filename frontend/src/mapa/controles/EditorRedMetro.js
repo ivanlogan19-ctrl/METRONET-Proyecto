@@ -9,7 +9,8 @@ import { obtenerConfiguracionAplicacion } from '../../configuracion/Configuracio
 import BarraEstadoEditor from './BarraEstadoEditor.js';
 import { mostrarFormularioElemento } from './FormularioElemento.js';
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
-import { consultarMejorPuntajeAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
+import { consultarEstadoAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
+import { crearIdentificacionNivel, registrarEntradaRecorrido } from '../../educacion/IdentificacionNivel.js';
 import PanelHerramientasEditor from './PanelHerramientasEditor.js';
 import { destacarConceptos } from '../../educacion/glosario/GlosarioContextual.js';
 import { conceptosDelNivel } from '../../educacion/glosario/ContextoConceptos.js';
@@ -96,6 +97,7 @@ export default class EditorRedMetro {
     });
     this.panelAyuda = this.barraEstado.panelAyuda;
     this.panelTutorial = this.panelAyuda.tutorial;
+    this.panelAyuda.elemento.querySelector('[data-hud-teclado]').append(this.accesoTeclado);
     this.contenedor.addEventListener('change', () => {
       if (this.errorAyuda) this.actualizarAyuda(true);
     });
@@ -114,6 +116,7 @@ export default class EditorRedMetro {
       hayCambios: () => this.cambiosPendientes,
       guardar: () => this.guardarDiseno({ evaluar: false }),
     });
+    if (obtenerIdDisenoDeRuta()) this.identificacion = crearIdentificacionNivel(document.querySelector('#metronet-aplicacion'));
     this.cargarJuego().then(() => this.cargarDisenos(obtenerIdDisenoDeRuta()));
   }
 
@@ -175,7 +178,7 @@ export default class EditorRedMetro {
     const acceso = document.createElement('details');
     acceso.className = 'metronet-editor-acceso-teclado';
     acceso.innerHTML = '<summary>Elementos del mapa / teclado</summary><label>Estación<select data-estacion-teclado></select></label><button type="button" data-elegir-estacion-teclado></button>';
-    herramientas.append(acceso);
+    this.accesoTeclado = acceso;
     configurarBotonIcono(acceso.querySelector('button'), 'estaciones', 'Elegir estación');
     acceso.querySelector('button').addEventListener('click', () => {
       const estacion = this.disenoActual?.estaciones.find(e => e.nombre === acceso.querySelector('select').value);
@@ -241,10 +244,9 @@ export default class EditorRedMetro {
     return this.abrirEscenario(`/escenarios/${idEscenario}/volver-a-jugar`, idEscenario);
   }
 
-  async abrirEscenario(ruta, idEscenario, preparado = false) {
+  async abrirEscenario(ruta, idEscenario, preparado = false, celebrarRecorrido = false) {
     if (this.aperturaEscenarioEnCurso) return;
     this.aperturaEscenarioEnCurso = true;
-    const liberarMusica = gestorMusica.usarContextoTemporal('loading');
     const idDisenoOrigen = this.disenoActual?.simulacion?.idDiseno;
     try {
       const escenario = this.escenariosJuego.find((candidato) => candidato.idEscenario === idEscenario);
@@ -252,17 +254,19 @@ export default class EditorRedMetro {
         signal => this.solicitarJuego(ruta, { method: 'POST', signal }),
         { preparado });
       if (!inicio || (preparado && this.disenoActual?.simulacion?.idDiseno !== idDisenoOrigen)) return;
+      if (celebrarRecorrido) registrarEntradaRecorrido(inicio);
       window.history.replaceState({}, '', establecerContextoEnRuta('/', inicio));
       this.cambiosPendientes = false;
       await this.cargarJuego();
-      await this.cargarDisenos(inicio.idDiseno);
-      this.mostrarMensaje('Escenario listo. Leé la consigna y resolvela en el mapa.');
+      await this.cargarDisenos(inicio.idDiseno, { identificar: true });
     } catch (error) { this.mostrarError(error); }
-    finally { this.aperturaEscenarioEnCurso = false; liberarMusica(); }
+    finally { this.aperturaEscenarioEnCurso = false; }
   }
 
-  async cargarDisenos(idParaAbrir) {
-    if (idParaAbrir) return this.abrirDiseno(idParaAbrir);
+  async cargarDisenos(idParaAbrir, opciones = {}) {
+    if (idParaAbrir) return this.abrirDiseno(idParaAbrir, opciones);
+    this.identificacion?.cancelar();
+    this.identificacion = null;
     this.disenoActual = null;
     this.escenarioJuegoActual = null;
     this.prepararConsigna();
@@ -271,11 +275,15 @@ export default class EditorRedMetro {
     this.cambiarVisibilidadEditor(false);
   }
 
-  async abrirDiseno(idDiseno) {
+  async abrirDiseno(idDiseno, { identificar = false } = {}) {
     if (!idDiseno || !this.activo) return false;
     const apertura = ++this.versionApertura;
+    const presentarEntrada = identificar || this.disenoActual?.simulacion?.idDiseno !== idDiseno;
+    this.identificacion?.cancelar();
+    const entrada = presentarEntrada ? crearIdentificacionNivel(document.querySelector('#metronet-aplicacion')) : null;
+    this.identificacion = entrada;
+    if (entrada) this.panelTutorial?.actualizar({});
     if (this.disenoActual?.simulacion?.idDiseno !== idDiseno) this.versionContexto += 1;
-    const liberarMusica = gestorMusica.usarContextoTemporal('loading');
     try {
       const cambioDeDiseno = this.disenoActual?.simulacion?.idDiseno !== idDiseno;
       const diseno = await this.clienteDisenos.obtener(idDiseno);
@@ -295,7 +303,7 @@ export default class EditorRedMetro {
       this.aplicarHerramientas();
       this.capaRedMetro.establecerDiseno(this.disenoActual);
       this.actualizarOpcionesLineas();
-      const selectorEstacion = this.obtener('[data-estacion-teclado]');
+      const selectorEstacion = this.accesoTeclado.querySelector('[data-estacion-teclado]');
       selectorEstacion?.replaceChildren(...this.disenoActual.estaciones.map(e => new Option(e.nombre,e.nombre)));
       this.actualizarAccesoSimulacion();
       this.actualizarPuntosInteresObjetivo();
@@ -303,12 +311,20 @@ export default class EditorRedMetro {
       this.cambiarVisibilidadEditor(true);
       await this.actualizarConsigna();
       if (apertura !== this.versionApertura || !this.activo) return false;
-      if (cambioDeDiseno) {
-        this.mostrarMensaje(`Red «${this.disenoActual.simulacion.nombre}» cargada.`);
+      // El cartel identifica la entrada; no agregar un aviso que desplace el
+      // mapa y vuelva a cambiar su tamaño al desaparecer unos segundos después.
+      if (entrada) {
+        const continuar = await entrada.mostrar(this.escenarioJuegoActual, idDiseno, this.disenoActual.simulacion);
+        if (!continuar || apertura !== this.versionApertura || !this.activo) return false;
+        this.identificacion = null;
+        this.actualizarAyuda();
       }
       return true;
     } catch (error) { this.mostrarError(error); return false; }
-    finally { liberarMusica(); }
+    finally {
+      entrada?.cancelar();
+      if (this.identificacion === entrada) this.identificacion = null;
+    }
   }
 
   actualizarPuntosInteresObjetivo() {
@@ -336,6 +352,8 @@ export default class EditorRedMetro {
       const { validacion, protegido } = await prepararDiseno(this.clienteDisenos, id, { guardar:true, vigente });
       if (!await this.abrirDiseno(id)) return false;
       this.cambiosPendientes = false;
+      if (validacion.valido) this.panelTutorial?.registrarUso('guardar');
+      this.actualizarAyuda(true);
       if (evaluar && !protegido && validacion.valido && this.esEscenarioSinSimulacion()) await this.evaluarEscenarioSinSimulacion(id);
       else {
         const pendientes = (this.consignaActual?.condiciones ?? []).filter(c => !c.completado).map(c => c.texto);
@@ -357,7 +375,7 @@ export default class EditorRedMetro {
     window.addEventListener('popstate', cancelar);
     try {
       const idEscenario = this.disenoActual?.simulacion?.idEscenario;
-      const mejorPuntajeAnterior = await consultarMejorPuntajeAnterior(idEscenario);
+      const estadoAnterior = await consultarEstadoAnterior(idEscenario);
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
       const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST' });
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
@@ -368,10 +386,10 @@ export default class EditorRedMetro {
       if (evaluacion.completado) {
         const progreso = await this.solicitarJuego('/progreso');
         if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
-        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { mejorPuntajeAnterior, signal: controlador.signal });
+        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { ...estadoAnterior, signal: controlador.signal });
         if (accion?.siguiente) {
           const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
-          await this.abrirEscenario(`/escenarios/${accion.siguiente.idEscenario}/${operacion}`, accion.siguiente.idEscenario, true);
+          await this.abrirEscenario(`/escenarios/${accion.siguiente.idEscenario}/${operacion}`, accion.siguiente.idEscenario, true, accion.celebrarRecorrido);
         } else if (accion?.destino) window.location.assign(accion.destino);
       }
     } finally {
@@ -785,7 +803,7 @@ export default class EditorRedMetro {
     contextoGrupo.append(contexto, estado);
     const botonAlternar = document.createElement('button');
     botonAlternar.type = 'button';
-    botonAlternar.className = 'metronet-consigna__alternar';
+    botonAlternar.className = 'metronet-consigna__alternar metronet-control-panel';
     botonAlternar.dataset.alternarConsigna = '';
     botonAlternar.setAttribute('aria-expanded', String(!this.consignaCompacta));
     configurarBotonIcono(botonAlternar, this.consignaCompacta ? 'desplegar' : 'plegar', this.consignaCompacta ? 'Mostrar panel' : 'Ocultar panel');
@@ -1136,7 +1154,7 @@ export default class EditorRedMetro {
       modo: this.modo, seleccionadas: this.estacionesSeleccionadas,
       referencia: this.referenciaAyuda, error: this.errorAyuda,
     };
-    this.panelAyuda?.actualizar({ ...contexto, catalogo: this.escenariosJuego });
+    this.panelAyuda?.actualizar({ ...contexto, catalogo: this.escenariosJuego, identificando: Boolean(this.identificacion) });
     this.actualizarResumenDiseno();
   }
   mostrarMensaje(texto, tipo = 'info', { orientarError = true } = {}) {
@@ -1145,7 +1163,7 @@ export default class EditorRedMetro {
     else if (tipo === 'exito' || !orientarError) this.errorAyuda = null;
     this.actualizarAyuda();
   }
-  eliminar() { this.activo = false; this.versionApertura += 1; this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
+  eliminar() { this.activo = false; this.versionApertura += 1; this.identificacion?.cancelar(); this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
 }
 
 function establecerRutaSimulacion(idDiseno, contexto) { return establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto); }

@@ -22,6 +22,8 @@ async function herramienta(pagina, clave) {
 }
 
 async function clicarMapa(pagina, posicionX, posicionY) {
+  // La recarga del inspector puede cambiar el viewport después de recibir la API.
+  await pagina.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const posicion = await pagina.evaluate(({ posicionX, posicionY }) => {
     const escena = editorPrueba.escena;
     const mundo = escena.capaRedMetro.convertirPosicion(posicionX, posicionY);

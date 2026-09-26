@@ -1,5 +1,5 @@
 // Ventana anclada a un <details>, fuera del flujo y del recorte de su panel padre.
-export function anclarPanelDesplegable(detalle, panel) {
+export function anclarPanelDesplegable(detalle, panel, { cerrarAlSalir = true } = {}) {
   const acceso = detalle.querySelector('summary');
   panel.setAttribute('popover', 'manual');
   panel.classList.add('metronet-panel-superpuesto');
@@ -21,7 +21,7 @@ export function anclarPanelDesplegable(detalle, panel) {
     if (detalle.open && detalle.isConnected) { panel.showPopover(); posicionar(); }
     else if (panel.matches(':popover-open')) panel.hidePopover();
   };
-  const cerrarFuera = e => { if (!detalle.contains(e.target)) detalle.open = false; };
+  const cerrarFuera = e => { if (cerrarAlSalir && !detalle.contains(e.target)) detalle.open = false; };
   const cerrarEscape = e => {
     if (e.key !== 'Escape' || !detalle.open) return;
     e.stopPropagation(); detalle.open = false; acceso.focus({ preventScroll: true });

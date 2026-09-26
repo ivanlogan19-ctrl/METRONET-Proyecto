@@ -5,6 +5,7 @@ import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.j
 import { establecerContextoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import { gestorMusica } from '../audio/GestorMusica.js';
 import { crearControlMusica } from '../audio/ControlMusica.js';
+import { consultarAccesoMisDisenos, aplicarAccesoMisDisenos } from './AccesoMisDisenos.js';
 
 const ETAPAS_FLUJO = [
   { id: 'escenario', texto: 'Escenario' },
@@ -15,6 +16,9 @@ const ETAPAS_FLUJO = [
 
 let controlCambios = null;
 let confirmarSalida = null;
+let versionNavegacion = 0;
+let guardadoSalida = null;
+window.addEventListener('pagehide', () => { versionNavegacion++; });
 let limpiarEventosUsuario = null;
 let limpiarMantenimiento = null;
 let controlMusica = null;
@@ -40,6 +44,7 @@ function crearEnlace(texto, ruta, activo) {
 function crearDialogoCambios() {
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-dialogo-cambios';
+  dialogo.dataset.dialogoCambios = 'true';
   dialogo.innerHTML = `
     <form method="dialog" class="metronet-dialogo-cambios__contenido">
       <h2>Revisión pendiente</h2>
@@ -55,11 +60,14 @@ function crearDialogoCambios() {
 }
 
 function solicitarConfirmacionCambios() {
-  return new Promise((resolver) => {
-    const dialogo = document.querySelector('.metronet-dialogo-cambios') ?? crearDialogoCambios();
+  if (confirmarSalida) return confirmarSalida;
+  confirmarSalida = new Promise((resolver) => {
+    const dialogo = document.querySelector('[data-dialogo-cambios]') ?? crearDialogoCambios();
     dialogo.addEventListener('close', () => resolver(dialogo.returnValue), { once: true });
+    dialogo.returnValue = 'cancelar';
     dialogo.showModal();
-  });
+  }).finally(() => { confirmarSalida = null; });
+  return confirmarSalida;
 }
 
 function registrarAdvertenciaNativa(evento) {
@@ -81,13 +89,16 @@ export function registrarControlCambios({ hayCambios, guardar }) {
 export async function navegarConCambiosPendientes(ruta) {
   // El enlace de la pantalla actual no descarta estado ni reinicia el documento.
   if (new URL(ruta, location.href).href === location.href) return;
+  const version = ++versionNavegacion;
   if (!controlCambios?.hayCambios()) return window.location.assign(ruta);
   const accion = await solicitarConfirmacionCambios();
+  if (version !== versionNavegacion) return;
   if (accion === 'salir') return window.location.assign(ruta);
   if (accion !== 'guardar') return;
   try {
-    const guardado = await controlCambios.guardar();
-    if (guardado !== false && !controlCambios.hayCambios()) window.location.assign(ruta);
+    guardadoSalida ??= Promise.resolve().then(() => controlCambios.guardar()).finally(() => { guardadoSalida = null; });
+    const guardado = await guardadoSalida;
+    if (version === versionNavegacion && guardado !== false && !controlCambios?.hayCambios()) window.location.assign(ruta);
   } catch {
     // El editor ya informa el error de guardado y conserva la pantalla actual.
   }
@@ -163,6 +174,13 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   botonCerrar.addEventListener('click', () => cerrarSesion(sesion));
   menuUsuario.append(botonCerrar);
   usuario.append(menuUsuario);
+  const accesosDisenos = [...enlaces.children, ...menuUsuario.children].filter(e => e.getAttribute('href')?.startsWith('/disenos.html'));
+  const actualizarAcceso = () => consultarAccesoMisDisenos().then(permitido => {
+    accesosDisenos.forEach(enlace => aplicarAccesoMisDisenos(enlace, permitido));
+  }).catch(() => accesosDisenos.forEach(enlace => aplicarAccesoMisDisenos(enlace, false)));
+  accesosDisenos.forEach(enlace => aplicarAccesoMisDisenos(enlace, sesion.usuario?.rol === 'ADMIN'));
+  void actualizarAcceso();
+  window.addEventListener('focus', actualizarAcceso);
   const cerrarMenuAlHacerClicFuera = (evento) => {
     if (!usuario.contains(evento.target)) usuario.removeAttribute('open');
   };
@@ -174,6 +192,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   document.addEventListener('click', cerrarMenuAlHacerClicFuera);
   document.addEventListener('keydown', cerrarMenuConEscape);
   limpiarEventosUsuario = () => {
+    window.removeEventListener('focus', actualizarAcceso);
     document.removeEventListener('click', cerrarMenuAlHacerClicFuera);
     document.removeEventListener('keydown', cerrarMenuConEscape);
   };
@@ -183,6 +202,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   cabecera.append(usuario);
   cabecera.addEventListener('click', (evento) => {
     const enlace = evento.target.closest('a[data-navegacion]');
+    if (enlace?.getAttribute('aria-disabled') === 'true') { evento.preventDefault(); return; }
     if (!enlace || esNavegacionModificada(evento)) return;
     evento.preventDefault();
     navegarConCambiosPendientes(enlace.href);

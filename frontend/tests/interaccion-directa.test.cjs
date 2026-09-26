@@ -7,7 +7,7 @@ before(async()=>{browser=await chromium.launch({headless:true,channel:process.en
 after(async()=>browser?.close());
 async function abrir(t,opciones) { const vista=await abrirEditor(browser,opciones);t.after(()=>vista.contexto.close());t.after(()=>assert.deepEqual(vista.errores,[]));return vista; }
 async function punto(p,x,y) {return p.evaluate(({x,y})=>{const e=editorPrueba.escena,c=e.cameras.main,m=e.capaRedMetro.convertirPosicion(x,y),r=e.game.canvas.getBoundingClientRect();return {x:r.x+(m.x-c.worldView.x)*c.zoom,y:r.y+(m.y-c.worldView.y)*c.zoom};},{x,y});}
-async function clic(p,x,y) {const a=await punto(p,x,y);await p.mouse.click(a.x,a.y);}
+async function clic(p,x,y) {await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const a=await punto(p,x,y);await p.mouse.click(a.x,a.y);}
 async function herramienta(p,clave) {await p.locator(`[data-elegir-herramienta="${clave}"]`).click();}
 
 test('arrastrar y hacer zoom con Estación activa no crea estaciones; tap sí',async t=>{

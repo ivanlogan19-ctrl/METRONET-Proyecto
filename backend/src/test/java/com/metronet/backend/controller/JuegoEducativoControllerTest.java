@@ -106,7 +106,7 @@ class JuegoEducativoControllerTest {
 
     @Test
     void vuelveAJugarCreandoUnNuevoIntentoSoloParaElJugadorAutenticado() throws Exception {
-        InicioEscenarioResponse inicio = new InicioEscenarioResponse(55, 1, 81, "EN_DESARROLLO");
+        InicioEscenarioResponse inicio = new InicioEscenarioResponse(55, 1, 81, "EN_DESARROLLO", 3, false);
         when(authService.obtenerUsuarioConSesion(AUTORIZACION)).thenReturn(usuario());
         when(juegoEducativoService.volverAJugar(ID_USUARIO, 1)).thenReturn(inicio);
 
@@ -115,7 +115,9 @@ class JuegoEducativoControllerTest {
             .andExpect(jsonPath("$.idDiseno").value(55))
             .andExpect(jsonPath("$.idEscenario").value(1))
             .andExpect(jsonPath("$.idIntento").value(81))
-            .andExpect(jsonPath("$.estado").value("EN_DESARROLLO"));
+            .andExpect(jsonPath("$.estado").value("EN_DESARROLLO"))
+            .andExpect(jsonPath("$.numeroCampana").value(3))
+            .andExpect(jsonPath("$.mostrarTutorial").value(false));
 
         verify(juegoEducativoService).volverAJugar(ID_USUARIO, 1);
     }

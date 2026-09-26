@@ -16,13 +16,15 @@ button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 
 .metronet-logo {
-  display: block;
+  display: grid;
+  place-items: center;
   width: var(--metronet-logo-width);
   max-width: 100%;
+  aspect-ratio: var(--metronet-logo-marco-proporcion);
   flex: 0 0 auto;
   line-height: 0;
 }
-.metronet-logo__imagen { display: block; width: 100%; height: auto; object-fit: contain; }
+.metronet-logo__imagen { display: block; width: 100%; height: auto; object-fit: contain; image-rendering: pixelated; }
 .metronet-logo--compacta { width: var(--metronet-logo-width-mobile); }
 .mobile-brand .metronet-logo__imagen,
 .admin-marca .metronet-logo__imagen,
@@ -52,12 +54,13 @@ button { cursor: pointer; }
   border-bottom-color: var(--border);
 }
 .auth-card > .mobile-brand .metronet-logo {
-  display: block;
+  display: grid;
   width: var(--metronet-logo-width-principal);
 }
 .eyebrow, .field-group label, .consentimiento, .auth-ayuda { color: var(--text-secondary); }
 .eyebrow { font-family: var(--font-tecnica); letter-spacing: .08em; }
 .auth-card h1, .auth-card h2 { color: var(--text-primary); }
+.metronet-acceso-bloqueado { color: var(--text-secondary); opacity: .65; cursor: help; }
 .auth-link, .auth-link a, .consentimiento a, .privacy-content a { color: var(--text-secondary); }
 .auth-link a:hover, .consentimiento a:hover, .privacy-content a:hover { color: var(--info-active); }
 .toggle-password, .requisitos-contrasena {
@@ -207,8 +210,8 @@ button { cursor: pointer; }
   overflow: visible;
 }
 .metronet-navegacion__marca { display: flex; flex: 0 0 auto; align-items: center; height: 100%; line-height: 0; }
-.metronet-navegacion__marca .metronet-logo { width: auto; height: var(--metronet-logo-alto-header); }
-.metronet-navegacion__marca .metronet-logo__imagen { width: auto; height: 100%; }
+.metronet-navegacion__marca .metronet-logo { width: calc(var(--metronet-logo-alto-header) * var(--metronet-logo-marco-proporcion)); height: var(--metronet-logo-alto-header); }
+.metronet-navegacion__marca .metronet-logo__imagen { width: 100%; height: auto; }
 .metronet-navegacion__enlaces { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .metronet-navegacion__enlace, .metronet-navegacion__usuario summary, .metronet-navegacion__menu-usuario button {
   display: inline-flex;
@@ -327,6 +330,16 @@ button { cursor: pointer; }
 
 .metronet-inicio, .metronet-escenarios-pagina { width: min(100% - 32px, 1040px); margin: 0 auto; padding: clamp(30px, 6vw, 72px) 0; }
 .metronet-inicio__presentacion { width: 100%; max-width: none; }
+.metronet-inicio__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px clamp(16px, 3vw, 32px); }
+.metronet-inicio__cabecera::after { grid-column: 1 / -1; }
+.metronet-inicio__marca { flex: 0 0 auto; }
+.metronet-inicio__marca .metronet-logo { width: clamp(170px, 19vw, 240px); aspect-ratio: 3 / 2; }
+.metronet-inicio__saludo { min-width: 0; }
+.metronet-inicio__saludo > p:last-child { color: var(--text-secondary); line-height: 1.6; }
+@media (max-width: 620px) {
+  .metronet-inicio__cabecera { grid-template-columns: minmax(0, 1fr); }
+  .metronet-inicio__marca .metronet-logo { width: 180px; }
+}
 .metronet-inicio__etiqueta { margin: 0 0 9px; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .metronet-inicio h1, .metronet-escenarios-pagina h1 { margin: 0; color: var(--text-primary); }
 .metronet-inicio__presentacion > p:last-child,
@@ -347,7 +360,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 @media (max-width: 720px) {
   :root { --navegacion-alto: 60px; }
   .metronet-navegacion { gap: 9px; padding: 7px 12px; }
-  .metronet-navegacion__marca .metronet-logo { width: auto; height: var(--metronet-logo-alto-header-mobile); }
+  .metronet-navegacion__marca .metronet-logo { width: calc(var(--metronet-logo-alto-header-mobile) * var(--metronet-logo-marco-proporcion)); height: var(--metronet-logo-alto-header-mobile); }
   .metronet-navegacion__enlaces { display: none; }
   .metronet-navegacion__usuario summary { min-width: 42px; padding: 7px; font-size: 0; }.metronet-navegacion__usuario summary::after { margin: 0; font-size: 15px; content: '☰'; }.metronet-navegacion__menu-usuario .metronet-navegacion__enlace { display: flex; }
   .metronet-escenarios-pagina__encabezado { align-items: start; flex-direction: column; }

@@ -39,7 +39,7 @@ async function comenzar(p, tipo, nivel = niveles[0], final = false) {
     promesa.then(valor => { resultado = valor; continuaciones++; window.transcurrido = performance.now() - inicio; });
   }, { tipo, nivel, final });
 }
-for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan 4500 ms en los diez niveles (${movimiento})`, async t => {
+for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan 1800 ms en los diez niveles (${movimiento})`, async t => {
   const p = await abrir(t, movimiento);
   for (const nivel of niveles) {
     let geometria;
@@ -53,11 +53,11 @@ for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin
         assert.ok(await p.locator('[data-mensaje-id] p').textContent());
       } else assert.deepEqual(dibujo, geometria, 'Reutiliza toda la geometría original de victoria');
       assert.equal(await escena.count(), 1);
-      await p.clock.runFor(4499);
+      await p.clock.runFor(1799);
       assert.equal(await p.evaluate(() => resultado), undefined, 'No continúa antes del límite');
       await p.clock.runFor(1);
       assert.deepEqual(await p.evaluate(() => ({ resultado, continuaciones, transcurrido })), {
-        resultado: tipo === 'intro' ? true : 'siguiente', continuaciones: 1, transcurrido: 4500,
+        resultado: tipo === 'intro' ? true : 'siguiente', continuaciones: 1, transcurrido: 1800,
       });
       if (tipo === 'intro') await p.evaluate(() => intro.cerrar());
       await p.clock.runFor(1000);
@@ -81,7 +81,7 @@ for (const tipo of ['intro', 'outro']) for (const fallo of ['sinFrames', 'errorF
     if (fallo === 'sinCSS') [...document.styleSheets].forEach(s => s.disabled = true);
   }, fallo);
   await comenzar(p, tipo);
-  await p.clock.runFor(4500);
+  await p.clock.runFor(1800);
   assert.equal(await p.evaluate(() => resultado), tipo === 'intro' ? true : 'siguiente');
   if (tipo === 'intro') {
     assert.equal(await p.locator('.metronet-viaje__consigna p').textContent(), niveles[0].objetivo);
@@ -105,7 +105,7 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: cancelación y repetición
   });
   for (const modo of ['escape', 'popstate', 'pagehide', 'desmontar', 'reemplazar']) {
     await comenzar(p, tipo);
-    await p.clock.runFor(4300); // Incluso durante la llegada, sin navegación prematura.
+    await p.clock.runFor(1600); // Durante el cartel, antes del respaldo silencioso de 1800 ms.
     if (modo === 'escape') await p.keyboard.press('Escape');
     else await p.evaluate(({ modo, tipo }) => {
       if (modo === 'desmontar') document.querySelector('dialog').remove();
@@ -120,19 +120,19 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: cancelación y repetición
     assert.equal(await p.locator('dialog').count(), 0);
   }
 });
-test('Lectura retenida y resumen final conservan información después de los 4500 ms', async t => {
+test('Jugar adelanta la entrada y el resumen final conserva la información', async t => {
   const p = await abrir(t);
   await comenzar(p, 'intro');
-  await p.getByRole('button', { name: 'Leer sin prisa' }).click();
-  await p.clock.runFor(4500);
-  assert.equal(await p.evaluate(() => resultado), undefined);
-  assert.equal(await p.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
-  await p.getByRole('button', { name: 'Continuar al nivel' }).click();
+  await p.clock.runFor(200);
+  await p.getByRole('button', { name: 'Jugar', exact: true }).press('Enter');
   assert.equal(await p.evaluate(() => resultado), true);
+  assert.equal(await p.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
+  await p.clock.runFor(2000);
+  assert.equal(await p.evaluate(() => continuaciones), 1);
   await p.evaluate(() => intro.cerrar());
   await comenzar(p, 'outro', niveles[9], true);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), false);
-  await p.clock.runFor(4499);
+  await p.clock.runFor(1799);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), false);
   await p.clock.runFor(1);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), true);

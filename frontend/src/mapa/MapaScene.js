@@ -140,6 +140,7 @@ export default class MapaScene extends Phaser.Scene {
   configurarPanelMovil() {
     const boton = this.contenedorControles?.querySelector('[data-panel-edicion-toggle]');
     if (!boton || !this.contenedorControles) return;
+    boton.classList.add('metronet-control-panel');
     this.consultaPanelMovil = window.matchMedia('(max-width: 620px)');
     const actualizar = (colapsado) => {
       const debeColapsar = this.consultaPanelMovil.matches && colapsado;

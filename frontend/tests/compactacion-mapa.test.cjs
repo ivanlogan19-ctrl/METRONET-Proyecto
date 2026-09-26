@@ -12,26 +12,28 @@ const cerrar=(t,v)=>t.after(async()=>{await v.contexto.close();assert.deepEqual(
 for(const width of [1440,390,320])test(`Editor ${width}: sin navegadores duplicados, manual a demanda y un contenido auxiliar`,async t=>{
  const v=await abrirEditor(navegador,{viewport:{width,height:900},escenario:nivel,estaciones:[],lineas:[],tramos:[]});cerrar(t,v);const p=v.pagina;
  assert.equal(await p.locator('.metronet-editor-contexto,.metronet-editor-juego,[data-selector-diseno],[data-lista-escenarios]').count(),0);
- assert.equal(await p.locator('.metronet-tutorial').isVisible(),false);
+ assert.equal(await p.locator('.metronet-tutorial__panel').isVisible(),false);
  assert.equal(await p.locator('[data-panel-edicion-toggle]').isVisible(),width<620);
+ assert.equal(await p.locator('[data-editor-activo] .metronet-editor-acceso-teclado').count(),0);
+ assert.equal(await p.locator('[data-hud-teclado] .metronet-editor-acceso-teclado').count(),1);
  const mapa=await p.locator('#metronet-mapa').boundingBox();
  await p.locator('.metronet-hud>summary').click();
- for(const nombre of ['Tutorial','Pista','Música','Controles del mapa']){
+ for(const nombre of ['Pista','Música','Controles del mapa']){
   await p.locator('.metronet-hud__opciones').getByRole('button',{name:nombre,exact:true}).click();
   assert.equal(await p.locator('.metronet-hud__contenido > :visible').count(),1);
-  if(nombre==='Tutorial'){await p.locator('.metronet-tutorial [data-concepto]').first().click();assert.equal(await p.locator('.metronet-glosario-contextual').isVisible(),true);}
   if(nombre==='Pista')assert.equal(await p.locator('.metronet-glosario-contextual').count(),0);
   const panel=await p.locator('.metronet-hud__panel').boundingBox();assert.ok(panel.width*panel.height<mapa.width*mapa.height*.5);
   assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(),mapa);
  }
- await p.getByRole('button',{name:'Tutorial',exact:true}).click();assert.match(await p.locator('.metronet-tutorial').innerText(),/nombre se genera automáticamente/);
- await p.getByRole('button',{name:'Tutorial',exact:true}).click();assert.equal(await p.locator('.metronet-hud').getAttribute('open'),null);
+ await p.locator('.metronet-tutorial>summary').click();await p.locator('.metronet-tutorial__panel:popover-open').waitFor();assert.match(await p.locator('.metronet-tutorial').innerText(),/símbolo de estación/);
+ await p.getByRole('button',{name:'Cerrar tutorial',exact:true}).click();assert.equal(await p.locator('.metronet-hud').getAttribute('open'),null);
  await p.locator('.metronet-hud>summary').click();await p.getByRole('button',{name:'Pista',exact:true}).click();
  await p.locator('[data-indicaciones-escenario]>summary').click();assert.equal(await p.locator('[data-indicaciones-escenario] p').innerText(),nivel.instrucciones);
  assert.equal(await p.getByText('Más información',{exact:true}).count(),0);
  await p.keyboard.press('Escape');
  if(width<620)await p.locator('[data-panel-edicion-toggle]').click();
  const consigna=p.locator('[data-alternar-consigna]');await consigna.scrollIntoViewIfNeeded();
+ const glifo=await consigna.locator('svg').boundingBox();assert.equal(glifo.width,16);assert.equal(glifo.height,16);assert.ok((await consigna.boundingBox()).height>=40);
  const antes=await p.locator('#metronet-mapa').boundingBox();await consigna.click();assert.equal(await consigna.getAttribute('aria-label'),'Ocultar panel');
  assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(),antes);await consigna.click();assert.equal(await consigna.getAttribute('aria-label'),'Mostrar panel');
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -56,6 +58,7 @@ test('Mis diseños: búsqueda, creación, apertura y eliminación con protecció
  let redes=[{idDiseno:77,nombre:'Red libre',estado:'GUARDADO',idEscenario:45},{idDiseno:88,nombre:'Nivel protegido',estado:'GUARDADO',idEscenario:1}];
  const v=await abrirPantalla(navegador,'/disenos.html',{responder:req=>{
   const path=new URL(req.url()).pathname;
+  if(path==='/api/juego/progreso')return{json:{modoLibreDesbloqueado:true,escenarios:[]}};
   if(path==='/api/juego/escenarios')return{json:[{idEscenario:45,numero:null,desbloqueado:true},{idEscenario:1,numero:1}]};
   if(path==='/api/simulaciones'&&req.method()==='POST')return{json:{idDiseno:77,nombre:req.postDataJSON().nombre}};
   if(path==='/api/simulaciones')return{json:redes};
@@ -73,13 +76,14 @@ test('Mis diseños: error recuperable, creación bloqueada y navegación sin per
  let falla=true;
  const v=await abrirPantalla(navegador,'/disenos.html',{viewport:{width:320,height:900},responder:req=>{
   const path=new URL(req.url()).pathname;if(path==='/api/simulaciones'&&falla)return{status:500,json:{detail:'Fallo de prueba'}};
+  if(path==='/api/juego/progreso')return{json:{modoLibreDesbloqueado:true,escenarios:[]}};
   if(path==='/api/juego/escenarios')return{json:[{idEscenario:45,numero:null,desbloqueado:false}]};
  }});cerrar(t,v);const p=v.pagina;await p.getByText('Fallo de prueba',{exact:true}).waitFor();assert.equal(await p.locator('#crearDiseno').isVisible(),false);falla=false;await p.getByRole('button',{name:'Volver a cargar'}).click();await p.locator('[data-diseno]').waitFor();assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 test('Simulación: sin selector de diseños, HUD compartido y panel estable al operar',async t=>{
  const v=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77');cerrar(t,v);const p=v.pagina;
  assert.equal(await p.locator('#seccionDisenos,#listaDisenos').count(),0);assert.equal(await p.getByText('Más información',{exact:true}).count(),0);
- const mapa=await p.locator('#visorSimulacion').boundingBox();await p.locator('.metronet-hud>summary').click();await p.getByRole('button',{name:'Tutorial',exact:true}).click();assert.match(await p.locator('.metronet-tutorial').innerText(),/Simulación/i);assert.deepEqual(await p.locator('#visorSimulacion').boundingBox(),mapa);
- await p.getByRole('button',{name:'Pista',exact:true}).click();assert.equal(await p.locator('.metronet-hud__contenido > :visible').count(),1);await p.keyboard.press('Escape');
+ const mapa=await p.locator('#visorSimulacion').boundingBox();await p.locator('.metronet-tutorial>summary').click();await p.locator('.metronet-tutorial__panel:popover-open').waitFor();assert.match(await p.locator('.metronet-tutorial').innerText(),/Simulación/i);assert.deepEqual(await p.locator('#visorSimulacion').boundingBox(),mapa);
+ await p.locator('.metronet-hud>summary').click();await p.getByRole('button',{name:'Pista',exact:true}).click();assert.equal(await p.locator('.metronet-hud__contenido > :visible').count(),1);await p.keyboard.press('Escape');
  await p.locator('#ampliarMapa').click();assert.equal(await p.locator('#ampliarMapa').getAttribute('aria-label'),'Mostrar panel');await p.locator('#ampliarMapa').click();assert.equal(await p.locator('#ampliarMapa').getAttribute('aria-label'),'Ocultar panel');
 });

@@ -99,7 +99,12 @@ test('Lista de diseños → edición libre → lista recupera cada canción desd
 });
 
 test('Selector de simulación usa menú; abrir una red cambia a gameplay', async t => {
-  const { pagina: p } = await abrir(t, '/inicio.html', { responder: request => new URL(request.url()).pathname === '/api/juego/escenarios' ? { json: [] } : null });
+  const { pagina: p } = await abrir(t, '/inicio.html', { responder: request => {
+    const ruta = new URL(request.url()).pathname;
+    if (ruta === '/api/juego/escenarios') return { json: [] };
+    if (ruta === '/api/juego/progreso') return { json: { escenarios: [], modoLibreDesbloqueado: true } };
+    return null;
+  } });
   await p.goto('http://127.0.0.1:5173/simulacion.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
   await p.locator(audio).evaluate(a => { a.currentTime = 20; });
@@ -112,7 +117,7 @@ test('Selector de simulación usa menú; abrir una red cambia a gameplay', async
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 20));
 });
 
-test('La preparación inicial silencia el menú y al cancelar lo recupera', async t => {
+test('La preparación inicial usa Donkey Kong y al cancelar recupera el menú', async t => {
   const { pagina: p } = await abrir(t, '/escenarios.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
   await p.locator(audio).evaluate(a => { a.currentTime = 15; });
@@ -120,7 +125,7 @@ test('La preparación inicial silencia el menú y al cancelar lo recupera', asyn
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionMenu = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
   });
-  await p.waitForFunction(() => document.querySelector('[data-musica-metronet]').paused);
+  await reproduciendo(p, '/audio/victory-theme.mp3');
   await p.evaluate(() => preparacionMenu.cerrar());
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 15));
@@ -204,7 +209,7 @@ test('Mute y volumen persisten; volver de silencio no reinicia', async t => {
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
 });
 
-test('Preparación y cargas pausan; victoria usa su pista y después recupera gameplay', async t => {
+test('Donkey Kong en preparación; victoria usa la misma pista puntual y al cancelar recupera gameplay', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   await p.locator(audio).evaluate(a => { a.currentTime = 25; });
@@ -212,14 +217,14 @@ test('Preparación y cargas pausan; victoria usa su pista y después recupera ga
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionAudio = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
   });
-  await p.waitForFunction(() => document.querySelector('[data-musica-metronet]').paused);
-  assert.equal((await gestor(p, 'obtenerEstado')).contexto, 'transition');
+  await reproduciendo(p, '/audio/victory-theme.mp3');
+  assert.equal((await gestor(p, 'obtenerEstado')).contexto, 'inicioNivel');
   await p.evaluate(() => preparacionAudio.cerrar()); await reproduciendo(p);
   await p.evaluate(async () => {
     const { mostrarTransicionNivel } = await import('/src/educacion/PantallaTransicionNivel.js');
     window.victoriaAudio = mostrarTransicionNivel({ numero: 1, nombre: 'Red inicial' }, null, { puntaje: 100 });
   });
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/victory-theme.mp3');
+  await reproduciendo(p, '/audio/victory-theme.mp3');
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
   await p.getByRole('button', { name: 'Revisar mi red' }).click(); await reproduciendo(p);
   await p.evaluate(async () => {
@@ -228,7 +233,7 @@ test('Preparación y cargas pausan; victoria usa su pista y después recupera ga
     window.liberarB = g.usarContextoTemporal('transition');
     liberarA(); liberarA();
   });
-  await p.waitForFunction(() => document.querySelector('[data-musica-metronet]').paused);
+  await reproduciendo(p);
   await p.evaluate(() => liberarB()); await reproduciendo(p);
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 25));
   assert.equal(await p.locator(audio).count(), 1);

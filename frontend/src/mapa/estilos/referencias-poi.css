@@ -16,6 +16,18 @@
 .metronet-poi .metronet-panel-encabezado,.metronet-poi__visibilidad button { height:auto; min-height:44px; margin:0; padding:8px; transform:none; white-space:normal; line-height:1.3; font-size:13px; }
 .metronet-poi .metronet-panel-contenido { position:static; min-width:0; max-width:100%; }
 .metronet-poi label.metronet-selector-barrio-opcion,.metronet-poi label.metronet-selector-zona-opcion { min-height:44px; box-sizing:border-box; }
+/* Dos accesos alineados y una lista abierta que utiliza todo el ancho. */
+.metronet-poi [data-contenedor-selectores-mapa] { gap:12px 8px; }
+.metronet-poi [data-contenedor-selectores-mapa] > .metronet-panel-integrado { display:contents; }
+html:root body .metronet-poi [data-contenedor-selectores-mapa] .metronet-panel-encabezado {
+  grid-row:1; min-height:44px; position:sticky; top:0; z-index:1;
+}
+.metronet-poi [data-contenedor-selectores-mapa] .metronet-panel-contenido {
+  grid-column:1/-1; grid-row:2; padding:8px; border:1px solid var(--border);
+}
+.metronet-poi :is(.metronet-selector-barrios-lista,.metronet-selector-zonas-lista) { gap:6px; overscroll-behavior:contain; }
+.metronet-poi :is(.metronet-selector-barrio-opcion,.metronet-selector-zona-opcion) { gap:12px; padding:10px; line-height:1.5; }
+.metronet-poi :is(.metronet-selector-barrio-opcion,.metronet-selector-zona-opcion) span { min-width:0; overflow-wrap:anywhere; }
 .metronet-poi__zoom { display:flex; align-items:center; }
 html:root body .metronet-poi .metronet-panel-puntos-interes { position:static; display:grid; grid-template-columns:44px; gap:0; width:44px; min-height:0; max-width:100%; padding:0; margin:0; border:0; box-shadow:none; background:none; }
 html:root body .metronet-poi .metronet-panel-puntos-interes[data-abierto='true'] { width:100%; grid-template-columns:44px minmax(0,1fr) 44px; gap:6px; }
@@ -63,4 +75,8 @@ html:root body .metronet-poi .metronet-panel-puntos-interes[data-acceso-integrad
 .metronet-hud__contenido > :not([hidden]) { animation:metronet-entrada-busqueda 160ms linear both; }
 .metronet-hud [data-indicaciones-escenario] { margin-top:12px; }
 @media(max-width:620px) { .metronet-poi__panel,.metronet-hud__panel { max-height:min(260px,36dvh,var(--alto-panel-mapa,36dvh)); } }
+/* La geografía necesita espacio de lectura; el HUD y el menú cerrado siguen compactos. */
+.metronet-poi__panel:has(.metronet-poi__geografia:not([hidden])) {
+  max-height:min(620px,calc(100dvh - 32px),var(--alto-panel-mapa,calc(100dvh - 32px)));
+}
 @media(prefers-reduced-motion:reduce) { .metronet-hud__contenido > :not([hidden]) { animation:none; } }

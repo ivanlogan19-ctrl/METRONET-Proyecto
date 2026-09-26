@@ -15,3 +15,6 @@ html:root body .metronet-boton-icono > .metronet-icono { width: 32px; height: 32
 .metronet-boton-icono:active { box-shadow: inset 2px 2px 0 var(--bg-primary); transform: none; }
 .metronet-boton-icono[aria-busy="true"] { cursor: wait; opacity: .65; }
 .metronet-boton-icono[hidden] { display: none !important; }
+
+/* Chevron discreto con el área de interacción de los demás controles. */
+html:root body .metronet-boton-icono.metronet-control-panel > .metronet-icono { width:16px; height:16px; flex:0 0 16px; }

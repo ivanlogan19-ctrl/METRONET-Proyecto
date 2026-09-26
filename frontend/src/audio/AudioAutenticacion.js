@@ -7,6 +7,8 @@ const tarjeta = document.querySelector('.auth-card');
 if (tarjeta && !document.querySelector('[data-control-musica]')) {
   const control = crearControlMusica();
   control.elemento.classList.add('metronet-audio--autenticacion');
-  document.body.append(control.elemento);
+  const esLogin = Boolean(tarjeta.querySelector('#loginForm, #loginAdminForm'));
+  control.elemento.classList.toggle('metronet-audio--login', esLogin);
+  (esLogin ? tarjeta.closest('.auth-page') : tarjeta).prepend(control.elemento);
   gestorMusica.establecerContexto('auth');
 }

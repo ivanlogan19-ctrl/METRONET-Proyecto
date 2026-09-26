@@ -2,7 +2,11 @@ const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 
 async function abrirEditor(navegador, opciones = {}) {
   const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
-  await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { nombre: 'Prueba', rol: 'JUGADOR' } })));
+  await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })));
+  if (opciones.escenario && opciones.primeraPasada !== false) await contexto.addInitScript(escenario => {
+    if (performance.getEntriesByType('navigation')[0]?.type === 'reload') return;
+    sessionStorage.setItem('metronet:inicio-tutorial', JSON.stringify({idDiseno:77,idEscenario:escenario.idEscenario,idIntento:123,numeroCampana:1,idUsuario:7,creada:Date.now()}));
+  }, opciones.escenario);
   const pagina = await contexto.newPage();
   pagina.setDefaultTimeout(15000);
   const errores = [];
@@ -80,7 +84,12 @@ async function abrirEditor(navegador, opciones = {}) {
   await pagina.evaluate(() => { window.editorPrueba = juegoPrueba.scene.getScene('MapaScene').editorRedMetro; });
   await pagina.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
   await pagina.waitForFunction(() => editorPrueba.estadoConsigna !== 'cargando');
+  if (!opciones.observarIdentificacion) await pagina.waitForFunction(() => !editorPrueba.identificacion);
   await pagina.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  if (!opciones.ofrecerRecorrido && await pagina.getByRole('button', { name:'Comenzar directamente', exact:true }).isVisible()) {
+    await pagina.getByRole('button', { name:'Comenzar directamente', exact:true }).click();
+    await pagina.getByRole('button', { name:'Cerrar tutorial', exact:true }).click();
+  }
   return { contexto, pagina, solicitudes, diseno, errores };
 }
 

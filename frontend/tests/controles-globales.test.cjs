@@ -142,6 +142,7 @@ test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Pista utilizab
 test('Encabezados desplegables conservan marco de control y apertura nativa', async t => {
   for (const [ruta, selector] of [['constructor', '.metronet-editor-acceso-teclado > summary'], ['/simulacion.html?idDiseno=77', '.simulacion-seccion > summary']]) {
     const p = (await abrir(t, ruta)).pagina;
+    if (ruta === 'constructor') { await p.locator('.metronet-hud>summary').click(); await p.locator('[data-hud-vista=controles]').click(); }
     const summary = p.locator(selector).first();
     const css = await estilo(summary);
     assert.equal(css.borderTopWidth, '1px'); assert.notEqual(css.boxShadow, 'none');

@@ -19,6 +19,7 @@ async function abrir(t, opciones = {}) {
       const especial = await opciones.responder?.(req, redes);
       if (especial) return especial;
       if (path === '/api/admin/disenos' || path === '/api/simulaciones') return { json: redes };
+      if (path === '/api/juego/progreso') return { json: { modoLibreDesbloqueado: true } };
       if (path === '/api/juego/escenarios') return { json: [{ idEscenario: 45, numero: null, desbloqueado: true }, { idEscenario: 1, numero: 1 }] };
       if (req.method() === 'DELETE') { redes = redes.filter(d => d.idDiseno !== Number(path.split('/').pop())); return { status: 204 }; }
     },

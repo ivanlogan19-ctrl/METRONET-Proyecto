@@ -9,6 +9,9 @@
 }
 
 :root {
+  --tutorial-acento: #f4ed79;
+  --tutorial-superficie: #282511;
+  --tutorial-tinta: #fffbd6;
   --referencia-infraestructura: #ffb36b;
   --referencia-agua: #60dec9;
   --referencia-verde: #75b49c;
@@ -49,6 +52,8 @@
   --metronet-logo-width-principal: 240px;
   --metronet-logo-alto-header: 56px;
   --metronet-logo-alto-header-mobile: 44px;
+  /* Marco de marca estable: reserva el espacio de la interfaz, no recorta el asset. */
+  --metronet-logo-marco-proporcion: 1.22;
   --font-ui: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-arcade: 'Silkscreen', var(--font-tecnica);

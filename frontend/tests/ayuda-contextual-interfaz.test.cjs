@@ -43,7 +43,7 @@ test('primera estación, nombre automático, línea: eventos reales del editor y
   assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(), /Usá la rueda/);
   await p.locator('[data-assist-pista]').click();
   assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del escenario/);
-  assert.match(await p.locator('.metronet-tutorial').innerText(), /nombre se genera automáticamente/);
+  assert.equal(await p.locator('.metronet-tutorial__panel').isVisible(), false, 'La pista sigue disponible sin repetir el tutorial inicial');
   await p.locator('[data-elegir-herramienta=estaciones]').click();
 
   await estado(p, 'primera-estacion');
@@ -148,8 +148,9 @@ test('conexión rechazada por la API y reintento válido cambian la ayuda sin bl
   await p.locator('[data-elegir-herramienta=conexiones]').click();
   await p.locator('[data-linea-conexion]').selectOption('Azul');
   await p.evaluate(() => editorPrueba.disenoActual.estaciones.slice(1).forEach(valor => editorPrueba.seleccionarElemento({ tipo: 'estacion', valor })));
-  await estado(p, 'error-recorrido');
+  await p.waitForFunction(() => document.querySelector('[data-estado-editor]').textContent.includes('no admite ramificaciones'));
   assert.match(await p.locator('[data-estado-editor]').innerText(), /no admite ramificaciones/);
+  await estado(p, 'error-recorrido');
   assert.equal(await p.locator('dialog[open]').count(), 0);
   await p.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
   await p.evaluate(() => editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[2]})); await estado(p, 'listo');

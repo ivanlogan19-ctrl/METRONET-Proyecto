@@ -1,5 +1,5 @@
-import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
-import { iniciarAudioPresentacion } from '../audio/AudioPresentacion.js';
+import { CONFIGURACION_TRANSICION, MENSAJES_TRANSICION } from './ConfiguracionTransicion.js';
+import { crearPresentacionMusicalNivel } from './PresentacionMusicalNivel.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
 import './victoria-nivel.css';
 
@@ -16,7 +16,7 @@ function texto(etiqueta, valor, clase = '') {
 // Presenta datos ya evaluados por el servidor; no registra puntos ni desbloqueos.
 export function mostrarTransicionNivel(anterior, siguiente, {
   puntaje, mejorPuntajeAnterior, final = false, desempeno = null, resumen = null,
-  ranking = null, signal,
+  ranking = null, signal, modoLibre = null,
 } = {}) {
   victoriaActiva?.();
   if (signal?.aborted) return Promise.resolve(null);
@@ -51,14 +51,16 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   progreso.setAttribute('role', 'progressbar');
   progreso.setAttribute('aria-label', 'Progreso del viaje de victoria');
   progreso.setAttribute('aria-valuemin', '0'); progreso.setAttribute('aria-valuemax', '100');
-  const porcentaje = texto('span', '0%');
+  const porcentaje = texto('span', '');
+  porcentaje.hidden = true; // El viaje visual no representa una carga del servidor.
   progreso.append(texto('span', final ? 'RECORRIDO FINAL' : 'PREPARANDO SIGUIENTE ESTACIÓN'), porcentaje);
   const destino = texto('div', '', 'metronet-victoria__destino');
   destino.append(texto('p', siguiente ? `Próxima estación · Nivel ${siguiente.numero}` : final ? 'Llegaste al final de la línea' : 'Elegí tu próximo recorrido'),
     texto('p', siguiente?.objetivo || siguiente?.nombre || 'Tu red forma parte del recorrido de METRONET.'));
-  const estado = texto('p', 'Viaje de transición. El próximo desafío comenzará automáticamente.', 'metronet-victoria__estado');
+  const puedeJugar = Boolean(siguiente || modoLibre);
+  const estado = texto('p', MENSAJES_TRANSICION.entrada, 'metronet-victoria__estado');
   estado.setAttribute('role', 'status');
-  if (!siguiente) estado.textContent = final ? 'Al llegar verás el resumen del recorrido.' : 'Al llegar volverás al selector de niveles.';
+  if (!puedeJugar) estado.textContent = final ? 'Al terminar la música verás el resumen. Podés abrirlo ahora.' : 'Al terminar la música volverás a los niveles. Podés elegir uno ahora.';
   const cierre = texto('section', '', 'metronet-victoria__resumen'); cierre.hidden = true;
   const resumenTitulo = texto('h3', resumen?.campanaCompletada ? '¡Campaña completada!' : 'Resumen del recorrido');
   resumenTitulo.tabIndex = -1;
@@ -69,12 +71,17 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   const acciones = texto('footer', '', 'metronet-victoria__acciones');
   const seleccionar = texto('button', 'Seleccionar nivel'); seleccionar.type = 'button';
   const revisar = texto('button', 'Revisar mi red'); revisar.type = 'button';
-  acciones.append(seleccionar, revisar);
-  cuerpo.append(cabecera, recorrido, resultado, progreso, destino, estado, cierre, acciones);
+  const jugar = texto('button', puedeJugar ? MENSAJES_TRANSICION.accion : final ? 'Ver resumen' : 'Elegir nivel',
+    puedeJugar ? 'metronet-boton--exito metronet-boton--destacado' : 'metronet-boton--primario');
+  jugar.type = 'button';
+  jugar.hidden = !puedeJugar && !final;
+  seleccionar.classList.toggle('metronet-boton--primario', !puedeJugar && !final);
+  acciones.append(estado, seleccionar, revisar, jugar);
+  cuerpo.append(cabecera, recorrido, resultado, progreso, destino, cierre, acciones);
   dialogo.append(cuerpo);
 
   let cerrado = false, resolver;
-  let audio;
+  let presentacion;
   const finalizada = new Promise(resolve => { resolver = resolve; });
   const observador = new MutationObserver(() => { if (!dialogo.isConnected) cancelar(); });
   function terminar(accion = null) {
@@ -86,7 +93,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     window.removeEventListener('popstate', cancelar);
     signal?.removeEventListener('abort', cancelar);
     dialogo.remove();
-    audio?.eliminar();
+    presentacion?.eliminar();
     if (victoriaActiva === cancelar) victoriaActiva = null;
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
     resolver(accion);
@@ -102,7 +109,10 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   }
   function finalizarRecorrido() {
     if (cerrado) return;
+    if (final && modoLibre) { terminar('modoLibre'); return; }
     if (final) {
+      jugar.hidden = true;
+      presentacion?.ocultarCartel();
       dialogo.classList.add('metronet-victoria--llegada');
       cierre.hidden = false; destino.hidden = true;
       estado.textContent = 'Llegaste a destino. Podés consultar el ranking o elegir otro nivel.';
@@ -111,6 +121,12 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   }
   seleccionar.addEventListener('click', () => terminar('selector'));
   revisar.addEventListener('click', cancelar);
+  jugar.addEventListener('click', () => {
+    if (cerrado || jugar.disabled) return;
+    jugar.disabled = true;
+    animacion.finalizar();
+    presentacion?.eliminar();
+  });
   clasificacion.addEventListener('click', () => terminar('ranking'));
   dialogo.addEventListener('cancel', e => { e.preventDefault(); cancelar(); });
   dialogo.addEventListener('close', cancelar);
@@ -124,15 +140,18 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     window.addEventListener('popstate', cancelar);
     signal?.addEventListener('abort', cancelar, { once: true });
     observador.observe(document.body, { childList: true });
-    audio = iniciarAudioPresentacion({
-      contexto: 'victory', duracionVisualMs: CONFIGURACION_TRANSICION.duracionMs,
-      duracionAudioEstimadaMs: 14968, esperaMaximaMs: 24000,
+    presentacion = crearPresentacionMusicalNivel({
+      dialogo, contexto: 'victory',
+      titulo: siguiente ? `NIVEL ${siguiente.numero}` : final ? 'RECORRIDO COMPLETADO' : 'NIVEL COMPLETADO',
+      subtitulo: modoLibre ? 'ESTÁS LISTO PARA EL MODO LIBRE' : null,
       alTerminar: () => animacion.finalizar(),
     });
     animacion.iniciar({
-      progreso, porcentaje,
-      obtenerTiempo: () => audio.obtenerTiempo() / CONFIGURACION_TRANSICION.duracionMs,
-      alAvanzar: tiempo => dialogo.classList.toggle('metronet-victoria--destino', reducido || tiempo >= CONFIGURACION_TRANSICION.revelarDestinoEn),
+      progreso, porcentaje, obtenerTiempo: presentacion.obtenerTiempo,
+      alAvanzar: tiempo => {
+        dialogo.classList.toggle('metronet-victoria--destino', reducido || tiempo >= CONFIGURACION_TRANSICION.revelarDestinoEn);
+        presentacion.actualizar(tiempo);
+      },
       alFinalizar: finalizarRecorrido,
     });
     return finalizada;

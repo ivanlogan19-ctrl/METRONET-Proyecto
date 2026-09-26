@@ -1,7 +1,7 @@
 import { obtenerContenidoNivel } from './ContenidoPreparacion.js';
-import { gestorMusica } from '../audio/GestorMusica.js';
+import { crearPresentacionMusicalNivel } from './PresentacionMusicalNivel.js';
 import { seleccionarMensajeTransicion } from './MensajesTransicion.js';
-import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
+import { CONFIGURACION_TRANSICION, MENSAJES_TRANSICION } from './ConfiguracionTransicion.js';
 import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
 import './transicion-nivel.css';
@@ -46,7 +46,8 @@ export function crearPreparacionNivel(escenario) {
   progreso.setAttribute('aria-label', 'Progreso del viaje visual');
   progreso.setAttribute('aria-valuemin', '0');
   progreso.setAttribute('aria-valuemax', '100');
-  const porcentaje = texto('span', '0%', 'metronet-viaje__porcentaje');
+  const porcentaje = texto('span', '', 'metronet-viaje__porcentaje');
+  porcentaje.hidden = true; // No presentar porcentajes ficticios de carga.
   progreso.append(texto('span', 'RUMBO AL PRÓXIMO DESAFÍO'), porcentaje);
   const dato = document.createElement('section');
   dato.className = 'metronet-viaje__dato';
@@ -58,16 +59,17 @@ export function crearPreparacionNivel(escenario) {
   const informacion = document.createElement('div');
   informacion.className = 'metronet-viaje__informacion';
   informacion.append(dato, consigna);
-  const estado = texto('p', 'Entrarás automáticamente al terminar el viaje.', 'metronet-viaje__estado');
+  const estado = texto('p', MENSAJES_TRANSICION.entrada, 'metronet-viaje__estado');
   estado.setAttribute('role', 'status');
   const acciones = document.createElement('div');
   acciones.className = 'metronet-dialogo-cambios__acciones';
   const volver = texto('button', 'Volver', 'metronet-boton--peligro-secundario');
   volver.type = 'button';
-  const leer = texto('button', 'Leer sin prisa');
-  leer.type = 'button';
-  leer.setAttribute('aria-pressed', 'false');
-  acciones.append(volver, leer);
+  const jugar = texto('button', MENSAJES_TRANSICION.accion, 'metronet-boton--exito metronet-boton--destacado');
+  jugar.type = 'button';
+  jugar.disabled = true;
+  jugar.title = 'Esperando los datos del nivel';
+  acciones.append(volver, jugar);
   const pie = document.createElement('footer');
   pie.className = 'metronet-viaje__pie';
   pie.append(estado, acciones);
@@ -75,16 +77,17 @@ export function crearPreparacionNivel(escenario) {
   dialogo.append(cuerpo);
 
   let cerrado = false, cancelada = false;
-  let liberarMusica = () => {};
-  let retenerLectura = false, recorridoTerminado = false, datosListos = false;
+  let presentacion;
+  let recorridoTerminado = false, datosListos = false;
   let resolver;
   const finalizada = new Promise(resolve => { resolver = resolve; });
   function actualizarEstado() {
     if (cerrado) return;
-    if (retenerLectura) estado.textContent = 'Leé a tu ritmo. Elegí Continuar al nivel cuando estés listo.';
-    else if (recorridoTerminado) estado.textContent = datosListos ? 'Destino alcanzado. Entrando al nivel…' : 'Viaje completado. Esperando la respuesta del nivel…';
-    else estado.textContent = 'Entrarás automáticamente al terminar el viaje.';
-    if (recorridoTerminado && datosListos && !retenerLectura) resolver(true);
+    jugar.disabled = !datosListos || recorridoTerminado;
+    jugar.title = datosListos ? '' : 'Esperando los datos del nivel';
+    if (recorridoTerminado) estado.textContent = datosListos ? 'Entrando al nivel…' : 'Esperando la respuesta del nivel…';
+    else estado.textContent = MENSAJES_TRANSICION.entrada;
+    if (recorridoTerminado && datosListos) resolver(true);
   }
   function finalizarRecorrido() {
     recorridoTerminado = true;
@@ -95,11 +98,11 @@ export function crearPreparacionNivel(escenario) {
     cerrado = true;
     cancelada = true;
     animacion.destruir();
+    presentacion?.eliminar();
     window.removeEventListener('pagehide', cerrar);
     window.removeEventListener('popstate', cerrar);
     observador.disconnect();
     dialogo.remove();
-    liberarMusica();
     resolver(false);
     if (transicionActiva === controlador) transicionActiva = null;
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
@@ -108,20 +111,18 @@ export function crearPreparacionNivel(escenario) {
   const controlador = {
     finalizada, cerrar,
     get cancelada() { return cancelada; },
+    get identificacionPresentada() { return presentacion?.identificacionPresentada ?? false; },
     marcarDatosListos() { datosListos = true; actualizarEstado(); },
   };
   volver.addEventListener('click', cerrar);
   dialogo.addEventListener('cancel', evento => { evento.preventDefault(); cerrar(); });
   dialogo.addEventListener('close', cerrar);
-  leer.addEventListener('click', () => {
-    retenerLectura = !retenerLectura;
-    leer.setAttribute('aria-pressed', String(retenerLectura));
-    leer.textContent = retenerLectura ? 'Continuar al nivel' : 'Leer sin prisa';
-    if (retenerLectura) dialogo.classList.add('metronet-viaje--consigna-visible');
-    actualizarEstado();
+  jugar.addEventListener('click', () => {
+    if (!datosListos || recorridoTerminado || cerrado) return;
+    animacion.finalizar();
+    presentacion?.eliminar();
   });
   try {
-    liberarMusica = gestorMusica.usarContextoTemporal('transition');
     document.body.append(dialogo);
     dialogo.showModal();
     titulo.focus({ preventScroll: true });
@@ -129,10 +130,16 @@ export function crearPreparacionNivel(escenario) {
     window.addEventListener('pagehide', cerrar);
     window.addEventListener('popstate', cerrar);
     observador.observe(document.body, { childList: true });
+    presentacion = crearPresentacionMusicalNivel({
+      dialogo, contexto: 'inicioNivel', titulo: `NIVEL ${escenario.numero}`,
+      puedeMostrarCartel: () => datosListos,
+      alTerminar: () => animacion.finalizar(),
+    });
     animacion.iniciar({
-      progreso, porcentaje,
+      progreso, porcentaje, obtenerTiempo: presentacion.obtenerTiempo,
       alAvanzar: tiempo => {
         if (movimientoReducido || tiempo >= CONFIGURACION_TRANSICION.revelarConsignaEn) dialogo.classList.add('metronet-viaje--consigna-visible');
+        presentacion.actualizar(tiempo);
       },
       alFinalizar: finalizarRecorrido,
     });

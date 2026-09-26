@@ -86,7 +86,7 @@ export default class PanelHerramientasEditor {
 
   actualizarOperacion(modo, estaciones = []) {
     const mensajes = {
-      crearEstacion: 'Clic para colocar estaciones; arrastrá para mover el mapa. Teclado: enfocá el mapa, flechas y Enter.',
+      crearEstacion: 'Clic para colocar estaciones; arrastrá para mover el mapa.',
       reubicarEstacion: 'Seleccioná la nueva posición de la estación en el mapa.',
       crearLinea: `Nueva línea: ${estaciones.length ? `origen ${estaciones[0]}. Elegí el destino.` : 'elegí su primera estación.'}`,
       crearTramo: `Conexión: ${estaciones.length ? `desde ${estaciones[0]}. Elegí el destino.` : 'elegí una estación de origen.'}`,
