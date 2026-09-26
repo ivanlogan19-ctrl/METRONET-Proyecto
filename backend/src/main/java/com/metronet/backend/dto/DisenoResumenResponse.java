@@ -6,5 +6,7 @@ public record DisenoResumenResponse(
     String correoPropietario,
     Integer idEscenario,
     String modoEscenario,
-    String estado
+    String estado,
+    String nombre,
+    Integer idUsuario
 ) {}

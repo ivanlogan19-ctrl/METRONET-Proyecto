@@ -35,7 +35,7 @@ public class DisenoAdministracionService {
     public List<DisenoResumenResponse> listarDisenos() {
         return jdbcTemplate.query("""
             SELECT d.id_diseno, COALESCE(NULLIF(CONCAT_WS(' ', u.nombre, u.apellido), ''), 'Sin usuario asignado') AS propietario,
-                   u.email, e.id_escenario, e.modo, i.estado
+                   u.email, e.id_escenario, e.modo, i.estado, e.nombre, i.id_usuario
             FROM diseno d
             LEFT JOIN intento i ON i.id_diseno = d.id_diseno
             LEFT JOIN usuario u ON u.id_usuario = i.id_usuario
@@ -47,7 +47,9 @@ public class DisenoAdministracionService {
                 resultado.getString("email"),
                 (Integer) resultado.getObject("id_escenario"),
                 resultado.getString("modo"),
-                resultado.getString("estado")
+                resultado.getString("estado"),
+                resultado.getString("nombre"),
+                resultado.getObject("id_usuario", Integer.class)
             ));
     }
 
@@ -109,9 +111,12 @@ public class DisenoAdministracionService {
         if (!Boolean.TRUE.equals(existeDiseno)) {
             throw noEncontrado("No existe el diseño solicitado");
         }
-        verificarDisenoEditable(idDiseno);
         List<Integer> escenariosNoProgresivos = obtenerEscenariosNoProgresivosRelacionados(idDiseno);
-        jdbcTemplate.update("DELETE FROM diseno WHERE id_diseno = ?", idDiseno);
+        // La eliminación administrativa incluye el intento y su puntaje por las FK existentes.
+        // La protección de logros sigue aplicándose a la edición y al borrado del jugador.
+        if (jdbcTemplate.update("DELETE FROM diseno WHERE id_diseno = ?", idDiseno) == 0) {
+            throw noEncontrado("No existe el diseño solicitado");
+        }
         eliminarEscenariosSinIntentos(escenariosNoProgresivos);
     }
 

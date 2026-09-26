@@ -7,6 +7,7 @@
 .metronet-disenos__lista { list-style:none; padding:0; display:grid; gap:8px; }
 .metronet-disenos__lista li { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:12px; border:1px solid var(--border-active); background:var(--panel); }
 .metronet-disenos__lista strong { overflow-wrap:anywhere; }
+.metronet-disenos__lista li > div:first-child { min-width:0; overflow-wrap:anywhere; }
 .metronet-disenos__lista small { display:block; color:var(--text-secondary); margin-top:6px; }
 .metronet-disenos__acciones { display:flex; gap:8px; flex-shrink:0; }
 @media(max-width:480px) { .metronet-disenos__lista li { align-items:start; flex-direction:column; } }

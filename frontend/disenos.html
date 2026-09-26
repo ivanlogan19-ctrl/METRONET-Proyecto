@@ -17,7 +17,7 @@
   <div data-navegacion-global></div>
   <main class="metronet-disenos" aria-labelledby="tituloDisenos">
     <h1 id="tituloDisenos">Mis diseños</h1>
-    <p>Consultá tus redes y abrí una para continuar editando o simular.</p>
+    <p id="descripcionDisenos">Consultá tus redes y abrí una para continuar editando o simular.</p>
     <form id="crearDiseno" class="metronet-disenos__crear" hidden>
       <label>Nombre de la nueva red<input name="nombre" maxlength="100" required autocomplete="off" /></label>
       <button type="submit" class="metronet-boton--primario">Crear diseño</button>
@@ -32,7 +32,7 @@
     <form method="dialog" class="metronet-dialogo-eliminar__contenido">
       <h2 id="tituloEliminarDiseno">Eliminar diseño</h2>
       <p id="nombreEliminarDiseno"></p>
-      <p>Esta acción no se puede deshacer. Los diseños protegidos por el progreso se conservan.</p>
+      <p id="alcanceEliminarDiseno">Esta acción no se puede deshacer. Los diseños protegidos por el progreso se conservan.</p>
       <div class="metronet-dialogo-eliminar__acciones"><button value="cancelar">Cancelar</button><button value="eliminar" class="metronet-boton--peligro">Eliminar diseño</button></div>
     </form>
   </dialog>

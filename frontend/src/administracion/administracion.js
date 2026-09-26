@@ -213,6 +213,7 @@ async function cargarDisenos(token) {
 
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos`, {
+      cache: "no-store",
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -284,14 +285,15 @@ function normalizarTexto(valor) {
 }
 
 async function eliminarDisenoAdministrador(idDiseno, token) {
-  if (!await confirmarSistema(`¿Eliminar definitivamente el diseño #${idDiseno}, sus escenarios, resultados y elementos asociados?`)) return;
+  if (!await confirmarSistema(`¿Eliminar definitivamente el diseño #${idDiseno}? También se borrarán sus elementos, intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar. Esta acción no se puede deshacer.`)) return;
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` },
     });
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible eliminar el diseño."));
+    disenosDisponibles = disenosDisponibles.filter(diseno => String(diseno.idDiseno) !== String(idDiseno));
+    filtrarDisenos();
     mostrarMensajeDisenos("Diseño eliminado correctamente.");
-    cargarDisenos(token);
   } catch (error) { mostrarMensajeDisenos(error.message, "error"); }
 }
 

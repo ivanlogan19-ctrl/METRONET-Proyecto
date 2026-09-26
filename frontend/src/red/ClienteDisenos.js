@@ -4,12 +4,13 @@ import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.j
 export { obtenerSesionActiva };
 
 export default class ClienteDisenos {
-  constructor(sesion) {
+  constructor(sesion, { administracion = false } = {}) {
     this.sesion = sesion;
+    this.rutaBase = administracion ? '/api/admin/disenos' : '/api/simulaciones';
   }
 
   obtenerRuta(ruta = '') {
-    return `${window.location.protocol}//${window.location.hostname}:8080/api/simulaciones${ruta}`;
+    return `${window.location.protocol}//${window.location.hostname}:8080${this.rutaBase}${ruta}`;
   }
 
   async solicitar(ruta = '', opciones = {}) {
@@ -43,7 +44,7 @@ export default class ClienteDisenos {
     throw error;
   }
 
-  listar() { return this.solicitar(); }
+  listar() { return this.solicitar('', { cache: 'no-store' }); }
   obtener(idDiseno) { return this.solicitar(`/${idDiseno}`); }
   validar(idDiseno) { return this.solicitar(`/${idDiseno}/validacion`, { method: 'POST' }); }
   ejecutar(idDiseno, datos) {

@@ -32,9 +32,7 @@ class DisenoAdministracionServiceTest {
         when(jdbcTemplate.queryForObject(
             contains("FROM diseno"), eq(Boolean.class), any(Object[].class)
         )).thenReturn(true);
-        when(jdbcTemplate.queryForObject(
-            contains("JOIN escenario escenarioJuego"), eq(Boolean.class), any(Object[].class)
-        )).thenReturn(false);
+        when(jdbcTemplate.update(eq("DELETE FROM diseno WHERE id_diseno = ?"), any(Object[].class))).thenReturn(1);
         when(jdbcTemplate.query(
             contains("COALESCE(e.progresivo, FALSE) = FALSE"),
             ArgumentMatchers.<RowMapper<Integer>>any(),
@@ -57,9 +55,7 @@ class DisenoAdministracionServiceTest {
         when(jdbcTemplate.queryForObject(
             contains("FROM diseno"), eq(Boolean.class), any(Object[].class)
         )).thenReturn(true);
-        when(jdbcTemplate.queryForObject(
-            contains("JOIN escenario escenarioJuego"), eq(Boolean.class), any(Object[].class)
-        )).thenReturn(false);
+        when(jdbcTemplate.update(eq("DELETE FROM diseno WHERE id_diseno = ?"), any(Object[].class))).thenReturn(1);
         when(jdbcTemplate.query(
             contains("COALESCE(e.progresivo, FALSE) = FALSE"),
             ArgumentMatchers.<RowMapper<Integer>>any(),
@@ -88,21 +84,18 @@ class DisenoAdministracionServiceTest {
     }
 
     @Test
-    void bloqueaLaEliminacionDeUnLogroProgresivoCompletado() {
+    void laEliminacionAdministrativaNoUsaElBloqueoDeEdicionDeLogros() {
         when(jdbcTemplate.queryForObject(
             contains("FROM diseno"), eq(Boolean.class), any(Object[].class)
         )).thenReturn(true);
-        when(jdbcTemplate.queryForObject(
+        when(jdbcTemplate.update(eq("DELETE FROM diseno WHERE id_diseno = ?"), any(Object[].class))).thenReturn(1);
+
+        crearServicio().eliminarDiseno(25);
+
+        verify(jdbcTemplate).update("DELETE FROM diseno WHERE id_diseno = ?", 25);
+        verify(jdbcTemplate, never()).queryForObject(
             contains("JOIN escenario escenarioJuego"), eq(Boolean.class), any(Object[].class)
-        )).thenReturn(true);
-
-        ResponseStatusException excepcion = assertThrows(
-            ResponseStatusException.class,
-            () -> crearServicio().eliminarDiseno(25)
         );
-
-        assertEquals(HttpStatus.CONFLICT, excepcion.getStatusCode());
-        verify(jdbcTemplate, never()).update(eq("DELETE FROM diseno WHERE id_diseno = ?"), eq(25));
     }
 
     @Test

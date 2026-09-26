@@ -10,6 +10,7 @@ const responder=req=>{
  const path=new URL(req.url()).pathname;
  if(path==='/auth/login/admin')return{json:{token:'prueba-de-navegacion',usuario:{idUsuario:7,nombre:'Operador',rol:'ADMIN'}}};
  if(path.startsWith('/auth/logout'))return{status:204};
+ if(path==='/api/admin/disenos')return{json:[{idDiseno:77,idUsuario:7,nombre:'Red de Montevideo',propietario:'Operador',idEscenario:42,modoEscenario:'NIVEL',estado:'VALIDADO'}]};
  if(path==='/api/juego/escenarios')return{json:[]};
  if(path==='/api/juego/ranking')return{json:ranking};
 };
