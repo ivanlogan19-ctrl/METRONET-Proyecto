@@ -39,7 +39,8 @@ test('primera estación, corrección de errores, línea: eventos reales del edit
   await estado(p, 'primera-estacion');
   assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(), /Usá la rueda/);
   await p.locator('[data-assist-pista]').click();
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /ingresá un nombre/);
+  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del escenario/);
+  assert.match(await p.locator('.metronet-tutorial').innerText(), /escribí un nombre/);
   await p.locator('[data-elegir-herramienta=estaciones]').click();
   await p.locator('[data-agregar-estacion]').click();
   await estado(p, 'error-nombre');
@@ -56,7 +57,7 @@ test('primera estación, corrección de errores, línea: eventos reales del edit
   await p.locator('[data-nombre-linea]').fill('Recorrido');
   await p.locator('[data-crear-linea]').click();
   await p.evaluate(() => editorPrueba.disenoActual.estaciones.forEach(valor => editorPrueba.seleccionarElemento({ tipo: 'estacion', valor })));
-  await estado(p, 'crearLinea-2');
+  await estado(p, 'primera-linea');
   await p.locator('[data-crear-linea]').click();
   await estado(p, 'listo');
   assert.equal(diseno.lineas.length, 1);
@@ -219,7 +220,7 @@ test('Pista y Controles comparten zona, conservan edición y vuelven al progreso
   p.on('request', req => { if (/\/(api|auth)\//.test(req.url())) consultas.push(req.url()); });
   const mapa = await p.locator('#metronet-mapa').boundingBox();
   await p.locator('[data-assist-pista]').click();
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /ingresá un nombre/);
+  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del escenario/);
   await p.locator('[data-assist-controles]').click();
   assert.equal(await p.locator('[data-assist-pista]').isVisible(), false);
   assert.equal(await p.locator('[data-assist-etiqueta]').innerText(), 'CONTROLES');

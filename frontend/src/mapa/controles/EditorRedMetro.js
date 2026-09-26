@@ -3,6 +3,7 @@ import { actualizarRutaEdicion, establecerContextoEnRuta, establecerIdDisenoEnRu
 import { navegarConCambiosPendientes, registrarControlCambios } from '../../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../../configuracion/ConfiguracionAplicacion.js';
 import BarraEstadoEditor from './BarraEstadoEditor.js';
+import PanelTutorialInicial from '../../educacion/PanelTutorialInicial.js';
 import { mostrarFormularioElemento } from './FormularioElemento.js';
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
 import { consultarMejorPuntajeAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
@@ -105,6 +106,7 @@ export default class EditorRedMetro {
       },
     });
     this.panelAyuda = this.barraEstado.panelAyuda;
+    this.panelTutorial = new PanelTutorialInicial(this.escena.contenedorMapa);
     this.contenedor.addEventListener('change', () => {
       if (this.errorAyuda) this.actualizarAyuda(true);
     });
@@ -515,6 +517,7 @@ export default class EditorRedMetro {
     if (error) return this.mostrarMensaje(error, 'advertencia');
     try {
       await this.clienteDisenos.solicitar(`/${this.idDiseno()}/tramos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombreLinea, estacionA, estacionB }) });
+      this.panelTutorial?.registrarUso('conexiones');
       this.restablecerModo();
       await this.actualizarDiseno('Conexión creada.');
     } catch (error) { this.mostrarError(error); }
@@ -1326,6 +1329,7 @@ export default class EditorRedMetro {
     if (!mostrar) {
       this.obtenerContenedorConsigna().hidden = true;
       this.panelAyuda?.actualizar({});
+      this.panelTutorial?.actualizar({});
     }
   }
   esEscenarioProgresivo() { return Number.isInteger(this.escenarioJuegoActual?.numero); }
@@ -1349,12 +1353,14 @@ export default class EditorRedMetro {
   }
   actualizarAyuda(limpiarError = false) {
     if (limpiarError) this.errorAyuda = null;
-    this.panelAyuda?.actualizar({
+    const contexto = {
       diseno: this.disenoActual, escenario: this.escenarioJuegoActual,
       consigna: this.consignaActual, estadoConsigna: this.estadoConsigna,
       modo: this.modo, seleccionadas: this.estacionesSeleccionadas,
       referencia: this.referenciaAyuda, error: this.errorAyuda,
-    });
+    };
+    const tutorialActivo = this.panelTutorial?.actualizar({ ...contexto, catalogo: this.escenariosJuego });
+    this.panelAyuda?.actualizar({ ...contexto, tutorialActivo });
   }
   mostrarMensaje(texto, tipo = 'info', { orientarError = true } = {}) {
     this.barraEstado?.mostrar(texto, tipo || 'info');
@@ -1362,7 +1368,7 @@ export default class EditorRedMetro {
     else if (tipo === 'exito' || !orientarError) this.errorAyuda = null;
     this.actualizarAyuda();
   }
-  eliminar() { document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
+  eliminar() { document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.panelTutorial?.eliminar(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
 }
 
 function establecerRutaSimulacion(idDiseno, contexto) { return establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto); }

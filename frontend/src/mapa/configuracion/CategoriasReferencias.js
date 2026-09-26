@@ -16,6 +16,26 @@ export function obtenerCategoriaReferencia(punto) {
 }
 
 export function describirReferencia(punto) {
-  const categoria = CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].etiqueta;
-  return punto?.tipo ? `${categoria} · ${punto.tipo}` : categoria;
+  const subtipo = obtenerSubcategoriaPoi(punto);
+  const categoria = subtipo ? `POI · ${subtipo}` : CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].etiqueta;
+  return punto?.tipo && subtipo !== punto.tipo ? `${categoria} · ${punto.tipo}` : categoria;
+}
+
+// La pertenencia al buscador es independiente de la capa de representación.
+// Infraestructura conserva su toggle; verde e hidrografía siguen siendo territorio.
+export function esPoiBuscable(punto) {
+  return ['POI', 'INFRAESTRUCTURA'].includes(obtenerCategoriaReferencia(punto));
+}
+
+export function obtenerSubcategoriaPoi(punto) {
+  if (!esPoiBuscable(punto)) return null;
+  if (obtenerCategoriaReferencia(punto) === 'INFRAESTRUCTURA') return 'Infraestructura';
+  const tipo = String(punto?.tipo ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/hospital/.test(tipo)) return 'Salud';
+  if (/universidad|biblioteca/.test(tipo)) return 'Educación';
+  if (/deportivo|deportiva|estadio|hipodromo|velodromo/.test(tipo)) return 'Deporte';
+  if (/mercado|comercial|feria|bodega|vitivinicola/.test(tipo)) return 'Comercio';
+  if (/museo|teatro|cultural|historico|historica|patrimonio|monumento|iglesia|capilla/.test(tipo)) return 'Cultura y patrimonio';
+  // Los tipos restantes conservan su denominación real, sin inventar una categoría.
+  return punto?.tipo || 'Referencia puntual';
 }

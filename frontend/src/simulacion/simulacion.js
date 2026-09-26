@@ -636,8 +636,8 @@ async function finalizarEjecucionVisible() {
     const evaluacion = await evaluarEscenarioProgresivo(pendiente.idDiseno);
     const correspondeAlDisenoActual = disenoActual?.simulacion?.idDiseno === pendiente.idDiseno;
     if (!correspondeAlDisenoActual || controlador.signal.aborted) return;
-    if (evaluacion?.completado) {
-      disenoActual.simulacion.estado = 'COMPLETADO';
+    if (evaluacion) {
+      if (evaluacion.completado) disenoActual.simulacion.estado = 'COMPLETADO';
       if (evaluacion.desempeno) {
         const resultado = disenoActual.resultados?.find(r => r.idSimulacion === pendiente.resultado.idSimulacion);
         if (resultado) resultado.puntaje = evaluacion.puntaje;
@@ -650,7 +650,7 @@ async function finalizarEjecucionVisible() {
     document.getElementById('continuarEscenarios').hidden = false;
     const detalleEvaluacion = evaluacion ? ` ${evaluacion.mensaje}` : '';
     const puntos = evaluacion?.desempeno
-      ? (evaluacion.completado ? `${evaluacion.puntaje} / ${evaluacion.desempeno.puntajeMaximo} puntos.` : 'Consigna pendiente; todavía no se registran puntos.')
+      ? `${evaluacion.puntaje} / ${evaluacion.desempeno.puntajeMaximo} puntos.${evaluacion.completado ? '' : ' Consigna pendiente.'}`
       : `${pendiente.resultado.puntaje} puntos.`;
     mostrarMensaje(`Recorrido finalizado: ${puntos}${detalleEvaluacion}`, evaluacion && !evaluacion.completado ? 'advertencia' : 'exito');
     if (evaluacion?.completado) {

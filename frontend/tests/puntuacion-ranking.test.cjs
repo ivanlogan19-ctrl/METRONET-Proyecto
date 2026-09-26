@@ -84,8 +84,8 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  assert.deepEqual(await pagina.evaluate(()=>window.cierre),{destino:'/ranking.html'});
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
 });
-test('Simulación finalizada presenta el puntaje evaluado en el mensaje y el historial',async t=>{
- const desempeno={puntaje:90,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:'Red resuelta. Ajuste de velocidad: 0/10.',unidades:[{idTren:1,linea:'Azul',velocidadKmh:60,distanciaKm:15,tiempoMinutos:15}]};
+for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} puntos del servidor sin completar un parcial`,async t=>{
+ const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${puntos === 100 ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidadKmh:60,distanciaKm:15,tiempoMinutos:15}]};
  const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4,comentarios:'Circulación estimada a 60 km/h.'};
  const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
  const {pagina}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
@@ -94,14 +94,19 @@ test('Simulación finalizada presenta el puntaje evaluado en el mensaje y el his
   if(path==='/api/simulaciones/77')return {json:red};
   if(path.endsWith('/desempeno'))return {json:desempeno};
   if(path.endsWith('/ejecutar')){red.resultados=[resultado];return {json:resultado};}
-  if(path.endsWith('/evaluar'))return {json:{completado:true,puntaje:90,progreso:100,desempeno,mensaje:desempeno.explicacion}};
+  if(path.endsWith('/evaluar'))return {json:{completado:puntos === 100,puntaje:puntos,progreso:puntos,desempeno,mensaje:desempeno.explicacion}};
  }});
  await pagina.locator('#seccionConfiguracion > summary').click();
  await pagina.locator('#duracionSimulacion').fill('10');
  await pagina.locator('[data-velocidad="4"]').click();
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
- await pagina.getByRole('dialog').waitFor();
- assert.match(await pagina.locator('#mensajeSimulacion').innerText(),/90 \/ 100 puntos/);
- assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(),/COMPLETADA · 90 puntos/);
- assert.match(await pagina.getByRole('dialog').innerText(),/90 \/ 100 PTS/);
+ await pagina.locator('#mensajeSimulacion').filter({ hasText: `${puntos} / 100 puntos` }).waitFor();
+ assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(), new RegExp(`COMPLETADA · ${puntos} puntos`));
+ if (puntos === 100) {
+  await pagina.getByRole('dialog').waitFor();
+  assert.match(await pagina.getByRole('dialog').innerText(), /100 \/ 100 PTS/);
+ } else {
+  assert.equal(await pagina.getByRole('dialog').count(), 0);
+  assert.match(await pagina.locator('#mensajeSimulacion').innerText(), /Consigna pendiente/);
+ }
 });

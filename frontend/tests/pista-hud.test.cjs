@@ -54,7 +54,7 @@ test('móvil: contraer, leer tres líneas, más pista y controles sin una segund
   assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(), /\\|\/{2,}/);
   await capturar(p, 'movil-pista-tres-lineas');
   await p.locator('[data-assist-pista]').click();
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /ingresá un nombre/);
+  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del escenario/);
   assert.ok((await medir(p)).alto < 115);
   await capturar(p, 'movil-mas-pista');
   await p.locator('[data-assist-controles]').click();

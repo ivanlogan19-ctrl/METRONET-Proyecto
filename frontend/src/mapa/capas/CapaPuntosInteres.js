@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CATEGORIAS_REFERENCIAS, obtenerCategoriaReferencia, describirReferencia } from '../configuracion/CategoriasReferencias.js';
+import { CATEGORIAS_REFERENCIAS, obtenerCategoriaReferencia, describirReferencia, esPoiBuscable } from '../configuracion/CategoriasReferencias.js';
 
 import '../estilos/puntos-interes.css';
 
@@ -309,7 +309,7 @@ export default class CapaPuntosInteres {
 
     const puntosActualizados = new Set([this.puntoSeleccionado, this.puntoBuscado, this.clavePunto(punto)]);
     this.puntoSeleccionado = this.clavePunto(punto);
-    if (opciones.desdeBusqueda && obtenerCategoriaReferencia(punto) === 'POI') {
+    if (opciones.desdeBusqueda && esPoiBuscable(punto)) {
       this.puntoBuscado = this.clavePunto(punto);
     }
 
@@ -465,7 +465,7 @@ export default class CapaPuntosInteres {
       }).length,
       puntos,
       categoriasVisibles: [...this.categoriasVisibles],
-      puntosBusqueda: this.puntos.filter(punto => obtenerCategoriaReferencia(punto) === 'POI').map((punto) => this.resumirPunto(punto)),
+      puntosBusqueda: this.puntos.filter(punto => esPoiBuscable(punto)).map((punto) => this.resumirPunto(punto)),
       puntosCercaRed: this.referenciasCercaRed.map((punto) => this.resumirPunto(punto)),
       puntosAreaVisible: this.referenciasAreaVisible.map((punto) => this.resumirPunto(punto)),
       referenciasVisibles: this.obtenerReferenciasVisibles(),
@@ -1747,6 +1747,12 @@ export default class CapaPuntosInteres {
     this.panelInformacion = document.createElement('section');
 
     this.panelInformacion.className = 'metronet-punto-interes-panel';
+
+    // Phaser escucha también en window. Un clic en la ficha no debe activar
+    // un marcador situado detrás antes de que su botón Cerrar pueda responder.
+    for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) {
+      this.panelInformacion.addEventListener(tipo, evento => evento.stopPropagation());
+    }
 
     this.panelInformacion.setAttribute('role', 'dialog');
 

@@ -3,6 +3,7 @@ package com.metronet.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metronet.backend.dto.DesempenoNivelResponse;
+import com.metronet.backend.dto.CondicionConsignaResponse;
 import com.metronet.backend.dto.DesempenoNivelResponse.MedicionUnidad;
 import com.metronet.backend.dto.RankingResponse;
 import java.math.BigDecimal;
@@ -25,7 +26,7 @@ public class PuntuacionService {
     }
 
     public int maximo(String reglas) {
-        return configuracion(reglas).path("maximo").asInt(100);
+        return 100;
     }
 
     private JsonNode configuracion(String reglas) {
@@ -33,50 +34,61 @@ public class PuntuacionService {
         catch (Exception e) { throw new IllegalStateException("Configuración de puntuación ilegible", e); }
     }
 
-    public DesempenoNivelResponse calcular(int idDiseno, int idIntento, String reglas, boolean redResuelta, boolean requiereSimulacion) {
-        JsonNode c = configuracion(reglas);
-        if (c.isMissingNode()) return null; // Escenarios personalizados y resultados anteriores conservan su contrato.
-        int maximo = c.path("maximo").asInt();
-        double resolucion = c.path("pesoResolucion").asDouble(), eficiencia = c.path("pesoEficiencia").asDouble(), velocidad = c.path("pesoVelocidad").asDouble();
-        double objetivo = c.path("velocidadObjetivoKmh").asDouble(), tolerancia = c.path("toleranciaKmh").asDouble();
-        if (maximo <= 0 || maximo > 100000 || resolucion < .6 || eficiencia < 0 || velocidad < 0 || velocidad > .2
-            || Math.abs(resolucion + eficiencia + velocidad - 1) > .000001
-            || (velocidad > 0 && (objetivo <= 0 || tolerancia <= 0 || tolerancia >= objetivo))) {
-            throw new IllegalStateException("Configuración de puntuación inválida: revisá pesos, máximo y metas de velocidad");
-        }
-        List<MedicionUnidad> unidades = medirUnidades(idDiseno);
-        boolean velocidadCumplida = velocidad == 0 || (!unidades.isEmpty() && unidades.stream()
-            .allMatch(u -> u.distanciaKm() > 0 && Math.abs(u.velocidadKmh() - objetivo) <= tolerancia));
-        String huella = marcaRed(idDiseno);
-        boolean simulacionActual = !requiereSimulacion || jdbc.query("SELECT comentarios FROM simulacion WHERE id_intento = ? ORDER BY id_simulacion DESC LIMIT 1",
-            (r, fila) -> r.getString("comentarios"), idIntento).stream().anyMatch(s -> s != null && s.endsWith(huella));
-        double economia = economia(idDiseno, c);
-        double ajuste = velocidad == 0 ? 1 : unidades.stream().mapToDouble(u -> Math.max(0, 1 - Math.abs(u.velocidadKmh() - objetivo) / tolerancia)).min().orElse(0);
-        // Nunca se conceden puntos por velocidad o eficiencia a una solución principal incorrecta.
-        int puntosRed = redResuelta ? (int) Math.round(maximo * resolucion) : 0;
-        int puntosEficiencia = redResuelta ? (int) Math.round(maximo * eficiencia * economia) : 0;
-        int puntosVelocidad = redResuelta ? (int) Math.round(maximo * velocidad * ajuste) : 0;
-        int puntos = Math.min(maximo, puntosRed + puntosEficiencia + puntosVelocidad);
-        String etapa = !redResuelta ? "RED" : !velocidadCumplida ? "VELOCIDAD" : !simulacionActual ? "SIMULACION" : "LISTO";
-        String explicacion = !redResuelta ? "Completá primero las condiciones de red, conexiones y territorio. Todavía no se otorgan puntos."
-            : "Red resuelta: " + puntosRed + "/" + Math.round(maximo * resolucion) + " puntos. Economía de estaciones y tramos: "
-                + puntosEficiencia + "/" + Math.round(maximo * eficiencia) + ". Referencia: " + c.path("estacionesReferencia").asInt()
-                + " estaciones y " + c.path("tramosReferencia").asInt() + " tramos; los elementos extra reducen este componente."
-                + (velocidad > 0 ? " Ajuste de velocidad: " + puntosVelocidad + "/" + Math.round(maximo * velocidad)
-                    + ". Meta didáctica: " + objetivo + " km/h ± " + tolerancia + ". "
-                    + (velocidadCumplida ? "Las unidades están en el intervalo; el puntaje usa la unidad más alejada de la meta." : "Ajustá todas las unidades al intervalo antes de finalizar.") : "")
-                + (!simulacionActual ? " Ejecutá una simulación con la configuración actual para registrar el resultado." : "");
-        return new DesempenoNivelResponse(puntos, maximo, puntosRed, puntosEficiencia, puntosVelocidad,
-            redResuelta, velocidadCumplida, simulacionActual, velocidad > 0 ? objetivo : null, velocidad > 0 ? tolerancia : null,
-            etapa, explicacion, unidades);
+    /** Cada condición obligatoria pesa lo mismo; se redondea una sola vez. */
+    public static int normalizar(List<CondicionConsignaResponse> condiciones) {
+        if (condiciones.isEmpty()) return 0;
+        long satisfechas = condiciones.stream().filter(CondicionConsignaResponse::completado).count();
+        return (int) Math.round(100d * satisfechas / condiciones.size());
     }
 
-    private double economia(int idDiseno, JsonNode c) {
-        int estaciones = jdbc.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
-        int tramos = jdbc.queryForObject("SELECT COUNT(*) FROM tramo WHERE id_diseno = ?", Integer.class, idDiseno);
-        double a = Math.min(1, c.path("estacionesReferencia").asDouble(1) / Math.max(1, estaciones));
-        int referenciaTramos = c.path("tramosReferencia").asInt();
-        return referenciaTramos > 0 ? (a + Math.min(1, (double) referenciaTramos / Math.max(1, tramos))) / 2 : a;
+    /** Conserva las restricciones de circulación ya configuradas, sin bonos de velocidad. */
+    public List<CondicionConsignaResponse> condicionesCirculacion(int idDiseno, int idIntento, String reglas, boolean requiereSimulacion) {
+        JsonNode c = configuracion(reglas);
+        if (c.isMissingNode()) return List.of();
+        List<CondicionConsignaResponse> condiciones = new ArrayList<>();
+        if (c.path("pesoVelocidad").asDouble() > 0) {
+            double objetivo = c.path("velocidadObjetivoKmh").asDouble(), tolerancia = c.path("toleranciaKmh").asDouble();
+            if (objetivo <= 0 || tolerancia <= 0 || tolerancia >= objetivo) {
+                throw new IllegalStateException("Configuración de circulación inválida: revisá la meta y tolerancia de velocidad");
+            }
+            List<MedicionUnidad> unidades = medirUnidades(idDiseno);
+            boolean cumplida = !unidades.isEmpty() && unidades.stream()
+                .allMatch(u -> u.distanciaKm() > 0 && Math.abs(u.velocidadKmh() - objetivo) <= tolerancia);
+            condiciones.add(new CondicionConsignaResponse("velocidadCirculacion",
+                "Circulación de " + objetivo + " km/h ± " + tolerancia, cumplida ? 1 : 0, 1, cumplida));
+        }
+        if (requiereSimulacion) {
+            String huella = marcaRed(idDiseno);
+            boolean actual = jdbc.query("SELECT comentarios FROM simulacion WHERE id_intento = ? ORDER BY id_simulacion DESC LIMIT 1",
+                (r, fila) -> r.getString("comentarios"), idIntento).stream().anyMatch(s -> s != null && s.endsWith(huella));
+            condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y velocidades actuales", actual ? 1 : 0, 1, actual));
+        }
+        return condiciones;
+    }
+
+    public DesempenoNivelResponse calcular(int idDiseno, String reglas, List<CondicionConsignaResponse> condiciones) {
+        JsonNode c = configuracion(reglas);
+        boolean redResuelta = !condiciones.isEmpty() && condiciones.stream()
+            .filter(condicion -> !Set.of("requiereSimulacion", "simulacionActual", "velocidadCirculacion").contains(condicion.clave()))
+            .allMatch(CondicionConsignaResponse::completado);
+        boolean velocidadCumplida = condiciones.stream().filter(condicion -> condicion.clave().equals("velocidadCirculacion"))
+            .allMatch(CondicionConsignaResponse::completado);
+        boolean simulacionActual = condiciones.stream().filter(condicion -> Set.of("requiereSimulacion", "simulacionActual").contains(condicion.clave()))
+            .allMatch(CondicionConsignaResponse::completado);
+        boolean requiereVelocidad = condiciones.stream().anyMatch(condicion -> condicion.clave().equals("velocidadCirculacion"));
+        int puntos = normalizar(condiciones);
+        long satisfechas = condiciones.stream().filter(CondicionConsignaResponse::completado).count();
+        String etapa = !redResuelta ? "RED" : !velocidadCumplida ? "VELOCIDAD" : !simulacionActual ? "SIMULACION" : "LISTO";
+        String explicacion = condiciones.isEmpty() ? "Este escenario no tiene criterios de evaluación: no se asignan puntos."
+            : satisfechas + " de " + condiciones.size() + " criterios satisfechos: " + puntos + "/100. Cada criterio obligatorio tiene el mismo peso."
+                + " Las pistas, el tutorial, los errores y el tiempo no descuentan puntos."
+                + (satisfechas < condiciones.size() ? " Aún quedan condiciones por cumplir antes de completar el nivel." : " Todos los criterios están satisfechos.");
+        // Se conserva el contrato de respuesta; los componentes de bonus dejan de otorgar puntos.
+        return new DesempenoNivelResponse(puntos, 100, puntos, 0, 0,
+            redResuelta, velocidadCumplida, simulacionActual,
+            requiereVelocidad ? c.path("velocidadObjetivoKmh").asDouble() : null,
+            requiereVelocidad ? c.path("toleranciaKmh").asDouble() : null,
+            etapa, explicacion, c.isMissingNode() ? List.of() : medirUnidades(idDiseno));
     }
 
     public List<MedicionUnidad> medirUnidades(int idDiseno) {

@@ -12,7 +12,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
   if (disponible) {
     const etapa = { RED: '1 · Resolver la red', VELOCIDAD: '2 · Ajustar velocidades', SIMULACION: '3 · Simular la configuración actual', LISTO: 'Resultado listo para registrar' }[desempeno.etapa];
     contenedor.append(texto('strong', etapa), texto('p', desempeno.explicacion));
-    ayuda.append(texto('p', `Puntaje estimado: ${desempeno.puntaje} / ${desempeno.puntajeMaximo}. Se registra al completar la consigna y evaluar la simulación.`));
+    ayuda.append(texto('p', `Puntaje estimado: ${desempeno.puntaje} / ${desempeno.puntajeMaximo}. La evaluación registra el porcentaje de criterios satisfechos; un puntaje parcial no completa el nivel.`));
   }
   const campo = document.createElement('fieldset');
   campo.dataset.controlesCirculacion = '';

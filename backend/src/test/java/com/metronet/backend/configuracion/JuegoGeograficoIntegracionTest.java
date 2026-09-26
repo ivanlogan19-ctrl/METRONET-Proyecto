@@ -140,7 +140,7 @@ class JuegoGeograficoIntegracionTest {
     @Test
     void velocidadEsComplementariaRequiereNuevaSimulacionYPreservaElMejorResultado() throws Exception {
         jdbc.update("INSERT INTO intento VALUES (6,7,6,6,1,'EN_DESARROLLO',0,NULL,NULL)");
-        assertEquals(0, juego.obtenerDesempeno(7, 6).puntaje());
+        assertTrue(juego.obtenerDesempeno(7, 6).puntaje() < 100);
         redAvanzada(6, 6);
         jdbc.update("UPDATE metro SET velocidad_promedio=90 WHERE id_diseno=6");
         simular(6);
@@ -158,22 +158,56 @@ class JuegoGeograficoIntegracionTest {
         assertTrue(juego.obtenerDesempeno(7, 6).unidades().getFirst().tiempoMinutos() < minutos);
         simular(6);
         var mejorable = juego.evaluarEscenario(7, 6);
-        assertTrue(mejorable.completado()); assertEquals(90, mejorable.puntaje());
-        assertEquals(90, jdbc.queryForObject("SELECT puntaje FROM simulacion WHERE id_intento=6 ORDER BY id_simulacion DESC LIMIT 1", Integer.class));
+        assertTrue(mejorable.completado()); assertEquals(100, mejorable.puntaje());
+        assertEquals(100, jdbc.queryForObject("SELECT puntaje FROM simulacion WHERE id_intento=6 ORDER BY id_simulacion DESC LIMIT 1", Integer.class));
         assertEquals(100, jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=6", Integer.class));
         jdbc.update("UPDATE estacion SET posicion_x=0,posicion_y=0 WHERE id_diseno=6 AND nombre='E0'");
-        assertEquals(0, juego.obtenerDesempeno(7, 6).puntaje());
+        assertTrue(juego.obtenerDesempeno(7, 6).puntaje() < 100);
         assertFalse(juego.evaluarEscenario(7, 6).completado());
     }
 
     @Test
-    void economiaPenalizaElementosExtraYNoDependeDeDatosDelNavegador() throws Exception {
+    void elementosExtraNoPenalizanSiCumplenLosCriterios() throws Exception {
         red(1);
         var resultado = juego.evaluarEscenario(7, 1);
         assertTrue(resultado.completado());
-        assertTrue(resultado.puntaje() < resultado.desempeno().puntajeMaximo());
+        assertEquals(100, resultado.puntaje());
         assertTrue(resultado.desempeno().puntosResolucion() >= resultado.desempeno().puntajeMaximo() * .6);
         assertEquals(0, resultado.desempeno().puntosVelocidad());
+    }
+
+    @Test
+    void puntajeParcialPersistidoEsActualYNoDesbloqueaElSiguienteNivel() {
+        jdbc.update("UPDATE escenario SET reglas_exito=? WHERE numero=1",
+            "{\"minimoEstaciones\":1,\"minimoLineas\":1,\"minimoTramos\":1,\"minimoMetros\":1}");
+        for (int paso = 0; paso <= 4; paso++) {
+            if (paso == 1) jdbc.update("INSERT INTO estacion VALUES (1,'A',580,470,FALSE)");
+            if (paso == 2) jdbc.update("INSERT INTO linea VALUES (1,'Azul')");
+            if (paso == 3) jdbc.update("INSERT INTO tramo VALUES (1,'Azul','A','B')");
+            if (paso == 4) jdbc.update("INSERT INTO metro(id_diseno,nombre_linea) VALUES (1,'Azul')");
+            var resultado = juego.evaluarEscenario(7, 1);
+            assertEquals(paso * 25, resultado.puntaje());
+            assertEquals(paso * 25, juego.obtenerConsigna(usuario, 1).progreso());
+            assertEquals(paso * 25, jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=1", Integer.class));
+            assertEquals(paso == 4, resultado.completado());
+            assertEquals(paso == 4 ? 2 : null, resultado.idSiguienteEscenario());
+            assertEquals(resultado.puntaje(), juego.evaluarEscenario(7, 1).puntaje());
+            if (paso == 2) {
+                jdbc.update("DELETE FROM linea WHERE id_diseno=1");
+                assertEquals(25, juego.evaluarEscenario(7, 1).puntaje());
+                assertEquals(25, jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=1", Integer.class));
+                jdbc.update("INSERT INTO linea VALUES (1,'Azul')");
+            }
+        }
+    }
+
+    @Test
+    void sinCriteriosNoSeCompletaNiRegalaPuntos() {
+        jdbc.update("UPDATE escenario SET reglas_exito='{}' WHERE numero=1");
+        var resultado = juego.evaluarEscenario(7, 1);
+        assertEquals(0, resultado.puntaje());
+        assertFalse(resultado.completado());
+        assertNull(resultado.idSiguienteEscenario());
     }
 
     @Test
@@ -200,6 +234,8 @@ class JuegoGeograficoIntegracionTest {
             assertTrue(consigna.condiciones().stream().allMatch(c -> c.completado()), "Nivel " + nivel + ": " + consigna.condiciones());
             var resultado = juego.evaluarEscenario(7, nivel);
             assertTrue(resultado.completado());
+            assertEquals(100, resultado.puntaje());
+            assertEquals(100, resultado.desempeno().puntaje());
             assertEquals(nivel == 10 ? null : nivel + 1, resultado.idSiguienteEscenario());
             var resumen = juego.obtenerResumenProgreso(7);
             assertEquals(10, resumen.cantidadNiveles());

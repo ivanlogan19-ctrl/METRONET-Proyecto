@@ -21,7 +21,7 @@ function orientarError(texto, modo, inicial) {
   return aviso('error-operacion', 'La acción no quedó confirmada. Revisá el aviso antes de continuar.', '', [], 'REVISÁ');
 }
 
-export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoConsigna, modo = 'normal', seleccionadas = [], referencia, error, pantalla = 'editor', estadoMotor } = {}) {
+export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoConsigna, modo = 'normal', seleccionadas = [], referencia, error, pantalla = 'editor', estadoMotor, tutorialActivo = false } = {}) {
   if (!diseno || !escenario || escenario.modo === 'EDICION_LIBRE' || !Number.isInteger(escenario.numero)) return null;
   const inicial = String(escenario.dificultad).toLowerCase() === 'inicial';
   const herramientas = escenario.herramientasHabilitadas ?? {};
@@ -43,7 +43,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     estadoMotor === 'PAUSADA' ? 'Circulación pausada. Observá cómo se relacionan las líneas y sus recorridos.' : 'Observá qué destinos conecta cada recorrido. La animación sola no confirma los objetivos.',
     'El ritmo cambia la animación; revisá la velocidad de las unidades en Desempeño.', ['linea', 'ritmo', 'velocidad'], 'OBSERVÁ');
 
-  if (inicial && ['crearLinea', 'crearTramo'].includes(modo)) return aviso(`${modo}-${Math.min(seleccionadas.length, 2)}`,
+  if (inicial && !tutorialActivo && ['crearLinea', 'crearTramo'].includes(modo)) return aviso(`${modo}-${Math.min(seleccionadas.length, 2)}`,
     seleccionadas.length < 2 ? 'Elegí estaciones distintas en el mapa. El orden de selección ayuda a definir el recorrido.' : 'Ya hay estaciones seleccionadas. Revisá el orden antes de confirmar el recorrido.',
     modo === 'crearLinea' ? 'Volvé a pulsar Crear línea para confirmar: se conectan las estaciones consecutivas seleccionadas.' : 'Conectar estaciones confirma el tramo entre los dos extremos elegidos.', ['estacion', 'linea', 'conexion']);
   if (falta('requiereGeografiaValida')) return aviso('territorio', 'Hay una dificultad territorial. Revisá la ubicación de las estaciones y sus tramos.', 'Los límites se aplican al recorrido completo, no solo a sus extremos.', ['estacion', 'conexion', 'zona']);
@@ -53,13 +53,13 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     'POI y barrio tienen distinta cobertura. Compará ambos criterios en la consigna.', ['poi', 'barrio', 'cobertura', 'estacion']);
   if (!estaciones && permite('estaciones')) return aviso('primera-estacion',
     inicial ? 'Aún no hay estaciones. Pensá qué puntos querés relacionar antes de ubicar el primero.' : 'Aún no hay estaciones. Pensá qué ubicaciones pueden sostener el recorrido de la consigna.',
-    inicial ? 'En Estación, ingresá un nombre y activá Crear estación. Luego elegí una ubicación.' : 'Relacioná cada ubicación con una necesidad del escenario.', ['estacion']);
+    inicial && !tutorialActivo ? 'En Estación, ingresá un nombre y activá Crear estación. Luego elegí una ubicación.' : 'Relacioná cada estación con una necesidad del escenario.', ['estacion']);
   if (estaciones === 1 && !lineas && permite('estaciones')) return aviso('primera-ubicada',
     'Ya ubicaste la primera estación. Pensá qué lugar conviene relacionar con ella.',
     inicial ? 'Una línea necesita estaciones distintas. Elegí qué otra ubicación puede aportar al recorrido.' : 'Considerá la separación y la función de las próximas ubicaciones, no solo la cantidad.', ['estacion', 'linea']);
   if (!lineas && permite('lineas')) return aviso('primera-linea',
     'Ya hay estaciones sin línea. Pensá en qué orden deberían relacionarse.',
-    inicial ? 'Nombrá la línea, pulsá Crear línea, elegí estaciones en orden y confirmá con el mismo botón.' : 'Al crear una línea, el orden de las estaciones define su recorrido inicial.', ['estacion', 'linea', 'conexion']);
+    inicial && !tutorialActivo ? 'Nombrá la línea, pulsá Crear línea, elegí estaciones en orden y confirmá con el mismo botón.' : 'El orden de las estaciones define qué destinos quedan relacionados por el recorrido.', ['estacion', 'linea', 'conexion']);
 
   const opciones = [
     ['minimoEstaciones', 'estaciones', 'Aún faltan estaciones. Pensá qué función aportaría cada nueva ubicación.', 'Pensá en ampliar el alcance del recorrido sin repetir la función de una estación cercana.', ['estacion', 'cobertura']],

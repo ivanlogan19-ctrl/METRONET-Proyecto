@@ -1,5 +1,5 @@
 import '../estilos/puntos-interes.css';
-import { describirReferencia, obtenerCategoriaReferencia } from '../configuracion/CategoriasReferencias.js';
+import { describirReferencia, obtenerCategoriaReferencia, esPoiBuscable } from '../configuracion/CategoriasReferencias.js';
 
 const PRIORIDAD_ESTADO = Object.freeze({ OBJETIVO: 0, PENDIENTE: 1, ATENDIDO: 2, COMPLETADO: 3, REFERENCIA: 4 });
 const CAMPOS_CERCA_RED = Object.freeze(['puntosCercaRed', 'puntosCercaDeRed', 'puntosCercanos', 'referenciasCercaDeRed', 'cercaDeRed']);
@@ -223,7 +223,7 @@ export default class PanelPuntosInteres {
     const areaVisible = this.obtenerPuntosResumen(CAMPOS_AREA_VISIBLE);
     const tieneContexto = cercaDeRed.encontrado || areaVisible.encontrado;
     if (!tieneContexto) {
-      return [{ titulo: 'Referencias disponibles', puntos: this.ordenarPuntos(this.resumen.puntos.filter(p => obtenerCategoriaReferencia(p) === 'POI')) }];
+      return [{ titulo: 'Referencias disponibles', puntos: this.ordenarPuntos(this.resumen.puntos.filter(p => esPoiBuscable(p))) }];
     }
     const clavesIncluidas = new Set();
     const grupos = [];
@@ -259,14 +259,14 @@ export default class PanelPuntosInteres {
       ? this.resumen.puntosBusqueda
       : this.obtenerPuntosContextuales();
 
-    return this.sinDuplicados(puntos, new Set()).filter(punto => obtenerCategoriaReferencia(punto) === 'POI');
+    return this.sinDuplicados(puntos, new Set()).filter(punto => esPoiBuscable(punto));
   }
 
   obtenerPuntosResumen(campos) {
     for (const campo of campos) {
       const valor = this.resumen[campo];
-      if (Array.isArray(valor)) return { encontrado: true, puntos: valor.filter(p => obtenerCategoriaReferencia(p) === 'POI') };
-      if (valor && Array.isArray(valor.puntos)) return { encontrado: true, puntos: valor.puntos.filter(p => obtenerCategoriaReferencia(p) === 'POI') };
+      if (Array.isArray(valor)) return { encontrado: true, puntos: valor.filter(p => esPoiBuscable(p)) };
+      if (valor && Array.isArray(valor.puntos)) return { encontrado: true, puntos: valor.puntos.filter(p => esPoiBuscable(p)) };
     }
     return { encontrado: false, puntos: [] };
   }

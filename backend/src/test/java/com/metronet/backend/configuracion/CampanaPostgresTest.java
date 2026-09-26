@@ -69,6 +69,7 @@ class CampanaPostgresTest {
                     assertTrue(restricciones.observarDiseno(nivel).isEmpty(), "Territorio nivel " + nivel);
                     var resultado = juego.evaluarEscenario(7, nivel);
                     assertTrue(resultado.completado(), "Nivel " + nivel);
+                    assertEquals(100, resultado.puntaje(), "Todos los criterios del nivel " + nivel);
                     assertEquals(nivel == 10, resultado.idSiguienteEscenario() == null);
                     assertEquals(nivel, juego.obtenerResumenProgreso(7).nivelesCompletados());
                 }
@@ -79,7 +80,7 @@ class CampanaPostgresTest {
                 var ranking = puntos.ranking(7);
                 assertEquals(1, ranking.tuPosicion());
                 assertEquals(10, ranking.jugadores().getFirst().nivelesCompletados());
-                assertTrue(ranking.puntajeTotal() > 0 && ranking.puntajeTotal() <= ranking.puntajeMaximo());
+                assertEquals(1000, ranking.puntajeTotal());
                 int escenarioSeis = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=6", Integer.class);
                 jdbc.update("INSERT INTO intento VALUES (20,7,?,20,1,'COMPLETADO',100,50,NULL)", escenarioSeis);
                 assertEquals(ranking.puntajeTotal(), puntos.ranking(7).puntajeTotal());
@@ -95,8 +96,46 @@ class CampanaPostgresTest {
                 inicializador.run();
                 assertEquals("Consigna personalizada", jdbc.queryForObject("SELECT objetivo FROM escenario WHERE numero=5", String.class));
                 assertEquals(20, jdbc.queryForObject("SELECT (reglas_exito->>'maximoEstaciones')::int FROM escenario WHERE numero=5", Integer.class));
+                verificarPuntajeSimulaciones(jdbc, juego, mapper, geo, restricciones);
             } finally { conexion.rollback(); }
             assertNull(jdbc.queryForObject("SELECT to_regclass('pg_temp.escenario')::text", String.class));
         }
+    }
+
+    private void verificarPuntajeSimulaciones(JdbcTemplate jdbc, JuegoEducativoService juego, ObjectMapper mapper,
+        GeografiaService geo, RestriccionesGeograficasService restricciones) {
+        // Solo se amplían las tablas TEMP privadas creadas por esta prueba.
+        jdbc.execute("ALTER TABLE escenario ADD COLUMN id_diseno_base INT");
+        jdbc.execute("ALTER TABLE simulacion ADD COLUMN velocidad NUMERIC, ADD COLUMN duracion INT, ADD COLUMN estado VARCHAR, ADD COLUMN fecha_ejecucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+        jdbc.update("UPDATE usuario SET numero_campana_actual=1 WHERE id_usuario=7");
+        var simulaciones = new SimulacionService(jdbc, org.mockito.Mockito.mock(DisenoAdministracionService.class),
+            new ObjetivosPuntosInteresService(mapper, geo), juego, restricciones);
+        for (int duracion : new int[]{10, 3600}) {
+            var resultado = simulaciones.ejecutarSimulacion(7, 6,
+                new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, duracion));
+            assertEquals(100, resultado.puntaje());
+            assertEquals(100, juego.evaluarEscenario(7, 6).puntaje());
+        }
+        jdbc.update("UPDATE metro SET velocidad_promedio=90 WHERE id_diseno=6");
+        var parcial = simulaciones.ejecutarSimulacion(7, 6,
+            new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 10));
+        var evaluacion = juego.evaluarEscenario(7, 6);
+        assertTrue(parcial.puntaje() > 0 && parcial.puntaje() < 100);
+        assertEquals(parcial.puntaje(), evaluacion.puntaje());
+        assertFalse(evaluacion.completado());
+        assertEquals(100, jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=6", Integer.class), "El logro anterior se conserva");
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> simulaciones.ejecutarSimulacion(7, 6,
+            new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 1)));
+        assertEquals(parcial.puntaje(), juego.obtenerDesempeno(7, 6).puntaje(), "Un error no descuenta puntos");
+        jdbc.update("UPDATE intento SET estado='VALIDADO', puntaje=NULL WHERE id_intento=6");
+        var nuevoParcial = simulaciones.ejecutarSimulacion(7, 6,
+            new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 10));
+        assertEquals(nuevoParcial.puntaje(), jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=6", Integer.class),
+            "El resultado parcial se persiste aunque el navegador todavía no solicite la evaluación final");
+        assertEquals("COMPLETADA", jdbc.queryForObject("SELECT estado FROM intento WHERE id_intento=6", String.class));
+        jdbc.update("UPDATE escenario SET progresivo=FALSE, modo='EDICION_LIBRE', reglas_exito='{}'::jsonb WHERE numero=6");
+        var libre = simulaciones.ejecutarSimulacion(7, 6,
+            new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 10));
+        assertEquals(0, libre.puntaje(), "Una red sin criterios no obtiene puntos por agregar elementos");
     }
 }

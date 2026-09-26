@@ -342,7 +342,7 @@ public class SimulacionService {
         int lineas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", Integer.class, idDiseno);
         int estaciones = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
         int transbordos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ? AND transbordo = TRUE", Integer.class, idDiseno);
-        int puntaje = Math.min(100, 35 + Math.min(25, estaciones * 3) + Math.min(20, lineas * 8) + Math.min(15, unidades * 5) + Math.min(5, transbordos * 3));
+        int puntaje = 0; // Sin criterios de escenario no se asignan puntos por cantidad de elementos.
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + solicitud.duracion()
             + " segundos. La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
         Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
@@ -352,14 +352,22 @@ public class SimulacionService {
                 .map(u -> String.format(java.util.Locale.ROOT, "%s: %.1f km/h, %.1f min", u.linea(), u.velocidadKmh(), u.tiempoMinutos()))
                 .collect(java.util.stream.Collectors.joining("; "));
             comentarios += juegoEducativoService.marcaRedSimulada(idDiseno);
-            puntaje = 0; // Los puntos oficiales se otorgan exclusivamente al evaluar la consigna completa.
         }
         Integer idSimulacion = jdbcTemplate.queryForObject("""
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
             """, Integer.class, idIntento, solicitud.velocidad(), solicitud.duracion(), comentarios, puntaje);
+        if (progresivo) {
+            var desempeno = juegoEducativoService.obtenerDesempeno(idUsuario, idDiseno);
+            if (desempeno != null) puntaje = desempeno.puntaje();
+            jdbcTemplate.update("UPDATE simulacion SET puntaje = ? WHERE id_simulacion = ?", puntaje, idSimulacion);
+        }
         String estadoIntento = "COMPLETADO".equals(resumen.estado()) ? "COMPLETADO" : "COMPLETADA";
-        jdbcTemplate.update("UPDATE intento SET estado = ?, puntaje = CASE WHEN ? THEN puntaje ELSE ? END WHERE id_usuario = ? AND id_diseno = ?", estadoIntento, progresivo, puntaje, idUsuario, idDiseno);
+        jdbcTemplate.update("""
+            UPDATE intento SET estado = ?,
+                puntaje = CASE WHEN estado = 'COMPLETADO' THEN GREATEST(COALESCE(puntaje, 0), ?) ELSE ? END
+            WHERE id_usuario = ? AND id_diseno = ?
+            """, estadoIntento, puntaje, puntaje, idUsuario, idDiseno);
         return obtenerResultado(idSimulacion);
     }
 

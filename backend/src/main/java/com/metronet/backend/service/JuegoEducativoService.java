@@ -177,14 +177,14 @@ public class JuegoEducativoService {
         DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
         boolean completado = evaluacion.completado() && (desempeno == null || (desempeno.velocidadCumplida() && desempeno.simulacionActual()));
         if (!completado) progreso = Math.min(progreso, 99);
-        Integer puntaje = completado ? (desempeno == null ? 100 : desempeno.puntaje()) : null;
+        Integer puntaje = desempeno.puntaje();
         String estado = estadoLuegoDeEvaluacion(completado, intento.estado());
         jdbcTemplate.update("""
-            UPDATE intento SET estado = ?, progreso = GREATEST(progreso, ?), puntaje = CASE WHEN CAST(? AS INTEGER) IS NULL THEN puntaje ELSE GREATEST(COALESCE(puntaje, 0), ?) END,
+            UPDATE intento SET estado = ?, progreso = GREATEST(progreso, ?), puntaje = CASE WHEN estado = 'COMPLETADO' THEN GREATEST(COALESCE(puntaje, 0), ?) ELSE ? END,
             fecha_finalizacion = CASE WHEN ? THEN COALESCE(fecha_finalizacion, ?) ELSE fecha_finalizacion END
             WHERE id_intento = ?
             """, estado, progreso, puntaje, puntaje, completado, LocalDateTime.now(), intento.idIntento());
-        if (completado && desempeno != null && booleano(leerJson(intento.reglasExito()), "requiereSimulacion")) {
+        if (booleano(leerJson(intento.reglasExito()), "requiereSimulacion")) {
             // El historial conserva el resultado de esta ejecución; el intento conserva su mejor puntaje.
             jdbcTemplate.update("""
                 UPDATE simulacion SET puntaje = ?
@@ -216,10 +216,7 @@ public class JuegoEducativoService {
     }
 
     private DesempenoNivelResponse calcularDesempeno(IntentoEvaluable intento, int idDiseno, EvaluacionCondiciones evaluacion) {
-        boolean principal = evaluacion.condiciones().stream().filter(c -> !c.clave().equals("requiereSimulacion"))
-            .allMatch(CondicionConsignaResponse::completado);
-        return puntuacion.calcular(idDiseno, intento.idIntento(), intento.reglasExito(), principal,
-            booleano(leerJson(intento.reglasExito()), "requiereSimulacion"));
+        return puntuacion.calcular(idDiseno, intento.reglasExito(), evaluacion.condiciones());
     }
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
@@ -237,18 +234,8 @@ public class JuegoEducativoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe una consigna disponible para este diseño");
         }
         EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
-        DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
-        if (desempeno == null) return new ConsignaDisenoResponse(determinarEstadoGlobal(intento, evaluacion),
+        return new ConsignaDisenoResponse(determinarEstadoGlobal(intento, evaluacion),
             evaluacion.progreso(), evaluacion.condiciones(), evaluacion.referenciasObjetivo());
-        List<CondicionConsignaResponse> condiciones = new ArrayList<>(evaluacion.condiciones());
-        if (desempeno.velocidadObjetivoKmh() != null) condiciones.add(new CondicionConsignaResponse("velocidadCirculacion",
-            "Después de resolver la red: circulación de " + desempeno.velocidadObjetivoKmh() + " km/h ± " + desempeno.toleranciaKmh(),
-            desempeno.velocidadCumplida() ? 1 : 0, 1, desempeno.velocidadCumplida()));
-        if (booleano(leerJson(intento.reglasExito()), "requiereSimulacion")) condiciones.add(new CondicionConsignaResponse("simulacionActual",
-            "Simular la red y velocidades actuales", desempeno.simulacionActual() ? 1 : 0, 1, desempeno.simulacionActual()));
-        int progreso = Math.round(100f * condiciones.stream().filter(CondicionConsignaResponse::completado).count() / condiciones.size());
-        String estado = progreso == 100 ? (ESTADO_COMPLETADO.equals(intento.estado()) ? ESTADO_COMPLETADO : "LISTO") : progreso == 0 ? "INICIADO" : "PARCIAL";
-        return new ConsignaDisenoResponse(estado, progreso, condiciones, evaluacion.referenciasObjetivo());
     }
 
     private List<EscenarioBase> listarEscenariosProgresivos() {
@@ -471,9 +458,14 @@ public class JuegoEducativoService {
             condiciones.add(new CondicionConsignaResponse("configuracionPuntosInteres", error, 0, 1, false));
         }
         condiciones.addAll(condicionesGeograficasService.evaluar(idDiseno, reglas, puntosInteresObjetivo));
-        int aprobadas = (int) condiciones.stream().filter(CondicionConsignaResponse::completado).count();
-        int progreso = condiciones.isEmpty() ? 100 : Math.round((aprobadas * 100f) / condiciones.size());
-        boolean completado = condiciones.stream().allMatch(CondicionConsignaResponse::completado);
+        var circulacion = puntuacion.condicionesCirculacion(idDiseno, intento.idIntento(), intento.reglasExito(), booleano(reglas, "requiereSimulacion"));
+        // Una simulación vigente satisface la obligación de simular: no contar dos veces la misma condición.
+        if (circulacion.stream().anyMatch(c -> c.clave().equals("simulacionActual"))) {
+            condiciones.removeIf(c -> c.clave().equals("requiereSimulacion"));
+        }
+        condiciones.addAll(circulacion);
+        int progreso = PuntuacionService.normalizar(condiciones);
+        boolean completado = !condiciones.isEmpty() && condiciones.stream().allMatch(CondicionConsignaResponse::completado);
         return new EvaluacionCondiciones(
             condiciones,
             referenciasObjetivo,

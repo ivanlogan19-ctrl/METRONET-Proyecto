@@ -71,7 +71,7 @@ test('Dieciséis combinaciones repetidas: marcadores, indicadores y cámara inde
     assert.deepEqual(await p.locator('.metronet-capas-activas > span:visible').evaluateAll(es => es.map(e => e.dataset.categoria).sort()), esperadas);
     assert.equal(await p.locator('.metronet-capas-activas > span').count(), 4);
     assert.equal(estado.formasAdicionales, 0, 'Los verdes usan los mismos marcadores individuales que infraestructura');
-    assert.equal(estado.indebidos, 0); assert.equal(estado.etiquetas, 0); assert.equal(estado.catalogo, 73);
+    assert.equal(estado.indebidos, 0); assert.equal(estado.etiquetas, 0); assert.equal(estado.catalogo, 80);
     assert.equal(estado.objetos, inicial.objetos); assert.deepEqual(estado.camara, inicial.camara);
     if (mascara === 15) assert.deepEqual(estado.visibles, inicial.visibles);
   }
@@ -117,12 +117,12 @@ test('Solo POI tiene búsqueda; cerrar la ficha mantiene el punto y borrar la co
   await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
   const buscar = p.getByRole('searchbox', { name: 'Buscar POI' });
   assert.equal(await p.getByRole('searchbox').count(), 1);
-  for (const [nombre, id] of [['Parque Rodó', 85], ['Puerto del Buceo', 20], ['Lago del Parque Rivera', 29]]) {
+  for (const [nombre, id] of [['Parque Rodó', 85], ['Lago del Parque Rivera', 29]]) {
     await buscar.fill(nombre);
     assert.equal(await p.locator(`.metronet-panel-puntos-lista button[data-id-punto="${id}"]`).count(), 0);
     assert.equal(await p.locator('.metronet-panel-puntos-lista button:not([data-categoria="POI"])').count(), 0);
   }
-  for (const nombre of ['Palacio Legislativo', 'Hospital de Clínicas']) {
+  for (const nombre of ['Palacio Legislativo', 'Hospital de Clínicas', 'Puerto del Buceo', 'Terminal y Shopping Tres Cruces']) {
     await buscar.fill(nombre);
     await p.locator('.metronet-panel-puntos-lista button').first().click();
     await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
@@ -156,7 +156,8 @@ test('Objetivos territoriales siguen disponibles con categorías apagadas, sin e
     catalogo: poi.obtenerResumenPuntos().puntosBusqueda.map(p => p.id),
   }));
   assert.deepEqual(estado.visibles, [20, 85]);
-  assert.equal(estado.catalogo.includes(20) || estado.catalogo.includes(85), false);
+  assert.equal(estado.catalogo.includes(20), true);
+  assert.equal(estado.catalogo.includes(85), false);
   await p.evaluate(() => poi.seleccionarPunto(20));
   assert.match(await p.getByRole('dialog').innerText(), /Infraestructura · Puerto/);
 });
