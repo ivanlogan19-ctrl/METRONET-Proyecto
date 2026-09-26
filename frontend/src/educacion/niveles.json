@@ -28,7 +28,7 @@
       "concepto": "Líneas y estaciones",
       "explicacion": "Las estaciones son los puntos de una red de metro. Una línea agrupa estaciones para organizar un recorrido.",
       "contexto": "Creá una línea con al menos dos estaciones sobre el mapa.",
-      "consejo": "Elegí dónde colocar las estaciones y dales nombres que te ayuden a reconocerlas al armar la red."
+      "consejo": "Elegí el icono de estación y colocá las estaciones sobre el mapa. Sus nombres se generan automáticamente y podés editarlos después."
     },
     "transicion": {
       "aprendizaje": "Las estaciones son los puntos de una red de metro. Una línea agrupa estaciones para organizar un recorrido.",
@@ -130,7 +130,7 @@
     "nombre": "Nivel 4 · Simulación completa",
     "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, validá la red, asigná un metro y simulá.",
+    "instrucciones": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, asigná un metro y simulá. La red se valida automáticamente.",
     "reglasExito": {
       "minimoEstaciones": 3,
       "minimoLineas": 1,
@@ -182,7 +182,7 @@
       "concepto": "Cobertura y simulación",
       "explicacion": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada.",
       "contexto": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido.",
-      "consejo": "Revisá los puntos de interés de la consigna y validá la red antes de iniciar la simulación."
+      "consejo": "Revisá los puntos de interés de la consigna. Simular comprueba automáticamente si la red está preparada."
     },
     "transicion": {
       "aprendizaje": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada.",
@@ -199,7 +199,7 @@
     "nombre": "Nivel 5 · Lugares y barrios",
     "objetivo": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios.",
     "dificultad": "Avanzado",
-    "instrucciones": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; validá y simulá.",
+    "instrucciones": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; simulá para comprobar automáticamente la red.",
     "reglasExito": {
       "minimoEstaciones": 4,
       "minimoLineas": 1,
@@ -288,7 +288,7 @@
     "nombre": "Nivel 6 · Movilidad entre zonas",
     "objetivo": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este.",
     "dificultad": "Avanzado",
-    "instrucciones": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; validá y simulá.",
+    "instrucciones": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; simulá para comprobar automáticamente la red.",
     "reglasExito": {
       "minimoEstaciones": 5,
       "minimoLineas": 1,
@@ -393,7 +393,7 @@
     "nombre": "Nivel 7 · Nodos de intercambio",
     "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; validá y simulá.",
+    "instrucciones": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; simulá para comprobar automáticamente la red.",
     "reglasExito": {
       "minimoEstaciones": 6,
       "minimoLineas": 2,
@@ -640,7 +640,7 @@
     "nombre": "Nivel 9 · Planificación precisa",
     "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, validá y simulá.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, simulá para comprobar automáticamente la red.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,

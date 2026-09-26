@@ -1,3 +1,5 @@
+import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
+import { CATEGORIAS_REFERENCIAS, colorCssReferencia } from '../configuracion/CategoriasReferencias.js';
 import '../estilos/puntos-interes.css';
 import { describirReferencia, obtenerCategoriaReferencia, esPoiBuscable } from '../configuracion/CategoriasReferencias.js';
 
@@ -9,6 +11,7 @@ const MAXIMO_RESULTADOS_BUSQUEDA = 8;
 export default class PanelPuntosInteres {
   constructor(opciones = {}) {
     this.contenedorPadre = opciones.contenedorPadre ?? null;
+    this.contenedorAcceso = opciones.contenedorAcceso ?? null;
     this.alSeleccionar = opciones.alSeleccionar ?? (() => {});
     this.alLimpiarBusqueda = opciones.alLimpiarBusqueda ?? (() => {});
     this.manejadorClicFuera = null;
@@ -40,13 +43,14 @@ export default class PanelPuntosInteres {
     this.eliminar();
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-panel-puntos-interes';
-    this.elemento.setAttribute('aria-label', 'Buscador POI');
+    this.elemento.setAttribute('aria-label', 'Buscar punto de interés');
 
     const cabecera = document.createElement('div');
     cabecera.className = 'metronet-panel-puntos-cabecera';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-panel-puntos-titulo';
-    titulo.textContent = 'Buscar POI';
+    titulo.textContent = 'Buscar punto de interés';
+    titulo.classList.add('metronet-solo-lectores');
     const acciones = document.createElement('div');
     acciones.className = 'metronet-panel-puntos-acciones';
     this.contador = document.createElement('span');
@@ -68,14 +72,14 @@ export default class PanelPuntosInteres {
     this.contenido.className = 'metronet-panel-puntos-contenido';
     this.contenido.hidden = true;
     const etiquetaBusqueda = document.createElement('label');
-    etiquetaBusqueda.className = 'metronet-panel-puntos-etiqueta-busqueda';
+    etiquetaBusqueda.className = 'metronet-panel-puntos-etiqueta-busqueda metronet-solo-lectores';
     etiquetaBusqueda.htmlFor = `${this.identificador}-busqueda`;
-    etiquetaBusqueda.textContent = 'Buscar POI';
+    etiquetaBusqueda.textContent = 'Buscar punto de interés';
     this.campoBusqueda = document.createElement('input');
     this.campoBusqueda.id = `${this.identificador}-busqueda`;
     this.campoBusqueda.className = 'metronet-panel-puntos-busqueda';
     this.campoBusqueda.type = 'search';
-    this.campoBusqueda.placeholder = 'Nombre, tipo o barrio';
+    this.campoBusqueda.placeholder = 'Buscar punto de interés';
     this.campoBusqueda.autocomplete = 'off';
     this.campoBusqueda.setAttribute('aria-controls', `${this.identificador}-lista`);
     this.campoBusqueda.addEventListener('input', () => {
@@ -90,21 +94,29 @@ export default class PanelPuntosInteres {
     this.estado = document.createElement('p');
     this.estado.className = 'metronet-panel-puntos-estado-contexto';
     this.estado.setAttribute('aria-live', 'polite');
-    const ayuda = document.createElement('small');
-    ayuda.textContent = 'El punto buscado permanece marcado hasta borrar la búsqueda.';
-    this.contenido.append(etiquetaBusqueda, this.campoBusqueda, ayuda, this.estado, this.lista);
+    const cerrar = document.createElement('button'); cerrar.type = 'button';
+    cerrar.className = 'metronet-panel-puntos-cerrar';
+    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar búsqueda');
+    cerrar.addEventListener('click', () => { this.establecerAbierto(false); this.botonAlternar.focus({preventScroll:true}); });
+    this.contenido.append(etiquetaBusqueda, this.campoBusqueda, cerrar, this.estado, this.lista);
     this.manejadorClicFuera = (evento) => {
-      if (this.estaAbierto && !this.elemento.contains(evento.target)) this.establecerAbierto(false);
+      if (this.estaAbierto && !this.elemento.contains(evento.target) && !this.botonAlternar.contains(evento.target)) this.establecerAbierto(false);
     };
     document.addEventListener('pointerdown', this.manejadorClicFuera);
     this.elemento.addEventListener('keydown', (evento) => {
       if (evento.key === 'Escape' && this.estaAbierto) {
+        evento.stopPropagation();
         this.establecerAbierto(false);
         this.botonAlternar.focus();
       }
     });
     this.elemento.append(cabecera, this.contenido);
     this.contenedorPadre.appendChild(this.elemento);
+    if (this.contenedorAcceso) {
+      this.contenedorAcceso.append(this.botonAlternar);
+      this.elemento.dataset.accesoIntegrado = '';
+      cabecera.hidden = true;
+    }
     this.establecerAbierto(false);
     this.renderizar();
   }
@@ -136,9 +148,11 @@ export default class PanelPuntosInteres {
     this.estaAbierto = Boolean(estaAbierto);
     if (!this.contenido || !this.botonAlternar) return;
     this.contenido.hidden = !this.estaAbierto;
+    this.elemento.dataset.abierto = String(this.estaAbierto);
+    if (this.contenedorAcceso) this.contenedorPadre.hidden = !this.estaAbierto;
     this.botonAlternar.setAttribute('aria-expanded', String(this.estaAbierto));
-    this.botonAlternar.setAttribute('aria-label', this.estaAbierto ? 'Cerrar buscador POI' : 'Abrir buscador POI');
-    this.botonAlternar.textContent = this.estaAbierto ? '▲' : '▼';
+    configurarBotonIcono(this.botonAlternar, 'buscar', 'Buscar punto de interés');
+    if (this.estaAbierto) this.campoBusqueda.focus({preventScroll:true});
     if (this.estaAbierto) this.renderizarLista();
   }
 
@@ -194,7 +208,8 @@ export default class PanelPuntosInteres {
     const icono = document.createElement('span');
     icono.className = 'metronet-panel-puntos-icono';
     icono.setAttribute('aria-hidden', 'true');
-    icono.textContent = this.obtenerIconoEstado(punto.estado);
+    icono.innerHTML = iconoRetro(CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].icono);
+    icono.style.color = colorCssReferencia(obtenerCategoriaReferencia(punto));
     const texto = document.createElement('span');
     const nombre = document.createElement('span');
     nombre.className = 'metronet-panel-puntos-nombre';
@@ -203,6 +218,7 @@ export default class PanelPuntosInteres {
     tipo.className = 'metronet-panel-puntos-tipo';
     tipo.textContent = describirReferencia(punto);
     boton.dataset.categoria = obtenerCategoriaReferencia(punto);
+    boton.style.setProperty('--referencia-color', colorCssReferencia(boton.dataset.categoria));
     texto.append(nombre, tipo);
     identidad.append(icono, texto);
     const estado = document.createElement('span');
@@ -283,7 +299,7 @@ export default class PanelPuntosInteres {
       const nombre = this.normalizarTexto(punto.nombre);
       const tipo = this.normalizarTexto(punto.tipo);
       const barrio = this.normalizarTexto(punto.barrio ?? punto.barrioGeografico);
-      const clave = nombre ? `${nombre}|${tipo}|${barrio}` : `id:${String(punto.id ?? '')}`;
+      const clave = punto.id != null ? `id:${punto.id}` : `${nombre}|${tipo}|${barrio}`;
       if (claves.has(clave)) return false;
       claves.add(clave);
       return true;
@@ -357,6 +373,7 @@ export default class PanelPuntosInteres {
   eliminar() {
     document.removeEventListener('pointerdown', this.manejadorClicFuera);
     this.manejadorClicFuera = null;
+    this.botonAlternar?.remove();
     this.elemento?.remove();
     this.elemento = null;
     this.botonAlternar = null;

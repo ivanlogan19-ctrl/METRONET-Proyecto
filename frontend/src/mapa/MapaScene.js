@@ -1,3 +1,4 @@
+import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { confirmarSistema } from '../componentes/DialogoSistema.js';
 import Phaser from 'phaser';
 
@@ -10,12 +11,9 @@ import CapaRedMetro from './capas/CapaRedMetro.js';
 import CapaTerritorial from './capas/CapaTerritorial.js';
 import TerritorioMapa from './utilidades/TerritorioMapa.js';
 
-import SelectorZonas from './controles/SelectorZonas.js';
-import SelectorBarrios from './controles/SelectorBarrios.js';
 
 import ControlZoom from './controles/ControlZoom.js';
-import PanelPuntosInteres from './controles/PanelPuntosInteres.js';
-import PanelReferenciasTerritoriales from './controles/PanelReferenciasTerritoriales.js';
+import ReferenciasGeograficas from './controles/ReferenciasGeograficas.js';
 import PanelSeleccionGeografica from './controles/PanelSeleccionGeografica.js';
 import EditorRedMetro from './controles/EditorRedMetro.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
@@ -99,8 +97,6 @@ export default class MapaScene extends Phaser.Scene {
 
     this.crearCapaRedMetro();
 
-    this.crearControles();
-
     this.crearPanelPuntosInteres();
 
     this.crearPanelSeleccionGeografica();
@@ -115,6 +111,14 @@ export default class MapaScene extends Phaser.Scene {
 
     this.manejadorResize = () => this.actualizarTamano();
     this.scale.on('resize', this.manejadorResize);
+
+    // Responder al tamaño real del contenedor, incluso sin un resize de ventana.
+    // Phaser conserva su gestión de cámara; solo refrescamos si cambiaron los límites.
+    this.observadorContenedor = new ResizeObserver(() => {
+      if (this.scale.getParentBounds()) this.scale.refresh();
+    });
+    this.observadorContenedor.observe(this.contenedorMapa);
+    this.contenedorMapa.querySelector('.metronet-mapa-cargando')?.remove();
 
     this.events.once('shutdown', () => {
       this.limpiar();
@@ -139,10 +143,10 @@ export default class MapaScene extends Phaser.Scene {
     this.consultaPanelMovil = window.matchMedia('(max-width: 620px)');
     const actualizar = (colapsado) => {
       const debeColapsar = this.consultaPanelMovil.matches && colapsado;
+      boton.hidden = !this.consultaPanelMovil.matches;
       this.contenedorControles.classList.toggle('metronet-panel-colapsado', debeColapsar);
       boton.setAttribute('aria-expanded', String(!debeColapsar));
-      boton.textContent = debeColapsar ? 'Editar red' : 'Ocultar';
-      window.requestAnimationFrame(() => this.scale.refresh?.());
+      configurarBotonIcono(boton, debeColapsar ? 'desplegar' : 'plegar', debeColapsar ? 'Mostrar panel' : 'Ocultar panel');
     };
     actualizar(true);
     this.manejadorAlternarPanel = () => actualizar(!this.contenedorControles.classList.contains('metronet-panel-colapsado'));
@@ -176,6 +180,12 @@ export default class MapaScene extends Phaser.Scene {
 
   crearCapaPuntosInteres() {
     this.capaPuntosInteres = new CapaPuntosInteres(this, {
+      // El gesto de construcción tiene prioridad; la búsqueda explícita sigue disponible.
+      permitirSeleccion: puntero => {
+        if (this.editorRedMetro?.modo && this.editorRedMetro.modo !== 'normal') return false;
+        const capa = this.capaRedMetro, punto = capa?.convertirPuntero(puntero)?.punto;
+        return !punto || !capa.diseno || !(capa.obtenerEstacionCercana(punto) || capa.obtenerUnidadCercana(punto) || capa.obtenerTramoCercano(punto));
+      },
       datos: this.datosPuntosInteres,
 
       capaBarrios: this.capaBarrios,
@@ -210,28 +220,16 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   crearPanelPuntosInteres() {
-    if (!this.contenedorPuntosInteres || !this.capaPuntosInteres) {
-      return;
-    }
-
-    this.panelPuntosInteres = new PanelPuntosInteres({
-      contenedorPadre: this.contenedorPuntosInteres,
-      alSeleccionar: (punto) => this.localizarReferencia(punto, { desdeBusqueda: true }),
-      alLimpiarBusqueda: () => this.capaPuntosInteres.limpiarPuntoBuscado(),
-    });
-    this.panelReferencias = new PanelReferenciasTerritoriales({
+    this.referenciasGeograficas = new ReferenciasGeograficas(this, {
       contenedor: this.contenedorMapa.closest('.metronet-area-mapa').querySelector('[data-contenedor-referencias]'),
       mapa: this.contenedorMapa,
-      alCambiarCategorias: (categorias) => {
-        this.capaPuntosInteres.establecerCategoriasVisibles(categorias);
-      },
+      alSeleccionarGeografia: (tipo, nombres) => this.actualizarInformacionSeleccionGeografica(tipo, nombres),
+      alSeleccionarPunto: punto => this.localizarReferencia(punto, { desdeBusqueda: true }),
     });
-
-    this.panelReferencias.crear();
-    this.panelReferencias.elemento.append(this.capaTerritorial.elemento);
-    this.panelPuntosInteres.crear();
-    this.panelReferencias.actualizar([...this.capaPuntosInteres.categoriasVisibles]);
-    this.panelPuntosInteres.actualizar(this.capaPuntosInteres.obtenerResumenPuntos());
+    this.panelReferencias = this.referenciasGeograficas.panel;
+    this.panelPuntosInteres = this.referenciasGeograficas.busqueda;
+    this.selectorBarrios = this.referenciasGeograficas.barrios;
+    this.selectorZonas = this.referenciasGeograficas.zonas;
   }
 
   localizarReferencia(referencia, opciones = {}) {
@@ -265,6 +263,7 @@ export default class MapaScene extends Phaser.Scene {
 
   crearCapaRedMetro() {
     this.capaRedMetro = new CapaRedMetro(this, {
+      editable: true,
       capaBarrios: this.capaBarrios,
     });
     this.capaRedMetro.crear();
@@ -286,14 +285,8 @@ export default class MapaScene extends Phaser.Scene {
     };
   }
 
-  crearControles() {
-    this.crearSelectorZonas();
-
-    this.crearSelectorBarrios();
-  }
-
   crearControlZoom() {
-    const contenedorHerramientas = this.panelPuntosInteres?.obtenerContenedorHerramientas?.();
+    const contenedorHerramientas = this.panelReferencias?.herramientas;
     this.controlZoom = new ControlZoom(this, {
       capaBarrios: this.capaBarrios,
 
@@ -307,9 +300,9 @@ export default class MapaScene extends Phaser.Scene {
 
       permitirPan: () => true,
 
-      permitirArrastre: () => this.capaRedMetro?.modo === 'normal',
+      permitirArrastre: () => true,
 
-      permitirArrastrePrimario: () => this.capaRedMetro?.modo === 'normal',
+      permitirArrastrePrimario: () => true,
 
       etiquetaAjustar: 'Ajustar red',
 
@@ -383,154 +376,6 @@ export default class MapaScene extends Phaser.Scene {
     window.location.assign('/login.html');
   }
 
-  crearSelectorZonas() {
-    this.selectorZonas = new SelectorZonas({
-      id: 'metronet-selector-zonas',
-
-      titulo: 'Zonas',
-
-      ancho: 180,
-
-      posicion: {
-        top: 55,
-
-        right: 196,
-      },
-
-      contenedorPadre: this.contenedorSelectoresMapa ?? this.contenedorControlesMapa,
-
-      integrado: true,
-
-      onCambio: (zonas) => {
-        /*
-         * Nos aseguramos de que
-         * siempre trabajemos con
-         * un arreglo.
-         */
-        const zonasSeleccionadas = Array.isArray(zonas) ? zonas : [];
-
-        /*
-         * Actualizamos el mapa
-         * de zonas.
-         */
-        this.capaZonas.establecerZonasSeleccionadas(zonasSeleccionadas);
-
-        /*
-         * Actualizamos la lista
-         * de barrios.
-         */
-        const barriosSeleccionados = this.actualizarBarriosSegunZonas(zonasSeleccionadas);
-
-        this.capaBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
-
-        /*
-         * IMPORTANTE:
-         * actualizamos los puntos
-         * de interés.
-         */
-        if (this.capaPuntosInteres) {
-          this.capaPuntosInteres.establecerZonasSeleccionadas(zonasSeleccionadas);
-
-          /*
-           * Cuando seleccionamos
-           * una zona, no queremos
-           * conservar una selección
-           * anterior de barrios.
-           */
-          this.capaPuntosInteres.establecerBarriosSeleccionados(barriosSeleccionados);
-        }
-
-        /*
-         * Actualizamos los íconos
-         * representativos de barrios.
-         */
-        if (this.capaIconosBarrios) {
-          this.capaIconosBarrios.establecerZonasSeleccionadas(zonasSeleccionadas);
-
-          this.capaIconosBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
-        }
-
-        this.actualizarInformacionSeleccionGeografica('zona', zonasSeleccionadas);
-
-        /*
-         * Zoom automático de la zona.
-         */
-        if (this.controlZoom) {
-          if (zonasSeleccionadas.length > 0) {
-            this.controlZoom.enfocarZonas(zonasSeleccionadas);
-          } else {
-            this.controlZoom.restaurar();
-          }
-        }
-      },
-    });
-
-    this.selectorZonas.crear();
-  }
-
-  crearSelectorBarrios() {
-    const barrios = this.capaBarrios.obtenerNombres();
-
-    this.selectorBarrios = new SelectorBarrios({
-      id: 'metronet-selector-barrios',
-
-      titulo: 'Barrios',
-
-      ancho: 180,
-
-      posicion: {
-        top: 55,
-
-        right: 8,
-      },
-
-      contenedorPadre: this.contenedorSelectoresMapa ?? this.contenedorControlesMapa,
-
-      integrado: true,
-
-      onCambio: (barrios) => {
-        const barriosSeleccionados = Array.isArray(barrios) ? barrios : [];
-
-        /*
-         * Actualizamos el
-         * resaltado de barrios.
-         */
-        this.capaBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
-
-        /*
-         * Actualizamos los
-         * puntos de interés.
-         */
-        if (this.capaPuntosInteres) {
-          this.capaPuntosInteres.establecerBarriosSeleccionados(barriosSeleccionados);
-        }
-
-        /*
-         * Actualizamos los
-         * íconos de barrios.
-         */
-        if (this.capaIconosBarrios) {
-          this.capaIconosBarrios.establecerBarriosSeleccionados(barriosSeleccionados);
-        }
-
-        this.actualizarInformacionSeleccionGeografica('barrio', barriosSeleccionados);
-
-        /*
-         * Zoom automático.
-         */
-        if (this.controlZoom) {
-          if (barriosSeleccionados.length > 0) {
-            this.controlZoom.enfocarBarrios(barriosSeleccionados);
-          } else {
-            this.controlZoom.restaurar();
-          }
-        }
-      },
-    });
-
-    this.selectorBarrios.crear(barrios);
-  }
-
   actualizarInformacionSeleccionGeografica(tipo, nombres) {
     const seleccion = Array.isArray(nombres) ? nombres.filter(Boolean) : [];
     const zonasSeleccionadas = this.capaZonas?.obtenerZonasSeleccionadas?.() ?? [];
@@ -547,34 +392,6 @@ export default class MapaScene extends Phaser.Scene {
       tipo,
       nombres: seleccion,
       resumen: this.capaPuntosInteres?.obtenerResumenPuntos(),
-    });
-  }
-
-  actualizarBarriosSegunZonas(zonas) {
-    if (!this.selectorBarrios || !this.capaBarrios) {
-      return;
-    }
-
-    if (!Array.isArray(zonas) || zonas.length === 0) {
-      const todosLosBarrios = this.capaBarrios.obtenerNombres();
-
-      return this.selectorBarrios.establecerBarrios(todosLosBarrios, {
-        limpiarSeleccion: true,
-      });
-    }
-
-    const barrios = this.capaBarrios.obtenerBarrios();
-
-    const barriosFiltrados = barrios
-      .filter((barrio) => {
-        const zonaBarrio = obtenerZona(barrio.nombre);
-
-        return zonas.includes(zonaBarrio);
-      })
-      .map((barrio) => barrio.nombre);
-
-    return this.selectorBarrios.establecerBarrios(barriosFiltrados, {
-      limpiarSeleccion: true,
     });
   }
 
@@ -615,6 +432,7 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   limpiar() {
+    this.observadorContenedor?.disconnect();
     this.scale.off('resize', this.manejadorResize);
     this.manejadorResize = null;
     const botonAlternarPanel = this.contenedorControles?.querySelector('[data-panel-edicion-toggle]');

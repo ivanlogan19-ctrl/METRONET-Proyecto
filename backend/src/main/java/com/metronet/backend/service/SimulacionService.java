@@ -80,7 +80,7 @@ public class SimulacionService {
         Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
         Integer idEscenario = jdbcTemplate.queryForObject("""
             INSERT INTO escenario (nombre, modo, objetivo, dificultad, instrucciones)
-            VALUES (?, 'EDICION_LIBRE', 'Diseño de red creado por el jugador', 'Inicial', 'Creá estaciones, unilas en líneas y validá la red antes de usarla.')
+            VALUES (?, 'EDICION_LIBRE', 'Diseño de red creado por el jugador', 'Inicial', 'Creá estaciones y unilas en líneas. Guardar y Simular comprueban la red automáticamente.')
             RETURNING id_escenario
             """, Integer.class, nombre);
 
@@ -331,6 +331,10 @@ public class SimulacionService {
         if (solicitud == null || solicitud.velocidad() == null || !java.util.Set.of(new BigDecimal("0.5"), BigDecimal.ONE, new BigDecimal("2"), new BigDecimal("4")).contains(solicitud.velocidad().stripTrailingZeros()) || solicitud.duracion() == null || solicitud.duracion() < 10) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de reproducción de 0.5×, 1×, 2× o 4× y una duración de al menos 10 segundos");
         }
+        ValidacionDisenoResponse estructura = evaluarDiseno(resumen, idDiseno);
+        if (!estructura.valido()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(" ", estructura.observaciones()));
+        }
         List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
         int unidades = unidadesMetro.size();
         PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
@@ -430,9 +434,12 @@ public class SimulacionService {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         String nuevoNombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre de línea válido");
         verificarLinea(idDiseno, nombreActual);
-        List<String> estaciones = estacionesValidas(solicitud == null ? null : solicitud.estaciones());
-        for (String estacion : estaciones) verificarEstacion(idDiseno, estacion);
-        restriccionesGeograficas.validarRecorrido(idDiseno, estaciones);
+        // PATCH sin estaciones renombra sin reconstruir el grafo ni sus identificadores.
+        List<String> estaciones = solicitud.estaciones() == null ? null : estacionesValidas(solicitud.estaciones());
+        if (estaciones != null) {
+            for (String estacion : estaciones) verificarEstacion(idDiseno, estacion);
+            restriccionesGeograficas.validarRecorrido(idDiseno, estaciones);
+        }
 
         if (existeLinea(idDiseno, nuevoNombre)) {
             if (!nombreActual.equals(nuevoNombre)) {
@@ -449,6 +456,10 @@ public class SimulacionService {
             jdbcTemplate.update("DELETE FROM linea WHERE id_diseno = ? AND nombre = ?", idDiseno, nombreActual);
         }
 
+        if (estaciones == null) {
+            marcarEnDiseno(idUsuario, idDiseno);
+            return;
+        }
         jdbcTemplate.update("DELETE FROM tramo WHERE id_diseno = ? AND nombre_linea = ?", idDiseno, nuevoNombre);
         jdbcTemplate.update("DELETE FROM pasa WHERE id_diseno = ? AND nombre_linea = ?", idDiseno, nuevoNombre);
         for (String estacion : estaciones) {

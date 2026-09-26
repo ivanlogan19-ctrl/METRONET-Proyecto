@@ -1,5 +1,5 @@
 import { ZONAS, obtenerZona, normalizarBarrio } from '../utilidades/ClasificadorZonas.js';
-import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
+import { colorReferencia } from '../configuracion/CategoriasReferencias.js';
 
 export default class CapaZonas {
   constructor(escena, opciones = {}) {
@@ -17,12 +17,12 @@ export default class CapaZonas {
      * visual uniforme con el logo.
      */
     this.colores = {
-      'ZONA CENTRO': COLORES_INTERFAZ_MAPA.ACTIVO,
-      'ZONA ESTE': COLORES_INTERFAZ_MAPA.ACTIVO,
-      'ZONA NORTE': COLORES_INTERFAZ_MAPA.ACTIVO,
-      'ZONA OESTE': COLORES_INTERFAZ_MAPA.ACTIVO,
-      'ZONA OESTE-COSTA': COLORES_INTERFAZ_MAPA.ACTIVO,
-      'ZONA NOROESTE': COLORES_INTERFAZ_MAPA.ACTIVO,
+      'ZONA CENTRO': colorReferencia('BARRIOS_ZONAS'),
+      'ZONA ESTE': colorReferencia('BARRIOS_ZONAS'),
+      'ZONA NORTE': colorReferencia('BARRIOS_ZONAS'),
+      'ZONA OESTE': colorReferencia('BARRIOS_ZONAS'),
+      'ZONA OESTE-COSTA': colorReferencia('BARRIOS_ZONAS'),
+      'ZONA NOROESTE': colorReferencia('BARRIOS_ZONAS'),
     };
   }
 
@@ -77,7 +77,7 @@ export default class CapaZonas {
   }
 
   obtenerColor(zona) {
-    return this.colores[zona] ?? COLORES_INTERFAZ_MAPA.ACTIVO;
+    return this.colores[zona] ?? colorReferencia('BARRIOS_ZONAS');
   }
 
   obtenerBarriosDeZonasSeleccionadas() {

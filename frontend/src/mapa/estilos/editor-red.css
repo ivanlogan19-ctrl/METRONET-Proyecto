@@ -21,6 +21,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   box-shadow: none;
 }
 #metronet-mapa canvas { position: relative; z-index: 1; display: block; background: var(--bg-primary); }
+.metronet-mapa-cargando { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; margin: 0; background: var(--bg-primary); color: var(--text-secondary); font: 14px/1.5 var(--font-tecnica); }
 #metronet-panel-controles {
   display: block;
   min-width: 0;
@@ -524,7 +525,15 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 
 /* La misma zona de asistencia crece con su contenido, sin filas vacías reservadas. */
 body.metronet-pagina-editor { overflow: hidden; }
-body .metronet-pantalla-editor { height: 100svh; min-height: 0; grid-template-rows: auto auto minmax(0, 1fr); }
+body .metronet-pantalla-editor {
+  height: 100svh; min-height: 0;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas: 'navegacion' 'estado' 'editor';
+}
+/* Una barra de estado oculta no debe cambiar la fila asignada al editor. */
+.metronet-pantalla-editor > [data-navegacion-global] { grid-area: navegacion; }
+.metronet-pantalla-editor > [data-estado-editor] { grid-area: estado; }
+.metronet-pantalla-editor > #metronet-aplicacion { grid-area: editor; }
 .metronet-estado-editor {
   display: grid; gap: 4px; min-width: 0;
   margin: 6px 14px 0; padding: 5px 10px;
@@ -559,51 +568,6 @@ html:root body .metronet-estado-editor [data-revisar-error] { flex-shrink: 0; mi
   display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px;
   min-width: 0; min-height: 0; container-type: inline-size;
 }
-.metronet-barra-geografica {
-  position: relative; z-index: var(--layer-dropdown); display: grid;
-  grid-template-columns: minmax(290px, 1fr) minmax(340px, 1.2fr); gap: 8px; min-width: 0;
-}
-.metronet-barra-geografica > section { min-width: 0; }
-.metronet-barra-geografica [data-contenedor-referencias] { grid-column: 1 / -1; }
-.metronet-barra-geografica .metronet-panel-puntos-interes {
-  position: relative; inset: auto; width: 100%; max-width: none; max-height: none;
-  height: 100%; padding-inline: 8px; box-shadow: none;
-}
-.metronet-barra-geografica .metronet-panel-puntos-cabecera { min-height: 46px; height: 100%; }
-.metronet-barra-geografica .metronet-panel-puntos-contenido {
-  position: absolute; top: calc(100% + 4px); left: -1px; z-index: var(--layer-dropdown);
-  width: max(100%, 310px); max-width: calc(100cqw - 2px); max-height: min(460px, 60svh);
-  padding: 10px; border: 1px solid var(--border-active); background: var(--panel-elevated);
-  box-shadow: var(--shadow-floating);
-}
-.metronet-territorio-selectores {
-  position: relative; display: flex; align-items: center; gap: 8px;
-  padding: 4px 8px; border: 1px solid var(--border); background: var(--panel-elevated);
-}
-.metronet-territorio-selectores h2 {
-  margin: 0;
-}
-.metronet-territorio-selectores [data-contenedor-selectores-mapa] {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex: 1; min-width: 0;
-}
-html:root body .metronet-territorio-selectores .metronet-panel-dinamico { border: 0; box-shadow: none; background: transparent; }
-html:root body :is(.metronet-territorio-selectores .metronet-panel-encabezado, .metronet-referencias-controles button) {
-  min-height: var(--control-touch-height); height: 100%; padding: 4px 8px; font-size: 13px;
-  font-family: var(--control-fuente); white-space: normal; line-height: 1.45; border-bottom-color: var(--boton-borde);
-}
-.metronet-territorio-selectores .metronet-panel-contenido {
-  position: absolute; top: calc(100% + 4px); right: 0; width: 100%;
-  max-height: min(380px, 55svh); overflow-y: auto; overscroll-behavior: contain;
-  border: 1px solid var(--border-active); box-shadow: var(--shadow-floating);
-}
-.metronet-territorio-selectores :is(.metronet-selector-zona-opcion, .metronet-selector-barrio-opcion) {
-  color: var(--text-primary); font-family: var(--font-ui); font-size: 12px;
-}
-@container (max-width: 670px) {
-  .metronet-barra-geografica { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-  .metronet-territorio-selectores { min-height: 44px; }
-  .metronet-panel-puntos-interes:has(.metronet-panel-puntos-contenido:not([hidden])) { z-index: calc(var(--layer-dropdown) + 1); }
-}
 @media (max-width: 920px) {
   .metronet-area-mapa { display: flex; flex-direction: column; min-height: auto; }
   .metronet-area-mapa #metronet-mapa { flex: 0 0 auto; height: clamp(430px, 62svh, 660px); }
@@ -614,3 +578,26 @@ html:root body :is(.metronet-territorio-selectores .metronet-panel-encabezado, .
 @media (pointer: coarse) {
   html:root body .metronet-territorio-selectores .metronet-panel-encabezado { min-height: var(--control-touch-height); }
 }
+
+/* Herramientas directas: tamaños compartidos, sin desplazamientos por botón. */
+#metronet-panel-controles .metronet-herramientas__barra { display:flex; flex-wrap:wrap; gap:8px; align-items:end; }
+#metronet-panel-controles .metronet-herramientas__barra fieldset { display:flex; flex-wrap:wrap; gap:6px; padding:6px; min-width:0; flex:0 1 auto; }
+#metronet-panel-controles .metronet-herramientas__barra legend { font:11px/1.4 var(--font-tecnica); }
+#metronet-panel-controles .metronet-editor-finalizar__acciones { display:flex !important; flex-wrap:wrap; gap:8px; }
+#metronet-panel-controles .metronet-editor-seleccionado > div { display:flex; flex-wrap:wrap; gap:6px; }
+.metronet-herramientas__opciones:empty { display:none; }
+.metronet-editor-acceso-teclado { font:12px/1.5 var(--font-ui); border-top:1px solid var(--border); padding-top:6px; }
+.metronet-editor-acceso-teclado label { display:block; }
+.metronet-editor-acceso-teclado select { width:100%; min-width:0; }
+.metronet-editor-acceso-teclado button { margin-top:6px; }
+.metronet-editor-finalizar__ayuda { font:12px/1.45 var(--font-ui); }
+.metronet-cursor-mapa { position:absolute; z-index:18; width:20px; height:20px; border:2px solid var(--text-primary); outline:2px solid var(--bg-primary); pointer-events:none; transform:translate(-50%,-50%); }
+#metronet-mapa canvas:focus-visible { outline:3px solid var(--info-active); outline-offset:-3px; }
+
+/* Contexto mínimo de la red; la gestión completa pertenece a Mis diseños. */
+.metronet-diseno-activo { margin:0; padding:8px 0; color:var(--text-secondary); font:13px/1.5 var(--font-ui); overflow-wrap:anywhere; }
+.metronet-consigna__cabecera { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.metronet-consigna__alternar { flex-shrink:0; }
+.metronet-consigna__contenido:not([hidden]) { animation:metronet-panel-contexto 160ms linear both; }
+@keyframes metronet-panel-contexto { from { opacity:0; } }
+@media(prefers-reduced-motion:reduce) { .metronet-consigna__contenido:not([hidden]) { animation:none; } }

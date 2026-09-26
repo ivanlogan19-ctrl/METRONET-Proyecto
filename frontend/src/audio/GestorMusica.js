@@ -1,63 +1,101 @@
 import { obtenerSesionActiva } from '../autenticacion/sesion.js';
-import { PISTAS_MUSICA, CONTEXTOS_MUSICA_PUNTUAL, VOLUMEN_MUSICA_INICIAL, DURACION_ENTRADA_MS } from './ConfiguracionAudio.js';
+import { PISTAS_MUSICA, CONTEXTOS_MUSICA_PUNTUAL, VOLUMEN_MUSICA_INICIAL, DURACION_MEZCLA_MS, UMBRAL_CARGA_MUSICAL_MS } from './ConfiguracionAudio.js';
 
 const CLAVE_PREFERENCIAS = 'metronet:musica:preferencias';
 const CLAVE_POSICIONES = 'metronet:musica:posiciones';
-
+const CLAVE_CONTINUIDAD = 'metronet:musica:continuidad';
+const limitar = valor => Math.max(0, Math.min(1, valor));
 function leer(almacen, clave, defecto) {
   try { return JSON.parse(window[almacen].getItem(clave)) ?? defecto; } catch { return defecto; }
 }
 function guardar(almacen, clave, valor) {
-  try { window[almacen].setItem(clave, JSON.stringify(valor)); } catch { /* El audio no exige almacenamiento. */ }
+  try { window[almacen].setItem(clave, JSON.stringify(valor)); } catch { /* La música no exige almacenamiento. */ }
 }
-function limitarVolumen(valor) { return Math.max(0, Math.min(1, valor)); }
 
-// Un único reproductor por documento; sessionStorage conserva el punto al navegar
-// entre las páginas existentes. No participa en autenticación, reglas ni simulación.
+// Una autoridad por documento. Hasta dos pistas DIFERENTES durante una mezcla;
+// las escenas y paneles nunca poseen el reproductor. En navegación HTML completa
+// solo puede recuperarse la posición: no equivale a audio continuo entre documentos.
 class GestorMusica {
   constructor() {
     const preferencias = leer('localStorage', CLAVE_PREFERENCIAS, {});
-    this.volumen = Number.isFinite(preferencias.volumen) ? limitarVolumen(preferencias.volumen) : VOLUMEN_MUSICA_INICIAL;
+    this.volumen = Number.isFinite(preferencias.volumen) ? limitar(preferencias.volumen) : VOLUMEN_MUSICA_INICIAL;
     this.silenciado = preferencias.silenciado === true;
-    this.contexto = 'general';
-    this.temporales = new Map();
-    this.audio = null;
-    this.pista = null;
-    this.pistaFinalizada = false;
     this.posiciones = leer('sessionStorage', CLAVE_POSICIONES, {});
     if (!this.posiciones || typeof this.posiciones !== 'object' || Array.isArray(this.posiciones)) this.posiciones = {};
+    this.continuidad = leer('sessionStorage', CLAVE_CONTINUIDAD, null);
+    guardar('sessionStorage', CLAVE_CONTINUIDAD, null);
+    this.contexto = 'general';
+    this.temporales = new Map();
+    this.canales = new Map();
+    this.actual = null;
     this.oyentes = new Set();
     this.paginaActiva = true;
-    this.esperandoGesto = false;
-    this.error = false;
-    this.reproduccionPendiente = null;
-    this.temporizadorEntrada = null;
     this.inicializado = false;
+    this.mezcla = null;
+    this.temporizadorMezcla = null;
   }
+
+  get audio() { return this.actual?.audio ?? null; }
+  get pista() { return this.actual?.pista ?? null; }
 
   inicializar() {
     if (this.inicializado) return;
     this.inicializado = true;
+    // La entrada asíncrona puede ejecutarse antes de que el parser cree body.
+    if (!document.body) document.addEventListener('DOMContentLoaded', () => {
+      for (const canal of this.canales.values()) document.body.prepend(canal.audio);
+    }, { once: true });
     document.addEventListener('visibilitychange', () => this.sincronizar());
-    window.addEventListener('pagehide', () => { this.paginaActiva = false; this.pausar(); });
+    window.addEventListener('pagehide', () => {
+      const canal = this.actual;
+      guardar('sessionStorage', CLAVE_CONTINUIDAD, canal?.audio.loop && !canal.audio.paused
+        ? { pista: canal.pista, contexto: this.obtenerContexto(), instante: Date.now() } : null);
+      this.paginaActiva = false; this.pausar();
+    });
     window.addEventListener('pageshow', () => { this.paginaActiva = true; this.sincronizar(); });
     window.addEventListener('metronet:sesion-cerrada', () => this.cerrarSesion());
     window.addEventListener('storage', evento => {
       if (evento.key === CLAVE_PREFERENCIAS) {
         const preferencias = leer('localStorage', CLAVE_PREFERENCIAS, {});
         this.silenciado = preferencias.silenciado === true;
-        if (Number.isFinite(preferencias.volumen)) this.volumen = limitarVolumen(preferencias.volumen);
+        if (Number.isFinite(preferencias.volumen)) this.volumen = limitar(preferencias.volumen);
       }
       if (this.contexto !== 'auth' && !obtenerSesionActiva()) this.cerrarSesion();
       else this.sincronizar();
     });
     const alInteractuar = evento => {
-      if (!evento.isTrusted || !this.esperandoGesto || evento.target.closest?.('[data-control-musica]')) return;
-      this.esperandoGesto = false;
-      this.sincronizar();
+      if (!evento.isTrusted || !this.actual?.esperandoGesto || evento.target.closest?.('[data-control-musica]')) return;
+      this.activar();
     };
     document.addEventListener('pointerdown', alInteractuar);
     document.addEventListener('keydown', alInteractuar);
+  }
+
+  tieneContinuidadReciente() {
+    const antiguedad = Date.now() - this.continuidad?.instante;
+    return Number.isFinite(antiguedad) && antiguedad >= 0 && antiguedad < 10000;
+  }
+
+  reanudarAlCargarDocumento(contexto) {
+    // Solo anticipar una pista que ya sonaba. Una entrada tardía nunca debe
+    // reemplazar el contexto decidido por la pantalla o una presentación.
+    if (this.inicializado || !this.tieneContinuidadReciente()) return;
+    if (!['auth', 'menu', 'admin', 'general'].includes(contexto)) return;
+    const sesion = contexto === 'auth' ? null : obtenerSesionActiva();
+    if (contexto !== 'auth' && !sesion) return;
+    if (contexto === 'admin' && sesion.usuario.rol !== 'ADMIN') return;
+    if (contexto === 'general') {
+      // Editor/simulador: adelantar descarga y seek, pero el contexto real solo
+      // lo confirma la pantalla al cargar el diseño. Nunca sonar sobre el nivel previo.
+      if (this.continuidad.pista !== PISTAS_MUSICA.gameplay) return;
+      this.inicializar();
+      this.seleccionarPista(PISTAS_MUSICA.gameplay);
+      this.actual.preparado = true;
+      this.actual.ganancia = 0;
+      this.aplicarVolumen();
+    } else if (this.continuidad.pista === PISTAS_MUSICA[contexto]) {
+      this.establecerContexto(contexto);
+    }
   }
 
   establecerContexto(contexto) {
@@ -67,151 +105,209 @@ class GestorMusica {
   }
 
   usarContextoTemporal(contexto, { reiniciar = false } = {}) {
-    // Una transición sin pista no necesita instalar listeners de reproducción.
     if (PISTAS_MUSICA[contexto]) this.inicializar();
     const id = Symbol(contexto);
-    this.temporales.set(id, contexto);
-    if (reiniciar && PISTAS_MUSICA[contexto]) this.prepararPista(PISTAS_MUSICA[contexto], true);
-    this.sincronizar();
-    return () => { if (this.temporales.delete(id)) this.sincronizar(); };
+    const temporal = { contexto, efectivo: contexto !== 'loading', temporizador: null };
+    this.temporales.set(id, temporal);
+    if (!temporal.efectivo) {
+      temporal.temporizador = setTimeout(() => {
+        temporal.temporizador = null; temporal.efectivo = true; this.sincronizar();
+      }, UMBRAL_CARGA_MUSICAL_MS);
+    } else {
+      if (reiniciar && PISTAS_MUSICA[contexto]) this.seleccionarPista(PISTAS_MUSICA[contexto], true);
+      this.sincronizar();
+    }
+    return () => {
+      if (!this.temporales.delete(id)) return;
+      clearTimeout(temporal.temporizador);
+      if (temporal.efectivo) this.sincronizar();
+    };
   }
 
-  obtenerContexto() { return [...this.temporales.values()].at(-1) ?? this.contexto; }
+  obtenerContexto() { return [...this.temporales.values()].filter(t => t.efectivo).at(-1)?.contexto ?? this.contexto; }
   puedeReproducir() {
     try {
-      const contexto = this.obtenerContexto();
       return this.paginaActiva && !document.hidden && !this.silenciado && this.volumen > 0
-        // El acceso tiene música antes de autenticar; gameplay sigue exigiendo sesión.
-        && (contexto === 'auth' || Boolean(obtenerSesionActiva())) && PISTAS_MUSICA[contexto] === this.pista;
+        && (this.obtenerContexto() === 'auth' || Boolean(obtenerSesionActiva()));
     } catch { return false; }
   }
 
-  prepararPista(pista, reiniciar = false) {
-    if (!this.audio) {
-      this.audio = new Audio();
-      this.audio.dataset.musicaMetronet = '';
-      this.audio.hidden = true;
-      this.audio.preload = 'auto';
-      this.audio.addEventListener('loadedmetadata', () => {
-        const posicion = this.posiciones[this.pista];
-        if (this.audio.loop && Number.isFinite(posicion) && posicion >= 0 && Number.isFinite(this.audio.duration)) {
-          try { this.audio.currentTime = posicion % this.audio.duration; } catch { /* El navegador puede no permitir seek todavía. */ }
-        }
-        this.notificar();
-      });
-      this.audio.addEventListener('error', () => { this.error = true; this.pausar(); this.notificar(); });
-      this.audio.addEventListener('ended', () => {
-        this.pistaFinalizada = true;
-        this.notificar();
-      });
-      for (const evento of ['playing', 'pause', 'timeupdate']) this.audio.addEventListener(evento, () => this.notificar());
-      document.body.append(this.audio);
-    }
-    if (this.pista === pista && !reiniciar) return;
-    this.pausar();
-    this.pista = pista;
-    this.pistaFinalizada = false;
-    this.error = false;
-    this.esperandoGesto = false;
-    // Las presentaciones puntuales empiezan desde cero y se reproducen una sola vez.
-    this.audio.loop = !CONTEXTOS_MUSICA_PUNTUAL.some(contexto => PISTAS_MUSICA[contexto] === pista);
-    this.audio.src = pista;
-    this.audio.load();
+  crearCanal(pista) {
+    const audio = new Audio();
+    audio.hidden = true; audio.preload = 'auto';
+    audio.loop = !CONTEXTOS_MUSICA_PUNTUAL.some(contexto => PISTAS_MUSICA[contexto] === pista);
+    const reanudado = audio.loop && this.continuidad?.pista === pista && this.tieneContinuidadReciente();
+    const canal = { audio, pista, ganancia: reanudado ? 1 : 0, finalizada: false, error: false,
+      esperandoGesto: false, pendiente: null, eliminado: false, eventos: [] };
+    const escuchar = (evento, funcion) => { audio.addEventListener(evento, funcion); canal.eventos.push([evento, funcion]); };
+    escuchar('loadedmetadata', () => {
+      const posicion = this.posiciones[pista];
+      if (audio.loop && Number.isFinite(posicion) && posicion >= 0 && Number.isFinite(audio.duration)) {
+        try { audio.currentTime = posicion % audio.duration; } catch { /* Seek no disponible todavía. */ }
+      }
+      this.notificar();
+    });
+    escuchar('error', () => {
+      canal.error = true;
+      if (canal === this.actual) this.mezclarHacia(null);
+      else this.eliminarCanal(canal);
+      this.notificar();
+    });
+    escuchar('ended', () => { canal.finalizada = true; this.notificar(); });
+    for (const evento of ['playing', 'pause', 'timeupdate']) escuchar(evento, () => this.notificar());
+    audio.volume = this.volumen * canal.ganancia;
+    audio.src = pista; audio.load();
+    this.canales.set(pista, canal);
+    return canal;
   }
 
-  sincronizar(reintentarInterrupcion = true) {
-    const pista = PISTAS_MUSICA[this.obtenerContexto()];
-    if (pista) this.prepararPista(pista);
-    if (!pista || !this.puedeReproducir() || this.error || (this.audio?.ended && !this.audio.loop)) {
-      this.pausar(); this.notificar(); return;
+  seleccionarPista(pista, reiniciar = false) {
+    if (this.actual?.pista === pista && !reiniciar) return;
+    this.cancelarMezcla();
+    if (reiniciar && this.canales.has(pista)) this.eliminarCanal(this.canales.get(pista));
+    let destino = this.canales.get(pista);
+    // En A→B→C se conserva la salida más audible y se descarta la otra.
+    const saliente = [...this.canales.values()].filter(c => c !== destino)
+      .sort((a, b) => b.ganancia - a.ganancia)[0];
+    for (const canal of [...this.canales.values()]) if (canal !== destino && canal !== saliente) this.eliminarCanal(canal);
+    destino ??= this.crearCanal(pista);
+    this.actual = destino;
+    for (const canal of this.canales.values()) {
+      canal.audio.toggleAttribute('data-musica-metronet', canal === destino);
+      canal.audio.toggleAttribute('data-musica-saliente', canal !== destino);
+      if (!canal.audio.isConnected) (document.body ?? document.documentElement).append(canal.audio);
     }
-    if (!this.audio.paused) {
-      if (this.temporizadorEntrada === null) this.audio.volume = this.volumen;
+    // Mantener identificable el reproductor actual para controles y accesibilidad.
+    (document.body ?? document.documentElement).prepend(destino.audio);
+  }
+
+  sincronizar(reintentar = true) {
+    const pista = PISTAS_MUSICA[this.obtenerContexto()];
+    if (pista) this.seleccionarPista(pista);
+    if (!this.puedeReproducir()) { this.pausar(); this.notificar(); return; }
+    const canal = this.actual;
+    if (!pista || canal?.error || canal?.finalizada) { this.mezclarHacia(null); this.notificar(); return; }
+    if (!canal.audio.paused) {
+      // Repetir un contexto o cambiar menu→admin con el mismo archivo no toca play ni el fade.
+      if (this.mezcla?.destino !== canal && (this.mezcla || canal.ganancia < 1 || this.canales.size > 1)) this.mezclarHacia(canal);
+      else this.aplicarVolumen();
       this.notificar(); return;
     }
-    if (this.reproduccionPendiente || this.esperandoGesto) { this.notificar(); return; }
-    this.audio.volume = 0;
+    if (canal.pendiente || canal.esperandoGesto) { this.notificar(); return; }
+    if (canal.preparado) {
+      canal.preparado = false;
+      canal.ganancia = 1;
+      this.aplicarVolumen();
+    }
     let interrumpida = false;
-    // play puede rechazar por autoplay o por un cambio de contexto durante la carga.
-    this.reproduccionPendiente = Promise.resolve().then(() => {
-      if (this.puedeReproducir()) return this.audio.play();
+    canal.pendiente = Promise.resolve().then(() => {
+      if (!canal.eliminado && canal === this.actual && this.puedeReproducir() && PISTAS_MUSICA[this.obtenerContexto()] === canal.pista) return canal.audio.play();
     }).then(() => {
-      if (!this.puedeReproducir()) this.pausar();
-      else if (!this.audio.paused) { this.esperandoGesto = false; this.aparecer(); }
+      if (canal.eliminado) return;
+      if (canal !== this.actual || !this.puedeReproducir() || PISTAS_MUSICA[this.obtenerContexto()] !== canal.pista) {
+        if (!this.mezcla) canal.audio.pause();
+      } else if (!canal.audio.paused) { canal.esperandoGesto = false; this.mezclarHacia(canal); }
     }).catch(error => {
-      if (error.name === 'NotAllowedError') this.esperandoGesto = true;
+      if (canal.eliminado) return;
+      if (error.name === 'NotAllowedError') canal.esperandoGesto = true;
       else if (error.name === 'AbortError') interrumpida = true;
-      else if (error.name !== 'AbortError') this.error = true;
+      else canal.error = true;
+      if (canal === this.actual && !interrumpida) this.mezclarHacia(null);
     }).finally(() => {
-      this.reproduccionPendiente = null;
+      canal.pendiente = null;
+      if (canal.eliminado) return;
       this.notificar();
-      // Una pausa puede cancelar play antes de que termine. Recuperar una vez
-      // si el usuario ya volvió a un contexto con música; no insistir ante bloqueo de autoplay.
-      if (interrumpida && reintentarInterrupcion && this.puedeReproducir() && !this.error) this.sincronizar(false);
+      if (interrumpida && reintentar && canal === this.actual && this.puedeReproducir()) this.sincronizar(false);
     });
     this.notificar();
   }
 
-  aparecer() {
-    this.cancelarEntrada();
-    const inicio = performance.now();
-    const avanzar = () => {
-      const ahora = performance.now();
-      if (!this.puedeReproducir()) { this.pausar(); return; }
-      const avance = Math.min(1, (ahora - inicio) / DURACION_ENTRADA_MS);
-      this.audio.volume = this.volumen * avance;
-      this.temporizadorEntrada = avance < 1 ? setTimeout(avanzar, 25) : null;
+  mezclarHacia(destino) {
+    if (this.mezcla?.destino === destino) return;
+    this.cancelarMezcla();
+    const origenes = new Map([...this.canales.values()].map(c => [c, c.ganancia]));
+    const completar = () => {
+      for (const canal of [...this.canales.values()]) {
+        if (canal === destino) canal.ganancia = 1;
+        else if (canal === this.actual) { canal.ganancia = 0; this.guardarPosicion(canal); canal.audio.pause(); }
+        else this.eliminarCanal(canal);
+      }
+      this.aplicarVolumen();
     };
-    this.temporizadorEntrada = setTimeout(avanzar, 25);
+    if ([...origenes].every(([c, ganancia]) => ganancia === (c === destino ? 1 : 0))) { completar(); return; }
+    const mezcla = { destino, inicio: performance.now() };
+    this.mezcla = mezcla;
+    const avanzar = () => {
+      if (this.mezcla !== mezcla) return;
+      const avance = limitar((performance.now() - mezcla.inicio) / DURACION_MEZCLA_MS);
+      for (const [canal, inicio] of origenes) {
+        if (!canal.eliminado) canal.ganancia = inicio + ((canal === destino ? 1 : 0) - inicio) * avance;
+      }
+      this.aplicarVolumen();
+      if (avance < 1) this.temporizadorMezcla = setTimeout(avanzar, 25);
+      else { this.cancelarMezcla(); completar(); this.notificar(); }
+    };
+    avanzar();
   }
-  cancelarEntrada() {
-    if (this.temporizadorEntrada !== null) clearTimeout(this.temporizadorEntrada);
-    this.temporizadorEntrada = null;
+  cancelarMezcla() {
+    clearTimeout(this.temporizadorMezcla);
+    this.temporizadorMezcla = null; this.mezcla = null;
   }
-  pausar() {
-    this.cancelarEntrada();
-    if (!this.audio) return;
-    if (this.pista && this.audio.loop && this.audio.readyState > 0 && Number.isFinite(this.audio.currentTime)) {
-      this.posiciones[this.pista] = this.audio.currentTime;
+  aplicarVolumen() {
+    for (const canal of this.canales.values()) canal.audio.volume = this.silenciado ? 0 : limitar(this.volumen * canal.ganancia);
+  }
+  guardarPosicion(canal) {
+    if (canal.audio.loop && canal.audio.readyState > 0 && Number.isFinite(canal.audio.currentTime)) {
+      this.posiciones[canal.pista] = canal.audio.currentTime;
       guardar('sessionStorage', CLAVE_POSICIONES, this.posiciones);
     }
-    this.audio.pause();
+  }
+  eliminarCanal(canal) {
+    canal.eliminado = true;
+    this.guardarPosicion(canal);
+    canal.eventos.forEach(([evento, funcion]) => canal.audio.removeEventListener(evento, funcion));
+    canal.audio.pause(); canal.audio.removeAttribute('src'); canal.audio.load(); canal.audio.remove();
+    this.canales.delete(canal.pista);
+  }
+  pausar() {
+    this.cancelarMezcla();
+    for (const canal of [...this.canales.values()]) {
+      if (canal !== this.actual) this.eliminarCanal(canal);
+      else { this.guardarPosicion(canal); canal.audio.pause(); canal.ganancia = 1; }
+    }
+    this.aplicarVolumen();
   }
   establecerVolumen(valor) {
     if (!Number.isFinite(valor)) return;
-    this.volumen = limitarVolumen(valor);
-    this.esperandoGesto = false;
+    this.volumen = limitar(valor);
+    if (this.actual) this.actual.esperandoGesto = false;
     this.guardarPreferencias(); this.sincronizar();
   }
   establecerSilencio(silenciado) {
     this.silenciado = Boolean(silenciado);
-    this.esperandoGesto = false;
+    if (this.actual) this.actual.esperandoGesto = false;
     this.guardarPreferencias(); this.sincronizar();
   }
-  guardarPreferencias() {
-    guardar('localStorage', CLAVE_PREFERENCIAS, { volumen: this.volumen, silenciado: this.silenciado });
-  }
-  activar() { this.esperandoGesto = false; this.sincronizar(); }
+  guardarPreferencias() { guardar('localStorage', CLAVE_PREFERENCIAS, { volumen: this.volumen, silenciado: this.silenciado }); }
+  activar() { if (this.actual) this.actual.esperandoGesto = false; this.sincronizar(); }
   cerrarSesion() {
-    // Cerrar sesión no convierte la pantalla anterior en una pantalla de acceso.
     this.contexto = 'general';
-    this.temporales.clear();
-    this.pausar();
-    this.posiciones = {};
-    guardar('sessionStorage', CLAVE_POSICIONES, {});
+    this.temporales.forEach(t => clearTimeout(t.temporizador)); this.temporales.clear();
+    this.pausar(); this.posiciones = {}; this.continuidad = null;
+    guardar('sessionStorage', CLAVE_POSICIONES, {}); guardar('sessionStorage', CLAVE_CONTINUIDAD, null);
     if (this.audio?.readyState) this.audio.currentTime = 0;
     this.notificar();
   }
   obtenerEstado() {
     return { contexto: this.obtenerContexto(), volumen: this.volumen, silenciado: this.silenciado,
-      reproduciendo: Boolean(this.audio && !this.audio.paused), esperandoGesto: this.esperandoGesto,
-      posicion: this.audio?.currentTime ?? 0, duracion: this.audio?.duration ?? 0, finalizada: this.pistaFinalizada,
-      disponible: Boolean(PISTAS_MUSICA[this.obtenerContexto()]), error: this.error };
+      reproduciendo: Boolean(this.audio && !this.audio.paused), esperandoGesto: this.actual?.esperandoGesto ?? false,
+      posicion: this.audio?.currentTime ?? 0, duracion: this.audio?.duration ?? 0, finalizada: this.actual?.finalizada ?? false,
+      disponible: Boolean(PISTAS_MUSICA[this.obtenerContexto()]), error: this.actual?.error ?? false,
+      mezclando: Boolean(this.mezcla), instancias: this.canales.size };
   }
   suscribir(oyente) { this.oyentes.add(oyente); oyente(this.obtenerEstado()); return () => this.oyentes.delete(oyente); }
   notificar() { const estado = this.obtenerEstado(); this.oyentes.forEach(oyente => oyente(estado)); }
 }
 
-// También evita duplicados si el servidor de desarrollo sirve dos versiones del módulo.
 const CLAVE_GESTOR = Symbol.for('metronet:gestor-musica');
 export const gestorMusica = window[CLAVE_GESTOR] ??= new GestorMusica();

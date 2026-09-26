@@ -185,7 +185,7 @@ function crearTarjetaProgreso(resumen) {
   accesos.setAttribute('aria-label', 'Accesos al jugador');
   accesos.append(
     crearEnlace('/escenarios.html', 'Escenarios'),
-    crearEnlace('/', 'Mis diseños'),
+    crearEnlace('/disenos.html', 'Mis diseños'),
     crearEnlace('/simulacion.html', 'Simulaciones'),
   );
   tarjeta.append(encabezado, pasos, accesos);

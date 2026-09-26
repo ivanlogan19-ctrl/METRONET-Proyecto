@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es" data-contexto-musical="menu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mis diseños · METRONET</title>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  <link rel="stylesheet" href="/src/estilos/retro.css" />
+  <link rel="stylesheet" href="/src/navegacion/disenos.css" />
+  <script type="module" blocking="render" src="/src/navegacion/disenos.js"></script>
+</head>
+<body class="metronet-pagina-navegable">
+  <div data-navegacion-global></div>
+  <main class="metronet-disenos" aria-labelledby="tituloDisenos">
+    <h1 id="tituloDisenos">Mis diseños</h1>
+    <p>Consultá tus redes y abrí una para continuar editando o simular.</p>
+    <form id="crearDiseno" class="metronet-disenos__crear" hidden>
+      <label>Nombre de la nueva red<input name="nombre" maxlength="100" required autocomplete="off" /></label>
+      <button type="submit" class="metronet-boton--primario">Crear diseño</button>
+    </form>
+    <p id="disenosCreacionEstado" role="status"></p>
+    <label class="metronet-disenos__busqueda">Buscar diseños<input id="buscarDisenos" type="search" placeholder="Nombre o estado" /></label>
+    <p id="mensajeDisenos" role="status" aria-live="polite">Cargando diseños…</p>
+    <button id="reintentarDisenos" type="button" hidden>Volver a cargar</button>
+    <ul id="listaMisDisenos" class="metronet-disenos__lista" aria-label="Diseños guardados" aria-busy="true"></ul>
+  </main>
+  <dialog id="confirmarEliminarDiseno" class="metronet-dialogo-eliminar" aria-labelledby="tituloEliminarDiseno">
+    <form method="dialog" class="metronet-dialogo-eliminar__contenido">
+      <h2 id="tituloEliminarDiseno">Eliminar diseño</h2>
+      <p id="nombreEliminarDiseno"></p>
+      <p>Esta acción no se puede deshacer. Los diseños protegidos por el progreso se conservan.</p>
+      <div class="metronet-dialogo-eliminar__acciones"><button value="cancelar">Cancelar</button><button value="eliminar" class="metronet-boton--peligro">Eliminar diseño</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

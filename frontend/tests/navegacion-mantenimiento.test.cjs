@@ -115,9 +115,10 @@ for (const administrador of [false, true]) test(`Mantenimiento y simulación, ca
 
 for (const width of [390, 1440]) test(`Referencias territoriales en el mapa, controles compactos / ${width}`, async t => {
   const { pagina: p } = await abrir(t, 'constructor', { viewport: { width, height: 1000 } });
-  const panel = p.locator('.metronet-referencias-territoriales');
+  await p.locator('.metronet-poi>summary').click();
+  const panel = p.locator('.metronet-poi__panel');
   assert.equal(await p.locator('[data-contenedor-selectores-mapa] .metronet-territorio').count(), 0);
-  const controlPoi = panel.getByRole('button', { name: 'Espacios verdes', exact: true });
+  const controlPoi = panel.getByRole('button', { name: 'Zonas verdes', exact: true });
   await controlPoi.click();
   assert.equal(await p.evaluate(() => editorPrueba.escena.capaPuntosInteres.categoriasVisibles.has('ESPACIOS_VERDES')), false);
   await controlPoi.click();

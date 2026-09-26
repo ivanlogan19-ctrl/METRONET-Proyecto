@@ -35,14 +35,13 @@ test('Eliminar y cerrar sesión comparten rojo sólido; cancelar comparte rojo s
   assert.deepEqual(await estilo(admin.locator('.metronet-dialogo-sistema [value=cancelar]')), cancelar);
   await admin.keyboard.press('Escape');
   const editor = (await abrir(t, 'constructor')).pagina;
-  await editor.locator('.metronet-editor-zona-peligro summary').click();
-  await editor.locator('[data-eliminar-diseno]').click();
+  await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
+  await editor.locator('[data-eliminar-estacion]').click();
   assert.deepEqual(await estilo(editor.locator('[data-confirmar-eliminar]')), peligro);
   assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar [value=cancelar]')), cancelar);
   await editor.keyboard.press('Escape');
   await editor.locator('[data-elegir-herramienta=estaciones]').click();
-  await editor.locator('[data-nombre-estacion]').fill('Prueba visual');
-  await editor.locator('[data-agregar-estacion]').click();
+
   assert.deepEqual(await estilo(editor.locator('[data-cancelar-herramienta]')), cancelar);
   await editor.locator('[data-cancelar-herramienta]').click();
 });
@@ -98,7 +97,7 @@ for (const width of [1440, 390, 320]) test(`Escenarios ${width}: diez filas, sel
 
 test('Disclosure y checkbox siguen siendo nativos y operables con teclado', async t => {
   const p = (await abrir(t, '/registro.html')).pagina;
-  const check = p.locator('input[type=checkbox]');
+  const check = p.locator('#aceptaDatos');
   await check.focus(); await check.press('Space'); assert.equal(await check.isChecked(), true);
   await check.press('Space'); assert.equal(await check.isChecked(), false);
   const inicio = (await abrir(t, '/inicio.html')).pagina;
@@ -125,23 +124,23 @@ test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Pista utilizab
   const tactil = { newContext: opciones => navegador.newContext({ ...opciones, hasTouch: true }) };
   const { pagina: p, contexto, errores } = await abrirEditor(tactil, { viewport: { width: 320, height: 844 }, escenario: { ...niveles[0], idEscenario: 41 } });
   t.after(async () => { await contexto.close(); assert.deepEqual(errores, []); });
-  const cabecera = p.locator('.metronet-panel-puntos-cabecera');
+  const cabecera = p.locator('.metronet-barra-geografica');
   const limite = await p.locator('#metronet-mapa').boundingBox();
-  const botones = await cabecera.locator('button').evaluateAll(elementos => elementos.map(e => e.getBoundingClientRect().toJSON()));
+  const botones = await cabecera.locator('button:visible, summary:visible').evaluateAll(elementos => elementos.map(e => e.getBoundingClientRect().toJSON()));
   for (const r of botones) { assert.ok(r.width >= 44 && r.height >= 44); assert.ok(r.left >= limite.x && r.right <= limite.x + limite.width); }
   for (let i = 0; i < botones.length; i++) for (let j = i + 1; j < botones.length; j++) {
     const a = botones[i], b = botones[j];
     assert.ok(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top, 'Los mandos no se superponen');
   }
-  await p.locator('[data-assist-alternar]').tap();
-  await p.locator('[data-assist-controles]').tap();
-  assert.equal(await p.locator('.metronet-assist').getAttribute('data-vista'), 'controles');
+  await p.locator('.metronet-hud>summary').tap();
+  await p.locator('[data-hud-vista=controles]').tap();
+  assert.equal(await p.locator('.metronet-hud').getAttribute('data-vista'), 'controles');
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
 });
 
 
 test('Encabezados desplegables conservan marco de control y apertura nativa', async t => {
-  for (const [ruta, selector] of [['constructor', '.metronet-editor-contexto > summary'], ['/simulacion.html?idDiseno=77', '.simulacion-seccion > summary']]) {
+  for (const [ruta, selector] of [['constructor', '.metronet-editor-acceso-teclado > summary'], ['/simulacion.html?idDiseno=77', '.simulacion-seccion > summary']]) {
     const p = (await abrir(t, ruta)).pagina;
     const summary = p.locator(selector).first();
     const css = await estilo(summary);

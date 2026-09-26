@@ -1,4 +1,5 @@
 @import './tokens.css';
+@import '../interfaz/iconos-retro.css';
 
 :root {
   color: var(--text-primary);

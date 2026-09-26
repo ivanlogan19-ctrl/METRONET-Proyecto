@@ -1,0 +1,17 @@
+.metronet-icono { display: block; width: 32px; height: 32px; flex: 0 0 32px; pointer-events: none; image-rendering: pixelated; }
+/* La caja y sus estados prevalecen sobre las familias de botones textuales. */
+html:root body :is(button, summary, a).metronet-boton-icono {
+  display: inline-flex; align-items: center; justify-content: center; position: relative;
+  width: 44px; min-width: 44px; max-width: 44px; height: 44px; min-height: 44px; padding: 4px; flex: 0 0 44px;
+  box-sizing: border-box; line-height: 1; border-radius: 0; margin: 0; transform: none; translate: none;
+  list-style: none; vertical-align: middle;
+}
+html:root body summary.metronet-boton-icono::after { display: none; }
+html:root body summary.metronet-boton-icono::-webkit-details-marker { display: none; }
+html:root body :is(button, summary, a).metronet-boton-icono:is(:hover, :active, :focus-visible, [aria-pressed="true"]) { transform: none; translate: none; }
+html:root body .metronet-boton-icono > .metronet-icono { width: 32px; height: 32px; flex: 0 0 32px; margin: 0; }
+.metronet-boton-icono[aria-pressed="true"] { background: var(--panel-elevated); color: var(--text-primary); outline: 2px solid var(--info-active); outline-offset: -4px; box-shadow: inset 2px 2px 0 var(--bg-primary); }
+.metronet-boton-icono:focus-visible { outline: 3px solid var(--text-primary); outline-offset: 2px; }
+.metronet-boton-icono:active { box-shadow: inset 2px 2px 0 var(--bg-primary); transform: none; }
+.metronet-boton-icono[aria-busy="true"] { cursor: wait; opacity: .65; }
+.metronet-boton-icono[hidden] { display: none !important; }

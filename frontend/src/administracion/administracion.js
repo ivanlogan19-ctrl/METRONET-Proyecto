@@ -15,10 +15,16 @@ if (!sesion) {
 function inicializarAdministracion(sesionAdministrador) {
   inicializarNavegacion({ actual: "administracion" });
   actualizarEtiquetaAdministrador(sesionAdministrador.usuario);
+  // Esta marca vuelve al panel inicial; no necesita recargar admin.html.
+  document.querySelector('.admin-marca').addEventListener('click', evento => {
+    if (evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
+    evento.preventDefault();
+    mostrarVista('usuarios');
+  });
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
     boton.addEventListener("click", () => {
-      if (!boton.dataset.vista) {
+      if (!boton.dataset.vista || boton.classList.contains('activo')) {
         return;
       }
 

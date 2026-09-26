@@ -28,99 +28,55 @@ async function capturar(p, nombre) {
   fs.mkdirSync(process.env.METRONET_CAPTURAS_ASSIST, { recursive: true });
   await p.screenshot({ path: `${process.env.METRONET_CAPTURAS_ASSIST}/${nombre}.png` });
 }
-async function medir(p) {
-  return p.locator('[data-estado-editor]').evaluate(e => {
-    const texto = e.querySelector('[data-assist-mensaje] > p');
-    const r = e.getBoundingClientRect(), app = document.querySelector('#metronet-aplicacion').getBoundingClientRect();
-    const estilo = getComputedStyle(texto);
-    return { alto: r.height, ancho: r.width, cabe: r.left >= 0 && r.right <= innerWidth, fueraMapa: r.bottom <= app.top + .5,
-      lineas: Math.round(texto.getBoundingClientRect().height / parseFloat(estilo.lineHeight)), sombra: estilo.textShadow,
-      textoCompleto: texto.scrollHeight <= texto.clientHeight + 1, desborde: document.documentElement.scrollWidth > innerWidth };
-  });
+async function abrirHud(p, vista) {
+  if (!await p.locator('.metronet-hud').evaluate(e=>e.open)) await p.locator('.metronet-hud>summary').click();
+  if(vista) await p.locator(`[data-hud-vista="${vista}"]`).click();
 }
 
-test('móvil: contraer, leer tres líneas, más pista y controles sin una segunda caja', async t => {
-  const { pagina: p } = await preparar(t);
-  const toggle = p.getByRole('button', { name: 'Mostrar pista del escenario' });
-  assert.ok((await medir(p)).alto <= 44);
-  assert.equal(await p.locator('[data-assist-controles]').isVisible(), false);
-  await capturar(p, 'movil-contraido');
-  await toggle.press('Enter');
-  const inicial = await medir(p);
-  assert.equal(inicial.lineas, 3);
-  assert.ok(inicial.alto < 115, JSON.stringify(inicial));
-  assert.equal(inicial.fueraMapa, true); assert.equal(inicial.desborde, false);
-  assert.equal(inicial.sombra, 'none'); assert.equal(inicial.textoCompleto, true);
-  assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(), /\\|\/{2,}/);
-  await capturar(p, 'movil-pista-tres-lineas');
-  await p.locator('[data-assist-pista]').click();
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del escenario/);
-  assert.ok((await medir(p)).alto < 115);
-  await capturar(p, 'movil-mas-pista');
-  await p.locator('[data-assist-controles]').click();
-  assert.equal(await p.locator('[data-assist-pista]').isVisible(), false);
-  assert.equal(await p.locator('.metronet-assist').count(), 1);
-  assert.equal(await p.locator('dialog[open]').count(), 0);
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /Seleccionar.*rueda.*pinza/);
-  assert.ok((await medir(p)).alto < 135);
-  await capturar(p, 'movil-controles');
-  await p.locator('[data-assist-controles]').click();
-  await p.locator('[data-assist-alternar]').click();
-  await p.evaluate(() => { editorPrueba.disenoActual.estaciones.push({ nombre: 'Primera' }); editorPrueba.actualizarAyuda(); });
-  assert.equal(await p.locator('[data-assist-mensaje]').isVisible(), false, 'El progreso no abre el HUD contraído');
-  await p.locator('[data-assist-alternar]').press('Space');
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /Ya ubicaste la primera/);
-  await p.evaluate(() => { editorPrueba.errorAyuda = 'La unidad de metro no está disponible.'; editorPrueba.actualizarAyuda(); });
-  assert.ok((await medir(p)).alto < inicial.alto, 'Una pista breve ocupa menos altura que tres líneas');
-  await capturar(p, 'movil-pista-corta');
-});
-
-test('resize conserva acceso por teclado y el glosario se retira al contraer', async t => {
-  const { pagina: p } = await preparar(t, 1440);
-  await p.locator('[data-assist-mensaje]').focus();
-  await p.setViewportSize({ width: 390, height: 844 });
-  await p.waitForFunction(() => document.activeElement.matches('[data-assist-alternar]'));
-  await p.keyboard.press('Enter');
-  await p.locator('.metronet-assist [data-concepto=estacion]').click();
-  assert.equal(await p.locator('.metronet-glosario-contextual').isVisible(), true);
-  await p.locator('[data-assist-alternar]').click();
-  await p.waitForFunction(() => !document.querySelector('.metronet-glosario-contextual'));
-  await p.setViewportSize({ width: 1440, height: 900 });
-  await p.waitForFunction(() => document.activeElement.matches('[data-assist-controles]'));
-  assert.equal(await p.locator('[data-assist-mensaje]').isVisible(), true);
-  assert.equal(await p.locator('[data-assist-alternar]').isVisible(), false);
-  await p.locator('[data-assist-controles]').press('Enter');
-  assert.equal(await p.locator('.metronet-assist').getAttribute('data-vista'), 'controles');
-});
-
-for (const porcentaje of [125, 200, 300]) test(`zoom real Chrome ${porcentaje}%: pista, controles y glosario accesibles`, async t => {
-  const perfil = fs.mkdtempSync(path.join(os.tmpdir(), 'metronet-hud-zoom-'));
-  const contexto = await chromium.launchPersistentContext(perfil, { headless: true, channel: process.env.METRONET_BROWSER_CHANNEL,
-    viewport: null, args: ['--window-size=1440,900', '--force-device-scale-factor=1'] });
-  t.after(async () => { await contexto.close(); fs.rmSync(perfil, { recursive: true, force: true }); });
-  const ajustes = contexto.pages()[0];
-  await ajustes.goto('chrome://settings/appearance', { waitUntil: 'domcontentloaded' });
-  await ajustes.locator('#zoomLevel').selectOption({ label: `${porcentaje}%` });
-  const { pagina: p, errores } = await abrirEditor({ newContext: async () => contexto }, opciones);
-  await p.waitForFunction(() => editorPrueba.estadoConsigna === 'disponible');
-  await p.waitForFunction(() => document.querySelector('[data-estado-editor] [role=status]').textContent.includes('cargada'));
-  await p.waitForFunction(() => document.querySelector('[data-estado-editor] [role=status]').textContent === '');
-  const dimension = await p.evaluate(() => ({ ratio: devicePixelRatio, ancho: innerWidth }));
-  assert.ok(Math.abs(dimension.ratio - porcentaje / 100) < .02, JSON.stringify(dimension));
-  assert.ok(Math.abs(dimension.ancho - 1440 / (porcentaje / 100)) <= 2, JSON.stringify(dimension));
-  if (await p.locator('[data-assist-alternar]').isVisible()) await p.locator('[data-assist-alternar]').click();
-  let medidas = await medir(p);
-  assert.equal(medidas.cabe, true); assert.equal(medidas.fueraMapa, true); assert.equal(medidas.desborde, false);
-  assert.equal(medidas.textoCompleto, true);
-  await p.locator('[data-assist-pista]').click();
-  await p.locator('[data-assist-controles]').click();
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /Seleccionar.*rueda/);
-  await p.locator('[data-assist-controles]').click();
-  await p.locator('.metronet-assist [data-concepto=estacion]').click();
-  assert.equal(await p.locator('.metronet-glosario-contextual').isVisible(), true);
+for(const width of [1440,768,390,320]) test(`HUD ${width}px: cuatro vistas exclusivas, música real, sin peticiones ni acciones detrás`, async t=>{
+  const {pagina:p,solicitudes}=await preparar(t,width);
+  assert.equal(await p.locator('.metronet-hud').evaluate(e=>e.open),false);
+  assert.equal(await p.locator('[data-control-musica]').count(),1);
+  const antes=await p.locator('#metronet-mapa').boundingBox();
+  for(const vista of ['controles','tutorial','pista','musica']){
+    await abrirHud(p,vista);
+    const cuenta=await p.locator('.metronet-hud__contenido').evaluate(e=>[...e.children].filter(c=>!c.hidden).length);
+    assert.equal(cuenta,1);
+    assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(),antes);
+  }
+  await p.getByRole('checkbox',{name:'Silenciar música'}).check();
+  await p.getByRole('slider',{name:'Volumen de música'}).fill('17');
+  const musica=await p.evaluate(async()=>{const {gestorMusica:g}=await import('/src/audio/GestorMusica.js');return g.obtenerEstado();});
+  assert.equal(musica.silenciado,true); assert.equal(musica.volumen,.17);
   await p.keyboard.press('Escape');
-  await capturar(p, `zoom-real-${porcentaje}`);
-  assert.deepEqual(errores, []);
+  assert.equal(await p.locator('.metronet-hud>summary').evaluate(e=>e===document.activeElement),true);
+  await p.evaluate(()=>{editorPrueba.panelHerramientas.seleccionar('estaciones');editorPrueba.disenoActual.estaciones.push({nombre:'Primera'});editorPrueba.actualizarAyuda();});
+  assert.equal(await p.locator('.metronet-hud').evaluate(e=>e.open),false);
+  await abrirHud(p,'pista'); assert.match(await p.locator('[data-assist-mensaje]').innerText(),/Ya ubicaste la primera/);
+  await p.locator('[data-assist-pista]').click();
+  assert.equal(solicitudes.length,0);
+  await p.locator('.metronet-poi>summary').click();
+  await p.locator('.metronet-poi__categorias [data-categoria="SALUD"]').click();
+  assert.equal(solicitudes.length,0); assert.equal(await p.locator('dialog[open]').count(),0);
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+});
+
+for (const porcentaje of [125,200,300]) test(`Zoom real Chrome ${porcentaje}%: POI, pista y música utilizables`,async t=>{
+  const perfil=fs.mkdtempSync(path.join(os.tmpdir(),'metronet-hud-zoom-'));
+  const contexto=await chromium.launchPersistentContext(perfil,{headless:true,channel:process.env.METRONET_BROWSER_CHANNEL,viewport:null,args:['--window-size=1440,900','--force-device-scale-factor=1']});
+  t.after(async()=>{await contexto.close();fs.rmSync(perfil,{recursive:true,force:true});});
+  const ajustes=contexto.pages()[0];await ajustes.goto('chrome://settings/appearance',{waitUntil:'domcontentloaded'});await ajustes.locator('#zoomLevel').selectOption({label:`${porcentaje}%`});
+  const {pagina:p,errores}=await abrirEditor({newContext:async()=>contexto},opciones);
+  assert.ok(Math.abs(await p.evaluate(()=>devicePixelRatio)-porcentaje/100)<.02);
+  for(const vista of ['controles','tutorial','pista','musica']){
+    await abrirHud(p,vista);
+    const r=await p.locator('.metronet-hud__panel').evaluate(e=>{const r=e.getBoundingClientRect();return {cabe:r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,desborde:document.documentElement.scrollWidth>innerWidth};});
+    assert.equal(r.cabe,true);assert.equal(r.desborde,false);
+  }
+  await abrirHud(p,'pista');await p.locator('[data-assist-mensaje] [data-concepto=estacion]').click();
+  assert.equal(await p.locator('.metronet-glosario-contextual').isVisible(),true);
+  await p.keyboard.press('Escape');
+  assert.deepEqual(errores,[]);
 });
 
 test('cambiar la altura del HUD sincroniza canvas y puntero antes del siguiente clic', async t => {

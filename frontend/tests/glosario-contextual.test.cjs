@@ -114,7 +114,7 @@ test('Constructor: consigna, objetivos, parámetros y cambio de nivel sin térmi
   assert.equal(await termino.evaluate(e=>e===document.activeElement),true);
   await termino.click();
   await p.locator('[data-elegir-herramienta=estaciones]').click();
-  assert.equal(await p.locator('[data-nombre-estacion]').isVisible(),true);
+  assert.equal(await p.locator('[data-elegir-herramienta=estaciones]').getAttribute('aria-pressed'),'true');
   await p.locator('.metronet-glosario-contextual button').focus();
   await p.keyboard.press('Tab');
   assert.equal(await p.locator('.metronet-glosario-contextual').evaluate(e=>e.contains(document.activeElement)),false);

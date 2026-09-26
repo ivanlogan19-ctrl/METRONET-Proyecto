@@ -46,7 +46,7 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
   assert.ok(inicial.height >= 340);
   assert.ok(inicial.width / width > (width > 1050 ? .72 : .9));
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-  for (const id of ['consignaSimulacion', 'seccionCirculacion', 'seccionConfiguracion', 'seccionMetricas', 'seccionResultados', 'seccionDisenos']) {
+  for (const id of ['consignaSimulacion', 'seccionCirculacion', 'seccionConfiguracion', 'seccionMetricas', 'seccionResultados']) {
     const resumen = p.locator(`#${id} > summary`);
     assert.equal(await p.locator(`#${id}`).evaluate(e => e.open), false);
     await resumen.focus(); await p.keyboard.press('Enter');
@@ -105,15 +105,14 @@ test('Los errores permanecen fuera del panel al ampliar y los resultados se abre
   await p.locator('#seccionResultados > summary').click();
   assert.match(await p.locator('#listaResultadosSimulacion').innerText(), /Aún no se registraron/);
 });
-test('Sin diseño en la URL, el selector sigue disponible y permite cargar una red', async t => {
-  const { pagina: p } = await abrir(t);
+test('Sin diseño en la URL, Mis diseños conserva la apertura sin duplicar el selector', async t => {
+  const { pagina:p } = await abrir(t);
   await p.goto('http://127.0.0.1:5173/simulacion.html');
-  await p.locator('#listaDisenos button').first().waitFor();
-  assert.equal(await p.locator('#estadoVacio').isVisible(), true);
-  assert.equal(await p.locator('#seccionDisenos').evaluate(e => e.open), true);
-  await p.locator('#listaDisenos button').first().click();
+  await p.locator('#estadoVacio').waitFor();
+  assert.equal(await p.locator('#listaDisenos').count(),0);
+  await p.locator('#estadoVacio').getByRole('link',{name:'Mis diseños'}).click();
+  await p.getByRole('link',{name:'Simular diseño: Red de Montevideo'}).click();
   await p.locator('#panelSimulacion').waitFor();
-  assert.equal(await p.locator('#seccionDisenos').evaluate(e => e.open), false);
 });
 
 for (const width of [320, 360]) test(`Móvil estrecho ${width}: controles completos, sin recortes ni saltos al iniciar`, async t => {

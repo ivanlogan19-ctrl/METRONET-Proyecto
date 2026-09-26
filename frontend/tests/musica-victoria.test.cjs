@@ -48,11 +48,11 @@ test('Guardar y completar en el editor: pista completa, final natural y un solo 
     if (ruta.endsWith('/escenarios')) return route.fulfill({ json: escenarios });
     return route.fallback();
   });
-  await p.evaluate(() => editorPrueba.guardarDiseno());
+  await p.evaluate(() => editorPrueba.guardarDiseno({ evaluar: false }));
   assert.equal(await p.locator('.metronet-victoria').count(), 0, 'Guardar sin evaluar no anuncia victoria');
   assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('victory-theme'))), false);
-  await p.locator(audio).evaluate(a => a.addEventListener('ended', () => { window.finCancion = { tiempo: a.currentTime, duracion: a.duration, fecha: Date.now() }; }, { capture: true, once: true }));
-  await p.evaluate(() => { window.validacionMusica = Promise.all([editorPrueba.validarDiseno(), editorPrueba.validarDiseno()]); });
+  await p.evaluate(() => document.addEventListener('ended', e => { const a = e.target; if (a.getAttribute('src') === '/audio/victory-theme.mp3') window.finCancion = { tiempo: a.currentTime, duracion: a.duration, fecha: Date.now() }; }, { capture: true }));
+  await p.evaluate(() => { window.validacionMusica = Promise.all([editorPrueba.guardarDiseno(), editorPrueba.guardarDiseno()]); });
   await p.locator('.metronet-victoria').waitFor(); await sonando(p);
   assert.equal(await p.locator(audio).count(), 1);
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
@@ -65,7 +65,7 @@ test('Guardar y completar en el editor: pista completa, final natural y un solo 
   assert.ok(Math.abs(fin.tiempo - fin.duracion) < .05);
   assert.ok(Date.now() - fin.fecha < 2500);
   assert.equal(inicios, 1); assert.equal(evaluaciones, 1);
-  assert.equal(vista.solicitudes.filter(s => s.ruta.endsWith('/guardar')).length, 1);
+  assert.equal(vista.solicitudes.filter(s => s.ruta.endsWith('/guardar')).length, 2);
   assert.equal(await p.locator('.metronet-viaje, .metronet-victoria').count(), 0);
 });
 

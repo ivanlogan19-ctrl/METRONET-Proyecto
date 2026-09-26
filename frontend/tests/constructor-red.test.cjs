@@ -43,13 +43,18 @@ test('inicio: herramientas agrupadas, un solo panel y acciones de proyecto acces
   assert.equal(await pagina.locator('[data-elemento-seleccionado]').isVisible(), false);
   assert.equal(await pagina.locator('[data-contenedor-consigna]').isVisible(), false);
   assert.equal(await pagina.locator('[data-guardar]').isVisible(), true);
-  assert.equal(await pagina.locator('[data-ir-simulacion]').isDisabled(), true);
+  assert.equal(await pagina.locator('[data-ir-simulacion]').isDisabled(), false);
+  assert.equal(await pagina.locator('[data-validar]').count(), 0);
+  assert.equal(await pagina.locator('[data-elegir-herramienta] svg').count(), 7);
   for (const clave of ['estaciones', 'lineas', 'conexiones', 'metros', 'transbordos', 'escenarios', 'seleccion']) {
     await herramienta(pagina, clave);
   }
-  await pagina.locator('.metronet-editor-contexto > summary').click();
-  assert.equal(await pagina.locator('[data-selector-diseno]').isVisible(), true);
-  assert.equal(await pagina.locator('[data-crear-diseno]').isVisible(), true);
+  assert.equal(await pagina.locator('[data-selector-diseno]').count(), 0);
+  assert.match(await pagina.locator('[data-resumen-diseno]').innerText(), /Red de prueba/);
+  assert.equal(await pagina.locator('[data-crear-diseno]').count(), 0);
+  assert.equal(await pagina.locator('[data-contenedor-selectores-mapa]').isVisible(), false);
+  await pagina.locator('.metronet-poi>summary').click();
+  await pagina.getByRole('button', {name:'Barrios / Zonas',exact:true}).click();
   assert.equal(await pagina.locator('[data-contenedor-selectores-mapa]').isVisible(), true);
 });
 
@@ -57,15 +62,11 @@ test('cambios repetidos y cancelación limpian el modo y la selección temporal'
   const { pagina, solicitudes } = await preparar(t);
   for (let vuelta = 0; vuelta < 3; vuelta += 1) {
     await herramienta(pagina, 'lineas');
-    await pagina.locator('[data-nombre-linea]').fill('Nueva línea');
-    await pagina.locator('[data-crear-linea]').click();
     await clicarMapa(pagina, 580, 470);
     assert.equal(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas.length), 1);
-    assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /1 seleccionadas/);
+    assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /origen Centro/);
     await herramienta(pagina, 'estaciones');
-    assert.deepEqual(await pagina.evaluate(() => [editorPrueba.modo, editorPrueba.capaRedMetro.modo, editorPrueba.estacionesSeleccionadas]), ['normal', 'normal', []]);
-    await pagina.locator('[data-nombre-estacion]').fill('Nueva');
-    await pagina.locator('[data-agregar-estacion]').click();
+    assert.deepEqual(await pagina.evaluate(() => [editorPrueba.modo, editorPrueba.capaRedMetro.modo, editorPrueba.estacionesSeleccionadas]), ['crearEstacion', 'crearEstacion', []]);
     if (vuelta % 2) await pagina.locator('[data-cancelar-herramienta]').click();
     else await pagina.keyboard.press('Escape');
     assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'normal');
@@ -74,39 +75,37 @@ test('cambios repetidos y cancelación limpian el modo y la selección temporal'
   assert.equal(solicitudes.length, 0);
 });
 
-test('crear estación, línea y conexión conserva validaciones, orden y contratos REST', async (t) => {
+test('crear estaciones, líneas y conexiones directamente conserva contratos y herramienta activa', async (t) => {
   const { pagina, solicitudes } = await preparar(t);
   await herramienta(pagina, 'estaciones');
-  await pagina.locator('[data-agregar-estacion]').click();
-  assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'normal');
-  assert.equal(solicitudes.length, 0);
-  await pagina.locator('[data-nombre-estacion]').fill('Nueva');
-  await pagina.locator('[data-agregar-estacion]').click();
+  assert.equal(await pagina.locator('[data-nombre-estacion]').count(), 0);
   await clicarMapa(pagina, 750, 500);
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some((e) => e.nombre === 'Nueva'));
-  assert.equal(solicitudes[0].ruta, '/api/simulaciones/77/estaciones');
-  assert.equal(solicitudes[0].datos.nombre, 'Nueva');
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some(e => e.nombre === 'Estación 01'));
+  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
+  assert.equal(solicitudes[0].datos.nombre, 'Estación 01');
   assert.ok(Math.abs(solicitudes[0].datos.posicionX - 750) <= 1);
+  assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
+  await clicarMapa(pagina, 760, 480);
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some(e => e.nombre === 'Estación 02'));
+  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
   await herramienta(pagina, 'lineas');
-  await pagina.locator('[data-nombre-linea]').fill('Verde');
-  await pagina.locator('[data-crear-linea]').click();
-  await pagina.locator('[data-crear-linea]').click();
-  assert.equal(solicitudes.length, 1); // Sigue exigiendo al menos dos estaciones.
   await clicarMapa(pagina, 580, 470);
+  assert.equal(solicitudes.length, 2);
   await clicarMapa(pagina, 810, 480);
-  await pagina.locator('[data-crear-linea]').click();
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.lineas.some((l) => l.nombre === 'Verde'));
-  assert.deepEqual(solicitudes[1].datos, { nombre: 'Verde', estaciones: ['Centro', 'Este'] });
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.lineas.some(l => l.nombre === 'Línea 01'));
+  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
+  assert.deepEqual(solicitudes[2].datos, { nombre:'Línea 01', estaciones:['Centro','Este'] });
+  assert.equal(await pagina.evaluate(() => editorPrueba.creacionDirecta.lineaActiva), 'Línea 01');
   await herramienta(pagina, 'conexiones');
   await pagina.locator('[data-linea-conexion]').selectOption('Azul');
-  await pagina.locator('[data-crear-tramo]').click();
   await clicarMapa(pagina, 700, 460);
-  await pagina.locator('[data-crear-tramo]').click();
-  assert.equal(solicitudes.length, 2); // Sigue exigiendo exactamente dos estaciones.
   await clicarMapa(pagina, 810, 480);
-  await pagina.locator('[data-crear-tramo]').click();
-  await esperarOperacion(pagina);
-  assert.deepEqual(solicitudes[2], { ruta: '/api/simulaciones/77/tramos', metodo: 'POST', datos: { nombreLinea: 'Azul', estacionA: 'Parque', estacionB: 'Este' } });
+  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente && editorPrueba.disenoActual.tramos.length === 3);
+  assert.deepEqual(solicitudes[3].datos, { nombreLinea:'Azul', estacionA:'Parque', estacionB:'Este' });
+  assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), ['Este']);
+  await clicarMapa(pagina, 750, 500);
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.tramos.length === 4);
+  assert.deepEqual(solicitudes[4].datos, { nombreLinea:'Azul', estacionA:'Este', estacionB:'Estación 01' });
 });
 
 test('selección contextual, edición de transbordo, reubicación y eliminación conservan sus acciones', async (t) => {
@@ -156,18 +155,14 @@ test('líneas y unidades mantienen selección, edición, eliminación y acceso a
   assert.equal(await pagina.locator('[data-editar-unidad]').isVisible(), true);
   assert.equal(await pagina.locator('[data-eliminar-unidad]').isVisible(), true);
   await herramienta(pagina, 'metros');
-  await pagina.locator('[data-capacidad]').fill('400');
-  await pagina.locator('[data-velocidad-unidad]').fill('50');
-  await pagina.locator('[data-agregar-unidad]').click();
+  await clicarMapa(pagina, 640, 465);
   await pagina.waitForFunction(() => editorPrueba.disenoActual.unidadesMetro.length === 2);
-  assert.deepEqual(solicitudes[0].datos, { nombreLinea: 'Azul', capacidad: 400, velocidadPromedio: 50 });
+  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
+  assert.deepEqual(solicitudes[0].datos, { nombreLinea:'Azul', capacidad:300, velocidadPromedio:40 });
   await pagina.locator('[data-guardar]').click();
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.simulacion.estado === 'GUARDADO' && !editorPrueba.cambiosPendientes);
-  assert.equal(solicitudes[1].ruta, '/api/simulaciones/77/guardar');
-  await pagina.locator('[data-validar]').click();
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.preparadoParaSimular);
+  await pagina.waitForFunction(() => !editorPrueba.finalizacionEnCurso && !editorPrueba.cambiosPendientes);
+  assert.deepEqual(solicitudes.slice(1).map(s => s.ruta), ['/api/simulaciones/77/validacion', '/api/simulaciones/77/guardar']);
   assert.equal(await pagina.locator('[data-ir-simulacion]').isEnabled(), true);
-  assert.equal(solicitudes[2].ruta, '/api/simulaciones/77/validacion');
 });
 
 test('las herramientas no habilitadas por el nivel permanecen deshabilitadas', async (t) => {
@@ -178,7 +173,8 @@ test('las herramientas no habilitadas por el nivel permanecen deshabilitadas', a
   assert.equal(await pagina.locator('[data-elegir-herramienta="escenarios"]').isVisible(), false);
   assert.equal(await pagina.locator('[data-eliminar-diseno]').isVisible(), false);
   await clicarMapa(pagina, 810, 480);
-  assert.equal(await pagina.locator('[data-editar-estacion]').count(), 0);
+  assert.equal(await pagina.locator('[data-editar-estacion]').count(), 1);
+  assert.equal(await pagina.locator('[data-ir-simulacion]').isDisabled(), true);
   assert.equal(await pagina.locator('[data-quitar-seleccion]').isVisible(), true);
 });
 
@@ -195,7 +191,9 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
     await seleccionar();
     await pagina.locator(`[data-editar-${tipo}]`).click();
     for (const [indice, respuesta] of respuestas.entries()) {
-      await pagina.locator('[data-editar-elemento] input').nth(indice).fill(respuesta);
+      const campo = pagina.locator('[data-editar-elemento] input, [data-editar-elemento] select').nth(indice);
+      if (await campo.evaluate(e => e.tagName === 'SELECT')) await campo.selectOption(respuesta);
+      else await campo.fill(respuesta);
     }
     assert.equal(await pagina.locator('dialog[open]').count(), 0);
     await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
@@ -207,7 +205,7 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
     }, tipo);
     assert.equal(solicitudes[0].metodo, 'PATCH');
     assert.equal(solicitudes[0].ruta, rutaEsperada);
-    if (tipo === 'linea') assert.deepEqual(solicitudes[0].datos, { nombre: 'Violeta', estaciones: ['Centro', 'Parque'] });
+    if (tipo === 'linea') assert.deepEqual(solicitudes[0].datos, { nombre: 'Violeta' });
     if (tipo === 'tramo') assert.deepEqual(solicitudes[0].datos, { nombreLinea: 'Azul', estacionA: 'Centro', estacionB: 'Este' });
     if (tipo === 'unidad') assert.deepEqual(solicitudes[0].datos, { nombreLinea: 'Azul', capacidad: 450, velocidadPromedio: 60 });
     await seleccionar();

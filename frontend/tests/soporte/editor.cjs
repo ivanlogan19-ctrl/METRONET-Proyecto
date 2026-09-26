@@ -1,7 +1,7 @@
 const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 
 async function abrirEditor(navegador, opciones = {}) {
-  const contexto = await navegador.newContext({ viewport: opciones.viewport || { width: 1440, height: 1000 } });
+  const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { nombre: 'Prueba', rol: 'JUGADOR' } })));
   const pagina = await contexto.newPage();
   pagina.setDefaultTimeout(15000);
@@ -48,7 +48,10 @@ async function abrirEditor(navegador, opciones = {}) {
       const nombre = decodeURIComponent(ruta.split('/').at(-1));
       Object.assign(diseno.estaciones.find((e) => e.nombre === nombre), datos);
     } else if (ruta.includes('/estaciones/') && metodo === 'DELETE') diseno.estaciones = diseno.estaciones.filter((e) => e.nombre !== decodeURIComponent(ruta.split('/').at(-1)));
-    else if (ruta.endsWith('/lineas') && metodo === 'POST') diseno.lineas.push({ nombre: datos.nombre });
+    else if (ruta.endsWith('/lineas') && metodo === 'POST') {
+      diseno.lineas.push({ nombre: datos.nombre });
+      datos.estaciones.slice(1).forEach((estacionB,i) => diseno.tramos.push({ nombreLinea:datos.nombre, estacionA:datos.estaciones[i], estacionB }));
+    }
     else if (ruta.includes('/lineas/') && metodo === 'PATCH') {
       const nombre = decodeURIComponent(ruta.split('/').at(-1));
       diseno.lineas.find((l) => l.nombre === nombre).nombre = datos.nombre;
@@ -60,7 +63,7 @@ async function abrirEditor(navegador, opciones = {}) {
     else if (ruta.endsWith('/unidades') && metodo === 'POST') diseno.unidadesMetro.push({ idTren: 2, ...datos });
     else if (ruta.includes('/unidades/') && metodo === 'PATCH') Object.assign(diseno.unidadesMetro.find((u) => u.idTren === Number(ruta.split('/').at(-1))), datos);
     else if (ruta.includes('/unidades/') && metodo === 'DELETE') diseno.unidadesMetro = diseno.unidadesMetro.filter((u) => u.idTren !== Number(ruta.split('/').at(-1)));
-    else if (ruta.endsWith('/guardar')) diseno.simulacion.estado = 'GUARDADO';
+    else if (ruta.endsWith('/guardar') && diseno.simulacion.estado !== 'VALIDADO') diseno.simulacion.estado = 'GUARDADO';
     else if (ruta.endsWith('/validacion')) {
       diseno.preparadoParaSimular = true;
       diseno.simulacion.estado = 'VALIDADO';
@@ -75,6 +78,9 @@ async function abrirEditor(navegador, opciones = {}) {
     throw new Error(`${error.message}\nErrores de página: ${errores.join('; ')}\n${await pagina.locator('body').innerText()}`);
   }
   await pagina.evaluate(() => { window.editorPrueba = juegoPrueba.scene.getScene('MapaScene').editorRedMetro; });
+  await pagina.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
+  await pagina.waitForFunction(() => editorPrueba.estadoConsigna !== 'cargando');
+  await pagina.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   return { contexto, pagina, solicitudes, diseno, errores };
 }
 

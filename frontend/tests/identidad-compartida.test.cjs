@@ -85,8 +85,8 @@ test('modales administrativos, educativos y de eliminación comparten marco y fo
   const marco = await estilo(admin.locator('#editorUsuario'), propiedades);
   assert.match((await estilo(admin.locator('#editorUsuario h2'), ['fontFamily'])).fontFamily, /Silkscreen/);
   const editor = await abrir(t, 'constructor');
-  await editor.locator('.metronet-editor-zona-peligro summary').click();
-  await editor.locator('[data-eliminar-diseno]').click();
+  await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
+  await editor.locator('[data-eliminar-estacion]').click();
   assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar'), propiedades), marco);
   await editor.getByRole('button', { name: 'Cancelar', exact: true }).click();
   const niveles = await abrir(t, '/escenarios.html', {

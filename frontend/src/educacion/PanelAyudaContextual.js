@@ -1,129 +1,147 @@
+import { ajustarPanelMapa } from '../interfaz/PanelMapa.js';
 import { obtenerAyudaContextual } from './AyudaContextual.js';
-import { destacarConceptos } from './glosario/GlosarioContextual.js';
+import { destacarConceptos, cerrarDefinicion } from './glosario/GlosarioContextual.js';
+import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
+import { crearControlMusica } from '../audio/ControlMusica.js';
+import PanelTutorialInicial from './PanelTutorialInicial.js';
+import { conceptosDelNivel } from './glosario/ContextoConceptos.js';
 import './ayuda-contextual.css';
+import '../mapa/estilos/referencias-poi.css';
 
-// ControlZoom permite arrastrar en modo normal (Seleccionar); la pinza solo hace zoom.
-const CONTROLES = 'Arrastrá con Seleccionar para mover. Zoom: rueda, botones + − o pinza de dos dedos. Clic: acción de la herramienta activa.';
+const CONTROLES_EDITOR = 'Arrastrá para mover el mapa. Zoom: rueda, botones + − o pinza de dos dedos. Clic: acción de la herramienta activa.';
+const CONTROLES_SIMULACION = 'Arrastrá para mover el mapa. Zoom: rueda, botones + − o pinza de dos dedos. Seleccioná una estación o un metro para consultar su información.';
+const CONTROLES_BUSQUEDA = ' La estrella abre las referencias. La lupa busca por nombre, tipo o barrio. Cerrar la búsqueda conserva el punto localizado; borrar el texto retira su marca.';
 let secuenciaAyuda = 0;
 
-// Sin reloj ni persistencia: cada intento comienza con su propio contexto.
+// La ayuda sigue derivándose del escenario. Abrir/cerrar el HUD nunca altera ese estado.
 export default class PanelAyudaContextual {
   constructor(contenedor, { controles = false } = {}) {
     this.contenedor = contenedor;
     this.integrado = controles;
-    this.vista = 'pista';
-    contenedor.hidden = true;
-    this.elemento = document.createElement('section');
-    this.elemento.className = `metronet-assist${controles ? ' metronet-assist--integrado' : ''}`;
-    this.elemento.hidden = true;
-    this.elemento.setAttribute('aria-label', 'Ayuda contextual del escenario');
-    const idMensaje = `metronet-pista-${++secuenciaAyuda}`;
-    this.elemento.innerHTML = controles
-      ? `<header class="metronet-assist__cabecera"><h2 class="metronet-titulo metronet-titulo--panel"><span data-assist-etiqueta></span><button type="button" data-assist-alternar aria-controls="${idMensaje}"><span data-assist-titulo-movil>PISTA</span><span data-assist-indicador aria-hidden="true">+</span></button></h2><div class="metronet-assist__acciones"><button type="button" data-assist-pista>Más pista</button><button type="button" data-assist-controles aria-pressed="false">Controles</button></div></header><div id="${idMensaje}" data-assist-mensaje aria-live="polite" aria-atomic="true" tabindex="0" aria-label="Orientación actual"></div>`
-      : '<h2 class="metronet-titulo metronet-titulo--panel">ASSIST <span data-assist-etiqueta></span></h2><div data-assist-mensaje aria-live="polite" aria-atomic="true" tabindex="0" aria-label="Orientación actual"></div><div class="metronet-assist__acciones"><button type="button" data-assist-pista>Más pista</button></div>';
-    this.etiqueta = this.elemento.querySelector('[data-assist-etiqueta]');
+    this.vista = null;
+    this.elemento = document.createElement('details');
+    this.elemento.className = 'metronet-hud';
+    this.elemento.setAttribute('aria-label', 'Controles del mapa, tutorial, pista y música');
+    const id = `metronet-hud-${++secuenciaAyuda}`;
+    this.elemento.innerHTML = `<summary></summary><div class="metronet-hud__panel"><header><h2 data-hud-titulo>Controles del mapa</h2><button type="button" data-hud-cerrar></button></header><div class="metronet-hud__opciones" role="group" aria-label="Opciones del mapa"></div><section class="metronet-hud__contenido" id="${id}"><p data-hud-controles></p><section class="metronet-assist" hidden><div data-assist-mensaje aria-live="polite" aria-atomic="true" tabindex="0" aria-label="Orientación actual"></div><button type="button" data-assist-pista>Más pista</button></section><div data-hud-musica hidden></div></section></div>`;
+    for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) this.elemento.querySelector('.metronet-hud__panel').addEventListener(tipo, e => e.stopPropagation());
+    this.acceso = this.elemento.querySelector('summary');
+    configurarBotonIcono(this.acceso, 'controles', 'Controles');
+    this.acceso.setAttribute('aria-controls', id);
+    this.acceso.setAttribute('aria-expanded', 'false');
+    const cerrar = this.elemento.querySelector('[data-hud-cerrar]');
+    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar controles');
+    cerrar.addEventListener('click', () => this.cerrar(true));
+    this.opciones = new Map();
+    this.zonaTutorial = document.createElement('div');
+    this.zonaTutorial.dataset.hudTutorial = '';
+    this.elemento.querySelector('.metronet-hud__contenido').append(this.zonaTutorial);
+    this.tutorial = new PanelTutorialInicial(this.zonaTutorial);
+    this.indicaciones = document.createElement('details');
+    this.indicaciones.dataset.indicacionesEscenario = '';
+    this.indicaciones.innerHTML = '<summary>Indicaciones del escenario</summary><p></p>';
+    this.elemento.querySelector('.metronet-assist').append(this.indicaciones);
+    for (const [vista, etiqueta] of [['controles', 'Controles del mapa'], ['tutorial', 'Tutorial'], ['pista', 'Pista'], ['musica', 'Música']]) {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.dataset.hudVista = vista;
+      configurarBotonIcono(boton, vista, etiqueta);
+      boton.addEventListener('click', () => { if (this.vista === vista) { this.cerrar(true); return; } this.vista = vista; this.mostrarVista(); });
+      this.opciones.set(vista, boton);
+      this.elemento.querySelector('.metronet-hud__opciones').append(boton);
+    }
     this.mensaje = this.elemento.querySelector('[data-assist-mensaje]');
     this.boton = this.elemento.querySelector('[data-assist-pista]');
-    this.boton.setAttribute('aria-pressed', 'false');
-    this.boton.addEventListener('click', () => {
-      this.ampliada = !this.ampliada;
-      this.renderizar();
+    this.boton.addEventListener('click', () => { this.ampliada = !this.ampliada; this.renderizar(); });
+    this.elemento.querySelector('[data-hud-controles]').textContent = (controles ? CONTROLES_EDITOR : CONTROLES_SIMULACION) + CONTROLES_BUSQUEDA;
+    this.musica = crearControlMusica({ integrado: true });
+    this.elemento.querySelector('[data-hud-musica]').append(this.musica.elemento);
+    this.alCerrarFuera = e => { if (!this.elemento.contains(e.target)) this.cerrar(); };
+    document.addEventListener('pointerdown', this.alCerrarFuera);
+    this.elemento.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && this.elemento.open) { e.stopPropagation(); this.cerrar(true); }
     });
-    this.botonControles = this.elemento.querySelector('[data-assist-controles]');
-    this.botonControles?.addEventListener('click', () => {
-      this.vista = this.vista === 'pista' ? 'controles' : 'pista';
-      this.renderizar();
+    this.elemento.addEventListener('toggle', () => {
+      if (!this.elemento.open && this.elemento.querySelector('.metronet-glosario-contextual')) cerrarDefinicion();
+      this.acceso.setAttribute('aria-expanded', String(this.elemento.open));
+      this.acceso.setAttribute('aria-pressed', String(this.elemento.open));
     });
-    if (controles) {
-      this.botonAlternar = this.elemento.querySelector('[data-assist-alternar]');
-      this.acciones = this.elemento.querySelector('.metronet-assist__acciones');
-      this.resolucionReducida = window.matchMedia('(max-width: 620px)');
-      this.expandida = !this.resolucionReducida.matches;
-      this.alCambiarResolucion = () => {
-        this.expandida = !this.resolucionReducida.matches;
-        this.actualizarExpansion();
-      };
-      this.resolucionReducida.addEventListener('change', this.alCambiarResolucion);
-      this.botonAlternar.addEventListener('click', () => {
-        this.expandida = !this.expandida;
-        this.actualizarExpansion();
-      });
-    }
+    contenedor.hidden = false;
     contenedor.append(this.elemento);
+    this.liberarPosicion = ajustarPanelMapa(this.acceso, this.elemento.querySelector('.metronet-hud__panel'));
+    this.actualizar({});
+    this.mostrarVista();
+  }
+
+  cerrar(foco = false) {
+    if (this.elemento.querySelector('.metronet-glosario-contextual')) cerrarDefinicion();
+    this.elemento.open = false;
+    if (foco) this.acceso.focus({ preventScroll: true });
+  }
+
+  mostrarVista() {
+    if (this.elemento.querySelector('.metronet-glosario-contextual')) cerrarDefinicion();
+    for (const [vista, boton] of this.opciones) boton.setAttribute('aria-pressed', String(vista === this.vista));
+    this.elemento.querySelector('[data-hud-titulo]').textContent = this.opciones.get(this.vista)?.getAttribute('aria-label') ?? 'Ayuda del mapa';
+    this.elemento.querySelector('[data-hud-controles]').hidden = this.vista !== 'controles';
+    this.elemento.querySelector('.metronet-assist').hidden = this.vista !== 'pista';
+    this.elemento.querySelector('[data-hud-musica]').hidden = this.vista !== 'musica';
+    this.zonaTutorial.hidden = this.vista !== 'tutorial';
+    this.elemento.dataset.vista = this.vista ?? '';
   }
 
   actualizar(contexto) {
     if (this.eliminada) return;
-    const ayuda = obtenerAyudaContextual(contexto) ?? (this.integrado ? {
+    const tutorialActivo = this.tutorial.actualizar(contexto);
+    contexto = { ...contexto, tutorialActivo };
+    const instrucciones = contexto.escenario?.instrucciones ?? contexto.diseno?.simulacion?.instrucciones ?? '';
+    const objetivo = contexto.escenario?.objetivo ?? contexto.diseno?.simulacion?.objetivo ?? '';
+    this.indicaciones.hidden = !instrucciones.trim() || instrucciones.trim() === objetivo.trim();
+    if (instrucciones !== this.instrucciones) {
+      this.instrucciones = instrucciones;
+      this.indicaciones.open = false;
+      this.indicaciones.querySelector('p').textContent = instrucciones;
+      destacarConceptos(this.indicaciones.querySelector('p'), conceptosDelNivel(contexto.escenario ?? contexto.diseno?.simulacion), { contextual:true });
+    }
+    const ayuda = obtenerAyudaContextual(contexto) ?? {
       clave: 'sin-escenario', etiqueta: 'PISTA', conceptos: [],
       texto: contexto.diseno ? 'Las pistas acompañan los escenarios educativos. Este diseño no tiene una consigna activa.' : 'Abrí un escenario para recibir pistas de su consigna.',
-    } : null);
+    };
     const contextoId = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario, contexto.escenario?.numero]);
     const identidad = JSON.stringify([contextoId, ayuda]);
     if (identidad === this.identidad) return;
-    const cambiaContexto = contextoId !== this.contextoId;
     this.contextoId = contextoId;
     this.identidad = identidad;
     this.ayuda = ayuda;
     this.ampliada = false;
-    if (cambiaContexto) {
-      this.vista = 'pista'; this.identidadMensaje = null;
-      if (this.integrado) this.expandida = !this.resolucionReducida.matches;
-    }
-    this.elemento.hidden = !ayuda;
-    this.contenedor.hidden = !ayuda;
-    if (!ayuda) { this.identidadMensaje = null; this.mensaje.replaceChildren(); return; }
     this.renderizar();
   }
 
   renderizar() {
     const ayuda = this.ayuda;
-    const controles = this.vista === 'controles';
     this.elemento.dataset.estado = ayuda.clave;
-    this.elemento.dataset.vista = this.vista;
-    this.etiqueta.textContent = this.integrado ? (controles ? 'CONTROLES' : 'PISTA') : (this.ampliada ? 'OTRA MIRADA' : ayuda.etiqueta);
-    const contenido = controles ? CONTROLES : this.ampliada ? ayuda.pista : ayuda.texto;
-    // Mientras se consultan controles se guarda la pista más reciente sin reanunciar lo mismo.
-    const identidadMensaje = JSON.stringify([this.vista, contenido, controles ? [] : ayuda.conceptos]);
+    this.elemento.querySelector('.metronet-assist').dataset.estado = ayuda.clave;
+    const contenido = this.ampliada ? ayuda.pista : ayuda.texto;
+    const identidadMensaje = JSON.stringify([contenido, ayuda.conceptos]);
     if (identidadMensaje !== this.identidadMensaje) {
       this.identidadMensaje = identidadMensaje;
       const texto = document.createElement('p');
       texto.textContent = contenido;
-      // Reemplazar el contenido retira también una definición que ya no corresponda.
       this.mensaje.replaceChildren(texto);
-      if (!controles) destacarConceptos(this.mensaje, ayuda.conceptos, { contextual: true });
+      destacarConceptos(this.mensaje, ayuda.conceptos, { contextual: true });
       this.mensaje.scrollTop = 0;
     }
-    this.boton.hidden = controles || !ayuda.pista;
-    this.boton.textContent = this.integrado ? (this.ampliada ? 'Pista inicial' : 'Más pista') : (this.ampliada ? 'Volver a la orientación' : 'Necesito una pista');
+    this.boton.hidden = !ayuda.pista;
+    this.boton.textContent = this.ampliada ? 'Pista inicial' : 'Más pista';
     this.boton.setAttribute('aria-pressed', String(this.ampliada));
-    if (this.botonControles) {
-      this.botonControles.textContent = controles ? 'Volver a pista' : 'Controles';
-      this.botonControles.setAttribute('aria-pressed', String(controles));
-      this.elemento.querySelector('[data-assist-titulo-movil]').textContent = this.etiqueta.textContent;
-      this.actualizarExpansion();
-    }
-  }
-
-  actualizarExpansion() {
-    const abierta = !this.resolucionReducida.matches || this.expandida;
-    // Ocultar mediante el DOM permite transferir el foco antes de retirar el botón.
-    if (this.resolucionReducida.matches) this.botonAlternar.hidden = false;
-    this.etiqueta.hidden = this.resolucionReducida.matches;
-    // Al contraer, ninguna acción oculta conserva el foco de teclado.
-    if (!abierta && (this.mensaje.contains(document.activeElement) || this.acciones.contains(document.activeElement))) this.botonAlternar.focus({ preventScroll: true });
-    this.mensaje.hidden = !abierta;
-    this.acciones.hidden = !abierta;
-    if (!this.resolucionReducida.matches && document.activeElement === this.botonAlternar) this.botonControles.focus({ preventScroll: true });
-    this.botonAlternar.hidden = !this.resolucionReducida.matches;
-    this.botonAlternar.setAttribute('aria-expanded', String(abierta));
-    this.botonAlternar.setAttribute('aria-label', `${abierta ? 'Contraer' : 'Mostrar'} ${this.vista === 'controles' ? 'controles del mapa' : 'pista del escenario'}`);
-    this.elemento.querySelector('[data-assist-indicador]').textContent = abierta ? '−' : '+';
   }
 
   eliminar() {
     this.eliminada = true;
-    this.resolucionReducida?.removeEventListener('change', this.alCambiarResolucion);
+    document.removeEventListener('pointerdown', this.alCerrarFuera);
+    this.liberarPosicion();
+    this.musica.eliminar();
+    this.tutorial.eliminar();
     this.elemento.remove();
   }
 }

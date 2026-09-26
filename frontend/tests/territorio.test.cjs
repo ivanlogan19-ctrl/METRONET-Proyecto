@@ -26,8 +26,7 @@ async function clic(pagina, x, y, zoom = 1.5) {
 }
 async function activarCreacion(pagina, nombre = 'Nueva') {
   await pagina.locator('[data-elegir-herramienta="estaciones"]').click();
-  await pagina.locator('[data-nombre-estacion]').fill(nombre);
-  await pagina.locator('[data-agregar-estacion]').click();
+
 }
 
 test('clic fuera del territorio no envía POST, incluso con zoom y pan; dentro crea', async t => {
@@ -40,7 +39,7 @@ test('clic fuera del territorio no envía POST, incluso con zoom y pan; dentro c
     assert.match(await pagina.locator('body').innerText(), /debe quedar dentro del territorio/);
   }
   await clic(pagina, 750, 500);
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some(e => e.nombre === 'Nueva'));
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some(e => e.nombre === 'Estación 01'));
   assert.equal(solicitudes.length, 1);
   assert.equal(solicitudes[0].metodo, 'POST');
   assert.ok(Math.abs(solicitudes[0].datos.posicionX - 750) <= 1, 'la precisión del clic está limitada al píxel de pantalla');
@@ -64,7 +63,7 @@ test('tramo y movimiento rechazan cruces exteriores aunque los extremos sean vá
     estaciones: [{ nombre: 'A', posicionX: 666, posicionY: 167 }, { nombre: 'B', posicionX: 264, posicionY: 84 }, { nombre: 'C', posicionX: 666, posicionY: 170 }],
     tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'C' }],
   });
-  await pagina.evaluate(() => editorPrueba.guardarTramo('Azul', 'A', 'B'));
+  await pagina.evaluate(() => (editorPrueba.panelHerramientas.seleccionar('conexiones'), editorPrueba.creacionDirecta.elegirLinea('Azul'), editorPrueba.estacionesSeleccionadas = ['A','B'], editorPrueba.creacionDirecta.conectar()));
   assert.equal(solicitudes.length, 0);
   assert.match(await pagina.locator('body').innerText(), /conexión sale del territorio/);
   const error = await pagina.evaluate(() => editorPrueba.escena.territorioMapa.errorMovimiento({ posicionX: 264, posicionY: 84 }, 'C', editorPrueba.disenoActual));
@@ -76,7 +75,7 @@ test('referencias territoriales permiten construir y las áreas restringidas exp
   const { pagina, solicitudes, diseno } = await preparar(t, { territorio: { areas: [referencia], errores: [] } });
   await activarCreacion(pagina, 'Referencia');
   await clic(pagina, 595.82, 492.99);
-  await pagina.waitForFunction(() => editorPrueba.modo === 'normal');
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.length === 4 && !editorPrueba.creacionDirecta.pendiente);
   assert.equal(solicitudes.length, 1);
   diseno.territorio.areas[0].prohibirEstaciones = true;
   await pagina.evaluate(() => editorPrueba.abrirDiseno(77));
@@ -84,8 +83,9 @@ test('referencias territoriales permiten construir y las áreas restringidas exp
   await clic(pagina, 595.82, 492.99, 3);
   assert.equal(solicitudes.length, 1);
   assert.match(await pagina.locator('body').innerText(), /No se permiten estaciones en AGUADA/);
-  assert.match(await pagina.getByRole('list', { name: 'Áreas territoriales del escenario' }).innerText(), /AGUADA: sin estaciones/);
-  await pagina.getByRole('button', { name: 'Espacios verdes', exact: true }).click();
+  assert.match(await pagina.getByRole('list', { name: 'Áreas territoriales del escenario', includeHidden:true }).textContent(), /AGUADA: sin estaciones/);
+  await pagina.locator('.metronet-poi>summary').click();
+  await pagina.getByRole('button', { name: 'Zonas verdes', exact: true }).click();
   assert.equal(await pagina.evaluate(() => editorPrueba.escena.territorioMapa.errorEstacion({ posicionX: 595.82, posicionY: 492.99 }) !== null), true);
 });
 
@@ -95,13 +95,13 @@ test('restricción de tramos no prohíbe estaciones y no se evita cambiando zoom
     tramos: [], territorio: { areas: [{ tipo: 'barrio', nombre: 'AGUADA', prohibirEstaciones: false, prohibirTramos: true }], errores: [] },
   });
   for (const zoom of [1, 4]) {
-    await pagina.evaluate(zoom => { editorPrueba.escena.cameras.main.setZoom(zoom); return editorPrueba.guardarTramo('Azul', 'A', 'B'); }, zoom);
+    await pagina.evaluate(zoom => { editorPrueba.escena.cameras.main.setZoom(zoom); return (editorPrueba.panelHerramientas.seleccionar('conexiones'), editorPrueba.creacionDirecta.elegirLinea('Azul'), editorPrueba.estacionesSeleccionadas = ['A','B'], editorPrueba.creacionDirecta.conectar()); }, zoom);
     assert.equal(solicitudes.length, 0);
   }
   assert.match(await pagina.locator('body').innerText(), /atraviesa AGUADA/);
   await activarCreacion(pagina, 'Permitida');
   await clic(pagina, 595.82, 492.99);
-  await pagina.waitForFunction(() => editorPrueba.modo === 'normal');
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.length === 3 && !editorPrueba.creacionDirecta.pendiente);
   assert.equal(solicitudes[0].metodo, 'POST');
 });
 
@@ -114,6 +114,6 @@ test('cambiar de diseño limpia restricciones anteriores; configuración inváli
   await pagina.evaluate(() => editorPrueba.abrirDiseno(77));
   await activarCreacion(pagina);
   await clic(pagina, 750, 500);
-  await pagina.waitForFunction(() => editorPrueba.modo === 'normal');
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.length === 4 && !editorPrueba.creacionDirecta.pendiente);
   assert.equal(solicitudes.length, 1);
 });

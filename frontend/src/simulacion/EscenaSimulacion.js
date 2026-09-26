@@ -8,6 +8,7 @@ import CapaTerritorial from '../mapa/capas/CapaTerritorial.js';
 import TerritorioMapa from '../mapa/utilidades/TerritorioMapa.js';
 import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../mapa/configuracion/ColoresMapa.js';
 import ControlZoom from '../mapa/controles/ControlZoom.js';
+import ReferenciasGeograficas from '../mapa/controles/ReferenciasGeograficas.js';
 import MotorSimulacion from './MotorSimulacion.js';
 
 const PROFUNDIDAD_CONTEXTO = 30;
@@ -51,6 +52,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaBarrios.dibujar();
     this.capaPuntosInteres = new CapaPuntosInteres(this, {
       datos: this.cache.json.get('puntosInteresSimulacion'),
+      onActualizarPuntos: resumen => this.referenciasGeograficas?.actualizar(resumen),
       capaBarrios: this.capaBarrios,
     });
     this.capaPuntosInteres.establecerDatos(this.cache.json.get('puntosInteresSimulacion'));
@@ -61,6 +63,10 @@ class EscenaSimulacion extends Phaser.Scene {
       alSeleccionar: (elemento) => this.seleccionarElementoRed(elemento),
     });
     this.capaRedMetro.crear();
+    this.referenciasGeograficas = new ReferenciasGeograficas(this, {
+      contenedor: document.querySelector('[data-contenedor-referencias]'),
+      mapa: document.getElementById('visorSimulacion'),
+    });
     this.crearControlZoom();
     this.cameras.main.roundPixels = true;
     this.crearContextoVisual();
@@ -267,7 +273,7 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   crearControlZoom() {
-    const contenedorPadre = document.getElementById('controlesCamaraSimulacion');
+    const contenedorPadre = this.referenciasGeograficas?.panel.herramientas;
     if (!contenedorPadre) return;
     this.controlZoom = new ControlZoom(this, {
       capaBarrios: this.capaBarrios,
@@ -279,6 +285,7 @@ class EscenaSimulacion extends Phaser.Scene {
       permitirArrastre: () => !this.seguimientoMetroActivo,
       permitirArrastrePrimario: () => !this.seguimientoMetroActivo,
       etiquetaAjustar: 'Ajustar red',
+      mostrarAyudaNavegacion: false,
       contenedorPadre,
       integrado: true,
     });
@@ -386,6 +393,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.etiquetaRed?.destroy();
     this.etiquetaSeleccion?.destroy();
     this.controlZoom?.eliminar();
+    this.referenciasGeograficas?.eliminar();
     this.capaTerritorial?.eliminar();
     this.capaRedMetro?.eliminar();
     this.capaPuntosInteres?.eliminar();

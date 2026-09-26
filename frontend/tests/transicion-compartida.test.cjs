@@ -13,7 +13,7 @@ async function abrir(t, reducedMotion = 'no-preference') {
   const p = await contexto.newPage(), errores = [];
   p.on('pageerror', error => errores.push(error.message));
   await p.route('**/api/**', () => { throw new Error('Esta presentación no necesita backend'); });
-  await p.route(`${BASE}/__transicion`, r => r.fulfill({ contentType: 'text/html', body: '<link rel="stylesheet" href="/src/estilos/metronet.css"><link rel="stylesheet" href="/src/estilos/retro.css"><button id="origen">Niveles</button>' }));
+  await p.route(`${BASE}/__transicion`, r => r.fulfill({ contentType: 'text/html', body: '<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><link rel="stylesheet" href="/src/estilos/metronet.css"><link rel="stylesheet" href="/src/estilos/retro.css"><button id="origen">Niveles</button>' }));
   await p.goto(`${BASE}/__transicion`);
   await p.evaluate(async () => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');

@@ -1,41 +1,48 @@
-// Clasificación visual derivada del tipo del catálogo. No altera identidad,
-// coordenadas, objetivos educativos ni restricciones geográficas.
+// Taxonomía de presentación. No modifica el catálogo ni las reglas educativas.
+const categoria = (etiqueta, icono, color, descripcion = etiqueta) => Object.freeze({etiqueta, icono, color, descripcion});
 export const CATEGORIAS_REFERENCIAS = Object.freeze({
-  POI: Object.freeze({ etiqueta: 'POI', descripcion: 'Puntos de interés', simbolo: '●' }),
-  ESPACIOS_VERDES: Object.freeze({ etiqueta: 'Espacios verdes', descripcion: 'Parques, plazas y jardines del catálogo; no prohíben construir', simbolo: '●' }),
-  INFRAESTRUCTURA: Object.freeze({ etiqueta: 'Infraestructura', descripcion: 'Infraestructura territorial', simbolo: '■' }),
-  AGUA: Object.freeze({ etiqueta: 'Hidrografía', descripcion: 'Cursos y cuerpos de agua y referencias costeras del catálogo; no implica una restricción de construcción', simbolo: '≈' }),
+  BARRIOS_ZONAS: categoria('Barrios / Zonas', 'territorio', 0x8caccf),
+  AGUA: categoria('Hidrografía', 'agua', 0x53dccd, 'Referencias hídricas del catálogo; no prohíben construir'),
+  ESPACIOS_VERDES: categoria('Zonas verdes', 'verde', 0x75b49c, 'Parques, plazas y jardines del catálogo; no prohíben construir'),
+  INFRAESTRUCTURA: categoria('Grandes infraestructuras', 'infraestructura', 0xffb675),
+  CULTURA: categoria('Cultura', 'cultura', 0xdc82c4),
+  SALUD: categoria('Salud', 'salud', 0xf07878),
+  COMERCIO: categoria('Comercio', 'comercio', 0xe4cb81),
+  PATRIMONIO: categoria('Patrimonio', 'patrimonio', 0xb99cff),
+  INSTITUCIONAL: categoria('Intendencia / CCZ', 'institucional', 0x9ad5ed),
+  OTROS: categoria('Otros', 'otros', 0xa5b2bd, 'Referencias cuyo tipo no pertenece a las categorías anteriores'),
 });
-
+export const CATEGORIAS_PUNTUALES = Object.freeze(Object.keys(CATEGORIAS_REFERENCIAS).filter(c => c !== 'BARRIOS_ZONAS' && c !== 'OTROS'));
+const TIPOS = {
+  AGUA: ['Rambla','Lago','Playa','Espacio costero','Río','Arroyo','Curso de agua','Laguna','Costa'],
+  ESPACIOS_VERDES: ['Plaza','Parque','Parque deportivo','Plazoleta','Jardín histórico','Jardín botánico','Plaza mirador'],
+  INFRAESTRUCTURA: ['Puerto','Centro industrial','Estación ferroviaria','Terminal','Terminal y centro comercial','Faro','Aeropuerto','Aeródromo','Estadio','Hipódromo','Velódromo','Arena deportiva'],
+  CULTURA: ['Museo','Museo ferroviario','Teatro','Centro cultural','Monumento','Monumento histórico','Monumento urbano','Iglesia','Iglesia histórica','Capilla histórica','Biblioteca'],
+  SALUD: ['Hospital','Hospital universitario','Hospital histórico','Sanatorio','Policlínica','Centro de salud'],
+  COMERCIO: ['Mercado','Mercado histórico','Feria','Centro comercial histórico','Bodega histórica','Complejo empresarial'],
+  PATRIMONIO: ['Patrimonio histórico','Patrimonio cultural','Patrimonio vitivinícola','Patrimonio ferroviario','Edificio histórico','Estadio histórico','Avenida histórica'],
+  INSTITUCIONAL: ['Intendencia','Centro Comunal Zonal'],
+};
+const normalizar = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const POR_TIPO = new Map(Object.entries(TIPOS).flatMap(([c,tipos])=>tipos.map(t=>[normalizar(t),c])));
 export function obtenerCategoriaReferencia(punto) {
-  const tipo = String(punto?.tipo ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  if (/\b(rio|arroyo|curso de agua|lago|laguna|embalse|cuerpo de agua|costa|costero|rambla|playa)\b/.test(tipo)) return 'AGUA';
-  if (/\b(parque|plaza|jardin|botanico|espacio verde)\b/.test(tipo)) return 'ESPACIOS_VERDES';
-  if (/\b(aeropuerto|aerodromo|puerto|terminal|estacion ferroviaria|centro industrial|faro|instalacion militar|base militar|cuartel)\b/.test(tipo)) return 'INFRAESTRUCTURA';
-  return 'POI';
+  if (punto?.categoria && punto.categoria in CATEGORIAS_REFERENCIAS) return punto.categoria;
+  // El catálogo identifica expresamente este mirador dentro del edificio municipal.
+  if (String(punto?.id) === '33' && normalizar(punto.descripcion).includes('edificio de la intendencia de montevideo')) return 'INSTITUCIONAL';
+  const porTipo = POR_TIPO.get(normalizar(punto?.tipo));
+  if (porTipo) return porTipo;
+  // Evidencia explícita del catálogo, sin deducir usos por el nombre del lugar.
+  if (normalizar(punto?.tipo) === 'universidad' && normalizar(punto.descripcion).includes('edificio historico')) return 'PATRIMONIO';
+  if (normalizar(punto?.tipo) === 'edificio emblematico' && normalizar(punto.descripcion).includes('administracion nacional de telecomunicaciones')) return 'INFRAESTRUCTURA';
+  return 'OTROS';
 }
-
+export const colorReferencia = categoria => CATEGORIAS_REFERENCIAS[categoria]?.color ?? CATEGORIAS_REFERENCIAS.OTROS.color;
+export const colorCssReferencia = categoria => `#${colorReferencia(categoria).toString(16).padStart(6,'0')}`;
 export function describirReferencia(punto) {
-  const subtipo = obtenerSubcategoriaPoi(punto);
-  const categoria = subtipo ? `POI · ${subtipo}` : CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].etiqueta;
-  return punto?.tipo && subtipo !== punto.tipo ? `${categoria} · ${punto.tipo}` : categoria;
+  const categoria = obtenerCategoriaReferencia(punto);
+  if (categoria === 'OTROS') return punto?.tipo || 'Referencia del catálogo';
+  const c = CATEGORIAS_REFERENCIAS[categoria].etiqueta;
+  return punto?.tipo && c !== punto.tipo ? `${c} · ${punto.tipo}` : c;
 }
-
-// La pertenencia al buscador es independiente de la capa de representación.
-// Infraestructura conserva su toggle; verde e hidrografía siguen siendo territorio.
-export function esPoiBuscable(punto) {
-  return ['POI', 'INFRAESTRUCTURA'].includes(obtenerCategoriaReferencia(punto));
-}
-
-export function obtenerSubcategoriaPoi(punto) {
-  if (!esPoiBuscable(punto)) return null;
-  if (obtenerCategoriaReferencia(punto) === 'INFRAESTRUCTURA') return 'Infraestructura';
-  const tipo = String(punto?.tipo ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if (/hospital/.test(tipo)) return 'Salud';
-  if (/universidad|biblioteca/.test(tipo)) return 'Educación';
-  if (/deportivo|deportiva|estadio|hipodromo|velodromo/.test(tipo)) return 'Deporte';
-  if (/mercado|comercial|feria|bodega|vitivinicola/.test(tipo)) return 'Comercio';
-  if (/museo|teatro|cultural|historico|historica|patrimonio|monumento|iglesia|capilla/.test(tipo)) return 'Cultura y patrimonio';
-  // Los tipos restantes conservan su denominación real, sin inventar una categoría.
-  return punto?.tipo || 'Referencia puntual';
-}
+export function esPoiBuscable(punto) { return Boolean(punto?.nombre); }
+export function obtenerSubcategoriaPoi(punto) { return obtenerCategoriaReferencia(punto) === 'OTROS' ? punto?.tipo || 'Referencia del catálogo' : CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].etiqueta; }

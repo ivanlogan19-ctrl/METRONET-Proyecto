@@ -1,11 +1,43 @@
-.metronet-ranking { max-width: 1160px; margin: auto; padding: clamp(16px,4vw,40px); }
+.metronet-ranking { max-width: 1080px; margin: auto; padding: clamp(14px,3vw,32px); }
 .metronet-ranking h1, .metronet-ranking h2 { overflow-wrap: anywhere; }
-.metronet-ranking section { margin-top: 28px; padding: clamp(14px,3vw,24px); background: var(--panel); border: var(--border-width) solid var(--border); border-top: var(--border-accent) solid var(--info-active); }
-.ranking-niveles, .ranking-clasificacion { padding: 0; list-style: none; display: grid; gap: 12px; }
-.ranking-niveles { grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); }
-.ranking-niveles li { display: grid; gap: 8px; padding: 16px; border: var(--border-width) solid var(--border); background: var(--bg-secondary); }
-.ranking-clasificacion li { display: grid; grid-template-columns: 44px minmax(0,1fr) auto auto; gap: 16px; align-items: center; padding: 16px; border: var(--border-width) solid var(--border); }
-.ranking-clasificacion li > :first-child { color: var(--info-active); font-family: var(--font-arcade); }
-.ranking-clasificacion .ranking-propio { border: var(--border-strong) solid var(--success); background: var(--bg-secondary); }
-.metronet-ranking small { color: var(--text-secondary); }
-@media(max-width:600px) { .ranking-clasificacion li { grid-template-columns: 32px minmax(0,1fr); gap: 10px; } .ranking-clasificacion li > :nth-child(n+3) { grid-column: 2; } }
+.ranking-cabecera { text-align: center; margin-bottom: 24px; }
+.ranking-marcador { border: 2px solid var(--border-active); border-top: 4px solid var(--info-active); background: var(--panel); }
+html:root body .ranking-marcador > h2 { margin: 0; padding: 14px 16px; font-size: 16px; background: var(--bg-secondary); border: 0; border-bottom: 1px solid var(--border); box-shadow: none; }
+.ranking-tabla-contenedor { max-width: 100%; overflow-x: auto; }
+.ranking-tabla { border-collapse: collapse; width: 100%; text-align: left; table-layout: fixed; }
+.ranking-tabla th, .ranking-tabla td { padding: 14px 12px; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; vertical-align: middle; }
+.ranking-tabla th { font: 13px/1.5 var(--font-arcade); color: var(--text-secondary); white-space: nowrap; }
+.ranking-tabla th:first-child { width: 12%; }
+.ranking-tabla th:nth-child(2) { width: 43%; }
+.ranking-tabla th:nth-child(3) { width: 27%; }
+.ranking-tabla th:nth-child(4) { width: 18%; }
+.ranking-tabla :is(th,td):nth-child(n+3) { text-align: right; }
+.ranking-clasificacion td { font: 16px/1.5 var(--font-tecnica); font-variant-numeric: tabular-nums; }
+.ranking-clasificacion td:nth-child(2) { font-family: var(--font-ui); font-weight: 700; }
+.ranking-clasificacion td:nth-child(3) { font-family: var(--font-arcade); color: var(--text-primary); }
+.ranking-clasificacion .ranking-destacado td:first-child { color: var(--info-active); font-weight: 700; }
+.ranking-clasificacion .ranking-propio { background: var(--panel-elevated); }
+.ranking-clasificacion .ranking-propio td:first-child { box-shadow: inset 3px 0 var(--success); }
+#estadoRanking td { height: 160px; text-align: center; }
+#estadoRanking p { margin: 0 0 12px; color: var(--text-secondary); font: 15px/1.7 var(--font-arcade); }
+#estadoRanking .error { color: var(--danger); font-family: var(--font-ui); }
+#estadoRanking[hidden] { display: none; }
+.ranking-nota { margin: 0; padding: 12px; color: var(--text-secondary); font-size: 13px; text-align: center; }
+.ranking-personal { padding: 18px 0; }
+html:root body .ranking-personal h2 { margin: 0 0 8px; padding: 0; border: 0; background: none; box-shadow: none; text-shadow: none; font-size: 13px; color: var(--info-active); }
+.ranking-personal p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+.ranking-detalle { border-top: 1px solid var(--border); }
+.ranking-niveles { padding: 0; margin: 12px 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,260px),1fr)); gap: 0 20px; }
+.ranking-niveles li { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.ranking-niveles small, .ranking-reglas { color: var(--text-secondary); }
+.ranking-reglas { margin-top: 20px; font-size: 12px; line-height: 1.6; }
+@media (max-width: 600px) {
+  .ranking-tabla th, .ranking-tabla td { padding: 12px 6px; }
+  .ranking-tabla th { font-size: 10px; }
+  .ranking-clasificacion td { font-size: 13px; }
+  .ranking-clasificacion td:nth-child(3) { font-size: 12px; }
+  .ranking-tabla th:first-child { width: 3rem; }
+  .ranking-tabla th:nth-child(2) { width: auto; }
+  .ranking-tabla th:nth-child(3) { width: 30%; }
+  .ranking-tabla th:nth-child(4) { width: 4.5rem; }
+}

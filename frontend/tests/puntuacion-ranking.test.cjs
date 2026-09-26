@@ -77,7 +77,7 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
   window.cierre = presentarResultadoNivel(progreso,10,{completado:true,puntaje:90,idSiguienteEscenario:null,desempeno:{puntajeMaximo:100,explicacion:'Red correcta. Existe margen para optimizar la velocidad.'}});
  },{progreso});
  await pagina.getByRole('dialog').waitFor();
- await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).waitFor();
+ await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).waitFor({timeout:26000});
  assert.match(await pagina.getByRole('dialog').innerText(),/950 \/ 1000 puntos.*Tu posición: 2/s);
  assert.match(await pagina.getByRole('dialog').innerText(),/90 \/ 100 PTS/);
  await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).click();

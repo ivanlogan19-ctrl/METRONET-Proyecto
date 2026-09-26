@@ -31,27 +31,28 @@ test('La progresión introduce herramientas por configuración, sin repetirlas e
 
 test('Crear una estación avanza; cambiar herramienta o un error no completan el tutorial; minimizar permite seguir editando', async t => {
   const { pagina: p, solicitudes } = await abrir(t);
-  const panel = p.getByRole('complementary', { name: 'Tutorial de herramientas' });
+  const panel = p.locator('.metronet-tutorial');
   assert.equal(await panel.getAttribute('data-paso'), 'estaciones');
   await p.locator('[data-elegir-herramienta="lineas"]').click();
   assert.equal(await panel.getAttribute('data-paso'), 'estaciones');
   await p.evaluate(() => editorPrueba.mostrarMensaje('La ubicación no es válida.', 'error'));
   assert.equal(await panel.getAttribute('data-paso'), 'estaciones');
-  await panel.getByRole('button', { name: 'Minimizar tutorial' }).click();
+  await p.locator('.metronet-hud>summary').click();
+  await p.getByRole('button', { name:'Tutorial', exact:true }).click();
+  await p.getByRole('button', { name:'Tutorial', exact:true }).click();
   assert.equal(await panel.locator('[data-tutorial-contenido]').isVisible(), false);
   await p.locator('[data-elegir-herramienta="estaciones"]').click();
-  await p.locator('[data-nombre-estacion]').fill('Nueva');
-  await p.locator('[data-agregar-estacion]').click();
+
   await p.evaluate(() => editorPrueba.ubicarEstacion({ posicionX: 750, posicionY: 500 }, 'crearEstacion'));
   assert.equal(await panel.getAttribute('data-paso'), 'lineas');
   assert.equal(await panel.locator('[data-tutorial-contenido]').isVisible(), false);
-  await panel.getByRole('button', { name: 'Abrir tutorial' }).click();
-  assert.match(await panel.innerText(), /estaciones consecutivas/);
+  await p.locator('.metronet-hud>summary').click();
+  assert.match(await panel.innerText(), /dos estaciones/);
   await p.evaluate(() => {
     editorPrueba.disenoActual.lineas.push({ nombre: 'Azul' });
     editorPrueba.actualizarAyuda();
   });
-  assert.equal(await panel.isVisible(), false);
+  assert.equal(await panel.getAttribute('data-paso'), 'manual');
   // Consultar controles/pistas/tutorial no realiza operaciones de puntuación.
   assert.ok(solicitudes.every(s => s.ruta.endsWith('/estaciones')));
 });
@@ -61,9 +62,9 @@ test('Conexión avanza solo tras confirmación, y un intento nuevo restablece su
   const panel = p.locator('.metronet-tutorial');
   assert.equal(await panel.getAttribute('data-paso'), 'conexiones');
   await p.evaluate(() => { editorPrueba.panelTutorial.registrarUso('conexiones'); editorPrueba.actualizarAyuda(); });
-  assert.equal(await panel.isVisible(), false);
+  assert.equal(await panel.getAttribute('data-paso'), 'manual');
   await p.evaluate(() => { editorPrueba.disenoActual.simulacion.idDiseno = 88; editorPrueba.actualizarAyuda(); });
-  assert.equal(await panel.isVisible(), true);
+  assert.equal(await panel.getAttribute('data-paso'), 'conexiones');
   assert.equal(await panel.getAttribute('data-paso'), 'conexiones');
 });
 
@@ -96,19 +97,16 @@ for (const n of [3, 4, 5, 10]) test(`Tutorial apropiado para escenario ${n}`, as
   else assert.equal(await p.locator('.metronet-tutorial').isVisible(), false);
 });
 
-for (const width of [1440, 768, 390, 320]) test(`Tutorial compacto y accesible en ${width}px`, async t => {
+for (const width of [1440, 768, 390, 320]) test(`Tutorial a demanda y accesible en ${width}px`, async t => {
   const { pagina: p } = await abrir(t, 1, { viewport: { width, height: 900 } });
   await p.emulateMedia({ reducedMotion: 'reduce' });
-  const limites = await p.evaluate(() => {
-    const panel = document.querySelector('.metronet-tutorial');
-    const r = panel.getBoundingClientRect(), m = document.querySelector('#metronet-mapa').getBoundingClientRect();
-    return { ancho: r.width, alto: r.height, mapa: m.width * m.height, dentro: r.left >= m.left && r.right <= m.right && r.top >= m.top && r.bottom <= m.bottom,
-      overflow: document.documentElement.scrollWidth > innerWidth, animacion: getComputedStyle(panel.querySelector('p')).animationName };
-  });
-  assert.equal(limites.dentro, true); assert.equal(limites.overflow, false);
-  assert.ok(limites.ancho * limites.alto < limites.mapa * .5);
-  assert.equal(limites.animacion, 'none');
-  await p.getByRole('button', { name: 'Minimizar tutorial' }).focus();
+  assert.equal(await p.locator('.metronet-tutorial').isVisible(), false);
+  await p.locator('.metronet-hud>summary').click();
+  await p.getByRole('button', {name:'Tutorial',exact:true}).focus();
   await p.keyboard.press('Enter');
-  assert.equal(await p.getByRole('button', { name: 'Abrir tutorial' }).getAttribute('aria-expanded'), 'false');
+  assert.equal(await p.locator('.metronet-tutorial').isVisible(), true);
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.equal(await p.locator('[data-hud-tutorial]').evaluate(e=>getComputedStyle(e).animationName),'none');
+  await p.keyboard.press('Escape');
+  assert.equal(await p.locator('.metronet-tutorial').isVisible(), false);
 });

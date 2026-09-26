@@ -222,14 +222,17 @@ export default class PanelDinamico {
     this.cancelarCierreAlClicFuera();
 
     this.manejadorClicFuera = (evento) => {
-      if (this.elemento && !this.elemento.contains(evento.target)) {
+      // Cerrar al completar el clic evita desplazar su destino en paneles
+      // con scroll. Otro encabezado coordina el cierre desde abrirContenido().
+      const otroEncabezado = evento.target.closest?.('.metronet-panel-dinamico > .metronet-panel-encabezado');
+      if (this.elemento && !this.elemento.contains(evento.target) && !otroEncabezado) {
         this.cerrarContenido();
       }
     };
 
     this.retrasoCierre = window.setTimeout(() => {
       if (this.abierto && this.manejadorClicFuera) {
-        document.addEventListener('pointerdown', this.manejadorClicFuera, true);
+        document.addEventListener('click', this.manejadorClicFuera, true);
       }
 
       this.retrasoCierre = null;
@@ -244,7 +247,7 @@ export default class PanelDinamico {
     }
 
     if (this.manejadorClicFuera) {
-      document.removeEventListener('pointerdown', this.manejadorClicFuera, true);
+      document.removeEventListener('click', this.manejadorClicFuera, true);
 
       this.manejadorClicFuera = null;
     }

@@ -1,12 +1,21 @@
 import niveles from './niveles.json';
 
 const LECCIONES = {
-  estaciones: ['Estación', 'Elegí Estación, escribí un nombre y pulsá Crear estación. Después hacé clic en una ubicación válida del mapa.'],
-  lineas: ['Línea', 'Una línea necesita al menos dos estaciones. Elegí Línea, escribí su nombre, pulsá Crear línea y seleccioná las estaciones en orden. Pulsá el mismo botón para confirmar; se conectan las estaciones consecutivas.'],
-  conexiones: ['Conexión', 'Para agregar un tramo a una línea existente, elegí Conexión y la línea. Pulsá Conectar estaciones, seleccioná dos estaciones distintas y confirmá con el mismo botón.'],
-  metros: ['Unidad de metro', 'En Metros, elegí una línea y configurá capacidad y velocidad. Agregar metro asigna la unidad a ese recorrido; todavía no inicia la simulación.'],
-  simulacion: ['Simulación', 'Validar red comprueba si puede circular. Cuando esté preparada, Simular diseño abre la pantalla donde podés iniciar, pausar y observar los metros.'],
+  estaciones: ['Estación', 'Elegí el icono de estación y hacé clic en una ubicación válida. Podés colocar varias seguidas: el nombre se genera automáticamente. Arrastrá para mover el mapa; Escape termina la herramienta.'],
+  lineas: ['Línea', 'Elegí el icono de línea y dos estaciones distintas. Se crea la línea y su primer tramo; el nombre se asigna automáticamente.'],
+  conexiones: ['Conexión', 'Elegí el icono de vía, una línea activa y dos estaciones. Cada destino agrega un tramo; después podés continuar desde esa estación.'],
+  metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea. Seleccionala después para editar capacidad y velocidad.'],
+  simulacion: ['Simulación', 'El triángulo Simular comprueba y guarda la red antes de iniciar. Podés pausar, reanudar y observar los metros. El disquete Guarda tu avance y revisa la consigna.'],
+
 };
+
+export function leccionesDisponibles({ diseno, escenario, pantalla }) {
+  if (!diseno) return [];
+  const herramientas = escenario?.herramientasHabilitadas;
+  return Object.entries(LECCIONES)
+    .filter(([clave]) => pantalla === 'simulacion' ? clave === 'simulacion' : !herramientas || herramientas[clave] === true)
+    .map(([clave, [titulo, texto]]) => ({ clave, titulo, texto }));
+}
 
 export function herramientasIntroducidas(escenario, catalogo = []) {
   if (!Number.isInteger(escenario?.numero) || escenario.modo === 'EDICION_LIBRE') return [];

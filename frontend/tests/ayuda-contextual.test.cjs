@@ -24,7 +24,7 @@ for (const nivel of niveles) test(`Nivel ${nivel.numero}: inicio, primer element
   assert.equal(orientar(c).clave, 'primera-ubicada');
   c.diseno.estaciones.push({ nombre: 'B' });
   assert.equal(orientar(c).clave, 'primera-linea');
-  if (nivel.numero <= 2) assert.match(orientar(c).pista, /confirmá con el mismo botón/);
+  if (nivel.numero <= 2) assert.match(orientar(c).pista, /dos estaciones distintas/);
   else assert.doesNotMatch(orientar(c).pista, /pulsá|clic|ingresá/);
   c.diseno.lineas.push({ nombre: 'L' });
   c.consigna.condiciones = [condicion('minimoEstaciones', true), condicion('minimoLineas', true), condicion('requiereRedValida', false)];
@@ -81,7 +81,7 @@ test('errores, selección de extremos, referencias y circulación', () => {
   assert.equal(orientar({ ...c, error: 'La conexión atraviesa Centro, donde la consigna prohíbe tramos.' }).clave, 'error-territorio');
   assert.equal(orientar({ ...c, error: 'Hay conexiones duplicadas: A-B.' }).clave, 'error-recorrido');
   assert.equal(orientar({ ...c, modo: 'crearLinea', seleccionadas: ['A', 'B'] }).clave, 'crearLinea-2');
-  assert.match(orientar({ ...c, modo: 'crearTramo' }).pista, /Conectar estaciones/);
+  assert.match(orientar({ ...c, modo: 'crearTramo' }).pista, /línea activa/);
   const geo = contexto(niveles[3]); geo.consigna.condiciones.push(condicion('requiereCoberturaPuntosInteres', false));
   assert.equal(orientar({ ...geo, referencia: { id: 1 } }).clave, 'referencia-elegida');
   geo.diseno = { estaciones: [{}, {}], lineas: [{}] };

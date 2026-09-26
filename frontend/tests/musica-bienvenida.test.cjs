@@ -37,8 +37,9 @@ async function sonando(p) {
 for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: un solo MP3 sin bucle, final natural y una navegación al terminar`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, rol);
   await p.evaluate(() => {
-    document.querySelector('audio').addEventListener('ended', e => {
+    document.addEventListener('ended', e => {
       const a = e.target;
+      if (a.getAttribute('src') !== '/audio/welcome-theme.mp3') return;
       sessionStorage.setItem('prueba:fin-audio', JSON.stringify({ src: a.getAttribute('src'), tiempo: a.currentTime, duracion: a.duration, fin: Date.now() }));
     }, { capture: true });
   });

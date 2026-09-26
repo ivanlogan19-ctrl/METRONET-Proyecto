@@ -16,7 +16,7 @@ html:root body.simulacion-pagina .simulacion-encabezado :is(h1, p) { margin: 0; 
 .simulacion-editor, .simulacion-vacio { grid-area: mapa; }
 .simulacion-instrumentos { grid-area: instrumentos; }
 .simulacion-editor, .simulacion-instrumentos { min-width: 0; }
-.simulacion-visor-mapa { display: grid; grid-template-rows: auto auto var(--simulacion-mapa-alto) auto; }
+.simulacion-visor-mapa { display: grid; grid-template-rows: auto auto auto var(--simulacion-mapa-alto) auto; }
 html:root body.simulacion-pagina .simulacion-visor-encabezado {
   display: flex; flex-direction: row; align-items: center; flex-wrap: wrap;
   justify-content: space-between; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm);
@@ -32,7 +32,7 @@ html:root body.simulacion-pagina .simulacion-visor-encabezado {
 .simulacion-banda-estado > div { min-width: 0; }
 .simulacion-banda-estado dt, .simulacion-datos-tiempo-real dt { font-size: var(--font-size-small); line-height: 1.3; color: var(--text-secondary); }
 .simulacion-banda-estado dd { margin: var(--space-2xs) 0 0; font: 700 16px/1.35 var(--font-tecnica); color: var(--info-active); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.simulacion-lienzo-contenedor { width: 100%; height: 100%; min-width: 0; overflow: hidden; }
+.simulacion-lienzo-contenedor { position: relative; width: 100%; height: 100%; min-width: 0; overflow: hidden; }
 .simulacion-lienzo-contenedor > canvas { display: block; }
 .simulacion-mandos { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: var(--space-xs); padding: var(--space-xs); border-top: var(--border-width) solid var(--border); background: var(--bg-secondary); }
 .simulacion-formulario { display: flex; align-items: end; gap: var(--space-sm); margin: 0; }
@@ -396,3 +396,12 @@ html:root body.simulacion-pagina .simulacion-consigna { border: 0; border-top: v
   .simulacion-acciones-ejecucion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .simulacion-acciones-ejecucion button { min-width: 0; white-space: normal; }
 }
+
+/* Una posición para Play / Pausa / Reanudar; controles compactos compartidos. */
+.simulacion-mandos { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.simulacion-formulario { display:contents; }
+.simulacion-acciones-ejecucion { display:contents; }
+.simulacion-mandos .metronet-boton-icono { order:0; width:44px; min-width:44px; height:44px; min-height:44px; padding:9px; }
+.simulacion-ritmo { order:2; flex:1 1 230px; min-width:0; }
+.simulacion-mandos [hidden] { display:none !important; }
+@media(max-width:480px) { .simulacion-ritmo { flex-basis:100%; } }

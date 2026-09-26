@@ -177,7 +177,7 @@ export default class SelectorBarrios {
 
     this.notificarCambio();
 
-    this.panel.cerrarContenido();
+
   }
 
   actualizarOpcionNinguno() {
@@ -225,7 +225,7 @@ export default class SelectorBarrios {
 
     this.notificarCambio();
 
-    this.panel.cerrarContenido();
+
   }
 
   deseleccionarBarrio(barrio) {
@@ -279,7 +279,7 @@ export default class SelectorBarrios {
 
     this.notificarCambio();
 
-    this.panel.cerrarContenido();
+
   }
 
   establecerBarrios(barrios = [], opciones = {}) {

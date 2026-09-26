@@ -42,11 +42,11 @@ function crearDialogoCambios() {
   dialogo.className = 'metronet-dialogo-cambios';
   dialogo.innerHTML = `
     <form method="dialog" class="metronet-dialogo-cambios__contenido">
-      <h2>Cambios sin guardar</h2>
-      <p>Tenés cambios sin guardar.</p>
+      <h2>Revisión pendiente</h2>
+      <p>Las operaciones confirmadas ya están almacenadas. Podés guardar y revisar la red antes de salir.</p>
       <div class="metronet-dialogo-cambios__acciones">
         <button value="cancelar" type="submit">Cancelar</button>
-        <button value="salir" type="submit" data-accion-salir>Salir sin guardar</button>
+        <button value="salir" type="submit" data-accion-salir>Continuar sin revisar</button>
         <button value="guardar" type="submit" data-accion-guardar>Guardar y continuar</button>
       </div>
     </form>`;
@@ -79,6 +79,8 @@ export function registrarControlCambios({ hayCambios, guardar }) {
 }
 
 export async function navegarConCambiosPendientes(ruta) {
+  // El enlace de la pantalla actual no descarta estado ni reinicia el documento.
+  if (new URL(ruta, location.href).href === location.href) return;
   if (!controlCambios?.hayCambios()) return window.location.assign(ruta);
   const accion = await solicitarConfirmacionCambios();
   if (accion === 'salir') return window.location.assign(ruta);
@@ -134,7 +136,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
     crearEnlace('Escenarios', '/escenarios.html', actual === 'escenarios'),
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
-    crearEnlace('Mis diseños', establecerContextoEnRuta('/', contexto), actual === 'edicion' || actual === 'simulacion'),
+    crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );
   if (sesion.usuario?.rol === 'ADMIN') enlaces.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
   const usuario = document.createElement('details');
@@ -148,7 +150,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
     crearEnlace('Escenarios', '/escenarios.html', actual === 'escenarios'),
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
-    crearEnlace('Mis diseños', establecerContextoEnRuta('/', contexto), actual === 'edicion' || actual === 'simulacion'),
+    crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );
   if (sesion.usuario?.rol === 'ADMIN') menuUsuario.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
   const enlacePerfil = crearEnlace('Mi perfil', '/perfil.html', actual === 'perfil');
@@ -175,8 +177,10 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     document.removeEventListener('click', cerrarMenuAlHacerClicFuera);
     document.removeEventListener('keydown', cerrarMenuConEscape);
   };
-  controlMusica = crearControlMusica();
-  cabecera.append(inicio, enlaces, controlMusica.elemento, usuario);
+  controlMusica = ['edicion', 'simulacion'].includes(actual) ? null : crearControlMusica();
+  cabecera.append(inicio, enlaces);
+  if (controlMusica) cabecera.append(controlMusica.elemento);
+  cabecera.append(usuario);
   cabecera.addEventListener('click', (evento) => {
     const enlace = evento.target.closest('a[data-navegacion]');
     if (!enlace || esNavegacionModificada(evento)) return;

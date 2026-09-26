@@ -1,23 +1,12 @@
+import { pixelesIcono } from '../../interfaz/PictogramasMapa.js';
 import Phaser from 'phaser';
-import { CATEGORIAS_REFERENCIAS, obtenerCategoriaReferencia, describirReferencia, esPoiBuscable } from '../configuracion/CategoriasReferencias.js';
+import { CATEGORIAS_REFERENCIAS, CATEGORIAS_PUNTUALES, obtenerCategoriaReferencia, describirReferencia, esPoiBuscable, colorReferencia } from '../configuracion/CategoriasReferencias.js';
 
 import '../estilos/puntos-interes.css';
 
 import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
 import { ZONAS, obtenerZona, normalizarBarrio } from '../utilidades/ClasificadorZonas.js';
-
-export const COLORES_PUNTOS_INTERES = Object.freeze({
-  PATRIMONIO: 0xf3c86b,
-  NATURALEZA: 0x69cf9a,
-  CULTURA: 0xdc82c4,
-  MOVILIDAD: 0x7ba8ff,
-  SALUD: 0xf07878,
-  EDUCACION: 0xb99cff,
-  COMERCIO: 0xffaa67,
-  COSTA: 0x6cd7f7,
-  OTROS: 0x49c3f2,
-});
 
 export const ESTADOS_PUNTOS_INTERES = Object.freeze({
   OBJETIVO: 'OBJETIVO',
@@ -63,7 +52,7 @@ export default class CapaPuntosInteres {
 
     this.puntos = [];
 
-    this.categoriasVisibles = new Set(Object.keys(CATEGORIAS_REFERENCIAS));
+    this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
 
     this.estacionesReferencia = [];
 
@@ -101,6 +90,7 @@ export default class CapaPuntosInteres {
     this.onActualizarPuntos = opciones.onActualizarPuntos ?? null;
 
     this.onSeleccionarPunto = opciones.onSeleccionarPunto ?? null;
+    this.permitirSeleccion = opciones.permitirSeleccion ?? (() => true);
 
     /*
      * Los puntos aparecen solamente al llegar
@@ -435,7 +425,7 @@ export default class CapaPuntosInteres {
 
   establecerCategoriasVisibles(categorias) {
     const anteriores = this.categoriasVisibles;
-    this.categoriasVisibles = new Set(categorias.filter((categoria) => categoria in CATEGORIAS_REFERENCIAS));
+    this.categoriasVisibles = new Set(categorias.filter((categoria) => CATEGORIAS_PUNTUALES.includes(categoria)));
     const seleccionado = this.puntos.find((punto) => this.clavePunto(punto) === this.puntoSeleccionado);
     if (seleccionado && !this.obtenerObjetivoPunto(seleccionado)
       && anteriores.has(obtenerCategoriaReferencia(seleccionado))
@@ -505,7 +495,7 @@ export default class CapaPuntosInteres {
   extraerPuntos() {
     this.puntos = [];
 
-    this.categoriasVisibles = new Set(Object.keys(CATEGORIAS_REFERENCIAS));
+    this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
 
     this.contextoRedPorPunto.clear();
 
@@ -894,134 +884,7 @@ export default class CapaPuntosInteres {
     return this.escena.cameras.main.zoom || 1;
   }
 
-  obtenerColorMarcador(punto) {
-    const categoria = obtenerCategoriaReferencia(punto);
-    if (categoria === 'INFRAESTRUCTURA') return COLORES_INTERFAZ_MAPA.REFERENCIA_INFRAESTRUCTURA;
-    if (categoria === 'AGUA') return COLORES_INTERFAZ_MAPA.REFERENCIA_AGUA;
-    if (categoria === 'ESPACIOS_VERDES') return COLORES_INTERFAZ_MAPA.REFERENCIA_VERDE;
-    const tipo = this.normalizarNombre(punto.tipo);
-
-    if (
-      tipo.includes('MONUMENTO') ||
-      tipo.includes('HISTORICO') ||
-      tipo.includes('HISTORICA') ||
-      tipo.includes('PATRIMONIO')
-    ) {
-      return COLORES_PUNTOS_INTERES.PATRIMONIO;
-    }
-
-    if (
-      tipo.includes('PLAZA') ||
-      tipo.includes('PARQUE') ||
-      tipo.includes('JARDIN') ||
-      tipo.includes('ESPACIO VERDE')
-    ) {
-      return COLORES_PUNTOS_INTERES.NATURALEZA;
-    }
-
-    if (tipo.includes('TEATRO')) {
-      return COLORES_PUNTOS_INTERES.CULTURA;
-    }
-
-    if (tipo.includes('MUSEO')) {
-      return COLORES_PUNTOS_INTERES.PATRIMONIO;
-    }
-
-    if (tipo.includes('ESTADIO') || tipo.includes('ARENA')) {
-      return COLORES_PUNTOS_INTERES.MOVILIDAD;
-    }
-
-    if (tipo.includes('HOSPITAL')) {
-      return COLORES_PUNTOS_INTERES.SALUD;
-    }
-
-    if (tipo.includes('UNIVERSIDAD') || tipo.includes('EDUCACION') || tipo.includes('FACULTAD')) {
-      return COLORES_PUNTOS_INTERES.EDUCACION;
-    }
-
-    if (tipo.includes('BIBLIOTECA')) {
-      return COLORES_PUNTOS_INTERES.EDUCACION;
-    }
-
-    if (tipo.includes('IGLESIA') || tipo.includes('CAPILLA')) {
-      return COLORES_PUNTOS_INTERES.PATRIMONIO;
-    }
-
-    if (tipo.includes('MERCADO')) {
-      return COLORES_PUNTOS_INTERES.COMERCIO;
-    }
-
-    if (tipo.includes('FERIA')) {
-      return COLORES_PUNTOS_INTERES.COMERCIO;
-    }
-
-    if (tipo.includes('PLAYA')) {
-      return COLORES_PUNTOS_INTERES.COSTA;
-    }
-
-    if (tipo.includes('RAMBLA')) {
-      return COLORES_PUNTOS_INTERES.COSTA;
-    }
-
-    if (tipo.includes('PUERTO')) {
-      return COLORES_PUNTOS_INTERES.COSTA;
-    }
-
-    if (tipo.includes('FARO')) {
-      return COLORES_PUNTOS_INTERES.PATRIMONIO;
-    }
-
-    if (tipo.includes('MIRADOR')) {
-      return COLORES_PUNTOS_INTERES.PATRIMONIO;
-    }
-
-    if (tipo.includes('TERMINAL')) {
-      return COLORES_PUNTOS_INTERES.MOVILIDAD;
-    }
-
-    if (tipo.includes('ESTACION')) {
-      return COLORES_PUNTOS_INTERES.MOVILIDAD;
-    }
-
-    if (tipo.includes('FERROVIARIO')) {
-      return COLORES_PUNTOS_INTERES.MOVILIDAD;
-    }
-
-    if (tipo.includes('HIPODROMO')) {
-      return COLORES_PUNTOS_INTERES.MOVILIDAD;
-    }
-
-    if (tipo.includes('DEPORTIVO') || tipo.includes('DEPORTE')) {
-      return COLORES_PUNTOS_INTERES.MOVILIDAD;
-    }
-
-    if (tipo.includes('CULTURAL')) {
-      return COLORES_PUNTOS_INTERES.CULTURA;
-    }
-
-    if (tipo.includes('BODEGA')) {
-      return COLORES_PUNTOS_INTERES.CULTURA;
-    }
-
-    if (tipo.includes('COMERCIAL')) {
-      return COLORES_PUNTOS_INTERES.COMERCIO;
-    }
-
-    if (tipo.includes('EDIFICIO') || tipo.includes('COMPLEJO')) {
-      return COLORES_PUNTOS_INTERES.PATRIMONIO;
-    }
-
-    if (tipo.includes('LAGO')) {
-      return COLORES_PUNTOS_INTERES.COSTA;
-    }
-
-    /*
-     * Si aparece un tipo nuevo que todavía
-     * no tenemos clasificado, usamos este
-     * marcador genérico.
-     */
-    return COLORES_PUNTOS_INTERES.OTROS;
-  }
+  obtenerColorMarcador(punto) { return colorReferencia(obtenerCategoriaReferencia(punto)); }
 
   convertirCoordenada(longitud, latitud) {
     if (!this.capaBarrios) {
@@ -1146,7 +1009,8 @@ export default class CapaPuntosInteres {
     areaInteraccion.setDepth(101);
     areaInteraccion.setInteractive({ useHandCursor: true });
 
-    areaInteraccion.on('pointerdown', () => {
+    areaInteraccion.on('pointerdown', puntero => {
+      if (!this.permitirSeleccion(puntero)) return;
       this.seleccionarPunto(punto, { mostrarInformacion: true });
     });
 
@@ -1173,53 +1037,11 @@ export default class CapaPuntosInteres {
     });
   }
 
-  obtenerFormaMarcador(punto) {
-    const categoria = obtenerCategoriaReferencia(punto);
-    if (categoria === 'INFRAESTRUCTURA') return 'cuadrado';
-    if (categoria === 'AGUA') return 'ondas';
-    const tipo = this.normalizarNombre(punto.tipo);
-
-    if (tipo.includes('HOSPITAL') || tipo.includes('SALUD')) return 'cruz';
-    if (tipo.includes('ESTADIO') || tipo.includes('TERMINAL') || tipo.includes('PUERTO')) return 'triangulo';
-    if (tipo.includes('MUSEO') || tipo.includes('PATRIMONIO') || tipo.includes('HISTORIC') || tipo.includes('MONUMENTO')) return 'rombo';
-    if (tipo.includes('UNIVERSIDAD') || tipo.includes('FACULTAD') || tipo.includes('BIBLIOTECA')) return 'cuadrado';
-    if (tipo.includes('PLAZA') || tipo.includes('PARQUE')) return 'hexagono';
-    return 'circulo';
-  }
+  obtenerFormaMarcador(punto) { return CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].icono; }
 
   dibujarFormaMarcador(grafico, forma, color) {
-    if (forma === 'ondas') {
-      grafico.lineStyle(2, color, 1);
-      for (const y of [-3, 3]) {
-        grafico.lineBetween(-6, y + 2, -2, y - 1);
-        grafico.lineBetween(-2, y - 1, 2, y + 1);
-        grafico.lineBetween(2, y + 1, 6, y - 2);
-      }
-      return;
-    }
-
-    if (forma === 'cruz') {
-      grafico.fillStyle(color, 1);
-      grafico.fillRect(-2, -6, 4, 12);
-      grafico.fillRect(-6, -2, 12, 4);
-      return;
-    }
-
-    if (forma === 'circulo') {
-      grafico.fillStyle(color, 1);
-      grafico.fillCircle(0, 0, 4);
-      return;
-    }
-
-    const puntos = forma === 'triangulo'
-      ? [{ x: 0, y: -6 }, { x: 6, y: 5 }, { x: -6, y: 5 }]
-      : forma === 'rombo'
-        ? [{ x: 0, y: -7 }, { x: 7, y: 0 }, { x: 0, y: 7 }, { x: -7, y: 0 }]
-        : forma === 'cuadrado'
-          ? [{ x: -5, y: -5 }, { x: 5, y: -5 }, { x: 5, y: 5 }, { x: -5, y: 5 }]
-          : this.crearPoligonoRegular(6, 6, Math.PI / 6);
-
-    this.dibujarPoligono(grafico, puntos, color, true);
+    grafico.fillStyle(color, 1);
+    for (const {x,y} of pixelesIcono(forma)) grafico.fillRect(x - 8, y - 8, 1, 1);
   }
 
   dibujarIndicadorEstado(grafico, estado, color) {
@@ -1578,7 +1400,11 @@ export default class CapaPuntosInteres {
     contextos
       .filter((contexto) => contexto.esSeleccionado || contexto.esObjetivoActivo)
       .forEach((contexto) => claves.add(this.clavePunto(contexto.representacion.punto)));
-    const limite = MAXIMO_MARCADORES_POR_NIVEL[nivelDetalle] ?? MAXIMO_MARCADORES_POR_NIVEL.GENERAL;
+    const limitePorDetalle = MAXIMO_MARCADORES_POR_NIVEL[nivelDetalle] ?? MAXIMO_MARCADORES_POR_NIVEL.GENERAL;
+    // Con las nueve categorías activas, un mapa estrecho necesita menos marcadores.
+    // El cupo depende del viewport, nunca de qué otras capas estén encendidas.
+    const proporcionAncho = Phaser.Math.Clamp(this.escena.cameras.main.width / 768, 0.4, 1);
+    const limite = Math.max(3, Math.floor(limitePorDetalle * proporcionAncho));
     // Cada categoría calcula su cupo y separación sin consultar las demás:
     // para una misma vista, activar A+B conserva exactamente la unión de A y B.
     const separacion = TAMANO_INTERACCION_REFERENCIA * Phaser.Math.Clamp(1 / this.obtenerZoomActual(), 0.16, 1);
@@ -1605,7 +1431,6 @@ export default class CapaPuntosInteres {
     const { punto, objetivo, posicion } = representacion;
     const contextoRed = this.obtenerContextoRedPunto(punto);
     const categoriaVisible = this.categoriaEsVisible(punto);
-    const esReferenciaTerritorial = obtenerCategoriaReferencia(punto) !== 'POI';
     const esObjetivoActivo = this.esObjetivoActivo(objetivo);
     const esSeleccionado = this.esPuntoDestacado(punto);
     const perteneceSeleccion = this.puntoPerteneceASeleccion(punto);
@@ -1629,7 +1454,6 @@ export default class CapaPuntosInteres {
       enAreaVisible,
       esCandidataArea,
       mostrarMarcador: categoriaVisible && this.debeMostrarMarcador({
-        esReferenciaTerritorial,
         esObjetivoActivo,
         esSeleccionado,
         perteneceSeleccion,
@@ -1650,30 +1474,9 @@ export default class CapaPuntosInteres {
       return false;
     }
 
-    // Las capas territoriales son contexto del mapa: no requieren una red
-    // construida ni alcanzar el umbral de zoom reservado a los POI generales.
-    if (contexto.esReferenciaTerritorial) {
-      return true;
-    }
-
-    if (contexto.perteneceSeleccion) {
-      return contexto.cumpleZoomSeleccion;
-    }
-
-    if (contexto.cercaRed) {
-      if (this.haySeleccionGeografica()) {
-        return contexto.cumpleZoomSeleccion && (
-          contexto.nivelDetalle !== NIVELES_DETALLE_REFERENCIAS.GENERAL
-        );
-      }
-
-      return contexto.nivelDetalle !== NIVELES_DETALLE_REFERENCIAS.GENERAL;
-    }
-
-    return (
-      contexto.nivelDetalle === NIVELES_DETALLE_REFERENCIAS.LOCAL &&
-      (!this.haySeleccionGeografica() || contexto.cumpleZoomSeleccion)
-    );
+    // Todas las categorías comparten visibilidad y cupos; el detalle se regula
+    // por cámara dentro de cada categoría, sin competir con las otras.
+    return true;
   }
 
   haySeleccionGeografica() {
@@ -1870,7 +1673,7 @@ export default class CapaPuntosInteres {
 
   obtenerContenedorInformacion() {
     const lienzo = this.escena?.game?.canvas;
-    const contenedorMapa = lienzo?.closest?.('#metronet-mapa') ?? document.getElementById('metronet-mapa');
+    const contenedorMapa = lienzo?.closest?.('#metronet-mapa, #visorSimulacion') ?? document.getElementById('metronet-mapa');
 
     return contenedorMapa ?? document.body;
   }
@@ -1962,7 +1765,7 @@ export default class CapaPuntosInteres {
 
     this.puntos = [];
 
-    this.categoriasVisibles = new Set(Object.keys(CATEGORIAS_REFERENCIAS));
+    this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
 
     this.estacionesReferencia = [];
 

@@ -19,8 +19,9 @@ for (const tipo of ['tutorial', 'ficha']) test(`Los clics de ${tipo} no atravies
   }
   await p.evaluate(() => { window.pulsosMapa = 0; editorPrueba.escena.input.on('pointerdown', () => pulsosMapa++); });
   if (tipo === 'tutorial') {
-    await p.getByRole('button', { name: 'Minimizar tutorial' }).click();
-    await p.getByRole('button', { name: 'Abrir tutorial' }).click();
+    await p.locator('.metronet-hud>summary').click();
+    await p.getByRole('button', { name: 'Tutorial', exact:true }).click();
+    await p.getByRole('button', { name: 'Tutorial', exact:true }).click();
   } else {
     await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
     assert.equal(await p.evaluate(() => editorPrueba.escena.capaPuntosInteres.puntoSeleccionado), null);

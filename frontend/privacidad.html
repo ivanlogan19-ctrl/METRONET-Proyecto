@@ -1,13 +1,18 @@
 <!doctype html>
 <html lang="es">
   <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Uso de datos · METRONET</title>
     <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
-  </head>
+
+  <script type="module" blocking="render" src="/src/componentes/inicializarLogoMetronet.js"></script>
+</head>
   <body>
     <main class="auth-page">
       <section
@@ -44,6 +49,6 @@
         >
       </section>
     </main>
-    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
+
   </body>
 </html>

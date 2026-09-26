@@ -1,3 +1,4 @@
+import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 // Organización de la vista; no interviene en el motor ni en los datos de la red.
 export function inicializarOrganizacionSimulacion(alRedimensionar) {
   const pagina = document.body;
@@ -9,7 +10,8 @@ export function inicializarOrganizacionSimulacion(alRedimensionar) {
     pagina.classList.toggle('simulacion-mapa-ampliado', ampliado);
     panel.hidden = ampliado;
     ampliar.setAttribute('aria-pressed', String(ampliado));
-    ampliar.textContent = ampliado ? 'Restaurar panel' : 'Ampliar mapa';
+    configurarBotonIcono(ampliar, ampliado ? 'desplegar' : 'plegar', ampliado ? 'Mostrar panel' : 'Ocultar panel');
+    ampliar.setAttribute('aria-expanded', String(!ampliado));
     requestAnimationFrame(alRedimensionar);
   }
 
@@ -22,6 +24,7 @@ export function inicializarOrganizacionSimulacion(alRedimensionar) {
     resumen.scrollIntoView({ block: 'nearest' });
   }
 
+  configurarBotonIcono(ampliar, 'plegar', 'Ocultar panel');
   ampliar.addEventListener('click', () => establecerAmpliado(!panel.hidden));
   document.getElementById('verConsignaCompleta').addEventListener('click', () => abrirSeccion('consignaSimulacion'));
   document.getElementById('duracionSimulacion').addEventListener('invalid', evento => {
@@ -34,8 +37,7 @@ export function inicializarOrganizacionSimulacion(alRedimensionar) {
     abrirSeccion,
     mostrarDiseno(id) {
       document.querySelectorAll('[data-requiere-diseno]').forEach(e => { e.hidden = !id; });
-      if (id !== idVisible) document.getElementById('seccionDisenos').open = !id;
-      if (!id) establecerAmpliado(false);
+      if (id !== idVisible) establecerAmpliado(!id);
       idVisible = id;
     },
   };

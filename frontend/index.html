@@ -1,7 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-contexto-musical="general">
 
 <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
 
     <meta charset="UTF-8">
 
@@ -17,7 +21,14 @@
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
 
     <link rel="stylesheet" href="/src/estilos/retro.css" />
-  </head>
+    <link rel="stylesheet" href="/src/mapa/estilos/editor-red.css" />
+    <link rel="stylesheet" href="/src/mapa/estilos/referencias-poi.css" />
+
+  <script
+        type="module" blocking="render"
+        src="./src/main.js"
+    ></script>
+</head>
 
 
 <body class="metronet-pagina-editor">
@@ -28,15 +39,11 @@
         <div id="metronet-aplicacion">
 
         <div class="metronet-area-mapa">
-            <section class="metronet-barra-geografica" aria-label="Referencias y territorio">
-                <section data-contenedor-referencias></section>
-                <section data-contenedor-puntos-interes aria-label="Búsqueda individual de POI"></section>
-                <section class="metronet-territorio-selectores" aria-label="Selección geográfica">
-                    <h2>Territorio</h2>
-                    <div data-contenedor-selectores-mapa></div>
-                </section>
+            <section class="metronet-barra-geografica" aria-label="Opciones del mapa">
+                <div data-contenedor-referencias></div>
+                <div data-hud-mapa></div>
             </section>
-            <main id="metronet-mapa" aria-label="Mapa de Montevideo"></main>
+            <main id="metronet-mapa" aria-label="Mapa de Montevideo"><p class="metronet-mapa-cargando" role="status">Preparando mapa…</p></main>
         </div>
 
         <aside
@@ -61,10 +68,7 @@
     </div>
     </div>
 
-    <script
-        type="module"
-        src="./src/main.js"
-    ></script>
+
 
 </body>
 

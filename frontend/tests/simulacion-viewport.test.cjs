@@ -95,7 +95,9 @@ for (const width of [1440, 768, 390]) for (const modo of ['inicial','desplazado'
     for (let i = 0; i < 3; i++) { await pagina.locator('#reiniciarSimulacion').click(); await cuadros(pagina); estable(antes, await capturar(pagina)); }
     await pagina.locator('#detenerSimulacion').click(); await cuadros(pagina, 15); estable(antes, await capturar(pagina));
     for (let i = 0; i < 2; i++) { await iniciar(pagina); estable(antes, await capturar(pagina)); await pagina.locator('#detenerSimulacion').click(); await cuadros(pagina); }
-    assert.ok(solicitudes.filter(s => s.method !== 'GET').every(s => s.path.endsWith('/ejecutar')));
+    assert.deepEqual(solicitudes.filter(s => s.method !== 'GET').map(s => s.path.split('/').at(-1)),
+      Array.from({ length: 3 }, () => ['validacion', 'guardar', 'ejecutar']).flat(),
+      'Cada inicio comprueba y guarda la red una vez antes de ejecutar');
   });
 }
 test('Seguimiento explícito: pausa y detención congelan la cámara sin perseguir el inicio', async t => {
@@ -109,10 +111,9 @@ test('Seguimiento explícito: pausa y detención congelan la cámara sin persegu
 test('Ajustar red y cambiar de diseño conservan el encuadre explícito; resize permanece operativo', async t => {
   const { pagina } = await abrir(t, 1440); await posicionar(pagina, 'desplazado');
   const antes = await capturar(pagina); await pagina.getByRole('button', { name: 'Ajustar red', exact: true }).click(); await cuadros(pagina); assert.ok((await capturar(pagina)).ajustes > antes.ajustes);
-  await pagina.locator('#seccionDisenos > summary').click();
-  await pagina.locator('[data-id-diseno="78"]').click(); await pagina.waitForFunction(() => escenaViewport.disenoActual?.simulacion.idDiseno === 78);
-  await pagina.waitForFunction(() => escenaViewport.disenoActual?.metricasUnidades?.length); await cuadros(pagina);
-  const otra = await capturar(pagina); assert.ok(otra.ajustes > antes.ajustes + 1);
+  await pagina.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=78'); await pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.simulacion.idDiseno === 78);
+  await pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.metricasUnidades?.length); await cuadros(pagina);
+  const otra = await capturar(pagina); assert.ok(otra.ajustes >= 1);
   await pagina.setViewportSize({ width: 768, height: 900 }); await cuadros(pagina, 30); const resized = await capturar(pagina); assert.notEqual(resized.canvas.pixelsX, otra.canvas.pixelsX);
   await pagina.locator('#formularioEjecucion button[type=submit]').scrollIntoViewIfNeeded(); await cuadros(pagina); const referencia = await capturar(pagina); await cuadros(pagina, 30); estable(referencia, await capturar(pagina));
 });

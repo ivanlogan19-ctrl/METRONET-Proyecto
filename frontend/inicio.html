@@ -1,12 +1,18 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-contexto-musical="menu">
   <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inicio · METRONET</title>
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
-  </head>
+
+  <script type="module" blocking="render" src="/src/navegacion/inicio.js"></script>
+</head>
   <body class="metronet-pagina-navegable">
     <div data-navegacion-global></div>
     <main class="metronet-inicio" aria-labelledby="tituloInicio">
@@ -21,6 +27,6 @@
         <section id="accionesInicio" class="metronet-inicio__tablero" aria-label="Resumen del recorrido" aria-busy="true"></section>
       </section>
     </main>
-    <script type="module" src="/src/navegacion/inicio.js"></script>
+
   </body>
 </html>

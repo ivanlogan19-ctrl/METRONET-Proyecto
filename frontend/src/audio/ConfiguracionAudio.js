@@ -14,4 +14,5 @@ export const PISTAS_MUSICA = Object.freeze({
 export const CONTEXTOS_MUSICA_PUNTUAL = Object.freeze(['welcome', 'victory']);
 
 export const VOLUMEN_MUSICA_INICIAL = 0.35;
-export const DURACION_ENTRADA_MS = 250;
+export const DURACION_MEZCLA_MS = 900;
+export const UMBRAL_CARGA_MUSICAL_MS = 600;

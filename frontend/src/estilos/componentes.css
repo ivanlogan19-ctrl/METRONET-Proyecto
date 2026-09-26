@@ -75,7 +75,7 @@ html:root body .metronet-herramientas__barra button {
 }
 /* Mandos agrupados del mapa: bisel común con densidad compacta. */
 html:root body .metronet-panel-puntos-cabecera .metronet-panel-puntos-titulo { flex-shrink: 1; white-space: normal; }
-html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar) {
+html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar):not(.metronet-boton-icono) {
   width: var(--control-compact-height); height: var(--control-compact-height);
   min-width: var(--control-compact-height); min-height: var(--control-compact-height); padding: 2px; font-size: 14px;
 }
@@ -86,7 +86,7 @@ html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary
 }
 html:root body :is(button, summary, .metronet-boton, .primary-button, .secondary-button,
   .metronet-inicio__boton, .metronet-inicio__enlace, .simulacion-volver,
-  .metronet-navegacion__enlace, :where(.perfil-volver) a):not(:disabled):not([aria-disabled='true']):active {
+  .metronet-navegacion__enlace, :where(.perfil-volver) a):not(.metronet-boton-icono):not(:disabled):not([aria-disabled='true']):active {
   box-shadow: var(--control-presionado); translate: 1px 1px;
 }
 html:root body :is(button[aria-pressed='true'], button.activo, button.activa, button.es-seleccionado,
@@ -348,7 +348,7 @@ html:root body :is(.simulacion-tarjeta, .metronet-panel-puntos-item, .metronet-e
   html:root body .input-wrapper:has(.toggle-password) input { min-height: 56px; }
   html:root body :is(button, summary, select, .metronet-boton, :where(.perfil-volver) a, .metronet-inicio__enlace) { min-height: var(--control-touch-height); }
   html:root body :is(.metronet-boton--icono, .metronet-control-zoom-boton, .metronet-panel-puntos-alternar) { min-width: var(--control-touch-height); }
-  html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar) { min-width: var(--control-touch-height); min-height: var(--control-touch-height); }
+  html:root body .metronet-panel-puntos-cabecera :is(.metronet-control-zoom-boton, .metronet-panel-puntos-alternar):not(.metronet-boton-icono) { min-width: var(--control-touch-height); min-height: var(--control-touch-height); }
   html:root body .metronet-panel-puntos-cabecera { flex-wrap: wrap; padding-block: 4px; }
   .metronet-panel-puntos-herramientas { margin-left: auto; }
   .metronet-panel-puntos-titulo { flex-shrink: 0; }

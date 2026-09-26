@@ -1,6 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-contexto-musical="menu">
   <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mi perfil · METRONET</title>
@@ -8,7 +12,9 @@
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/perfil/perfil.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
-  </head>
+
+  <script type="module" blocking="render" src="/src/autenticacion/perfil.js"></script>
+</head>
   <body class="metronet-pagina-navegable">
     <div data-navegacion-global></div>
     <main class="perfil-pagina">
@@ -192,6 +198,6 @@
         <p class="perfil-volver"><a href="/inicio.html" data-volver-perfil>Volver a Inicio</a></p>
       </section>
     </main>
-    <script type="module" src="/src/autenticacion/perfil.js"></script>
+
   </body>
 </html>

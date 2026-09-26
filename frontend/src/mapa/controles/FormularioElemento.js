@@ -1,16 +1,18 @@
+import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 // Edición dentro del panel de selección, sin diálogos ni persistencia propia.
 export function mostrarFormularioElemento(panel, campos, guardar, cancelar) {
   const formulario = document.createElement('form');
   formulario.className = 'metronet-editar-elemento';
   formulario.dataset.editarElemento = '';
   const controles = new Map();
-  for (const { nombre, etiqueta, valor, tipo = 'text' } of campos) {
+  for (const { nombre, etiqueta, valor, tipo = 'text', opciones } of campos) {
     const label = document.createElement('label');
     const texto = document.createElement('span');
     texto.textContent = etiqueta;
-    const input = document.createElement('input');
+    const input = document.createElement(opciones ? 'select' : 'input');
     input.name = nombre;
-    input.type = tipo;
+    if (opciones) opciones.forEach(opcion => input.append(new Option(opcion, opcion)));
+    else input.type = tipo;
     if (tipo === 'number') input.step = 'any';
     if (tipo === 'checkbox') input.checked = Boolean(valor);
     else input.value = String(valor ?? '');
@@ -21,12 +23,12 @@ export function mostrarFormularioElemento(panel, campos, guardar, cancelar) {
   const acciones = document.createElement('div');
   const aceptar = document.createElement('button');
   aceptar.type = 'submit';
-  aceptar.textContent = 'Guardar cambios';
-  aceptar.className = 'metronet-accion-primaria';
+  configurarBotonIcono(aceptar, 'guardar', 'Guardar cambios');
+  aceptar.classList.add('metronet-accion-primaria');
   const volver = document.createElement('button');
   volver.type = 'button';
-  volver.textContent = 'Cancelar edición';
-  volver.className = 'metronet-boton--peligro-secundario';
+  configurarBotonIcono(volver, 'cancelar', 'Cancelar edición');
+  volver.classList.add('metronet-boton--peligro-secundario');
   volver.addEventListener('click', cancelar);
   acciones.append(aceptar, volver);
   formulario.append(acciones);

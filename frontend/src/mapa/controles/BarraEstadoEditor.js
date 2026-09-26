@@ -12,7 +12,9 @@ export default class BarraEstadoEditor {
     this.tipo = null;
     this.liberarDestino = registrarDestinoNotificaciones((texto, tipo) => this.mostrar(texto, tipo));
     contenedor.innerHTML = `<div data-ayuda-contextual></div><div class="metronet-estado-editor__feedback"><div class="metronet-estado-editor__mensaje" tabindex="0" aria-label="Estado del editor"><p role="status" aria-atomic="true"></p><p role="alert" aria-atomic="true"></p></div><button type="button" data-revisar-error hidden>Revisar error</button></div>`;
-    this.panelAyuda = new PanelAyudaContextual(contenedor.querySelector('[data-ayuda-contextual]'), { controles: true });
+    this.contenedorAyuda = contenedor.querySelector('[data-ayuda-contextual]');
+    document.querySelector('[data-hud-mapa]')?.append(this.contenedorAyuda);
+    this.panelAyuda = new PanelAyudaContextual(this.contenedorAyuda, { controles: true });
     this.panelAyuda.actualizar({});
     this.estado = contenedor.querySelector('[role=status]');
     this.error = contenedor.querySelector('[role=alert]');
@@ -49,6 +51,7 @@ export default class BarraEstadoEditor {
     this.liberarDestino();
     window.clearTimeout(this.temporizador);
     this.panelAyuda.eliminar();
+    this.contenedorAyuda.remove();
     this.observadorTamano?.disconnect();
     this.contenedor.replaceChildren();
     delete this.contenedor.dataset.tipo;

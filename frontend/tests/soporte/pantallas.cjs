@@ -48,6 +48,8 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
     else if (path.startsWith('/api/juego/')) respuesta = progreso;
     else if (path === '/api/simulaciones') respuesta = [diseno.simulacion];
     else if (path === '/api/simulaciones/77') respuesta = diseno;
+    else if (path.endsWith('/validacion')) respuesta = {valido:true, preparadoParaSimular:true, observaciones:[], observacionesSimulacion:[]};
+    else if (path.endsWith('/guardar')) respuesta = diseno.simulacion;
     else if (path === '/api/admin/disenos') respuesta = [];
     else return route.fulfill({ status: 400, json: { detail: 'Respuesta de prueba: operación no disponible.' }, headers: { 'access-control-allow-origin': '*' } });
     await route.fulfill({ json: respuesta, headers: { 'access-control-allow-origin': '*' } });

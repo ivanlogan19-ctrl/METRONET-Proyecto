@@ -27,11 +27,10 @@ test('crear estaciones repetidas produce un solo éxito temporal sin cubrir mapa
   await pagina.clock.install();
   for (let i = 0; i < 3; i++) {
     await pagina.locator('[data-elegir-herramienta=estaciones]').click();
-    await pagina.locator('[data-nombre-estacion]').fill(`Nueva ${i}`);
-    await pagina.locator('[data-agregar-estacion]').click();
+
     const p = await puntoMapa(pagina, 750 + i * 15, 500);
     await pagina.mouse.click(p.x, p.y);
-    await pagina.waitForFunction(i => editorPrueba.disenoActual.estaciones.some(e => e.nombre === `Nueva ${i}`), i);
+    await pagina.waitForFunction(i => editorPrueba.disenoActual.estaciones.some(e => e.nombre === `Estación ${String(i+1).padStart(2,'0')}`), i);
     assert.match(await pagina.locator('[data-estado-editor]').innerText(), /Estación guardada/);
     assert.equal(await pagina.locator('dialog[open], .metronet-notificacion').count(), 0);
   }
@@ -53,18 +52,14 @@ test('crear estaciones repetidas produce un solo éxito temporal sin cubrir mapa
   assert.deepEqual(errores, []);
 });
 
-test('las instrucciones cambian en contexto y las advertencias permiten corregir sin modal', async t => {
+test('las instrucciones cambian en contexto y una línea pendiente permite corregir sin modal', async t => {
   const { pagina, solicitudes } = await preparar(t);
-  await pagina.locator('[data-elegir-herramienta=estaciones]').click();
-  await pagina.locator('[data-agregar-estacion]').click();
-  assert.equal(await pagina.locator('[data-estado-editor]').getAttribute('data-tipo'), 'advertencia');
   await pagina.locator('[data-elegir-herramienta=conexiones]').click();
-  await pagina.locator('[data-crear-tramo]').click();
-  await pagina.locator('[data-crear-tramo]').click();
-  assert.match(await pagina.locator('[data-estado-editor]').innerText(), /exactamente dos estaciones/);
-  assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /0 seleccionadas/);
+  const p = await puntoMapa(pagina,700,460); await pagina.mouse.click(p.x,p.y);
+  assert.match(await pagina.locator('[data-estado-editor]').innerText(), /línea activa/);
+  assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /origen/);
   await pagina.locator('[data-elegir-herramienta=estaciones]').click();
-  assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /Ingresá un nombre/);
+  assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /colocar estaciones/);
   assert.equal(await pagina.locator('dialog[open]').count(), 0);
   assert.equal(solicitudes.length, 0);
 });
@@ -84,15 +79,17 @@ test('controles solo bajo demanda en la misma asistencia; sin tooltip del canvas
   await pagina.waitForFunction(() => window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual);
   assert.doesNotMatch(await pagina.locator('[data-estado-editor]').innerText(), /Rueda|Mover mapa/);
   const mapa = await pagina.locator('#metronet-mapa').boundingBox();
-  await pagina.locator('[data-assist-controles]').click();
-  assert.match(await pagina.locator('[data-assist-mensaje]').innerText(), /Arrastrá con Seleccionar.*rueda.*pinza.*acción de la herramienta/);
-  assert.equal(await pagina.locator('[data-assist-controles]').textContent(), 'Volver a pista');
+  if (!await pagina.locator('.metronet-hud').evaluate(e=>e.open)) await pagina.locator('.metronet-hud>summary').click();
+  await pagina.locator('[data-hud-vista=controles]').click();
+  assert.match(await pagina.locator('[data-hud-controles]').innerText(), /Arrastrá para mover.*rueda.*pinza.*acción de la herramienta/);
+  assert.equal(await pagina.locator('[data-hud-vista=controles]').getAttribute('aria-pressed'), 'true');
   assert.deepEqual(await pagina.locator('#metronet-mapa').boundingBox(), mapa);
   const zoom = await pagina.evaluate(() => juegoPrueba.scene.getScene('MapaScene').cameras.main.zoom);
   await pagina.locator('#metronet-mapa canvas').hover({ position: { x: 150, y: 150 } });
   await pagina.mouse.wheel(0, -150);
   await pagina.waitForFunction(zoom => juegoPrueba.scene.getScene('MapaScene').cameras.main.zoom > zoom, zoom);
-  await pagina.locator('[data-assist-controles]').click();
+  if (!await pagina.locator('.metronet-hud').evaluate(e=>e.open)) await pagina.locator('.metronet-hud>summary').click();
+  await pagina.locator('[data-hud-vista=pista]').click();
   assert.doesNotMatch(await pagina.locator('[data-assist-mensaje]').innerText(), /Rueda/);
   assert.equal(await pagina.locator('dialog[open], .metronet-notificacion').count(), 0);
 });
@@ -118,6 +115,8 @@ test('fallo al recargar después de crear no anuncia éxito ni pierde cambios pe
   const { pagina } = await preparar(t);
   await pagina.route('**/api/simulaciones/77', route => route.fulfill({ status: 503, json: { detail: 'No se pudo recargar la red.' } }));
   await pagina.locator('[data-elegir-herramienta=metros]').click();
+  await pagina.locator('[data-linea-unidad]').evaluate(e => {e.closest('details').open=true;});
+  await pagina.locator('[data-linea-unidad]').selectOption('Azul');
   await pagina.locator('[data-agregar-unidad]').click();
   await pagina.waitForFunction(() => document.querySelector('[data-estado-editor]').dataset.tipo === 'error');
   assert.match(await pagina.locator('[data-estado-editor] [role=alert]').innerText(), /No se pudo recargar/);
@@ -154,8 +153,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 
     assert.match(await pagina.locator('[role=alert]').innerText(), /Error de conexión/);
     if (viewport.width < 620) await pagina.locator('[data-panel-edicion-toggle]').click();
     await pagina.locator('[data-elegir-herramienta=estaciones]').click();
-    await pagina.locator('[data-nombre-estacion]').fill('Disponible');
-    await pagina.locator('[data-agregar-estacion]').click();
+
     assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
     assert.deepEqual(errores, []);
   });
@@ -211,18 +209,17 @@ for (const estado of [400, 409, 422]) {
       ? route.fulfill({ status: estado, json: { detail: 'La conexión no es válida. Revisá sus extremos.' } })
       : route.fallback());
     await pagina.locator('[data-elegir-herramienta=conexiones]').click();
-    await pagina.locator('[data-crear-tramo]').click();
+    await pagina.locator('[data-linea-conexion]').selectOption('Azul');
     for (const [x, y] of [[700, 460], [810, 480]]) {
       const punto = await puntoMapa(pagina, x, y);
       await pagina.mouse.click(punto.x, punto.y);
     }
-    await pagina.locator('[data-crear-tramo]').click();
     await pagina.waitForFunction(() => document.querySelector('[data-estado-editor]').dataset.tipo === 'advertencia');
     assert.match(await pagina.locator('[data-estado-editor] [role=status]').innerText(), /conexión no es válida/);
-    assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), ['Parque', 'Este']);
+    assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), ['Parque']);
     assert.equal(await pagina.locator('dialog[open]').count(), 0);
     rechazar = false;
-    await pagina.locator('[data-crear-tramo]').click();
+    const destino = await puntoMapa(pagina,810,480); await pagina.mouse.click(destino.x,destino.y);
     await pagina.waitForFunction(() => editorPrueba.disenoActual.tramos.length === 2);
     assert.equal(solicitudes.length, 1);
     assert.equal(await pagina.locator('[data-estado-editor]').getAttribute('data-tipo'), 'exito');

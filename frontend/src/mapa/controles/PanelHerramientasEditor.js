@@ -1,10 +1,11 @@
+import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 const HERRAMIENTAS = [
-  ['estaciones', 'Estación', 'Construcción', 'Ingresá un nombre y elegí Crear estación para ubicarla en el mapa.'],
-  ['lineas', 'Línea', 'Construcción', 'Ingresá un nombre, activá Crear línea y seleccioná las estaciones en orden.'],
-  ['conexiones', 'Conexión', 'Construcción', 'Elegí una línea y activá Conectar estaciones para seleccionar sus extremos.'],
+  ['estaciones', 'Estación', 'Construcción', 'Hacé clic en el mapa para colocar estaciones. Arrastrá para moverlo; Escape termina la herramienta.'],
+  ['lineas', 'Línea', 'Construcción', 'Elegí dos estaciones para crear una línea. El nombre se asigna automáticamente.'],
+  ['conexiones', 'Conexión', 'Construcción', 'Elegí la línea activa y dos estaciones para conectar. Después podés seguir extendiendo el recorrido.'],
   ['seleccion', 'Seleccionar', 'Edición', 'Seleccioná un elemento del mapa para consultar sus acciones.'],
-  ['transbordos', 'Transbordos', 'Edición', 'Seleccioná una estación del mapa para consultar sus opciones de transbordo.'],
-  ['metros', 'Metros', 'Unidades', 'Elegí una línea y configurá la unidad de metro.'],
+  ['transbordos', 'Transbordos', 'Edición', 'Elegí una estación compartida por dos líneas para habilitar su transbordo.'],
+  ['metros', 'Metros', 'Unidades', 'Hacé clic sobre una vía para asignar un metro. Sus parámetros se editan después.'],
   ['escenarios', 'Actividad propia', 'Proyecto', 'Configurá el nombre y la dificultad de un escenario propio.'],
 ];
 
@@ -30,7 +31,7 @@ export default class PanelHerramientasEditor {
       }
       const boton = document.createElement('button');
       boton.type = 'button';
-      boton.textContent = nombre;
+      configurarBotonIcono(boton, clave, nombre);
       boton.dataset.elegirHerramienta = clave;
       boton.setAttribute('aria-controls', `opciones-editor-${clave}`);
       boton.addEventListener('click', () => this.seleccionar(clave));
@@ -47,7 +48,7 @@ export default class PanelHerramientasEditor {
       else if (clave === 'transbordos') {
         const ayuda = document.createElement('p');
         ayuda.className = 'metronet-editor-ayuda';
-        ayuda.textContent = 'Cuando la edición de la estación esté disponible, usá Editar para habilitar o revisar el transbordo entre líneas.';
+        ayuda.textContent = 'El transbordo permite intercambiar entre dos líneas que comparten una estación.';
         panel.append(ayuda);
       }
       this.paneles.set(clave, panel);
@@ -57,7 +58,7 @@ export default class PanelHerramientasEditor {
     this.ayuda.setAttribute('role', 'status');
     this.cancelar = document.createElement('button');
     this.cancelar.type = 'button';
-    this.cancelar.textContent = 'Cancelar operación';
+    configurarBotonIcono(this.cancelar, 'cancelar', 'Cancelar operación');
     this.cancelar.dataset.cancelarHerramienta = '';
     this.cancelar.addEventListener('click', () => this.seleccionar('seleccion'));
     contenedor.append(barra, this.ayuda, ...this.paneles.values(), this.cancelar);
@@ -71,13 +72,13 @@ export default class PanelHerramientasEditor {
     this.botones.forEach((boton, herramienta) => boton.setAttribute('aria-pressed', String(herramienta === clave)));
     this.paneles.forEach((panel, herramienta) => { panel.hidden = herramienta !== clave; });
     this.actualizarOperacion('normal');
-    if (notificar) this.alCambiar();
+    if (notificar) this.alCambiar(clave);
   }
 
   actualizarDisponibilidad(herramientas, esProgresivo) {
     this.botones.forEach((boton, clave) => {
       boton.disabled = herramientas[clave] === false || (clave === 'escenarios' && esProgresivo);
-      boton.title = boton.disabled ? 'No disponible en este escenario.' : '';
+      boton.title = boton.disabled ? 'No disponible en este escenario.' : boton.getAttribute('aria-label');
       if (clave === 'escenarios') boton.closest('fieldset').hidden = boton.disabled;
     });
     if (this.botones.get(this.activa).disabled) this.seleccionar('seleccion');
@@ -85,10 +86,10 @@ export default class PanelHerramientasEditor {
 
   actualizarOperacion(modo, estaciones = []) {
     const mensajes = {
-      crearEstacion: 'Seleccioná una posición del mapa para ubicar la estación.',
+      crearEstacion: 'Clic para colocar estaciones; arrastrá para mover el mapa. Teclado: enfocá el mapa, flechas y Enter.',
       reubicarEstacion: 'Seleccioná la nueva posición de la estación en el mapa.',
-      crearLinea: `Seleccioná al menos dos estaciones en orden (${estaciones.length} seleccionadas) y confirmá con Crear línea.`,
-      crearTramo: `Seleccioná dos estaciones (${estaciones.length} seleccionadas) y confirmá con Conectar estaciones.`,
+      crearLinea: `Nueva línea: ${estaciones.length ? `origen ${estaciones[0]}. Elegí el destino.` : 'elegí su primera estación.'}`,
+      crearTramo: `Conexión: ${estaciones.length ? `desde ${estaciones[0]}. Elegí el destino.` : 'elegí una estación de origen.'}`,
     };
     this.ayuda.textContent = mensajes[modo] ?? HERRAMIENTAS.find(([clave]) => clave === this.activa)[3];
     this.cancelar.hidden = modo === 'normal';

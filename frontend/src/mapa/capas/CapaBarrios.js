@@ -1,3 +1,4 @@
+import { colorReferencia } from '../configuracion/CategoriasReferencias.js';
 import { normalizarBarrio, obtenerZona } from '../utilidades/ClasificadorZonas.js';
 import { COLORES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
@@ -14,6 +15,7 @@ export default class CapaBarrios {
     this.fondoMapa = null;
 
     this.zonasSeleccionadas = [];
+    this.visibilidad = { barrios: true, zonas: false };
 
     this.barriosSeleccionados = [];
 
@@ -372,10 +374,10 @@ export default class CapaBarrios {
 
     grafico.fillPath();
 
-    grafico.strokePath();
   }
 
   crearGraficoBarrio(barrio, transformacionMapa) {
+    if (!this.visibilidad.barrios && !this.visibilidad.zonas) return null;
     const geometria = barrio.feature.geometry;
 
     if (!geometria) {
@@ -402,17 +404,18 @@ export default class CapaBarrios {
       return;
     }
 
-    const barrioSeleccionado = this.esBarrioSeleccionado(barrio);
+    if (!this.visibilidad.barrios && !this.visibilidad.zonas) return;
+    const barrioSeleccionado = this.visibilidad.barrios && this.esBarrioSeleccionado(barrio);
 
-    const zonaSeleccionada = this.esZonaSeleccionada(barrio);
+    const zonaSeleccionada = this.visibilidad.zonas && this.esZonaSeleccionada(barrio);
 
-    let colorRelleno = COLORES_INTERFAZ_MAPA.PANEL;
+    let colorRelleno = colorReferencia('BARRIOS_ZONAS');
 
-    let transparencia = 0;
+    let transparencia = this.visibilidad.zonas ? 0.08 : 0;
 
     /* La zona elegida usa un azul claro que no se confunde con el mapa base. */
     if (zonaSeleccionada) {
-      colorRelleno = COLORES_INTERFAZ_MAPA.ACTIVO;
+      colorRelleno = colorReferencia('BARRIOS_ZONAS');
       transparencia = 0.32;
     }
 
@@ -420,7 +423,7 @@ export default class CapaBarrios {
      * Barrio seleccionado.
      */
     if (barrioSeleccionado) {
-      colorRelleno = COLORES_INTERFAZ_MAPA.ACTIVO;
+      colorRelleno = colorReferencia('BARRIOS_ZONAS');
       transparencia = 0.52;
     }
 
@@ -430,7 +433,7 @@ export default class CapaBarrios {
     grafico.lineStyle(
       barrioSeleccionado || zonaSeleccionada ? 3 : 1,
 
-      barrioSeleccionado ? COLORES_INTERFAZ_MAPA.BORDE_ACTIVO : zonaSeleccionada ? COLORES_INTERFAZ_MAPA.ACTIVO : COLORES_INTERFAZ_MAPA.BORDE,
+      colorReferencia('BARRIOS_ZONAS'),
 
       barrioSeleccionado || zonaSeleccionada ? 1 : 0.85,
     );
@@ -511,7 +514,12 @@ export default class CapaBarrios {
   }
 
   obtenerColorZona() {
-    return COLORES_INTERFAZ_MAPA.ACTIVO;
+    return colorReferencia('BARRIOS_ZONAS');
+  }
+
+  establecerVisibilidad(estado) {
+    this.visibilidad = {...this.visibilidad, ...estado};
+    this.dibujar();
   }
 
   establecerZonasSeleccionadas(zonas) {

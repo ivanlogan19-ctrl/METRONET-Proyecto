@@ -35,8 +35,8 @@ async function abrir(t, escenarios, ruta = '/escenarios.html', opciones = {}) {
     await route.fulfill({ json: { escenarios, numeroCampanaActual: 1, cantidadNiveles: escenarios.filter(e => e.numero !== null).length,
       nivelesCompletados: escenarios.filter(e => e.estado === 'COMPLETADO').length, modoLibreDesbloqueado: true, campanaCompletada: false } });
   });
-  await pagina.route(`${BASE}/?*`, route => route.fulfill({ contentType: 'text/html', body: '<h1>Mapa de prueba</h1>' }));
-  await pagina.route(`${BASE}/__prueba-editor`, route => route.fulfill({ contentType: 'text/html', body: '<link rel="stylesheet" href="/src/estilos/metronet.css"><link rel="stylesheet" href="/src/estilos/retro.css"><main></main>' }));
+  await pagina.route(`${BASE}/?*`, route => route.fulfill({ contentType: 'text/html', body: '<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Mapa de prueba</h1>' }));
+  await pagina.route(`${BASE}/__prueba-editor`, route => route.fulfill({ contentType: 'text/html', body: '<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><link rel="stylesheet" href="/src/estilos/metronet.css"><link rel="stylesheet" href="/src/estilos/retro.css"><main></main>' }));
   if (opciones.falloModulo) await pagina.route('**/educacion/PantallaPreparacionNivel.js*', route => route.abort());
   if (opciones.falloRender) await pagina.addInitScript(() => { HTMLDialogElement.prototype.showModal = () => { throw new Error('Fallo de presentación'); }; });
   if (opciones.sinStorage) await pagina.addInitScript(() => {

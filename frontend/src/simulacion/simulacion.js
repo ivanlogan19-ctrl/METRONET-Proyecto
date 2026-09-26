@@ -1,3 +1,5 @@
+import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
+import { prepararDiseno, consumirInicioSimulacion } from '../red/PreparacionDiseno.js';
 import PanelAyudaContextual from '../educacion/PanelAyudaContextual.js';
 import { gestorMusica } from '../audio/GestorMusica.js';
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
@@ -25,6 +27,9 @@ let parametrosUltimaEjecucion = null;
 let estadoMotor = null;
 let ejecucionPendiente = null;
 let resultadoEnCurso = false;
+let preparacionEnCurso = false;
+let versionDiseno = 0;
+let paginaActiva = true;
 let consignaActual = null;
 let idDisenoConsigna = null;
 let mensajeConsigna = '';
@@ -41,7 +46,12 @@ if (!sesion) {
 }
 
 async function inicializar() {
+  [['#formularioEjecucion button[type="submit"]','play','Iniciar simulación'],['#pausarSimulacion','pausa','Pausar simulación'],
+    ['#reanudarSimulacion','play','Reanudar simulación'],['#detenerSimulacion','detener','Detener simulación'],['#reiniciarSimulacion','reiniciar','Reiniciar recorrido'],
+    ['#seguirMetro','metros','Seguir metro'],['#ampliarMapa','ampliar','Ampliar mapa']]
+    .forEach(([selector,icono,nombre]) => configurarBotonIcono(document.querySelector(selector),icono,nombre));
   panelAyuda = new PanelAyudaContextual(document.querySelector('[data-ayuda-contextual]'));
+  document.querySelector('.simulacion-encabezado-acciones').append(panelAyuda.contenedor);
   inicializarNavegacion({ actual: 'simulacion', etapa: 'simulacion' });
   // Consulta educativa independiente: una falla nunca demora la simulación.
   consultarJuego('/progreso').then(progreso => {
@@ -61,7 +71,6 @@ async function inicializar() {
   aplicarConfiguracionPredeterminada(await obtenerConfiguracionAplicacion(sesion));
   cliente = new ClienteDisenos(sesion);
   document.getElementById('formularioEjecucion').addEventListener('submit', ejecutarSimulacion);
-  document.getElementById('listaDisenos').addEventListener('click', seleccionarDiseno);
   document.getElementById('pausarSimulacion').addEventListener('click', pausarSimulacion);
   document.getElementById('reanudarSimulacion').addEventListener('click', reanudarSimulacion);
   document.getElementById('detenerSimulacion').addEventListener('click', detenerSimulacion);
@@ -73,9 +82,9 @@ async function inicializar() {
   window.addEventListener('pagehide', limpiarVisor);
   window.addEventListener(EVENTO_CONFIGURACION, actualizarMantenimiento);
   visor = await crearVisorSimulacion(document.getElementById('visorSimulacion'), { alActualizarEstado: actualizarPanelTiempoReal });
-  await cargarDisenos();
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
   else mostrarEstadoVacio();
+  if (idDisenoInicial && consumirInicioSimulacion(idDisenoInicial)) await ejecutarSimulacion({ preventDefault() {} });
 }
 
 function aplicarConfiguracionPredeterminada(configuracion) {
@@ -86,36 +95,8 @@ function aplicarConfiguracionPredeterminada(configuracion) {
   });
 }
 
-async function cargarDisenos() {
-  try {
-    const disenos = await cliente.listar();
-    renderizarListaDisenos(disenos);
-    if (!disenos.length) mostrarMensaje('Todavía no hay diseños disponibles. Creá uno desde Edición.');
-  } catch (error) {
-    mostrarMensaje(error.message, 'error');
-  }
-}
-
-function renderizarListaDisenos(disenos) {
-  const lista = document.getElementById('listaDisenos');
-  lista.replaceChildren(...disenos.map((diseno) => {
-    const boton = document.createElement('button');
-    boton.type = 'button';
-    boton.className = 'simulacion-tarjeta';
-    boton.dataset.idDiseno = String(diseno.idDiseno);
-    boton.innerHTML = `<strong>${escapar(diseno.nombre)}</strong><span>${formatearEstado(diseno.estado)}</span>`;
-    return boton;
-  }));
-}
-
-async function seleccionarDiseno(evento) {
-  const boton = evento.target.closest('[data-id-diseno]');
-  if (!boton) return;
-  ejecucionPendiente = null;
-  await abrirDiseno(Number(boton.dataset.idDiseno));
-}
-
 async function abrirDiseno(idDiseno) {
+  const version = ++versionDiseno;
   const liberarMusica = gestorMusica.usarContextoTemporal('loading');
   try {
     cerrarDefinicion();
@@ -129,7 +110,9 @@ async function abrirDiseno(idDiseno) {
     parametrosUltimaEjecucion = null;
     estadoMotor = null;
     restablecerSeguimientoMetro();
-    disenoActual = await cliente.obtener(idDiseno);
+    const diseno = await cliente.obtener(idDiseno);
+    if (version !== versionDiseno || !paginaActiva) return;
+    disenoActual = diseno;
     const contexto = obtenerContextoDiseno(idDiseno);
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
     visor.escena.establecerDiseno(disenoActual);
@@ -137,14 +120,14 @@ async function abrirDiseno(idDiseno) {
     // Phaser se crea con el panel oculto. Medir al mostrarlo evita un resize tardío al iniciar.
     if (visor.escena.scale.getParentBounds()) visor.escena.scale.refresh();
     await cargarConsignaReal(idDiseno);
+    if (version !== versionDiseno || !paginaActiva) return false;
     await actualizarDesempeno(idDiseno);
-    document.querySelectorAll('[data-id-diseno]').forEach((boton) => {
-      boton.classList.toggle('activa', Number(boton.dataset.idDiseno) === idDiseno);
-    });
+    if (version !== versionDiseno || !paginaActiva) return false;
     gestorMusica.establecerContexto('gameplay');
+    return true;
   } catch (error) {
-    mostrarMensaje(error.message, 'error');
-    mostrarEstadoVacio();
+    if (version === versionDiseno && paginaActiva) { mostrarMensaje(error.message, 'error'); mostrarEstadoVacio(); }
+    return false;
   } finally { liberarMusica(); }
 }
 
@@ -153,11 +136,10 @@ function actualizarPantalla() {
   const cantidadEstaciones = disenoActual.estaciones.length;
   document.getElementById('estadoVacio').hidden = true;
   document.getElementById('panelSimulacion').hidden = false;
+  document.querySelector('[data-hud-mapa]').append(panelAyuda.contenedor);
   organizacion.mostrarDiseno(resumen.idDiseno);
   document.getElementById('tituloSimulacion').textContent = resumen.nombre;
-  document.getElementById('nombreDisenoLateral').textContent = resumen.nombre;
   document.getElementById('estadoSimulacion').textContent = formatearEstado(resumen.estado);
-  document.getElementById('estadoDisenoLateral').textContent = [formatearEstado(resumen.estado), resumen.dificultad].filter(Boolean).join(' · ');
   document.getElementById('volverEdicion').href = establecerIdDisenoEnRuta('/', resumen.idDiseno, obtenerContextoDiseno(resumen.idDiseno));
   actualizarConsignaSimulacion(resumen);
   document.getElementById('estadoVistaMapa').textContent = cantidadEstaciones
@@ -180,9 +162,6 @@ function actualizarConsignaSimulacion(resumen) {
   document.getElementById('tituloConsigna').textContent = resumen.nombre || 'Actividad de simulación';
   document.getElementById('objetivoConsigna').textContent = resumen.objetivo || 'Sin objetivo registrado para este escenario.';
   document.getElementById('objetivoCompactoSimulacion').textContent = document.getElementById('objetivoConsigna').textContent;
-  const informacionAdicional = document.getElementById('informacionAdicionalConsigna');
-  document.getElementById('descripcionConsigna').textContent = resumen.instrucciones || '';
-  informacionAdicional.hidden = !resumen.instrucciones;
   actualizarEstadoObjetivosConsigna(consignaDisponible ? '' : mensajeConsigna);
   renderizarProgresoObjetivosConsigna(consignaDisponible ? consignaActual : null);
   renderizarObjetivosConsigna(consignaDisponible ? consignaActual.condiciones : []);
@@ -197,7 +176,7 @@ function actualizarGlosarioConsigna() {
   if (!resumen) return;
   const escenario = escenariosGlosario.find(e => e.idEscenario === resumen.idEscenario) ?? resumen;
   const ids = conceptosDelNivel(escenario);
-  for (const selector of ['#objetivoConsigna', '#descripcionConsigna', '#listaObjetivosConsigna', '#listaObjetivosAdicionalesConsigna']) {
+  for (const selector of ['#objetivoConsigna', '#listaObjetivosConsigna', '#listaObjetivosAdicionalesConsigna']) {
     destacarConceptos(document.querySelector(selector), ids);
   }
 }
@@ -486,20 +465,23 @@ function obtenerEstadoEjecucion() {
 
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
-  if (!disenoActual || resultadoEnCurso || estaMantenimientoActivo(sesion)) return;
-  if (!disenoActual.preparadoParaSimular) {
-    mostrarMensaje(obtenerMensajePreparacionSimulacion(), 'error');
-    return;
-  }
+  if (!disenoActual || resultadoEnCurso || preparacionEnCurso || estaMantenimientoActivo(sesion)) return;
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
   const duracion = Number(document.getElementById('duracionSimulacion').value);
   if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion < 10) {
     mostrarMensaje('Elegí un ritmo de reproducción disponible (×) y una ventana visual mínima de 10 segundos.', 'error');
     return;
   }
+  preparacionEnCurso = true;
+  actualizarDisponibilidadEjecucion();
+  const id = disenoActual.simulacion.idDiseno, version = versionDiseno;
+  const vigente = () => paginaActiva && version === versionDiseno && disenoActual?.simulacion.idDiseno === id;
   try {
-    const resultado = await cliente.ejecutar(disenoActual.simulacion.idDiseno, { velocidad, duracion });
-    await abrirDiseno(disenoActual.simulacion.idDiseno);
+    await prepararDiseno(cliente, id, { paraSimular:true, guardar:true, vigente });
+    if (!vigente()) return;
+    const resultado = await cliente.ejecutar(id, { velocidad, duracion });
+    if (!vigente()) return;
+    if (!await abrirDiseno(id) || !paginaActiva) return;
     parametrosUltimaEjecucion = { velocidad, duracion };
     ejecucionPendiente = { idDiseno: disenoActual.simulacion.idDiseno, resultado };
     if (estaMantenimientoActivo(sesion)) return;
@@ -511,7 +493,7 @@ async function ejecutarSimulacion(evento) {
     mostrarMensaje('Recorrido iniciado. Observá el metro antes de consultar el resultado.', 'exito');
   } catch (error) {
     mostrarMensaje(error.message, 'error');
-  }
+  } finally { preparacionEnCurso = false; actualizarDisponibilidadEjecucion(); }
 }
 
 async function evaluarEscenarioProgresivo(idDiseno) {
@@ -577,14 +559,14 @@ function alternarSeguimientoMetro() {
   const boton = document.getElementById('seguirMetro');
   const activo = visor?.escena.establecerSeguimientoMetro(boton.getAttribute('aria-pressed') !== 'true');
   boton.setAttribute('aria-pressed', String(Boolean(activo)));
-  boton.textContent = activo ? 'Seguir metro: activado' : 'Seguir metro: desactivado';
+  configurarBotonIcono(boton, 'metros', activo ? 'Seguir metro: activado' : 'Seguir metro: desactivado');
   mostrarMensaje(activo ? 'La cámara acompaña al metro de forma suave.' : 'Seguimiento desactivado. Podés mover el mapa libremente.');
 }
 
 function restablecerSeguimientoMetro() {
   const boton = document.getElementById('seguirMetro');
   boton.setAttribute('aria-pressed', 'false');
-  boton.textContent = 'Seguir metro: desactivado';
+  configurarBotonIcono(boton, 'metros', 'Seguir metro: desactivado');
 }
 
 function mostrarResultados() {
@@ -597,6 +579,8 @@ function detenerAnimacion() {
 }
 
 function limpiarVisor() {
+  paginaActiva = false;
+  versionDiseno += 1;
   panelAyuda?.eliminar();
   visor?.destruir();
   visor = null;
@@ -707,7 +691,7 @@ function actualizarControlesSimulacion(estado) {
   const controlConFoco = document.activeElement;
   const puedeReiniciar = Boolean(parametrosUltimaEjecucion);
   document.getElementById('pausarSimulacion').disabled = !enCurso;
-  document.getElementById('pausarSimulacion').hidden = pausada;
+  document.getElementById('pausarSimulacion').hidden = !enCurso;
   document.getElementById('reanudarSimulacion').disabled = !pausada || estaMantenimientoActivo(sesion);
   document.getElementById('reanudarSimulacion').hidden = !pausada;
   document.getElementById('detenerSimulacion').disabled = !enCurso && !pausada;
@@ -722,10 +706,12 @@ function actualizarDisponibilidadEjecucion() {
   const boton = document.querySelector('#formularioEjecucion button[type="submit"]');
   if (!boton) return;
   const ejecucionActiva = estadoMotor?.estado === 'EN_CURSO' || estadoMotor?.estado === 'PAUSADA';
-  boton.disabled = !disenoActual?.preparadoParaSimular || ejecucionActiva || resultadoEnCurso || estaMantenimientoActivo(sesion);
-  boton.title = estaMantenimientoActivo(sesion) ? MENSAJE_MANTENIMIENTO : !disenoActual?.preparadoParaSimular
-    ? obtenerMensajePreparacionSimulacion()
-    : (ejecucionActiva ? 'Detené o reiniciá la simulación actual antes de iniciar otra.' : '');
+  boton.hidden = ejecucionActiva;
+  boton.disabled = !disenoActual || preparacionEnCurso || resultadoEnCurso || estaMantenimientoActivo(sesion);
+  boton.setAttribute('aria-busy', String(preparacionEnCurso));
+  boton.title = estaMantenimientoActivo(sesion) ? MENSAJE_MANTENIMIENTO : preparacionEnCurso
+    ? 'Comprobando la red…'
+    : (ejecucionActiva ? 'Detené o reiniciá la simulación actual antes de iniciar otra.' : 'Iniciar simulación');
 }
 
 function crearEstadoInicial() {
@@ -763,7 +749,7 @@ function obtenerMensajePreparacionSimulacion() {
   const observaciones = disenoActual?.observacionesSimulacion;
   return observaciones?.length
     ? observaciones.join(' ')
-    : 'Volvé a Edición, validá la red y agregá una unidad de metro antes de iniciar.';
+    : 'Asigná una unidad a un recorrido continuo. Play comprueba y guarda la red antes de iniciar.';
 }
 
 function mostrarEstadoVacio() {
@@ -772,6 +758,7 @@ function mostrarEstadoVacio() {
   actualizarAyuda();
   document.getElementById('estadoVacio').hidden = false;
   document.getElementById('panelSimulacion').hidden = true;
+  document.querySelector('.simulacion-encabezado-acciones').append(panelAyuda.contenedor);
   organizacion.mostrarDiseno(null);
 }
 
@@ -779,7 +766,7 @@ function actualizarAyuda() {
   const resumen = disenoActual?.simulacion;
   panelAyuda?.actualizar({
     diseno: disenoActual,
-    escenario: escenariosGlosario.find(e => e.idEscenario === resumen?.idEscenario),
+    escenario: escenariosGlosario.find(e => e.idEscenario === resumen?.idEscenario) ?? resumen,
     consigna: consignaActual,
     estadoConsigna: consignaActual && idDisenoConsigna === resumen?.idDiseno ? 'disponible' : 'noDisponible',
     pantalla: 'simulacion', estadoMotor: estadoMotor?.estado, error: errorAyuda,

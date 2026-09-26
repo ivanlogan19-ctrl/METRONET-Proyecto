@@ -1,75 +1,94 @@
-import { CATEGORIAS_REFERENCIAS } from '../configuracion/CategoriasReferencias.js';
+import { ajustarPanelMapa } from '../../interfaz/PanelMapa.js';
+import { CATEGORIAS_REFERENCIAS, colorCssReferencia, obtenerCategoriaReferencia } from '../configuracion/CategoriasReferencias.js';
+import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
+import '../estilos/referencias-poi.css';
 
-// Controles e indicadores comparten el estado de la capa; no consultan ni guardan datos.
+// Una única puerta a las capas. Los datos y su selección siguen en las capas Phaser.
 export default class PanelReferenciasTerritoriales {
-  constructor({ contenedor, mapa, alCambiarCategorias }) {
-    this.contenedor = contenedor;
-    this.mapa = mapa;
-    this.alCambiarCategorias = alCambiarCategorias;
-    this.categorias = [];
-    this.controles = new Map();
-    this.indicadores = new Map();
+  constructor({ contenedor, mapa, alCambiarCategorias, alCambiarGeografia }) {
+    Object.assign(this, { contenedor, mapa, alCambiarCategorias, alCambiarGeografia });
+    this.categorias = []; this.controles = new Map(); this.indicadores = new Map();
+    this.geografia = { barrios: true, zonas: false };
   }
-
   crear() {
-    this.elemento = document.createElement('section');
-    this.elemento.className = 'metronet-referencias-territoriales';
-    this.elemento.setAttribute('aria-label', 'Referencias territoriales');
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Referencias territoriales';
-    const controles = document.createElement('div');
-    controles.className = 'metronet-referencias-controles';
-    controles.setAttribute('role', 'group');
-    controles.setAttribute('aria-label', 'Capas territoriales');
-    this.estado = document.createElement('div');
-    this.estado.className = 'metronet-capas-activas';
-    this.estado.setAttribute('role', 'group');
-    this.estado.setAttribute('aria-label', 'Capas activas');
+    this.elemento = document.createElement('details');
+    this.elemento.className = 'metronet-poi';
+    const acceso = document.createElement('summary');
+    configurarBotonIcono(acceso, 'poi', 'Puntos de interés de Montevideo');
+    acceso.setAttribute('aria-expanded','false');
+    this.panel = document.createElement('div'); this.panel.className = 'metronet-poi__panel';
+    for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) this.panel.addEventListener(tipo, e => e.stopPropagation());
+    this.panel.innerHTML = '<header><h2>Referencias de Montevideo</h2><button type="button" data-cerrar-poi></button></header>';
+    const cerrar = this.panel.querySelector('[data-cerrar-poi]');
+    configurarBotonIcono(cerrar,'cancelar','Cerrar puntos de interés');
+    cerrar.addEventListener('click',()=>this.cerrar(true));
+    const controles = document.createElement('div'); controles.className = 'metronet-poi__categorias';
+    controles.setAttribute('role','group'); controles.setAttribute('aria-label','Capas geográficas');
+    this.estado = document.createElement('div'); this.estado.className = 'metronet-capas-activas';
+    this.estado.setAttribute('role','group'); this.estado.setAttribute('aria-label','Capas activas');
+    this.geografico = document.createElement('section'); this.geografico.className='metronet-poi__geografia'; this.geografico.hidden=true;
+    this.geografico.innerHTML='<h3>Barrios / Zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
+    this.seleccion = this.geografico.querySelector('[data-contenedor-selectores-mapa]');
+    for (const tipo of ['barrios','zonas']) {
+      const b=document.createElement('button'); b.type='button'; b.textContent=`Mostrar ${tipo}`; b.dataset.capaGeografica=tipo;
+      b.addEventListener('click',()=>{this.geografia[tipo]=!this.geografia[tipo];this.alCambiarGeografia?.({...this.geografia});this.actualizarGeografia();});
+      this.geografico.querySelector('.metronet-poi__visibilidad').append(b);
+    }
     for (const [categoria, datos] of Object.entries(CATEGORIAS_REFERENCIAS)) {
-      const control = document.createElement('button');
-      control.type = 'button';
-      control.className = 'metronet-boton--compacto';
-      control.dataset.categoria = categoria;
-      control.title = datos.descripcion;
-      control.setAttribute('aria-label', datos.etiqueta);
-      const simbolo = document.createElement('span');
-      simbolo.className = 'metronet-referencia-simbolo';
-      simbolo.setAttribute('aria-hidden', 'true');
-      simbolo.textContent = datos.simbolo;
-      control.append(simbolo, document.createTextNode(datos.etiqueta));
-      control.addEventListener('click', () => {
-        const visibles = new Set(this.categorias);
-        if (visibles.has(categoria)) visibles.delete(categoria);
-        else visibles.add(categoria);
+      if (categoria === 'OTROS') continue;
+      const control = document.createElement('button'); control.type='button'; control.dataset.categoria=categoria;
+      configurarBotonIcono(control,datos.icono,datos.etiqueta); control.style.setProperty('--referencia-color',colorCssReferencia(categoria));
+      control.addEventListener('click',()=>{
+        if (categoria === 'BARRIOS_ZONAS') {this.geografico.hidden=!this.geografico.hidden;control.setAttribute('aria-expanded',String(!this.geografico.hidden));return;}
+        const visibles=new Set(this.categorias); if(visibles.has(categoria))visibles.delete(categoria);else visibles.add(categoria);
         this.alCambiarCategorias([...visibles]);
       });
-      this.controles.set(categoria, control);
+      if (categoria === 'BARRIOS_ZONAS') control.setAttribute('aria-expanded', 'false');
+      this.controles.set(categoria,control);
       controles.append(control);
-      const indicador = document.createElement('span');
-      indicador.dataset.categoria = categoria;
-      indicador.append(simbolo.cloneNode(true), document.createTextNode(datos.etiqueta));
-      this.indicadores.set(categoria, indicador);
-      this.estado.append(indicador);
+      const indicador=document.createElement('span');indicador.dataset.categoria=categoria;indicador.innerHTML=iconoRetro(datos.icono);
+      indicador.style.setProperty('--referencia-color',colorCssReferencia(categoria));indicador.title=datos.etiqueta;indicador.setAttribute('aria-label',datos.etiqueta);indicador.tabIndex=0;indicador.setAttribute('role','img');
+      this.indicadores.set(categoria,indicador);this.estado.append(indicador);
     }
-    this.elemento.append(titulo, controles);
-    this.contenedor.append(this.elemento);
+    this.busqueda=document.createElement('div');this.busqueda.className='metronet-poi__busqueda';
+    this.accesoBusqueda=document.createElement('div');this.accesoBusqueda.className='metronet-poi__acceso-busqueda';
+    controles.append(this.accesoBusqueda);
+    this.panel.append(controles,this.busqueda,this.geografico);
+    this.elemento.append(acceso,this.panel);this.contenedor.append(this.elemento);
+    this.herramientas=document.createElement('div');this.herramientas.className='metronet-poi__zoom';this.contenedor.append(this.herramientas);
     this.mapa.append(this.estado);
+    this.estado.hidden = true;
+    this.alCerrarFuera=e=>{if(!this.elemento.contains(e.target))this.cerrar();};
+    this.alEscape=e=>{if(e.key==='Escape' && this.elemento.open){e.stopPropagation();this.cerrar(true);}};
+    document.addEventListener('pointerdown',this.alCerrarFuera);
+    this.elemento.addEventListener('keydown',this.alEscape);
+    this.elemento.addEventListener('toggle',()=>{acceso.setAttribute('aria-expanded',String(this.elemento.open));acceso.setAttribute('aria-pressed',String(this.elemento.open));this.estado.hidden=!this.elemento.open;});
+    this.liberarPosicion = ajustarPanelMapa(acceso, this.panel);
+    this.actualizarGeografia();
   }
-
-  actualizar(categorias = []) {
-    this.categorias = categorias;
-    for (const [categoria, control] of this.controles) {
-      const activa = categorias.includes(categoria);
-      control.setAttribute('aria-pressed', String(activa));
-      this.indicadores.get(categoria).hidden = !activa;
+  cerrar(foco=false){this.elemento.open=false;if(foco)this.elemento.querySelector('summary').focus();}
+  actualizarGeografia(){
+    this.geografico.querySelectorAll('[data-capa-geografica]').forEach(b=>b.setAttribute('aria-pressed',String(this.geografia[b.dataset.capaGeografica])));
+    const activa=this.geografia.barrios||this.geografia.zonas;
+    this.indicadores.get('BARRIOS_ZONAS').hidden=!activa;
+    this.controles.get('BARRIOS_ZONAS').setAttribute('aria-pressed',String(activa));
+  }
+  actualizar(categorias=[]) {
+    this.categorias=categorias;
+    for(const [categoria,control] of this.controles){
+      if(categoria==='BARRIOS_ZONAS')continue;
+      const activa=categorias.includes(categoria);control.setAttribute('aria-pressed',String(activa));
+      if(this.indicadores.has(categoria))this.indicadores.get(categoria).hidden=!activa;
     }
-    this.estado.hidden = !categorias.length;
+    this.actualizarGeografia();
   }
-
-  eliminar() {
-    this.elemento?.remove();
-    this.estado?.remove();
-    this.controles.clear();
-    this.indicadores.clear();
+  establecerCatalogo(puntos){
+    for(const [categoria,control] of this.controles){
+      if(categoria==='BARRIOS_ZONAS')continue;
+      const cantidad=puntos.filter(p=>obtenerCategoriaReferencia(p)===categoria).length;
+      control.title=`${CATEGORIAS_REFERENCIAS[categoria].descripcion} · ${cantidad} referencias`;
+      control.disabled=cantidad===0;
+    }
   }
+  eliminar(){this.liberarPosicion?.();document.removeEventListener('pointerdown',this.alCerrarFuera);this.elemento?.remove();this.estado?.remove();this.herramientas?.remove();}
 }

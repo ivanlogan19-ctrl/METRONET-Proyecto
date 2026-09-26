@@ -1,23 +1,6 @@
-.metronet-tutorial {
-  position: absolute;
-  z-index: var(--layer-header);
-  inset: 10px 10px auto auto;
-  width: min(330px, calc(100% - 20px));
-  padding: 10px;
-  border: 1px solid var(--info-active);
-  background: var(--panel);
-  color: var(--text-primary);
-  box-shadow: 0 0 7px color-mix(in srgb, var(--info-active) 16%, transparent);
-}
-.metronet-tutorial[hidden], .metronet-tutorial [hidden] { display: none; }
-.metronet-tutorial header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.metronet-tutorial header h2 { margin: 0; }
-.metronet-tutorial header button { min-height: 30px; padding: 5px 8px; font-size: 11px; }
-.metronet-tutorial [data-tutorial-contenido] { margin-top: 8px; font-family: var(--font-ui); font-size: 13px; line-height: 1.45; max-height: 135px; overflow-y: auto; }
-.metronet-tutorial p { margin: 4px 0 0; animation: tutorial-entrada 160ms ease-out; }
-@keyframes tutorial-entrada { from { opacity: .3; } to { opacity: 1; } }
-@media (max-width: 620px) {
-  .metronet-tutorial { width: min(290px, calc(100% - 16px)); inset: 8px 8px auto auto; padding: 8px; }
-  .metronet-tutorial [data-tutorial-contenido] { max-height: 110px; }
-}
-@media (prefers-reduced-motion: reduce) { .metronet-tutorial p { animation: none; } }
+.metronet-hud .metronet-tutorial { position:static; width:auto; margin:0; padding:0; border:0; box-shadow:none; background:none; }
+.metronet-tutorial [data-tutorial-contenido] { font:14px/1.5 var(--font-ui); }
+.metronet-tutorial :is(strong,summary) { display:flex; align-items:center; gap:8px; }
+.metronet-tutorial .metronet-icono { flex-shrink:0; width:24px; height:24px; }
+.metronet-tutorial p { margin:8px 0; }
+.metronet-tutorial details + details { margin-top:6px; }

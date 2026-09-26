@@ -1,50 +1,51 @@
-import { siguienteLeccion } from './TutorialInicial.js';
+import { iconoRetro } from '../interfaz/IconosRetro.js';
+import { siguienteLeccion, leccionesDisponibles } from './TutorialInicial.js';
+import { destacarConceptos } from './glosario/GlosarioContextual.js';
+import { conceptosDelNivel } from './glosario/ContextoConceptos.js';
 import './tutorial-inicial.css';
 
+// Contenido del manual dentro del HUD; nunca reserva una zona propia sobre el mapa.
 export default class PanelTutorialInicial {
-  constructor(mapa) {
+  constructor(contenedor) {
     this.intentos = new Map();
-    this.elemento = document.createElement('aside');
+    this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-tutorial';
-    this.elemento.hidden = true;
     this.elemento.setAttribute('aria-label', 'Tutorial de herramientas');
-    // Mantener las acciones del panel fuera de los eventos globales de Phaser.
-    for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) {
-      this.elemento.addEventListener(tipo, evento => evento.stopPropagation());
-    }
-    this.elemento.innerHTML = '<header><h2 class="metronet-titulo metronet-titulo--panel">Tutorial</h2><button type="button" data-tutorial-alternar aria-expanded="true">Minimizar</button></header><div data-tutorial-contenido aria-live="polite" aria-atomic="true"></div>';
-    this.contenido = this.elemento.querySelector('[data-tutorial-contenido]');
-    this.boton = this.elemento.querySelector('button');
-    this.boton.addEventListener('click', () => {
-      this.estado.minimizado = !this.estado.minimizado;
-      this.renderizar();
-    });
-    mapa?.append(this.elemento);
+    this.contenido = document.createElement('div');
+    this.contenido.dataset.tutorialContenido = '';
+    this.contenido.setAttribute('aria-live', 'polite');
+    this.elemento.append(this.contenido);
+    contenedor.append(this.elemento);
   }
 
   actualizar(contexto) {
     const id = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario]);
-    if (!this.intentos.has(id)) this.intentos.set(id, { aprendidas: new Set(), minimizado: false });
+    if (!this.intentos.has(id)) this.intentos.set(id, { aprendidas: new Set() });
     this.estado = this.intentos.get(id);
     this.leccion = siguienteLeccion(contexto, this.estado.aprendidas);
-    this.elemento.hidden = !this.leccion;
-    if (this.leccion) this.renderizar();
-    return Boolean(this.leccion);
-  }
-
-  renderizar() {
-    const { clave, titulo, texto } = this.leccion;
-    this.elemento.dataset.paso = clave;
-    if (this.contenido.dataset.paso !== clave) {
-      const encabezado = document.createElement('strong'); encabezado.textContent = titulo;
-      const parrafo = document.createElement('p'); parrafo.textContent = texto;
-      this.contenido.replaceChildren(encabezado, parrafo);
-      this.contenido.dataset.paso = clave;
+    this.elemento.dataset.paso = this.leccion?.clave ?? 'manual';
+    const lecciones = this.leccion ? [this.leccion] : leccionesDisponibles(contexto);
+    const identidad = JSON.stringify([id, lecciones]);
+    if (identidad !== this.identidad) {
+      this.identidad = identidad;
+      const contenido = lecciones.map(({clave, titulo, texto}) => {
+        const bloque = document.createElement(this.leccion ? 'section' : 'details');
+        const encabezado = document.createElement(this.leccion ? 'strong' : 'summary');
+        encabezado.innerHTML = iconoRetro(clave === 'simulacion' ? 'play' : clave);
+        encabezado.append(document.createTextNode(titulo));
+        const parrafo = document.createElement('p'); parrafo.textContent = texto;
+        bloque.append(encabezado, parrafo);
+        return bloque;
+      });
+      if (!contenido.length) {
+        const vacio = document.createElement('p');
+        vacio.textContent = 'El manual presenta las herramientas disponibles al abrir un diseño o escenario.';
+        contenido.push(vacio);
+      }
+      this.contenido.replaceChildren(...contenido);
+      destacarConceptos(this.contenido, conceptosDelNivel(contexto.escenario ?? contexto.diseno?.simulacion), { contextual:true });
     }
-    this.contenido.hidden = this.estado.minimizado;
-    this.boton.textContent = this.estado.minimizado ? 'Abrir' : 'Minimizar';
-    this.boton.setAttribute('aria-label', `${this.estado.minimizado ? 'Abrir' : 'Minimizar'} tutorial`);
-    this.boton.setAttribute('aria-expanded', String(!this.estado.minimizado));
+    return Boolean(this.leccion);
   }
 
   registrarUso(herramienta) { this.estado?.aprendidas.add(herramienta); }

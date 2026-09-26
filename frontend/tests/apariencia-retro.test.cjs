@@ -48,7 +48,7 @@ for (const width of [1440, 390]) {
     await pagina.evaluate(() => document.fonts.ready);
     if (width < 620) await pagina.locator('[data-panel-edicion-toggle]').click();
     await pagina.locator('[data-elegir-herramienta="estaciones"]').click();
-    await pagina.locator('[data-nombre-estacion]').fill('Prueba');
+
     await comprobarMarcaYAnchura(pagina);
     assert.deepEqual(errores, []);
   });

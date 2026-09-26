@@ -1,13 +1,21 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-contexto-musical="auth">
   <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro · METRONET</title>
     <link rel="stylesheet" href="/src/autenticacion/autenticacion.css" />
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
-  </head>
+
+  <script type="module" blocking="render" src="/src/componentes/inicializarLogoMetronet.js"></script>
+  <script type="module" blocking="render" src="/src/autenticacion/registro.js"></script>
+  <script type="module" blocking="render" src="/src/audio/AudioAutenticacion.js"></script>
+</head>
   <body>
     <main class="auth-page">
       <section class="auth-card" aria-labelledby="tituloRegistro">
@@ -109,8 +117,8 @@
         </p>
       </section>
     </main>
-    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
-    <script type="module" src="/src/autenticacion/registro.js"></script>
-    <script type="module" src="/src/audio/AudioAutenticacion.js"></script>
+
+
+
   </body>
 </html>

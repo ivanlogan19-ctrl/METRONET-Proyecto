@@ -13,6 +13,12 @@ async function abrir(t, ruta = 'editor', opciones = {}) {
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
   return vista;
 }
+async function abrirMusica(p) {
+  if(await p.locator('.metronet-hud').count()){
+    if(!await p.locator('.metronet-hud').evaluate(e=>e.open)) await p.locator('.metronet-hud>summary').click();
+    await p.locator('[data-hud-vista=musica]').click();
+  } else await p.locator('.metronet-audio summary').click();
+}
 async function reproduciendo(p, pista = '/audio/gameplay-theme.mp3') {
   await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume > 0.34; }, pista);
 }
@@ -26,7 +32,7 @@ async function gestor(p, accion, valor) {
 for (const ruta of ['/login.html', '/admin-login.html', '/inicio.html', '/escenarios.html', '/ranking.html', '/perfil.html', '/admin.html', '/simulacion.html']) {
   test(`La pista de gameplay no se carga fuera del juego: ${ruta}`, async t => {
     const { pagina: p } = await abrir(t, ruta === '/simulacion.html' ? '/inicio.html' : ruta);
-    if (ruta === '/simulacion.html') { await p.goto('http://127.0.0.1:5173/simulacion.html'); await p.locator('#listaDisenos button').first().waitFor(); }
+    if (ruta === '/simulacion.html') { await p.goto('http://127.0.0.1:5173/simulacion.html'); await p.locator('#estadoVacio').waitFor(); }
     assert.equal(await p.locator(`${audio}[src="/audio/gameplay-theme.mp3"]`).count(), 0);
     const recursos = await p.evaluate(() => performance.getEntriesByType('resource').filter(r => r.name.includes('gameplay-theme')).length);
     assert.equal(recursos, 0);
@@ -97,7 +103,8 @@ test('Selector de simulación usa menú; abrir una red cambia a gameplay', async
   await p.goto('http://127.0.0.1:5173/simulacion.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
   await p.locator(audio).evaluate(a => { a.currentTime = 20; });
-  await p.locator('#listaDisenos button').first().click();
+  await p.locator('#estadoVacio').getByRole('link',{name:'Mis diseños'}).click();
+  await p.getByRole('link',{name:'Simular diseño: Red de Montevideo'}).click();
   await reproduciendo(p);
   assert.equal(await p.locator('#panelSimulacion').isVisible(), true);
   await p.goto('http://127.0.0.1:5173/inicio.html');
@@ -113,7 +120,7 @@ test('La preparación inicial silencia el menú y al cancelar lo recupera', asyn
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionMenu = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
   });
-  assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
+  await p.waitForFunction(() => document.querySelector('[data-musica-metronet]').paused);
   await p.evaluate(() => preparacionMenu.cerrar());
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 15));
@@ -140,7 +147,7 @@ test('Menú: bloqueo de autoplay y silencio se recuperan con los controles exist
     };
   });
   await p.reload();
-  await p.locator('.metronet-audio summary').click();
+  await abrirMusica(p);
   await p.getByRole('button', { name: 'Activar música' }).click();
   await reproduciendo(p, '/audio/menu-theme.mp3');
   await p.getByLabel('Silenciar música').check();
@@ -181,14 +188,14 @@ test('Mute y volumen persisten; volver de silencio no reinicia', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   await p.locator(audio).evaluate(a => { a.currentTime = 12; });
-  await p.locator('.metronet-audio summary').click();
+  await abrirMusica(p);
   await p.getByLabel('Silenciar música').check();
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
   await p.getByRole('slider', { name: 'Volumen de música' }).fill('42');
   await p.reload();
   await p.waitForSelector(audio, { state: 'attached' });
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
-  await p.locator('.metronet-audio summary').click();
+  await abrirMusica(p);
   assert.equal(await p.getByRole('slider', { name: 'Volumen de música' }).inputValue(), '42');
   assert.equal(await p.getByLabel('Silenciar música').isChecked(), true);
   await p.getByLabel('Silenciar música').uncheck();
@@ -205,7 +212,7 @@ test('Preparación y cargas pausan; victoria usa su pista y después recupera ga
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionAudio = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
   });
-  assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
+  await p.waitForFunction(() => document.querySelector('[data-musica-metronet]').paused);
   assert.equal((await gestor(p, 'obtenerEstado')).contexto, 'transition');
   await p.evaluate(() => preparacionAudio.cerrar()); await reproduciendo(p);
   await p.evaluate(async () => {
@@ -221,7 +228,7 @@ test('Preparación y cargas pausan; victoria usa su pista y después recupera ga
     window.liberarB = g.usarContextoTemporal('transition');
     liberarA(); liberarA();
   });
-  assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
+  await p.waitForFunction(() => document.querySelector('[data-musica-metronet]').paused);
   await p.evaluate(() => liberarB()); await reproduciendo(p);
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 25));
   assert.equal(await p.locator(audio).count(), 1);
@@ -325,13 +332,13 @@ for (const width of [320, 390, 1025, 1440]) test(`Control accesible sin desborde
 
 test('El control de volumen queda por encima de las capas del mapa en móvil', async t => {
   const { pagina: p } = await abrir(t, 'editor', { viewport: { width: 390, height: 900 } });
-  await p.locator('.metronet-audio summary').click();
+  await abrirMusica(p);
   const slider = p.getByRole('slider', { name: 'Volumen de música' });
-  await p.locator('.metronet-audio__panel:popover-open').waitFor();
+  await p.locator('.metronet-hud .metronet-audio__panel').waitFor();
   assert.equal(await slider.evaluate(e => {
     const r = e.getBoundingClientRect();
     return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e;
   }), true);
   await slider.click();
-  assert.equal(await p.locator('.metronet-audio').getAttribute('open'), '');
+  assert.equal(await p.locator('.metronet-hud').evaluate(e=>e.open),true);
 });

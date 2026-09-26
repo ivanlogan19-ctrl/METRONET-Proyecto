@@ -1,3 +1,4 @@
+import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { destacarConceptos } from '../educacion/glosario/GlosarioContextual.js';
 import { CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js';
 const texto = (tag, valor) => { const e = document.createElement(tag); e.textContent = valor; return e; };
@@ -22,7 +23,8 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
     const label = texto('label', `Metro ${unidad.idTren} · ${unidad.nombreLinea} · km/h`);
     const input = document.createElement('input'); input.type = 'number'; input.min = '1'; input.step = '0.1'; input.required = true;
     input.value = unidad.velocidadPromedio; input.setAttribute('aria-label', `Velocidad del metro ${unidad.idTren} en km/h`);
-    const boton = texto('button', 'Aplicar km/h'); boton.type = 'submit';
+    const boton = document.createElement('button'); boton.type = 'submit';
+    configurarBotonIcono(boton, 'guardar', 'Aplicar km/h');
     input.disabled = boton.disabled = disponible && !desempeno.redResuelta;
     label.append(input); form.append(label, boton);
     const medida = desempeno?.unidades?.find(u => u.idTren === unidad.idTren);

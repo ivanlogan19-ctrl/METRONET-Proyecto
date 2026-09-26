@@ -96,7 +96,7 @@ export default class SelectorZonas {
 
     this.notificarCambio();
 
-    this.panel.cerrarContenido();
+
   }
 
   notificarCambio() {

@@ -3,7 +3,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirEditor } = require('./soporte/editor.cjs');
-const CATEGORIAS = ['POI', 'ESPACIOS_VERDES', 'INFRAESTRUCTURA', 'AGUA'];
+const CATEGORIAS = ['CULTURA','SALUD','COMERCIO','PATRIMONIO','INSTITUCIONAL','ESPACIOS_VERDES','INFRAESTRUCTURA','AGUA'];
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
@@ -37,7 +37,7 @@ async function abrir(t, opciones = {}) {
 }
 async function cuadros(p) { await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))); }
 
-for (const vista of ['inicial', 'acercada', 'desplazada', 'restaurada']) test(`Capas aditivas: las 16 combinaciones conservan marcadores, objetos y estilos / ${vista}`, async t => {
+for (const vista of ['inicial', 'acercada', 'desplazada', 'restaurada']) test(`Capas aditivas: las 256 combinaciones conservan marcadores, objetos y estilos / ${vista}`, async t => {
   const { pagina: p, solicitudes } = await abrir(t);
   if (vista !== 'inicial') {
     await p.evaluate(vista => {
@@ -50,7 +50,7 @@ for (const vista of ['inicial', 'acercada', 'desplazada', 'restaurada']) test(`C
   }
   const resultado = await p.evaluate(categorias => {
     const individuales = categorias.map(c => { poi.establecerCategoriasVisibles([c]); return capturarCapas(); });
-    const combinaciones = Array.from({ length: 16 }, (_, mascara) => {
+    const combinaciones = Array.from({ length: 2 ** categorias.length }, (_, mascara) => {
       const activas = categorias.filter((_, i) => mascara & (1 << i));
       poi.establecerCategoriasVisibles(activas);
       return { activas, estado: capturarCapas() };
@@ -60,7 +60,7 @@ for (const vista of ['inicial', 'acercada', 'desplazada', 'restaurada']) test(`C
   for (const { activas, estado } of resultado.combinaciones) {
     const esperado = resultado.individuales.flatMap((e,i) => activas.includes(CATEGORIAS[i]) ? e.puntos : []).sort((a,b) => a.id - b.id);
     assert.deepEqual(estado.puntos, esperado, `Unión exacta para ${activas.join(' + ') || 'ninguna'}`);
-    assert.deepEqual(estado.indicadores, [...activas].sort());
+    assert.deepEqual(estado.indicadores, ['BARRIOS_ZONAS', ...activas.filter(c => c !== 'OTROS')].sort());
     assert.deepEqual(estado.barrios, resultado.individuales[0].barrios);
     assert.deepEqual(estado.camara, resultado.individuales[0].camara);
     assert.equal(estado.objetos, resultado.individuales[0].objetos);
@@ -72,44 +72,49 @@ for (const vista of ['inicial', 'acercada', 'desplazada', 'restaurada']) test(`C
 test('Toggles por UI: distintos órdenes y repeticiones no reconstruyen capas ajenas ni duplican indicadores', async t => {
   const { pagina: p } = await abrir(t);
   await p.evaluate(() => poi.establecerCategoriasVisibles([]));
+  await p.locator('.metronet-poi>summary').click();
   let referencia;
-  for (const orden of [CATEGORIAS, [...CATEGORIAS].reverse(), ['ESPACIOS_VERDES','AGUA','POI','INFRAESTRUCTURA']]) {
-    for (const c of orden) await p.locator(`.metronet-referencias-controles [data-categoria="${c}"]`).click();
+  for (const orden of [CATEGORIAS, [...CATEGORIAS].reverse(), [...CATEGORIAS.slice(3),...CATEGORIAS.slice(0,3)]]) {
+    for (const c of orden) await p.locator(`.metronet-poi__panel button[data-categoria="${c}"]`).click();
     const estado = await p.evaluate(() => capturarCapas());
     if (referencia) assert.deepEqual(estado, referencia);
     else referencia = estado;
     for (const c of [...orden].reverse()) {
       const anteriores = (await p.evaluate(() => capturarCapas())).puntos.filter(p => p.categoria !== c);
-      await p.locator(`.metronet-referencias-controles [data-categoria="${c}"]`).click();
+      await p.locator(`.metronet-poi__panel button[data-categoria="${c}"]`).click();
       assert.deepEqual((await p.evaluate(() => capturarCapas())).puntos, anteriores);
     }
-    assert.equal(await p.locator('.metronet-capas-activas > span').count(), 4);
-    assert.equal(await p.locator('.metronet-capas-activas > span:visible').count(), 0);
+    assert.equal(await p.locator('.metronet-capas-activas > span').count(), 9);
+    assert.equal(await p.locator('.metronet-capas-activas > span:visible').count(), 1);
   }
 });
 
 test('Buscar, seleccionar y cerrar POI conserva las otras categorías y sus objetivos', async t => {
   const { pagina: p, solicitudes } = await abrir(t, { objetivos: [{ idPunto: 85, radioCobertura: 60 }] });
   await p.emulateMedia({ reducedMotion: 'reduce' });
-  for (const activas of [CATEGORIAS, ['ESPACIOS_VERDES','INFRAESTRUCTURA','AGUA'], ['POI','AGUA'], ['POI','ESPACIOS_VERDES']]) {
+  for (const activas of [CATEGORIAS, ['ESPACIOS_VERDES','INFRAESTRUCTURA','AGUA'], ['CULTURA','AGUA'], ['CULTURA','ESPACIOS_VERDES']]) {
     await p.evaluate(c => poi.establecerCategoriasVisibles(c), activas);
     const antes = await p.evaluate(() => capturarCapas());
-    await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
-    await p.getByRole('searchbox', { name: 'Buscar POI' }).fill('Palacio Legislativo');
+    if (!await p.locator('.metronet-poi').evaluate(e=>e.open)) await p.locator('.metronet-poi>summary').click();
+    await p.getByRole('button', { name: 'Buscar punto de interés' }).click();
+    await p.getByRole('searchbox', { name: 'Buscar punto de interés' }).fill('Palacio Legislativo');
     await p.locator('.metronet-panel-puntos-lista button').first().click();
     await p.getByRole('dialog', { name: 'Información de Palacio Legislativo' }).waitFor();
     // La búsqueda enfoca legítimamente el POI; comparar con la misma cámara aísla el estado de capas.
     await p.evaluate(([x,y,z]) => { const c = poi.escena.cameras.main; c.panEffect.reset(); c.setZoom(z).setScroll(x,y); }, antes.camara);
     await cuadros(p);
     await p.evaluate(() => poi.actualizarVisibilidad());
+    // La densidad puede cambiar dentro de Patrimonio al priorizar el punto buscado.
+    // Las otras categorías conservan sus marcadores y estilos exactamente.
     let despues = await p.evaluate(() => capturarCapas());
-    assert.deepEqual(despues.puntos.filter(r => r.categoria !== 'POI'), antes.puntos.filter(r => r.categoria !== 'POI'));
+    assert.deepEqual(despues.puntos.filter(r => r.categoria !== 'PATRIMONIO'), antes.puntos.filter(r => r.categoria !== 'PATRIMONIO'));
     assert.deepEqual(despues.indicadores, antes.indicadores);
     await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
-    await p.getByRole('button', { name: 'Abrir buscador POI' }).click();
+    if (!await p.locator('.metronet-poi').evaluate(e=>e.open)) await p.locator('.metronet-poi>summary').click();
+    await p.getByRole('button', { name: 'Buscar punto de interés' }).click();
     await p.getByRole('searchbox').fill(''); await p.keyboard.press('Escape');
     despues = await p.evaluate(() => capturarCapas());
-    assert.deepEqual(despues.puntos.filter(r => r.categoria !== 'POI'), antes.puntos.filter(r => r.categoria !== 'POI'));
+    assert.deepEqual(despues.puntos.filter(r => r.categoria !== 'PATRIMONIO'), antes.puntos.filter(r => r.categoria !== 'PATRIMONIO'));
     assert.equal(await p.evaluate(() => poi.puntoBuscado), null);
   }
   assert.deepEqual(solicitudes, []);

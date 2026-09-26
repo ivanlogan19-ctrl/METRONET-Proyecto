@@ -1,13 +1,20 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-contexto-musical="general">
   <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simulación · METRONET</title>
     <link rel="stylesheet" href="/src/simulacion/simulacion.css" />
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
-  </head>
+
+  <script type="module" blocking="render" src="/src/componentes/inicializarLogoMetronet.js"></script>
+  <script type="module" blocking="render" src="/src/simulacion/simulacion.js"></script>
+</head>
   <body class="metronet-pagina-navegable simulacion-pagina">
     <div data-navegacion-global></div>
     <main class="simulacion-aplicacion simulacion-contenido">
@@ -22,14 +29,13 @@
       <div class="simulacion-espacio-trabajo">
         <section id="estadoVacio" class="simulacion-vacio">
           <h2>Seleccioná una red para simular</h2>
-          <p>Desde Edición podés crear la red, guardarla y validarla. La simulación utiliza ese mismo diseño sin modificarlo.</p>
+          <p>Elegí un diseño guardado desde <a href="/disenos.html">Mis diseños</a>. La simulación utiliza esa misma red.</p>
         </section>
         <section id="panelSimulacion" class="simulacion-editor" hidden>
           <section class="simulacion-visor-mapa" aria-labelledby="tituloVistaSimulacion">
             <header class="simulacion-visor-encabezado">
               <h3 id="tituloVistaSimulacion">Mapa de la simulación</h3>
               <div class="simulacion-visor-acciones">
-                <div id="controlesCamaraSimulacion" aria-label="Controles de zoom y ajuste de red"></div>
                 <button id="ampliarMapa" type="button" aria-pressed="false" aria-controls="instrumentosSimulacion">Ampliar mapa</button>
               </div>
             </header>
@@ -39,6 +45,7 @@
               <div><dt>Metro activo · km/h</dt><dd id="velocidadActualSimulacion">—</dd></div>
               <div><dt>Puntos estimados</dt><dd id="puntajeCompactoSimulacion">—</dd></div>
             </dl>
+            <div class="metronet-barra-geografica" aria-label="Opciones del mapa"><div data-contenedor-referencias></div><div data-hud-mapa><div data-ayuda-contextual></div></div></div>
             <div id="visorSimulacion" class="simulacion-lienzo-contenedor" aria-label="Mapa Phaser de Montevideo con la red seleccionada"></div>
             <div class="simulacion-mandos" aria-label="Controles de simulación">
               <form id="formularioEjecucion" class="simulacion-formulario">
@@ -70,7 +77,6 @@
           <button id="verResultadosSimulacion" type="button" hidden>Ver resultados</button>
         </div>
         <aside id="instrumentosSimulacion" class="simulacion-instrumentos" aria-label="Información y configuración de la red">
-          <div data-ayuda-contextual></div>
           <div class="simulacion-objetivo-compacto" data-requiere-diseno hidden>
             <p class="simulacion-etiqueta">Objetivo</p>
             <p id="objetivoCompactoSimulacion"></p>
@@ -90,10 +96,6 @@
               </summary>
               <div class="simulacion-consigna__contenido">
                 <p id="objetivoConsigna" class="simulacion-consigna__objetivo"></p>
-                <details id="informacionAdicionalConsigna" class="simulacion-consigna__informacion" hidden>
-                  <summary>Más información</summary>
-                  <p id="descripcionConsigna" class="simulacion-texto-secundario"></p>
-                </details>
                 <section id="seccionProgresoObjetivosConsigna" class="simulacion-consigna__progreso simulacion-consigna__progreso-objetivos" aria-labelledby="tituloProgresoObjetivosConsigna" hidden>
                   <div class="simulacion-consigna__progreso-encabezado">
                     <span id="tituloProgresoObjetivosConsigna">Progreso del escenario</span>
@@ -164,19 +166,10 @@
               <a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con escenarios</a>
             </div>
           </details>
-          <details id="seccionDisenos" class="simulacion-seccion" open>
-            <summary>Mis diseños</summary>
-            <div class="simulacion-seccion-contenido">
-              <strong id="nombreDisenoLateral">Sin diseño seleccionado</strong>
-              <p id="estadoDisenoLateral" class="simulacion-texto-secundario">Elegí una red validada para simular.</p>
-              <p class="simulacion-texto-secundario">Seleccioná una red para consultar sus resultados o ejecutar una simulación.</p>
-              <div id="listaDisenos" class="simulacion-lista" aria-live="polite"></div>
-            </div>
-          </details>
         </aside>
       </div>
     </main>
-    <script type="module" src="/src/componentes/inicializarLogoMetronet.js"></script>
-    <script type="module" src="/src/simulacion/simulacion.js"></script>
+
+
   </body>
 </html>

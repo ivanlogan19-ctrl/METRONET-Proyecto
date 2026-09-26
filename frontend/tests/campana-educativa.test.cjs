@@ -27,7 +27,7 @@ async function abrir(t, ruta = '/escenarios.html', opciones = {}) {
   } });
   t.after(() => resultado.contexto.close());
   t.after(() => assert.deepEqual(resultado.errores, []));
-  await resultado.pagina.route('**/?idDiseno=200*', route => route.fulfill({ contentType: 'text/html', body: '<h1>Constructor de destino</h1>' }));
+  await resultado.pagina.route('**/?idDiseno=200*', route => route.fulfill({ contentType: 'text/html', body: '<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Constructor de destino</h1>' }));
   return resultado;
 }
 for (const width of [1440, 768, 390]) {
@@ -93,7 +93,8 @@ test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', a
   }, resumen);
   await pagina.getByRole('dialog', { name: 'Nivel final completado', exact: true }).waitFor();
   assert.equal(await pagina.getByText('Continuar con Nivel 11').count(), 0);
-  await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor();
+  // El resumen se revela al terminar la pista de victoria (~15 s), con límite de seguridad de 24 s.
+  await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
   await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
   assert.deepEqual(await pagina.evaluate(() => window.resultadoTransicion), { destino: '/escenarios.html' });
   assert.equal(solicitudes.filter(r => r.method === 'POST').length, 0);
@@ -147,10 +148,13 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
   assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 1);
   assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
   if (numero === 10) {
-    await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor();
+    await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
     await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
     await pagina.waitForURL('**/escenarios.html');
     assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10 de 10/);
     assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);
-  } else await pagina.waitForURL('**/?idDiseno=200&idEscenario=105&idIntento=300');
+  } else {
+    // La pista real de victoria dura ~15 s: incluir audio y navegación, como en el cierre final.
+    await pagina.waitForURL('**/?idDiseno=200&idEscenario=105&idIntento=300', { timeout: 26000 });
+  }
 });

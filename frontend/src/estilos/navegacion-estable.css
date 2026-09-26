@@ -1,0 +1,21 @@
+/* La cabecera reserva su espacio antes de que se monte la navegación. */
+[data-navegacion-global] { min-height: var(--navegacion-alto); }
+
+.metronet-panel-superpuesto[popover] {
+  position: fixed; inset: auto; margin: 0; padding: 12px;
+  box-sizing: border-box; overflow: auto; overscroll-behavior: contain;
+  background: var(--panel); color: var(--text-primary);
+  border: 2px solid var(--border-active); box-shadow: var(--shadow-floating);
+}
+.metronet-panel-superpuesto[popover]:not(:popover-open) { display: none; }
+
+/* Mejora progresiva para los documentos HTML existentes: sin router ni esperas. */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: metronet-salida-pagina 180ms linear both; }
+::view-transition-new(root) { animation: metronet-entrada-pagina 180ms linear both; }
+@keyframes metronet-salida-pagina { to { opacity: 0; } }
+@keyframes metronet-entrada-pagina { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}

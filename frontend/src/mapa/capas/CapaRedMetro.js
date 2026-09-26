@@ -1,8 +1,9 @@
+import { PALETA_RED, coloresDeLineas, colorMetro } from '../configuracion/PaletaRed.js';
+import GestosRed from '../controles/GestosRed.js';
 import Phaser from 'phaser';
 
 import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
-const COLORES_LINEAS = [0x55c3e7, 0xf3ca62, 0x9ed49c, 0xd7a9f4, 0xff9e92];
 const PROFUNDIDAD_RED = 8;
 const PROFUNDIDAD_ESTACIONES = 10;
 const PROFUNDIDAD_ETIQUETAS = 12;
@@ -23,6 +24,8 @@ export default class CapaRedMetro {
     this.capaBarrios = opciones.capaBarrios;
     this.alSeleccionar = opciones.alSeleccionar ?? (() => {});
     this.alUbicarEstacion = opciones.alUbicarEstacion ?? (() => {});
+    this.editable = opciones.editable ?? typeof opciones.alUbicarEstacion === 'function';
+    this.coloresLineas = new Map();
     this.diseno = null;
     this.modo = 'normal';
     this.estacionesSeleccionadas = [];
@@ -38,19 +41,22 @@ export default class CapaRedMetro {
     this.estadoUnidadesSimulacion = [];
     this.mostrarUnidadesEstaticas = true;
     this.zoomElementosGraficos = null;
-    this.manejadorPointer = (puntero) => this.procesarPuntero(puntero);
     this.manejadorPostUpdate = () => this.actualizarEscalaElementosGraficos();
   }
 
   crear() {
     this.grafico = this.escena.add.graphics().setDepth(PROFUNDIDAD_RED);
-    this.escena.input.on('pointerdown', this.manejadorPointer);
+    this.previsualizacion = this.escena.add.graphics().setDepth(PROFUNDIDAD_RED + 1);
+    this.lineaActiva = '';
+    this.gestos = new GestosRed(this);
     this.escena.events.on('postupdate', this.manejadorPostUpdate);
   }
 
   establecerDiseno(diseno) {
+    this.previsualizacion?.clear();
     this.detenerAnimacion(false);
     this.diseno = diseno;
+    this.coloresLineas = coloresDeLineas(diseno?.lineas, diseno?.tramos);
     this.estacionesSeleccionadas = [];
     this.elementoSeleccionado = null;
     this.mostrarUnidadesEstaticas = true;
@@ -58,12 +64,16 @@ export default class CapaRedMetro {
   }
 
   establecerModo(modo) {
+    this.previsualizacion?.clear();
     this.modo = modo;
+    this.gestos?.cancelar();
+    if (this.gestos?.cursor) this.gestos.cursor.hidden = true;
     this.elementoSeleccionado = null;
     this.dibujar();
   }
 
   establecerEstacionesSeleccionadas(nombres) {
+    this.previsualizacion?.clear();
     this.estacionesSeleccionadas = Array.isArray(nombres) ? nombres : [];
     this.dibujar();
   }
@@ -167,10 +177,10 @@ export default class CapaRedMetro {
 
   dibujarNodoFuncional(punto, destacada, transbordo) {
     const colorNodo = destacada
-      ? COLORES_INTERFAZ_MAPA.ACTIVO
+      ? PALETA_RED.estaciones.seleccionada
       : transbordo
-        ? COLORES_INTERFAZ_MAPA.ADVERTENCIA
-        : COLORES_INTERFAZ_MAPA.TEXTO;
+        ? PALETA_RED.transbordo
+        : PALETA_RED.estaciones.normal;
     if (destacada) {
       this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.ACTIVO, 0.16);
       this.grafico.fillCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 9);
@@ -191,10 +201,10 @@ export default class CapaRedMetro {
     const centroY = -DESPLAZAMIENTO_MARCADOR_ESTACION;
     const superior = centroY - ALTO_MARCADOR_ESTACION / 2;
     const colorMarcador = transbordo
-      ? COLORES_INTERFAZ_MAPA.ADVERTENCIA
+      ? PALETA_RED.transbordo
       : destacada
-        ? COLORES_INTERFAZ_MAPA.ACTIVO
-        : COLORES_INTERFAZ_MAPA.TEXTO;
+        ? PALETA_RED.estaciones.seleccionada
+        : PALETA_RED.estaciones.normal;
     this.dibujarEnlaceNodoMarcador(grafico, centroY, colorMarcador);
     if (destacada) this.dibujarHaloMarcadorEstacion(grafico, centroY);
     this.dibujarCuerpoMarcadorEstacion(grafico, superior, colorMarcador, transbordo);
@@ -218,11 +228,11 @@ export default class CapaRedMetro {
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO, 0.56);
     grafico.fillEllipse(0, centroY + 10, ANCHO_MARCADOR_ESTACION + 7, 5);
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 1);
-    grafico.fillRoundedRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION, 4);
+    grafico.fillRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION);
     grafico.lineStyle(2, colorMarcador, 1);
-    grafico.strokeRoundedRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION, 4);
+    grafico.strokeRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION);
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 1);
-    grafico.fillRoundedRect(-5, centroY - 5, 10, 6, 1);
+    grafico.fillRect(-5, centroY - 5, 10, 6);
     grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.BORDE_ACTIVO, 0.9);
     grafico.lineBetween(-4, centroY + 4, -4, centroY + 8);
     grafico.lineBetween(4, centroY + 4, 4, centroY + 8);
@@ -232,8 +242,10 @@ export default class CapaRedMetro {
     grafico.fillCircle(-5, centroY + 4, 1.3);
     grafico.fillCircle(5, centroY + 4, 1.3);
     if (transbordo) {
-      grafico.lineStyle(1.5, COLORES_INTERFAZ_MAPA.ADVERTENCIA, 1);
-      grafico.strokeCircle(0, centroY - 1, 3);
+      grafico.lineStyle(1, PALETA_RED.transbordo, 1);
+      grafico.strokeRect(-6, centroY - 5, 5, 6);
+      grafico.strokeRect(1, centroY - 5, 5, 6);
+      grafico.lineBetween(-1, centroY - 2, 1, centroY - 2);
     }
   }
 
@@ -243,7 +255,7 @@ export default class CapaRedMetro {
     const punto = this.obtenerPuntoEnRuta(ruta, this.obtenerProgresoUnidad(indice));
     if (!punto) return;
     const seleccionada = this.elementoSeleccionado?.tipo === 'unidad' && this.elementoSeleccionado.valor.idTren === unidad.idTren;
-    this.unidadesEstaticas.push(this.crearRepresentacionMetro(punto, this.colorLinea(unidad.nombreLinea), seleccionada, unidad.idTren));
+    this.unidadesEstaticas.push(this.crearRepresentacionMetro(punto, colorMetro(unidad.idTren), seleccionada, unidad.idTren));
   }
 
   crearEtiquetaEstacion(estacion, punto, indice, radio) {
@@ -327,21 +339,21 @@ export default class CapaRedMetro {
 
   dibujarCuerpoMetro(grafico, color) {
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 1);
-    grafico.fillRoundedRect(-17, -9, 34, 18, 5);
+    grafico.fillRect(-17, -9, 34, 18);
     grafico.lineStyle(2, COLORES_INTERFAZ_MAPA.TEXTO, 0.86);
-    grafico.strokeRoundedRect(-17, -9, 34, 18, 5);
+    grafico.strokeRect(-17, -9, 34, 18);
     grafico.fillStyle(color, 1);
-    grafico.fillRoundedRect(-15, -7, 30, 6, 3);
+    grafico.fillRect(-15, -7, 30, 6);
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 1);
-    grafico.fillRoundedRect(-15, 1, 30, 6, 2);
+    grafico.fillRect(-15, 1, 30, 6);
     grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.BORDE_ACTIVO, 0.75);
     grafico.lineBetween(-14, 8, 14, 8);
   }
 
   dibujarCabinaMetro(grafico, color) {
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL, 1);
-    grafico.fillRoundedRect(-11, -5, 8, 5, 1);
-    grafico.fillRoundedRect(3, -5, 8, 5, 1);
+    grafico.fillRect(-11, -5, 8, 5);
+    grafico.fillRect(3, -5, 8, 5);
     grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.TEXTO_SECUNDARIO, 0.8);
     grafico.lineBetween(0, -5, 0, 0);
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.TEXTO, 0.94);
@@ -353,9 +365,9 @@ export default class CapaRedMetro {
   dibujarRuedasMetro(grafico) {
     [-10, 10].forEach((posicionX) => {
       grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO, 1);
-      grafico.fillCircle(posicionX, 10, 3);
+      grafico.fillRect(posicionX - 3, 8, 6, 5);
       grafico.fillStyle(COLORES_INTERFAZ_MAPA.BORDE_ACTIVO, 1);
-      grafico.fillCircle(posicionX, 10, 1.4);
+      grafico.fillRect(posicionX - 1, 9, 2, 2);
     });
   }
 
@@ -376,6 +388,33 @@ export default class CapaRedMetro {
     contenedor.setRotation(angulo);
   }
 
+  // Guía temporal: nunca agrega tramos al diseño ni decide su validez de negocio.
+  previsualizarRecorrido(puntero) {
+    this.previsualizacion?.clear();
+    if (!['crearLinea', 'crearTramo'].includes(this.modo) || this.estacionesSeleccionadas.length !== 1) return;
+    const origen = this.obtenerEstaciones().find(e => e.nombre === this.estacionesSeleccionadas[0]);
+    const destino = this.convertirPuntero(puntero);
+    if (!origen || !destino) return;
+    const desde = this.convertirPosicion(origen.posicionX, origen.posicionY);
+    const hasta = destino.punto;
+    const color = this.modo === 'crearTramo' ? this.colorLinea(this.lineaActiva) : PALETA_RED.estaciones.seleccionada;
+    const zoom = this.escena.cameras.main.zoom;
+    const distancia = Math.hypot(hasta.x - desde.x, hasta.y - desde.y);
+    const paso = 12 / zoom;
+    this.previsualizacion.lineStyle(2 / zoom, color, .8);
+    for (let i = 0; i < distancia; i += paso) {
+      const a = i / distancia, b = Math.min(i + paso * .55, distancia) / distancia;
+      this.previsualizacion.lineBetween(desde.x+(hasta.x-desde.x)*a, desde.y+(hasta.y-desde.y)*a, desde.x+(hasta.x-desde.x)*b, desde.y+(hasta.y-desde.y)*b);
+    }
+  }
+
+  indicarPosicionInvalida(posicion) {
+    const {x,y} = this.convertirPosicion(posicion.posicionX, posicion.posicionY), radio = 7 / this.escena.cameras.main.zoom;
+    this.previsualizacion.clear().lineStyle(3 / this.escena.cameras.main.zoom, PALETA_RED.estaciones.invalida, 1);
+    this.previsualizacion.lineBetween(x-radio,y-radio,x+radio,y+radio);
+    this.previsualizacion.lineBetween(x-radio,y+radio,x+radio,y-radio);
+  }
+
   procesarPuntero(puntero) {
     const evento = puntero.event ?? {};
 
@@ -384,12 +423,22 @@ export default class CapaRedMetro {
     }
 
     const convertido = this.convertirPuntero(puntero);
-    if (!this.diseno) return;
+    if (!this.diseno || !convertido) return;
     if (this.modo === 'crearEstacion' || this.modo === 'reubicarEstacion') {
       this.alUbicarEstacion(convertido, this.modo);
       return;
     }
     if (!convertido) return;
+    if (['crearLinea', 'crearTramo', 'crearTransbordo'].includes(this.modo)) {
+      const estacion = this.obtenerEstacionCercana(convertido.punto);
+      if (estacion) this.alSeleccionar({tipo:'estacion',valor:estacion});
+      return;
+    }
+    if (this.modo === 'crearMetro') {
+      const tramos = this.obtenerTramosCercanos(convertido.punto);
+      this.alSeleccionar(tramos.length ? {tipo:'tramos',valor:tramos} : null);
+      return;
+    }
     const unidad = this.obtenerUnidadCercana(convertido.punto);
     if (unidad) {
       this.alSeleccionar({ tipo: 'unidad', valor: unidad });
@@ -430,16 +479,18 @@ export default class CapaRedMetro {
     })?.unidad ?? null;
   }
 
-  obtenerTramoCercano(punto) {
+  obtenerTramoCercano(punto) { return this.obtenerTramosCercanos(punto)[0] ?? null; }
+
+  obtenerTramosCercanos(punto) {
     const estaciones = new Map(this.obtenerEstaciones().map((estacion) => [estacion.nombre, estacion]));
-    return this.obtenerTramos().find((tramo) => {
+    return this.obtenerTramos().filter((tramo) => {
       const origen = estaciones.get(tramo.estacionA);
       const destino = estaciones.get(tramo.estacionB);
       if (!origen || !destino) return false;
       const desde = this.convertirPosicion(origen.posicionX, origen.posicionY);
       const hasta = this.convertirPosicion(destino.posicionX, destino.posicionY);
       return this.distanciaPuntoTramo(punto, desde, hasta) <= 11 / this.escena.cameras.main.zoom;
-    }) ?? null;
+    });
   }
 
   obtenerRuta(nombreLinea) {
@@ -550,7 +601,7 @@ export default class CapaRedMetro {
       let tren = this.unidadesSimulacion.get(clave);
       if (!tren) {
         const seleccionada = this.elementoSeleccionado?.tipo === 'unidad' && String(this.elementoSeleccionado.valor.idTren) === String(unidad.idTren);
-        tren = this.crearRepresentacionMetro(punto, this.colorLinea(estado.nombreLinea), seleccionada, unidad.idTren);
+        tren = this.crearRepresentacionMetro(punto, colorMetro(unidad.idTren), seleccionada, unidad.idTren);
         this.unidadesSimulacion.set(clave, tren);
         requiereActualizarEscala = true;
       }
@@ -604,7 +655,7 @@ export default class CapaRedMetro {
   }
 
   esTransbordo(estacion) {
-    return Boolean(estacion.transbordo) || (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1;
+    return Boolean(estacion.transbordo) && (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1;
   }
 
   esTramoSeleccionado(tramo) {
@@ -616,8 +667,7 @@ export default class CapaRedMetro {
   }
 
   colorLinea(nombre) {
-    const valor = String(nombre ?? '').split('').reduce((total, caracter) => total + caracter.charCodeAt(0), 0);
-    return COLORES_LINEAS[valor % COLORES_LINEAS.length];
+    return this.coloresLineas.get(nombre) ?? PALETA_RED.lineas[0];
   }
 
   esMismoTramo(primero, segundo) {
@@ -658,7 +708,8 @@ export default class CapaRedMetro {
 
   eliminar() {
     this.detenerAnimacion(false);
-    this.escena.input.off('pointerdown', this.manejadorPointer);
+    this.gestos?.eliminar();
+    this.previsualizacion?.destroy();
     this.escena.events.off('postupdate', this.manejadorPostUpdate);
     this.eliminarElementosEstaticos();
     this.grafico?.destroy();
