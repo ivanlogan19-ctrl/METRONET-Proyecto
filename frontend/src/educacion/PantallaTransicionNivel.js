@@ -1,4 +1,5 @@
 import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
+import { gestorMusica } from '../audio/GestorMusica.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
 import './victoria-nivel.css';
 
@@ -73,6 +74,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   dialogo.append(cuerpo);
 
   let cerrado = false, resolver;
+  let liberarMusica = () => {};
   const finalizada = new Promise(resolve => { resolver = resolve; });
   const observador = new MutationObserver(() => { if (!dialogo.isConnected) cancelar(); });
   function terminar(accion = null) {
@@ -84,6 +86,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     window.removeEventListener('popstate', cancelar);
     signal?.removeEventListener('abort', cancelar);
     dialogo.remove();
+    liberarMusica();
     if (victoriaActiva === cancelar) victoriaActiva = null;
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
     resolver(accion);
@@ -112,6 +115,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   dialogo.addEventListener('cancel', e => { e.preventDefault(); cancelar(); });
   dialogo.addEventListener('close', cancelar);
   try {
+    liberarMusica = gestorMusica.usarContextoTemporal('transition');
     document.body.append(dialogo); dialogo.showModal();
     titulo.focus({ preventScroll: true });
     victoriaActiva = cancelar;

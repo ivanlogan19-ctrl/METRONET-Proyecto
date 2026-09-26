@@ -1,4 +1,5 @@
 import { obtenerContenidoNivel } from './ContenidoPreparacion.js';
+import { gestorMusica } from '../audio/GestorMusica.js';
 import { seleccionarMensajeTransicion } from './MensajesTransicion.js';
 import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
 import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
@@ -74,6 +75,7 @@ export function crearPreparacionNivel(escenario) {
   dialogo.append(cuerpo);
 
   let cerrado = false, cancelada = false;
+  let liberarMusica = () => {};
   let retenerLectura = false, recorridoTerminado = false, datosListos = false;
   let resolver;
   const finalizada = new Promise(resolve => { resolver = resolve; });
@@ -97,6 +99,7 @@ export function crearPreparacionNivel(escenario) {
     window.removeEventListener('popstate', cerrar);
     observador.disconnect();
     dialogo.remove();
+    liberarMusica();
     resolver(false);
     if (transicionActiva === controlador) transicionActiva = null;
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
@@ -118,6 +121,7 @@ export function crearPreparacionNivel(escenario) {
     actualizarEstado();
   });
   try {
+    liberarMusica = gestorMusica.usarContextoTemporal('transition');
     document.body.append(dialogo);
     dialogo.showModal();
     titulo.focus({ preventScroll: true });

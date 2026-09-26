@@ -3,6 +3,8 @@ import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 import { inicializarAyudasSistema } from '../componentes/AyudasSistema.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
+import { gestorMusica } from '../audio/GestorMusica.js';
+import { crearControlMusica } from '../audio/ControlMusica.js';
 
 const ETAPAS_FLUJO = [
   { id: 'escenario', texto: 'Escenario' },
@@ -15,6 +17,7 @@ let controlCambios = null;
 let confirmarSalida = null;
 let limpiarEventosUsuario = null;
 let limpiarMantenimiento = null;
+let controlMusica = null;
 
 function obtenerNombreUsuario(sesion) {
   const usuario = sesion?.usuario ?? {};
@@ -109,7 +112,11 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   limpiarMantenimiento = null;
   limpiarEventosUsuario?.();
   limpiarEventosUsuario = null;
+  controlMusica?.eliminar();
+  controlMusica = null;
   if (!marcador || !sesion) return null;
+  // El editor/simulador activa gameplay únicamente al tener un diseño listo.
+  gestorMusica.establecerContexto(actual === 'administracion' ? 'admin' : actual === 'inicio' ? 'menu' : 'general');
   const contexto = obtenerContextoRuta();
   const cabecera = document.createElement('header');
   cabecera.className = 'metronet-navegacion';
@@ -167,7 +174,8 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     document.removeEventListener('click', cerrarMenuAlHacerClicFuera);
     document.removeEventListener('keydown', cerrarMenuConEscape);
   };
-  cabecera.append(inicio, enlaces, usuario);
+  controlMusica = crearControlMusica();
+  cabecera.append(inicio, enlaces, controlMusica.elemento, usuario);
   cabecera.addEventListener('click', (evento) => {
     const enlace = evento.target.closest('a[data-navegacion]');
     if (!enlace || esNavegacionModificada(evento)) return;

@@ -1,4 +1,5 @@
 import PanelAyudaContextual from '../educacion/PanelAyudaContextual.js';
+import { gestorMusica } from '../audio/GestorMusica.js';
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
@@ -114,6 +115,7 @@ async function seleccionarDiseno(evento) {
 }
 
 async function abrirDiseno(idDiseno) {
+  const liberarMusica = gestorMusica.usarContextoTemporal('loading');
   try {
     cerrarDefinicion();
     errorAyuda = null;
@@ -138,10 +140,11 @@ async function abrirDiseno(idDiseno) {
     document.querySelectorAll('[data-id-diseno]').forEach((boton) => {
       boton.classList.toggle('activa', Number(boton.dataset.idDiseno) === idDiseno);
     });
+    gestorMusica.establecerContexto('gameplay');
   } catch (error) {
     mostrarMensaje(error.message, 'error');
     mostrarEstadoVacio();
-  }
+  } finally { liberarMusica(); }
 }
 
 function actualizarPantalla() {
@@ -763,6 +766,7 @@ function obtenerMensajePreparacionSimulacion() {
 }
 
 function mostrarEstadoVacio() {
+  gestorMusica.establecerContexto('general');
   disenoActual = null;
   actualizarAyuda();
   document.getElementById('estadoVacio').hidden = false;

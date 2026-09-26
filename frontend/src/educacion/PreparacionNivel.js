@@ -1,5 +1,13 @@
+import { gestorMusica } from '../audio/GestorMusica.js';
+
 // El acceso manual prepara el nivel; una victoria ya realizó el viaje de entrada.
 export async function iniciarNivelConTransicion(escenario, iniciar, { preparado = false } = {}) {
+  const liberarMusica = gestorMusica.usarContextoTemporal('loading');
+  try { return await prepararNivel(escenario, iniciar, preparado); }
+  finally { liberarMusica(); }
+}
+
+async function prepararNivel(escenario, iniciar, preparado) {
   if (preparado) return iniciarSinViaje(iniciar);
   // Modo Libre no tiene introducción propia. Los niveles sin mensajes usan el genérico.
   if (!Number.isInteger(escenario?.numero)) return iniciar();

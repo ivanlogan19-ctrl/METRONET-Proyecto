@@ -1,4 +1,5 @@
 import ClienteDisenos, { obtenerSesionActiva } from '../../red/ClienteDisenos.js';
+import { gestorMusica } from '../../audio/GestorMusica.js';
 import { actualizarRutaEdicion, establecerContextoEnRuta, establecerIdDisenoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../../red/ContextoDiseno.js';
 import { navegarConCambiosPendientes, registrarControlCambios } from '../../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../../configuracion/ConfiguracionAplicacion.js';
@@ -322,6 +323,7 @@ export default class EditorRedMetro {
   async abrirEscenario(ruta, idEscenario, preparado = false) {
     if (this.aperturaEscenarioEnCurso) return;
     this.aperturaEscenarioEnCurso = true;
+    const liberarMusica = gestorMusica.usarContextoTemporal('loading');
     const idDisenoOrigen = this.disenoActual?.simulacion?.idDiseno;
     try {
       const escenario = this.escenariosJuego.find((candidato) => candidato.idEscenario === idEscenario);
@@ -335,7 +337,7 @@ export default class EditorRedMetro {
       await this.cargarDisenos(inicio.idDiseno);
       this.mostrarMensaje('Escenario listo. Leé la consigna y resolvela en el mapa.');
     } catch (error) { this.mostrarError(error); }
-    finally { this.aperturaEscenarioEnCurso = false; }
+    finally { this.aperturaEscenarioEnCurso = false; liberarMusica(); }
   }
 
   async cargarDisenos(idParaAbrir) {
@@ -408,6 +410,7 @@ export default class EditorRedMetro {
 
   async abrirDiseno(idDiseno) {
     if (!idDiseno) return;
+    const liberarMusica = gestorMusica.usarContextoTemporal('loading');
     try {
       const cambioDeDiseno = this.disenoActual?.simulacion?.idDiseno !== idDiseno;
       this.disenoActual = await this.clienteDisenos.obtener(idDiseno);
@@ -436,6 +439,7 @@ export default class EditorRedMetro {
       }
       return true;
     } catch (error) { this.mostrarError(error); return false; }
+    finally { liberarMusica(); }
   }
 
   actualizarPuntosInteresObjetivo() {
@@ -1325,6 +1329,7 @@ export default class EditorRedMetro {
     grupo.querySelector('.metronet-editor-etiqueta')?.insertAdjacentElement('afterend', lista);
   }
   cambiarVisibilidadEditor(mostrar) {
+    gestorMusica.establecerContexto(mostrar ? 'gameplay' : 'general');
     this.obtener('[data-editor-activo]').hidden = !mostrar;
     if (!mostrar) {
       this.obtenerContenedorConsigna().hidden = true;

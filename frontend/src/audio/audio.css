@@ -1,0 +1,20 @@
+.metronet-audio { position: static; flex: 0 0 auto; margin-left: auto; }
+.metronet-audio + .metronet-navegacion__usuario { margin-left: 0; }
+.metronet-audio > summary { list-style: none; }
+.metronet-audio > summary::-webkit-details-marker { display: none; }
+.metronet-audio__panel {
+  position: fixed; inset: var(--audio-panel-superior, 82px) 12px auto auto; margin: 0;
+  width: min(260px, calc(100vw - 24px)); box-sizing: border-box;
+  display: grid; gap: 12px; padding: 14px;
+  background: var(--panel-elevated); color: var(--text-primary);
+  border: 1px solid var(--border-active); box-shadow: var(--shadow-floating);
+  font: 14px/1.5 var(--font-cuerpo, sans-serif); text-align: left;
+  max-height: calc(100svh - var(--audio-panel-superior, 82px) - 12px); overflow: auto;
+}
+.metronet-audio__panel:not(:popover-open) { display: none; }
+.metronet-audio__panel label { display: block; margin: 0; font: inherit; color: inherit; }
+.metronet-audio__panel input[type='checkbox'] { width: auto; min-height: auto; margin: 0 6px 0 0; accent-color: var(--info-active); }
+.metronet-audio__panel input[type='range'] { display: block; width: 100%; margin: 8px 0 0; padding: 0; accent-color: var(--info-active); }
+.metronet-audio__panel [data-valor-volumen] { white-space: nowrap; }
+.metronet-audio__panel p { margin: 0; color: var(--text-secondary); }
+.metronet-audio__panel input:focus-visible { outline: 2px solid var(--border-active); outline-offset: 3px; }

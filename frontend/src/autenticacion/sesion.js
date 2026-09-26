@@ -44,6 +44,7 @@ export function eliminarSesiones() {
   window.localStorage.removeItem(CLAVE_USUARIO);
   window.localStorage.removeItem(CLAVE_SESION_USUARIO);
   window.localStorage.removeItem(CLAVE_SESION_ADMINISTRADOR);
+  window.dispatchEvent(new Event('metronet:sesion-cerrada'));
 }
 
 export function requerirSesion(destino = `${window.location.pathname}${window.location.search}`) {
