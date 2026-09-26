@@ -20,6 +20,9 @@ async function abrir(t, reducedMotion = 'no-preference') {
     const { mostrarTransicionNivel } = await import('/src/educacion/PantallaTransicionNivel.js');
     window.crearIntro = crearPreparacionNivel;
     window.crearOutro = mostrarTransicionNivel;
+    // Este grupo verifica el respaldo visual sin audio; el MP3 real se cubre aparte.
+    const { gestorMusica } = await import('/src/audio/GestorMusica.js');
+    gestorMusica.inicializar(); gestorMusica.establecerSilencio(true);
   });
   const time = new Date('2026-09-25T12:00:00Z');
   await p.clock.install({ time }); await p.clock.pauseAt(time);
@@ -36,7 +39,7 @@ async function comenzar(p, tipo, nivel = niveles[0], final = false) {
     promesa.then(valor => { resultado = valor; continuaciones++; window.transcurrido = performance.now() - inicio; });
   }, { tipo, nivel, final });
 }
-for (const movimiento of ['no-preference', 'reduce']) test(`Mismo recorrido y exactamente 4500 ms en los diez niveles (${movimiento})`, async t => {
+for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan 4500 ms en los diez niveles (${movimiento})`, async t => {
   const p = await abrir(t, movimiento);
   for (const nivel of niveles) {
     let geometria;

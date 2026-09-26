@@ -34,6 +34,7 @@ export function crearRecorridoNivel({ variante, final = false }) {
   const nodos = [...elemento.querySelectorAll('circle')];
   const svg = elemento.querySelector('svg');
   let frame = null, limite = null, terminado = false, iniciado = false;
+  let finalizar = () => {};
 
   function destruir() {
     terminado = true;
@@ -42,7 +43,7 @@ export function crearRecorridoNivel({ variante, final = false }) {
     frame = limite = null;
   }
 
-  function iniciar({ progreso, porcentaje, alAvanzar, alFinalizar }) {
+  function iniciar({ progreso, porcentaje, alAvanzar, alFinalizar, obtenerTiempo }) {
     if (iniciado || terminado) return;
     iniciado = true;
     const inicio = performance.now();
@@ -75,18 +76,20 @@ export function crearRecorridoNivel({ variante, final = false }) {
       try { mostrar(1); } catch { /* El contenido conserva su flujo ante un fallo visual. */ }
       alFinalizar();
     }
+    finalizar = terminar;
     function animar(ahora) {
       frame = null;
       if (terminado) return;
-      const tiempo = Math.min(1, (ahora - inicio) / CONFIGURACION_TRANSICION.duracionMs);
+      const tiempo = Math.min(1, Math.max(0, obtenerTiempo ? obtenerTiempo() : (ahora - inicio) / CONFIGURACION_TRANSICION.duracionMs));
       try {
         mostrar(tiempo);
         if (tiempo < 1) frame = requestAnimationFrame(animar);
       } catch { /* El límite independiente mantiene el avance. */ }
     }
-    // La navegación nunca depende de recibir el último frame (pestaña oculta o fallo visual).
-    limite = setTimeout(terminar, CONFIGURACION_TRANSICION.duracionMs);
+    // La intro conserva su tiempo. En victoria, el dueño del reloj de audio
+    // finaliza el recorrido, incluso si no se recibe el último frame.
+    if (!obtenerTiempo) limite = setTimeout(terminar, CONFIGURACION_TRANSICION.duracionMs);
     try { mostrar(0); frame = requestAnimationFrame(animar); } catch { /* Conserva el límite. */ }
   }
-  return { elemento, iniciar, destruir };
+  return { elemento, iniciar, destruir, finalizar: () => finalizar() };
 }

@@ -1329,7 +1329,7 @@ export default class EditorRedMetro {
     grupo.querySelector('.metronet-editor-etiqueta')?.insertAdjacentElement('afterend', lista);
   }
   cambiarVisibilidadEditor(mostrar) {
-    gestorMusica.establecerContexto(mostrar ? 'gameplay' : 'general');
+    gestorMusica.establecerContexto(mostrar ? 'gameplay' : 'menu');
     this.obtener('[data-editor-activo]').hidden = !mostrar;
     if (!mostrar) {
       this.obtenerContenedorConsigna().hidden = true;

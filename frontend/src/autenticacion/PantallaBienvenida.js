@@ -3,8 +3,9 @@ import { crearEscenaFerroviaria } from './EscenaFerroviaria.js';
 import './bienvenida.css';
 
 // Exclusiva del login. La escena no decide permisos, destinos ni primer acceso.
-export function crearPantallaBienvenida(cobertura, { reducido, continuar, inicio }) {
+export function crearPantallaBienvenida(cobertura, { reducido, continuar, inicio, obtenerTiempo = () => performance.now() - inicio, duracionSalida = 450 }) {
   cobertura.dataset.fase = reducido ? 'bienvenida' : 'anden';
+  cobertura.style.setProperty('--bienvenida-duracion-salida', `${duracionSalida}ms`);
   cobertura.innerHTML = `
     <div class="metronet-bienvenida__marco" aria-hidden="true"></div>
     <header class="metronet-bienvenida__cabecera">
@@ -34,11 +35,14 @@ export function crearPantallaBienvenida(cobertura, { reducido, continuar, inicio
   imagen.addEventListener('error', falloImagen, { once: true });
   cobertura.querySelector('[data-marca-bienvenida]').append(marca);
   cobertura.querySelector('[data-continuar-bienvenida]').addEventListener('click', continuar);
-  const escena = crearEscenaFerroviaria(cobertura.querySelector('canvas'), { reducido, inicio, alFallar: continuar });
-  const temporizadores = [];
-  if (!reducido) for (const [demora, fase] of [[1400, 'viaje'], [2800, 'bienvenida'], [4750, 'salida']]) {
-    temporizadores.push(setTimeout(() => { cobertura.dataset.fase = fase; }, Math.max(0, demora - (performance.now() - inicio))));
+  const escena = crearEscenaFerroviaria(cobertura.querySelector('canvas'), { reducido, inicio, obtenerTiempo, alFallar: continuar });
+  let frame;
+  function actualizarFase() {
+    const tiempo = obtenerTiempo();
+    cobertura.dataset.fase = tiempo >= 4750 ? 'salida' : tiempo >= 2800 ? 'bienvenida' : tiempo >= 1400 ? 'viaje' : 'anden';
+    if (tiempo < 4750) frame = requestAnimationFrame(actualizarFase);
   }
+  if (!reducido) actualizarFase();
   if (imagen.complete && !imagen.naturalWidth) continuar();
-  return { eliminar() { escena.eliminar(); temporizadores.forEach(clearTimeout); imagen.removeEventListener('error', falloImagen); } };
+  return { eliminar() { escena.eliminar(); cancelAnimationFrame(frame); imagen.removeEventListener('error', falloImagen); } };
 }

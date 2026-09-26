@@ -67,8 +67,8 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     assert.equal(await pantalla(p).locator('canvas').evaluate(e => getComputedStyle(e).imageRendering), 'pixelated');
     await capturar(p, `bienvenida-${rol.toLowerCase()}`);
     await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
-    assert.ok(Date.now() - inicio >= 4500, 'La escena normal permite apreciar el recorrido');
-    assert.ok(Date.now() - inicio < 6500);
+    assert.ok(Date.now() - inicio >= 8500, 'La bienvenida espera el final del audio de acceso');
+    assert.ok(Date.now() - inicio < 11500);
     assert.deepEqual(navegaciones, [rol === 'ADMIN' ? '/admin.html' : '/inicio.html']);
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
     assert.equal(await p.evaluate(() => sessionStorage.getItem('metronet:bienvenida-pendiente')), null);
@@ -176,7 +176,7 @@ for (const viewport of [{width:320,height:568},{width:390,height:844},{width:844
   });
 }
 
-test('movimiento reducido: bienvenida estática, sin barrido y acceso abreviado', async t => {
+test('movimiento reducido: bienvenida estática, sin barrido y sincronizada con su audio', async t => {
   const { pagina: p } = await preparar(t, 'JUGADOR', { reducedMotion: 'reduce' });
   const inicio = Date.now();
   await ingresar(p); await pantalla(p).waitFor();
@@ -188,7 +188,7 @@ test('movimiento reducido: bienvenida estática, sin barrido y acceso abreviado'
   assert.equal(await pantalla(p).locator('canvas').evaluate(e => e.toDataURL()), imagenInicial);
   await capturar(p, 'movimiento-reducido');
   await p.waitForURL('**/inicio.html');
-  assert.ok(Date.now() - inicio < 3500);
+  assert.ok(Date.now() - inicio >= 8500 && Date.now() - inicio < 11500);
 });
 
 test('redimensionar durante el recorrido mantiene el lienzo nítido y el destino', async t => {
@@ -235,7 +235,7 @@ for (const fallo of ['modulo', 'css', 'logo', 'render', 'canvas', 'dibujo', 'fra
       Storage.prototype.setItem = function (...args) { if (this === sessionStorage) throw new Error('Sin almacenamiento temporal'); return original.apply(this, args); };
     });
     await ingresar(p);
-    await p.waitForURL('**/inicio.html', { timeout: 6500 });
+    await p.waitForURL('**/inicio.html', { timeout: 11500 });
     assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('sesionUsuario')).usuario.rol), 'JUGADOR');
     if (fallo === 'logo') assert.ok(fallosLogo > 0);
   });
@@ -243,13 +243,13 @@ for (const fallo of ['modulo', 'css', 'logo', 'render', 'canvas', 'dibujo', 'fra
 
 test('import visual lento no extiende la espera y no vuelve a mostrar login', async t => {
   const { pagina: p, navegaciones } = await preparar(t);
-  await p.route('**/PantallaBienvenida.js*', async route => { await new Promise(r => setTimeout(r, 7000)); await route.abort().catch(() => {}); });
+  await p.route('**/PantallaBienvenida.js*', async route => { await new Promise(r => setTimeout(r, 12000)); await route.abort().catch(() => {}); });
   const inicio = Date.now();
   await ingresar(p);
   await p.locator('.metronet-bienvenida').waitFor();
   assert.equal(await p.locator('.auth-page').evaluate(e => e.inert), true);
-  await p.waitForURL('**/inicio.html', { timeout: 6500 });
-  assert.ok(Date.now() - inicio < 6500);
+  await p.waitForURL('**/inicio.html', { timeout: 11500 });
+  assert.ok(Date.now() - inicio < 11500);
   assert.deepEqual(navegaciones, ['/inicio.html']);
 });
 

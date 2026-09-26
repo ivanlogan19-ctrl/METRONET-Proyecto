@@ -39,10 +39,10 @@ export function crearControlMusica() {
     elemento.querySelector('[data-valor-volumen]').textContent = `${volumen.value} %`;
     activar.hidden = !datos.esperandoGesto || !datos.disponible || datos.silenciado || datos.volumen === 0;
     estado.textContent = !datos.disponible ? 'Sin pista asignada a esta sección.'
-      : datos.error ? 'Música no disponible. Podés seguir jugando.'
+      : datos.error ? 'Música no disponible. Podés continuar.'
       : datos.silenciado || datos.volumen === 0 ? 'Música silenciada.'
       : datos.esperandoGesto ? 'Activá la música cuando quieras.'
-      : datos.reproduciendo ? 'Música de juego en reproducción.' : 'Música en pausa.';
+      : datos.reproduciendo ? 'Música en reproducción.' : 'Música en pausa.';
   });
   const cerrarFuera = evento => { if (!elemento.contains(evento.target)) elemento.open = false; };
   const cerrarEscape = evento => {

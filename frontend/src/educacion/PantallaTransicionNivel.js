@@ -1,5 +1,5 @@
 import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
-import { gestorMusica } from '../audio/GestorMusica.js';
+import { iniciarAudioPresentacion } from '../audio/AudioPresentacion.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
 import './victoria-nivel.css';
 
@@ -74,7 +74,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   dialogo.append(cuerpo);
 
   let cerrado = false, resolver;
-  let liberarMusica = () => {};
+  let audio;
   const finalizada = new Promise(resolve => { resolver = resolve; });
   const observador = new MutationObserver(() => { if (!dialogo.isConnected) cancelar(); });
   function terminar(accion = null) {
@@ -86,7 +86,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     window.removeEventListener('popstate', cancelar);
     signal?.removeEventListener('abort', cancelar);
     dialogo.remove();
-    liberarMusica();
+    audio?.eliminar();
     if (victoriaActiva === cancelar) victoriaActiva = null;
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
     resolver(accion);
@@ -115,7 +115,6 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   dialogo.addEventListener('cancel', e => { e.preventDefault(); cancelar(); });
   dialogo.addEventListener('close', cancelar);
   try {
-    liberarMusica = gestorMusica.usarContextoTemporal('transition');
     document.body.append(dialogo); dialogo.showModal();
     titulo.focus({ preventScroll: true });
     victoriaActiva = cancelar;
@@ -125,8 +124,14 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     window.addEventListener('popstate', cancelar);
     signal?.addEventListener('abort', cancelar, { once: true });
     observador.observe(document.body, { childList: true });
+    audio = iniciarAudioPresentacion({
+      contexto: 'victory', duracionVisualMs: CONFIGURACION_TRANSICION.duracionMs,
+      duracionAudioEstimadaMs: 14968, esperaMaximaMs: 24000,
+      alTerminar: () => animacion.finalizar(),
+    });
     animacion.iniciar({
       progreso, porcentaje,
+      obtenerTiempo: () => audio.obtenerTiempo() / CONFIGURACION_TRANSICION.duracionMs,
       alAvanzar: tiempo => dialogo.classList.toggle('metronet-victoria--destino', reducido || tiempo >= CONFIGURACION_TRANSICION.revelarDestinoEn),
       alFinalizar: finalizarRecorrido,
     });

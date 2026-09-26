@@ -3,11 +3,15 @@ export const PISTAS_MUSICA = Object.freeze({
   gameplay: '/audio/gameplay-theme.mp3',
   loading: null,
   transition: null,
-  auth: null,
-  menu: null,
-  admin: null,
+  auth: '/audio/auth-theme.mp3',
+  welcome: '/audio/welcome-theme.mp3',
+  victory: '/audio/victory-theme.mp3',
+  menu: '/audio/menu-theme.mp3',
+  admin: '/audio/menu-theme.mp3',
   general: null,
 });
+
+export const CONTEXTOS_MUSICA_PUNTUAL = Object.freeze(['welcome', 'victory']);
 
 export const VOLUMEN_MUSICA_INICIAL = 0.35;
 export const DURACION_ENTRADA_MS = 250;

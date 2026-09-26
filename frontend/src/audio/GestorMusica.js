@@ -1,5 +1,5 @@
 import { obtenerSesionActiva } from '../autenticacion/sesion.js';
-import { PISTAS_MUSICA, VOLUMEN_MUSICA_INICIAL, DURACION_ENTRADA_MS } from './ConfiguracionAudio.js';
+import { PISTAS_MUSICA, CONTEXTOS_MUSICA_PUNTUAL, VOLUMEN_MUSICA_INICIAL, DURACION_ENTRADA_MS } from './ConfiguracionAudio.js';
 
 const CLAVE_PREFERENCIAS = 'metronet:musica:preferencias';
 const CLAVE_POSICIONES = 'metronet:musica:posiciones';
@@ -23,6 +23,7 @@ class GestorMusica {
     this.temporales = new Map();
     this.audio = null;
     this.pista = null;
+    this.pistaFinalizada = false;
     this.posiciones = leer('sessionStorage', CLAVE_POSICIONES, {});
     if (!this.posiciones || typeof this.posiciones !== 'object' || Array.isArray(this.posiciones)) this.posiciones = {};
     this.oyentes = new Set();
@@ -47,7 +48,7 @@ class GestorMusica {
         this.silenciado = preferencias.silenciado === true;
         if (Number.isFinite(preferencias.volumen)) this.volumen = limitarVolumen(preferencias.volumen);
       }
-      if (!obtenerSesionActiva()) this.cerrarSesion();
+      if (this.contexto !== 'auth' && !obtenerSesionActiva()) this.cerrarSesion();
       else this.sincronizar();
     });
     const alInteractuar = evento => {
@@ -65,11 +66,12 @@ class GestorMusica {
     this.sincronizar();
   }
 
-  usarContextoTemporal(contexto) {
+  usarContextoTemporal(contexto, { reiniciar = false } = {}) {
     // Una transición sin pista no necesita instalar listeners de reproducción.
     if (PISTAS_MUSICA[contexto]) this.inicializar();
     const id = Symbol(contexto);
     this.temporales.set(id, contexto);
+    if (reiniciar && PISTAS_MUSICA[contexto]) this.prepararPista(PISTAS_MUSICA[contexto], true);
     this.sincronizar();
     return () => { if (this.temporales.delete(id)) this.sincronizar(); };
   }
@@ -77,32 +79,42 @@ class GestorMusica {
   obtenerContexto() { return [...this.temporales.values()].at(-1) ?? this.contexto; }
   puedeReproducir() {
     try {
+      const contexto = this.obtenerContexto();
       return this.paginaActiva && !document.hidden && !this.silenciado && this.volumen > 0
-        && Boolean(obtenerSesionActiva()) && PISTAS_MUSICA[this.obtenerContexto()] === this.pista;
+        // El acceso tiene música antes de autenticar; gameplay sigue exigiendo sesión.
+        && (contexto === 'auth' || Boolean(obtenerSesionActiva())) && PISTAS_MUSICA[contexto] === this.pista;
     } catch { return false; }
   }
 
-  prepararPista(pista) {
+  prepararPista(pista, reiniciar = false) {
     if (!this.audio) {
       this.audio = new Audio();
       this.audio.dataset.musicaMetronet = '';
       this.audio.hidden = true;
-      this.audio.loop = true;
       this.audio.preload = 'auto';
       this.audio.addEventListener('loadedmetadata', () => {
         const posicion = this.posiciones[this.pista];
-        if (Number.isFinite(posicion) && posicion >= 0 && Number.isFinite(this.audio.duration)) {
+        if (this.audio.loop && Number.isFinite(posicion) && posicion >= 0 && Number.isFinite(this.audio.duration)) {
           try { this.audio.currentTime = posicion % this.audio.duration; } catch { /* El navegador puede no permitir seek todavía. */ }
         }
+        this.notificar();
       });
       this.audio.addEventListener('error', () => { this.error = true; this.pausar(); this.notificar(); });
-      for (const evento of ['playing', 'pause']) this.audio.addEventListener(evento, () => this.notificar());
+      this.audio.addEventListener('ended', () => {
+        this.pistaFinalizada = true;
+        this.notificar();
+      });
+      for (const evento of ['playing', 'pause', 'timeupdate']) this.audio.addEventListener(evento, () => this.notificar());
       document.body.append(this.audio);
     }
-    if (this.pista === pista) return;
+    if (this.pista === pista && !reiniciar) return;
     this.pausar();
     this.pista = pista;
+    this.pistaFinalizada = false;
     this.error = false;
+    this.esperandoGesto = false;
+    // Las presentaciones puntuales empiezan desde cero y se reproducen una sola vez.
+    this.audio.loop = !CONTEXTOS_MUSICA_PUNTUAL.some(contexto => PISTAS_MUSICA[contexto] === pista);
     this.audio.src = pista;
     this.audio.load();
   }
@@ -110,7 +122,7 @@ class GestorMusica {
   sincronizar(reintentarInterrupcion = true) {
     const pista = PISTAS_MUSICA[this.obtenerContexto()];
     if (pista) this.prepararPista(pista);
-    if (!pista || !this.puedeReproducir() || this.error) {
+    if (!pista || !this.puedeReproducir() || this.error || (this.audio?.ended && !this.audio.loop)) {
       this.pausar(); this.notificar(); return;
     }
     if (!this.audio.paused) {
@@ -134,7 +146,7 @@ class GestorMusica {
       this.reproduccionPendiente = null;
       this.notificar();
       // Una pausa puede cancelar play antes de que termine. Recuperar una vez
-      // si el usuario ya volvió a gameplay; nunca insistir ante bloqueo de autoplay.
+      // si el usuario ya volvió a un contexto con música; no insistir ante bloqueo de autoplay.
       if (interrumpida && reintentarInterrupcion && this.puedeReproducir() && !this.error) this.sincronizar(false);
     });
     this.notificar();
@@ -159,7 +171,7 @@ class GestorMusica {
   pausar() {
     this.cancelarEntrada();
     if (!this.audio) return;
-    if (this.pista && this.audio.readyState > 0 && Number.isFinite(this.audio.currentTime)) {
+    if (this.pista && this.audio.loop && this.audio.readyState > 0 && Number.isFinite(this.audio.currentTime)) {
       this.posiciones[this.pista] = this.audio.currentTime;
       guardar('sessionStorage', CLAVE_POSICIONES, this.posiciones);
     }
@@ -181,7 +193,8 @@ class GestorMusica {
   }
   activar() { this.esperandoGesto = false; this.sincronizar(); }
   cerrarSesion() {
-    this.contexto = 'auth';
+    // Cerrar sesión no convierte la pantalla anterior en una pantalla de acceso.
+    this.contexto = 'general';
     this.temporales.clear();
     this.pausar();
     this.posiciones = {};
@@ -192,6 +205,7 @@ class GestorMusica {
   obtenerEstado() {
     return { contexto: this.obtenerContexto(), volumen: this.volumen, silenciado: this.silenciado,
       reproduciendo: Boolean(this.audio && !this.audio.paused), esperandoGesto: this.esperandoGesto,
+      posicion: this.audio?.currentTime ?? 0, duracion: this.audio?.duration ?? 0, finalizada: this.pistaFinalizada,
       disponible: Boolean(PISTAS_MUSICA[this.obtenerContexto()]), error: this.error };
   }
   suscribir(oyente) { this.oyentes.add(oyente); oyente(this.obtenerEstado()); return () => this.oyentes.delete(oyente); }

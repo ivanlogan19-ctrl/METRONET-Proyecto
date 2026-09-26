@@ -1,3 +1,5 @@
+import { iniciarAudioBienvenida } from '../audio/AudioBienvenida.js';
+
 const CLAVE_PENDIENTE = 'metronet:bienvenida-pendiente';
 let bienvenidaActiva = null;
 
@@ -19,24 +21,25 @@ export function reanudarBienvenida(sesion) {
   } catch { return false; }
 }
 
-// Único propietario de la navegación. No espera frames, CSS, imágenes ni imports.
+// Único propietario de la navegación. La música avisa su final; los fallos visuales
+// y los límites del audio permiten acceder sin depender de frames ni descargas.
 export function continuarConBienvenida(sesion, destino) {
   if (bienvenidaActiva) return bienvenidaActiva;
   bienvenidaActiva = new Promise(resolve => {
-    let terminada = false, cobertura, vista, temporizador;
+    let terminada = false, cobertura, vista, audio;
     const anteriores = new Map();
     const limpiar = () => {
-      clearTimeout(temporizador);
       window.removeEventListener('pagehide', salir);
       window.removeEventListener('popstate', cancelar);
       try { vista?.eliminar(); } catch { /* Un fallo de limpieza tampoco retiene la navegación. */ }
       cobertura?.remove();
       anteriores.forEach((inert, elemento) => { elemento.inert = inert; });
+      audio?.eliminar();
     };
     const continuar = () => {
       if (terminada) return;
       terminada = true;
-      clearTimeout(temporizador);
+      audio?.eliminar({ alNavegar: true });
       quitarPendiente();
       // La cobertura permanece hasta pagehide: no reaparece el login entre pantallas.
       location.assign(destino);
@@ -53,8 +56,8 @@ export function continuarConBienvenida(sesion, destino) {
     let reducido = false;
     try { reducido = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { /* Usa el límite normal. */ }
     const inicio = performance.now();
-    temporizador = setTimeout(continuar, reducido ? 1200 : 5200);
     try {
+      audio = iniciarAudioBienvenida({ reducido, inicio, alTerminar: continuar });
       try { sessionStorage.setItem(CLAVE_PENDIENTE, JSON.stringify({ destino, rol: sesion.usuario?.rol, origen: location.pathname + location.search })); } catch { /* Sigue sin almacenamiento. */ }
       cobertura = document.createElement('section');
       cobertura.className = 'metronet-bienvenida';
@@ -79,7 +82,11 @@ export function continuarConBienvenida(sesion, destino) {
         }
       });
       import('./PantallaBienvenida.js').then(({ crearPantallaBienvenida }) => {
-        if (!terminada) vista = crearPantallaBienvenida(cobertura, { reducido, continuar, inicio });
+        if (!terminada) vista = crearPantallaBienvenida(cobertura, {
+          reducido, continuar, inicio,
+          obtenerTiempo: () => audio.obtenerTiempo(),
+          duracionSalida: audio.obtenerDuracionSalida(),
+        });
       }).catch(continuar);
     } catch { continuar(); }
   });

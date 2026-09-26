@@ -115,8 +115,9 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   controlMusica?.eliminar();
   controlMusica = null;
   if (!marcador || !sesion) return null;
-  // El editor/simulador activa gameplay únicamente al tener un diseño listo.
-  gestorMusica.establecerContexto(actual === 'administracion' ? 'admin' : actual === 'inicio' ? 'menu' : 'general');
+  // El editor/simulador decide la música al terminar de cargar la lista o la red.
+  const esPantallaDeJuego = actual === 'edicion' || actual === 'simulacion';
+  gestorMusica.establecerContexto(esPantallaDeJuego ? 'general' : actual === 'administracion' ? 'admin' : 'menu');
   const contexto = obtenerContextoRuta();
   const cabecera = document.createElement('header');
   cabecera.className = 'metronet-navegacion';

@@ -75,6 +75,7 @@ async function inicializar() {
   visor = await crearVisorSimulacion(document.getElementById('visorSimulacion'), { alActualizarEstado: actualizarPanelTiempoReal });
   await cargarDisenos();
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
+  else mostrarEstadoVacio();
 }
 
 function aplicarConfiguracionPredeterminada(configuracion) {
@@ -766,7 +767,7 @@ function obtenerMensajePreparacionSimulacion() {
 }
 
 function mostrarEstadoVacio() {
-  gestorMusica.establecerContexto('general');
+  gestorMusica.establecerContexto('menu');
   disenoActual = null;
   actualizarAyuda();
   document.getElementById('estadoVacio').hidden = false;

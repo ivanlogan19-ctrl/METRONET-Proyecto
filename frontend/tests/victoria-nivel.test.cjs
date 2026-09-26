@@ -15,6 +15,8 @@ const resumen = completados => ({cantidadNiveles:10,nivelesCompletados:completad
 async function abrir(t,opciones={}) {
   const vista=await abrirPantalla(navegador,'/escenarios.html',opciones);
   t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[]);});
+  // La composición con reloj controlado prueba el respaldo silencioso de 4,5 s.
+  await vista.pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
   await vista.pagina.clock.install();return vista;
 }
 async function victoria(pagina,opciones={}) {
@@ -127,6 +129,7 @@ test('Constructor real: evaluación única, victoria y siguiente nivel sin segun
   if(ruta.endsWith('/iniciar')){inicios++;vista.diseno.simulacion.idEscenario=2;return route.fulfill({json:{idDiseno:77,idEscenario:2,idIntento:202}});}
   if(ruta.endsWith('/progreso'))return route.fulfill({json:progreso});if(ruta.endsWith('/escenarios'))return route.fulfill({json:progreso.escenarios});return route.fallback();
  });
+ await pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
  await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.evaluarEscenarioSinSimulacion(77),editorPrueba.evaluarEscenarioSinSimulacion(77)]);});
  const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.match(await d.innerText(),/Nuevo récord personal/i);assert.equal(evaluaciones,1);assert.equal(inicios,0);
  await pagina.clock.runFor(4600);await pagina.waitForFunction(()=>!editorPrueba.evaluacionEnCurso);assert.equal(inicios,1);assert.equal(await pagina.locator('.metronet-viaje').count(),0);
@@ -150,6 +153,7 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
   if(/escenarios\/5\/(iniciar|volver-a-jugar)$/.test(ruta))return caso==='errorInicio'?{status:503,json:{}}:{json:{idDiseno:200,idEscenario:5,idIntento:300}};
  }});
  const {pagina,solicitudes}=vista;t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[]);});
+ pagina.setDefaultTimeout(26000); // Incluye los quince segundos de música real de victoria.
  if(caso==='administrador')assert.equal(await pagina.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador')).usuario.rol),'ADMIN');
  await pagina.route('**/?idDiseno=200*',route=>route.fulfill({contentType:'text/html',body:'<h1>Consigna del nivel 5</h1>'}));
  await pagina.locator('#seccionConfiguracion > summary').click();await pagina.locator('#duracionSimulacion').fill('10');await pagina.locator('[data-velocidad="4"]').click();

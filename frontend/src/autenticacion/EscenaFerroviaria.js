@@ -26,7 +26,7 @@ function pintarVagon(ctx, x, y, cabina, cuadro) {
   else r(53, 24, 4, 2, C.marco);
 }
 
-export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar }) {
+export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar, obtenerTiempo = () => performance.now() - inicio }) {
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('La escena ferroviaria no está disponible.');
   let ancho = 0, frame, ultimoCuadro = -Infinity, eliminada = false;
@@ -73,7 +73,7 @@ export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar }) {
     canvas.style.width = `${ancho * escala}px`;
     canvas.style.height = `${ALTO * escala}px`;
     ctx.imageSmoothingEnabled = false;
-    dibujar(performance.now() - inicio);
+    dibujar(obtenerTiempo());
   }
   function eliminar() {
     eliminada = true;
@@ -84,11 +84,12 @@ export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar }) {
   function animar(ahora) {
     if (eliminada) return;
     try {
+      const tiempo = obtenerTiempo();
       if (ahora - ultimoCuadro >= CUADRO_MS) {
-        dibujar(ahora - inicio);
+        dibujar(tiempo);
         ultimoCuadro = ahora;
       }
-      if (ahora - inicio < FIN_TREN) frame = requestAnimationFrame(animar);
+      if (tiempo < FIN_TREN) frame = requestAnimationFrame(animar);
     } catch { eliminar(); alFallar(); }
   }
   redimensionar();

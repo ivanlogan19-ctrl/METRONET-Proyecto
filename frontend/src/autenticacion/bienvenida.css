@@ -65,7 +65,7 @@ html:root body .metronet-bienvenida button { flex-shrink: 0; min-height: 44px; p
   background: #020611; border-left: 8px solid var(--primary-edge);
   clip-path: inset(0 0 0 100%);
 }
-.metronet-bienvenida[data-fase='salida'] .metronet-bienvenida__salida { animation: bienvenida-tunel 450ms steps(18, end) forwards; }
+.metronet-bienvenida[data-fase='salida'] .metronet-bienvenida__salida { animation: bienvenida-tunel var(--bienvenida-duracion-salida, 450ms) steps(18, end) forwards; }
 @keyframes bienvenida-encender-marco { from { clip-path: inset(49% 0); } to { clip-path: inset(0); } }
 @keyframes bienvenida-tunel { to { clip-path: inset(0); } }
 @media (max-width: 600px) {
