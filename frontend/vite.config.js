@@ -1,13 +1,16 @@
 const path = require('node:path');
 const { defineConfig } = require('vite');
 const { headers, politicaMeta } = require('./seguridad-http.cjs');
+const phaser = require('./build/configuracion-phaser.cjs');
 
 const ENTRADA_AUDIO = '/src/audio/ReanudacionTemprana.js';
 
 module.exports = defineConfig({
+  resolve: { alias: phaser.alias },
+  optimizeDeps: { include: ['phaser'], esbuildOptions: { plugins: [phaser.desarrollo] } },
   server: { headers },
   preview: { headers },
-  plugins: [{
+  plugins: [phaser.produccion, {
     name: 'metronet-politica-contenido',
     transformIndexHtml: {
       order: 'post',
@@ -40,6 +43,7 @@ module.exports = defineConfig({
     },
   }],
   build: {
+    commonjsOptions: { include: [/node_modules/, /phaser-metronet\.cjs$/] },
     rollupOptions: {
       input: {
         reanudacionMusica: path.resolve(__dirname, `.${ENTRADA_AUDIO}`),
@@ -60,7 +64,10 @@ module.exports = defineConfig({
         simulacion: path.resolve(__dirname, 'simulacion.html')
       },
       output: {
-        manualChunks(id) {
+        onlyExplicitManualChunks: true,
+        manualChunks(id, contexto) {
+          const moduloPhaser = phaser.separarModulos(id, contexto);
+          if (moduloPhaser) return moduloPhaser;
           // El audio temprano no debe descargar ni ejecutar controles, CSS de
           // pantalla o Phaser antes de poder reproducir una pista ya iniciada.
           if (['/src/audio/GestorMusica.js', '/src/audio/ConfiguracionAudio.js', '/src/autenticacion/sesion.js']
