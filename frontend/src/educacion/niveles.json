@@ -128,9 +128,9 @@
   {
     "numero": 4,
     "nombre": "Nivel 4 · Simulación completa",
-    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido.",
+    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, asigná un metro y simulá. La red se valida automáticamente.",
+    "instrucciones": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, asigná un metro y simulá. La red se valida automáticamente. Ejecutá una primera simulación. Después cambiá las UV, conservá las horas simuladas y ejecutá nuevamente para observar la diferencia.",
     "reglasExito": {
       "minimoEstaciones": 3,
       "minimoLineas": 1,
@@ -169,6 +169,9 @@
         "pesoVelocidad": 0,
         "estacionesReferencia": 3,
         "tramosReferencia": 2
+      },
+      "aprendizajeSimulacion": {
+        "velocidad": true
       }
     },
     "herramientasHabilitadas": {
@@ -180,12 +183,12 @@
     },
     "preparacion": {
       "concepto": "Cobertura y simulación",
-      "explicacion": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada.",
-      "contexto": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido.",
-      "consejo": "Revisá los puntos de interés de la consigna. Simular comprueba automáticamente si la red está preparada."
+      "explicacion": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido. Experimentá con la configuración de simulación.",
+      "consejo": "Ejecutá una primera simulación. Después cambiá las UV, conservá las horas simuladas y ejecutá nuevamente para observar la diferencia."
     },
     "transicion": {
-      "aprendizaje": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada.",
+      "aprendizaje": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "En el mapa del proyecto, Palacio Legislativo está en Aguada y Plaza Virgilio en Punta Gorda. Los límites barriales ayudan a distinguir cercanía y pertenencia."
     },
     "historia": {
@@ -197,9 +200,9 @@
   {
     "numero": 5,
     "nombre": "Nivel 5 · Lugares y barrios",
-    "objetivo": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios.",
+    "objetivo": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; simulá para comprobar automáticamente la red.",
+    "instrucciones": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; simulá para comprobar automáticamente la red. Compará dos ejecuciones: mantené las UV y cambiá las horas simuladas antes de volver a ejecutar.",
     "reglasExito": {
       "minimoEstaciones": 4,
       "minimoLineas": 1,
@@ -258,6 +261,9 @@
         "pesoVelocidad": 0,
         "estacionesReferencia": 4,
         "tramosReferencia": 3
+      },
+      "aprendizajeSimulacion": {
+        "duracion": true
       }
     },
     "herramientasHabilitadas": {
@@ -269,12 +275,12 @@
     },
     "preparacion": {
       "concepto": "POI y pertenencia barrial",
-      "explicacion": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas.",
-      "contexto": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios.",
-      "consejo": "Usá los selectores de barrios y las fichas de POI. Revisá que una estación cercana a un objetivo también esté dentro del barrio requerido."
+      "explicacion": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios. Experimentá con la configuración de simulación.",
+      "consejo": "Compará dos ejecuciones: mantené las UV y cambiá las horas simuladas antes de volver a ejecutar."
     },
     "transicion": {
-      "aprendizaje": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas.",
+      "aprendizaje": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "En la clasificación de METRONET, Centro pertenece a ZONA CENTRO, Aguada y Tres Cruces a ZONA OESTE, y Punta Gorda a ZONA ESTE. Son las agrupaciones del proyecto."
     },
     "historia": {
@@ -286,9 +292,9 @@
   {
     "numero": 6,
     "nombre": "Nivel 6 · Movilidad entre zonas",
-    "objetivo": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este.",
+    "objetivo": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; simulá para comprobar automáticamente la red.",
+    "instrucciones": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; simulá para comprobar automáticamente la red. Compará configuraciones cambiando un parámetro por vez: primero UV con las mismas horas y después horas con las mismas UV. Ejecutá después de cada cambio.",
     "reglasExito": {
       "minimoEstaciones": 5,
       "minimoLineas": 1,
@@ -358,11 +364,13 @@
         "maximo": 100,
         "pesoResolucion": 0.7,
         "pesoEficiencia": 0.2,
-        "pesoVelocidad": 0.1,
+        "pesoVelocidad": 0,
         "estacionesReferencia": 5,
-        "tramosReferencia": 4,
-        "velocidadObjetivoKmh": 45,
-        "toleranciaKmh": 15
+        "tramosReferencia": 4
+      },
+      "aprendizajeSimulacion": {
+        "velocidad": true,
+        "duracion": true
       }
     },
     "herramientasHabilitadas": {
@@ -374,12 +382,12 @@
     },
     "preparacion": {
       "concepto": "Movilidad entre zonas",
-      "explicacion": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa.",
-      "contexto": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este.",
-      "consejo": "Relacioná Centro, Oeste y Este mediante el recorrido. Consultá la zona de cada barrio antes de ubicar sus estaciones. Después de resolver la red, ajustá la circulación hacia 45 km/h y simulá para registrar el resultado."
+      "explicacion": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este. Experimentá con la configuración de simulación.",
+      "consejo": "Compará configuraciones cambiando un parámetro por vez: primero UV con las mismas horas y después horas con las mismas UV. Ejecutá después de cada cambio."
     },
     "transicion": {
-      "aprendizaje": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa.",
+      "aprendizaje": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "Brazo Oriental pertenece a ZONA NORTE en METRONET. Atender una zona adicional introduce nuevas relaciones entre los sectores de la red."
     },
     "historia": {
@@ -391,9 +399,9 @@
   {
     "numero": 7,
     "nombre": "Nivel 7 · Nodos de intercambio",
-    "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas.",
+    "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; simulá para comprobar automáticamente la red.",
+    "instrucciones": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; simulá para comprobar automáticamente la red. Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades.",
     "reglasExito": {
       "minimoEstaciones": 6,
       "minimoLineas": 2,
@@ -481,6 +489,9 @@
         "pesoVelocidad": 0,
         "estacionesReferencia": 6,
         "tramosReferencia": 5
+      },
+      "aprendizajeSimulacion": {
+        "individual": true
       }
     },
     "herramientasHabilitadas": {
@@ -492,12 +503,12 @@
     },
     "preparacion": {
       "concepto": "Transbordos y conectividad",
-      "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo.",
-      "contexto": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas.",
-      "consejo": "Creá primero la línea que cubre los objetivos. Compartí una estación con la segunda línea y activá Permite transbordo en las propiedades de esa estación."
+      "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
+      "consejo": "Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades."
     },
     "transicion": {
-      "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo.",
+      "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "El Estadio Centenario se ubica en el polígono Parque Batlle Villa Dolores del mapa. Incorporarlo suma una relación territorial a los intercambios entre líneas."
     },
     "historia": {
@@ -509,9 +520,9 @@
   {
     "numero": 8,
     "nombre": "Nivel 8 · Red urbana",
-    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos.",
+    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los seis POI a 20 unidades del mapa. Construí ocho estaciones, tres líneas, siete tramos y tres metros; usá dos transbordos entre líneas. Mantené un recorrido continuo común a los POI y atendé los seis barrios y cuatro zonas indicadas. Guardá tu diseño y simulá.",
+    "instrucciones": "Cubrí los seis POI a 20 unidades del mapa. Construí ocho estaciones, tres líneas, siete tramos y tres metros; usá dos transbordos entre líneas. Mantené un recorrido continuo común a los POI y atendé los seis barrios y cuatro zonas indicadas. Guardá tu diseño y simulá. Compará cambios individuales y globales: ejecutá, cambiá solo un metro y ejecutá otra vez; después elegí Todas, cambiá las UV de todas las unidades y volvé a ejecutar. Mantené las horas.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
@@ -605,11 +616,13 @@
         "maximo": 100,
         "pesoResolucion": 0.7,
         "pesoEficiencia": 0.2,
-        "pesoVelocidad": 0.1,
+        "pesoVelocidad": 0,
         "estacionesReferencia": 8,
-        "tramosReferencia": 7,
-        "velocidadObjetivoKmh": 50,
-        "toleranciaKmh": 10
+        "tramosReferencia": 7
+      },
+      "aprendizajeSimulacion": {
+        "individual": true,
+        "global": true
       }
     },
     "herramientasHabilitadas": {
@@ -621,12 +634,12 @@
     },
     "preparacion": {
       "concepto": "Relaciones en una red urbana",
-      "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes.",
-      "contexto": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos.",
-      "consejo": "Revisá los intercambios entre las tres líneas. Cada línea necesita un recorrido continuo sin bifurcaciones y una unidad para simular. Después de resolver la red, ajustá la circulación hacia 50 km/h y simulá para registrar el resultado."
+      "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
+      "consejo": "Compará cambios individuales y globales: ejecutá, cambiá solo un metro y ejecutá otra vez; después elegí Todas, cambiá las UV de todas las unidades y volvé a ejecutar. Mantené las horas."
     },
     "transicion": {
-      "aprendizaje": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes.",
+      "aprendizaje": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "La cobertura expresa proximidad, mientras que la continuidad de tramos expresa conectividad. Una red debe resolver ambas: estaciones cercanas sin recorrido no bastan."
     },
     "historia": {
@@ -638,9 +651,9 @@
   {
     "numero": 9,
     "nombre": "Nivel 9 · Planificación precisa",
-    "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones.",
+    "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, simulá para comprobar automáticamente la red.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, simulá para comprobar automáticamente la red. Compará una ejecución cambiando solo las horas y otra combinando cambios de UV y horas. Ejecutá después de cada modificación.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
@@ -735,11 +748,13 @@
         "maximo": 100,
         "pesoResolucion": 0.7,
         "pesoEficiencia": 0.2,
-        "pesoVelocidad": 0.1,
+        "pesoVelocidad": 0,
         "estacionesReferencia": 8,
-        "tramosReferencia": 7,
-        "velocidadObjetivoKmh": 52,
-        "toleranciaKmh": 8
+        "tramosReferencia": 7
+      },
+      "aprendizajeSimulacion": {
+        "duracion": true,
+        "combinacion": true
       }
     },
     "herramientasHabilitadas": {
@@ -751,12 +766,12 @@
     },
     "preparacion": {
       "concepto": "Precisión y uso de recursos",
-      "explicacion": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir.",
-      "contexto": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones.",
-      "consejo": "Organizá la red antes de construir y contrastá el resultado con las condiciones de la consigna. Después de resolver la red, ajustá la circulación hacia 52 km/h y simulá para registrar el resultado."
+      "explicacion": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.",
+      "consejo": "Compará una ejecución cambiando solo las horas y otra combinando cambios de UV y horas. Ejecutá después de cada modificación."
     },
     "transicion": {
-      "aprendizaje": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir.",
+      "aprendizaje": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "El Rosedal del Prado y el Santuario del Cerrito agregan referencias en Prado Nueva Savona y Cerrito según las coordenadas y polígonos del proyecto."
     },
     "historia": {
@@ -768,9 +783,9 @@
   {
     "numero": 10,
     "nombre": "Nivel 10 · Desafío integral",
-    "objetivo": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos.",
+    "objetivo": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre diez y once estaciones, tres líneas, nueve tramos y tres metros, con tres transbordos. Cubrí los ocho POI a 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Guardá tu diseño y simulá la red integral.",
+    "instrucciones": "Diseñá entre diez y once estaciones, tres líneas, nueve tramos y tres metros, con tres transbordos. Cubrí los ocho POI a 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Guardá tu diseño y simulá la red integral. Compará configuraciones individuales y globales con las mismas horas; después combiná cambios de UV y horas. Ejecutá cada configuración para registrar la comparación.",
     "reglasExito": {
       "minimoEstaciones": 10,
       "minimoLineas": 3,
@@ -883,11 +898,14 @@
         "maximo": 100,
         "pesoResolucion": 0.7,
         "pesoEficiencia": 0.2,
-        "pesoVelocidad": 0.1,
+        "pesoVelocidad": 0,
         "estacionesReferencia": 10,
-        "tramosReferencia": 9,
-        "velocidadObjetivoKmh": 55,
-        "toleranciaKmh": 5
+        "tramosReferencia": 9
+      },
+      "aprendizajeSimulacion": {
+        "individual": true,
+        "global": true,
+        "combinacion": true
       }
     },
     "herramientasHabilitadas": {
@@ -899,12 +917,12 @@
     },
     "preparacion": {
       "concepto": "Integración territorial",
-      "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red.",
-      "contexto": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos.",
-      "consejo": "Aplicá los criterios aprendidos para revisar el conjunto de la red. Después de resolver la red, ajustá la circulación hacia 55 km/h y simulá para registrar el resultado."
+      "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "contexto": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
+      "consejo": "Compará configuraciones individuales y globales con las mismas horas; después combiná cambios de UV y horas. Ejecutá cada configuración para registrar la comparación."
     },
     "transicion": {
-      "aprendizaje": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red.",
+      "aprendizaje": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "Completaste un recorrido que combina lugares, barrios, zonas y conexiones. Podés revisar tus diseños y comparar cómo atienden el territorio en Modo Libre."
     },
     "historia": {

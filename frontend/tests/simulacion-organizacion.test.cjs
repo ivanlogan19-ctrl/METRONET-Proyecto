@@ -48,7 +48,7 @@ test('Seleccionar metro en mapa o selector sincroniza la ficha y conserva cámar
   await p.evaluate(() => escenaOrganizacion.seleccionarElementoRed({ tipo: 'unidad', valor: escenaOrganizacion.disenoActual.unidadesMetro[0] }));
   assert.equal(await p.locator('#unidadCirculacion').inputValue(), '1');
   assert.match(await p.locator('#seccionMetricas').innerText(), /M-1.*Azul/s);
-  assert.equal(await p.locator('#velocidadFisica').inputValue(), '40');
+  assert.equal(await p.locator('#velocidadUnidad').inputValue(), '40');
   await p.locator('#unidadCirculacion').selectOption('todas');
   assert.equal(await p.locator('#seccionMetricas').isVisible(), false);
   assert.equal(await p.evaluate(() => escenaOrganizacion.idUnidadSeleccionada), null);
@@ -95,9 +95,9 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
   assert.equal(await p.locator('#objetivoConsigna, #consignaSimulacion').count(), 0);
   assert.equal(await p.locator('#duracionSimulacion').isVisible(), true);
 });
-test('Validación de ventana plegada: abre configuración y enfoca el campo sin ejecutar', async t => {
+test('Validación de horas con panel plegado: abre configuración y enfoca el campo sin ejecutar', async t => {
   const { pagina: p, solicitudes } = await abrir(t, 390);
-  await p.locator('#duracionSimulacion').evaluate(e => { e.value = '1'; });
+  await p.locator('#duracionSimulacion').evaluate(e => { e.value = '0'; });
   await p.locator('#ampliarMapa').click();
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.locator('.metronet-notificacion--error').waitFor();

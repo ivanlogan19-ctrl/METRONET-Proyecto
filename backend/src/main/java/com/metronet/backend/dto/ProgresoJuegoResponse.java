@@ -9,5 +9,6 @@ public record ProgresoJuegoResponse(
     int nivelesCompletados,
     boolean campanaCompletada,
     boolean campanaCompletadaHistoricamente,
-    boolean modoLibreDesbloqueado
+    boolean modoLibreDesbloqueado,
+    boolean tutorialSimulacionDisponible
 ) {}

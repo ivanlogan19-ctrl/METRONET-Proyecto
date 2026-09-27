@@ -1,7 +1,4 @@
-const VELOCIDADES_ADMITIDAS = Object.freeze([0.5, 1, 2, 4]);
-const DURACION_VISUAL_MINIMA = 5_000;
-const DURACION_VISUAL_MAXIMA = 18_000;
-const FACTOR_DURACION_VISUAL = 300;
+import { RITMOS as VELOCIDADES_ADMITIDAS, HORAS_INICIALES, duracionVisual, avanceEnTramos, normalizarHoras } from './EscalaSimulacion.js';
 
 export default class MotorSimulacion {
   constructor(diseno) {
@@ -9,8 +6,8 @@ export default class MotorSimulacion {
     this.rutas = this.crearRutas();
     this.estado = 'DETENIDA';
     this.velocidad = 1;
-    this.duracion = 60;
-    this.ventanaVisual = 60;
+    this.duracion = HORAS_INICIALES;
+    this.ventanaVisual = HORAS_INICIALES;
     this.duracionVisual = this.calcularDuracionVisual(this.duracion);
     this.marcaInicio = null;
     this.tiempoAcumulado = 0;
@@ -18,11 +15,11 @@ export default class MotorSimulacion {
     this.finalizada = false;
   }
 
-  iniciar({ velocidad = 1, duracion = 60, ahora = 0 } = {}) {
+  iniciar({ velocidad = 1, duracion = HORAS_INICIALES, ahora = 0 } = {}) {
     this.velocidad = normalizarVelocidad(velocidad);
-    this.ventanaVisual = normalizarDuracion(duracion);
-    this.duracion = Math.max(0, ...this.rutas.map(r => r.tiempoMinutos * 60)) || normalizarDuracion(duracion);
-    this.duracionVisual = this.calcularDuracionVisual(normalizarDuracion(duracion));
+    this.ventanaVisual = normalizarHoras(duracion);
+    this.duracion = normalizarHoras(duracion);
+    this.duracionVisual = this.calcularDuracionVisual(normalizarHoras(duracion));
     this.marcaInicio = Number(ahora);
     this.tiempoAcumulado = 0;
     this.progreso = 0;
@@ -94,8 +91,8 @@ export default class MotorSimulacion {
       velocidad: this.velocidad,
       duracion: this.duracion,
       progreso: this.progreso,
-      tiempoTranscurrido: Math.round(this.progreso * this.duracion),
-      tiempoRestante: Math.max(0, this.duracion - Math.round(this.progreso * this.duracion)),
+      tiempoTranscurrido: this.progreso * this.duracion,
+      tiempoRestante: Math.max(0, this.duracion - this.progreso * this.duracion),
       unidades,
       metroActivo,
       finalizada: this.finalizada,
@@ -107,8 +104,7 @@ export default class MotorSimulacion {
     return this.obtenerUnidadesMetro().map((unidad) => ({
       idTren: unidad.idTren,
       nombreLinea: unidad.nombreLinea,
-      tiempoMinutos: this.diseno.metricasUnidades?.find(m => m.idTren === unidad.idTren)?.tiempoMinutos || 0,
-      velocidadKmh: Number(unidad.velocidadPromedio) || 0,
+      velocidadUV: Number(unidad.velocidadPromedio) || 0,
       ruta: construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea),
     }));
   }
@@ -116,9 +112,8 @@ export default class MotorSimulacion {
   crearEstadoUnidad(unidad, indice) {
     const nombresEstaciones = unidad.ruta.map((estacion) => estacion.nombre);
     const cantidadTramos = Math.max(0, nombresEstaciones.length - 1);
-    const desfaseInicial = cantidadTramos && this.rutas.length > 1 ? Math.min(indice * 0.08, 0.3) : 0;
     const progresoRuta = cantidadTramos
-      ? Math.min(1, Math.max(0, (this.progreso - desfaseInicial) / (1 - desfaseInicial)) * (unidad.tiempoMinutos > 0 ? this.duracion / (unidad.tiempoMinutos * 60) : 1))
+      ? Math.min(1, avanceEnTramos(unidad.velocidadUV, this.progreso * this.duracion) / cantidadTramos)
       : 0;
     const indiceTramo = cantidadTramos ? Math.min(Math.floor(progresoRuta * cantidadTramos), cantidadTramos - 1) : -1;
     const esFinal = cantidadTramos > 0 && progresoRuta >= 1;
@@ -130,7 +125,7 @@ export default class MotorSimulacion {
       idTren: unidad.idTren,
       identificador: formatearIdentificadorMetro(unidad.idTren, indice),
       nombreLinea: unidad.nombreLinea,
-      velocidadKmh: unidad.velocidadKmh,
+      velocidadUV: unidad.velocidadUV,
       progresoRuta,
       estacionActual,
       proximaEstacion,
@@ -140,7 +135,7 @@ export default class MotorSimulacion {
   }
 
   calcularDuracionVisual(duracion) {
-    return Math.min(DURACION_VISUAL_MAXIMA, Math.max(DURACION_VISUAL_MINIMA, duracion * FACTOR_DURACION_VISUAL));
+    return duracionVisual(duracion);
   }
 
   obtenerEstaciones() { return Array.isArray(this.diseno.estaciones) ? this.diseno.estaciones : []; }
@@ -179,11 +174,6 @@ function agregarAdyacencia(adyacencias, origen, destino) {
 function normalizarVelocidad(velocidad) {
   const velocidadNumerica = Number(velocidad);
   return VELOCIDADES_ADMITIDAS.includes(velocidadNumerica) ? velocidadNumerica : 1;
-}
-
-function normalizarDuracion(duracion) {
-  const duracionNumerica = Math.round(Number(duracion));
-  return Number.isFinite(duracionNumerica) ? Math.max(10, duracionNumerica) : 60;
 }
 
 function formatearIdentificadorMetro(idTren, indice) {

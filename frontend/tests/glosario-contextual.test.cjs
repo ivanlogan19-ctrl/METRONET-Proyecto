@@ -135,15 +135,15 @@ test('Simulación: consigna por ID real, unidades correctas y consulta sin ejecu
   }});
   assert.equal(await p.locator('#consignaSimulacion').count(),0);
   await p.locator('[data-concepto=ritmo]').first().click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/No cambia los km\/h/);
+  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/No cambia las UV/);
   await captura(p,'simulacion-ritmo'); await p.keyboard.press('Escape');
 
   await p.locator('#seccionConfiguracion [data-concepto=duracion]').click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/segundos/); await p.keyboard.press('Escape');
+  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/horas/); await p.keyboard.press('Escape');
   await p.locator('#seccionCirculacion [data-concepto=velocidad]').click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/km\/h/); await p.keyboard.press('Escape');
+  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/UV/); await p.keyboard.press('Escape');
   assert.equal(solicitudes.some(s=>s.method==='POST'),false);
-  assert.equal(await p.locator('#duracionSimulacion').getAttribute('min'),'10');
+  assert.equal(await p.locator('#duracionSimulacion').getAttribute('min'),'1');
   assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isEnabled(),true);
 });
 

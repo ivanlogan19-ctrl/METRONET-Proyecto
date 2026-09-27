@@ -156,7 +156,7 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
  pagina.setDefaultTimeout(26000); // Incluye simulación real y transición breve.
  if(caso==='administrador')assert.equal(await pagina.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador')).usuario.rol),'ADMIN');
  await pagina.route('**/?idDiseno=200*',route=>route.fulfill({contentType:'text/html',body:'<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Consigna del nivel 5</h1>'}));
- await pagina.locator('#duracionSimulacion').fill('10');await pagina.locator('[data-velocidad="4"]').click();
+ await pagina.locator('#duracionSimulacion').fill('10');await pagina.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  if(caso==='modoLibre'||caso==='incompleto'){
   await pagina.getByText(/Recorrido finalizado:/).waitFor();assert.equal(await pagina.locator('.metronet-victoria').count(),0);

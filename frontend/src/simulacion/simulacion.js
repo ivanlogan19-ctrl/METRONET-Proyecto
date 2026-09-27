@@ -1,3 +1,5 @@
+import { presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
+import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { prepararDiseno, consumirInicioSimulacion } from '../red/PreparacionDiseno.js';
 import PanelAyudaContextual from '../educacion/PanelAyudaContextual.js';
@@ -19,6 +21,8 @@ import { CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js
 const sesion = obtenerSesionActiva();
 const idDisenoInicial = obtenerIdDisenoDeRuta();
 let cliente = null;
+let tutorialSimulacion = null;
+let progresoSimulacion = null;
 let visor = null;
 let organizacion = null;
 let panelAyuda = null;
@@ -41,7 +45,7 @@ let controlUnidades = null;
 let unidadSeleccionada = 'todas';
 let guardandoVelocidad = false;
 let catalogoProgresoDisponible = false;
-const VELOCIDADES_SIMULACION = new Set([0.5, 1, 2, 4]);
+const VELOCIDADES_SIMULACION = new Set(RITMOS);
 
 if (!sesion) {
   const destino = `${window.location.pathname}${window.location.search}`;
@@ -65,7 +69,8 @@ async function inicializar() {
   ubicarPanelAyuda('.simulacion-encabezado-acciones');
   inicializarNavegacion({ actual: 'simulacion', etapa: 'simulacion' });
   // Consulta educativa independiente: una falla nunca demora la simulación.
-  consultarJuego('/progreso').then(progreso => {
+  const consultaProgreso = consultarJuego('/progreso').then(progreso => {
+    progresoSimulacion = progreso;
     escenariosGlosario = Array.isArray(progreso?.escenarios) ? progreso.escenarios : [];
     catalogoProgresoDisponible = Array.isArray(progreso?.escenarios);
     if (disenoActual) { actualizarAyuda(); }
@@ -76,6 +81,11 @@ async function inicializar() {
   organizacion = inicializarOrganizacionSimulacion();
   aplicarConfiguracionPredeterminada(await obtenerConfiguracionAplicacion(sesion));
   cliente = new ClienteDisenos(sesion);
+  let horasTutorial = document.getElementById('duracionSimulacion').value;
+  document.getElementById('duracionSimulacion').addEventListener('change', evento => {
+    if (evento.target.validity.valid && evento.target.value !== horasTutorial) tutorialSimulacion?.notificar('duracion');
+    horasTutorial = evento.target.value;
+  });
   document.getElementById('formularioEjecucion').addEventListener('submit', ejecutarSimulacion);
   document.getElementById('pausarSimulacion').addEventListener('click', pausarSimulacion);
   document.getElementById('reanudarSimulacion').addEventListener('click', reanudarSimulacion);
@@ -83,6 +93,12 @@ async function inicializar() {
   document.getElementById('reiniciarSimulacion').addEventListener('click', reiniciarSimulacion);
   document.getElementById('seguirMetro').addEventListener('click', alternarSeguimientoMetro);
   document.querySelector('.simulacion-selector-velocidad').addEventListener('click', cambiarVelocidad);
+  document.querySelectorAll('[data-paso-horas]').forEach(boton => boton.addEventListener('click', () => {
+    const input = document.getElementById('duracionSimulacion');
+    if (input.disabled) return;
+    input.value = String(Math.max(1, Number(input.value) + Number(boton.dataset.pasoHoras)));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }));
   document.getElementById('verResultadosSimulacion').addEventListener('click', mostrarResultados);
   window.addEventListener('pagehide', limpiarVisor);
   window.addEventListener('pageshow', evento => {
@@ -94,15 +110,18 @@ async function inicializar() {
   visor = await crearVisorSimulacion(document.getElementById('visorSimulacion'), { alActualizarEstado: actualizarPanelTiempoReal, alSeleccionarUnidad: id => seleccionarUnidad(String(id)) });
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
   else mostrarEstadoVacio();
-  if (idDisenoInicial && consumirInicioSimulacion(idDisenoInicial)) await ejecutarSimulacion({ preventDefault() {} });
+  await consultaProgreso;
+  if (!paginaActiva) return;
+  tutorialSimulacion = presentarTutorialSimulacion({ progreso: progresoSimulacion,
+    escenario: escenariosGlosario.find(e => e.idEscenario === disenoActual?.simulacion?.idEscenario),
+    idUsuario: sesion.usuario?.idUsuario, resultados: disenoActual?.resultados });
+  if (idDisenoInicial && consumirInicioSimulacion(idDisenoInicial) && !tutorialSimulacion) await ejecutarSimulacion({ preventDefault() {} });
 }
 
 function aplicarConfiguracionPredeterminada(configuracion) {
   const velocidad = configuracion.velocidadSimulacion;
   document.getElementById('velocidadSimulacion').value = String(velocidad);
-  document.querySelectorAll('[data-velocidad]').forEach((boton) => {
-    boton.setAttribute('aria-pressed', String(Number(boton.dataset.velocidad) === velocidad));
-  });
+  document.getElementById('ritmoVisible').textContent = formatearRitmo(velocidad);
 }
 
 async function abrirDiseno(idDiseno) {
@@ -259,6 +278,7 @@ async function guardarVelocidades(unidades, velocidadPromedio) {
   const vigente = () => paginaActiva && versionDiseno === version && disenoActual?.simulacion.idDiseno === id;
   guardandoVelocidad = true;
   actualizarControlesSimulacion(estadoMotor);
+  const cambioReal = unidades.some(u => Number(u.velocidadPromedio) !== velocidadPromedio);
   let actualizadas = 0, fallo = null;
   try {
     for (const unidad of unidades) {
@@ -274,9 +294,10 @@ async function guardarVelocidades(unidades, velocidadPromedio) {
       // vuelve a leer lo realmente persistido, sin fingir una escritura atómica.
       const recargado = await abrirDiseno(id);
       if (recargado && paginaActiva && disenoActual?.simulacion.idDiseno === id) mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}`
-        : `Velocidad guardada: ${velocidadPromedio} km/h en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
+        : `Velocidad guardada: ${formatearVelocidad(velocidadPromedio)} en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
     }
     guardandoVelocidad = false;
+    if (!fallo && cambioReal && actualizadas) tutorialSimulacion?.notificar('velocidad');
     if (paginaActiva) actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());
   }
 }
@@ -288,7 +309,10 @@ function renderizarResultados() {
   contenedor.replaceChildren(...resultados.map((resultado) => {
     const elemento = document.createElement('article');
     elemento.className = 'simulacion-resultado';
-    elemento.innerHTML = `<strong>${escapar(resultado.estado)} · ${resultado.puntaje} puntos</strong><span>${resultado.duracion}s de ventana visual · reproducción ${resultado.velocidad}×</span><p>${escapar(resultado.comentarios)}</p>`;
+    const actual = resultado.escala === 'UV_H_V1';
+    const tiempo = actual ? `Duración simulada: ${formatearDuracion(resultado.duracion)}` : `Registro histórico · duración original: ${resultado.duracion} s (escala anterior)`;
+    const unidades = actual ? (resultado.unidades ?? []).map(u => `Metro ${u.idTren}: ${formatearVelocidad(u.velocidad)}`).join(' · ') : '';
+    elemento.innerHTML = `<strong>${escapar(resultado.estado)} · ${resultado.puntaje} puntos</strong><span>${escapar(tiempo)} · ritmo inicial ${formatearRitmo(resultado.velocidad)}</span><span>${escapar(unidades)}</span><p>${escapar(resultado.comentarios)}</p>`;
     return elemento;
   }));
   if (!resultados.length) contenedor.textContent = 'Aún no se registraron ejecuciones para este diseño.';
@@ -304,15 +328,15 @@ function obtenerEstadoEjecucion() {
 
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
-  if (!disenoActual || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || estaMantenimientoActivo(sesion)) return;
+  if (!disenoActual || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return;
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
   const duracion = Number(document.getElementById('duracionSimulacion').value);
-  if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion < 10) {
-    mostrarMensaje('Elegí un ritmo de reproducción disponible (×) y una ventana visual mínima de 10 segundos.', 'error');
+  if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion <= 0) {
+    mostrarMensaje('Elegí un ritmo de reproducción disponible (×) y una cantidad entera de horas simuladas mayor que cero.', 'error');
     return;
   }
   preparacionEnCurso = true;
-  actualizarDisponibilidadEjecucion();
+  actualizarControlesSimulacion(estadoMotor);
   const id = disenoActual.simulacion.idDiseno, version = versionDiseno;
   const vigente = () => paginaActiva && version === versionDiseno && disenoActual?.simulacion.idDiseno === id;
   try {
@@ -326,13 +350,14 @@ async function ejecutarSimulacion(evento) {
     if (estaMantenimientoActivo(sesion)) return;
     const estado = visor.escena.iniciarAnimacion(velocidad, duracion);
     actualizarPanelTiempoReal(estado);
+    tutorialSimulacion?.notificar('inicio');
     crearFlujoNavegacion('resultados');
     document.getElementById('continuarEscenarios').hidden = true;
     document.getElementById('verResultadosSimulacion').hidden = true;
     mostrarMensaje('Recorrido iniciado. Observá el metro antes de consultar el resultado.', 'exito');
   } catch (error) {
     mostrarMensaje(error.message, 'error');
-  } finally { preparacionEnCurso = false; actualizarDisponibilidadEjecucion(); }
+  } finally { preparacionEnCurso = false; actualizarControlesSimulacion(estadoMotor); }
 }
 
 async function evaluarEscenarioProgresivo(idDiseno) {
@@ -371,9 +396,13 @@ function detenerSimulacion() {
   mostrarMensaje('Simulación detenida. La red permanece visible para su revisión.');
 }
 
-function reiniciarSimulacion() {
+async function reiniciarSimulacion() {
   if (estaMantenimientoActivo(sesion)) return;
   if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
+  if (Number(document.getElementById('duracionSimulacion').value) !== parametrosUltimaEjecucion.duracion) {
+    await ejecutarSimulacion({ preventDefault() {} });
+    return;
+  }
   const estado = visor.escena.reiniciarAnimacion();
   actualizarPanelTiempoReal(estado);
   document.getElementById('verResultadosSimulacion').hidden = true;
@@ -381,17 +410,15 @@ function reiniciarSimulacion() {
 }
 
 function cambiarVelocidad(evento) {
-  const boton = evento.target.closest('[data-velocidad]');
+  const boton = evento.target.closest('[data-paso-ritmo]');
   if (!boton) return;
-  const velocidad = Number(boton.dataset.velocidad);
-  if (!VELOCIDADES_SIMULACION.has(velocidad)) return;
-  document.getElementById('velocidadSimulacion').value = String(velocidad);
-  document.querySelectorAll('[data-velocidad]').forEach((control) => {
-    control.setAttribute('aria-pressed', String(control === boton));
-  });
+  const input = document.getElementById('velocidadSimulacion');
+  const indice = RITMOS.indexOf(Number(input.value));
+  const velocidad = RITMOS[Math.max(0, Math.min(RITMOS.length - 1, indice + Number(boton.dataset.pasoRitmo)))];
+  input.value = String(velocidad);
+  document.getElementById('ritmoVisible').textContent = formatearRitmo(velocidad);
   if (parametrosUltimaEjecucion) parametrosUltimaEjecucion = { ...parametrosUltimaEjecucion, velocidad };
-  const estado = visor?.escena.establecerVelocidadAnimacion(velocidad);
-  actualizarPanelTiempoReal(estado);
+  actualizarPanelTiempoReal(visor?.escena.establecerVelocidadAnimacion(velocidad));
 }
 
 function alternarSeguimientoMetro() {
@@ -423,6 +450,7 @@ function limpiarVisor(evento) {
     if (reanudarAlVolver) actualizarPanelTiempoReal(visor.escena.pausarAnimacion());
     return;
   }
+  tutorialSimulacion?.terminar(false);
   paginaActiva = false;
   versionDiseno += 1;
   panelAyuda?.eliminar();
@@ -527,6 +555,10 @@ function actualizarControlesSimulacion(estado) {
   const estadoActual = estado?.estado;
   const enCurso = estadoActual === 'EN_CURSO';
   const pausada = estadoActual === 'PAUSADA';
+  const horas = document.getElementById('duracionSimulacion');
+  horas.disabled = enCurso || pausada || preparacionEnCurso || resultadoEnCurso;
+  document.querySelectorAll('[data-paso-horas]').forEach(boton => { boton.disabled = horas.disabled; });
+  document.querySelectorAll('[data-paso-ritmo]').forEach(boton => { boton.disabled = preparacionEnCurso || resultadoEnCurso; });
   const campoVelocidades = document.querySelector('[data-controles-circulacion]');
   if (campoVelocidades) campoVelocidades.disabled = guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || estaMantenimientoActivo(sesion) || enCurso || pausada;
   const controlConFoco = document.activeElement;
@@ -563,10 +595,7 @@ function crearEstadoInicial() {
   };
 }
 
-function formatearTiempo(segundos) {
-  const total = Math.max(0, Math.round(Number(segundos) || 0));
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
+function formatearTiempo(horas) { return formatearDuracion(Math.max(0, Number(horas) || 0)); }
 
 function formatearEstadoMotor(estado) {
   return ({

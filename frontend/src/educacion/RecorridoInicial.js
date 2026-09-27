@@ -13,7 +13,7 @@ const visible = elemento => elemento && !elemento.disabled && elemento.getClient
 
 // Recorrido exclusivamente de presentación: no dispara acciones del dominio.
 export default class RecorridoInicial {
-  constructor(alFinalizar) { this.alFinalizar = alFinalizar; }
+  constructor(alFinalizar, opciones = {}) { this.alFinalizar = alFinalizar; this.opciones = opciones; }
   iniciar() {
     this.focoAnterior = document.activeElement;
     this.scrollAnterior = [scrollX, scrollY];
@@ -22,7 +22,7 @@ export default class RecorridoInicial {
     this.togglePanel = document.querySelector('[data-panel-edicion-toggle]');
     this.panelCerrado = this.togglePanel?.getAttribute('aria-expanded') === 'false';
     if (this.panelCerrado) this.togglePanel.click();
-    this.pasos = PASOS.filter(([selector]) => visible(document.querySelector(selector)));
+    this.pasos = (this.opciones.pasos ?? PASOS).filter(([selector]) => visible(document.querySelector(selector)));
     this.indice = 0;
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';
@@ -38,7 +38,8 @@ export default class RecorridoInicial {
     this.reposicionar = () => this.posicionar();
     window.addEventListener('resize', this.reposicionar);
     window.addEventListener('scroll', this.reposicionar, true);
-    this.dialogo.showModal();
+    if (this.opciones.interactivo) this.dialogo.show();
+    else this.dialogo.showModal();
     this.mostrar();
   }
   mostrar() {
@@ -48,14 +49,21 @@ export default class RecorridoInicial {
     if (paso && !visible(this.objetivo)) { this.indice++; this.mostrar(); return; }
     this.dialogo.dataset.objetivo = paso?.[0] ?? 'fin';
     this.dialogo.querySelector('[data-recorrido-progreso]').textContent = paso ? `RECORRIDO // ${this.indice + 1} DE ${this.pasos.length}` : 'RECORRIDO COMPLETADO';
-    this.dialogo.querySelector('h2').textContent = paso?.[1] ?? 'Ahora, tu primera red';
-    this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? 'Ya conocés la pantalla. Ahora vamos a construir tu primera red.';
+    this.dialogo.querySelector('h2').textContent = paso?.[1] ?? this.opciones.tituloFinal ?? 'Ahora, tu primera red';
+    this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? this.opciones.textoFinal ?? 'Ya conocés la pantalla. Ahora vamos a construir tu primera red.';
+    this.dialogo.querySelector('[data-recorrido-siguiente]').hidden = Boolean(paso?.[3]);
     this.dialogo.querySelector('[data-recorrido-siguiente]').textContent = paso ? 'Siguiente' : 'Comenzar';
     this.dialogo.querySelector('[data-recorrido-omitir]').hidden = !paso;
     this.objetivo?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
     this.posicionar();
-    this.dialogo.querySelector('[data-recorrido-siguiente]').focus({ preventScroll: true });
+    if (!paso?.[3]) this.dialogo.querySelector('[data-recorrido-siguiente]').focus({ preventScroll: true });
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) this.dialogo.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 180 });
+  }
+  notificar(evento) {
+    if (!this.dialogo || this.pasos[this.indice]?.[3] !== evento) return;
+    this.indice++;
+    if (this.indice >= this.pasos.length && this.opciones.interactivo) this.terminar();
+    else this.mostrar();
   }
   posicionar() {
     if (!this.dialogo?.open) return;

@@ -160,7 +160,7 @@ test('Simulación del último nivel → nuevo documento del editor: celebración
   const p = v.pagina;
   await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
 
-  await p.locator('#duracionSimulacion').fill('10'); await p.locator('[data-velocidad="4"]').click();
+  await p.locator('#duracionSimulacion').fill('10'); await p.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
   await p.locator('#formularioEjecucion button[type="submit"]').click();
   await p.locator('.metronet-victoria').waitFor();
   await p.waitForURL('**/?idDiseno=200&idEscenario=111&idIntento=900');

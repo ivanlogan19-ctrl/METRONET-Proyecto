@@ -1,5 +1,6 @@
 // Explicaciones del comportamiento IMPLEMENTADO, no transcripciones del Documento
-// METRONET. El contraste con sus definiciones oficiales queda pendiente de acceso.
+// METRONET. UV, horas y ritmo reflejan el cambio formal de escala aprobado;
+// la actualización del documento académico se registra por separado.
 const concepto = (id, termino, definicion, categoria, alias = [], nombreCompleto = null) =>
   Object.freeze({ id, termino, nombreCompleto, definicion, categoria, alias: Object.freeze(alias) });
 
@@ -22,11 +23,11 @@ export const CONCEPTOS = Object.freeze([
   concepto('unidad', 'Unidad de metro', 'Metro asignado a una línea. Configurás su capacidad y velocidad promedio desde el Constructor.', 'Circulación', ['unidades de metro', 'unidad', 'unidades', 'metro', 'metros']),
   concepto('cantidad-unidades', 'Cantidad de unidades', 'Número de metros asignados a la red. Revisá la cantidad requerida por la consigna y su distribución entre líneas.', 'Circulación'),
   concepto('capacidad', 'Capacidad', 'Valor numérico que configurás para una unidad de metro. La simulación actual no representa su ocupación.', 'Circulación'),
-  concepto('velocidad', 'Velocidad promedio', 'Velocidad de circulación de una unidad, expresada en km/h. Se utiliza para estimar el tiempo de recorrido a partir de la distancia, sin paradas ni tráfico.', 'Circulación', ['velocidad', 'velocidades', 'velocidades promedio']),
+  concepto('velocidad', 'UV — Unidad de Velocidad', 'Escala didáctica de METRONET para representar la velocidad de las unidades de metro. No equivale a una velocidad física.', 'Circulación', ['UV', 'unidad de velocidad', 'velocidad', 'velocidades', 'velocidad promedio', 'velocidades promedio']),
   concepto('simulacion', 'Simulación', 'Representación del movimiento de los metros sobre los recorridos del diseño. Permite observar su circulación y consultar resultados.', 'Simulación', ['simulaciones']),
-  concepto('ritmo', 'Ritmo de reproducción', 'Multiplicador ×0.5, ×1, ×2 o ×4 que cambia la rapidez de la animación. No cambia los km/h de los metros ni otorga puntos.', 'Simulación', ['ritmo']),
-  concepto('duracion', 'Ventana visual', 'Parámetro en segundos que ajusta la reproducción. La animación comprime el recorrido; esta ventana no equivale al tiempo estimado de viaje.', 'Simulación', ['duración']),
-  concepto('tiempo-estimado', 'Tiempo estimado', 'Tiempo de recorrido calculado con distancia y velocidad promedio, sin paradas ni tráfico. El desempeño lo muestra en minutos y el reloj de reproducción en minutos:segundos.', 'Simulación', ['tiempos estimados', 'tiempo de recorrido']),
+  concepto('ritmo', 'Ritmo de reproducción', 'Multiplicador ×0.5, ×1, ×2 o ×4 que cambia la rapidez de la animación. No cambia las UV de los metros ni las horas simuladas; no otorga puntos.', 'Simulación', ['ritmo']),
+  concepto('duracion', 'Duración simulada', 'Cantidad de horas representadas dentro de una ejecución. No es el tiempo real que tarda la animación.', 'Simulación', ['duración']),
+  concepto('tiempo-estimado', 'Tiempo simulado', 'Horas representadas que ya transcurrieron durante la ejecución. Su avance visual depende del ritmo de reproducción.', 'Simulación', ['tiempos estimados', 'tiempo de recorrido']),
   concepto('objetivo', 'Objetivo', 'Resultado que te pide alcanzar la consigna del escenario.', 'Aprendizaje', ['objetivos']),
   concepto('regla-exito', 'Regla de éxito', 'Condición que se comprueba para completar el escenario, como alcanzar una cantidad de estaciones o cubrir los lugares indicados.', 'Aprendizaje', ['reglas de éxito', 'condiciones']),
   concepto('herramientas', 'Herramientas habilitadas', 'Acciones disponibles para construir la red en el nivel actual.', 'Aprendizaje'),

@@ -44,19 +44,19 @@ test('Administrador: todos disponibles sin fingir completados y ranking no compe
  await pagina.goto('http://127.0.0.1:5173/ranking.html');
  await pagina.getByText(/Esta cuenta no participa en el ranking/).waitFor();
 });
-for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta}, km/h, estimaciones y guardado mediante API existente`,async t=>{
+for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta}, UV, horas simuladas y guardado mediante API existente`,async t=>{
  let velocidad=90;
  const red=()=>({simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:velocidad}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]});
  const {pagina,solicitudes}=await abrir(t,'/simulacion.html?idDiseno=77',{viewport:{width:resuelta?390:1440,height:900},responder:async req=>{
   const path=new URL(req.url()).pathname;
   if(path==='/api/simulaciones')return {json:[red().simulacion]};
   if(path==='/api/simulaciones/77')return {json:red()};
-  if(path.endsWith('/desempeno'))return {json:{puntaje:resuelta?90:0,puntajeMaximo:100,redResuelta:resuelta,etapa:resuelta?'VELOCIDAD':'RED',explicacion:'Primero resolvé la red. Meta didáctica: 45 km/h ± 15.',unidades:[{idTren:1,linea:'Azul',velocidadKmh:velocidad,distanciaKm:15,tiempoMinutos:900/velocidad}]}};
+  if(path.endsWith('/desempeno'))return {json:{puntaje:resuelta?90:0,puntajeMaximo:100,redResuelta:resuelta,etapa:resuelta?'VELOCIDAD':'RED',explicacion:'Primero resolvé la red. Compará ejecuciones con distintas UV.',unidades:[{idTren:1,linea:'Azul',velocidad:velocidad,tramos:3}]}};
   if(path.endsWith('/unidades/1')){velocidad=req.postDataJSON().velocidadPromedio;return {status:204};}
   if(path.endsWith('/validacion'))return {json:{valido:true,preparadoParaSimular:true,observaciones:[]}};
  }});
 
- const campo=pagina.getByRole('spinbutton',{name:'Velocidad física en km/h',exact:true});await campo.waitFor();
+ const campo=pagina.getByRole('spinbutton',{name:'Velocidad en UV',exact:true});await campo.waitFor();
  assert.equal(await pagina.locator('#desempenoNivel').evaluate(e=>getComputedStyle(e).display),'grid');
  assert.ok(await campo.evaluate(e=>e.getBoundingClientRect().height>=40));
  assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -65,7 +65,7 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
  assert.match(await pagina.locator('.simulacion-ritmo').innerText(),/Ritmo visual/);
  if(resuelta){
   await campo.fill('45');await pagina.getByRole('button',{name:'Aplicar velocidad',exact:true}).click();
-  await pagina.waitForFunction(()=>document.getElementById('velocidadFisica').value==='45' && !document.querySelector('[data-controles-circulacion]').disabled);
+  await pagina.waitForFunction(()=>document.getElementById('velocidadUnidad').value==='45' && !document.querySelector('[data-controles-circulacion]').disabled);
   assert.deepEqual(solicitudes.find(s=>s.method==='PATCH').body,{nombreLinea:'Azul',capacidad:300,velocidadPromedio:45});
   assert.equal(solicitudes.filter(s=>s.method==='PATCH').length,1); // Preflight al pulsar Simular, sin validación manual adicional.
  }
@@ -85,8 +85,8 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
 });
 for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} puntos del servidor sin completar un parcial`,async t=>{
- const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${puntos === 100 ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidadKmh:60,distanciaKm:15,tiempoMinutos:15}]};
- const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4,comentarios:'Circulación estimada a 60 km/h.'};
+ const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${puntos === 100 ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidad:6,tramos:3}]};
+ const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4,escala:'UV_H_V1',unidades:[{idTren:1,velocidad:6}],comentarios:'6 UV durante 10 h simuladas.'};
  const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
  const {pagina}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
   const path=new URL(req.url()).pathname;
@@ -98,7 +98,7 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
  }});
 
  await pagina.locator('#duracionSimulacion').fill('10');
- await pagina.locator('[data-velocidad="4"]').click();
+ await pagina.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.locator('#mensajeSimulacion').filter({ hasText: `${puntos} / 100 puntos` }).waitFor();
  assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(), new RegExp(`COMPLETADA · ${puntos} puntos`));

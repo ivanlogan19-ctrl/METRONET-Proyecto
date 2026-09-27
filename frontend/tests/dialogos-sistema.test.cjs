@@ -105,7 +105,7 @@ test('campos por rol respetan hidden y el error de guardar queda dentro del moda
 test('restricciones HTML bloquean la simulación y presentan un aviso dentro del sistema', async t => {
   const { pagina, solicitudes } = registrar(t, await abrirPantalla(navegador, '/simulacion.html?idDiseno=77'));
 
-  await pagina.locator('#duracionSimulacion').fill('1');
+  await pagina.locator('#duracionSimulacion').fill('0');
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
   await pagina.locator('.metronet-notificacion--error').waitFor();
   assert.equal(await pagina.locator('#duracionSimulacion').evaluate(e => e.validity.rangeUnderflow && e === document.activeElement), true);

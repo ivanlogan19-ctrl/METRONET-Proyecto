@@ -1,3 +1,4 @@
+import { VELOCIDAD_INICIAL } from '../../simulacion/EscalaSimulacion.js';
 import { siguienteNombre } from './NombresRed.js';
 import { estaMantenimientoActivo, MENSAJE_MANTENIMIENTO } from '../../configuracion/ConfiguracionAplicacion.js';
 
@@ -148,7 +149,7 @@ export default class CreacionDirecta {
     const id = e.disenoActual?.simulacion.idDiseno, version = this.version;
     await e.configuracionLista;
     if (!e.activo || e.disenoActual?.simulacion.idDiseno !== id || version !== this.version) return;
-    await this.enviar(() => ({ ruta: '/unidades', datos: { nombreLinea, capacidad: e.capacidadUnidadPredeterminada, velocidadPromedio: 40 } }), 'Metro asignado. Sus parámetros están disponibles al seleccionarlo.');
+    await this.enviar(() => ({ ruta: '/unidades', datos: { nombreLinea, capacidad: e.capacidadUnidadPredeterminada, velocidadPromedio: VELOCIDAD_INICIAL } }), 'Metro asignado. Sus parámetros están disponibles al seleccionarlo.');
     if (!e.activo || e.disenoActual?.simulacion.idDiseno !== id || version !== this.version) return;
     const opciones = e.obtener('[data-lineas-superpuestas]');
     opciones.replaceChildren(); opciones.hidden = true;

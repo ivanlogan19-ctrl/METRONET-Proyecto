@@ -218,7 +218,7 @@ class JuegoEducativoControllerTest {
         );
         return new ProgresoJuegoResponse(
             List.of(escenarioUno, escenarioDos, modoLibre), numeroCampanaActual, 4, nivelesCompletados,
-            campanaCompletada, campanaCompletadaHistoricamente, modoLibreDesbloqueado
+            campanaCompletada, campanaCompletadaHistoricamente, modoLibreDesbloqueado, true
         );
     }
 

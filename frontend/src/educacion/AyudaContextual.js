@@ -41,7 +41,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     'Intento completado. Compará tu recorrido con el objetivo antes del siguiente desafío.', '', ['objetivo'], 'LOGRO');
   if (pantalla === 'simulacion' && ['EN_CURSO', 'PAUSADA'].includes(estadoMotor)) return aviso(`circulacion-${estadoMotor}`,
     estadoMotor === 'PAUSADA' ? 'Circulación pausada. Observá cómo se relacionan las líneas y sus recorridos.' : 'Observá qué destinos conecta cada recorrido. La animación sola no confirma los objetivos.',
-    'El ritmo cambia la animación; revisá los km/h de la unidad en el panel de Simulación.', ['linea', 'ritmo', 'velocidad'], 'OBSERVÁ');
+    'El ritmo cambia la animación; revisá los UV de la unidad en el panel de Simulación.', ['linea', 'ritmo', 'velocidad'], 'OBSERVÁ');
 
   if (inicial && pendientes.length && !tutorialActivo && ['crearLinea', 'crearTramo'].includes(modo)) return aviso(`${modo}-${Math.min(seleccionadas.length, 2)}`,
     seleccionadas.length < 2 ? 'Elegí estaciones distintas en el mapa. El orden de selección ayuda a definir el recorrido.' : 'El recorrido se está construyendo entre las estaciones elegidas.',
@@ -79,8 +79,19 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     const cerca = pendientes.length < condiciones.length && pendientes.length <= 2;
     return aviso(clave, texto, pista, conceptos, cerca ? 'POR REVISAR' : 'PISTA');
   }
+  const practica = pendientes.find(c => c.clave.startsWith('aprendizajeSimulacion:'));
+  if (practica) {
+    const pistas = {
+      velocidad: 'Probá cambiar solamente las UV y mantené las mismas horas. Ejecutá antes y después para comparar.',
+      duracion: 'Mantené las UV y cambiá las horas simuladas. Compará dos ejecuciones con esa diferencia.',
+      individual: 'Seleccioná una unidad y cambiá solo sus UV. Las otras y las horas deben quedar iguales al comparar ejecuciones.',
+      global: 'Probá Todas después de una ejecución. Aplicá una UV diferente a todas las unidades y volvé a ejecutar con las mismas horas.',
+      combinacion: 'Después de una ejecución, cambiá tanto las UV como las horas y observá la nueva combinación.',
+    };
+    return aviso(practica.clave, pistas[practica.clave.split(':')[1]], 'El ritmo × solo cambia cómo ves la ejecución; no cuenta como cambio de UV ni de horas.', ['velocidad', 'duracion', 'ritmo'], 'EXPERIMENTÁ');
+  }
   const soloCirculacion = pendientes.every(c => ['velocidadCirculacion', 'requiereSimulacion', 'simulacionActual'].includes(c.clave));
-  if (soloCirculacion && falta('velocidadCirculacion')) return aviso('velocidad', 'La velocidad no cumple el criterio. Compará los km/h de las unidades con la consigna.', 'Cambiar ×1 o ×2 solo modifica la reproducción; no cambia los km/h evaluados.', ['velocidad', 'unidad', 'ritmo']);
+  if (soloCirculacion && falta('velocidadCirculacion')) return aviso('velocidad', 'La velocidad no cumple el criterio. Compará los UV de las unidades con la consigna.', 'Cambiar ×1 o ×2 solo modifica la reproducción; no cambia los UV evaluados.', ['velocidad', 'unidad', 'ritmo']);
   if (soloCirculacion && (falta('requiereSimulacion') || falta('simulacionActual')) && permite('simulacion')) return aviso('simular',
     pantalla === 'simulacion' ? 'El diseño cumple las condiciones consultadas. Observá qué ocurre al simular.' : 'Falta observar la red en circulación. Simular comprueba automáticamente si está preparada.',
     'Si cambian el diseño o la velocidad, la simulación anterior puede quedar desactualizada.', ['simulacion', 'unidad', 'velocidad'], 'POR REVISAR');

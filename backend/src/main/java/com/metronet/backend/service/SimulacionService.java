@@ -264,7 +264,7 @@ public class SimulacionService {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         String nombreLinea = nombreValido(solicitud == null ? null : solicitud.nombreLinea(), "Elegí la línea de la unidad");
         if (!existeLinea(idDiseno, nombreLinea)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea seleccionada no existe");
-        if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || solicitud.velocidadPromedio().signum() <= 0) {
+        if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
         }
         Integer idTren = jdbcTemplate.queryForObject("""
@@ -287,7 +287,7 @@ public class SimulacionService {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         String nombreLinea = nombreValido(solicitud == null ? null : solicitud.nombreLinea(), "Elegí la línea de la unidad");
         if (!existeLinea(idDiseno, nombreLinea)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea seleccionada no existe");
-        if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || solicitud.velocidadPromedio().signum() <= 0) {
+        if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
         }
         if (jdbcTemplate.update("""
@@ -328,9 +328,7 @@ public class SimulacionService {
     @Transactional
     public ResultadoSimulacionResponse ejecutarSimulacion(Integer idUsuario, Integer idDiseno, EjecutarSimulacionRequest solicitud) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
-        if (solicitud == null || solicitud.velocidad() == null || !java.util.Set.of(new BigDecimal("0.5"), BigDecimal.ONE, new BigDecimal("2"), new BigDecimal("4")).contains(solicitud.velocidad().stripTrailingZeros()) || solicitud.duracion() == null || solicitud.duracion() < 10) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de reproducción de 0.5×, 1×, 2× o 4× y una duración de al menos 10 segundos");
-        }
+        ParametrosSimulacion.validar(solicitud);
         ValidacionDisenoResponse estructura = evaluarDiseno(resumen, idDiseno);
         if (!estructura.valido()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(" ", estructura.observaciones()));
@@ -348,15 +346,10 @@ public class SimulacionService {
         int transbordos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ? AND transbordo = TRUE", Integer.class, idDiseno);
         int puntaje = 0; // Sin criterios de escenario no se asignan puntos por cantidad de elementos.
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + solicitud.duracion()
-            + " segundos. La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
+            + " h simuladas. La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
         Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
         boolean progresivo = juegoEducativoService.esDisenoProgresivo(idUsuario, idDiseno);
-        if (progresivo) {
-            comentarios += " Circulación estimada (sin paradas): " + juegoEducativoService.medirCirculacion(idDiseno).stream()
-                .map(u -> String.format(java.util.Locale.ROOT, "%s: %.1f km/h, %.1f min", u.linea(), u.velocidadKmh(), u.tiempoMinutos()))
-                .collect(java.util.stream.Collectors.joining("; "));
-            comentarios += juegoEducativoService.marcaRedSimulada(idDiseno);
-        }
+        comentarios += juegoEducativoService.marcaRedSimulada(idDiseno);
         Integer idSimulacion = jdbcTemplate.queryForObject("""
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
@@ -777,6 +770,7 @@ public class SimulacionService {
     }
 
     private ResultadoSimulacionResponse mapearResultado(ResultSet resultado) throws SQLException {
+        var registro = RegistroSimulacionDidactica.leer(resultado.getString("comentarios"));
         return new ResultadoSimulacionResponse(
             resultado.getInt("id_simulacion"),
             resultado.getBigDecimal("velocidad"),
@@ -784,7 +778,9 @@ public class SimulacionService {
             resultado.getString("estado"),
             resultado.getInt("puntaje"),
             PuntuacionService.comentarioVisible(resultado.getString("comentarios")),
-            resultado.getTimestamp("fecha_ejecucion").toLocalDateTime()
+            resultado.getTimestamp("fecha_ejecucion").toLocalDateTime(),
+            registro == null ? "HISTORICA" : "UV_H_V1",
+            registro == null ? List.of() : registro.unidades()
         );
     }
 

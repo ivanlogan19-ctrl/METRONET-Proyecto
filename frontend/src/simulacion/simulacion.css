@@ -50,7 +50,9 @@ html:root body.simulacion-pagina .simulacion-parametro-titulo { display: flex; a
 .simulacion-instrumentos select { width: 100%; min-width: 0; }
 .simulacion-ritmo { display: grid; gap: 6px; margin-top: 6px; }
 .simulacion-etiqueta-control, .simulacion-texto-secundario { color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
-.simulacion-selector-velocidad { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+.simulacion-selector-velocidad { display: grid; grid-template-columns: 40px minmax(0,1fr) 40px; align-items: center; gap: 4px; }
+.simulacion-selector-velocidad output { text-align: center; font: 14px var(--font-tecnica); }
+.simulacion-parametro-valor > button[type="button"] { flex: 0 0 32px; min-width: 32px; min-height: 40px; padding: 4px; }
 .simulacion-selector-velocidad button { min-width: 0; min-height: 40px; padding: 4px; font-size: 12px; }
 [data-velocidad-mixta] { font: 12px var(--font-tecnica); color: var(--info-active); }
 .simulacion-ficha-unidad { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 8px; padding: var(--space-sm); border-top: var(--border-width) solid var(--border); font-size: 12px; overflow-wrap: anywhere; }

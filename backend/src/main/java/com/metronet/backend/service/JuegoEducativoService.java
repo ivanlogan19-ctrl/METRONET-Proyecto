@@ -38,7 +38,7 @@ public class JuegoEducativoService {
     private final PuntuacionService puntuacion;
 
     public JuegoEducativoService(JdbcTemplate jdbc, ObjectMapper mapper, ObjetivosPuntosInteresService objetivos, CondicionesGeograficasService condiciones) {
-        this(jdbc, mapper, objetivos, condiciones, new PuntuacionService(jdbc, mapper, new GeografiaService(mapper)));
+        this(jdbc, mapper, objetivos, condiciones, new PuntuacionService(jdbc, mapper));
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -87,7 +87,12 @@ public class JuegoEducativoService {
             nivelesCompletados,
             campanaCompletada,
             progresoUsuario.campanaCompletadaHistoricamente(),
-            esAdministrador(idUsuario) || progresoUsuario.campanaCompletadaHistoricamente()
+            esAdministrador(idUsuario) || progresoUsuario.campanaCompletadaHistoricamente(),
+            !Boolean.TRUE.equals(jdbcTemplate.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM simulacion s JOIN intento i ON i.id_intento=s.id_intento
+                    JOIN escenario e ON e.id_escenario=i.id_escenario
+                    WHERE i.id_usuario=? AND i.numero_campana=? AND e.progresivo=TRUE AND e.modo='NIVEL')
+                """, Boolean.class, idUsuario, progresoUsuario.numeroCampanaActual()))
         );
     }
 
@@ -175,7 +180,7 @@ public class JuegoEducativoService {
         EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
         int progreso = evaluacion.progreso();
         DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
-        boolean completado = evaluacion.completado() && (desempeno == null || (desempeno.velocidadCumplida() && desempeno.simulacionActual()));
+        boolean completado = evaluacion.completado() && (desempeno == null || (desempeno.aprendizajeCumplido() && desempeno.simulacionActual()));
         if (!completado) progreso = Math.min(progreso, 99);
         Integer puntaje = desempeno.puntaje();
         String estado = estadoLuegoDeEvaluacion(completado, intento.estado());
@@ -221,7 +226,7 @@ public class JuegoEducativoService {
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
 
-    public String marcaRedSimulada(Integer idDiseno) { return puntuacion.marcaRed(idDiseno); }
+    public String marcaRedSimulada(Integer idDiseno) { return puntuacion.marcaDidactica(idDiseno); }
 
     public boolean esDisenoProgresivo(Integer idUsuario, Integer idDiseno) {
         return obtenerIntentoPorDiseno(idUsuario, idDiseno) != null;

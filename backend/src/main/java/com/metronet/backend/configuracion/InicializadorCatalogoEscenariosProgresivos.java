@@ -23,7 +23,22 @@ public class InicializadorCatalogoEscenariosProgresivos {
             try (var entrada = new ClassPathResource("educacion/niveles.json").getInputStream()) {
                 niveles = new ObjectMapper().readTree(entrada);
             }
+            JsonNode anterioresUV;
+            try (var entrada = new ClassPathResource("educacion/niveles-pre-uv.json").getInputStream()) {
+                anterioresUV = new ObjectMapper().readTree(entrada);
+            }
             for (JsonNode nivel : niveles) {
+                for (JsonNode anterior : anterioresUV) {
+                    if (anterior.path("numero").asInt() != nivel.path("numero").asInt()) continue;
+                    // Solo el seed exacto anterior: conserva escenarios personalizados e históricos.
+                    jdbcTemplate.update("""
+                        UPDATE escenario SET objetivo=?, instrucciones=?, reglas_exito=CAST(? AS jsonb)
+                        WHERE progresivo=TRUE AND numero=? AND objetivo=? AND (instrucciones=? OR instrucciones=?)
+                          AND reglas_exito=CAST(? AS jsonb) AND herramientas_habilitadas=CAST(? AS jsonb)
+                        """, nivel.path("objetivo").asText(), nivel.path("instrucciones").asText(), nivel.path("reglasExito").toString(),
+                        nivel.path("numero").asInt(), anterior.path("objetivo").asText(), anterior.path("instrucciones").asText(), anterior.path("instruccionesLegadas").asText(anterior.path("instrucciones").asText()),
+                        anterior.path("reglasExito").toString(), anterior.path("herramientasHabilitadas").toString());
+                }
                 insertarNivel(jdbcTemplate, nivel.path("numero").asInt(), nivel.path("nombre").asText(),
                     nivel.path("objetivo").asText(), nivel.path("dificultad").asText(),
                     nivel.path("instrucciones").asText(), nivel.path("reglasExito").toString(),

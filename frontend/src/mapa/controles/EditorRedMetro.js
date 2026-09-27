@@ -564,7 +564,7 @@ export default class EditorRedMetro {
     this.editarEnPanel([
       { nombre: 'nombreLinea', etiqueta: 'Línea asignada', valor: unidad.nombreLinea, opciones: this.disenoActual.lineas.map(l => l.nombre) },
       { nombre: 'capacidad', etiqueta: 'Capacidad', valor: unidad.capacidad, tipo: 'number' },
-      { nombre: 'velocidadPromedio', etiqueta: 'Velocidad promedio (km/h)', valor: unidad.velocidadPromedio, tipo: 'number' },
+      { nombre: 'velocidadPromedio', etiqueta: 'Velocidad promedio (UV)', valor: unidad.velocidadPromedio, tipo: 'number' },
     ], datos => this.ejecutarAccion(`/${this.idDiseno()}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...datos, capacidad: Number(datos.capacidad), velocidadPromedio: Number(datos.velocidadPromedio) }) }, 'Unidad actualizada.'));
   }
 

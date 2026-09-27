@@ -2,4 +2,6 @@ package com.metronet.backend.dto;
 
 import java.math.BigDecimal;
 
-public record EjecutarSimulacionRequest(BigDecimal velocidad, Integer duracion) {}
+/** velocidad es el ritmo visual ×; duracion son horas simuladas enteras. UV pertenece al Metro. */
+public record EjecutarSimulacionRequest(BigDecimal velocidad,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = HorasSimuladasDeserializer.class) Integer duracion) {}

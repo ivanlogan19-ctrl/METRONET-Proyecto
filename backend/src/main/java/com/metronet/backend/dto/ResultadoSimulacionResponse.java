@@ -10,5 +10,7 @@ public record ResultadoSimulacionResponse(
     String estado,
     Integer puntaje,
     String comentarios,
-    LocalDateTime fechaEjecucion
+    LocalDateTime fechaEjecucion,
+    String escala,
+    java.util.List<DesempenoNivelResponse.MedicionUnidad> unidades
 ) {}

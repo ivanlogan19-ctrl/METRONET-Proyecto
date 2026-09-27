@@ -166,7 +166,7 @@ public class DatosDemostrativosService {
         insertarTramos(intento.idDiseno());
         jdbcTemplate.update("""
             INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio)
-            VALUES (?, ?, 300, 45.00)
+            VALUES (?, ?, 300, 4.00)
             """, intento.idDiseno(), NOMBRE_LINEA);
     }
 

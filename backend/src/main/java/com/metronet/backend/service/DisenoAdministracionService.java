@@ -422,7 +422,7 @@ public class DisenoAdministracionService {
 
     private DatosUnidadMetro validarUnidadMetro(Integer idDiseno, ActualizarUnidadMetroRequest solicitud) {
         if (solicitud == null || solicitud.capacidad() == null || solicitud.velocidadPromedio() == null
-            || solicitud.capacidad() <= 0 || solicitud.velocidadPromedio().signum() <= 0) {
+            || solicitud.capacidad() <= 0 || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá capacidad y velocidad válidas para la unidad");
         }
 

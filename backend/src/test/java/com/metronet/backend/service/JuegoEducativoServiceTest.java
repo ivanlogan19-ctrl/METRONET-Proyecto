@@ -129,7 +129,7 @@ class JuegoEducativoServiceTest {
             contains("SET numero_campana_actual = numero_campana_actual + 1"), eq(ID_USUARIO), eq(NUMERO_CAMPANA)
         )).thenReturn(1);
         ProgresoJuegoResponse progresoReiniciado = new ProgresoJuegoResponse(
-            List.of(), NUMERO_CAMPANA + 1, 4, 0, false, true, true
+            List.of(), NUMERO_CAMPANA + 1, 4, 0, false, true, true, true
         );
         JuegoEducativoService servicio = spy(crearServicio());
         doReturn(progresoReiniciado).when(servicio).obtenerResumenProgreso(ID_USUARIO);

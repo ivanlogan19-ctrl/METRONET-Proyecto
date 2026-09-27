@@ -161,7 +161,7 @@ test('líneas y unidades mantienen selección, edición, eliminación y acceso a
   await clicarMapa(pagina, 640, 465);
   await pagina.waitForFunction(() => editorPrueba.disenoActual.unidadesMetro.length === 2);
   await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
-  assert.deepEqual(solicitudes[0].datos, { nombreLinea:'Azul', capacidad:300, velocidadPromedio:40 });
+  assert.deepEqual(solicitudes[0].datos, { nombreLinea:'Azul', capacidad:300, velocidadPromedio:4 });
   await pagina.locator('[data-guardar]').click();
   await pagina.waitForFunction(() => !editorPrueba.finalizacionEnCurso && !editorPrueba.cambiosPendientes);
   assert.deepEqual(solicitudes.slice(1).map(s => s.ruta), ['/api/simulaciones/77/validacion', '/api/simulaciones/77/guardar']);

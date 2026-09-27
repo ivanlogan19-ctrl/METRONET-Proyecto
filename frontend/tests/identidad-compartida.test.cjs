@@ -46,7 +46,7 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
     assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
     if (ruta.startsWith('/simulacion.html')) {
-      assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración de simulación en segundos');
+      assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración simulada en horas');
       assert.equal(await pagina.locator('[data-icono-duracion] svg').count(), 1);
       continue; // El control operacional tiene icono y nombre accesible, no una etiqueta de formulario extensa.
     }
@@ -79,7 +79,7 @@ test('hover, foco y pulsación son distinguibles; controles deshabilitados conse
   const inactivo = await estilo(pausa, [...aspecto, 'opacity', 'cursor']);
   assert.equal(inactivo.opacity, '1'); assert.equal(inactivo.cursor, 'not-allowed');
   assert.ok(contraste(inactivo.color, inactivo.backgroundColor) >= 4.5);
-  const velocidad = simulacion.locator('[data-velocidad="1"]');
+  const velocidad = simulacion.locator('[data-paso-ritmo="1"]');
   assert.notEqual((await estilo(velocidad, aspecto)).borderTopColor, inactivo.borderTopColor);
 });
 

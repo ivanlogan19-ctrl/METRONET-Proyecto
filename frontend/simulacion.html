@@ -36,7 +36,7 @@
             </header>
             <dl class="simulacion-banda-estado" aria-label="Estado de ejecución">
               <div><dt>Estado</dt><dd id="estadoTiempoReal" role="status">Red lista</dd></div>
-              <div><dt>Tiempo</dt><dd id="tiempoSimulacion">00:00</dd></div>
+              <div><dt>Tiempo simulado</dt><dd id="tiempoSimulacion">0 h</dd></div>
               <div class="simulacion-progreso"><dt id="tituloProgresoEjecucion">Ejecución</dt><dd><span id="valorProgresoEjecucion">0%</span><span id="progresoEjecucion" class="simulacion-barra" role="progressbar" aria-labelledby="tituloProgresoEjecucion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="rellenoProgresoEjecucion"></span></span></dd></div>
             </dl>
             <div class="metronet-barra-geografica" aria-label="Opciones del mapa"><div data-contenedor-referencias></div><div data-hud-mapa><div data-ayuda-contextual></div></div></div>
@@ -61,10 +61,10 @@
           <h2 class="simulacion-panel-titulo">Simulación</h2>
           <section id="seccionCirculacion" data-requiere-diseno hidden><div id="desempenoNivel" class="simulacion-desempeno"></div></section>
           <section id="seccionConfiguracion" class="simulacion-parametros" data-requiere-diseno hidden>
-            <div class="simulacion-parametro-titulo" title="Duración de simulación"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
-            <div class="simulacion-parametro-valor"><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración de simulación en segundos" type="number" min="10" step="1" value="60" required /><span>s</span></div>
+            <div class="simulacion-parametro-titulo" title="Duración simulada"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
+            <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en horas" type="number" min="1" step="1" value="6" required /><span>h</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button></div>
             <div class="simulacion-ritmo"><span class="simulacion-etiqueta-control">Ritmo visual (×)</span><div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
-              <button type="button" data-velocidad="0.5" aria-pressed="false">×0.5</button><button type="button" data-velocidad="1" aria-pressed="true">×1</button><button type="button" data-velocidad="2" aria-pressed="false">×2</button><button type="button" data-velocidad="4" aria-pressed="false">×4</button>
+              <button type="button" data-paso-ritmo="-1" aria-label="Reducir ritmo">−</button><output id="ritmoVisible" for="velocidadSimulacion">1×</output><button type="button" data-paso-ritmo="1" aria-label="Aumentar ritmo">+</button>
             </div></div>
           </section>
           <section id="seccionMetricas" class="simulacion-ficha-unidad" hidden aria-label="Unidad seleccionada"><strong id="metroSimulacion"></strong><span id="lineaSimulacion"></span><span id="proximaEstacionSimulacion"></span></section>

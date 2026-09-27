@@ -1,0 +1,676 @@
+[
+  {
+    "numero": 4,
+    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido.",
+    "instrucciones": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, asigná un metro y simulá. La red se valida automáticamente.",
+    "reglasExito": {
+      "minimoEstaciones": 3,
+      "minimoLineas": 1,
+      "minimoTramos": 2,
+      "minimoMetros": 1,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 60
+        },
+        {
+          "idPunto": 26,
+          "radioCobertura": 60
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        }
+      ],
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.8,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0,
+        "estacionesReferencia": 3,
+        "tramosReferencia": 2
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "instruccionesLegadas": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, validá la red, asigná un metro y simulá."
+  },
+  {
+    "numero": 5,
+    "objetivo": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios.",
+    "instrucciones": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; simulá para comprobar automáticamente la red.",
+    "reglasExito": {
+      "minimoEstaciones": 4,
+      "minimoLineas": 1,
+      "minimoTramos": 3,
+      "minimoMetros": 1,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "requiereGeografiaValida": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 40
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 40
+        },
+        {
+          "idPunto": 106,
+          "radioCobertura": 40
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "barrio",
+          "nombre": "AGUADA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "TRES CRUCES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PUNTA GORDA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        }
+      ],
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.8,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0,
+        "estacionesReferencia": 4,
+        "tramosReferencia": 3
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "instruccionesLegadas": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; validá y simulá."
+  },
+  {
+    "numero": 6,
+    "objetivo": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este.",
+    "instrucciones": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; simulá para comprobar automáticamente la red.",
+    "reglasExito": {
+      "minimoEstaciones": 5,
+      "minimoLineas": 1,
+      "minimoTramos": 4,
+      "minimoMetros": 1,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "requiereGeografiaValida": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 30
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 30
+        },
+        {
+          "idPunto": 106,
+          "radioCobertura": 30
+        },
+        {
+          "idPunto": 33,
+          "radioCobertura": 30
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "barrio",
+          "nombre": "AGUADA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "TRES CRUCES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PUNTA GORDA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA CENTRO",
+          "minimoEstaciones": 1
+        }
+      ],
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.7,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0.1,
+        "estacionesReferencia": 5,
+        "tramosReferencia": 4,
+        "velocidadObjetivoKmh": 45,
+        "toleranciaKmh": 15
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "instruccionesLegadas": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; validá y simulá."
+  },
+  {
+    "numero": 7,
+    "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas.",
+    "instrucciones": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; simulá para comprobar automáticamente la red.",
+    "reglasExito": {
+      "minimoEstaciones": 6,
+      "minimoLineas": 2,
+      "minimoTramos": 5,
+      "minimoMetros": 2,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "requiereGeografiaValida": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 106,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 33,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 18,
+          "radioCobertura": 25
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "barrio",
+          "nombre": "AGUADA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "TRES CRUCES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PUNTA GORDA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "BRAZO ORIENTAL",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA NORTE",
+          "minimoEstaciones": 1
+        }
+      ],
+      "minimoTransbordos": 1,
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.8,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0,
+        "estacionesReferencia": 6,
+        "tramosReferencia": 5
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "instruccionesLegadas": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; validá y simulá."
+  },
+  {
+    "numero": 8,
+    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos.",
+    "instrucciones": "Cubrí los seis POI a 20 unidades del mapa. Construí ocho estaciones, tres líneas, siete tramos y tres metros; usá dos transbordos entre líneas. Mantené un recorrido continuo común a los POI y atendé los seis barrios y cuatro zonas indicadas. Guardá tu diseño y simulá.",
+    "reglasExito": {
+      "minimoEstaciones": 8,
+      "minimoLineas": 3,
+      "minimoTramos": 7,
+      "minimoMetros": 3,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "requiereGeografiaValida": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 20
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 20
+        },
+        {
+          "idPunto": 106,
+          "radioCobertura": 20
+        },
+        {
+          "idPunto": 33,
+          "radioCobertura": 20
+        },
+        {
+          "idPunto": 18,
+          "radioCobertura": 20
+        },
+        {
+          "idPunto": 80,
+          "radioCobertura": 20
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "barrio",
+          "nombre": "AGUADA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "TRES CRUCES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PUNTA GORDA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "BRAZO ORIENTAL",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PARQUE BATLLE VILLA DOLORES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA NORTE",
+          "minimoEstaciones": 1
+        }
+      ],
+      "minimoTransbordos": 2,
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.7,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0.1,
+        "estacionesReferencia": 8,
+        "tramosReferencia": 7,
+        "velocidadObjetivoKmh": 50,
+        "toleranciaKmh": 10
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    }
+  },
+  {
+    "numero": 9,
+    "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, simulá para comprobar automáticamente la red.",
+    "reglasExito": {
+      "minimoEstaciones": 8,
+      "minimoLineas": 3,
+      "minimoTramos": 7,
+      "minimoMetros": 3,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "requiereGeografiaValida": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 12
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 12
+        },
+        {
+          "idPunto": 106,
+          "radioCobertura": 12
+        },
+        {
+          "idPunto": 33,
+          "radioCobertura": 12
+        },
+        {
+          "idPunto": 18,
+          "radioCobertura": 12
+        },
+        {
+          "idPunto": 80,
+          "radioCobertura": 12
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "barrio",
+          "nombre": "AGUADA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "TRES CRUCES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PUNTA GORDA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "BRAZO ORIENTAL",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PARQUE BATLLE VILLA DOLORES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA NORTE",
+          "minimoEstaciones": 1
+        }
+      ],
+      "minimoTransbordos": 2,
+      "maximoEstaciones": 9,
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.7,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0.1,
+        "estacionesReferencia": 8,
+        "tramosReferencia": 7,
+        "velocidadObjetivoKmh": 52,
+        "toleranciaKmh": 8
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "instruccionesLegadas": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, validá y simulá."
+  },
+  {
+    "numero": 10,
+    "objetivo": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos.",
+    "instrucciones": "Diseñá entre diez y once estaciones, tres líneas, nueve tramos y tres metros, con tres transbordos. Cubrí los ocho POI a 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Guardá tu diseño y simulá la red integral.",
+    "reglasExito": {
+      "minimoEstaciones": 10,
+      "minimoLineas": 3,
+      "minimoTramos": 9,
+      "minimoMetros": 3,
+      "requiereRedValida": true,
+      "requiereSimulacion": true,
+      "requiereCoberturaPuntosInteres": true,
+      "requiereObjetivosMismaLinea": true,
+      "requiereGeografiaValida": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 106,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 33,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 18,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 80,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 100,
+          "radioCobertura": 10
+        },
+        {
+          "idPunto": 36,
+          "radioCobertura": 10
+        }
+      ],
+      "areasObjetivo": [
+        {
+          "tipo": "barrio",
+          "nombre": "AGUADA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "TRES CRUCES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PUNTA GORDA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "BRAZO ORIENTAL",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PARQUE BATLLE VILLA DOLORES",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "PRADO NUEVA SAVONA",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "barrio",
+          "nombre": "CERRITO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA OESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA ESTE",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA CENTRO",
+          "minimoEstaciones": 1
+        },
+        {
+          "tipo": "zona",
+          "nombre": "ZONA NORTE",
+          "minimoEstaciones": 1
+        }
+      ],
+      "minimoTransbordos": 3,
+      "maximoEstaciones": 11,
+      "puntuacion": {
+        "maximo": 100,
+        "pesoResolucion": 0.7,
+        "pesoEficiencia": 0.2,
+        "pesoVelocidad": 0.1,
+        "estacionesReferencia": 10,
+        "tramosReferencia": 9,
+        "velocidadObjetivoKmh": 55,
+        "toleranciaKmh": 5
+      }
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    }
+  }
+]

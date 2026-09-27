@@ -146,7 +146,7 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
   });
 
   await pagina.locator('#duracionSimulacion').fill('10');
-  await pagina.locator('[data-velocidad="4"]').click();
+  await pagina.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
   await pagina.getByRole('dialog', { name: numero === 10 ? 'Nivel final completado' : 'Nivel completado', exact: true }).waitFor();
   assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 1);

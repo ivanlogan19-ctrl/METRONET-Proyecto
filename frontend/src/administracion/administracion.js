@@ -1,3 +1,4 @@
+import { formatearVelocidad, VELOCIDAD_INICIAL } from '../simulacion/EscalaSimulacion.js';
 import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
 import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
@@ -342,7 +343,7 @@ function renderizarDetalleDiseno(detalle) {
       <tr><td>${escaparHtml(tramo.nombreLinea)}</td><td>${escaparHtml(tramo.estacionA)} · ${escaparHtml(tramo.estacionB)}</td><td>${botonesAccion("tramo", diseno.idDiseno, { linea: tramo.nombreLinea, estacionA: tramo.estacionA, estacionB: tramo.estacionB })}</td></tr>`)}
     <button class="admin-guardar" type="button" data-crear-diseno="tramo" data-id-diseno="${diseno.idDiseno}">Agregar tramo</button>
     ${crearTablaElementos("Unidades de metro", unidadesMetro, (unidad) => `
-      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Capacidad: ${unidad.capacidad} · Velocidad: ${unidad.velocidadPromedio} km/h</td><td>${botonesAccion("unidad", diseno.idDiseno, { idTren: unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
+      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Capacidad: ${unidad.capacidad} · Velocidad: ${formatearVelocidad(unidad.velocidadPromedio)}</td><td>${botonesAccion("unidad", diseno.idDiseno, { idTren: unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
     <button class="admin-guardar" type="button" data-crear-diseno="unidad" data-id-diseno="${diseno.idDiseno}">Agregar unidad de metro</button>
   `;
 }
@@ -452,7 +453,7 @@ async function ejecutarAccionDiseno(boton, token) {
     if (accion === "editar-unidad") {
       const nombreLinea = await pedirDatoSistema("Línea asignada:", boton.dataset.linea);
       const capacidad = await pedirDatoSistema("Capacidad:", boton.dataset.capacidad);
-      const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (km/h):", boton.dataset.velocidad);
+      const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (UV):", boton.dataset.velocidad);
       if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
       opciones.body = JSON.stringify({ nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) });
     } else if (!await confirmarSistema("¿Eliminar esta unidad de metro?")) {
@@ -515,7 +516,7 @@ async function crearElementoDiseno(boton, token) {
   if (tipo === "unidad") {
     const nombreLinea = await pedirDatoSistema("Nombre de la línea asignada:");
     const capacidad = await pedirDatoSistema("Capacidad:", "300");
-    const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (km/h):", "40");
+    const velocidadPromedio = await pedirDatoSistema("Velocidad (UV):", String(VELOCIDAD_INICIAL));
     if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
     cuerpo = { nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) };
     ruta = "unidades";
@@ -568,7 +569,7 @@ function renderizarConfiguracion(configuraciones) {
     const restricciones = esCapacidadUnidad ? 'min="1" step="1"' : "";
     const unidad = esCapacidadUnidad ? '<span class="admin-unidad-configuracion">pasajeros</span>' : esRitmoReproduccion ? '<span class="admin-unidad-configuracion">×</span>' : "";
     const titulo = esRitmoReproduccion ? "Ritmo de reproducción (×)" : formatearClave(configuracion.clave);
-    const descripcion = esRitmoReproduccion ? "Ritmo inicial de la animación: 0.5×, 1×, 2× o 4×. No modifica los km/h de las unidades ni los puntos." : configuracion.descripcion;
+    const descripcion = esRitmoReproduccion ? "Ritmo inicial de la animación: 0.5×, 1×, 2× o 4×. No modifica los UV de las unidades ni los puntos." : configuracion.descripcion;
     const atributos = `class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" aria-label="Valor de ${escaparHtml(titulo)}"`;
     const campo = esMantenimiento
       ? `<select ${atributos}>${["activado", "desactivado"].includes(modo) ? "" : '<option value="" selected disabled>Seleccioná un estado</option>'}${["desactivado", "activado"].map(valor => `<option value="${valor}" ${modo === valor ? "selected" : ""}>${valor.toUpperCase()}</option>`).join("")}</select>`

@@ -103,7 +103,7 @@ class EliminacionDisenosIntegracionTest {
     @Test
     void administradorPuedeBorrarCompletadoConIntentoPuntajeYRedSinBorrarElNivel() throws Exception {
         var mapper = new ObjectMapper();
-        var puntuacion = new PuntuacionService(jdbc, mapper, new GeografiaService(mapper));
+        var puntuacion = new PuntuacionService(jdbc, mapper);
         assertEquals(100, puntuacion.ranking(8).puntajeTotal());
         http.perform(delete("/api/admin/disenos/103").header("Authorization", admin)).andExpect(status().isOk());
         for (String tabla : List.of("diseno", "intento", "linea", "estacion", "pasa", "tramo", "metro")) {

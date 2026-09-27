@@ -29,3 +29,6 @@ html:root body dialog.metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%
 /* El libro comparte el acento educativo sin cambiar el rojo de acciones destructivas. */
 html:root body .metronet-tutorial > summary.metronet-boton-icono { color:var(--tutorial-acento); border-color:var(--tutorial-acento); }
 html:root body .metronet-tutorial__panel.metronet-panel-superpuesto { background:var(--tutorial-superficie); border-color:var(--tutorial-acento); color:var(--tutorial-tinta); }
+
+/* Los pasos prácticos de simulación permiten operar el control destacado. */
+.metronet-recorrido:not(:modal) { z-index: 3000; }
