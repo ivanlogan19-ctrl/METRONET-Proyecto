@@ -149,6 +149,17 @@ class RestriccionesGeograficasIntegrationTest {
     }
 
     @Test
+    void geografiaPendienteSinEstacionesSeCumpleSoloDespuesDeConstruir() {
+        var servicio = new CondicionesGeograficasService(jdbc, mapper, geografia, restricciones);
+        var reglas = Map.<String, Object>of("requiereGeografiaValida", true);
+        assertFalse(servicio.evaluar(1, reglas, List.of()).getFirst().completado());
+        estacion("Propia", 580, 470);
+        assertTrue(servicio.evaluar(1, reglas, List.of()).getFirst().completado());
+        jdbc.update("DELETE FROM estacion WHERE id_diseno=1");
+        assertFalse(servicio.evaluar(1, reglas, List.of()).getFirst().completado());
+    }
+
+    @Test
     void redAnteriorIncompatibleSeInformaSinReescribirlaYCuentaEnLaConsigna() {
         jdbc.update("INSERT INTO estacion VALUES (1,'Anterior',600,600,FALSE,TRUE)");
         assertEquals(1, restricciones.observarDiseno(1).size());

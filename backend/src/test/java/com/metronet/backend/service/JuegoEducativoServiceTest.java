@@ -230,6 +230,21 @@ class JuegoEducativoServiceTest {
     }
 
     @Test
+    void limiteDeEstacionesNoOtorgaProgresoSinConstruirYRechazaExcedentes() throws Exception {
+        prepararIntentoParaConsigna(12, "EN_DESARROLLO", """
+            {"minimoEstaciones":2,"maximoEstaciones":3}
+            """);
+        for (int cantidad : List.of(0, 1, 3, 4)) {
+            prepararContadoresConsigna(cantidad, 0, 0, 0);
+            var respuesta = crearServicio().obtenerConsigna(usuario(Rol.JUGADOR), 55);
+            var limite = respuesta.condiciones().stream().filter(c -> c.clave().equals("maximoEstaciones")).findFirst().orElseThrow();
+            assertEquals(cantidad > 0 && cantidad <= 3, limite.completado(), "Estaciones: " + cantidad);
+            assertEquals(cantidad, limite.actual());
+            if (cantidad == 0) assertEquals(0, respuesta.progreso());
+        }
+    }
+
+    @Test
     void impideQueUnJugadorConsulteLaConsignaDeUnDisenoAjeno() throws Exception {
         Usuario jugador = usuario(Rol.JUGADOR);
         when(jdbcTemplate.query(

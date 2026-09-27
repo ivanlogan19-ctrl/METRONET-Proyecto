@@ -76,8 +76,11 @@ for (const n of [2, 3, 4, 5, 6, 7, 8, 9, 10]) test(`Nivel ${n}: condición real 
   diseno.estaciones = []; diseno.lineas = [];
   respuesta = consigna([condicion('minimoEstaciones', false), condicion('minimoLineas', false)]);
   if (n >= 4) respuesta.condiciones.push(condicion('requiereCoberturaPuntosInteres', false));
+  if (niveles[n - 1].reglasExito.requiereGeografiaValida) respuesta.condiciones.push(condicion('requiereGeografiaValida', false));
+  if (niveles[n - 1].reglasExito.maximoEstaciones) respuesta.condiciones.push({ ...condicion('maximoEstaciones', false), requerido: niveles[n - 1].reglasExito.maximoEstaciones });
   await p.evaluate(() => editorPrueba.abrirDiseno(77));
   await estado(p, n >= 4 ? 'explorar' : 'primera-estacion');
+  assert.equal(await p.locator('.metronet-consigna__barra-progreso').getAttribute('aria-valuenow'), '0');
   assert.equal(await p.locator('[data-assist-pista]').getAttribute('aria-pressed'), 'false');
 });
 

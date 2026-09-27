@@ -2,10 +2,18 @@ package com.metronet.backend.configuracion;
 
 import static org.junit.jupiter.api.Assertions.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metronet.backend.entity.Usuario;
+import com.metronet.backend.enums.Rol;
 import com.metronet.backend.service.*;
 import java.sql.DriverManager;
+import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -13,6 +21,89 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
  * No modifica tablas ni secuencias persistentes; no sustituye una prueba HTTP de extremo a extremo. */
 @EnabledIfEnvironmentVariable(named = "METRONET_TEST_POSTGRES_URL", matches = "jdbc:postgresql:.*")
 class CampanaPostgresTest {
+    static Stream<Arguments> nivelesYRoles() {
+        return IntStream.rangeClosed(1, 10).boxed()
+            .flatMap(nivel -> Stream.of(Rol.JUGADOR, Rol.ADMIN).map(rol -> Arguments.of(nivel, rol)));
+    }
+
+    @ParameterizedTest(name = "Nivel {0}, {1}: inicio, reanudación, repetición y campaña nueva")
+    @MethodSource("nivelesYRoles")
+    void cadaNivelComienzaVacioYSinConsignasResueltas(int nivel, Rol rol) throws Exception {
+        try (var conexion = DriverManager.getConnection(System.getenv("METRONET_TEST_POSTGRES_URL"),
+            System.getenv().getOrDefault("METRONET_TEST_POSTGRES_USER", "postgres"),
+            System.getenv().getOrDefault("METRONET_TEST_POSTGRES_PASSWORD", ""))) {
+            conexion.setAutoCommit(false);
+            var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
+            try {
+                prepararTablasTemporales(jdbc);
+                new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc).run();
+                jdbc.update("UPDATE usuario SET rol=? WHERE id_usuario=7", rol.name());
+                var usuario = new Usuario(); usuario.setIdUsuario(7); usuario.setRol(rol);
+                var mapper = new ObjectMapper();
+                var geo = new GeografiaService(mapper);
+                var restricciones = new RestriccionesGeograficasService(jdbc, mapper, geo);
+                var juego = new JuegoEducativoService(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo),
+                    new CondicionesGeograficasService(jdbc, mapper, geo, restricciones));
+                int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=?", Integer.class, nivel);
+                prepararNivelesAnteriores(jdbc, nivel, 1);
+                var inicio = juego.iniciarEscenario(7, escenario);
+                verificarInicioVacio(jdbc, juego, usuario, inicio.idDiseno());
+                assertTrue(inicio.mostrarTutorial());
+
+                // Reanudar conserva exclusivamente lo que este usuario ya construyó.
+                jdbc.update("INSERT INTO estacion VALUES (?,'Propia',710,460,FALSE)", inicio.idDiseno());
+                var reanudado = juego.iniciarEscenario(7, escenario);
+                assertEquals(inicio.idDiseno(), reanudado.idDiseno());
+                assertFalse(reanudado.mostrarTutorial());
+                assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno=?", Integer.class, reanudado.idDiseno()));
+
+                // El fixture representa un intento anterior finalizado; la solución real se prueba abajo.
+                jdbc.update("UPDATE intento SET estado='COMPLETADO',progreso=100,puntaje=100 WHERE id_intento=?", inicio.idIntento());
+                var repetido = juego.volverAJugar(7, escenario);
+                assertNotEquals(inicio.idDiseno(), repetido.idDiseno());
+                assertFalse(repetido.mostrarTutorial());
+                verificarInicioVacio(jdbc, juego, usuario, repetido.idDiseno());
+
+                juego.reiniciarRecorrido(7, 1);
+                prepararNivelesAnteriores(jdbc, nivel, 2);
+                var nuevo = juego.iniciarEscenario(7, escenario);
+                assertEquals(2, nuevo.numeroCampana());
+                assertTrue(nuevo.mostrarTutorial());
+                verificarInicioVacio(jdbc, juego, usuario, nuevo.idDiseno());
+                assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno=?", Integer.class, inicio.idDiseno()), "No se borra el diseño anterior");
+            } finally { conexion.rollback(); }
+        }
+    }
+
+    private static void prepararNivelesAnteriores(JdbcTemplate jdbc, int nivel, int campana) {
+        for (int anterior = 1; anterior < nivel; anterior++) {
+            int diseno = jdbc.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
+            jdbc.update("""
+                INSERT INTO intento(id_usuario,id_escenario,id_diseno,numero_campana,estado,progreso,puntaje)
+                SELECT 7,id_escenario,?,?,'COMPLETADO',100,100 FROM escenario WHERE numero=?
+                """, diseno, campana, anterior);
+        }
+    }
+
+    private static void verificarInicioVacio(JdbcTemplate jdbc, JuegoEducativoService juego, Usuario usuario, int diseno) {
+        for (String tabla : List.of("estacion", "linea", "tramo", "metro", "pasa")) {
+            assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM " + tabla + " WHERE id_diseno=?", Integer.class, diseno), tabla);
+        }
+        var consigna = juego.obtenerConsigna(usuario, diseno);
+        assertFalse(consigna.condiciones().isEmpty());
+        assertAll(
+            () -> assertTrue(consigna.condiciones().stream().noneMatch(c -> c.completado()),
+                "Condiciones resueltas sin construir: " + consigna.condiciones().stream().filter(c -> c.completado()).map(c -> c.clave()).toList()),
+            () -> assertEquals("INICIADO", consigna.estadoGlobal()),
+            () -> assertEquals(0, consigna.progreso()),
+            () -> assertEquals(0, juego.obtenerDesempeno(7, diseno).puntaje())
+        );
+        var evaluacion = juego.evaluarEscenario(7, diseno);
+        assertFalse(evaluacion.completado());
+        assertEquals(0, evaluacion.progreso());
+        assertEquals(0, evaluacion.puntaje());
+    }
+
     @Test
     void catalogoIdempotenteDiezSolucionesRecargaReinicioYLogroHistoricoEnPostgres() throws Exception {
         try (var conexion = DriverManager.getConnection(System.getenv("METRONET_TEST_POSTGRES_URL"),
@@ -21,17 +112,7 @@ class CampanaPostgresTest {
             conexion.setAutoCommit(false);
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
-                jdbc.execute("CREATE TEMP TABLE usuario(id_usuario INT PRIMARY KEY, numero_campana_actual INT, campana_completada_historicamente BOOLEAN) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE escenario(id_escenario INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY, numero INT, nombre VARCHAR, objetivo VARCHAR, dificultad VARCHAR, instrucciones VARCHAR, modo VARCHAR, progresivo BOOLEAN, reglas_exito JSONB, herramientas_habilitadas JSONB) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE intento(id_intento INT PRIMARY KEY, id_usuario INT, id_escenario INT, id_diseno INT, numero_campana INT, estado VARCHAR, progreso INT, puntaje INT, fecha_finalizacion TIMESTAMP) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE estacion(id_diseno INT, nombre VARCHAR, posicion_x NUMERIC(10,2), posicion_y NUMERIC(10,2), transbordo BOOLEAN) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE linea(id_diseno INT, nombre VARCHAR) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE tramo(id_diseno INT, nombre_linea VARCHAR, nombre_estacion_a VARCHAR, nombre_estacion_b VARCHAR) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE pasa(id_diseno INT, nombre_linea VARCHAR, nombre_estacion VARCHAR) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE metro(id_diseno INT, id_tren INT GENERATED BY DEFAULT AS IDENTITY, nombre_linea VARCHAR, velocidad_promedio NUMERIC(10,2), capacidad INT DEFAULT 300) ON COMMIT DROP");
-                jdbc.execute("CREATE TEMP TABLE simulacion(id_intento INT, comentarios TEXT, id_simulacion INT GENERATED BY DEFAULT AS IDENTITY, puntaje INT DEFAULT 0) ON COMMIT DROP");
-                jdbc.update("INSERT INTO usuario VALUES (7,1,FALSE)");
-                jdbc.execute("ALTER TABLE usuario ADD COLUMN rol VARCHAR DEFAULT 'JUGADOR'");
+                prepararTablasTemporales(jdbc);
                 var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
                 inicializador.run(); inicializador.run();
                 assertEquals(11, jdbc.queryForObject("SELECT COUNT(*) FROM escenario", Integer.class));
@@ -100,6 +181,21 @@ class CampanaPostgresTest {
             } finally { conexion.rollback(); }
             assertNull(jdbc.queryForObject("SELECT to_regclass('pg_temp.escenario')::text", String.class));
         }
+    }
+
+    private static void prepararTablasTemporales(JdbcTemplate jdbc) {
+        jdbc.execute("CREATE TEMP TABLE diseno(id_diseno INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE usuario(id_usuario INT PRIMARY KEY, numero_campana_actual INT, campana_completada_historicamente BOOLEAN) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE escenario(id_escenario INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY, numero INT, nombre VARCHAR, objetivo VARCHAR, dificultad VARCHAR, instrucciones VARCHAR, modo VARCHAR, progresivo BOOLEAN, reglas_exito JSONB, herramientas_habilitadas JSONB) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE intento(id_intento INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY, id_usuario INT, id_escenario INT, id_diseno INT, numero_campana INT, estado VARCHAR, progreso INT, puntaje INT, fecha_finalizacion TIMESTAMP) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE estacion(id_diseno INT, nombre VARCHAR, posicion_x NUMERIC(10,2), posicion_y NUMERIC(10,2), transbordo BOOLEAN) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE linea(id_diseno INT, nombre VARCHAR) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE tramo(id_diseno INT, nombre_linea VARCHAR, nombre_estacion_a VARCHAR, nombre_estacion_b VARCHAR) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE pasa(id_diseno INT, nombre_linea VARCHAR, nombre_estacion VARCHAR) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE metro(id_diseno INT, id_tren INT GENERATED BY DEFAULT AS IDENTITY, nombre_linea VARCHAR, velocidad_promedio NUMERIC(10,2), capacidad INT DEFAULT 300) ON COMMIT DROP");
+        jdbc.execute("CREATE TEMP TABLE simulacion(id_intento INT, comentarios TEXT, id_simulacion INT GENERATED BY DEFAULT AS IDENTITY, puntaje INT DEFAULT 0) ON COMMIT DROP");
+        jdbc.update("INSERT INTO usuario VALUES (7,1,FALSE)");
+        jdbc.execute("ALTER TABLE usuario ADD COLUMN rol VARCHAR DEFAULT 'JUGADOR'");
     }
 
     private void verificarPuntajeSimulaciones(JdbcTemplate jdbc, JuegoEducativoService juego, ObjectMapper mapper,

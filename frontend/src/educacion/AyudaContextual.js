@@ -46,8 +46,9 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
   if (inicial && pendientes.length && !tutorialActivo && ['crearLinea', 'crearTramo'].includes(modo)) return aviso(`${modo}-${Math.min(seleccionadas.length, 2)}`,
     seleccionadas.length < 2 ? 'Elegí estaciones distintas en el mapa. El orden de selección ayuda a definir el recorrido.' : 'El recorrido se está construyendo entre las estaciones elegidas.',
     modo === 'crearLinea' ? 'La segunda estación crea la línea y su primer tramo.' : 'Cada estación de destino extiende el recorrido de la línea activa.', ['estacion', 'linea', 'conexion']);
-  if (falta('requiereGeografiaValida')) return aviso('territorio', 'Hay una dificultad territorial. Revisá la ubicación de las estaciones y sus tramos.', 'Los límites se aplican al recorrido completo, no solo a sus extremos.', ['estacion', 'conexion', 'zona']);
-  if (falta('maximoEstaciones')) return aviso('limite', 'Hay más estaciones de las permitidas. Compará qué cobertura aporta cada ubicación.', 'Más elementos no siempre mejoran la red: compará su función antes de revisar el diseño.', ['estacion', 'cobertura']);
+  if (estaciones > 0 && falta('requiereGeografiaValida')) return aviso('territorio', 'Hay una dificultad territorial. Revisá la ubicación de las estaciones y sus tramos.', 'Los límites se aplican al recorrido completo, no solo a sus extremos.', ['estacion', 'conexion', 'zona']);
+  const limite = pendientes.find(c => c.clave === 'maximoEstaciones');
+  if (limite && limite.actual > limite.requerido) return aviso('limite', 'Hay más estaciones de las permitidas. Compará qué cobertura aporta cada ubicación.', 'Más elementos no siempre mejoran la red: compará su función antes de revisar el diseño.', ['estacion', 'cobertura']);
   if (!estaciones && geografico) return aviso(referencia ? 'referencia-elegida' : 'explorar',
     referencia ? 'Ya exploraste una referencia. Pensá cómo atenderla sin aislarla del recorrido.' : 'Antes de ubicar estaciones, identificá las referencias y áreas que la red debe atender.',
     'POI y barrio tienen distinta cobertura. Compará ambos criterios en la consigna.', ['poi', 'barrio', 'cobertura', 'estacion']);

@@ -416,7 +416,7 @@ public class JuegoEducativoService {
                 && maximo >= entero(reglas, "minimoEstaciones");
             condiciones.add(new CondicionConsignaResponse("maximoEstaciones",
                 valido ? "Usar como máximo " + maximo + " estaciones" : "Límite de estaciones inválido en la consigna",
-                estaciones, maximo, valido && estaciones <= maximo));
+                estaciones, maximo, valido && estaciones > 0 && estaciones <= maximo));
         }
         boolean redEsValida = redValida(idDiseno);
         agregarCondicion(

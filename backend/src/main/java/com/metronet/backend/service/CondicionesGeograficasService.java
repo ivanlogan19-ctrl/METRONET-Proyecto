@@ -35,9 +35,12 @@ public class CondicionesGeograficasService {
         JsonNode configuracion = mapper.valueToTree(reglas);
         if (Boolean.TRUE.equals(reglas.get("requiereGeografiaValida")) || reglas.containsKey("restriccionesGeograficas")) {
             List<String> problemas = restricciones.observarDiseno(idDiseno, restricciones.leerConfiguracion(configuracion.toString()));
+            Integer estaciones = jdbc.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
+            // Sin una red construida no hay geografía que acreditar como logro educativo.
+            boolean cumplida = estaciones != null && estaciones > 0 && problemas.isEmpty();
             condiciones.add(new CondicionConsignaResponse("requiereGeografiaValida", problemas.isEmpty()
                 ? "Mantener estaciones y conexiones dentro del territorio permitido"
-                : "Revisar la geografía de la red: " + String.join(" ", problemas), problemas.isEmpty() ? 1 : 0, 1, problemas.isEmpty()));
+                : "Revisar la geografía de la red: " + String.join(" ", problemas), cumplida ? 1 : 0, 1, cumplida));
         }
         if (reglas.containsKey("minimoTransbordos")) {
             JsonNode minimo = configuracion.path("minimoTransbordos");

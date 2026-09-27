@@ -18,9 +18,15 @@ for (const nivel of niveles) test(`Nivel ${nivel.numero}: inicio, primer element
   const c = contexto(nivel);
   const snapshot = JSON.stringify(nivel);
   if (nivel.reglasExito.requiereCoberturaPuntosInteres) c.consigna.condiciones.push(condicion('requiereCoberturaPuntosInteres', false));
+  if (nivel.reglasExito.requiereGeografiaValida) c.consigna.condiciones.push(condicion('requiereGeografiaValida', false));
+  if (nivel.reglasExito.maximoEstaciones) c.consigna.condiciones.push({ ...condicion('maximoEstaciones', false), actual: 0, requerido: nivel.reglasExito.maximoEstaciones });
   const inicio = orientar(c);
   assert.equal(inicio.clave, nivel.numero >= 4 ? 'explorar' : 'primera-estacion');
   c.diseno.estaciones.push({ nombre: 'A' });
+  // Después de construir en territorio permitido, el servidor confirma estos límites.
+  for (const condicion of c.consigna.condiciones) {
+    if (['requiereGeografiaValida', 'maximoEstaciones'].includes(condicion.clave)) condicion.completado = true;
+  }
   assert.equal(orientar(c).clave, 'primera-ubicada');
   c.diseno.estaciones.push({ nombre: 'B' });
   assert.equal(orientar(c).clave, 'primera-linea');
@@ -48,6 +54,7 @@ test('condiciones geográficas, transbordo y unidades: manda el estado del servi
     ['minimoMetros', 'minimoMetros'], ['minimoTramos', 'minimoTramos'],
   ]) {
     c.consigna.condiciones = [condicion('minimoEstaciones', true), condicion(clave, false)];
+    if (clave === 'maximoEstaciones') Object.assign(c.consigna.condiciones[1], { actual: 10, requerido: 9 });
     assert.equal(orientar(c).clave, esperada);
     c.consigna.condiciones[1].completado = true;
     assert.equal(orientar(c).clave, 'listo', `${clave}: la pista pendiente debe desaparecer`);
