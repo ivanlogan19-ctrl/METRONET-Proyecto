@@ -1,4 +1,5 @@
-// Tiempo visual compartido; independiente de cualquier solicitud de red.
+// El recorrido se normaliza a 1800 ms; la presentación dura la canción completa.
+// Sin sonido conserva su duración estimada. El límite de audio mide inactividad.
 export const CONFIGURACION_TRANSICION = Object.freeze({
   duracionMs: 1800,
   identificacionMs: 1000,

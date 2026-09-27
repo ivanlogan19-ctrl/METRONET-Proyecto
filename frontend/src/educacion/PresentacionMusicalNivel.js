@@ -32,6 +32,7 @@ export function crearPresentacionMusicalNivel({ dialogo, contexto, titulo, subti
   const audio = iniciarAudioPresentacion({
     contexto, duracionVisualMs: TIEMPOS.duracionMs,
     duracionAudioEstimadaMs: TIEMPOS.audioNivelEstimadoMs,
+    demoraSinAudioMs: TIEMPOS.audioNivelEstimadoMs,
     esperaMaximaMs: TIEMPOS.esperaMaximaAudioMs,
     contextoAlFinalizar: 'general',
     alTerminar() { actualizar(1); alTerminar(); },

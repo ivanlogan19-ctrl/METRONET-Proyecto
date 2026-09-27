@@ -63,11 +63,11 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   await p.getByRole('button',{name:'Comenzar escenario',exact:true}).click();
   await p.locator('.metronet-viaje').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(),0);
-  await p.clock.runFor(1500);
+  await p.clock.runFor(12000);
   await p.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();
   assert.equal(await p.locator('.metronet-cartel-transicion strong').textContent(),'NIVEL 1');
   assert.equal(new URL(p.url()).pathname,'/inicio.html');
-  await p.clock.runFor(400);
+  await p.clock.runFor(3000);
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
   assert.equal(await p.locator('.metronet-viaje').count(),0);
   await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).waitFor();
@@ -105,7 +105,7 @@ test('Último nivel recién completado: victoria → celebración → Modo Libre
   });
   await p.clock.install();
   await p.evaluate(() => { window.resultadoEntrada = editorPrueba.evaluarEscenarioGuardado(77); });
-  await p.locator('.metronet-victoria').waitFor(); await p.clock.runFor(1900);
+  await p.locator('.metronet-victoria').waitFor(); await p.clock.runFor(15000);
   await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
   assert.match(await p.locator('.metronet-identificacion').innerText(), /RECORRIDO COMPLETADO.*ESTÁS LISTO PARA EL MODO LIBRE/s);
   assert.equal(inicios, 1);

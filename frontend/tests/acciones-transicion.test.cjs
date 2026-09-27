@@ -94,11 +94,11 @@ for(const [width,height]of [[375,667],[320,568]])test(`Acciones visibles solo du
   const rect=await boton.boundingBox();
   assert.ok(rect.y>=0&&rect.y+rect.height<=height,'Jugar visible durante la animación sin scroll previo');
   assert.ok(rect.height>=44&&rect.x>=0&&rect.x+rect.width<=width);
-  await p.clock.runFor(850);
+  await p.clock.runFor(11300);
   assert.equal(await p.locator('.metronet-cartel-transicion').isVisible(),true);
   assert.equal(await p.locator(tipo==='intro'?'.metronet-viaje__pie':'.metronet-victoria__acciones').isVisible(),false);
   assert.equal(await boton.isVisible(),false);
-  await p.clock.runFor(350);
+  await p.clock.runFor(3000);
   if(tipo==='intro')await p.evaluate(async()=>{await intro.finalizada;intro.cerrar();});else await p.evaluate(()=>fin);
  }
 });

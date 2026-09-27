@@ -41,7 +41,7 @@ async function comenzar(p, tipo, nivel = niveles[0], final = false) {
     promesa.then(valor => { resultado = valor; continuaciones++; window.transcurrido = performance.now() - inicio; });
   }, { tipo, nivel, final });
 }
-for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan 1800 ms en los diez niveles (${movimiento})`, async t => {
+for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan 14968 ms en los diez niveles (${movimiento})`, async t => {
   const p = await abrir(t, movimiento);
   for (const nivel of niveles) {
     let geometria;
@@ -55,11 +55,11 @@ for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin
         assert.ok(await p.locator('[data-mensaje-id] p').textContent());
       } else assert.deepEqual(dibujo, geometria, 'Reutiliza toda la geometría original de victoria');
       assert.equal(await escena.count(), 1);
-      await p.clock.runFor(1799);
+      await p.clock.runFor(14967);
       assert.equal(await p.evaluate(() => resultado), undefined, 'No continúa antes del límite');
       await p.clock.runFor(1);
       assert.deepEqual(await p.evaluate(() => ({ resultado, continuaciones, transcurrido })), {
-        resultado: tipo === 'intro' ? true : 'siguiente', continuaciones: 1, transcurrido: 1800,
+        resultado: tipo === 'intro' ? true : 'siguiente', continuaciones: 1, transcurrido: 14968,
       });
       if (tipo === 'intro') await p.evaluate(() => intro.cerrar());
       await p.clock.runFor(1000);
@@ -83,7 +83,7 @@ for (const tipo of ['intro', 'outro']) for (const fallo of ['sinFrames', 'errorF
     if (fallo === 'sinCSS') [...document.styleSheets].forEach(s => s.disabled = true);
   }, fallo);
   await comenzar(p, tipo);
-  await p.clock.runFor(1800);
+  await p.clock.runFor(14968);
   assert.equal(await p.evaluate(() => resultado), tipo === 'intro' ? true : 'siguiente');
   if (tipo === 'intro') {
     assert.equal(await p.locator('.metronet-viaje__consigna p').textContent(), niveles[0].objetivo);
@@ -107,7 +107,7 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: cancelación y repetición
   });
   for (const modo of ['escape', 'popstate', 'pagehide', 'desmontar', 'reemplazar']) {
     await comenzar(p, tipo);
-    await p.clock.runFor(1600); // Durante el cartel, antes del respaldo silencioso de 1800 ms.
+    await p.clock.runFor(13000); // Durante el cartel, antes de completar la presentación.
     if (modo === 'escape') await p.keyboard.press('Escape');
     else await p.evaluate(({ modo, tipo }) => {
       if (modo === 'desmontar') document.querySelector('dialog').remove();
@@ -134,7 +134,7 @@ test('Jugar adelanta la entrada y el resumen final conserva la información', as
   await p.evaluate(() => intro.cerrar());
   await comenzar(p, 'outro', niveles[9], true);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), false);
-  await p.clock.runFor(1799);
+  await p.clock.runFor(14967);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), false);
   await p.clock.runFor(1);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), true);

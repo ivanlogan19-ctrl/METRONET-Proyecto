@@ -6,12 +6,13 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
   duracionAudioEstimadaMs, demoraSinAudioMs = duracionVisualMs, esperaMaximaMs, alTerminar,
   contextoAlFinalizar = 'transition' }) {
   let eliminada = false, finalizada = false, audioIniciado = false, sinAudio = false;
+  let ultimaPosicion = 0;
   let desuscribir = () => {};
   let liberar = gestorMusica.usarContextoTemporal(contexto, { reiniciar: true });
   const finalizar = () => {
     if (eliminada || finalizada) return;
     finalizada = true;
-    clearTimeout(limiteInicio); clearTimeout(limiteAbsoluto); desuscribir();
+    clearTimeout(limiteInicio); clearTimeout(limiteInactividad); desuscribir();
     // El resumen puede permanecer abierto. También ante un fallo, mantener
     // silencio hasta que su dueño lo cierre, sin reiniciar gameplay detrás.
     const mantenerSilencio = gestorMusica.usarContextoTemporal(contextoAlFinalizar);
@@ -19,7 +20,7 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
     alTerminar();
   };
   let limiteInicio = setTimeout(finalizar, demoraSinAudioMs);
-  const limiteAbsoluto = setTimeout(finalizar, esperaMaximaMs);
+  let limiteInactividad = setTimeout(finalizar, esperaMaximaMs);
   desuscribir = gestorMusica.suscribir(estado => {
     if (eliminada || finalizada || estado.contexto !== contexto) return;
     sinAudio = estado.error || estado.esperandoGesto || estado.silenciado || estado.volumen === 0;
@@ -27,12 +28,19 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
     if (estado.reproduciendo && !sinAudio) {
       audioIniciado = true;
       clearTimeout(limiteInicio); limiteInicio = null;
+      // Una descarga o pausa temporal no consume el tiempo de la canción.
+      // El respaldo limita un audio detenido, no una reproducción que avanza.
+      if (estado.posicion > ultimaPosicion) {
+        ultimaPosicion = estado.posicion;
+        clearTimeout(limiteInactividad);
+        limiteInactividad = setTimeout(finalizar, esperaMaximaMs);
+      }
     } else if (sinAudio && limiteInicio === null) {
       limiteInicio = setTimeout(finalizar, Math.max(0, demoraSinAudioMs - (performance.now() - inicio)));
     }
   });
   function obtenerEscalaDuracion() {
-    if (sinAudio) return 1;
+    if (sinAudio) return demoraSinAudioMs / duracionVisualMs;
     const duracion = gestorMusica.obtenerEstado().duracion;
     return (Number.isFinite(duracion) && duracion > 0 ? duracion * 1000 : duracionAudioEstimadaMs) / duracionVisualMs;
   }
@@ -40,13 +48,13 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
     obtenerEscalaDuracion,
     obtenerTiempo() {
       if (finalizada) return duracionVisualMs;
-      if (sinAudio) return performance.now() - inicio;
+      if (sinAudio) return (performance.now() - inicio) / obtenerEscalaDuracion();
       return audioIniciado ? gestorMusica.obtenerEstado().posicion * 1000 / obtenerEscalaDuracion() : 0;
     },
     eliminar({ alNavegar = false } = {}) {
       if (eliminada) return;
       eliminada = true;
-      clearTimeout(limiteInicio); clearTimeout(limiteAbsoluto); desuscribir();
+      clearTimeout(limiteInicio); clearTimeout(limiteInactividad); desuscribir();
       if (alNavegar) gestorMusica.establecerContexto('general');
       liberar();
     },

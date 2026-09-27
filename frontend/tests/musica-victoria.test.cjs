@@ -53,7 +53,7 @@ test('Finales 1 → 2 → 3: viaje y nuevo nivel usan una sola canción completa
   assert.equal(e.pistaSiguiente,'/audio/gameplay-theme.mp3');
  }
 });
-for(const fallo of ['silencio','archivo','autoplay'])test(`Un fallo musical (${fallo}) no retiene la finalización`,async t=>{
+for(const fallo of ['silencio','archivo','autoplay'])test(`Sin sonido (${fallo}) conserva quince segundos sin bloquear la finalización`,async t=>{
  const p=await abrir(t);
  if(fallo==='archivo')await p.route('**/audio/victory-theme.mp3',r=>r.fulfill({status:404}));
  const resultado=await p.evaluate(async fallo=>{
@@ -64,7 +64,7 @@ for(const fallo of ['silencio','archivo','autoplay'])test(`Un fallo musical (${f
   const inicio=performance.now(); const accion=await mostrarTransicionNivel({numero:1},{numero:2},{puntaje:100});
   return {ms:performance.now()-inicio,accion,overlays:document.querySelectorAll('.metronet-victoria').length};
  },fallo);
- assert.equal(resultado.accion,'siguiente');assert.ok(resultado.ms>=1750&&resultado.ms<2600);assert.equal(resultado.overlays,0);
+ assert.equal(resultado.accion,'siguiente');assert.ok(resultado.ms>=14900&&resultado.ms<16000);assert.equal(resultado.overlays,0);
 });
 test('Menú → gameplay mezcla pistas distintas una vez; repetir contexto no reinicia ni mezcla consigo mismo',async t=>{
  const p=await abrir(t);

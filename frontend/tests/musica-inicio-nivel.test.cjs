@@ -57,12 +57,12 @@ for (const reducido of [false, true]) test(`Viaje y cartel comparten Donkey Kong
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/gameplay-theme.mp3' && !a.paused; });
 });
 
-for (const fallo of ['archivo', 'silencio']) test(`Donkey Kong ${fallo}: no demora ni bloquea el nivel`, async t => {
+for (const fallo of ['archivo', 'silencio']) test(`Donkey Kong ${fallo}: conserva el viaje y permite entrar al nivel`, async t => {
   const { pagina: p } = await abrir(t);
   if (fallo === 'archivo') await p.route('**/audio/victory-theme.mp3', route => route.fulfill({ status: 404 }));
   else await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
   await p.getByRole('button', { name: 'Comenzar escenario', exact: true }).click();
-  await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
+  await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123', { timeout: 20000 });
   await p.getByRole('button', { name: 'Mostrar tutorial', exact: true }).waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
 });

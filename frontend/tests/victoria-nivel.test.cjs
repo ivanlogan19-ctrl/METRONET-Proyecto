@@ -15,7 +15,7 @@ const resumen = completados => ({cantidadNiveles:10,nivelesCompletados:completad
 async function abrir(t,opciones={}) {
   const vista=await abrirPantalla(navegador,'/escenarios.html',opciones);
   t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[]);});
-  // La composición con reloj controlado prueba el respaldo silencioso de 1,8 s.
+  // La composición con reloj controlado prueba el respaldo silencioso de quince segundos.
   await vista.pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
   await vista.pagina.clock.install();return vista;
 }
@@ -52,14 +52,14 @@ for(const [width,height] of [[1366,768],[1440,900],[1920,1080],[768,1024],[390,8
   assert.ok(medidas.imagen>Math.max(...medidas.texto),'La animación es el bloque principal');
   assert.ok(medidas.tren>=85,'Metro reconocible también en móvil');if(width>=768)assert.equal(medidas.scroll,false);
   if(process.env.METRONET_VICTORIA_CAPTURAS){fs.mkdirSync(process.env.METRONET_VICTORIA_CAPTURAS,{recursive:true});const base=path.join(process.env.METRONET_VICTORIA_CAPTURAS,`victoria-${width}x${height}`);await pagina.screenshot({path:base+'.png'});fs.writeFileSync(base+'.json',JSON.stringify(medidas,null,2));}
-  await pagina.clock.runFor(800);assert.equal(await pagina.evaluate(()=>window.accionVictoria),'siguiente');assert.equal(await d.count(),0);
+  await pagina.clock.runFor(14000);assert.equal(await pagina.evaluate(()=>window.accionVictoria),'siguiente');assert.equal(await d.count(),0);
  });
 }
 test('Reduced motion conserva progreso y avance sin desplazamiento continuo',async t=>{
  const {pagina}=await abrir(t,{reducedMotion:'reduce',viewport:{width:390,height:844}});const d=await victoria(pagina);
- const inicio=await d.locator('.recorrido-tren').getAttribute('transform');await pagina.clock.runFor(1200);
+ const inicio=await d.locator('.recorrido-tren').getAttribute('transform');await pagina.clock.runFor(9000);
  assert.equal(await d.locator('.recorrido-tren').getAttribute('transform'),inicio);assert.ok(Number(await d.getByRole('progressbar').getAttribute('aria-valuenow'))>50);
- assert.equal(await d.getAttribute('data-movimiento-reducido'),'true');await pagina.clock.runFor(800);assert.equal(await pagina.evaluate(()=>window.accionVictoria),'siguiente');
+ assert.equal(await d.getAttribute('data-movimiento-reducido'),'true');await pagina.clock.runFor(14000);assert.equal(await pagina.evaluate(()=>window.accionVictoria),'siguiente');
 });
 for(const anterior of [null,95,100])test(`No inventa récord con referencia ${anterior}`,async t=>{
  const {pagina}=await abrir(t);const d=await victoria(pagina,{mejorPuntajeAnterior:anterior});assert.equal(await d.locator('.metronet-victoria__record').count(),0);
@@ -68,7 +68,7 @@ for(const anterior of [null,95,100])test(`No inventa récord con referencia ${an
 for(const width of [1366,390])test(`Final ${width}: llegada, resumen, total y ranking; sin nivel inexistente`,async t=>{
  const {pagina,solicitudes}=await abrir(t,{viewport:{width,height:width===1366?768:844}});
  const d=await victoria(pagina,{final:true,resumen:resumen(10),ranking:{puntajeTotal:850,puntajeMaximo:1000,tuPosicion:4}});
- assert.equal(await d.locator('.metronet-victoria__resumen').isVisible(),false);await pagina.clock.runFor(1900);
+ assert.equal(await d.locator('.metronet-victoria__resumen').isVisible(),false);await pagina.clock.runFor(15000);
  assert.match(await d.innerText(),/850 \/ 1000 puntos acumulados.*Tu posición: 4/s);assert.equal(await d.getByRole('progressbar').getAttribute('aria-valuenow'),'100');
  assert.equal(await d.evaluate(e=>e.scrollHeight>e.clientHeight+1),false);assert.equal(await pagina.evaluate(()=>window.accionVictoria),undefined);
  if(process.env.METRONET_VICTORIA_CAPTURAS)await pagina.screenshot({path:path.join(process.env.METRONET_VICTORIA_CAPTURAS,`final-${width}.png`)});
@@ -79,7 +79,7 @@ test('Destino persistido admite repetir, respeta bloqueados y excluye Modo Libre
  for(const estado of ['COMPLETADO','DISPONIBLE','BLOQUEADO']){
   const progreso=resumen(6);progreso.escenarios[6].estado=estado;progreso.escenarios[6].desbloqueado=estado!=='BLOQUEADO';
   await pagina.evaluate(async progreso=>{const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');window.accion=presentarResultadoNivel(progreso,6,{completado:true,puntaje:95,idSiguienteEscenario:7});},progreso);
-  await pagina.locator('.metronet-victoria').waitFor();await pagina.clock.runFor(1900);const accion=await pagina.evaluate(()=>window.accion);
+  await pagina.locator('.metronet-victoria').waitFor();await pagina.clock.runFor(15000);const accion=await pagina.evaluate(()=>window.accion);
   if(estado==='BLOQUEADO')assert.deepEqual(accion,{destino:'/escenarios.html'});else assert.equal(accion.siguiente.estado,estado);
  }
  const acciones=await pagina.evaluate(async()=>{const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');return Promise.all([
@@ -90,7 +90,7 @@ test('Ranking fallido no bloquea la victoria final de un administrador',async t=
  const {pagina}=await abrir(t,{responder:async req=>new URL(req.url()).pathname.endsWith('/ranking')?{status:503,json:{}}:null});
  const progreso=resumen(0);progreso.escenarios[9].estado='COMPLETADO';progreso.escenarios.forEach(e=>e.desbloqueado=true);
  await pagina.evaluate(async progreso=>{const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');window.accion=presentarResultadoNivel(progreso,10,{completado:true,puntaje:100,idSiguienteEscenario:null});},progreso);
- const d=pagina.locator('.metronet-victoria');await d.waitFor();await pagina.clock.runFor(1900);assert.match(await d.innerText(),/Resumen del recorrido/i);assert.doesNotMatch(await d.innerText(),/Campaña completada/i);
+ const d=pagina.locator('.metronet-victoria');await d.waitFor();await pagina.clock.runFor(15000);assert.match(await d.innerText(),/Resumen del recorrido/i);assert.doesNotMatch(await d.innerText(),/Campaña completada/i);
  await d.getByRole('button',{name:'Seleccionar nivel'}).click();assert.deepEqual(await pagina.evaluate(()=>window.accion),{destino:'/escenarios.html'});
 });
 test('Cancelación, reemplazo y desmontaje limpian frames y evitan dobles continuaciones',async t=>{
@@ -132,7 +132,7 @@ test('Constructor real: evaluación única, victoria y siguiente nivel sin segun
  await pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
  await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.evaluarEscenarioGuardado(77),editorPrueba.evaluarEscenarioGuardado(77)]);});
  const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.match(await d.innerText(),/Nuevo récord personal/i);assert.equal(evaluaciones,1);assert.equal(inicios,0);
-  await pagina.clock.runFor(1900);await pagina.waitForFunction(()=>!editorPrueba.evaluacionEnCurso);assert.equal(await pagina.locator('.metronet-identificacion').count(),0);assert.equal(inicios,1);assert.equal(await pagina.locator('.metronet-viaje').count(),0);
+  await pagina.clock.runFor(15000);await pagina.waitForFunction(()=>!editorPrueba.evaluacionEnCurso);assert.equal(await pagina.locator('.metronet-identificacion').count(),0);assert.equal(inicios,1);assert.equal(await pagina.locator('.metronet-viaje').count(),0);
  assert.equal(new URL(pagina.url()).searchParams.get('idEscenario'),'2');
 });
 for (const caso of ['repetido','administrador','errorInicio','modoLibre','incompleto']) test(`Simulación integrada: ${caso}`,async t=>{
