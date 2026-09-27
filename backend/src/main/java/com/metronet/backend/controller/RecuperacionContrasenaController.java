@@ -8,14 +8,12 @@ import com.metronet.backend.dto.CambiarContrasenaRecuperacionRequest;
 import com.metronet.backend.service.RecuperacionContrasenaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = {"http://127.0.0.1:5173", "http://localhost:5173"}, allowedHeaders = "*")
 public class RecuperacionContrasenaController {
     private final RecuperacionContrasenaService recuperacionContrasenaService;
 

@@ -13,7 +13,6 @@ import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.service.AuthService;
 import com.metronet.backend.service.JuegoEducativoService;
 import java.util.List;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/juego")
-@CrossOrigin(origins = {"http://127.0.0.1:5173", "http://localhost:5173"}, allowedHeaders = "*")
 public class JuegoEducativoController {
     private final AuthService authService;
     private final JuegoEducativoService juegoEducativoService;

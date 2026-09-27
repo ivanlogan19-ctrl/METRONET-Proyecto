@@ -1,10 +1,21 @@
 const path = require('node:path');
 const { defineConfig } = require('vite');
+const { headers, politicaMeta } = require('./seguridad-http.cjs');
 
 const ENTRADA_AUDIO = '/src/audio/ReanudacionTemprana.js';
 
 module.exports = defineConfig({
+  server: { headers },
+  preview: { headers },
   plugins: [{
+    name: 'metronet-politica-contenido',
+    transformIndexHtml: {
+      order: 'post',
+      // También protege HTML servido por un host estático sin configuración de cabeceras.
+      handler: html => html.replace(/(<meta charset="[^"]+"\s*\/?>)/i,
+        `$1\n  <meta http-equiv="Content-Security-Policy" content="${politicaMeta}">`),
+    },
+  }, {
     name: 'metronet-primer-render',
     apply: 'build',
     // Vite genera una nueva etiqueta para la entrada y descarta blocking.

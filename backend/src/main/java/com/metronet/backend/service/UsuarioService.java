@@ -184,12 +184,8 @@ public class UsuarioService {
     }
 
     private void validarContrasena(String contrasena) {
-        boolean esValida = contrasena.length() >= 6
-            && contrasena.matches(".*[A-Z].*")
-            && contrasena.matches(".*[^A-Za-z0-9].*");
-
-        if (!esValida) {
-            throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres, una mayúscula y un carácter especial");
+        if (!com.metronet.backend.utilidades.PoliticaContrasena.esValida(contrasena)) {
+            throw new IllegalArgumentException(com.metronet.backend.utilidades.PoliticaContrasena.MENSAJE);
         }
     }
 }

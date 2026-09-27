@@ -181,6 +181,7 @@ public class RecuperacionContrasenaService {
         recuperacionContrasenaRepository.save(recuperacion);
     }
 
+    @Transactional
     public SolicitudCodigoRecuperacionResponse reenviarCodigo(String email) {
         return solicitarRecuperacion(email);
     }

@@ -14,27 +14,44 @@ import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
 import com.metronet.backend.repository.UsuarioRepository;
 import com.metronet.backend.utilidades.ValidadorDatos;
+import com.metronet.backend.utilidades.LimiteSolicitudes;
+import com.metronet.backend.utilidades.PoliticaContrasena;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.time.Clock;
+import java.util.Locale;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(AuthService.class);
     private static final Duration DURACION_SESION = Duration.ofHours(8);
     private static final SecureRandom GENERADOR_TOKENS = new SecureRandom();
+    private static final String HASH_INEXISTENTE = new BCryptPasswordEncoder().encode("Cuenta no disponible " + GENERADOR_TOKENS.nextLong());
+    private final Clock reloj;
+    private final LimiteSolicitudes intentos;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final Map<String, SesionActiva> sesionesUsuario = new ConcurrentHashMap<>();
     private final Map<String, SesionActiva> sesionesAdministrador = new ConcurrentHashMap<>();
 
     public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+        this(usuarioRepository, passwordEncoder, Clock.systemUTC());
+    }
+
+    @Autowired
+    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, Clock reloj) {
+        this.reloj = reloj;
+        this.intentos = new LimiteSolicitudes(reloj, 6, Duration.ofMinutes(15));
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -64,7 +81,7 @@ public class AuthService {
             );
         }
 
-        String email = solicitud.email().trim().toLowerCase();
+        String email = solicitud.email().trim().toLowerCase(Locale.ROOT);
 
         if (!ValidadorDatos.esCorreoElectronicoValido(email)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá un correo electrónico válido");
@@ -75,6 +92,7 @@ public class AuthService {
         }
 
         Usuario usuario = new Usuario();
+        validarNombre(solicitud.nombre(), solicitud.apellido());
         usuario.setNombre(solicitud.nombre().trim());
         usuario.setApellido(solicitud.apellido().trim());
         usuario.setEmail(email);
@@ -100,27 +118,7 @@ public class AuthService {
     }
 
     public Usuario obtenerAdministradorAutorizado(String autorizacion) {
-        if (autorizacion == null || !autorizacion.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión de administrador no es válida");
-        }
-
-        String token = autorizacion.substring(7).trim();
-        Integer idUsuario = obtenerIdSesion(sesionesAdministrador, token);
-
-        if (idUsuario == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión de administrador venció o no es válida");
-        }
-
-        Usuario administrador = usuarioRepository.findById(idUsuario).orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión de administrador no es válida")
-        );
-
-        if (administrador.getRol() != Rol.ADMIN) {
-            sesionesAdministrador.remove(token);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Esta cuenta ya no tiene permisos de administrador");
-        }
-
-        return administrador;
+        return obtenerSesion(sesionesAdministrador, autorizacion);
     }
 
     public void cerrarSesionAdministrador(String autorizacion) {
@@ -142,6 +140,7 @@ public class AuthService {
         }
 
         Usuario usuario = obtenerUsuarioConSesion(autorizacion);
+        validarNombre(solicitud.nombre(), solicitud.apellido());
         usuario.setNombre(solicitud.nombre().trim());
         usuario.setApellido(solicitud.apellido().trim());
         return convertirAPerfil(usuarioRepository.save(usuario));
@@ -156,7 +155,7 @@ public class AuthService {
         }
 
         Usuario usuario = obtenerUsuarioConSesion(autorizacion);
-        String email = solicitud.email().trim().toLowerCase();
+        String email = solicitud.email().trim().toLowerCase(Locale.ROOT);
 
         if (!ValidadorDatos.esCorreoElectronicoValido(email)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá un correo electrónico válido");
@@ -227,27 +226,31 @@ public class AuthService {
     private Usuario obtenerUsuarioPorEmailYContrasena(LoginRequest solicitud) {
         validarCredenciales(solicitud);
 
-        return usuarioRepository
-            .findByEmailIgnoreCase(solicitud.email().trim())
-            .filter(candidato -> coincideContrasena(candidato, solicitud.password()))
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.UNAUTHORIZED,
-                "Email o contraseña incorrectos"
-            ));
+        return autenticar("jugador:" + solicitud.email().trim().toLowerCase(Locale.ROOT),
+            solicitud.password(), () -> usuarioRepository.findByEmailIgnoreCase(solicitud.email().trim()),
+            "Email o contraseña incorrectos");
     }
 
     private Usuario obtenerAdministradorPorUsuarioYContrasena(LoginAdministradorRequest solicitud) {
-        if (solicitud == null || esVacio(solicitud.usuario()) || esVacio(solicitud.password())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Completá usuario y contraseña");
+        if (solicitud == null || esVacio(solicitud.usuario()) || esVacio(solicitud.password()) || solicitud.usuario().length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Completá usuario y contraseña válidos");
         }
+        return autenticar("admin:" + solicitud.usuario().trim().toLowerCase(Locale.ROOT),
+            solicitud.password(), () -> usuarioRepository.findByIdentificadorAdministradorIgnoreCase(solicitud.usuario().trim()),
+            "Usuario o contraseña incorrectos");
+    }
 
-        return usuarioRepository
-            .findByIdentificadorAdministradorIgnoreCase(solicitud.usuario().trim())
-            .filter(candidato -> coincideContrasena(candidato, solicitud.password()))
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.UNAUTHORIZED,
-                "Usuario o contraseña incorrectos"
-            ));
+    private Usuario autenticar(String clave, String password, java.util.function.Supplier<java.util.Optional<Usuario>> buscar, String mensaje) {
+        intentos.registrar(clave);
+        Usuario usuario = buscar.get().orElse(null);
+        if (usuario == null) {
+            if (PoliticaContrasena.admiteBCrypt(password)) passwordEncoder.matches(password, HASH_INEXISTENTE);
+        } else if (coincideContrasena(usuario, password)) {
+            intentos.limpiar(clave);
+            return usuario;
+        }
+        LOG.warn("seguridad: acceso rechazado ({})", clave.startsWith("admin:") ? "ADMIN" : "JUGADOR");
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, mensaje);
     }
 
     private SesionUsuarioResponse crearSesionUsuario(Usuario usuario) {
@@ -257,41 +260,39 @@ public class AuthService {
     }
 
     public Usuario obtenerUsuarioAutorizado(String autorizacion) {
-        if (autorizacion == null || !autorizacion.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida");
-        }
-
-        Integer idUsuario = obtenerIdSesion(sesionesUsuario, autorizacion.substring(7).trim());
-
-        if (idUsuario == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión venció o no es válida");
-        }
-
-        return usuarioRepository.findById(idUsuario).orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida")
-        );
+        return obtenerSesion(sesionesUsuario, autorizacion);
     }
 
     public Usuario obtenerUsuarioConSesion(String autorizacion) {
-        if (autorizacion == null || !autorizacion.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida");
-        }
+        String token = extraerToken(autorizacion);
+        return obtenerSesion(sesionesAdministrador.containsKey(token) ? sesionesAdministrador : sesionesUsuario, autorizacion);
+    }
 
+    private String extraerToken(String autorizacion) {
+        if (autorizacion == null || !autorizacion.startsWith("Bearer ")) throw sesionInvalida();
         String token = autorizacion.substring(7).trim();
-        Integer idUsuario = obtenerIdSesion(sesionesUsuario, token);
+        if (!token.matches("[A-Za-z0-9_-]{43}")) throw sesionInvalida();
+        return token;
+    }
 
-        if (idUsuario == null) {
-            idUsuario = obtenerIdSesion(sesionesAdministrador, token);
+    private Usuario obtenerSesion(Map<String, SesionActiva> sesiones, String autorizacion) {
+        String token = extraerToken(autorizacion);
+        SesionActiva sesion = sesiones.get(token);
+        if (sesion == null) throw sesionInvalida();
+        if (!sesion.fechaVencimiento().isAfter(LocalDateTime.now(reloj))) {
+            sesiones.remove(token);
+            throw sesionInvalida();
         }
-
-        if (idUsuario == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión venció o no es válida");
+        Usuario usuario = usuarioRepository.findById(sesion.idUsuario()).orElse(null);
+        if (usuario == null || usuario.getRol() != sesion.rol()) {
+            sesiones.remove(token);
+            throw sesionInvalida();
         }
+        return usuario;
+    }
 
-        Integer identificadorUsuario = idUsuario;
-        return usuarioRepository.findById(identificadorUsuario).orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida")
-        );
+    private ResponseStatusException sesionInvalida() {
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión venció o no es válida");
     }
 
     public void invalidarSesionesDeUsuario(Integer idUsuario) {
@@ -300,8 +301,11 @@ public class AuthService {
     }
 
     private String crearSesion(Map<String, SesionActiva> sesiones, Usuario usuario) {
+        LocalDateTime ahora = LocalDateTime.now(reloj);
+        sesionesUsuario.values().removeIf(sesion -> !sesion.fechaVencimiento().isAfter(ahora));
+        sesionesAdministrador.values().removeIf(sesion -> !sesion.fechaVencimiento().isAfter(ahora));
         String token = generarToken();
-        sesiones.put(token, new SesionActiva(usuario.getIdUsuario(), LocalDateTime.now().plus(DURACION_SESION)));
+        sesiones.put(token, new SesionActiva(usuario.getIdUsuario(), usuario.getRol(), ahora.plus(DURACION_SESION)));
         return token;
     }
 
@@ -311,19 +315,10 @@ public class AuthService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    private Integer obtenerIdSesion(Map<String, SesionActiva> sesiones, String token) {
-        SesionActiva sesion = sesiones.get(token);
-
-        if (sesion == null) {
-            return null;
+    private void validarNombre(String nombre, String apellido) {
+        if (nombre.length() > 100 || apellido.length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre y apellido admiten hasta 100 caracteres cada uno");
         }
-
-        if (!sesion.fechaVencimiento().isAfter(LocalDateTime.now())) {
-            sesiones.remove(token);
-            return null;
-        }
-
-        return sesion.idUsuario();
     }
 
     private boolean esVacio(String valor) {
@@ -331,40 +326,15 @@ public class AuthService {
     }
 
     private boolean coincideContrasena(Usuario usuario, String contrasena) {
-        String contrasenaAlmacenada = usuario.getPassword();
-
-        if (esHashBCrypt(contrasenaAlmacenada)) {
-            try {
-                return passwordEncoder.matches(contrasena, contrasenaAlmacenada);
-            } catch (IllegalArgumentException excepcion) {
-                return false;
-            }
-        }
-
-        if (!contrasenaAlmacenada.equals(contrasena)) {
-            return false;
-        }
-
-        usuario.setPassword(passwordEncoder.encode(contrasena));
-        usuarioRepository.save(usuario);
-        return true;
-    }
-
-    private boolean esHashBCrypt(String valor) {
-        return valor != null && valor.matches("^\\$2[aby]\\$\\d{2}\\$.*");
+        if (!PoliticaContrasena.admiteBCrypt(contrasena)) return false;
+        try {
+            return passwordEncoder.matches(contrasena, usuario.getPassword());
+        } catch (IllegalArgumentException excepcion) { return false; }
     }
 
     private void validarContrasena(String contrasena) {
-        boolean esValida = contrasena != null
-            && contrasena.length() >= 6
-            && contrasena.matches(".*[A-Z].*")
-            && contrasena.matches(".*[^A-Za-z0-9].*");
-
-        if (!esValida) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "La contraseña debe tener al menos 6 caracteres, una mayúscula y un carácter especial"
-            );
+        if (!PoliticaContrasena.esValida(contrasena)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, PoliticaContrasena.MENSAJE);
         }
     }
 
@@ -389,5 +359,5 @@ public class AuthService {
         );
     }
 
-    private record SesionActiva(Integer idUsuario, LocalDateTime fechaVencimiento) {}
+    private record SesionActiva(Integer idUsuario, Rol rol, LocalDateTime fechaVencimiento) {}
 }

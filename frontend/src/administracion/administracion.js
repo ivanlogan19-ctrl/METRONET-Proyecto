@@ -882,7 +882,8 @@ function formatearRol(rol) {
 }
 
 function escaparHtml(valor) {
-  const contenedor = document.createElement("span");
-  contenedor.textContent = valor ?? "";
-  return contenedor.innerHTML;
+  // Se utiliza tanto en texto como en atributos entre comillas.
+  return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[caracter]);
 }

@@ -1,4 +1,5 @@
 import { iniciarAudioBienvenida } from '../audio/AudioBienvenida.js';
+import { obtenerDestinoSeguro } from './DestinoSeguro.js';
 
 const CLAVE_PENDIENTE = 'metronet:bienvenida-pendiente';
 let bienvenidaActiva = null;
@@ -16,7 +17,7 @@ export function reanudarBienvenida(sesion) {
     if (!sesion?.token || pendiente.rol !== sesion.usuario?.rol
       || pendiente.origen !== location.pathname + location.search
       || !pendiente.destino?.startsWith('/') || pendiente.destino.startsWith('//')) return false;
-    location.replace(pendiente.destino);
+    location.replace(obtenerDestinoSeguro(pendiente.destino));
     return true;
   } catch { return false; }
 }
@@ -24,6 +25,7 @@ export function reanudarBienvenida(sesion) {
 // Único propietario de la navegación. La música avisa su final; los fallos visuales
 // y los límites del audio permiten acceder sin depender de frames ni descargas.
 export function continuarConBienvenida(sesion, destino) {
+  destino = obtenerDestinoSeguro(destino);
   if (bienvenidaActiva) return bienvenidaActiva;
   bienvenidaActiva = new Promise(resolve => {
     let terminada = false, cobertura, vista, audio;

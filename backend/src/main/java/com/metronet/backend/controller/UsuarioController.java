@@ -9,7 +9,6 @@ import com.metronet.backend.service.AuthService;
 import com.metronet.backend.service.ActividadAdministrativaService;
 import com.metronet.backend.service.UsuarioService;
 import java.util.List;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,10 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin/usuarios")
-@CrossOrigin(
-    origins = {"http://127.0.0.1:5173", "http://localhost:5173"},
-    allowedHeaders = "*"
-)
 public class UsuarioController {
     private final UsuarioService usuarioService;
     private final AuthService authService;

@@ -2,6 +2,12 @@
 set -eu
 
 directorio_script=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+configuracion_local="$directorio_script/../../.local/configuracion/backend.env"
+if [ -f "$configuracion_local" ]; then
+  set -a
+  . "$configuracion_local"
+  set +a
+fi
 restaurar_terminal() {
   stty echo
 }

@@ -22,6 +22,28 @@ window.addEventListener('pagehide', () => { versionNavegacion++; });
 let limpiarEventosUsuario = null;
 let limpiarMantenimiento = null;
 let controlMusica = null;
+let limpiarProteccionSesion = null;
+
+function protegerVistaDeSesion(sesion) {
+  let invalidada = false;
+  const comprobar = () => {
+    if (invalidada || obtenerSesionActiva()?.token === sesion.token) return;
+    invalidada = true;
+    versionNavegacion++;
+    controlCambios = null;
+    window.removeEventListener('beforeunload', registrarAdvertenciaNativa);
+    // No conservar información de la cuenta anterior al volver desde BFCache
+    // o al cerrar/cambiar la sesión en otra pestaña.
+    document.body.hidden = true;
+    window.location.replace(obtenerSesionActiva() ? '/inicio.html' : '/login.html');
+  };
+  window.addEventListener('pageshow', comprobar);
+  window.addEventListener('storage', comprobar);
+  return () => {
+    window.removeEventListener('pageshow', comprobar);
+    window.removeEventListener('storage', comprobar);
+  };
+}
 
 function obtenerNombreUsuario(sesion) {
   const usuario = sesion?.usuario ?? {};
@@ -121,6 +143,8 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   inicializarAyudasSistema();
   const marcador = document.querySelector('[data-navegacion-global]');
   const sesion = obtenerSesionActiva();
+  limpiarProteccionSesion?.();
+  limpiarProteccionSesion = sesion ? protegerVistaDeSesion(sesion) : null;
   limpiarMantenimiento?.();
   limpiarMantenimiento = null;
   limpiarEventosUsuario?.();

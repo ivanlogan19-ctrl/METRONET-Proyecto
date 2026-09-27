@@ -12,7 +12,6 @@ import com.metronet.backend.dto.SesionUsuarioResponse;
 import com.metronet.backend.dto.UsuarioResponse;
 import com.metronet.backend.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,10 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(
-    origins = {"http://127.0.0.1:5173", "http://localhost:5173"},
-    allowedHeaders = "*"
-)
 public class AuthController {
     private final AuthService authService;
 

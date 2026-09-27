@@ -9,6 +9,6 @@ public final class ValidadorDatos {
     }
 
     public static boolean esCorreoElectronicoValido(String correoElectronico) {
-        return correoElectronico != null && PATRON_CORREO_ELECTRONICO.matcher(correoElectronico.trim()).matches();
+        return correoElectronico != null && correoElectronico.length() <= 150 && PATRON_CORREO_ELECTRONICO.matcher(correoElectronico.trim()).matches();
     }
 }

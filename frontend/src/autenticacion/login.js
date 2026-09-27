@@ -1,4 +1,5 @@
 import { continuarConBienvenida, reanudarBienvenida } from "./BienvenidaAcceso.js";
+import { obtenerDestinoSeguro } from './DestinoSeguro.js';
 import {
   activarVisibilidadContrasena,
   establecerCarga,
@@ -79,5 +80,5 @@ formulario.addEventListener("submit", async (evento) => {
 
 function obtenerDestino() {
   const destino = new URLSearchParams(window.location.search).get("destino");
-  return destino?.startsWith("/") && !destino.startsWith("//") ? destino : "/inicio.html";
+  return obtenerDestinoSeguro(destino);
 }
