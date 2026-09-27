@@ -1,0 +1,451 @@
+{
+  "fecha": "2026-09-26",
+  "entorno": {
+    "navegador": "Chrome 153.0.8010.53",
+    "sistema": "macOS, Apple M5",
+    "datos": "sinteticos; API real en PostgreSQL temporal desechable para E2E",
+    "nota": "medicion local, no prueba de carga multiusuario"
+  },
+  "base": {
+    "commit": "d8f401ab1c26b9dfac7e6075d03847d073e439c0",
+    "frontend": {
+      "total": 638,
+      "aprobadas": 637,
+      "fallidas": 1,
+      "omitidas": 0
+    },
+    "backend": {
+      "aprobadas": 194,
+      "fallidas": 0,
+      "omitidas": 0
+    },
+    "editor": {
+      "before": {
+        "x": 198.354609375,
+        "y": 152.07686125207738,
+        "z": 4.061961246838526,
+        "objects": 316,
+        "canvas": [
+          1081,
+          818
+        ],
+        "css": [
+          1081,
+          818
+        ],
+        "dpr": 1
+      },
+      "after": {
+        "x": 198.354609375,
+        "y": 152.07686125207738,
+        "z": 4.061961246838526,
+        "objects": 316,
+        "canvas": [
+          1081,
+          818
+        ],
+        "css": [
+          1081,
+          818
+        ],
+        "dpr": 1
+      },
+      "redraw": 20,
+      "refreshMs": 141.60000002384186
+    },
+    "pausa": {
+      "routes": 100,
+      "draws": 0,
+      "moves": 100
+    },
+    "rutasAntesDeReutilizar": {
+      "unidades": 20,
+      "estaciones": 60,
+      "cuadros": 600,
+      "totalMs": 70.49999994039536,
+      "p95": 0.20000004768371582,
+      "conversiones": 144000,
+      "objetos": 454
+    }
+  },
+  "final": {
+    "frontend": {
+      "total": 655,
+      "aprobadas": 655,
+      "fallidas": 0,
+      "omitidas": 0,
+      "duracionMs": 624289.129417
+    },
+    "matrizVite": {
+      "casos": 45,
+      "resoluciones": [
+        "1920x1080",
+        "1440x900",
+        "1366x768",
+        "1280x720",
+        "390x844"
+      ],
+      "erroresPagina": 0,
+      "avisosConsola": 0,
+      "respuestasHTTPFallidas": 0,
+      "desbordesHorizontales": 0,
+      "dclMinMs": 70.80000001192093,
+      "dclMaxMs": 806.8000000119209
+    },
+    "matrizProduccion": {
+      "casos": 45,
+      "resoluciones": [
+        "1920x1080",
+        "1440x900",
+        "1366x768",
+        "1280x720",
+        "390x844"
+      ],
+      "erroresPagina": 0,
+      "avisosConsola": 0,
+      "respuestasHTTPFallidas": 0,
+      "desbordesHorizontales": 0,
+      "dclMinMs": 43.10000002384186,
+      "dclMaxMs": 337.69999998807907
+    },
+    "perfil": {
+      "editor": {
+        "before": {
+          "x": 198.354609375,
+          "y": 152.07686125207738,
+          "z": 4.061961246838526,
+          "objects": 316,
+          "canvas": [
+            1081,
+            818
+          ],
+          "css": [
+            1081,
+            818
+          ],
+          "dpr": 1
+        },
+        "after": {
+          "x": 198.354609375,
+          "y": 152.07686125207738,
+          "z": 4.061961246838526,
+          "objects": 316,
+          "canvas": [
+            1081,
+            818
+          ],
+          "css": [
+            1081,
+            818
+          ],
+          "dpr": 1
+        },
+        "redraw": 0,
+        "refreshMs": 0.3999999761581421
+      },
+      "simulation": {
+        "active": {
+          "routes": 301,
+          "draws": 1,
+          "moves": 301,
+          "ms": 0.8999999761581421
+        },
+        "paused": {
+          "routes": 0,
+          "draws": 0,
+          "moves": 0
+        },
+        "objects": 321,
+        "tweens": 1
+      },
+      "framesBasica": {
+        "objetos": 321,
+        "unidades": 1,
+        "longTasks": 0,
+        "longTaskMaxMs": 0,
+        "n": 180,
+        "fps": 59.01832846978589,
+        "p95IntervaloMs": 16.799999999999955,
+        "framesMayores25ms": 2,
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+      },
+      "moderada": {
+        "unidades": 20,
+        "estaciones": 60,
+        "cuadros": 600,
+        "totalMs": 5.599999964237213,
+        "p95": 0.10000002384185791,
+        "conversiones": 0,
+        "objetos": 454
+      },
+      "frames": {
+        "objetos": 454,
+        "unidades": 20,
+        "longTasks": 0,
+        "longTaskMaxMs": 0,
+        "n": 180,
+        "fps": 30.168946098149636,
+        "p95IntervaloMs": 33.400000000000546,
+        "framesMayores25ms": 176,
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+      },
+      "memoria": [
+        {
+          "ciclos": 5,
+          "documents": 1,
+          "nodes": 1354,
+          "jsEventListeners": 240,
+          "LayoutCount": 66,
+          "RecalcStyleCount": 74,
+          "LayoutDuration": 0.010759,
+          "ScriptDuration": 3.734088,
+          "JSHeapUsedSize": 17049100,
+          "objetos": 454,
+          "audios": 1,
+          "tweens": 0,
+          "temporizadores": 0
+        },
+        {
+          "ciclos": 10,
+          "documents": 1,
+          "nodes": 1354,
+          "jsEventListeners": 240,
+          "LayoutCount": 86,
+          "RecalcStyleCount": 99,
+          "LayoutDuration": 0.013357,
+          "ScriptDuration": 4.040748,
+          "JSHeapUsedSize": 17228532,
+          "objetos": 454,
+          "audios": 1,
+          "tweens": 0,
+          "temporizadores": 0
+        },
+        {
+          "ciclos": 15,
+          "documents": 1,
+          "nodes": 1354,
+          "jsEventListeners": 240,
+          "LayoutCount": 106,
+          "RecalcStyleCount": 124,
+          "LayoutDuration": 0.015818,
+          "ScriptDuration": 4.347992,
+          "JSHeapUsedSize": 16951772,
+          "objetos": 454,
+          "audios": 1,
+          "tweens": 0,
+          "temporizadores": 0
+        }
+      ],
+      "errors": []
+    },
+    "accionesUI": {
+      "acciones": {
+        "cambiarHerramienta": {
+          "n": 20,
+          "p95": 293.15300000000025,
+          "max": 297.36854200000016
+        },
+        "seleccionarEstacion": {
+          "n": 20,
+          "p95": 82.46408299999985,
+          "max": 100.69666700000016
+        },
+        "buscarPOI": {
+          "n": 20,
+          "p95": 120.41254200000003,
+          "max": 210.49587500000052
+        }
+      },
+      "errors": []
+    },
+    "e2e": {
+      "errors": [],
+      "network": [],
+      "routes": [
+        {
+          "ciclo": 0,
+          "path": "/inicio.html",
+          "ms": 99.62579199999891
+        },
+        {
+          "ciclo": 0,
+          "path": "/escenarios.html",
+          "ms": 119.4853750000002
+        },
+        {
+          "ciclo": 0,
+          "path": "/ranking.html",
+          "ms": 97.20654100000138
+        },
+        {
+          "ciclo": 0,
+          "path": "/disenos.html",
+          "ms": 88.02779200000077
+        },
+        {
+          "ciclo": 0,
+          "path": "/?idDiseno=1",
+          "ms": 484.23379100000056
+        },
+        {
+          "ciclo": 0,
+          "path": "/simulacion.html?idDiseno=1",
+          "ms": 391.1947079999991
+        },
+        {
+          "ciclo": 0,
+          "path": "/admin.html",
+          "ms": 154.71279199999844
+        },
+        {
+          "ciclo": 0,
+          "path": "/perfil.html",
+          "ms": 102.86741599999914
+        },
+        {
+          "ciclo": 1,
+          "path": "/inicio.html",
+          "ms": 76.14208399999916
+        },
+        {
+          "ciclo": 1,
+          "path": "/escenarios.html",
+          "ms": 125.1421250000003
+        },
+        {
+          "ciclo": 1,
+          "path": "/ranking.html",
+          "ms": 97.07829200000015
+        },
+        {
+          "ciclo": 1,
+          "path": "/disenos.html",
+          "ms": 90.58037499999955
+        },
+        {
+          "ciclo": 1,
+          "path": "/?idDiseno=1",
+          "ms": 483.7759159999987
+        },
+        {
+          "ciclo": 1,
+          "path": "/simulacion.html?idDiseno=1",
+          "ms": 405.06679200000144
+        },
+        {
+          "ciclo": 1,
+          "path": "/admin.html",
+          "ms": 160.40483400000085
+        },
+        {
+          "ciclo": 1,
+          "path": "/perfil.html",
+          "ms": 90.73954199999935
+        },
+        {
+          "ciclo": 2,
+          "path": "/inicio.html",
+          "ms": 95.10391700000037
+        },
+        {
+          "ciclo": 2,
+          "path": "/escenarios.html",
+          "ms": 102.40129199999865
+        },
+        {
+          "ciclo": 2,
+          "path": "/ranking.html",
+          "ms": 92.83995799999866
+        },
+        {
+          "ciclo": 2,
+          "path": "/disenos.html",
+          "ms": 90.0395840000001
+        },
+        {
+          "ciclo": 2,
+          "path": "/?idDiseno=1",
+          "ms": 394.70066699999916
+        },
+        {
+          "ciclo": 2,
+          "path": "/simulacion.html?idDiseno=1",
+          "ms": 393.6907080000001
+        },
+        {
+          "ciclo": 2,
+          "path": "/admin.html",
+          "ms": 149.07037499999933
+        },
+        {
+          "ciclo": 2,
+          "path": "/perfil.html",
+          "ms": 94.7046250000003
+        }
+      ],
+      "api": {
+        "POST /api/simulaciones": {
+          "n": 1,
+          "p95": 26.539416999999958,
+          "max": 26.539416999999958
+        },
+        "POST /api/simulaciones/:id/estaciones": {
+          "n": 3,
+          "p95": 15.2015420000007,
+          "max": 15.2015420000007
+        },
+        "POST /api/simulaciones/:id/lineas": {
+          "n": 1,
+          "p95": 16.5797079999993,
+          "max": 16.5797079999993
+        },
+        "POST /api/simulaciones/:id/unidades": {
+          "n": 1,
+          "p95": 7.275832999999693,
+          "max": 7.275832999999693
+        },
+        "POST /api/simulaciones/:id/validacion": {
+          "n": 1,
+          "p95": 16.147249999999985,
+          "max": 16.147249999999985
+        },
+        "GET /api/simulaciones/:id": {
+          "n": 20,
+          "p95": 6.718958000001294,
+          "max": 14.350209000000177
+        },
+        "POST /api/simulaciones/:id/guardar": {
+          "n": 20,
+          "p95": 5.656290999999328,
+          "max": 6.465457999998762
+        },
+        "UI iniciar simulacion": {
+          "n": 10,
+          "p95": 496.550874999999,
+          "max": 496.550874999999
+        },
+        "GET /api/simulaciones/:id/resultados": {
+          "n": 1,
+          "p95": 4.95129100000122,
+          "max": 4.95129100000122
+        }
+      },
+      "resultados": 10
+    },
+    "regresionPosteriorVisorOculto": {
+      "total": 31,
+      "aprobadas": 31,
+      "fallidas": 0,
+      "omitidas": 0,
+      "duracionMs": 71641.329667,
+      "nota": "Despues de la suite completa; incluye el caso adicional de ocultar y restaurar el visor."
+    }
+  },
+  "limites": [
+    "Sin medicion FPS anterior comparable: no atribuir el resultado FPS solo a los cambios.",
+    "RAF/FPS aproximado en una muestra corta; heap tras GC no incluye VRAM.",
+    "Los tiempos de acciones UI incluyen la espera de automatizacion; las 45 pantallas usan API simulada.",
+    "E2E emplea API y PostgreSQL reales aislados; no datos reales.",
+    "Zoom real Chrome 80/125/200/300% mediante configuracion de apariencia, separado de DPR 1/1.25/2; 100% por defecto en la matriz."
+  ]
+}
