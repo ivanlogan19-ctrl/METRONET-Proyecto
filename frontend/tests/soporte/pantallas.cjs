@@ -41,7 +41,7 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
       if (respuesta) return route.fulfill({ ...respuesta, headers: { 'access-control-allow-origin': '*' } });
     }
     let respuesta;
-    if (path.startsWith('/auth/perfil')) respuesta = { ...usuario, ...request.postDataJSON() };
+    if (path.startsWith('/auth/perfil')) respuesta = { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR', ...request.postDataJSON() };
     else if (path === '/api/admin/usuarios') respuesta = [usuario, { ...usuario, idUsuario: 8, nombre: 'Operador', rol: 'ADMIN', email: 'admin@example.test' }];
     else if (path === '/api/configuraciones' || /configuracion|actividad/.test(path)) respuesta = [];
     else if (path.endsWith('/consigna')) respuesta = { estadoGlobal: 'PARCIAL', progreso: 50, condiciones: [{ clave: 'estaciones', descripcion: 'Construir tres estaciones conectadas', actual: 3, requerido: 3, completado: true }], referenciasObjetivo: [] };

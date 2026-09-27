@@ -24,6 +24,8 @@ for (const administrador of [false, true]) for (const width of [390, 820, 1440])
     if (width <= 1024) assert.equal(await menu.getByRole('link', { name: 'Escenarios' }).isVisible(), true);
     await menu.getByRole('link', { name: 'Mi perfil' }).click();
     await p.waitForURL('**/perfil.html');
+    await p.locator('.perfil-contenedor[aria-busy="false"]').waitFor();
+    assert.equal(await p.locator('#rolUsuario').textContent(), administrador ? 'Administrador' : 'Jugador');
     await p.locator('.metronet-navegacion__usuario summary').click();
     await p.locator('.metronet-navegacion__menu-usuario button').click();
     await p.waitForURL('**/login.html');

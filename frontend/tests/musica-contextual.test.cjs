@@ -318,8 +318,13 @@ test('Pestaña oculta y pagehide pausan; regreso recupera y logout detiene', asy
     window.dispatchEvent(new StorageEvent('storage', { key: 'sesionUsuario' }));
     window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
   });
-  assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/gameplay-theme.mp3');
+  // La protección de sesión retira una página conservada de una cuenta cerrada.
+  // El login tiene su propia música: esperar la navegación evita observar al azar
+  // el reproductor del documento anterior o el de autenticación.
+  await p.waitForURL('**/login.html');
+  await reproduciendo(p, '/audio/auth-theme.mp3');
+  assert.equal(await p.locator(`${audio}[src="/audio/gameplay-theme.mp3"]`).count(), 0);
+  assert.equal(await p.locator(audio).count(), 1);
 });
 
 for (const width of [320, 390, 1025, 1440]) test(`Control accesible sin desbordes / ${width}`, async t => {

@@ -61,7 +61,7 @@ for(const width of [1440,768,390,320]) test(`HUD ${width}px: tres vistas exclusi
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 
-for (const porcentaje of [125,200,300]) test(`Zoom real Chrome ${porcentaje}%: POI, pista y música utilizables`,async t=>{
+for (const porcentaje of [80,125,200,300]) test(`Zoom real Chrome ${porcentaje}%: POI, pista y música utilizables`,async t=>{
   const perfil=fs.mkdtempSync(path.join(os.tmpdir(),'metronet-hud-zoom-'));
   const contexto=await chromium.launchPersistentContext(perfil,{headless:true,channel:process.env.METRONET_BROWSER_CHANNEL,viewport:null,args:['--window-size=1440,900','--force-device-scale-factor=1']});
   t.after(async()=>{await contexto.close();fs.rmSync(perfil,{recursive:true,force:true});});
