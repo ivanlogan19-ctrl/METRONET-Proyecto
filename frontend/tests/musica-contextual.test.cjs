@@ -20,7 +20,7 @@ async function abrirMusica(p) {
   } else await p.locator('.metronet-audio summary').click();
 }
 async function reproduciendo(p, pista = '/audio/gameplay-theme.mp3') {
-  await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume > 0.34; }, pista);
+  await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume === 0.35; }, pista);
 }
 async function gestor(p, accion, valor) {
   return p.evaluate(async ({ accion, valor }) => {
