@@ -1,6 +1,6 @@
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 // Organización de la vista; no interviene en el motor ni en los datos de la red.
-export function inicializarOrganizacionSimulacion(alRedimensionar) {
+export function inicializarOrganizacionSimulacion() {
   const pagina = document.body;
   const panel = document.getElementById('instrumentosSimulacion');
   const ampliar = document.getElementById('ampliarMapa');
@@ -12,7 +12,6 @@ export function inicializarOrganizacionSimulacion(alRedimensionar) {
     ampliar.setAttribute('aria-pressed', String(ampliado));
     configurarBotonIcono(ampliar, ampliado ? 'desplegar' : 'plegar', ampliado ? 'Mostrar panel' : 'Ocultar panel');
     ampliar.setAttribute('aria-expanded', String(!ampliado));
-    requestAnimationFrame(alRedimensionar);
   }
 
   function abrirSeccion(id) {

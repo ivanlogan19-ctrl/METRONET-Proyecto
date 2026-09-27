@@ -31,11 +31,13 @@ let resultadoEnCurso = false;
 let preparacionEnCurso = false;
 let versionDiseno = 0;
 let paginaActiva = true;
+let reanudarAlVolver = false;
 let consignaActual = null;
 let idDisenoConsigna = null;
 let mensajeConsigna = '';
 let numeroSolicitudConsigna = 0;
 let escenariosGlosario = [];
+let catalogoProgresoDisponible = false;
 const VELOCIDADES_SIMULACION = new Set([0.5, 1, 2, 4]);
 const CANTIDAD_ELEMENTOS_VISIBLES_CONSIGNA = 3;
 
@@ -57,6 +59,7 @@ async function inicializar() {
   // Consulta educativa independiente: una falla nunca demora la simulación.
   consultarJuego('/progreso').then(progreso => {
     escenariosGlosario = Array.isArray(progreso?.escenarios) ? progreso.escenarios : [];
+    catalogoProgresoDisponible = Array.isArray(progreso?.escenarios);
     if (disenoActual) { actualizarGlosarioConsigna(); actualizarAyuda(); }
   }).catch(() => {});
   destacarConceptos(document.querySelector('.simulacion-etiqueta-control'), CONCEPTOS_SIMULACION);
@@ -66,9 +69,7 @@ async function inicializar() {
   ayudaVentana.textContent = 'Consultar duración y tiempo estimado.';
   etiquetaVentana.parentElement.append(ayudaVentana);
   destacarConceptos(ayudaVentana, CONCEPTOS_SIMULACION);
-  organizacion = inicializarOrganizacionSimulacion(() => {
-    if (visor?.escena.scale.getParentBounds()) visor.escena.scale.refresh();
-  });
+  organizacion = inicializarOrganizacionSimulacion();
   aplicarConfiguracionPredeterminada(await obtenerConfiguracionAplicacion(sesion));
   cliente = new ClienteDisenos(sesion);
   document.getElementById('formularioEjecucion').addEventListener('submit', ejecutarSimulacion);
@@ -81,6 +82,11 @@ async function inicializar() {
   document.getElementById('verResultadosSimulacion').addEventListener('click', mostrarResultados);
   document.getElementById('referenciasConsigna').addEventListener('click', localizarReferenciaConsigna);
   window.addEventListener('pagehide', limpiarVisor);
+  window.addEventListener('pageshow', evento => {
+    if (!evento.persisted || !reanudarAlVolver) return;
+    reanudarAlVolver = false;
+    actualizarPanelTiempoReal(visor?.escena.reanudarAnimacion(performance.now()));
+  });
   window.addEventListener(EVENTO_CONFIGURACION, actualizarMantenimiento);
   visor = await crearVisorSimulacion(document.getElementById('visorSimulacion'), { alActualizarEstado: actualizarPanelTiempoReal });
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
@@ -117,8 +123,6 @@ async function abrirDiseno(idDiseno) {
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
     visor.escena.establecerDiseno(disenoActual);
     actualizarPantalla();
-    // Phaser se crea con el panel oculto. Medir al mostrarlo evita un resize tardío al iniciar.
-    if (visor.escena.scale.getParentBounds()) visor.escena.scale.refresh();
     await cargarConsignaReal(idDiseno);
     if (version !== versionDiseno || !paginaActiva) return false;
     await actualizarDesempeno(idDiseno);
@@ -191,6 +195,12 @@ async function cargarConsignaReal(idDiseno) {
   errorAyuda = null;
   consignaActual = null;
   idDisenoConsigna = null;
+  if (!esSolicitudConsignaVigente(solicitud, idDiseno)) return;
+  if (catalogoProgresoDisponible && !escenariosGlosario.some(e => e.idEscenario === disenoActual.simulacion.idEscenario)) {
+    mensajeConsigna = 'Diseño propio: las instrucciones y la validación de la red siguen disponibles.';
+    actualizarConsignaSimulacion(disenoActual.simulacion);
+    return;
+  }
   mensajeConsigna = 'Consultando el estado real de los objetivos del escenario…';
   if (disenoActual?.simulacion?.idDiseno === idDiseno) actualizarConsignaSimulacion(disenoActual.simulacion);
   try {
@@ -578,7 +588,12 @@ function detenerAnimacion() {
   actualizarPanelTiempoReal(estado);
 }
 
-function limpiarVisor() {
+function limpiarVisor(evento) {
+  if (evento?.persisted) {
+    reanudarAlVolver = visor?.escena.motorSimulacion?.estado === 'EN_CURSO';
+    if (reanudarAlVolver) actualizarPanelTiempoReal(visor.escena.pausarAnimacion());
+    return;
+  }
   paginaActiva = false;
   versionDiseno += 1;
   panelAyuda?.eliminar();

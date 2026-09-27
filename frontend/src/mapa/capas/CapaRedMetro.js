@@ -27,6 +27,8 @@ export default class CapaRedMetro {
     this.editable = opciones.editable ?? typeof opciones.alUbicarEstacion === 'function';
     this.coloresLineas = new Map();
     this.diseno = null;
+    this.rutasPorLinea = new Map();
+    this.trazadosPorRuta = new WeakMap();
     this.modo = 'normal';
     this.estacionesSeleccionadas = [];
     this.elementoSeleccionado = null;
@@ -127,6 +129,10 @@ export default class CapaRedMetro {
 
   dibujar() {
     if (!this.grafico) return;
+    // La geometría solo cambia con la red o el tamaño real del mapa. La cámara
+    // transforma estas coordenadas por su cuenta al hacer zoom o pan.
+    this.rutasPorLinea.clear();
+    this.trazadosPorRuta = new WeakMap();
     this.grafico.clear();
     this.eliminarElementosEstaticos();
     if (!this.diseno) return;
@@ -494,6 +500,7 @@ export default class CapaRedMetro {
   }
 
   obtenerRuta(nombreLinea) {
+    if (this.rutasPorLinea.has(nombreLinea)) return this.rutasPorLinea.get(nombreLinea);
     const estaciones = new Map(this.obtenerEstaciones().map((estacion) => [estacion.nombre, estacion]));
     const tramos = this.obtenerTramos().filter((tramo) => tramo.nombreLinea === nombreLinea);
     if (!tramos.length) return [];
@@ -513,7 +520,9 @@ export default class CapaRedMetro {
       actual = siguiente.nombre;
       nombresRuta.push(actual);
     }
-    return nombresRuta.map((nombre) => estaciones.get(nombre)).filter(Boolean);
+    const ruta = nombresRuta.map((nombre) => estaciones.get(nombre)).filter(Boolean);
+    this.rutasPorLinea.set(nombreLinea, ruta);
+    return ruta;
   }
 
   agregarAdyacencia(adyacencias, origen, destino) {
@@ -524,17 +533,13 @@ export default class CapaRedMetro {
 
   obtenerPuntoEnRuta(ruta, progreso) {
     if (!ruta?.length) return null;
-    const puntos = ruta.map((estacion) => this.convertirPosicion(estacion.posicionX, estacion.posicionY));
-    if (puntos.length === 1) return { ...puntos[0], angulo: 0 };
-    const segmentos = [];
-    let longitudTotal = 0;
-    for (let indice = 0; indice < puntos.length - 1; indice += 1) {
-      const origen = puntos[indice];
-      const destino = puntos[indice + 1];
-      const longitud = Phaser.Math.Distance.Between(origen.x, origen.y, destino.x, destino.y);
-      segmentos.push({ origen, destino, longitud });
-      longitudTotal += longitud;
+    let trazado = this.trazadosPorRuta.get(ruta);
+    if (!trazado) {
+      trazado = this.crearTrazado(ruta);
+      this.trazadosPorRuta.set(ruta, trazado);
     }
+    const { puntos, segmentos, longitudTotal } = trazado;
+    if (puntos.length === 1) return { ...puntos[0], angulo: 0 };
     if (longitudTotal === 0) return { ...puntos[0], angulo: 0 };
     let distanciaPendiente = Phaser.Math.Clamp(progreso, 0, 0.999999) * longitudTotal;
     for (const segmento of segmentos) {
@@ -553,6 +558,19 @@ export default class CapaRedMetro {
       ...ultimo.destino,
       angulo: Phaser.Math.Angle.Between(ultimo.origen.x, ultimo.origen.y, ultimo.destino.x, ultimo.destino.y),
     };
+  }
+
+  crearTrazado(ruta) {
+    const puntos = ruta.map(estacion => this.convertirPosicion(estacion.posicionX, estacion.posicionY));
+    const segmentos = [];
+    let longitudTotal = 0;
+    for (let indice = 0; indice < puntos.length - 1; indice += 1) {
+      const origen = puntos[indice], destino = puntos[indice + 1];
+      const longitud = Phaser.Math.Distance.Between(origen.x, origen.y, destino.x, destino.y);
+      segmentos.push({ origen, destino, longitud });
+      longitudTotal += longitud;
+    }
+    return { puntos, segmentos, longitudTotal };
   }
 
   obtenerProgresoUnidad(indice) {

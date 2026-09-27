@@ -84,17 +84,7 @@ export default class EditorRedMetro {
       </div>`;
     this.contenedorPadre.append(this.contenedor);
     this.organizarInterfaz();
-    this.barraEstado = new BarraEstadoEditor(document.querySelector('[data-estado-editor]'), {
-      // Phaser comprueba tamaños por intervalos; el HUD puede variar entre esas comprobaciones.
-      alCambiarTamano: () => {
-        const controlZoom = this.escena.controlZoom;
-        const vista = controlZoom?.capturarVista();
-        this.escena.scale.getParentBounds();
-        this.escena.scale.refresh();
-        // Conservar la vista anterior a la actualización de tamaño de las cámaras de Phaser.
-        if (vista?.estadoVista === 'manual') controlZoom.restaurarVistaTrasRedimension(vista);
-      },
-    });
+    this.barraEstado = new BarraEstadoEditor(document.querySelector('[data-estado-editor]'));
     this.panelAyuda = this.barraEstado.panelAyuda;
     this.panelTutorial = this.panelAyuda.tutorial;
     this.panelAyuda.elemento.querySelector('[data-hud-teclado]').append(this.accesoTeclado);
@@ -1163,7 +1153,7 @@ export default class EditorRedMetro {
     else if (tipo === 'exito' || !orientarError) this.errorAyuda = null;
     this.actualizarAyuda();
   }
-  eliminar() { this.activo = false; this.versionApertura += 1; this.identificacion?.cancelar(); this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
+  eliminar() { this.activo = false; this.versionApertura += 1; this.identificacion?.cancelar(); this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(false); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
 }
 
 function establecerRutaSimulacion(idDiseno, contexto) { return establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto); }

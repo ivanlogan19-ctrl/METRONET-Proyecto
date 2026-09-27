@@ -6,7 +6,7 @@ const ETIQUETAS = { info: 'Información', exito: 'Completado', advertencia: 'Adv
 
 // Una sola zona de asistencia fuera del mapa. Los avisos vacíos no reservan altura.
 export default class BarraEstadoEditor {
-  constructor(contenedor, { alCambiarTamano } = {}) {
+  constructor(contenedor) {
     this.contenedor = contenedor;
     this.ultimoError = '';
     this.tipo = null;
@@ -20,10 +20,6 @@ export default class BarraEstadoEditor {
     this.error = contenedor.querySelector('[role=alert]');
     this.botonError = contenedor.querySelector('[data-revisar-error]');
     this.botonError.addEventListener('click', () => this.mostrar(this.ultimoError, 'error'));
-    if (alCambiarTamano) {
-      this.observadorTamano = new ResizeObserver(() => alCambiarTamano());
-      this.observadorTamano.observe(contenedor);
-    }
   }
 
   mostrar(texto, tipo = 'info') {
@@ -52,7 +48,6 @@ export default class BarraEstadoEditor {
     window.clearTimeout(this.temporizador);
     this.panelAyuda.eliminar();
     this.contenedorAyuda.remove();
-    this.observadorTamano?.disconnect();
     this.contenedor.replaceChildren();
     delete this.contenedor.dataset.tipo;
   }

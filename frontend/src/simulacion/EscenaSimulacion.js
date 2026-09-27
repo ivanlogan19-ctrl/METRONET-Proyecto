@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { observarTamanoMapa } from '../mapa/ObservarTamanoMapa.js';
 
 import CapaBarrios from '../mapa/capas/CapaBarrios.js';
 import CapaMapaBase from '../mapa/capas/CapaMapaBase.js';
@@ -70,12 +71,18 @@ class EscenaSimulacion extends Phaser.Scene {
     this.crearControlZoom();
     this.cameras.main.roundPixels = true;
     this.crearContextoVisual();
-    this.scale.on('resize', this.actualizarTamano, this);
-    this.events.once('shutdown', this.eliminar, this);
+    this.liberarTamano = observarTamanoMapa(this, this.game.canvas.parentElement, () => this.actualizarTamano());
+    const liberar = () => {
+      this.events.off('shutdown', liberar);
+      this.events.off('destroy', liberar);
+      this.eliminar();
+    };
+    this.events.once('shutdown', liberar);
+    this.events.once('destroy', liberar);
   }
 
   update(tiempo, diferencia) {
-    if (!this.motorSimulacion) return;
+    if (this.motorSimulacion?.estado !== 'EN_CURSO') return;
     const estado = this.motorSimulacion.actualizar(tiempo);
     if (estado.estado !== 'DETENIDA') this.capaRedMetro.actualizarRepresentacionSimulacion(estado.unidades);
     this.actualizarSeguimientoMetro(estado, diferencia);
@@ -118,9 +125,9 @@ class EscenaSimulacion extends Phaser.Scene {
     return estado;
   }
 
-  reanudarAnimacion() {
+  reanudarAnimacion(ahora = this.time.now) {
     if (!this.motorSimulacion) return null;
-    const estado = this.motorSimulacion.reanudar(this.time.now);
+    const estado = this.motorSimulacion.reanudar(ahora);
     this.capaRedMetro.actualizarRepresentacionSimulacion(estado.unidades);
     this.sincronizarEstadoMotor(estado, true);
     return estado;
@@ -258,9 +265,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.alActualizarEstado(estado);
   }
 
-  actualizarTamano(tamano, _tamanoBase, _tamanoVisible, anchoAnterior, altoAnterior) {
-    // Scale.RESIZE también avisa cuando el canvas cambia de posición al desplazar la página.
-    if (tamano?.width === anchoAnterior && tamano?.height === altoAnterior) return;
+  actualizarTamano() {
     const vistaAnterior = this.controlZoom?.capturarVista();
     this.capaMapaBase?.actualizar();
     this.capaBarrios?.ajustarMapa(this.scale.width, this.scale.height);
@@ -385,7 +390,8 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   eliminar() {
-    this.scale.off('resize', this.actualizarTamano, this);
+    this.liberarTamano?.();
+    this.liberarTamano = null;
     this.detenerPulsoActividad();
     this.marcoVisor?.destroy();
     this.indicadorActividad?.destroy();

@@ -1,6 +1,7 @@
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { confirmarSistema } from '../componentes/DialogoSistema.js';
 import Phaser from 'phaser';
+import { observarTamanoMapa } from './ObservarTamanoMapa.js';
 
 import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
@@ -109,20 +110,16 @@ export default class MapaScene extends Phaser.Scene {
 
     this.ajustarMapa();
 
-    this.manejadorResize = () => this.actualizarTamano();
-    this.scale.on('resize', this.manejadorResize);
-
-    // Responder al tamaño real del contenedor, incluso sin un resize de ventana.
-    // Phaser conserva su gestión de cámara; solo refrescamos si cambiaron los límites.
-    this.observadorContenedor = new ResizeObserver(() => {
-      if (this.scale.getParentBounds()) this.scale.refresh();
-    });
-    this.observadorContenedor.observe(this.contenedorMapa);
+    this.liberarTamano = observarTamanoMapa(this, this.contenedorMapa, () => this.actualizarTamano());
     this.contenedorMapa.querySelector('.metronet-mapa-cargando')?.remove();
 
-    this.events.once('shutdown', () => {
+    const liberar = () => {
+      this.events.off('shutdown', liberar);
+      this.events.off('destroy', liberar);
       this.limpiar();
-    });
+    };
+    this.events.once('shutdown', liberar);
+    this.events.once('destroy', liberar);
   }
 
   update() {}
@@ -433,9 +430,8 @@ export default class MapaScene extends Phaser.Scene {
   }
 
   limpiar() {
-    this.observadorContenedor?.disconnect();
-    this.scale.off('resize', this.manejadorResize);
-    this.manejadorResize = null;
+    this.liberarTamano?.();
+    this.liberarTamano = null;
     const botonAlternarPanel = this.contenedorControles?.querySelector('[data-panel-edicion-toggle]');
     botonAlternarPanel?.removeEventListener('click', this.manejadorAlternarPanel);
     this.manejadorAlternarPanel = null;
