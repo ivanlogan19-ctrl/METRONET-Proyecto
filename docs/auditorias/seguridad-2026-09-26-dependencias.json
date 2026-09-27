@@ -1,0 +1,722 @@
+{
+  "fecha": "2026-09-26",
+  "herramienta": "OSV API querybatch y Maven dependency:tree",
+  "coordenadasAntes": 95,
+  "coordenadasDespues": 94,
+  "avisosDespues": 0,
+  "npmAuditAvisos": 0,
+  "avisosAntes": [
+    {
+      "id": "GHSA-3chg-m5w7-qfv5",
+      "alias": [
+        "CVE-2026-41845"
+      ],
+      "publicado": "2026-06-09T06:31:57Z",
+      "resumen": "Spring Framework Cross-site Scripting via JavaScriptUtils",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-3pjw-73gf-8qr5",
+      "alias": [
+        "CVE-2026-59888"
+      ],
+      "publicado": "2026-07-21T19:33:06Z",
+      "resumen": "jackson-databind: @JsonIgnore on a Record property is bypassed with a PropertyNamingStrategy",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5gvw-p9qm-jgwh",
+      "alias": [
+        "CVE-2026-59889"
+      ],
+      "publicado": "2026-07-21T22:00:43Z",
+      "resumen": "jackson-databind: @JsonView bypassed for @JsonUnwrapped container properties on deserialization",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5hh8-q8hv-fr38",
+      "alias": [
+        "CVE-2026-54517"
+      ],
+      "publicado": "2026-06-23T21:24:50Z",
+      "resumen": "jackson-databind has @JsonView bypass for setterless creator properties",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5jmj-h7xm-6q6v",
+      "alias": [
+        "CVE-2026-54515"
+      ],
+      "publicado": "2026-06-23T21:23:58Z",
+      "resumen": "jackson-databind has case-insensitive deserialization bypasses per-property @JsonIgnoreProperties",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5m4m-73w9-8433",
+      "alias": [
+        "CVE-2026-41721"
+      ],
+      "publicado": "2026-06-10T00:31:52Z",
+      "resumen": "Spring Data Commons: Denial of Service via excessive memory allocation in projection binding",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework.data:spring-data-commons",
+          "versionAntes": "3.5.11"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5m62-pw8w-7w9f",
+      "alias": [
+        "BIT-tomcat-2026-43515",
+        "CVE-2026-43515"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat - Security constraints not correctly applied",
+      "severidad": "CRITICAL",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5mp6-jrq3-r938",
+      "alias": [
+        "BIT-tomcat-2026-43513",
+        "CVE-2026-43513"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat: LockOutRealm treats user names as case-sensitive",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-5vpf-xvv7-c8vh",
+      "alias": [
+        "CVE-2026-41711"
+      ],
+      "publicado": "2026-06-10T00:31:51Z",
+      "resumen": "Spring Data Commons: StackOverflowException when parsing Sort parameters (DoS)",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework.data:spring-data-commons",
+          "versionAntes": "3.5.11"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-659m-px2c-25wj",
+      "alias": [
+        "CVE-2026-41848"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Denial of Service via AntPathMatcher",
+      "severidad": "LOW",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-core",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-72pg-x5f8-j25j",
+      "alias": [
+        "CVE-2026-41843"
+      ],
+      "publicado": "2026-06-09T06:31:57Z",
+      "resumen": "Spring Framework Path Traversal via Versioned Static Resources in Spring MVC and WebFlux",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-7m2p-62gw-p8qq",
+      "alias": [
+        "CVE-2026-41854"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Server-Side Request Forgery via UriComponentsBuilder",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-web",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-88fw-v6x4-3f58",
+      "alias": [
+        "CVE-2026-41695"
+      ],
+      "publicado": "2026-07-31T16:44:15Z",
+      "resumen": "Spring Data: Unbounded property-path cache keyed by externally-supplied path string",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.springframework.data:spring-data-commons",
+          "versionAntes": "3.5.11"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-957g-f97v-vppc",
+      "alias": [
+        "CVE-2026-41846"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Cross-site Scripting via JSP Form Tags",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-98qh-xjc8-98pq",
+      "alias": [
+        "BIT-postgresql-jdbc-driver-2026-42198",
+        "CVE-2026-42198"
+      ],
+      "publicado": "2026-05-05T20:09:36Z",
+      "resumen": "pgjdbc: Unbounded PBKDF2 iterations in SCRAM authentication allows CPU exhaustion DoS",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.postgresql:postgresql",
+          "versionAntes": "42.7.10"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-9f52-rjqv-25qv",
+      "alias": [
+        "CVE-2026-41852"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Arbitrary Method Invocation in SpEL Expressions",
+      "severidad": "LOW",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-expression",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-9fw2-h3hf-293r",
+      "alias": [
+        "CVE-2026-41716"
+      ],
+      "publicado": "2026-06-10T00:31:51Z",
+      "resumen": "Spring Data Commons: Heap exhaustion from unbounded property-lookup cache retaining crafted string keys",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.springframework.data:spring-data-commons",
+          "versionAntes": "3.5.11"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-9fxm-vc8v-hj55",
+      "alias": [
+        "CVE-2026-54516"
+      ],
+      "publicado": "2026-06-23T21:24:26Z",
+      "resumen": "jackson-databind's renamed @JsonIgnore'd setters can deserialize via private fields",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-9m89-8frq-c98c",
+      "alias": [
+        "BIT-tomcat-2026-43514",
+        "CVE-2026-43514"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat - AJP secret compared in non-constant time",
+      "severidad": "LOW",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-9wxp-w4px-32vh",
+      "alias": [
+        "CVE-2026-40992"
+      ],
+      "publicado": "2026-06-11T09:31:55Z",
+      "resumen": "Spring Boot's Mail Auto-Configuration Does Not Enable SSL Hostname Verification",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework.boot:spring-boot-starter-mail",
+          "versionAntes": "3.5.14"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-9xv2-5v5q-p794",
+      "alias": [
+        "BIT-tomcat-2026-65905",
+        "CVE-2026-65905"
+      ],
+      "publicado": "2026-08-26T00:30:52Z",
+      "resumen": "Apache Tomcat's DIGEST authenticator has an Authentication Bypass by Capture-replay vulnerability",
+      "severidad": "CRITICAL",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-cjpg-rgq5-fr37",
+      "alias": [
+        "CVE-2026-41853"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Multipart Request Smuggling in Spring MVC and WebFlux",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-fv25-8xcx-gqjc",
+      "alias": [
+        "BIT-tomcat-2026-42498",
+        "CVE-2026-42498"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat - WebSocket authentication header exposure",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-gcx9-497g-6cp6",
+      "alias": [
+        "BIT-tomcat-2026-65182",
+        "CVE-2026-65182"
+      ],
+      "publicado": "2026-08-26T00:30:52Z",
+      "resumen": "Apache Tomcat has an Improper Access Control, Incorrect Authorization vulnerability",
+      "severidad": "CRITICAL",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-ggg2-9786-hwc8",
+      "alias": [
+        "CVE-2026-41001"
+      ],
+      "publicado": "2026-06-11T09:31:56Z",
+      "resumen": "Spring Boot: Predictable Temp Directory in Artemis Auto-configuration",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework.boot:spring-boot-autoconfigure",
+          "versionAntes": "3.5.14"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-gx5v-xp9w-j4cg",
+      "alias": [
+        "BIT-tomcat-2026-41284",
+        "CVE-2026-41284"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat: Unbounded read in WebDAV LOCK and  PROPFIND handling",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-h3qp-gqrc-q736",
+      "alias": [
+        "CVE-2026-41844"
+      ],
+      "publicado": "2026-06-09T06:31:57Z",
+      "resumen": "Spring Framework Open Redirect in Spring MVC and WebFlux",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-h3x4-894j-xpx5",
+      "alias": [
+        "BIT-tomcat-2026-68525",
+        "CVE-2026-68525"
+      ],
+      "publicado": "2026-08-26T00:30:52Z",
+      "resumen": "Apache Tomcat's FORM authentication process has an Incorrect Authorization vulnerability",
+      "severidad": "CRITICAL",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-h6fc-48rj-7qqh",
+      "alias": [
+        "BIT-tomcat-2026-43512",
+        "CVE-2026-43512"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat - Digest authenticator will authenticate any unknown user",
+      "severidad": "CRITICAL",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-hgj6-7826-r7m5",
+      "alias": [
+        "CVE-2026-54514"
+      ],
+      "publicado": "2026-06-23T21:22:54Z",
+      "resumen": "jackson-databind: InetSocketAddress deserialization triggers eager DNS resolution (SSRF)",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-j3rv-43j4-c7qm",
+      "alias": [
+        "CVE-2026-54512"
+      ],
+      "publicado": "2026-06-23T21:21:38Z",
+      "resumen": "jackson-databind has a PolymorphicTypeValidator bypass via generic type parameters that allows arbitrary class instantiation",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-j92g-9f8w-j867",
+      "alias": [
+        "BIT-postgresql-jdbc-driver-2026-54291",
+        "CVE-2026-54291"
+      ],
+      "publicado": "2026-07-21T17:47:39Z",
+      "resumen": "PostgreSQL JDBC Driver: Silent channel-binding authentication downgrade via unsupported certificate algorithms",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.postgresql:postgresql",
+          "versionAntes": "42.7.10"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-jhq6-gfmj-v8fx",
+      "alias": [
+        "CVE-2026-10532"
+      ],
+      "publicado": "2026-06-01T15:30:40Z",
+      "resumen": "Logback vulnerable to Object Injection through HardenedObjectInputStream modules",
+      "severidad": "LOW",
+      "paquetes": [
+        {
+          "paquete": "ch.qos.logback:logback-core",
+          "versionAntes": "1.5.32"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-mhm7-754m-9p8w",
+      "alias": [],
+      "publicado": "2026-07-21T19:40:12Z",
+      "resumen": "jackson-databind: `@JsonView` bypass for creator properties with `@JsonTypeInfo(include=As.EXTERNAL_PROPERTY)`",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-mq64-j8f9-9gcj",
+      "alias": [
+        "CVE-2026-41841"
+      ],
+      "publicado": "2026-06-09T06:31:57Z",
+      "resumen": "Spring Framework Information Disclosure via Static Resource Cache in Spring MVC and WebFlux",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-p47f-322f-whfh",
+      "alias": [
+        "CVE-2026-9828"
+      ],
+      "publicado": "2026-05-28T15:39:50Z",
+      "resumen": "QOS.CH Sarl logback logback-core has a deserialization of untrusted data vulnerability",
+      "severidad": "LOW",
+      "paquetes": [
+        {
+          "paquete": "ch.qos.logback:logback-core",
+          "versionAntes": "1.5.32"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-qv9r-c865-cp47",
+      "alias": [
+        "CVE-2026-49844"
+      ],
+      "publicado": "2026-07-11T00:31:48Z",
+      "resumen": "Apache Log4j API: Improper encoding of non-finite floating-point values during MapMessage JSON serialization",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.apache.logging.log4j:log4j-api",
+          "versionAntes": "2.24.3"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-r29c-68gh-xp6x",
+      "alias": [
+        "BIT-tomcat-2026-41293",
+        "CVE-2026-41293"
+      ],
+      "publicado": "2026-05-12T18:30:38Z",
+      "resumen": "Apache Tomcat - HTTP/2 request headers not validated",
+      "severidad": "CRITICAL",
+      "paquetes": [
+        {
+          "paquete": "org.apache.tomcat.embed:tomcat-embed-core",
+          "versionAntes": "10.1.54"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-r5w3-xv2f-j59q",
+      "alias": [
+        "CVE-2026-41850"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Algorithmic Denial of Service via SpEL Expressions",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-expression",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-r7wm-3cxj-wff9",
+      "alias": [],
+      "publicado": "2026-07-21T21:58:53Z",
+      "resumen": "jackson-core: Async parser maxNumberLength bypass via chunked digit accumulation (incomplete fix for GHSA-72hv-8253-57qq)",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-core",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-rcqc-6cw3-h962",
+      "alias": [
+        "CVE-2026-54518"
+      ],
+      "publicado": "2026-06-23T21:17:02Z",
+      "resumen": "jackson-databind has a @JsonView bypass for unwrapped creator parameters",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-rmj7-2vxq-3g9f",
+      "alias": [
+        "CVE-2026-54513"
+      ],
+      "publicado": "2026-06-23T21:22:15Z",
+      "resumen": "jackson-databind has an array subtype allowlist bypass in BasicPolymorphicTypeValidator (allowIfSubTypeIsArray)",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "com.fasterxml.jackson.core:jackson-databind",
+          "versionAntes": "2.21.2"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-wxpp-56q6-5pcg",
+      "alias": [
+        "CVE-2026-41851"
+      ],
+      "publicado": "2026-06-09T06:31:58Z",
+      "resumen": "Spring Framework Denial of Service via Unbounded Cache in SpEL",
+      "severidad": "MODERATE",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-expression",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    },
+    {
+      "id": "GHSA-x23c-287f-qqv5",
+      "alias": [
+        "CVE-2026-41842"
+      ],
+      "publicado": "2026-06-09T06:31:57Z",
+      "resumen": "Spring Framework Denial of Service via Versioned Resources in Spring MVC and WebFlux",
+      "severidad": "HIGH",
+      "paquetes": [
+        {
+          "paquete": "org.springframework:spring-webmvc",
+          "versionAntes": "6.2.18"
+        }
+      ],
+      "estado": "Versión corregida instalada; OSV posterior sin avisos. Explotabilidad depende de funcionalidades utilizadas."
+    }
+  ]
+}
