@@ -304,17 +304,9 @@ export default class CapaBarrios {
   }
 
   dibujarFondoMapa(transformacionMapa) {
-    this.fondoMapa = this.escena.add.graphics();
-
-    /*
-     * Base azul petróleo del mapa.
-     */
-    this.fondoMapa.fillStyle(COLORES_INTERFAZ_MAPA.PANEL, 1);
-
-    /*
-     * Borde exterior azul METRONET.
-     */
-    this.fondoMapa.lineStyle(2, COLORES_INTERFAZ_MAPA.BORDE, 0.92);
+    // Polygon conserva sus índices triangulados: el fondo no cambia por frame.
+    // Sigue siendo vectorial, sin rasterizar ni perder nitidez al acercar el mapa.
+    this.fondoMapa = this.escena.add.container(0, 0);
 
     for (const barrio of this.barrios) {
       const geometria = barrio.feature.geometry;
@@ -362,18 +354,8 @@ export default class CapaBarrios {
       this.convertirCoordenada(coordenada, transformacionMapa),
     );
 
-    grafico.beginPath();
-
-    grafico.moveTo(puntos[0].x, puntos[0].y);
-
-    for (let i = 1; i < puntos.length; i++) {
-      grafico.lineTo(puntos[i].x, puntos[i].y);
-    }
-
-    grafico.closePath();
-
-    grafico.fillPath();
-
+    const forma = this.escena.add.polygon(0, 0, puntos, COLORES_INTERFAZ_MAPA.PANEL, 1).setOrigin(0);
+    grafico.add(forma);
   }
 
   crearGraficoBarrio(barrio, transformacionMapa) {

@@ -34,6 +34,7 @@ export default class CapaRedMetro {
     this.elementoSeleccionado = null;
     this.grafico = null;
     this.etiquetasEstaciones = [];
+    this.texturasMarcos = new Map();
     this.marcadoresEstaciones = [];
     this.unidadesEstaticas = [];
     this.lineasPorEstacion = new Map();
@@ -277,11 +278,30 @@ export default class CapaRedMetro {
     const ancho = Phaser.Math.Clamp(texto.width + 20, 74, 180);
     const alto = 24;
     const posicion = this.calcularPosicionEtiqueta(punto, ancho, alto, radio, indice, estacion.nombre);
-    const fondo = this.escena.add.rectangle(0, 0, ancho, alto, COLORES_INTERFAZ_MAPA.PANEL, 0.96)
-      .setStrokeStyle(1, COLORES_INTERFAZ_MAPA.BORDE, 0.95);
+    const fondo = this.escena.add.image(0, 0, this.obtenerTexturaMarco(ancho, alto)).setDisplaySize(ancho + 2, alto + 2);
     const contenedor = this.escena.add.container(posicion.x, posicion.y, [fondo, texto]).setDepth(PROFUNDIDAD_ETIQUETAS);
     this.etiquetasEstaciones.push(contenedor);
     this.limitesEtiquetas.push({ x: posicion.x - ancho / 2, y: posicion.y - alto / 2, ancho, alto, nombre: estacion.nombre });
+  }
+
+  obtenerTexturaMarco(ancho, alto) {
+    const clave = `marco-etiqueta-${this.escena.sys.settings.key}-${ancho}-${alto}`;
+    if (this.texturasMarcos.has(clave)) return this.texturasMarcos.get(clave);
+    // Fondo y texto comparten el render de texturas. Alternar Rectangle/Text
+    // por estación obliga a vaciar el lote WebGL dos veces por etiqueta.
+    const textura = this.escena.textures.createCanvas(clave, (ancho + 2) * 2, (alto + 2) * 2);
+    const contexto = textura.getContext();
+    contexto.scale(2, 2);
+    contexto.fillStyle = convertirColorAHex(COLORES_INTERFAZ_MAPA.PANEL);
+    contexto.globalAlpha = 0.96;
+    contexto.fillRect(1, 1, ancho, alto);
+    contexto.strokeStyle = convertirColorAHex(COLORES_INTERFAZ_MAPA.BORDE);
+    contexto.globalAlpha = 0.95;
+    contexto.lineWidth = 1;
+    contexto.strokeRect(1, 1, ancho, alto);
+    textura.refresh();
+    this.texturasMarcos.set(clave, clave);
+    return clave;
   }
 
   calcularPosicionEtiqueta(punto, ancho, alto, radio, indice, nombreEstacion) {
@@ -730,6 +750,8 @@ export default class CapaRedMetro {
     this.previsualizacion?.destroy();
     this.escena.events.off('postupdate', this.manejadorPostUpdate);
     this.eliminarElementosEstaticos();
+    for (const clave of this.texturasMarcos.values()) this.escena.textures.remove(clave);
+    this.texturasMarcos.clear();
     this.grafico?.destroy();
     this.grafico = null;
   }
