@@ -115,9 +115,7 @@ test('fallo al recargar después de crear no anuncia éxito ni pierde cambios pe
   const { pagina } = await preparar(t);
   await pagina.route('**/api/simulaciones/77', route => route.fulfill({ status: 503, json: { detail: 'No se pudo recargar la red.' } }));
   await pagina.locator('[data-elegir-herramienta=metros]').click();
-  await pagina.locator('[data-linea-unidad]').evaluate(e => {e.closest('details').open=true;});
-  await pagina.locator('[data-linea-unidad]').selectOption('Azul');
-  await pagina.locator('[data-agregar-unidad]').click();
+  await pagina.evaluate(() => editorPrueba.creacionDirecta.seleccionar({tipo:'tramo',valor:editorPrueba.disenoActual.tramos[0]}));
   await pagina.waitForFunction(() => document.querySelector('[data-estado-editor]').dataset.tipo === 'error');
   assert.match(await pagina.locator('[data-estado-editor] [role=alert]').innerText(), /No se pudo recargar/);
   assert.equal(await pagina.evaluate(() => editorPrueba.cambiosPendientes), true);

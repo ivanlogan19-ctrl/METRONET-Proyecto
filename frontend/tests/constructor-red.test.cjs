@@ -47,8 +47,9 @@ test('inicio: herramientas agrupadas, un solo panel y acciones de proyecto acces
   assert.equal(await pagina.locator('[data-guardar]').isVisible(), true);
   assert.equal(await pagina.locator('[data-ir-simulacion]').isDisabled(), false);
   assert.equal(await pagina.locator('[data-validar]').count(), 0);
-  assert.equal(await pagina.locator('[data-elegir-herramienta] svg').count(), 7);
-  for (const clave of ['estaciones', 'lineas', 'conexiones', 'metros', 'transbordos', 'escenarios', 'seleccion']) {
+  assert.equal(await pagina.locator('[data-elegir-herramienta] svg').count(), 6);
+  assert.equal(await pagina.locator('[data-elegir-herramienta=transbordos]').count(), 0);
+  for (const clave of ['estaciones', 'lineas', 'conexiones', 'metros', 'escenarios', 'seleccion']) {
     await herramienta(pagina, clave);
   }
   assert.equal(await pagina.locator('[data-selector-diseno]').count(), 0);

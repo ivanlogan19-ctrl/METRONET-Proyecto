@@ -71,7 +71,7 @@ export default class EditorRedMetro {
         </div>
         <div class="metronet-editor-grupo" data-herramienta="metros">
           <p class="metronet-editor-etiqueta">Unidades</p>
-          <details><summary>Asignar con teclado / elegir línea</summary><label>Línea<select data-linea-unidad aria-label="Línea asignada"></select></label><button type="button" data-agregar-unidad>Asignar metro</button></details>
+          <div class="metronet-editor-fila" data-lineas-superpuestas hidden role="group" aria-label="Elegir línea del metro"></div>
         </div>
         <div class="metronet-editor-grupo" data-herramienta="escenarios">
           <label class="metronet-editor-etiqueta">Escenario de aprendizaje</label>
@@ -136,13 +136,10 @@ export default class EditorRedMetro {
     this.agregarListaContextual('lineas', 'data-lista-lineas', 'Líneas existentes');
     this.agregarListaContextual('metros', 'data-lista-metros', 'Unidades de metro');
     this.obtener('[data-linea-gestion]')?.closest('.metronet-editor-fila')?.setAttribute('hidden', '');
-    const botonMetro = this.obtener('[data-agregar-unidad]');
     const botonCrearEscenario = this.obtener('[data-crear-escenario]');
     const botonActualizarEscenario = this.obtener('[data-actualizar-escenario]');
-    botonMetro?.classList.add('metronet-accion-primaria');
     botonCrearEscenario?.classList.add('metronet-accion-neutra');
     botonActualizarEscenario?.classList.add('metronet-accion-advertencia');
-    if (botonMetro) botonMetro.textContent = '+ Agregar metro';
     const finalizacion = document.createElement('section');
     finalizacion.className = 'metronet-editor-finalizar';
     finalizacion.innerHTML = '<h3>Proyecto</h3>';
@@ -161,7 +158,6 @@ export default class EditorRedMetro {
     finalizacion.append(ayudaSimulacion);
     editorActivo.append(finalizacion);
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño'],
-      ['[data-agregar-unidad]', 'metros', 'Asignar metro'],
       ['[data-crear-escenario]', 'escenarios', 'Crear escenario'], ['[data-actualizar-escenario]', 'guardar', 'Guardar escenario']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
@@ -187,7 +183,7 @@ export default class EditorRedMetro {
     if (boton.matches('[data-seleccionar-linea-directa]')) return this.seleccionarLineaDesdeLista(boton.dataset.seleccionarLineaDirecta);
     if (boton.matches('[data-seleccionar-unidad]')) return this.seleccionarUnidadDesdeLista(boton.dataset.seleccionarUnidad);
     if (boton.matches('[data-seleccionar-linea]')) return this.seleccionarLinea();
-    if (boton.matches('[data-agregar-unidad]')) return this.agregarUnidad();
+    if (boton.matches('[data-linea-superpuesta]')) return this.creacionDirecta.metro(boton.dataset.lineaSuperpuesta);
     if (boton.matches('[data-crear-escenario]')) return this.crearEscenario();
     if (boton.matches('[data-actualizar-escenario]')) return this.actualizarEscenario();
     if (boton.matches('[data-guardar]')) return this.guardarDiseno();
@@ -330,7 +326,6 @@ export default class EditorRedMetro {
   ubicarEstacion(posicion, modo) { return this.creacionDirecta.ubicar(posicion, modo); }
   crearLinea() { this.panelHerramientas.seleccionar('lineas'); }
   crearTramo() { this.panelHerramientas.seleccionar('conexiones'); }
-  agregarUnidad() { return this.creacionDirecta.metro(this.obtener('[data-linea-unidad]').value); }
 
   async guardarDiseno({ evaluar = true } = {}) {
     if (this.finalizacionEnCurso) return false;
@@ -344,7 +339,7 @@ export default class EditorRedMetro {
       this.cambiosPendientes = false;
       if (validacion.valido) this.panelTutorial?.registrarUso('guardar');
       this.actualizarAyuda(true);
-      if (evaluar && !protegido && validacion.valido && this.esEscenarioSinSimulacion()) await this.evaluarEscenarioSinSimulacion(id);
+      if (evaluar && !protegido && validacion.valido && this.esEscenarioProgresivo()) await this.evaluarEscenarioGuardado(id);
       else {
         const pendientes = (this.consignaActual?.condiciones ?? []).filter(c => !c.completado).map(c => c.texto);
         const detalle = !validacion.valido ? ` La red todavía está en construcción: ${(validacion.observaciones ?? []).join(' ')}`
@@ -356,7 +351,7 @@ export default class EditorRedMetro {
     finally { this.finalizacionEnCurso = false; }
   }
 
-  async evaluarEscenarioSinSimulacion(idDiseno) {
+  async evaluarEscenarioGuardado(idDiseno) {
     if (this.evaluacionEnCurso) return;
     this.evaluacionEnCurso = true;
     const controlador = new AbortController();
@@ -672,7 +667,7 @@ export default class EditorRedMetro {
   actualizarOpcionesLineas() {
     const lineas = this.disenoActual.lineas ?? [];
     if (this.creacionDirecta.lineaActiva && !lineas.some(l => l.nombre === this.creacionDirecta.lineaActiva)) this.creacionDirecta.elegirLinea('');
-    ['[data-linea-conexion]', '[data-linea-unidad]', '[data-linea-gestion]'].map((selector) => this.obtener(selector)).forEach((selector) => {
+    ['[data-linea-conexion]', '[data-linea-gestion]'].map((selector) => this.obtener(selector)).forEach((selector) => {
       selector.replaceChildren();
       selector.append(new Option(lineas.length ? 'Elegí una línea' : 'Sin líneas disponibles', ''));
       lineas.forEach((linea) => selector.append(new Option(linea.nombre, linea.nombre)));

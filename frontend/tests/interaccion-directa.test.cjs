@@ -47,8 +47,10 @@ test('transbordo exige bandera y dos líneas; se habilita en el intento en edici
  const escenario={idEscenario:7,numero:7,nombre:'Transbordos',estado:'EN_DESARROLLO',progreso:0,desbloqueado:true,herramientasHabilitadas:{estaciones:true,lineas:true,metros:true,conexiones:true,simulacion:true}};
  const {pagina:p,solicitudes}=await abrir(t,{escenario,lineas:[{nombre:'Azul'},{nombre:'Rosa'}],tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Rosa',estacionA:'Centro',estacionB:'Este'}]});
  assert.equal(await p.evaluate(()=>editorPrueba.capaRedMetro.esTransbordo(editorPrueba.disenoActual.estaciones[0])),false);
- await herramienta(p,'transbordos');await clic(p,700,460);assert.equal(solicitudes.length,0);
- await clic(p,580,470);await p.waitForFunction(()=>editorPrueba.disenoActual.estaciones[0].transbordo);
+ assert.equal(await p.locator('[data-elegir-herramienta=transbordos]').count(),0);
+ await clic(p,580,470);await p.locator('[data-editar-estacion]').click();
+ await p.getByLabel('Permite transbordo',{exact:true}).check();await p.getByRole('button',{name:'Guardar cambios',exact:true}).click();
+ await p.waitForFunction(()=>editorPrueba.disenoActual.estaciones[0].transbordo);
  assert.equal(await p.evaluate(()=>editorPrueba.capaRedMetro.esTransbordo(editorPrueba.disenoActual.estaciones[0])),true);
  assert.equal(solicitudes[0].metodo,'PATCH');
 });
@@ -56,8 +58,12 @@ test('transbordo exige bandera y dos líneas; se habilita en el intento en edici
 test('líneas superpuestas requieren elegir destino del metro',async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{lineas:[{nombre:'Azul'},{nombre:'Rosa'}],tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Rosa',estacionA:'Centro',estacionB:'Parque'}]});
  await herramienta(p,'metros');await clic(p,640,465);assert.equal(solicitudes.length,0);
- assert.equal(await p.locator('[data-linea-unidad]').inputValue(),'');
- await p.locator('[data-linea-unidad]').selectOption('Rosa');await p.locator('[data-agregar-unidad]').click();
+ assert.equal(await p.locator('[data-linea-unidad], [data-agregar-unidad]').count(),0);
+ await herramienta(p,'seleccion');
+ assert.equal(await p.locator('[data-lineas-superpuestas] button').count(),0);
+ assert.equal(await p.locator('[data-lineas-superpuestas]').isVisible(),false);
+ await herramienta(p,'metros');await clic(p,640,465);
+ await p.getByRole('button',{name:'Crear metro en Rosa',exact:true}).click();
  await p.waitForFunction(()=>editorPrueba.disenoActual.unidadesMetro.length===2);
  assert.equal(solicitudes[0].datos.nombreLinea,'Rosa');
 });
@@ -144,4 +150,15 @@ test('renombrar la línea activa no deja conexiones apuntando al nombre anterior
  await herramienta(p,'conexiones');await clic(p,700,460);
  assert.equal(solicitudes.length,1);assert.equal(await p.locator('[data-linea-conexion]').inputValue(),'');
  assert.match(await p.locator('[data-estado-editor]').innerText(),/línea activa/);
+});
+
+for (const numero of [1,2,3,4,5,6,7,8,9,10]) test(`Guardar nivel ${numero} evalúa y actualiza progreso parcial sin Validar manual`,async t=>{
+ const nivel=require('../src/educacion/niveles.json').find(n=>n.numero===numero);
+ let evaluado=false, evaluaciones=0;
+ const {pagina:p,solicitudes}=await abrir(t,{primeraPasada:false,escenario:{...nivel,idEscenario:numero,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:evaluado?60:0,condiciones:[{clave:'minimoEstaciones',texto:'Ubicar estaciones',actual:evaluado?3:0,requerido:5,completado:false}],referenciasObjetivo:[]})});
+ await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluado=true;evaluaciones++;await route.fulfill({json:{completado:false,progreso:60,puntaje:60,mensaje:'Faltan estaciones para completar la consigna.'},headers:{'access-control-allow-origin':'*'}});});
+ await p.locator('[data-guardar]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ assert.equal(evaluaciones,1);assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.progreso),60);
+ assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
+ assert.equal(await p.locator('[data-validar]').count(),0);assert.equal(await p.locator('.metronet-victoria').count(),0);
 });

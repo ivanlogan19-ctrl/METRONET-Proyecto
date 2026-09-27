@@ -133,18 +133,14 @@ test('Simulación: consigna por ID real, unidades correctas y consulta sin ejecu
     if(req.url().endsWith('/consigna')) return {json:{estadoGlobal:'PARCIAL',progreso:50,condiciones:[{texto:'Estaciones de transbordo',actual:1,requerido:2}],referenciasObjetivo:[]}};
     return null;
   }});
-  await p.locator('#consignaSimulacion > summary').click();
-  await p.locator('#listaObjetivosConsigna [data-concepto=transbordo]').click();
-  await p.getByRole('button',{name:'Cerrar explicación'}).click();
+  assert.equal(await p.locator('#consignaSimulacion').count(),0);
   await p.locator('[data-concepto=ritmo]').first().click();
   assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/No cambia los km\/h/);
   await captura(p,'simulacion-ritmo'); await p.keyboard.press('Escape');
-  await p.locator('#seccionConfiguracion > summary').click();
+
   await p.locator('#seccionConfiguracion [data-concepto=duracion]').click();
   assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/segundos/); await p.keyboard.press('Escape');
-  await p.locator('#seccionCirculacion > summary').click();
-  await p.locator('.simulacion-ayuda-desempeno > summary').click();
-  await p.locator('.simulacion-ayuda-desempeno [data-concepto=velocidad]').click();
+  await p.locator('#seccionCirculacion [data-concepto=velocidad]').click();
   assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/km\/h/); await p.keyboard.press('Escape');
   assert.equal(solicitudes.some(s=>s.method==='POST'),false);
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('min'),'10');

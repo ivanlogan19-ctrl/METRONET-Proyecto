@@ -104,7 +104,7 @@ test('Último nivel recién completado: victoria → celebración → Modo Libre
     return r.fallback();
   });
   await p.clock.install();
-  await p.evaluate(() => { window.resultadoEntrada = editorPrueba.evaluarEscenarioSinSimulacion(77); });
+  await p.evaluate(() => { window.resultadoEntrada = editorPrueba.evaluarEscenarioGuardado(77); });
   await p.locator('.metronet-victoria').waitFor(); await p.clock.runFor(1900);
   await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
   assert.match(await p.locator('.metronet-identificacion').innerText(), /RECORRIDO COMPLETADO.*ESTÁS LISTO PARA EL MODO LIBRE/s);
@@ -159,7 +159,7 @@ test('Simulación del último nivel → nuevo documento del editor: celebración
   } }); cerrar(t,v);
   const p = v.pagina;
   await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
-  await p.locator('#seccionConfiguracion > summary').click();
+
   await p.locator('#duracionSimulacion').fill('10'); await p.locator('[data-velocidad="4"]').click();
   await p.locator('#formularioEjecucion button[type="submit"]').click();
   await p.locator('.metronet-victoria').waitFor();

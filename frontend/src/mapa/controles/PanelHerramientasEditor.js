@@ -4,7 +4,6 @@ const HERRAMIENTAS = [
   ['lineas', 'Línea', 'Construcción', 'Elegí dos estaciones para crear una línea. El nombre se asigna automáticamente.'],
   ['conexiones', 'Conexión', 'Construcción', 'Elegí la línea activa y dos estaciones para conectar. Después podés seguir extendiendo el recorrido.'],
   ['seleccion', 'Seleccionar', 'Edición', 'Seleccioná un elemento del mapa para consultar sus acciones.'],
-  ['transbordos', 'Transbordos', 'Edición', 'Elegí una estación compartida por dos líneas para habilitar su transbordo.'],
   ['metros', 'Metros', 'Unidades', 'Hacé clic sobre una vía para asignar un metro. Sus parámetros se editan después.'],
   ['escenarios', 'Actividad propia', 'Proyecto', 'Configurá el nombre y la dificultad de un escenario propio.'],
 ];
@@ -45,12 +44,6 @@ export default class PanelHerramientasEditor {
       panel.setAttribute('aria-label', `Opciones: ${nombre}`);
       if (clave === 'seleccion') panel.append(seleccion);
       else if (grupos.has(clave)) panel.append(grupos.get(clave));
-      else if (clave === 'transbordos') {
-        const ayuda = document.createElement('p');
-        ayuda.className = 'metronet-editor-ayuda';
-        ayuda.textContent = 'El transbordo permite intercambiar entre dos líneas que comparten una estación.';
-        panel.append(ayuda);
-      }
       this.paneles.set(clave, panel);
     }
     this.ayuda = document.createElement('p');

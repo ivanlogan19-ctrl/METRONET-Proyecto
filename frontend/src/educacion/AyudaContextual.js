@@ -41,7 +41,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     'Intento completado. Compará tu recorrido con el objetivo antes del siguiente desafío.', '', ['objetivo'], 'LOGRO');
   if (pantalla === 'simulacion' && ['EN_CURSO', 'PAUSADA'].includes(estadoMotor)) return aviso(`circulacion-${estadoMotor}`,
     estadoMotor === 'PAUSADA' ? 'Circulación pausada. Observá cómo se relacionan las líneas y sus recorridos.' : 'Observá qué destinos conecta cada recorrido. La animación sola no confirma los objetivos.',
-    'El ritmo cambia la animación; revisá la velocidad de las unidades en Desempeño.', ['linea', 'ritmo', 'velocidad'], 'OBSERVÁ');
+    'El ritmo cambia la animación; revisá los km/h de la unidad en el panel de Simulación.', ['linea', 'ritmo', 'velocidad'], 'OBSERVÁ');
 
   if (inicial && pendientes.length && !tutorialActivo && ['crearLinea', 'crearTramo'].includes(modo)) return aviso(`${modo}-${Math.min(seleccionadas.length, 2)}`,
     seleccionadas.length < 2 ? 'Elegí estaciones distintas en el mapa. El orden de selección ayuda a definir el recorrido.' : 'El recorrido se está construyendo entre las estaciones elegidas.',

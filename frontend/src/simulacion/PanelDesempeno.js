@@ -1,42 +1,57 @@
-import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { destacarConceptos } from '../educacion/glosario/GlosarioContextual.js';
 import { CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js';
-const texto = (tag, valor) => { const e = document.createElement(tag); e.textContent = valor; return e; };
+import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 
-export function renderizarDesempeno(contenedor, diseno, desempeno, guardar) {
-  contenedor.replaceChildren();
-  const disponible = Number.isFinite(desempeno?.puntajeMaximo);
-  const contexto = texto('p', 'Velocidad promedio de circulación en km/h. Los tiempos son estimaciones de distancia / velocidad, sin paradas ni tráfico. El ritmo × solo acelera la reproducción y no otorga puntos.');
-  const ayuda = document.createElement('details');
-  ayuda.className = 'simulacion-ayuda-desempeno';
-  ayuda.append(texto('summary', 'Cómo se calcula'), contexto);
-  if (disponible) {
-    const etapa = { RED: '1 · Resolver la red', VELOCIDAD: '2 · Ajustar velocidades', SIMULACION: '3 · Simular la configuración actual', LISTO: 'Resultado listo para registrar' }[desempeno.etapa];
-    contenedor.append(texto('strong', etapa), texto('p', desempeno.explicacion));
-    ayuda.append(texto('p', `Puntaje estimado: ${desempeno.puntaje} / ${desempeno.puntajeMaximo}. La evaluación registra el porcentaje de criterios satisfechos; un puntaje parcial no completa el nivel.`));
+// Un único editor de velocidad física; el multiplicador visual vive fuera de él.
+export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opciones = {}) {
+  contenedor.innerHTML = `
+    <label for="unidadCirculacion">Unidad</label>
+    <select id="unidadCirculacion" aria-label="Unidad de metro"></select>
+    <form class="simulacion-parametro-velocidad">
+      <fieldset data-controles-circulacion>
+        <div class="simulacion-parametro-titulo" title="Velocidad">${iconoRetro('velocidad')}<span>Velocidad</span></div>
+        <div class="simulacion-parametro-valor">
+          <input id="velocidadFisica" type="number" min="1" step="0.1" required aria-label="Velocidad física en km/h" />
+          <span>km/h</span><button type="submit"></button>
+        </div>
+        <span data-velocidad-mixta hidden>MIXTO</span>
+      </fieldset>
+    </form>`;
+  destacarConceptos(contenedor.querySelector('.simulacion-parametro-titulo span'), CONCEPTOS_SIMULACION);
+  const unidades = diseno.unidadesMetro ?? [];
+  const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
+  const boton = contenedor.querySelector('button[type="submit"]'), campo = contenedor.querySelector('fieldset');
+  const mixto = contenedor.querySelector('[data-velocidad-mixta]');
+  selector.replaceChildren(new Option('Todas las unidades', 'todas'), ...unidades.map(u => new Option(`Metro ${u.idTren} · ${u.nombreLinea}`, String(u.idTren))));
+  const permitidas = unidades.length > 0 && (!Number.isFinite(desempeno?.puntajeMaximo) || desempeno.redResuelta);
+  input.disabled = boton.disabled = !permitidas;
+  campo.disabled = opciones.bloqueado === true;
+  configurarBotonIcono(boton, 'guardar', 'Aplicar velocidad');
+  if (!permitidas) {
+    const aviso = document.createElement('p'); aviso.className = 'simulacion-texto-secundario';
+    aviso.textContent = unidades.length ? 'Completá la estructura de la red para ajustar los km/h.' : 'Agregá un metro desde el editor.';
+    contenedor.append(aviso);
   }
-  const campo = document.createElement('fieldset');
-  campo.dataset.controlesCirculacion = '';
-  campo.append(texto('legend', 'Velocidades de las unidades'));
-  for (const unidad of diseno.unidadesMetro ?? []) {
-    const form = document.createElement('form'); form.className = 'simulacion-velocidad-unidad';
-    const label = texto('label', `Metro ${unidad.idTren} · ${unidad.nombreLinea} · km/h`);
-    const input = document.createElement('input'); input.type = 'number'; input.min = '1'; input.step = '0.1'; input.required = true;
-    input.value = unidad.velocidadPromedio; input.setAttribute('aria-label', `Velocidad del metro ${unidad.idTren} en km/h`);
-    const boton = document.createElement('button'); boton.type = 'submit';
-    configurarBotonIcono(boton, 'guardar', 'Aplicar km/h');
-    input.disabled = boton.disabled = disponible && !desempeno.redResuelta;
-    label.append(input); form.append(label, boton);
-    const medida = desempeno?.unidades?.find(u => u.idTren === unidad.idTren);
-    if (medida) form.append(texto('p', `${medida.distanciaKm.toFixed(2)} km · ${medida.tiempoMinutos.toFixed(1)} min estimados a ${medida.velocidadKmh} km/h.`));
-    let guardando = false;
-    form.addEventListener('submit', async e => {
-      e.preventDefault(); if (guardando) return; guardando = true; boton.disabled = true;
-      try { await guardar(unidad, Number(input.value)); } finally { guardando = false; boton.disabled = false; }
-    });
-    campo.append(form);
+  const elegidas = () => selector.value === 'todas' ? unidades : unidades.filter(u => String(u.idTren) === selector.value);
+  function seleccionar(id) {
+    selector.value = unidades.some(u => String(u.idTren) === id) ? id : 'todas';
+    const velocidades = [...new Set(elegidas().map(u => Number(u.velocidadPromedio)))];
+    const valorMixto = velocidades.length > 1;
+    input.value = velocidades.length === 1 ? String(velocidades[0]) : '';
+    input.placeholder = valorMixto ? 'Mixto' : '—';
+    mixto.hidden = !valorMixto;
   }
-  if (!diseno.unidadesMetro?.length) campo.append(texto('p', 'Agregá una unidad desde el Constructor para configurar su circulación.'));
-  contenedor.append(campo, ayuda);
-  destacarConceptos(ayuda, CONCEPTOS_SIMULACION);
+  seleccionar(opciones.seleccion);
+  selector.addEventListener('change', () => { seleccionar(selector.value); opciones.alSeleccionar?.(selector.value); });
+  let guardando = false;
+  contenedor.querySelector('form').addEventListener('submit', async evento => {
+    evento.preventDefault();
+    if (guardando || campo.disabled || !permitidas || !input.reportValidity()) return;
+    const valor = Number(input.value);
+    if (!Number.isFinite(valor) || valor < 1) return;
+    guardando = true; campo.disabled = true;
+    try { await guardar(elegidas(), valor); }
+    finally { guardando = false; if (campo.isConnected) campo.disabled = opciones.bloqueado === true; }
+  });
+  return { seleccionar };
 }

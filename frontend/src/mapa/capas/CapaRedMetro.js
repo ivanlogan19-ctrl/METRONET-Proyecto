@@ -455,7 +455,7 @@ export default class CapaRedMetro {
       return;
     }
     if (!convertido) return;
-    if (['crearLinea', 'crearTramo', 'crearTransbordo'].includes(this.modo)) {
+    if (['crearLinea', 'crearTramo'].includes(this.modo)) {
       const estacion = this.obtenerEstacionCercana(convertido.punto);
       if (estacion) this.alSeleccionar({tipo:'estacion',valor:estacion});
       return;

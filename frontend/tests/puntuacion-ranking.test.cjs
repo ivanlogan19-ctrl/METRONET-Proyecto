@@ -55,19 +55,19 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
   if(path.endsWith('/unidades/1')){velocidad=req.postDataJSON().velocidadPromedio;return {status:204};}
   if(path.endsWith('/validacion'))return {json:{valido:true,preparadoParaSimular:true,observaciones:[]}};
  }});
- await pagina.locator('#seccionCirculacion > summary').click();
- const campo=pagina.getByRole('spinbutton',{name:'Velocidad del metro 1 en km/h',exact:true});await campo.waitFor();
+
+ const campo=pagina.getByRole('spinbutton',{name:'Velocidad física en km/h',exact:true});await campo.waitFor();
  assert.equal(await pagina.locator('#desempenoNivel').evaluate(e=>getComputedStyle(e).display),'grid');
  assert.ok(await campo.evaluate(e=>e.getBoundingClientRect().height>=40));
  assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  assert.equal(await campo.isDisabled(),!resuelta);
- await pagina.getByText(/15.00 km · 10.0 min estimados a 90 km\/h/).waitFor();
- assert.match(await pagina.locator('#formularioEjecucion').innerText(),/Ritmo de reproducción \(×\)/);
+ assert.equal(await campo.inputValue(),'90');
+ assert.match(await pagina.locator('.simulacion-ritmo').innerText(),/Ritmo visual/);
  if(resuelta){
-  await campo.fill('45');await pagina.getByRole('button',{name:'Aplicar km/h',exact:true}).click();
-  await pagina.getByText(/15.00 km · 20.0 min estimados a 45 km\/h/).waitFor();
+  await campo.fill('45');await pagina.getByRole('button',{name:'Aplicar velocidad',exact:true}).click();
+  await pagina.waitForFunction(()=>document.getElementById('velocidadFisica').value==='45' && !document.querySelector('[data-controles-circulacion]').disabled);
   assert.deepEqual(solicitudes.find(s=>s.method==='PATCH').body,{nombreLinea:'Azul',capacidad:300,velocidadPromedio:45});
-  assert.ok(solicitudes.some(s=>s.path.endsWith('/validacion')));
+  assert.equal(solicitudes.filter(s=>s.method==='PATCH').length,1); // Preflight al pulsar Simular, sin validación manual adicional.
  }
 });
 test('Cierre global presenta puntos por nivel, máximo y posición sin crear otro intento',async t=>{
@@ -96,7 +96,7 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
   if(path.endsWith('/ejecutar')){red.resultados=[resultado];return {json:resultado};}
   if(path.endsWith('/evaluar'))return {json:{completado:puntos === 100,puntaje:puntos,progreso:puntos,desempeno,mensaje:desempeno.explicacion}};
  }});
- await pagina.locator('#seccionConfiguracion > summary').click();
+
  await pagina.locator('#duracionSimulacion').fill('10');
  await pagina.locator('[data-velocidad="4"]').click();
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();

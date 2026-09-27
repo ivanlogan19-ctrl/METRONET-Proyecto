@@ -422,7 +422,7 @@ public class JuegoEducativoService {
         agregarCondicion(
             condiciones,
             "requiereRedValida",
-            "Validar la consistencia de la red",
+            "Guardar una red consistente",
             redEsValida ? 1 : 0,
             1,
             booleano(reglas, "requiereRedValida")

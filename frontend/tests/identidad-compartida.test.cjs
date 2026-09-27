@@ -45,6 +45,11 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}`);
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
     assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
+    if (ruta.startsWith('/simulacion.html')) {
+      assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración de simulación en segundos');
+      assert.equal(await pagina.locator('[data-icono-duracion] svg').count(), 1);
+      continue; // El control operacional tiene icono y nombre accesible, no una etiqueta de formulario extensa.
+    }
     const actualEtiqueta = await pagina.locator(entrada).first().evaluate(e => {
       const css = getComputedStyle(e.labels[0]);
       return Object.fromEntries(['color', 'fontFamily', 'fontSize', 'fontWeight'].map(clave => [clave, css[clave]]));

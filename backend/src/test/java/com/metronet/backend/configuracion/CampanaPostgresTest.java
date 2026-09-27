@@ -105,6 +105,30 @@ class CampanaPostgresTest {
     }
 
     @Test
+    void instruccionesAnterioresSeActualizanSinAlterarConsignasPersonalizadasNiReglas() throws Exception {
+        try (var conexion = DriverManager.getConnection(System.getenv("METRONET_TEST_POSTGRES_URL"),
+            System.getenv().getOrDefault("METRONET_TEST_POSTGRES_USER", "postgres"),
+            System.getenv().getOrDefault("METRONET_TEST_POSTGRES_PASSWORD", ""))) {
+            conexion.setAutoCommit(false);
+            var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
+            try {
+                prepararTablasTemporales(jdbc);
+                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
+                inicializador.run();
+                var reglas = jdbc.queryForList("SELECT numero,reglas_exito::text,herramientas_habilitadas::text FROM escenario ORDER BY id_escenario");
+                var actuales = jdbc.queryForList("SELECT numero,instrucciones FROM escenario WHERE numero IN (8,10) ORDER BY numero");
+                jdbc.update("UPDATE escenario SET instrucciones=replace(instrucciones,'Guardá tu diseño y simulá','Validá y simulá') WHERE numero IN (8,10)");
+                inicializador.run(); inicializador.run();
+                assertEquals(actuales, jdbc.queryForList("SELECT numero,instrucciones FROM escenario WHERE numero IN (8,10) ORDER BY numero"));
+                assertEquals(reglas, jdbc.queryForList("SELECT numero,reglas_exito::text,herramientas_habilitadas::text FROM escenario ORDER BY id_escenario"));
+                jdbc.update("UPDATE escenario SET instrucciones='Consigna personalizada: Validá tu hipótesis' WHERE numero=8");
+                inicializador.run();
+                assertEquals("Consigna personalizada: Validá tu hipótesis", jdbc.queryForObject("SELECT instrucciones FROM escenario WHERE numero=8", String.class));
+            } finally { conexion.rollback(); }
+        }
+    }
+
+    @Test
     void catalogoIdempotenteDiezSolucionesRecargaReinicioYLogroHistoricoEnPostgres() throws Exception {
         try (var conexion = DriverManager.getConnection(System.getenv("METRONET_TEST_POSTGRES_URL"),
             System.getenv().getOrDefault("METRONET_TEST_POSTGRES_USER", "postgres"),

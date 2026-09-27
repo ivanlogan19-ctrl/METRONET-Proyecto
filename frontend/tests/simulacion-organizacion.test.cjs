@@ -40,13 +40,28 @@ async function geometria(p) {
     return { width: r.width, height: r.height, x: r.x + scrollX, y: r.y + scrollY, zoom: s.cameras.main.zoom, scrollX: s.cameras.main.scrollX, scrollY: s.cameras.main.scrollY };
   });
 }
+test('Seleccionar metro en mapa o selector sincroniza la ficha y conserva cámara', async t => {
+  const { pagina: p } = await abrir(t);
+  await p.evaluate(() => { const c = escenaOrganizacion.cameras.main; c.setZoom(c.zoom * 1.15); c.scrollX += 20; c.scrollY += 12; });
+  await cuadros(p);
+  const antes = await geometria(p);
+  await p.evaluate(() => escenaOrganizacion.seleccionarElementoRed({ tipo: 'unidad', valor: escenaOrganizacion.disenoActual.unidadesMetro[0] }));
+  assert.equal(await p.locator('#unidadCirculacion').inputValue(), '1');
+  assert.match(await p.locator('#seccionMetricas').innerText(), /M-1.*Azul/s);
+  assert.equal(await p.locator('#velocidadFisica').inputValue(), '40');
+  await p.locator('#unidadCirculacion').selectOption('todas');
+  assert.equal(await p.locator('#seccionMetricas').isVisible(), false);
+  assert.equal(await p.evaluate(() => escenaOrganizacion.idUnidadSeleccionada), null);
+  await cuadros(p);
+  assert.deepEqual(await geometria(p), antes);
+});
 for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominante, secciones por teclado y ampliación con simulación activa`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, width);
   const inicial = await geometria(p);
   assert.ok(inicial.height >= 340);
   assert.ok(inicial.width / width > (width > 1050 ? .72 : .9));
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-  for (const id of ['consignaSimulacion', 'seccionCirculacion', 'seccionConfiguracion', 'seccionMetricas', 'seccionResultados']) {
+  for (const id of ['seccionResultados']) {
     const resumen = p.locator(`#${id} > summary`);
     assert.equal(await p.locator(`#${id}`).evaluate(e => e.open), false);
     await resumen.focus(); await p.keyboard.press('Enter');
@@ -77,8 +92,8 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
   const restaurada = await geometria(p);
   assert.equal(restaurada.width, inicial.width); assert.equal(restaurada.height, inicial.height);
   assert.equal(solicitudes.length, solicitudesPrevias, 'Cambiar la vista no debe generar llamadas a la API');
-  await p.locator('#verConsignaCompleta').click();
-  assert.equal(await p.locator('#objetivoConsigna').isVisible(), true);
+  assert.equal(await p.locator('#objetivoConsigna, #consignaSimulacion').count(), 0);
+  assert.equal(await p.locator('#duracionSimulacion').isVisible(), true);
 });
 test('Validación de ventana plegada: abre configuración y enfoca el campo sin ejecutar', async t => {
   const { pagina: p, solicitudes } = await abrir(t, 390);
@@ -86,7 +101,7 @@ test('Validación de ventana plegada: abre configuración y enfoca el campo sin 
   await p.locator('#ampliarMapa').click();
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.locator('.metronet-notificacion--error').waitFor();
-  assert.equal(await p.locator('#seccionConfiguracion').evaluate(e => e.open), true);
+  assert.equal(await p.locator('#seccionConfiguracion').isVisible(), true);
   assert.equal(await p.locator('#duracionSimulacion').evaluate(e => e === document.activeElement), true);
   assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);
 });

@@ -54,7 +54,7 @@ test('Historial conservado: simulador sobrevive a pagehide/pageshow y mantiene e
 test('Diseño libre propio: conserva instrucciones sin consultar una consigna de campaña inexistente',async t=>{
  const v=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{responder:r=>new URL(r.url()).pathname==='/api/simulaciones/77'?{json:{simulacion:{idDiseno:77,idEscenario:999,modo:'EDICION_LIBRE',nombre:'Libre propio',objetivo:'Planificar una red propia'},estaciones:[],lineas:[],tramos:[],unidadesMetro:[],resultados:[],territorio:{areas:[],errores:[]}}}:null});t.after(()=>v.contexto.close());
  await v.pagina.waitForFunction(()=>document.querySelector('audio[data-musica-metronet]')?.getAttribute('src')==='/audio/gameplay-theme.mp3');
- assert.equal(v.solicitudes.filter(r=>r.path.endsWith('/consigna')).length,0);assert.equal(await v.pagina.locator('#objetivoConsigna').textContent(),'Planificar una red propia');assert.deepEqual(v.errores,[]);
+ assert.equal(v.solicitudes.filter(r=>r.path.endsWith('/consigna')).length,0);assert.equal(await v.pagina.locator('#objetivoConsigna').count(),0);assert.deepEqual(v.errores,[]);
 });
 
 test('Recorridos reutilizados durante el movimiento se invalidan al editar y redimensionar',async t=>{

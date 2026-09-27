@@ -39,6 +39,8 @@ class EscenaSimulacion extends Phaser.Scene {
     this.ultimoAvisoEstado = 0;
     this.seguimientoMetroActivo = false;
     this.alActualizarEstado = opciones.alActualizarEstado ?? (() => {});
+    this.alSeleccionarUnidad = opciones.alSeleccionarUnidad ?? (() => {});
+    this.idUnidadSeleccionada = null;
   }
 
   preload() {
@@ -177,6 +179,15 @@ class EscenaSimulacion extends Phaser.Scene {
     if (!elemento || !this.capaRedMetro) return;
     this.capaRedMetro.establecerElementoSeleccionado(elemento);
     this.actualizarSeleccionVisual(elemento);
+    if (elemento.tipo === 'unidad') this.alSeleccionarUnidad(elemento.valor.idTren);
+  }
+
+  establecerUnidadSeleccionada(id) {
+    this.idUnidadSeleccionada = id === 'todas' ? null : Number(id);
+    const unidad = this.disenoActual?.unidadesMetro?.find(u => u.idTren === this.idUnidadSeleccionada);
+    const elemento = unidad ? { tipo: 'unidad', valor: unidad } : null;
+    this.capaRedMetro?.establecerElementoSeleccionado(elemento);
+    this.actualizarSeleccionVisual(elemento);
   }
 
   actualizarSeleccionVisual(elemento = null) {
@@ -246,7 +257,7 @@ class EscenaSimulacion extends Phaser.Scene {
     const unidadEnRecorrido = estado.unidades?.find((unidad) => {
       return unidad.transitable && String(unidad.idTren) === String(unidadSeleccionada?.idTren);
     });
-    return unidadEnRecorrido ?? estado.metroActivo ?? null;
+    return estado.unidades?.find(u => u.idTren === this.idUnidadSeleccionada && u.transitable) ?? unidadEnRecorrido ?? estado.metroActivo ?? null;
   }
 
   sincronizarEstadoMotor(estado, forzar = false) {

@@ -494,7 +494,7 @@
       "concepto": "Transbordos y conectividad",
       "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo.",
       "contexto": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas.",
-      "consejo": "Creá primero la línea que cubre los objetivos. Compartí una estación con la segunda línea y activá su atributo de transbordo."
+      "consejo": "Creá primero la línea que cubre los objetivos. Compartí una estación con la segunda línea y activá Permite transbordo en las propiedades de esa estación."
     },
     "transicion": {
       "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo.",
@@ -511,7 +511,7 @@
     "nombre": "Nivel 8 · Red urbana",
     "objetivo": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los seis POI a 20 unidades del mapa. Construí ocho estaciones, tres líneas, siete tramos y tres metros; usá dos transbordos entre líneas. Mantené un recorrido continuo común a los POI y atendé los seis barrios y cuatro zonas indicadas. Validá y simulá.",
+    "instrucciones": "Cubrí los seis POI a 20 unidades del mapa. Construí ocho estaciones, tres líneas, siete tramos y tres metros; usá dos transbordos entre líneas. Mantené un recorrido continuo común a los POI y atendé los seis barrios y cuatro zonas indicadas. Guardá tu diseño y simulá.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
@@ -770,7 +770,7 @@
     "nombre": "Nivel 10 · Desafío integral",
     "objetivo": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre diez y once estaciones, tres líneas, nueve tramos y tres metros, con tres transbordos. Cubrí los ocho POI a 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Validá y simulá la red integral.",
+    "instrucciones": "Diseñá entre diez y once estaciones, tres líneas, nueve tramos y tres metros, con tres transbordos. Cubrí los ocho POI a 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Guardá tu diseño y simulá la red integral.",
     "reglasExito": {
       "minimoEstaciones": 10,
       "minimoLineas": 3,

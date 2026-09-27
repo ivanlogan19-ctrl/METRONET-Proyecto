@@ -17,15 +17,14 @@ export function inicializarOrganizacionSimulacion() {
   function abrirSeccion(id) {
     if (panel.hidden) establecerAmpliado(false);
     const seccion = document.getElementById(id);
-    seccion.open = true;
-    const resumen = seccion.querySelector('summary');
-    resumen.focus({ preventScroll: true });
-    resumen.scrollIntoView({ block: 'nearest' });
+    if (seccion.tagName === 'DETAILS') seccion.open = true;
+    const control = seccion.querySelector('summary, input, select');
+    control?.focus({ preventScroll: true });
+    control?.scrollIntoView({ block: 'nearest' });
   }
 
   configurarBotonIcono(ampliar, 'plegar', 'Ocultar panel');
   ampliar.addEventListener('click', () => establecerAmpliado(!panel.hidden));
-  document.getElementById('verConsignaCompleta').addEventListener('click', () => abrirSeccion('consignaSimulacion'));
   document.getElementById('duracionSimulacion').addEventListener('invalid', evento => {
     abrirSeccion('seccionConfiguracion');
     // El foco final debe ir al dato inválido, incluso si su sección estaba cerrada.

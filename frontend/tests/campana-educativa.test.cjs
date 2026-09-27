@@ -144,7 +144,7 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
       if (path.endsWith('/evaluar')) return { json: { completado: true, puntaje: 100, progreso: 100, idSiguienteEscenario: numero === 10 ? null : 105, mensaje: 'Nivel completado' } };
     },
   });
-  await pagina.locator('#seccionConfiguracion > summary').click();
+
   await pagina.locator('#duracionSimulacion').fill('10');
   await pagina.locator('[data-velocidad="4"]').click();
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();

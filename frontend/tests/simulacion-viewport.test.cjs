@@ -102,7 +102,7 @@ for (const width of [1440, 768, 390]) for (const modo of ['inicial','desplazado'
 }
 test('Seguimiento explícito: pausa y detención congelan la cámara sin perseguir el inicio', async t => {
   const { pagina } = await abrir(t, 1440, true); await posicionar(pagina, 'desplazado'); await iniciar(pagina);
-  await pagina.locator('#seccionConfiguracion > summary').click();
+
   await pagina.locator('#seguirMetro').click(); await cuadros(pagina, 15);
   await pagina.locator('#pausarSimulacion').click(); const pausa = await capturar(pagina); await cuadros(pagina, 15); estable(pausa, await capturar(pagina));
   await pagina.locator('#reanudarSimulacion').click(); await cuadros(pagina, 15);

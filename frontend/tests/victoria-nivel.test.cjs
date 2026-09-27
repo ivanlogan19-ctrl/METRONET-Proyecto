@@ -130,7 +130,7 @@ test('Constructor real: evaluación única, victoria y siguiente nivel sin segun
   if(ruta.endsWith('/progreso'))return route.fulfill({json:progreso});if(ruta.endsWith('/escenarios'))return route.fulfill({json:progreso.escenarios});return route.fallback();
  });
  await pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
- await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.evaluarEscenarioSinSimulacion(77),editorPrueba.evaluarEscenarioSinSimulacion(77)]);});
+ await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.evaluarEscenarioGuardado(77),editorPrueba.evaluarEscenarioGuardado(77)]);});
  const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.match(await d.innerText(),/Nuevo récord personal/i);assert.equal(evaluaciones,1);assert.equal(inicios,0);
   await pagina.clock.runFor(1900);await pagina.waitForFunction(()=>!editorPrueba.evaluacionEnCurso);assert.equal(await pagina.locator('.metronet-identificacion').count(),0);assert.equal(inicios,1);assert.equal(await pagina.locator('.metronet-viaje').count(),0);
  assert.equal(new URL(pagina.url()).searchParams.get('idEscenario'),'2');
@@ -156,7 +156,7 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
  pagina.setDefaultTimeout(26000); // Incluye simulación real y transición breve.
  if(caso==='administrador')assert.equal(await pagina.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador')).usuario.rol),'ADMIN');
  await pagina.route('**/?idDiseno=200*',route=>route.fulfill({contentType:'text/html',body:'<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Consigna del nivel 5</h1>'}));
- await pagina.locator('#seccionConfiguracion > summary').click();await pagina.locator('#duracionSimulacion').fill('10');await pagina.locator('[data-velocidad="4"]').click();
+ await pagina.locator('#duracionSimulacion').fill('10');await pagina.locator('[data-velocidad="4"]').click();
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  if(caso==='modoLibre'||caso==='incompleto'){
   await pagina.getByText(/Recorrido finalizado:/).waitFor();assert.equal(await pagina.locator('.metronet-victoria').count(),0);

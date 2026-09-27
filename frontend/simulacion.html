@@ -21,10 +21,7 @@
       <div data-flujo-navegacion></div>
       <header class="simulacion-encabezado">
         <div><p class="simulacion-etiqueta">Simulación // Control de red</p><h1 id="tituloSimulacion">Elegí un diseño</h1></div>
-        <div class="simulacion-encabezado-acciones">
-          <span id="estadoSimulacion" class="simulacion-estado"></span>
-          <a id="volverEdicion" class="simulacion-volver" href="/">Volver a edición</a>
-        </div>
+        <div class="simulacion-encabezado-acciones"><a id="volverEdicion" class="simulacion-volver" href="/">Volver a edición</a></div>
       </header>
       <div class="simulacion-espacio-trabajo">
         <section id="estadoVacio" class="simulacion-vacio">
@@ -35,141 +32,49 @@
           <section class="simulacion-visor-mapa" aria-labelledby="tituloVistaSimulacion">
             <header class="simulacion-visor-encabezado">
               <h3 id="tituloVistaSimulacion">Mapa de la simulación</h3>
-              <div class="simulacion-visor-acciones">
-                <button id="ampliarMapa" type="button" aria-pressed="false" aria-controls="instrumentosSimulacion">Ampliar mapa</button>
-              </div>
+              <div class="simulacion-visor-acciones"><button id="ampliarMapa" type="button" aria-pressed="false" aria-controls="instrumentosSimulacion">Ampliar mapa</button></div>
             </header>
-            <dl class="simulacion-banda-estado" aria-label="Indicadores principales">
+            <dl class="simulacion-banda-estado" aria-label="Estado de ejecución">
               <div><dt>Estado</dt><dd id="estadoTiempoReal" role="status">Red lista</dd></div>
               <div><dt>Tiempo</dt><dd id="tiempoSimulacion">00:00</dd></div>
-              <div><dt>Metro activo · km/h</dt><dd id="velocidadActualSimulacion">—</dd></div>
-              <div><dt>Puntos estimados</dt><dd id="puntajeCompactoSimulacion">—</dd></div>
+              <div class="simulacion-progreso"><dt id="tituloProgresoEjecucion">Ejecución</dt><dd><span id="valorProgresoEjecucion">0%</span><span id="progresoEjecucion" class="simulacion-barra" role="progressbar" aria-labelledby="tituloProgresoEjecucion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="rellenoProgresoEjecucion"></span></span></dd></div>
             </dl>
             <div class="metronet-barra-geografica" aria-label="Opciones del mapa"><div data-contenedor-referencias></div><div data-hud-mapa><div data-ayuda-contextual></div></div></div>
             <div id="visorSimulacion" class="simulacion-lienzo-contenedor" aria-label="Mapa Phaser de Montevideo con la red seleccionada"></div>
             <div class="simulacion-mandos" aria-label="Controles de simulación">
-              <form id="formularioEjecucion" class="simulacion-formulario">
-                <input id="velocidadSimulacion" type="hidden" value="1" />
-                <button class="simulacion-primario" type="submit" aria-label="Iniciar simulación">▶ Iniciar</button>
-                <div class="simulacion-ritmo">
-                  <span class="simulacion-etiqueta-control">Ritmo de reproducción (×)</span>
-                  <div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
-                    <button type="button" data-velocidad="0.5" aria-pressed="false">×0.5</button>
-                    <button type="button" data-velocidad="1" aria-pressed="true">×1</button>
-                    <button type="button" data-velocidad="2" aria-pressed="false">×2</button>
-                    <button type="button" data-velocidad="4" aria-pressed="false">×4</button>
-                  </div>
-                </div>
-              </form>
+              <form id="formularioEjecucion" class="simulacion-formulario"><input id="velocidadSimulacion" type="hidden" value="1" /><button class="simulacion-primario" type="submit" aria-label="Iniciar simulación">Iniciar</button></form>
               <div class="simulacion-acciones-ejecucion">
-                <button id="pausarSimulacion" type="button" disabled>⏸ Pausar</button>
-                <button id="reanudarSimulacion" type="button" disabled hidden>▶ Reanudar</button>
-                <button id="detenerSimulacion" class="simulacion-accion-detener" type="button" disabled>■ Detener</button>
-                <button id="reiniciarSimulacion" type="button" disabled>↻ Reiniciar</button>
+                <button id="pausarSimulacion" type="button" disabled>Pausar</button>
+                <button id="reanudarSimulacion" type="button" disabled hidden>Reanudar</button>
+                <button id="detenerSimulacion" class="simulacion-accion-detener" type="button" disabled>Detener</button>
+                <button id="reiniciarSimulacion" type="button" disabled>Reiniciar</button>
               </div>
             </div>
           </section>
         </section>
         <div class="simulacion-avisos" aria-label="Estado y avisos de la red">
           <p id="estadoEjecucion" class="simulacion-estado-ejecucion"></p>
-          <p id="estadoObjetivosConsigna" class="simulacion-consigna__aviso" role="status" aria-live="polite" hidden></p>
           <p id="mensajeSimulacion" class="simulacion-mensaje" role="status" aria-live="polite"></p>
           <button id="verResultadosSimulacion" type="button" hidden>Ver resultados</button>
         </div>
-        <aside id="instrumentosSimulacion" class="simulacion-instrumentos" aria-label="Información y configuración de la red">
-          <div class="simulacion-objetivo-compacto" data-requiere-diseno hidden>
-            <p class="simulacion-etiqueta">Objetivo</p>
-            <p id="objetivoCompactoSimulacion"></p>
-            <button id="verConsignaCompleta" type="button" aria-controls="consignaSimulacion">Ver consigna completa</button>
-          </div>
-          <div data-requiere-diseno hidden>
-            <details id="consignaSimulacion" class="simulacion-consigna">
-              <summary class="simulacion-consigna__resumen">
-                <span id="contextoConsigna" class="simulacion-etiqueta">Escenario</span>
-                <span id="estadoConsigna" class="simulacion-consigna__estado"></span>
-                <strong id="tituloConsigna">Actividad de simulación</strong>
-                <span id="progresoCompactoConsigna" class="simulacion-consigna__progreso-compacto" hidden>
-                  <span>Progreso</span>
-                  <strong id="valorProgresoCompactoConsigna">—</strong>
-                  <span class="simulacion-consigna__barra-compacta" aria-hidden="true"><span id="rellenoProgresoCompactoConsigna"></span></span>
-                </span>
-              </summary>
-              <div class="simulacion-consigna__contenido">
-                <p id="objetivoConsigna" class="simulacion-consigna__objetivo"></p>
-                <section id="seccionProgresoObjetivosConsigna" class="simulacion-consigna__progreso simulacion-consigna__progreso-objetivos" aria-labelledby="tituloProgresoObjetivosConsigna" hidden>
-                  <div class="simulacion-consigna__progreso-encabezado">
-                    <span id="tituloProgresoObjetivosConsigna">Progreso del escenario</span>
-                    <strong id="valorProgresoObjetivosConsigna">—</strong>
-                  </div>
-                  <div id="progresoObjetivosConsigna" class="simulacion-consigna__barra" role="progressbar" aria-labelledby="tituloProgresoObjetivosConsigna" aria-valuemin="0" aria-valuemax="100">
-                    <span id="rellenoProgresoObjetivosConsigna" class="simulacion-consigna__barra-relleno"></span>
-                  </div>
-                  <p id="estadoProgresoObjetivosConsigna" class="simulacion-texto-secundario"></p>
-                </section>
-                <section id="objetivosConsigna" class="simulacion-consigna__objetivos" aria-labelledby="tituloObjetivosConsigna" hidden>
-                  <h4 id="tituloObjetivosConsigna">Objetivos del escenario</h4>
-                  <ul id="listaObjetivosConsigna" class="simulacion-consigna__lista-objetivos"></ul>
-                  <details id="masObjetivosConsigna" class="simulacion-consigna__mas-elementos" hidden>
-                    <summary id="tituloMasObjetivosConsigna">Ver más objetivos</summary>
-                    <ul id="listaObjetivosAdicionalesConsigna" class="simulacion-consigna__lista-objetivos"></ul>
-                  </details>
-                </section>
-                <section id="referenciasConsigna" class="simulacion-consigna__referencias" aria-labelledby="tituloReferenciasConsigna" hidden>
-                  <h4 id="tituloReferenciasConsigna">Referencias del mapa</h4>
-                  <div id="listaReferenciasConsigna" class="simulacion-consigna__lista-referencias"></div>
-                  <details id="masReferenciasConsigna" class="simulacion-consigna__mas-elementos" hidden>
-                    <summary id="tituloMasReferenciasConsigna">Ver más referencias</summary>
-                    <div id="listaReferenciasAdicionalesConsigna" class="simulacion-consigna__lista-referencias"></div>
-                  </details>
-                </section>
-                <section class="simulacion-consigna__progreso" aria-labelledby="tituloProgresoEjecucion">
-                  <div class="simulacion-consigna__progreso-encabezado">
-                    <span id="tituloProgresoEjecucion">Progreso de ejecución</span>
-                    <strong id="valorProgresoEjecucion">0%</strong>
-                  </div>
-                  <div id="progresoEjecucion" class="simulacion-consigna__barra" role="progressbar" aria-labelledby="tituloProgresoEjecucion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                    <span id="rellenoProgresoEjecucion" class="simulacion-consigna__barra-relleno"></span>
-                  </div>
-                  <p id="estadoProgresoEjecucion" class="simulacion-texto-secundario" aria-live="polite">Detenida</p>
-                </section>
-              </div>
-            </details>
-          </div>
-          <details id="seccionCirculacion" class="simulacion-seccion" data-requiere-diseno hidden>
-            <summary>Velocidades y desempeño</summary>
-            <div id="desempenoNivel" class="simulacion-desempeno"></div>
-          </details>
-          <details id="seccionConfiguracion" class="simulacion-seccion" data-requiere-diseno hidden>
-            <summary>Configuración</summary>
-            <div class="simulacion-seccion-contenido">
-              <div class="field-group">
-                <label for="duracionSimulacion">Ventana visual (s)</label>
-                <input id="duracionSimulacion" form="formularioEjecucion" type="number" min="10" value="60" required />
-              </div>
-              <button id="seguirMetro" class="simulacion-seguimiento" type="button" aria-pressed="false" disabled>Seguir metro: desactivado</button>
-              <p id="estadoVistaMapa" class="simulacion-texto-secundario">Montevideo · enfoque automático sobre la red</p>
-              <span class="simulacion-visor-modo">Mapa de solo lectura</span>
-            </div>
-          </details>
-          <details id="seccionMetricas" class="simulacion-seccion" data-requiere-diseno hidden>
-            <summary>Información en tiempo real</summary>
-            <dl class="simulacion-datos-tiempo-real simulacion-seccion-contenido">
-              <div><dt>Metro</dt><dd id="metroSimulacion">Sin unidad activa</dd></div>
-              <div><dt>Línea</dt><dd id="lineaSimulacion">—</dd></div>
-              <div><dt>Próxima estación</dt><dd id="proximaEstacionSimulacion">—</dd></div>
-            </dl>
-          </details>
+        <aside id="instrumentosSimulacion" class="simulacion-instrumentos" aria-label="Controles de simulación">
+          <h2 class="simulacion-panel-titulo">Simulación</h2>
+          <section id="seccionCirculacion" data-requiere-diseno hidden><div id="desempenoNivel" class="simulacion-desempeno"></div></section>
+          <section id="seccionConfiguracion" class="simulacion-parametros" data-requiere-diseno hidden>
+            <div class="simulacion-parametro-titulo" title="Duración de simulación"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
+            <div class="simulacion-parametro-valor"><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración de simulación en segundos" type="number" min="10" step="1" value="60" required /><span>s</span></div>
+            <div class="simulacion-ritmo"><span class="simulacion-etiqueta-control">Ritmo visual (×)</span><div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
+              <button type="button" data-velocidad="0.5" aria-pressed="false">×0.5</button><button type="button" data-velocidad="1" aria-pressed="true">×1</button><button type="button" data-velocidad="2" aria-pressed="false">×2</button><button type="button" data-velocidad="4" aria-pressed="false">×4</button>
+            </div></div>
+          </section>
+          <section id="seccionMetricas" class="simulacion-ficha-unidad" hidden aria-label="Unidad seleccionada"><strong id="metroSimulacion"></strong><span id="lineaSimulacion"></span><span id="proximaEstacionSimulacion"></span></section>
+          <div class="simulacion-seguimiento" data-requiere-diseno hidden><button id="seguirMetro" type="button" aria-pressed="false" disabled>Seguir metro</button></div>
           <details id="seccionResultados" class="simulacion-seccion" data-requiere-diseno hidden>
-            <summary id="tituloResultadosSimulacion">Resultados e intentos</summary>
-            <div class="simulacion-seccion-contenido">
-              <div id="listaResultadosSimulacion" class="simulacion-lista-elementos"></div>
-              <a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con escenarios</a>
-            </div>
+            <summary id="tituloResultadosSimulacion">Resultados</summary>
+            <div class="simulacion-seccion-contenido"><div id="listaResultadosSimulacion" class="simulacion-lista-elementos"></div><a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con escenarios</a></div>
           </details>
         </aside>
       </div>
     </main>
-
-
   </body>
 </html>

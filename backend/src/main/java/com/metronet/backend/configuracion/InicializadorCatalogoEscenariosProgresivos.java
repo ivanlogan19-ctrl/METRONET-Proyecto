@@ -34,9 +34,24 @@ public class InicializadorCatalogoEscenariosProgresivos {
                 ((com.fasterxml.jackson.databind.node.ObjectNode) anteriores).remove("puntuacion");
                 jdbcTemplate.update("UPDATE escenario SET reglas_exito=CAST(? AS jsonb) WHERE progresivo=TRUE AND numero=? AND reglas_exito=CAST(? AS jsonb)",
                     nivel.path("reglasExito").toString(), nivel.path("numero").asInt(), anteriores.toString());
+                actualizarInstruccionGuardado(jdbcTemplate, nivel);
             }
             insertarModoLibre(jdbcTemplate);
         };
+    }
+
+    private void actualizarInstruccionGuardado(JdbcTemplate jdbcTemplate, JsonNode nivel) {
+        int numero = nivel.path("numero").asInt();
+        if (numero != 8 && numero != 10) return;
+        String actual = nivel.path("instrucciones").asText();
+        String anterior = actual.replace("Guardá tu diseño y simulá", "Validá y simulá");
+        // Corregir solo el texto original conocido. No sobrescribir escenarios
+        // personalizados ni sus reglas, herramientas o resultados históricos.
+        jdbcTemplate.update("""
+            UPDATE escenario SET instrucciones=?
+            WHERE progresivo=TRUE AND numero=? AND instrucciones=?
+              AND reglas_exito=CAST(? AS jsonb) AND herramientas_habilitadas=CAST(? AS jsonb)
+            """, actual, numero, anterior, nivel.path("reglasExito").toString(), nivel.path("herramientasHabilitadas").toString());
     }
 
     private void insertarNivel(JdbcTemplate jdbcTemplate, int numero, String nombre, String objetivo, String dificultad,

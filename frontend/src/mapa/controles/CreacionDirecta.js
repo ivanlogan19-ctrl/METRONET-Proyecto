@@ -1,12 +1,16 @@
 import { siguienteNombre } from './NombresRed.js';
 import { estaMantenimientoActivo, MENSAJE_MANTENIMIENTO } from '../../configuracion/ConfiguracionAplicacion.js';
 
-const MODOS = { estaciones: 'crearEstacion', lineas: 'crearLinea', conexiones: 'crearTramo', metros: 'crearMetro', transbordos: 'crearTransbordo' };
+const MODOS = { estaciones: 'crearEstacion', lineas: 'crearLinea', conexiones: 'crearTramo', metros: 'crearMetro' };
 
 // Estado e interacción del editor; la capa gráfica solo comunica gestos/selecciones.
 export default class CreacionDirecta {
   constructor(editor) { this.editor = editor; this.lineaActiva = ''; this.version = 0; this.pendiente = null; }
-  cancelar() { this.version += 1; }
+  cancelar() {
+    this.version += 1;
+    const opciones = this.editor.obtener('[data-lineas-superpuestas]');
+    if (opciones) { opciones.replaceChildren(); opciones.hidden = true; }
+  }
   disponible({ permitirEspera = false } = {}) {
     const e = this.editor;
     if (!e.activo || !e.disenoActual || e.finalizacionEnCurso || (!permitirEspera && this.pendiente) || e.aperturaEscenarioEnCurso) return false;
@@ -38,7 +42,6 @@ export default class CreacionDirecta {
     this.lineaActiva = nombre;
     this.editor.capaRedMetro.lineaActiva = nombre;
     this.editor.obtener('[data-linea-conexion]').value = nombre;
-    this.editor.obtener('[data-linea-unidad]').value = nombre;
     this.editor.actualizarOperacionAyuda();
   }
   async enviar(crearSolicitud, mensaje, alCompletar = () => {}) {
@@ -94,17 +97,21 @@ export default class CreacionDirecta {
       const lineas = elemento?.tipo === 'tramos' ? [...new Set(elemento.valor.map(t => t.nombreLinea))] : elemento?.tipo === 'tramo' ? [elemento.valor.nombreLinea] : [];
       if (lineas.length === 1) this.metro(lineas[0]);
       else if (lineas.length > 1) {
-        e.opcionesMetro = lineas;
-        const selector = e.obtener('[data-linea-unidad]');
-        selector.replaceChildren(new Option('Elegí la línea superpuesta', ''), ...lineas.map(n => new Option(n,n)));
-        selector.closest('details').open = true;
-        selector.focus();
+        const opciones = e.obtener('[data-lineas-superpuestas]');
+        opciones.replaceChildren(...lineas.map(nombre => {
+          const boton = document.createElement('button');
+          boton.type = 'button'; boton.dataset.lineaSuperpuesta = nombre;
+          boton.textContent = nombre;
+          boton.setAttribute('aria-label', `Crear metro en ${nombre}`);
+          return boton;
+        }));
+        opciones.hidden = false;
+        opciones.querySelector('button').focus();
         e.mostrarMensaje('Aquí coinciden varias líneas. Elegí a cuál asignar el metro.', 'info');
       } else e.mostrarMensaje('Elegí una vía existente para asignarle el metro.', 'info');
       return true;
     }
     if (elemento?.tipo !== 'estacion') return true;
-    if (e.modo === 'crearTransbordo') { this.transbordo(elemento.valor); return true; }
     if (!['crearLinea', 'crearTramo'].includes(e.modo)) return true;
     if (e.modo === 'crearTramo' && !this.lineaActiva) { e.mostrarMensaje('Elegí la línea activa antes de conectar sus estaciones.', 'info'); e.obtener('[data-linea-conexion]').focus(); return true; }
     const nombre = elemento.valor.nombre;
@@ -142,11 +149,8 @@ export default class CreacionDirecta {
     await e.configuracionLista;
     if (!e.activo || e.disenoActual?.simulacion.idDiseno !== id || version !== this.version) return;
     await this.enviar(() => ({ ruta: '/unidades', datos: { nombreLinea, capacidad: e.capacidadUnidadPredeterminada, velocidadPromedio: 40 } }), 'Metro asignado. Sus parámetros están disponibles al seleccionarlo.');
-  }
-  async transbordo(estacion) {
-    const e = this.editor;
-    if ((e.capaRedMetro.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) < 2) return e.mostrarMensaje('Un transbordo comunica líneas distintas: esta estación todavía no pertenece a dos líneas.', 'info');
-    if (estacion.transbordo) return e.mostrarMensaje('Esta estación ya tiene el transbordo habilitado.', 'info');
-    await this.enviar(() => ({ ruta: `/estaciones/${encodeURIComponent(estacion.nombre)}`, metodo:'PATCH', datos:{...estacion,transbordo:true} }), 'Transbordo habilitado entre líneas.');
+    if (!e.activo || e.disenoActual?.simulacion.idDiseno !== id || version !== this.version) return;
+    const opciones = e.obtener('[data-lineas-superpuestas]');
+    opciones.replaceChildren(); opciones.hidden = true;
   }
 }
