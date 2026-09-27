@@ -40,3 +40,17 @@ test('Música accesible también antes de elegir un diseño',async t=>{
   await p.locator('.metronet-hud>summary').waitFor();await p.locator('.metronet-hud>summary').click();await p.locator('[data-hud-vista=musica]').click();
   assert.equal(await p.getByRole('slider',{name:'Volumen de música'}).isVisible(),true);
 });
+
+test('Carga inicial tardía no mueve el HUD ni pierde el clic de Música',async t=>{
+  const {pagina:p,contexto,errores}=await abrirPantalla(navegador,'/inicio.html');
+  t.after(async()=>{await contexto.close();assert.deepEqual(errores,[]);});
+  let liberar;const espera=new Promise(r=>liberar=r);
+  await p.route('**/api/configuraciones',async r=>{await espera;await r.fulfill({json:[],headers:{'access-control-allow-origin':'*'}});});
+  try {
+    await p.goto('http://127.0.0.1:5173/simulacion.html');
+    await p.locator('.metronet-hud>summary').click();await p.locator('[data-hud-vista=musica]').hover();
+    await p.mouse.down();liberar();
+    await p.waitForFunction(()=>window[Symbol.for('metronet:gestor-musica')].obtenerContexto()==='menu');
+    await p.mouse.up();await p.getByRole('slider',{name:'Volumen de música'}).waitFor({state:'visible',timeout:2000});
+  } finally { liberar(); }
+});

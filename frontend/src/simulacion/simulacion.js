@@ -48,13 +48,19 @@ if (!sesion) {
   inicializar();
 }
 
+function ubicarPanelAyuda(selector) {
+  const destino = document.querySelector(selector);
+  // Reinsertar el mismo nodo durante pointerdown/pointerup cancela el clic.
+  if (panelAyuda.contenedor.parentElement !== destino) destino.append(panelAyuda.contenedor);
+}
+
 async function inicializar() {
   [['#formularioEjecucion button[type="submit"]','play','Iniciar simulación'],['#pausarSimulacion','pausa','Pausar simulación'],
     ['#reanudarSimulacion','play','Reanudar simulación'],['#detenerSimulacion','detener','Detener simulación'],['#reiniciarSimulacion','reiniciar','Reiniciar recorrido'],
     ['#seguirMetro','metros','Seguir metro'],['#ampliarMapa','ampliar','Ampliar mapa']]
     .forEach(([selector,icono,nombre]) => configurarBotonIcono(document.querySelector(selector),icono,nombre));
   panelAyuda = new PanelAyudaContextual(document.querySelector('[data-ayuda-contextual]'));
-  document.querySelector('.simulacion-encabezado-acciones').append(panelAyuda.contenedor);
+  ubicarPanelAyuda('.simulacion-encabezado-acciones');
   inicializarNavegacion({ actual: 'simulacion', etapa: 'simulacion' });
   // Consulta educativa independiente: una falla nunca demora la simulación.
   consultarJuego('/progreso').then(progreso => {
@@ -140,7 +146,7 @@ function actualizarPantalla() {
   const cantidadEstaciones = disenoActual.estaciones.length;
   document.getElementById('estadoVacio').hidden = true;
   document.getElementById('panelSimulacion').hidden = false;
-  document.querySelector('[data-hud-mapa]').append(panelAyuda.contenedor);
+  ubicarPanelAyuda('[data-hud-mapa]');
   organizacion.mostrarDiseno(resumen.idDiseno);
   document.getElementById('tituloSimulacion').textContent = resumen.nombre;
   document.getElementById('estadoSimulacion').textContent = formatearEstado(resumen.estado);
@@ -774,7 +780,7 @@ function mostrarEstadoVacio() {
   actualizarAyuda();
   document.getElementById('estadoVacio').hidden = false;
   document.getElementById('panelSimulacion').hidden = true;
-  document.querySelector('.simulacion-encabezado-acciones').append(panelAyuda.contenedor);
+  ubicarPanelAyuda('.simulacion-encabezado-acciones');
   organizacion.mostrarDiseno(null);
 }
 
