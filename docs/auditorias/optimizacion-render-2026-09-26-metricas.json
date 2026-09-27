@@ -1,0 +1,312 @@
+{
+  "alcance": "Frontend; render y compilacion. Sin cambios de backend ni datos.",
+  "entorno": "Chrome 153, Apple M5, ANGLE Metal; medicion local sintetica",
+  "antes": {
+    "editor": {
+      "before": {
+        "x": 198.354609375,
+        "y": 152.07686125207738,
+        "z": 4.061961246838526,
+        "objects": 316,
+        "canvas": [
+          1081,
+          818
+        ],
+        "css": [
+          1081,
+          818
+        ],
+        "dpr": 1
+      },
+      "after": {
+        "x": 198.354609375,
+        "y": 152.07686125207738,
+        "z": 4.061961246838526,
+        "objects": 316,
+        "canvas": [
+          1081,
+          818
+        ],
+        "css": [
+          1081,
+          818
+        ],
+        "dpr": 1
+      },
+      "redraw": 0,
+      "refreshMs": 0.3999999761581421
+    },
+    "simulation": {
+      "active": {
+        "routes": 301,
+        "draws": 1,
+        "moves": 301,
+        "ms": 0.8999999761581421
+      },
+      "paused": {
+        "routes": 0,
+        "draws": 0,
+        "moves": 0
+      },
+      "objects": 321,
+      "tweens": 1
+    },
+    "framesBasica": {
+      "objetos": 321,
+      "unidades": 1,
+      "longTasks": 0,
+      "longTaskMaxMs": 0,
+      "n": 180,
+      "fps": 59.669826957501826,
+      "p95IntervaloMs": 16.700000000000273,
+      "framesMayores25ms": 1,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+    },
+    "moderada": {
+      "unidades": 20,
+      "estaciones": 60,
+      "cuadros": 600,
+      "totalMs": 5.599999964237213,
+      "p95": 0.10000002384185791,
+      "conversiones": 0,
+      "objetos": 454
+    },
+    "frames": {
+      "objetos": 454,
+      "unidades": 20,
+      "longTasks": 0,
+      "longTaskMaxMs": 0,
+      "n": 180,
+      "fps": 30.682689849143436,
+      "p95IntervaloMs": 33.400000000001455,
+      "framesMayores25ms": 169,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+    },
+    "memoria": [
+      {
+        "ciclos": 5,
+        "documents": 1,
+        "nodes": 1354,
+        "jsEventListeners": 240,
+        "LayoutCount": 65,
+        "RecalcStyleCount": 72,
+        "LayoutDuration": 0.010131,
+        "ScriptDuration": 3.743104,
+        "JSHeapUsedSize": 16914208,
+        "objetos": 454,
+        "audios": 1,
+        "tweens": 0,
+        "temporizadores": 0
+      },
+      {
+        "ciclos": 10,
+        "documents": 1,
+        "nodes": 1354,
+        "jsEventListeners": 240,
+        "LayoutCount": 85,
+        "RecalcStyleCount": 97,
+        "LayoutDuration": 0.012567,
+        "ScriptDuration": 4.050209,
+        "JSHeapUsedSize": 16951872,
+        "objetos": 454,
+        "audios": 1,
+        "tweens": 0,
+        "temporizadores": 0
+      },
+      {
+        "ciclos": 15,
+        "documents": 1,
+        "nodes": 1354,
+        "jsEventListeners": 240,
+        "LayoutCount": 105,
+        "RecalcStyleCount": 122,
+        "LayoutDuration": 0.014983,
+        "ScriptDuration": 4.358224,
+        "JSHeapUsedSize": 17006320,
+        "objetos": 454,
+        "audios": 1,
+        "tweens": 0,
+        "temporizadores": 0
+      }
+    ],
+    "errors": []
+  },
+  "despues": {
+    "editor": {
+      "before": {
+        "x": 198.354609375,
+        "y": 152.07686125207738,
+        "z": 4.061961246838526,
+        "objects": 316,
+        "canvas": [
+          1081,
+          818
+        ],
+        "css": [
+          1081,
+          818
+        ],
+        "dpr": 1
+      },
+      "after": {
+        "x": 198.354609375,
+        "y": 152.07686125207738,
+        "z": 4.061961246838526,
+        "objects": 316,
+        "canvas": [
+          1081,
+          818
+        ],
+        "css": [
+          1081,
+          818
+        ],
+        "dpr": 1
+      },
+      "redraw": 0,
+      "refreshMs": 0.699999988079071
+    },
+    "simulation": {
+      "active": {
+        "routes": 301,
+        "draws": 1,
+        "moves": 301,
+        "ms": 1.0999999642372131
+      },
+      "paused": {
+        "routes": 0,
+        "draws": 0,
+        "moves": 0
+      },
+      "objects": 321,
+      "tweens": 1
+    },
+    "framesBasica": {
+      "objetos": 321,
+      "unidades": 1,
+      "longTasks": 0,
+      "longTaskMaxMs": 0,
+      "n": 180,
+      "fps": 58.698842328387414,
+      "p95IntervaloMs": 16.799999999999955,
+      "framesMayores25ms": 3,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+    },
+    "moderada": {
+      "unidades": 20,
+      "estaciones": 60,
+      "cuadros": 600,
+      "totalMs": 5.199999988079071,
+      "p95": 0.10000002384185791,
+      "conversiones": 0,
+      "objetos": 454
+    },
+    "frames": {
+      "objetos": 454,
+      "unidades": 20,
+      "longTasks": 0,
+      "longTaskMaxMs": 0,
+      "n": 180,
+      "fps": 59.67180507210343,
+      "p95IntervaloMs": 16.700000000000728,
+      "framesMayores25ms": 1,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+    },
+    "memoria": [
+      {
+        "ciclos": 5,
+        "documents": 1,
+        "nodes": 1355,
+        "jsEventListeners": 240,
+        "LayoutCount": 43,
+        "RecalcStyleCount": 51,
+        "LayoutDuration": 0.006947,
+        "ScriptDuration": 2.899604,
+        "JSHeapUsedSize": 17763924,
+        "objetos": 454,
+        "audios": 1,
+        "tweens": 0,
+        "temporizadores": 0
+      },
+      {
+        "ciclos": 10,
+        "documents": 1,
+        "nodes": 1355,
+        "jsEventListeners": 240,
+        "LayoutCount": 63,
+        "RecalcStyleCount": 76,
+        "LayoutDuration": 0.009476,
+        "ScriptDuration": 3.107338,
+        "JSHeapUsedSize": 17614612,
+        "objetos": 454,
+        "audios": 1,
+        "tweens": 0,
+        "temporizadores": 0
+      },
+      {
+        "ciclos": 15,
+        "documents": 1,
+        "nodes": 1355,
+        "jsEventListeners": 240,
+        "LayoutCount": 83,
+        "RecalcStyleCount": 101,
+        "LayoutDuration": 0.01191,
+        "ScriptDuration": 3.316074,
+        "JSHeapUsedSize": 17830496,
+        "objetos": 454,
+        "audios": 1,
+        "tweens": 0,
+        "temporizadores": 0
+      }
+    ],
+    "errors": []
+  },
+  "produccion": {
+    "combinaciones": 45,
+    "errores": 0,
+    "avisos": 0,
+    "httpFallidos": 0,
+    "overflow": 0
+  },
+  "bundle": {
+    "anteriorCompartidoKB": 1517.11,
+    "anteriorGzipKB": 406.09,
+    "actualesKB": {
+      "phaser-nucleo": 410.15,
+      "phaser-render": 266.7,
+      "phaser-geometria": 117.15,
+      "compartido-aplicacion": 155.12
+    },
+    "actualesGzipKB": {
+      "phaser-nucleo": 113.3,
+      "phaser-render": 64.28,
+      "phaser-geometria": 40.56,
+      "compartido-aplicacion": 43.71
+    },
+    "umbralAdvertenciaSinModificarKB": 500
+  },
+  "integracion": {
+    "errores": 0,
+    "llamadasFallidas": 0,
+    "resultadosPersistidos": 10,
+    "navegaciones": 24
+  },
+  "pruebasFocalizadas": {
+    "aprobadas": 16,
+    "fallos": 0,
+    "omitidas": 0
+  },
+  "build": {
+    "resultado": "correcto",
+    "segundos": 2.12,
+    "advertencias": []
+  },
+  "regresionFrontendFinal": {
+    "total": 659,
+    "aprobadas": 659,
+    "fallos": 0,
+    "omitidas": 0,
+    "canceladas": 0,
+    "duracionSegundos": 600.56
+  }
+}
