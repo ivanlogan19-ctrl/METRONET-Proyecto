@@ -125,5 +125,7 @@ test('Sin objetivo ni catálogo: no inserta instrucciones largas ni bloquea el a
   assert.equal(await dialogo.locator('.metronet-viaje__consigna p').textContent(),'Explorá el mapa y revisá la consigna completa dentro del nivel.');
   await p.evaluate(() => { cargaCompacta.marcarDatosListos(); cargaCompacta.finalizada.then(valor => window.resultadoCarga = valor); });
   await p.clock.runFor(2800);
+  assert.equal(await p.evaluate(() => window.resultadoCarga),undefined, 'La transición respeta la duración musical aun sin catálogo');
+  await p.clock.runFor(12500);
   assert.equal(await p.evaluate(() => window.resultadoCarga),true);
 });
