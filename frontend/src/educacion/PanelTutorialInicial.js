@@ -13,6 +13,8 @@ export default class PanelTutorialInicial {
   constructor(contenedor) {
     this.intentos = new Map();
     this.elemento = document.createElement('details');
+    // Exclusión nativa inmediata: un toggle pendiente no debe cerrar el acceso más reciente.
+    this.elemento.name = 'metronet-asistencia';
     this.elemento.className = 'metronet-tutorial';
     this.elemento.setAttribute('aria-label', 'Tutorial de herramientas');
     this.elemento.innerHTML = '<summary></summary><section class="metronet-tutorial__panel"><header><h2>Tutorial</h2><button type="button" data-tutorial-cerrar></button></header><div data-tutorial-contenido aria-live="polite"></div></section>';

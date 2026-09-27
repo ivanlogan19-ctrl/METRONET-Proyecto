@@ -21,6 +21,7 @@ export default class PanelAyudaContextual {
     this.integrado = controles;
     this.vista = null;
     this.elemento = document.createElement('details');
+    this.elemento.name = 'metronet-asistencia';
     this.elemento.className = 'metronet-hud';
     this.elemento.setAttribute('aria-label', 'Controles del mapa, pista y música');
     const id = `metronet-hud-${++secuenciaAyuda}`;

@@ -135,3 +135,19 @@ test('Tutorial y Controles siguen siendo exclusivos al abrirlos con teclado', as
   await p.waitForFunction(() => !document.querySelector('.metronet-tutorial').open);
   assert.equal(await p.locator('.metronet-hud').evaluate(e => e.open),true);
 });
+
+test('Alternar antes de entregar toggle conserva el último panel solicitado', async t => {
+  const { pagina:p } = await abrir(t);
+  for (const ultimo of ['.metronet-hud', '.metronet-tutorial']) {
+    await p.evaluate(ultimo => {
+      const tutorial=document.querySelector('.metronet-tutorial'), hud=document.querySelector('.metronet-hud');
+      tutorial.open=false; hud.open=false;
+      // Cambios en la misma tarea: los eventos toggle todavía no se entregaron.
+      (ultimo === '.metronet-hud' ? tutorial : hud).open=true;
+      document.querySelector(ultimo).open=true;
+    }, ultimo);
+    await p.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await p.locator(ultimo).evaluate(e => e.open),true);
+    assert.equal(await p.locator('.metronet-hud[open], .metronet-tutorial[open]').count(),1);
+  }
+});
