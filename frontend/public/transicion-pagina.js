@@ -1,5 +1,30 @@
 (() => {
-  // Se registra antes del primer render. La navegación sigue siendo de documentos.
+  // El contenedor refleja la dirección del documento, sin duplicar el historial.
+  try {
+    const contenedor = window.parent !== window && window.parent[Symbol.for('metronet:contenedor')];
+    if (contenedor) {
+      document.documentElement.dataset.navegacionContenida = '';
+      const entrada = contenedor.recibirEntrada(window);
+      if (entrada && ['reload', 'back_forward'].includes(entrada.tipo)) {
+        window[Symbol.for('metronet:tipo-navegacion')] = entrada.tipo;
+        history.replaceState({ ...history.state, metronetDesplazamiento: entrada.posicion }, '');
+      }
+      const sincronizar = () => contenedor.sincronizar(window);
+      for (const evento of ['DOMContentLoaded', 'pageshow', 'popstate', 'hashchange']) window.addEventListener(evento, sincronizar);
+      const reemplazar = history.replaceState.bind(history);
+      history.replaceState = (...args) => { reemplazar(...args); sincronizar(); };
+    }
+  } catch { /* El documento independiente conserva su navegación normal. */ }
+  // Las transiciones entre documentos no son fiables dentro de un iframe:
+  // un redirect de permisos puede abortarlas antes de exponer su promesa.
+  // Mantenerlas en HTML independientes; las vistas contenidas usan CSS breve.
+  if (window === window.top) {
+    const enlace = document.createElement('link');
+    enlace.rel = 'stylesheet';
+    enlace.href = '/transiciones-documento.css';
+    document.head.append(enlace);
+  }
+  // Se registra antes del primer render. Cada vista mantiene su propio documento.
   // El navegador puede omitir una transición: su promesa visual no bloquea el acceso.
   for (const evento of ['pageswap', 'pagereveal']) {
     window.addEventListener(evento, ({ viewTransition }) => {
@@ -21,7 +46,7 @@
   const cancelar = () => { intervinoUsuario = true; detener(); };
   const restaurar = evento => {
     if (intervinoUsuario || !document.body) return;
-    const tipo = performance.getEntriesByType('navigation')[0]?.type;
+    const tipo = window[Symbol.for('metronet:tipo-navegacion')] ?? performance.getEntriesByType('navigation')[0]?.type;
     if (!evento.persisted && tipo !== 'back_forward' && tipo !== 'reload') return;
     const posicion = history.state?.metronetDesplazamiento;
     if (!posicion || !Number.isFinite(posicion.x) || !Number.isFinite(posicion.y)) return;

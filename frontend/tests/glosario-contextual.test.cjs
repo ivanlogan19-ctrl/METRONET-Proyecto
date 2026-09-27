@@ -80,6 +80,8 @@ test('Consigna intacta, términos repetidos, texto seguro y actualización idemp
 
 test('Tap: abre, cierra y permite continuar; contenido largo sin desbordes', async t => {
   const contexto=await navegador.newContext({viewport:{width:360,height:740},hasTouch:true,isMobile:true}); t.after(()=>contexto.close());
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
   const p=await contexto.newPage();
   await p.goto((process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5173')+'/login.html');
   await p.evaluate(async modulo=>{

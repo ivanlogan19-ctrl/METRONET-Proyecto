@@ -59,6 +59,8 @@ for (const ruta of ['/login.html','/inicio.html']) test(`Descarga lenta: ${ruta}
   const espera = new Promise(r=>{liberar=r;}), paginaLista = new Promise(r=>{obtenerPagina=r;});
   const navegadorControlado = { newContext:async opciones=>{
     const contexto = await navegador.newContext(opciones);
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
     contexto.on('page',obtenerPagina);
     await contexto.route(`**${ASSET}`,async route=>{await espera;await route.continue();});
     return contexto;

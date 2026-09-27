@@ -10,6 +10,8 @@ after(async () => { await navegador?.close(); });
 
 async function abrir(t, reducedMotion = 'no-preference') {
   const contexto = await navegador.newContext({ reducedMotion });
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
   const p = await contexto.newPage(), errores = [];
   p.on('pageerror', error => errores.push(error.message));
   await p.route('**/api/**', () => { throw new Error('Esta presentación no necesita backend'); });

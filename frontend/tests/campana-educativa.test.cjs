@@ -116,6 +116,8 @@ test('Sin datos educativos usa una transición genérica; fallo de módulo no bl
 });
 test('Un progreso mal formado produce estado recuperable sin errores de JavaScript', async t => {
   const contexto = await navegador.newContext(); t.after(() => contexto.close());
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba', usuario: { nombre: 'Prueba', rol: 'JUGADOR' } })));
   const pagina = await contexto.newPage(); const errores = [];
   pagina.on('pageerror', e => errores.push(e.message));

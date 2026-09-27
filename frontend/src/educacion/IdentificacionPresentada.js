@@ -1,3 +1,4 @@
+import { obtenerTipoNavegacion } from '../navegacion/TipoNavegacion.js';
 import { obtenerSesionActiva } from '../autenticacion/sesion.js';
 
 const CLAVE = 'metronet:identificacion-presentada';
@@ -15,7 +16,7 @@ export function consumirIdentificacionPresentada(idDiseno, idEscenario) {
   let dato = local;
   local = null;
   try { dato ??= JSON.parse(sessionStorage.getItem(CLAVE)); sessionStorage.removeItem(CLAVE); } catch { /* Presentación opcional. */ }
-  const navegacion = performance.getEntriesByType('navigation')[0]?.type;
+  const navegacion = obtenerTipoNavegacion();
   return dato?.idDiseno === idDiseno && dato.idEscenario === idEscenario
     && dato.usuario === obtenerSesionActiva()?.usuario?.idUsuario
     && Date.now() - dato.instante >= 0 && Date.now() - dato.instante < 30000

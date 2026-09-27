@@ -11,6 +11,15 @@ module.exports = defineConfig({
   server: { headers },
   preview: { headers },
   plugins: [phaser.produccion, {
+    name: 'metronet-contenedor-persistente',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, contexto) {
+        if (contexto.path === '/aplicacion.html') return html;
+        return html.replace(/<head>/i, '<head>\n  <script src="/iniciar-contenedor.js"></script>');
+      },
+    },
+  }, {
     name: 'metronet-politica-contenido',
     transformIndexHtml: {
       order: 'post',
@@ -46,6 +55,7 @@ module.exports = defineConfig({
     commonjsOptions: { include: [/node_modules/, /phaser-metronet\.cjs$/] },
     rollupOptions: {
       input: {
+        aplicacion: path.resolve(__dirname, 'aplicacion.html'),
         reanudacionMusica: path.resolve(__dirname, `.${ENTRADA_AUDIO}`),
         inicio: path.resolve(__dirname, 'inicio.html'),
         escenarios: path.resolve(__dirname, 'escenarios.html'),

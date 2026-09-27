@@ -2,6 +2,7 @@ const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 
 async function abrirEditor(navegador, opciones = {}) {
   const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })));
   if (opciones.escenario && opciones.primeraPasada !== false) await contexto.addInitScript(escenario => {
     if (performance.getEntriesByType('navigation')[0]?.type === 'reload') return;

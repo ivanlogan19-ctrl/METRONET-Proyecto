@@ -1,3 +1,4 @@
+import { obtenerTipoNavegacion } from '../navegacion/TipoNavegacion.js';
 import { obtenerSesionActiva } from '../autenticacion/sesion.js';
 
 const CLAVE = 'metronet:inicio-tutorial';
@@ -21,7 +22,7 @@ export function consumirInicioTutorial(diseno, escenario) {
   let entrada = entradaLocal;
   entradaLocal = null;
   try { entrada ??= JSON.parse(sessionStorage.getItem(CLAVE)); sessionStorage.removeItem(CLAVE); } catch { /* Ayuda manual disponible. */ }
-  const tipo = performance.getEntriesByType('navigation')[0]?.type;
+  const tipo = obtenerTipoNavegacion();
   return Boolean(Number.isInteger(escenario?.numero) && entrada
     && entrada.idDiseno === diseno?.simulacion?.idDiseno && entrada.idEscenario === escenario.idEscenario
     && Number.isInteger(entrada.numeroCampana) && entrada.numeroCampana > 0

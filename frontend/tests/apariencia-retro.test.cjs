@@ -98,6 +98,8 @@ test('movimiento reducido suprime feedback animado y las notificaciones siguen s
 
 test('el formulario sigue utilizable si la fuente decorativa no carga', async t => {
   const contexto = await navegador.newContext({ viewport: { width: 320, height: 800 } });
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
   t.after(() => contexto.close());
   const pagina = await contexto.newPage();
   await pagina.route('**/assets/fonts/**', route => route.abort());

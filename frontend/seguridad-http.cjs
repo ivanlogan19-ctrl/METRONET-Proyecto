@@ -11,8 +11,8 @@ const politica = [
 ];
 const politicaMeta = politica.join('; ');
 const headers = {
-  'Content-Security-Policy': `${politicaMeta}; frame-ancestors 'none'`,
-  'X-Frame-Options': 'DENY',
+  'Content-Security-Policy': `${politicaMeta}; frame-ancestors 'self'`,
+  'X-Frame-Options': 'SAMEORIGIN',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',

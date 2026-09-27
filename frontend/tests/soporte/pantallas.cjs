@@ -21,18 +21,24 @@ const diseno = {
 
 async function abrirPantalla(navegador, ruta, opciones = {}) {
   const contexto = await navegador.newContext({ viewport: opciones.viewport || { width: 1440, height: 1000 }, reducedMotion: opciones.reducedMotion || 'no-preference' });
+  // Las pruebas de componentes conservan documentos aislados; la suite del
+  // contenedor ejecuta la navegación real sin este reemplazo.
+  if (!opciones.contenedor) await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
   const admin = opciones.administrador ?? ruta.startsWith('/admin.html');
   const publica = /login|registro|contrasena|codigo|privacidad/.test(ruta);
-  await contexto.addInitScript(({ admin, publica, usuario }) => {
+  await contexto.addInitScript(({ admin, publica, usuario, contenedor }) => {
+    if (contenedor && sessionStorage.getItem("fixture-persistente")) return;
+    if (contenedor) sessionStorage.setItem("fixture-persistente", "1");
     if (!publica && !/login|registro|contrasena|codigo|privacidad/.test(location.pathname)) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
     sessionStorage.setItem(`${location.hostname}:recuperacionContrasena`, JSON.stringify({ email: usuario.email, idSolicitud: 99, tokenRecuperacion: 'prueba-local', reenvioDisponibleEn: 0 }));
-  }, { admin, publica, usuario });
+  }, { admin, publica, usuario, contenedor: opciones.contenedor });
   const pagina = await contexto.newPage();
   const errores = [], solicitudes = [];
   pagina.on('pageerror', error => errores.push(error.message));
   pagina.setDefaultTimeout(15000);
   await pagina.route('**/*', async route => {
     const request = route.request(), url = new URL(request.url()), path = url.pathname;
+    if (!opciones.contenedor && path === '/iniciar-contenedor.js') return route.fulfill({ contentType:'application/javascript', body:'' });
     if (!path.startsWith('/api/') && !path.startsWith('/auth/')) return route.continue();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
     solicitudes.push({ path, method: request.method(), body: request.postDataJSON() });
@@ -55,13 +61,16 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
     await route.fulfill({ json: respuesta, headers: { 'access-control-allow-origin': '*' } });
   });
   await pagina.goto(`${process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173'}${ruta}`);
-  await pagina.evaluate(() => document.fonts.ready);
-  if (ruta.startsWith('/simulacion.html')) await pagina.locator('#panelSimulacion:not([hidden])').waitFor();
-  if (ruta === '/perfil.html') await pagina.locator('.perfil-contenedor[aria-busy="false"]').waitFor();
-  if (ruta === '/admin.html') await pagina.locator('[data-editar-usuario]').first().waitFor();
-  if (ruta === '/inicio.html') await pagina.locator('.metronet-inicio__tarjeta').first().waitFor();
-  if (ruta === '/escenarios.html') await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().waitFor();
-  return { contexto, pagina, errores, solicitudes };
+  if (opciones.contenedor) await pagina.locator('#pantalla-metronet').waitFor();
+  const vista = opciones.contenedor ? await (await pagina.locator('#pantalla-metronet').elementHandle()).contentFrame() : pagina;
+  await vista.waitForLoadState('domcontentloaded');
+  await vista.evaluate(() => document.fonts.ready);
+  if (ruta.startsWith('/simulacion.html')) await vista.locator('#panelSimulacion:not([hidden])').waitFor();
+  if (ruta === '/perfil.html') await vista.locator('.perfil-contenedor[aria-busy="false"]').waitFor();
+  if (ruta === '/admin.html') await vista.locator('[data-editar-usuario]').first().waitFor();
+  if (ruta === '/inicio.html') await vista.locator('.metronet-inicio__tarjeta').first().waitFor();
+  if (ruta === '/escenarios.html') await vista.locator('.metronet-escenarios-pagina__tarjeta').first().waitFor();
+  return { contexto, pagina, vista, errores, solicitudes };
 }
 
 module.exports = { abrirPantalla };

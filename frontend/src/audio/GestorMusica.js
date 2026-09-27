@@ -1,4 +1,6 @@
+import { obtenerTipoNavegacion } from '../navegacion/TipoNavegacion.js';
 import { obtenerSesionActiva } from '../autenticacion/sesion.js';
+import { crearClienteMusicaPersistente } from './ClienteMusicaPersistente.js';
 import { PISTAS_MUSICA, CONTEXTOS_MUSICA_PUNTUAL, VOLUMEN_MUSICA_INICIAL, DURACION_MEZCLA_MS, UMBRAL_CARGA_MUSICAL_MS } from './ConfiguracionAudio.js';
 
 const CLAVE_PREFERENCIAS = 'metronet:musica:preferencias';
@@ -12,9 +14,8 @@ function guardar(almacen, clave, valor) {
   try { window[almacen].setItem(clave, JSON.stringify(valor)); } catch { /* La música no exige almacenamiento. */ }
 }
 
-// Una autoridad por documento. Hasta dos pistas DIFERENTES durante una mezcla;
-// las escenas y paneles nunca poseen el reproductor. En navegación HTML completa
-// solo puede recuperarse la posición: no equivale a audio continuo entre documentos.
+// Una autoridad en el contenedor (o en el HTML independiente de respaldo).
+// Hasta dos pistas DIFERENTES durante una mezcla; las escenas no poseen el audio.
 class GestorMusica {
   constructor() {
     const preferencias = leer('localStorage', CLAVE_PREFERENCIAS, {});
@@ -81,7 +82,7 @@ class GestorMusica {
     return this.tieneContinuidadReciente() && this.continuidad?.contexto === 'inicioNivel'
       && this.continuidad.idUsuario === obtenerSesionActiva()?.usuario?.idUsuario
       && ['/', '/index.html'].includes(location.pathname) && new URLSearchParams(location.search).has('idDiseno')
-      && !['reload', 'back_forward'].includes(performance.getEntriesByType('navigation')[0]?.type);
+      && !['reload', 'back_forward'].includes(obtenerTipoNavegacion());
   }
 
   reanudarAlCargarDocumento(contexto) {
@@ -125,10 +126,10 @@ class GestorMusica {
       if (reiniciar && PISTAS_MUSICA[contexto]) this.seleccionarPista(PISTAS_MUSICA[contexto], true);
       this.sincronizar();
     }
-    return () => {
+    return (sincronizar = true) => {
       if (!this.temporales.delete(id)) return;
       clearTimeout(temporal.temporizador);
-      if (temporal.efectivo) this.sincronizar();
+      if (temporal.efectivo && sincronizar) this.sincronizar();
     };
   }
 
@@ -324,4 +325,11 @@ class GestorMusica {
 }
 
 const CLAVE_GESTOR = Symbol.for('metronet:gestor-musica');
-export const gestorMusica = window[CLAVE_GESTOR] ??= new GestorMusica();
+function crearGestor() {
+  try {
+    const compartido = window.parent !== window && window.parent[Symbol.for('metronet:contenedor')]?.gestorMusica;
+    if (compartido) return crearClienteMusicaPersistente(compartido);
+  } catch { /* Un embed ajeno no comparte sesión ni reproductor. */ }
+  return new GestorMusica();
+}
+export const gestorMusica = window[CLAVE_GESTOR] ??= crearGestor();

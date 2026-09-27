@@ -1,3 +1,4 @@
+import { obtenerTipoNavegacion } from '../navegacion/TipoNavegacion.js';
 import { obtenerSesionActiva } from '../autenticacion/sesion.js';
 import './identificacion-nivel.css';
 import { CONFIGURACION_TRANSICION } from './ConfiguracionTransicion.js';
@@ -22,7 +23,7 @@ function consumirEntradaRecorrido(idDiseno, escenario) {
   let entrada = entradaLocal;
   entradaLocal = null;
   try { entrada ??= JSON.parse(sessionStorage.getItem(CLAVE_ENTRADA)); sessionStorage.removeItem(CLAVE_ENTRADA); } catch { /* Sin almacenamiento, saludo normal. */ }
-  const navegacion = performance.getEntriesByType('navigation')[0]?.type;
+  const navegacion = obtenerTipoNavegacion();
   return escenario?.numero === null && entrada?.idDiseno === idDiseno
     && entrada.idEscenario === escenario.idEscenario
     && entrada.idUsuario != null && entrada.idUsuario === obtenerSesionActiva()?.usuario?.idUsuario

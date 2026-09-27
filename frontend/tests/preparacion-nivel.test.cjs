@@ -16,6 +16,8 @@ function nivel(numero, estado = 'DISPONIBLE') {
 }
 async function abrir(t, escenarios, ruta = '/escenarios.html', opciones = {}) {
   const contexto = await navegador.newContext({ viewport: opciones.viewport || { width: 1280, height: 900 }, reducedMotion: opciones.reducedMotion || 'no-preference' });
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
   t.after(() => contexto.close());
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { nombre: 'Prueba', rol: 'JUGADOR' } })));
   const pagina = await contexto.newPage();

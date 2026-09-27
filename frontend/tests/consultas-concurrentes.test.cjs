@@ -23,6 +23,8 @@ test('Cabecera y simulador comparten la consulta simultánea de progreso', async
 
 for (const caso of ['frescura', 'error', 'sesion']) test(`Consulta compartida: ${caso}`, async t => {
   const contexto = await navegador.newContext();
+  // Probar esta vista aislada; la navegación persistente tiene su propia suite integral.
+  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType:'application/javascript', body:'' }));
   t.after(() => contexto.close());
   const pagina = await contexto.newPage();
   await pagina.goto(`${process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173'}/login.html`);
