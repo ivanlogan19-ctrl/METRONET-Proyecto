@@ -15,21 +15,11 @@
       history.replaceState = (...args) => { reemplazar(...args); sincronizar(); };
     }
   } catch { /* El documento independiente conserva su navegación normal. */ }
-  // Las transiciones entre documentos no son fiables dentro de un iframe:
-  // un redirect de permisos puede abortarlas antes de exponer su promesa.
-  // Mantenerlas en HTML independientes; las vistas contenidas usan CSS breve.
+  // También el HTML de respaldo usa la entrada CSS breve. Un redirect inmediato
+  // puede abortar un snapshot nativo antes de pagereveal, sin promesa observable.
+  // La animación CSS no interviene en permisos, destinos ni restauración de scroll.
   if (window === window.top) {
-    const enlace = document.createElement('link');
-    enlace.rel = 'stylesheet';
-    enlace.href = '/transiciones-documento.css';
-    document.head.append(enlace);
-  }
-  // Se registra antes del primer render. Cada vista mantiene su propio documento.
-  // El navegador puede omitir una transición: su promesa visual no bloquea el acceso.
-  for (const evento of ['pageswap', 'pagereveal']) {
-    window.addEventListener(evento, ({ viewTransition }) => {
-      viewTransition?.ready.catch(() => {});
-    });
+    document.documentElement.dataset.navegacionDocumento = '';
   }
 
   // La restauración nativa puede ocurrir antes de recibir una tabla asíncrona y

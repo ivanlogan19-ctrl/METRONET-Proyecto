@@ -13,6 +13,8 @@ async function preparar(t, ruta, opciones) {
   return p;
 }
 async function comprobarMarcaYAnchura(pagina) {
+  // Medir la marca después de la entrada breve de página, sin temporizador fijo.
+  await pagina.evaluate(() => Promise.allSettled(document.body.getAnimations().map(a => a.finished)));
   const resultado = await pagina.evaluate(() => {
     const logos = [...document.querySelectorAll('.metronet-logo__imagen')].filter(e => e.getBoundingClientRect().width > 0);
     return {

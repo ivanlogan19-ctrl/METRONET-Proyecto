@@ -1,5 +1,0 @@
-/* Solo documentos de nivel superior; las vistas contenidas no usan snapshots. */
-@view-transition { navigation: auto; }
-@media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
-}

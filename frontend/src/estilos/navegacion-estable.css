@@ -9,13 +9,9 @@
 }
 .metronet-panel-superpuesto[popover]:not(:popover-open) { display: none; }
 
-/* La navegación independiente habilita su opt-in en transiciones-documento.css. */
-::view-transition-old(root) { animation: metronet-salida-pagina 180ms linear both; }
-::view-transition-new(root) { animation: metronet-entrada-pagina 180ms linear both; }
-[data-navegacion-contenida] body { animation: metronet-entrada-pagina 180ms linear; }
-@keyframes metronet-salida-pagina { to { opacity: 0; } }
+/* Misma entrada breve para el contenedor y los HTML de respaldo. */
+:is([data-navegacion-contenida], [data-navegacion-documento]) body { animation: metronet-entrada-pagina 180ms linear; }
 @keyframes metronet-entrada-pagina { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  [data-navegacion-contenida] body { animation: none; }
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  :is([data-navegacion-contenida], [data-navegacion-documento]) body { animation: none; }
 }

@@ -31,13 +31,13 @@ test('Recorrido completo: editor, escenarios, administración, logout, bienvenid
  assert.equal(await p.locator('.metronet-mapa-cargando').count(),0);
 });
 for(const reducedMotion of ['no-preference','reduce'])test(`Scroll nativo y transición ${reducedMotion}: nueva página arriba, atrás restaura`,async t=>{
- const {pagina:p,contexto}=await abrir(t,'/ranking.html',{viewport:{width:1280,height:720},reducedMotion});
- await contexto.addInitScript(()=>{addEventListener('pagereveal',e=>{if(e.viewTransition)e.viewTransition.ready.then(()=>sessionStorage.setItem('transicion-probada','lista'),()=>sessionStorage.setItem('transicion-probada','omitida'));});});
+ const {pagina:p}=await abrir(t,'/ranking.html',{viewport:{width:1280,height:720},reducedMotion});
  await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Inicio',exact:true}).click();await p.locator('.metronet-inicio__tarjeta').first().waitFor();
- if(reducedMotion==='no-preference'){await p.waitForFunction(()=>sessionStorage.getItem('transicion-probada')!==null);assert.equal(await p.evaluate(()=>sessionStorage.getItem('transicion-probada')),'lista');}
+ assert.equal(await p.evaluate(()=>getComputedStyle(document.body).animationName),reducedMotion==='reduce'?'none':'metronet-entrada-pagina');
+ assert.equal(await p.locator('link[href="/transiciones-documento.css"]').count(),0);
  await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Ranking',exact:true}).click();
  await p.locator('#clasificacionRanking tr').first().waitFor();await p.evaluate(()=>scrollTo(0,600));const anterior=await p.evaluate(()=>scrollY);assert.equal(anterior,600);
  await p.evaluate(async()=>{const {navegarConCambiosPendientes}=await import('/src/navegacion/NavegacionAplicacion.js');await navegarConCambiosPendientes('/inicio.html');});await p.waitForURL('**/inicio.html');await p.locator('.metronet-inicio__tarjeta').first().waitFor();assert.equal(await p.evaluate(()=>scrollY),0);
  await p.goBack();await p.locator('#clasificacionRanking tr').first().waitFor();await p.waitForFunction(()=>scrollY===600);assert.equal(await p.evaluate(()=>scrollY),anterior);
- if(reducedMotion==='reduce')assert.equal(await p.evaluate(()=>getComputedStyle(document.documentElement,'::view-transition-new(root)').animationName),'none');
+ if(reducedMotion==='reduce')assert.equal(await p.evaluate(()=>getComputedStyle(document.body).animationName),'none');
 });
