@@ -7,15 +7,7 @@ import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 
 const URL_API_JUEGO = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
 const ESTADOS_CON_INTENTO_ACTIVO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
-const CONSEJOS_METRONET = Object.freeze([
-  'Una red clara comienza por conectar estaciones antes de incorporar unidades de metro.',
-  'Validá tu red antes de simular: así detectás estaciones aisladas y conexiones incompletas.',
-  'Usá los puntos de interés para decidir dónde una estación puede aportar más cobertura.',
-  'Probá una línea a la vez antes de agregar nuevas conexiones a tu diseño.',
-]);
-
 const sesion = requerirSesion('/inicio.html');
-const consejoActual = CONSEJOS_METRONET[Math.floor(Math.random() * CONSEJOS_METRONET.length)];
 let navegacionEnCurso = false;
 let escenariosActuales = [];
 
@@ -68,7 +60,6 @@ function renderizarTablero(contenedor, progreso) {
     crearTarjetaContinuar(resumen),
     crearTarjetaModoLibre(resumen),
     crearTarjetaProgreso(resumen),
-    crearTarjetaConsejo(),
   );
 }
 
@@ -180,9 +171,8 @@ function crearTarjetaProgreso(resumen) {
   );
   const pasos = document.createElement('ol');
   pasos.className = 'metronet-inicio__pasos';
-  const pasosEscenarios = [...resumen.niveles];
-  if (resumen.modoLibre) pasosEscenarios.push(resumen.modoLibre);
-  pasos.append(...pasosEscenarios.map((escenario) => crearPasoProgreso(escenario, resumen.escenarioContinuar)));
+  pasos.style.setProperty('--columnas-niveles', String(Math.min(5, Math.max(1, Math.ceil(resumen.niveles.length / 2)))));
+  pasos.append(...resumen.niveles.map((escenario) => crearPasoProgreso(escenario, resumen.escenarioContinuar)));
   const accesos = document.createElement('nav');
   accesos.className = 'metronet-inicio__accesos';
   accesos.setAttribute('aria-label', 'Accesos al jugador');
@@ -194,20 +184,6 @@ function crearTarjetaProgreso(resumen) {
     crearEnlace('/simulacion.html', 'Simulaciones'),
   );
   tarjeta.append(encabezado, pasos, accesos);
-  return tarjeta;
-}
-
-function crearTarjetaConsejo() {
-  const tarjeta = crearTarjeta('consejo', 'Consejo');
-  const contenido = document.createElement('div');
-  contenido.className = 'metronet-inicio__tarjeta-contenido';
-  contenido.append(
-    crearTituloTarjeta('Consejo para tu próxima acción'),
-    crearDescripcion(consejoActual),
-  );
-  const nota = crearMeta('Las funciones disponibles dependen del nivel que elijas.');
-  nota.classList.add('metronet-inicio__consejo-nota');
-  tarjeta.append(contenido, nota);
   return tarjeta;
 }
 
@@ -232,7 +208,13 @@ function crearPasoProgreso(escenario, escenarioContinuar) {
   indicador.textContent = escenario.numero ?? '∞';
   const texto = document.createElement('span');
   texto.textContent = escenario.numero === null ? 'Modo Libre' : `Nivel ${escenario.numero}`;
-  paso.append(indicador, texto);
+  const detalle = document.createElement('small');
+  detalle.className = 'metronet-inicio__paso-estado';
+  detalle.textContent = {
+    completado: 'Completado', actual: 'En curso', disponible: 'Disponible', bloqueado: 'Bloqueado',
+  }[estado];
+  if (estado === 'actual' && !ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado)) detalle.textContent = 'Disponible';
+  paso.append(indicador, texto, detalle);
   return paso;
 }
 

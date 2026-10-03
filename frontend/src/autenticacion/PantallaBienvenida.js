@@ -33,12 +33,19 @@ export function crearPantallaBienvenida(cobertura, { reducido, continuar, inicio
   const imagen = marca.querySelector('img');
   const falloImagen = () => continuar();
   imagen.addEventListener('error', falloImagen, { once: true });
-  cobertura.querySelector('[data-marca-bienvenida]').append(marca);
+  const marcaEnEscena = cobertura.querySelector('[data-marca-bienvenida]');
+  marcaEnEscena.style.opacity = reducido ? '1' : '0';
+  marcaEnEscena.style.transform = reducido ? 'none' : 'translateY(20px)';
+  marcaEnEscena.append(marca);
   cobertura.querySelector('[data-continuar-bienvenida]').addEventListener('click', continuar);
   const escena = crearEscenaFerroviaria(cobertura.querySelector('canvas'), { reducido, inicio, obtenerTiempo, alFallar: continuar });
   let frame;
   function actualizarFase() {
     const tiempo = obtenerTiempo();
+    const avanceLogo = Math.max(0, Math.min(1, (tiempo - 450) / 1800));
+    const suavizado = 1 - (1 - avanceLogo) ** 3;
+    marcaEnEscena.style.opacity = String(suavizado);
+    marcaEnEscena.style.transform = `translateY(${Math.round((1 - suavizado) * 20)}px)`;
     cobertura.dataset.fase = tiempo >= 4750 ? 'salida' : tiempo >= 2800 ? 'bienvenida' : tiempo >= 1400 ? 'viaje' : 'anden';
     if (tiempo < 4750) frame = requestAnimationFrame(actualizarFase);
   }

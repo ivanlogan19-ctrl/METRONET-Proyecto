@@ -1,52 +1,52 @@
 [
   { "numero": 1, "mensajes": [
-    { "id": "estaciones", "categoria": "Movilidad", "texto": "Imaginá un viaje por tu red: elegí un punto de partida y otro de llegada." },
-    { "id": "nombres", "categoria": "Consejo", "texto": "Dale a cada estación un nombre que te ayude a reconocerla al construir la red." },
-    { "id": "primera-linea", "categoria": "Pista", "texto": "Empezá por una línea y ubicá sus estaciones dentro del territorio permitido." }
+    { "id": "estaciones", "categoria": "Herramientas", "texto": "Elegí Estación para colocar un punto y cambiá a Línea antes de unirlo; así evitás agregar estaciones por accidente." },
+    { "id": "nombres", "categoria": "Selección", "texto": "Si el nombre automático no te orienta, seleccioná la estación y cambialo antes de seguir." },
+    { "id": "primera-linea", "categoria": "Comprobación", "texto": "Guardá el diseño para ver qué condición sigue pendiente; podés corregir y volver a guardar." }
   ] },
   { "numero": 2, "mensajes": [
-    { "id": "tramos", "categoria": "Movilidad", "texto": "Revisá el recorrido en ambos sentidos para detectar estaciones que hayan quedado aisladas." },
-    { "id": "continuidad", "categoria": "Consejo", "texto": "Seguí la línea de una estación a la siguiente para detectar conexiones que falten." },
-    { "id": "recorrido", "categoria": "Pista", "texto": "Organizá las tres estaciones en un recorrido continuo con dos conexiones." }
+    { "id": "tramos", "categoria": "Herramientas", "texto": "Línea inicia un recorrido; Conexión prolonga una línea existente desde sus estaciones." },
+    { "id": "continuidad", "categoria": "Selección", "texto": "Si un tramo no llega donde esperabas, seleccioná sus extremos antes de agregar otro." },
+    { "id": "recorrido", "categoria": "Comprobación", "texto": "Después de guardar, fijate en el panel cuál condición falta antes de sumar elementos." }
   ] },
   { "numero": 3, "mensajes": [
-    { "id": "unidad", "categoria": "Movilidad", "texto": "Antes de agregar un metro, revisá a qué línea lo vas a asignar." },
-    { "id": "parametros", "categoria": "Consejo", "texto": "Usá nombres de línea fáciles de reconocer al asignar los metros." },
-    { "id": "linea-valida", "categoria": "Pista", "texto": "Revisá que la línea tenga un recorrido válido antes de asignarle un metro." }
+    { "id": "unidad", "categoria": "Herramientas", "texto": "Al crear una unidad, elegí la línea en su selector: el metro circulará por esa línea." },
+    { "id": "parametros", "categoria": "Selección", "texto": "Seleccioná una unidad existente para comprobar a qué línea quedó asignada." },
+    { "id": "linea-valida", "categoria": "Comprobación", "texto": "Guardá el diseño para que el panel señale tramos o estaciones que requieren revisión." }
   ] },
   { "numero": 4, "mensajes": [
-    { "id": "poi", "categoria": "Puntos de interés", "texto": "Localizá los lugares del desafío antes de elegir dónde ubicar las estaciones." },
-    { "id": "simular", "categoria": "Movilidad", "texto": "Observá el inicio y el final del recorrido para comprobar visualmente la circulación." },
-    { "id": "validar", "categoria": "Consejo", "texto": "Revisá la cobertura de los puntos de interés y validá la red antes de simular." }
+    { "id": "poi", "categoria": "Referencias", "texto": "Abrí la estrella de Referencias y buscá cada lugar antes de elegir la ubicación de las estaciones." },
+    { "id": "simular", "categoria": "Planificación", "texto": "Comprobá por separado la cercanía a los lugares y la pertenencia territorial antes de guardar." },
+    { "id": "validar", "categoria": "Simulación", "texto": "Mantené las horas constantes al cambiar UV para poder atribuir la diferencia a la velocidad." }
   ] },
   { "numero": 5, "mensajes": [
-    { "id": "barrio", "categoria": "Barrios", "texto": "Estar cerca de un POI y pertenecer a su barrio son condiciones distintas. Revisá ambas." },
-    { "id": "lugares", "categoria": "Puntos de interés", "texto": "Consultá la ficha de cada lugar y observá sus alrededores antes de trazar la línea." },
-    { "id": "capas", "categoria": "Consejo", "texto": "Usá las fichas de POI y los límites de barrios para decidir dónde colocar cada estación." }
+    { "id": "barrio", "categoria": "Referencias", "texto": "La ficha de cada punto de interés permite ubicarlo con precisión antes de dibujar." },
+    { "id": "lugares", "categoria": "Territorio", "texto": "Una estación cercana a un lugar puede quedar en otro barrio; consultá los límites en el mapa." },
+    { "id": "capas", "categoria": "Simulación", "texto": "Para comparar ejecuciones, dejá UV sin tocar y variá solo h." }
   ] },
   { "numero": 6, "mensajes": [
-    { "id": "zonas", "categoria": "Barrios", "texto": "Antes de construir, localizá Centro, Oeste y Este con los selectores del mapa." },
-    { "id": "mirador", "categoria": "Puntos de interés", "texto": "Localizá el Mirador de la Intendencia y planificá cómo incorporarlo a tu red." },
-    { "id": "velocidad", "categoria": "Movilidad", "texto": "Probá el ritmo ×0.5 para observar el recorrido con más calma." }
+    { "id": "zonas", "categoria": "Mapa", "texto": "Alterná las capas de barrios y zonas para comprobar el trazado sin perder de vista la línea." },
+    { "id": "mirador", "categoria": "Simulación", "texto": "Probá el ritmo visual ×0.5 para observar el tren con calma; no modifica UV ni horas." },
+    { "id": "velocidad", "categoria": "Comprobación", "texto": "En una segunda ejecución, cambiá un solo campo y conservá los demás para comparar." }
   ] },
   { "numero": 7, "mensajes": [
-    { "id": "intercambio", "categoria": "Movilidad", "texto": "Planificá dónde se encontrarán tus líneas antes de colocar todas las estaciones." },
-    { "id": "brazo", "categoria": "Barrios", "texto": "Usá el selector de barrios para ubicar Brazo Oriental antes de extender la red." },
-    { "id": "marca", "categoria": "Pista", "texto": "Compartí una estación entre las dos líneas y activá su atributo de transbordo." }
+    { "id": "intercambio", "categoria": "Planificación", "texto": "Reutilizá una misma estación donde se encuentran dos líneas en vez de superponer dos puntos." },
+    { "id": "brazo", "categoria": "Propiedades", "texto": "En la estación compartida activá Permite transbordo; un cruce visual no basta." },
+    { "id": "marca", "categoria": "Simulación", "texto": "Elegí una unidad concreta antes de Aplicar velocidad para no modificar toda la flota." }
   ] },
   { "numero": 8, "mensajes": [
-    { "id": "estadio", "categoria": "Puntos de interés", "texto": "Localizá el Estadio Centenario antes de extender los recorridos de tu red." },
-    { "id": "lineas", "categoria": "Movilidad", "texto": "Recorré cada línea por separado para comprobar que no tenga bifurcaciones." },
-    { "id": "unidades", "categoria": "Consejo", "texto": "Revisá la continuidad de cada línea y asignale una unidad antes de simular." }
+    { "id": "estadio", "categoria": "Planificación", "texto": "Si un recorrido se bifurca, separá el ramal en otra línea y conectalas mediante una estación compartida." },
+    { "id": "lineas", "categoria": "Selección", "texto": "Consultá la lista de unidades para comprobar a qué línea pertenece cada metro." },
+    { "id": "unidades", "categoria": "Simulación", "texto": "Todas las unidades aplica el mismo cambio a la flota; verificá el selector antes de pulsar Aplicar velocidad." }
   ] },
   { "numero": 9, "mensajes": [
-    { "id": "radio", "categoria": "Movilidad", "texto": "Acercá el mapa para revisar las estaciones que estén cerca del límite de cobertura." },
-    { "id": "limite", "categoria": "Pista", "texto": "Planificá la cobertura antes de construir: este nivel admite hasta nueve estaciones." },
-    { "id": "precision", "categoria": "Consejo", "texto": "Contrastá cada ubicación con las condiciones de la consigna antes de agregar otra estación." }
+    { "id": "radio", "categoria": "Mapa", "texto": "Acercá el mapa antes de colocar una estación cerca del borde de cobertura; una ubicación precisa puede evitar otra estación." },
+    { "id": "limite", "categoria": "Comprobación", "texto": "Tras Guardar diseño, corregí las ubicaciones señaladas antes de agregar más estaciones." },
+    { "id": "precision", "categoria": "Simulación", "texto": "Conservá una ejecución como referencia y cambiá los campos de forma controlada para comparar." }
   ] },
   { "numero": 10, "mensajes": [
-    { "id": "conjunto", "categoria": "Movilidad", "texto": "Revisá por sectores: primero lugares y barrios; después recorridos e intercambios." },
-    { "id": "territorio", "categoria": "Barrios", "texto": "Consultá la cobertura por sectores para detectar lugares que hayan quedado sin atender." },
-    { "id": "revision", "categoria": "Consejo", "texto": "Revisá la red completa y sus tres transbordos antes de registrar la simulación final." }
+    { "id": "conjunto", "categoria": "Planificación", "texto": "Revisá por etapas: Referencias y límites territoriales primero, continuidad e intercambios después." },
+    { "id": "territorio", "categoria": "Comprobación", "texto": "Atendé la primera condición pendiente que indique Guardar diseño antes de rehacer la red." },
+    { "id": "revision", "categoria": "Simulación", "texto": "Antes de Aplicar velocidad, comprobá si el selector indica una unidad o Todas las unidades." }
   ] }
 ]

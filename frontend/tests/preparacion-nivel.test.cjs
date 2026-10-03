@@ -8,6 +8,18 @@ const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
+
+test('Las pistas de cada nivel solo mencionan herramientas habilitadas', () => {
+  for (const nivel of niveles) {
+    const mensajes = catalogo.find(entrada => entrada.numero === nivel.numero)?.mensajes;
+    assert.equal(mensajes?.length, 3, `Nivel ${nivel.numero}`);
+    for (const mensaje of mensajes) {
+      if (!nivel.herramientasHabilitadas.conexiones) assert.doesNotMatch(mensaje.texto, /\bConexión\b/);
+      if (!nivel.herramientasHabilitadas.metros) assert.doesNotMatch(mensaje.texto, /\bmetro\b|\bunidad\b/i);
+      if (!nivel.herramientasHabilitadas.simulacion) assert.doesNotMatch(mensaje.texto, /simul|\bUV\b|\bhoras\b|velocidad/i);
+    }
+  }
+});
 function nivel(numero, estado = 'DISPONIBLE') {
   return { ...niveles.find(n => n.numero === numero), idEscenario: 40 + (numero ?? 11), numero,
     nombre: numero === null ? 'Modo Libre' : `Nivel ${numero}`, objetivo: `Consigna del servidor para el nivel ${numero}.`,

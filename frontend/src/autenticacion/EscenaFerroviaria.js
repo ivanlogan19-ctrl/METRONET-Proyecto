@@ -5,7 +5,7 @@ const CUADRO_MS = 1000 / 24;
 const INICIO_TREN = 1400;
 const FIN_TREN = 4700;
 const CANTIDAD_VAGONES = 5;
-const C = Object.freeze({ fondo: '#060c1c', tunel: '#020611', marco: '#26415d', acero: '#afc1db', luz: '#edf5ff', azul: '#299fee', ventana: '#76c7ff', sombra: '#132641', ambar: '#ffd078', verde: '#70e5b1' });
+const C = Object.freeze({ fondo: '#060c1c', tunel: '#020611', marco: '#26415d', acero: '#afc1db', luz: '#edf5ff', azul: '#299fee', ventana: '#76c7ff', sombra: '#132641', ambar: '#ffd078', verde: '#70e5b1', ciudadLejana: '#0d1b30', ciudadCercana: '#172d46', ventanaCiudad: '#365c73' });
 
 function pintarVagon(ctx, x, y, cabina, cuadro) {
   const r = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
@@ -33,8 +33,28 @@ export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar, obt
   let ancho = 0, frame, ultimoCuadro = -Infinity, eliminada = false;
   const r = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
 
+  function pintarCiudad() {
+    // Silueta urbana esquemática: retícula y tonos apagados detrás del tren.
+    const lejanas = [25, 36, 29, 42, 31, 38];
+    for (let x = -8, i = 0; x < ancho; x += 34, i++) {
+      const alto = lejanas[i % lejanas.length];
+      r(x, 70 - alto, 28, alto, C.ciudadLejana);
+      r(x + 7, 67 - alto, 7, 3, C.ciudadLejana);
+    }
+    const cercanas = [30, 45, 37, 50, 34];
+    for (let x = -14, i = 0; x < ancho; x += 52, i++) {
+      const alto = cercanas[i % cercanas.length];
+      const techo = 70 - alto;
+      r(x, techo, 42, alto, C.ciudadCercana);
+      r(x + 3, techo - 2, 36, 2, C.ciudadCercana);
+      for (let y = techo + 8; y < 65; y += 11)
+        for (const dx of [7, 19, 31]) r(x + dx, y, 4, 4, C.ventanaCiudad);
+    }
+  }
+
   function dibujar(tiempo) {
     r(0, 0, ancho, ALTO, C.fondo);
+    pintarCiudad();
     r(0, 87, ancho, 9, C.tunel);
     // La vía se construye en bloques; no es una barra de carga de backend.
     const avanceVia = reducido ? 1 : Math.max(0, Math.min(1, (tiempo - 500) / 800));

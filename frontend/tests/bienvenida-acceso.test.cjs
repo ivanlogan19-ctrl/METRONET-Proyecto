@@ -34,6 +34,24 @@ async function ingresar(pagina, rol = 'JUGADOR') {
   await pagina.locator(rol === 'ADMIN' ? '#loginAdminButton' : '#loginButton').click();
 }
 const pantalla = p => p.locator('.metronet-bienvenida[data-fase]');
+test('el logo entra suavemente con el tren y queda estable; movimiento reducido lo muestra de inmediato', async t => {
+  for (const reducido of [false,true]) {
+    const {pagina:p} = await preparar(t,'JUGADOR',{reducedMotion:reducido?'reduce':'no-preference'});
+    await ingresar(p); await pantalla(p).waitFor();
+    const marca=p.locator('[data-marca-bienvenida]');
+    await marca.waitFor();
+    if (!reducido) {
+      assert.ok(Number(await marca.evaluate(e=>getComputedStyle(e).opacity)) < .2);
+      await capturar(p, 'logo-entrada');
+      await p.waitForFunction(()=>getComputedStyle(document.querySelector('[data-marca-bienvenida]')).opacity==='1');
+      await capturar(p, 'logo-visible');
+    }
+    assert.equal(await marca.evaluate(e=>getComputedStyle(e).opacity),'1');
+    assert.equal(await marca.locator('img').count(),1);
+    await p.locator('[data-continuar-bienvenida]').click();
+    await p.waitForURL('**/inicio.html');
+  }
+});
 async function capturar(p, nombre) {
   if (!process.env.METRONET_BIENVENIDA_CAPTURAS) return;
   fs.mkdirSync(process.env.METRONET_BIENVENIDA_CAPTURAS, { recursive: true });
@@ -68,8 +86,8 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     assert.equal(await pantalla(p).locator('canvas').evaluate(e => getComputedStyle(e).imageRendering), 'pixelated');
     await capturar(p, `bienvenida-${rol.toLowerCase()}`);
     await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
-    assert.ok(Date.now() - inicio >= 32000, 'La bienvenida espera el final del audio de acceso');
-    assert.ok(Date.now() - inicio < 36000);
+    assert.ok(Date.now() - inicio >= 9300, 'La escena completa su recorrido visual');
+    assert.ok(Date.now() - inicio < 14500, 'La pista larga no retiene el acceso');
     assert.deepEqual(navegaciones, [rol === 'ADMIN' ? '/admin.html' : '/inicio.html']);
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
     assert.equal(await p.evaluate(() => sessionStorage.getItem('metronet:bienvenida-pendiente')), null);
@@ -189,7 +207,7 @@ test('movimiento reducido: bienvenida estática, sin barrido y sincronizada con 
   assert.equal(await pantalla(p).locator('canvas').evaluate(e => e.toDataURL()), imagenInicial);
   await capturar(p, 'movimiento-reducido');
   await p.waitForURL('**/inicio.html');
-  assert.ok(Date.now() - inicio >= 32000 && Date.now() - inicio < 36000);
+  assert.ok(Date.now() - inicio >= 900 && Date.now() - inicio < 4000);
 });
 
 test('redimensionar durante el recorrido mantiene el lienzo nítido y el destino', async t => {
@@ -280,12 +298,11 @@ test('vía, metro pixelado hacia la derecha y salida de túnel sin alterar el lo
     for (let x = 0; x < canvas.width; x++) if (fila[x*4] === 41 && fila[x*4+1] === 159 && fila[x*4+2] === 238) posiciones.push(x);
     return posiciones.length ? { extremo: Math.max(...posiciones), ancho: canvas.width } : null;
   };
-  // La canción determina el avance: observar la salida real del túnel.
+  // El reloj visual determina el avance sin estirar el tren a toda la canción.
   const entrando = await (await p.waitForFunction(inspeccionarTren)).jsonValue();
   assert.ok(entrando.extremo > 0 && entrando.extremo < entrando.ancho / 2);
   await capturar(p, '02-metro-entrando');
-  const avance = await p.locator('audio[data-musica-metronet]').evaluate(a => a.currentTime + a.duration * .13);
-  await p.waitForFunction(avance => document.querySelector('audio[data-musica-metronet]').currentTime >= avance, avance);
+  await p.waitForTimeout(1450);
   const pasando = await p.evaluate(inspeccionarTren);
   assert.ok(pasando.extremo > entrando.extremo + 40, 'El metro avanza de izquierda a derecha');
   const pixeles = await p.locator('canvas').evaluate(canvas => {
@@ -295,7 +312,9 @@ test('vía, metro pixelado hacia la derecha y salida de túnel sin alterar el lo
     return { colores: [...colores], escala: canvas.clientWidth / canvas.width, suavizado: ctx.imageSmoothingEnabled,
       riel: [...ctx.getImageData(22, 82, 1, 1).data], luz: [...ctx.getImageData(canvas.width-45, 34, 1, 1).data] };
   });
-  assert.ok(pixeles.colores.length <= 10, 'Paleta limitada sin interpolación ni gradientes');
+  assert.ok(pixeles.colores.length <= 13, 'Paleta limitada sin interpolación ni gradientes');
+  assert.ok(pixeles.colores.includes('13,27,48,255') && pixeles.colores.includes('23,45,70,255')
+    && pixeles.colores.includes('54,92,115,255'), 'Edificios y ventanas quedan detrás del tren');
   assert.equal(pixeles.escala, Math.floor(pixeles.escala));
   assert.equal(pixeles.suavizado, false);
   assert.deepEqual(pixeles.riel, [175,193,219,255]);

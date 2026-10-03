@@ -563,7 +563,7 @@ body.metronet-pagina-editor { overflow: hidden; }
   display: grid;
   grid-template-areas:
     'continuar crear'
-    'progreso consejo';
+    'progreso progreso';
   grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
   gap: var(--space-lg);
 }
@@ -581,7 +581,6 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__tarjeta--continuar { grid-area: continuar; border-color: color-mix(in srgb, var(--info-active) 62%, var(--border)); }
 .metronet-inicio__tarjeta--crear { grid-area: crear; border-color: color-mix(in srgb, var(--success) 56%, var(--border)); }
 .metronet-inicio__tarjeta--progreso { grid-area: progreso; }
-.metronet-inicio__tarjeta--consejo { grid-area: consejo; border-color: color-mix(in srgb, var(--warning) 48%, var(--border)); }
 .metronet-inicio__tarjeta--bloqueada { border-style: dashed; border-color: var(--border); background: var(--bg-secondary); }
 .metronet-inicio__tarjeta h2,
 .metronet-inicio__tarjeta p { margin: 0; }
@@ -598,7 +597,6 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__tarjeta--continuar .metronet-inicio__tarjeta-etiqueta { color: var(--info-active); }
 .metronet-inicio__tarjeta--crear .metronet-inicio__tarjeta-etiqueta { color: var(--success); }
 .metronet-inicio__tarjeta--bloqueada .metronet-inicio__tarjeta-etiqueta { color: var(--text-disabled); }
-.metronet-inicio__tarjeta--consejo .metronet-inicio__tarjeta-etiqueta { color: var(--warning); }
 .metronet-inicio__descripcion { color: var(--text-secondary); line-height: 1.55; }
 .metronet-inicio__meta { color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
 .metronet-inicio__estado {
@@ -637,40 +635,45 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__enlace:focus-visible { color: var(--text-primary); text-decoration: underline; text-underline-offset: var(--space-2xs); }
 .metronet-inicio__pasos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: var(--space-xs);
+  grid-template-columns: repeat(var(--columnas-niveles, 5), minmax(0, 1fr));
+  gap: var(--space-sm);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .metronet-inicio__paso {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-xs);
+  justify-content: center;
+  gap: 5px;
   min-width: 0;
-  padding: var(--space-xs);
+  min-height: 98px;
+  padding: 11px 6px;
   border: var(--border-width) solid var(--border);
+  border-top-width: 3px;
   border-radius: var(--radius-sm);
-  color: var(--text-disabled);
+  color: var(--text-secondary);
   background: var(--bg-secondary);
-  font-size: 12px;
-  font-weight: 650;
+  font: 400 12px/1.3 var(--font-arcade);
+  text-align: center;
 }
 .metronet-inicio__paso-indicador {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
   border: var(--border-width) solid currentColor;
   border-radius: 50%;
   font-family: var(--font-tecnica);
-  font-size: 10px;
+  font-size: 13px;
 }
-.metronet-inicio__paso--completado { border-color: color-mix(in srgb, var(--success) 58%, var(--border)); color: var(--success); }
+.metronet-inicio__paso-estado { color: var(--text-secondary); font: 400 11px/1.3 var(--font-ui); }
+.metronet-inicio__paso--completado { border-top-color: var(--success); color: var(--success); }
+.metronet-inicio__paso--completado .metronet-inicio__paso-estado { color: var(--success); }
 .metronet-inicio__paso--actual,
-.metronet-inicio__paso--disponible { border-color: color-mix(in srgb, var(--info-active) 58%, var(--border)); color: var(--text-primary); background: color-mix(in srgb, var(--info-active) 10%, var(--panel)); }
-.metronet-inicio__paso--bloqueado { color: var(--text-disabled); }
+.metronet-inicio__paso--disponible { border-top-color: var(--info-active); color: var(--text-primary); background: color-mix(in srgb, var(--info-active) 8%, var(--panel)); }
+.metronet-inicio__paso--bloqueado { color: var(--text-secondary); }
 .metronet-inicio__accesos {
   display: flex;
   flex-wrap: wrap;
@@ -678,7 +681,6 @@ body.metronet-pagina-editor { overflow: hidden; }
   padding-top: var(--space-md);
   border-top: var(--border-width) solid var(--border);
 }
-.metronet-inicio__consejo-nota { color: var(--warning); }
 .metronet-inicio__error {
   display: grid;
   grid-column: 1 / -1;
@@ -868,12 +870,12 @@ body.metronet-pagina-editor { overflow: hidden; }
 }
 
 @media (max-width: 720px) {
+  .metronet-inicio__pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metronet-inicio__tablero {
     grid-template-areas:
       'continuar'
       'crear'
-      'progreso'
-      'consejo';
+      'progreso';
     grid-template-columns: minmax(0, 1fr);
   }
   .metronet-inicio__tarjeta-pie,

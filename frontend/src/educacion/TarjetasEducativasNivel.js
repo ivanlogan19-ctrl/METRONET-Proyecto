@@ -143,7 +143,9 @@ export const tarjetasEducativas = Object.freeze(banco.map((pareja, i) => Object.
 })))));
 
 const ultimasEnMemoria = new Map();
+const usadasEnMemoria = new Map();
 const prefijo = 'metronet:educacion:ultimo:';
+const prefijoUsadas = 'metronet:educacion:usadas:';
 
 function ultima(numero) {
   if (ultimasEnMemoria.has(numero)) return ultimasEnMemoria.get(numero);
@@ -158,9 +160,26 @@ function ultima(numero) {
 export function seleccionarTarjetaEducativa(numero) {
   const pareja = tarjetasEducativas[numero - 1];
   if (!pareja) return null;
-  const indice = (ultima(numero) + 1) % pareja.length;
+  let usadas = usadasEnMemoria.get(numero);
+  if (!usadas) {
+    try {
+      const guardadas = JSON.parse(localStorage.getItem(`${prefijoUsadas}${numero}`));
+      if (Array.isArray(guardadas) && guardadas.every(i => Number.isInteger(i) && i >= 0 && i < pareja.length)
+        && new Set(guardadas).size === guardadas.length) usadas = guardadas;
+    } catch { /* Continúa con un ciclo nuevo en memoria. */ }
+    usadas ??= [];
+  }
+  if (usadas.length === pareja.length) usadas = [];
+  let candidatas = pareja.map((_, i) => i).filter(i => !usadas.includes(i));
+  if (usadas.length === 0 && candidatas.length > 1) candidatas = candidatas.filter(i => i !== ultima(numero));
+  const indice = candidatas[Math.floor(Math.random() * candidatas.length)];
+  usadas = [...usadas, indice];
+  usadasEnMemoria.set(numero, usadas);
   ultimasEnMemoria.set(numero, indice);
-  try { localStorage.setItem(`${prefijo}${numero}`, String(indice)); } catch { /* Continúa en memoria. */ }
+  try {
+    localStorage.setItem(`${prefijo}${numero}`, String(indice));
+    localStorage.setItem(`${prefijoUsadas}${numero}`, JSON.stringify(usadas));
+  } catch { /* Continúa en memoria. */ }
   return pareja[indice];
 }
 

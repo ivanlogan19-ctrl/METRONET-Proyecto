@@ -221,7 +221,9 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     document.removeEventListener('keydown', cerrarMenuConEscape);
   };
   controlMusica = ['edicion', 'simulacion'].includes(actual) ? null : crearControlMusica();
-  cabecera.append(inicio, enlaces);
+  // En Inicio ya se muestra la marca grande junto al saludo.
+  if (actual !== 'inicio') cabecera.append(inicio);
+  cabecera.append(enlaces);
   if (controlMusica) cabecera.append(controlMusica.elemento);
   cabecera.append(usuario);
   cabecera.addEventListener('click', (evento) => {

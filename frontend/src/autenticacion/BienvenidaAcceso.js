@@ -59,7 +59,7 @@ export function continuarConBienvenida(sesion, destino) {
     try { reducido = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { /* Usa el límite normal. */ }
     const inicio = performance.now();
     try {
-      audio = iniciarAudioBienvenida({ reducido, inicio, alTerminar: continuar });
+      audio = iniciarAudioBienvenida({ reducido, alTerminar: continuar });
       try { sessionStorage.setItem(CLAVE_PENDIENTE, JSON.stringify({ destino, rol: sesion.usuario?.rol, origen: location.pathname + location.search })); } catch { /* Sigue sin almacenamiento. */ }
       cobertura = document.createElement('section');
       cobertura.className = 'metronet-bienvenida';

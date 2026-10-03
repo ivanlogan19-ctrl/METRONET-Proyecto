@@ -45,17 +45,28 @@ test('10 niveles tienen seis pares únicos de texto, fuente e imagen local váli
   }
 });
 
-test('rotación agota las seis tarjetas antes de repetir y persiste al recargar', async t => {
+test('selección aleatoria agota las seis tarjetas antes de repetir y persiste al recargar', async t => {
   const page = await paginaPrueba(t);
   const ids = await page.evaluate(async () => {
     const { seleccionarTarjetaEducativa } = await import('/src/educacion/TarjetasEducativasNivel.js');
-    return Array.from({ length:6 }, () => seleccionarTarjetaEducativa(3).id);
+    const original = Math.random;
+    let sorteos = 0;
+    Math.random = () => { sorteos++; return .75; };
+    try { return { tarjetas:Array.from({ length:6 }, () => seleccionarTarjetaEducativa(3).id), sorteos }; }
+    finally { Math.random = original; }
   });
-  assert.equal(new Set(ids).size, 6);
+  assert.equal(ids.sorteos,6);
+  const visitadas = ids.tarjetas;
+  assert.equal(new Set(visitadas).size, 6);
   await page.reload();
   const next = await page.evaluate(async () => (await import('/src/educacion/TarjetasEducativasNivel.js')).seleccionarTarjetaEducativa(3).id);
-  assert.equal(next, ids[0]);
-  assert.notEqual(next, ids[5]);
+  assert.ok(visitadas.includes(next));
+  assert.notEqual(next, visitadas[5]);
+  const nuevas = await page.evaluate(async () => {
+    const { seleccionarTarjetaEducativa } = await import('/src/educacion/TarjetasEducativasNivel.js');
+    return Array.from({length:5},()=>seleccionarTarjetaEducativa(3).id);
+  });
+  assert.equal(new Set([next,...nuevas]).size,6);
 });
 
 test('sin almacenamiento, la rotación sigue en memoria sin repetir la tarjeta actual', async t => {
@@ -68,11 +79,11 @@ test('sin almacenamiento, la rotación sigue en memoria sin repetir la tarjeta a
     return Array.from({ length:7 }, () => seleccionarTarjetaEducativa(8).id);
   });
   assert.equal(new Set(ids.slice(0,6)).size, 6);
-  assert.equal(ids[6], ids[0]);
+  assert.ok(ids.slice(0,6).includes(ids[6]));
   assert.notEqual(ids[6], ids[5]);
 });
 
-test('cancelar antes de mostrar no consume; seis visitas vistas rotan y recarga reinicia el ciclo', async t => {
+test('cancelar antes de mostrar no consume; seis visitas agotan el ciclo y recarga conserva progreso', async t => {
   const page = await paginaPrueba(t);
   for (let i = 0; i < 5; i++) {
     await page.evaluate(async level => {
@@ -102,7 +113,9 @@ test('cancelar antes de mostrar no consume; seis visitas vistas rotan y recarga 
     viaje.marcarDatosListos();
   }, niveles[4]);
   await page.getByRole('button', { name:'Jugar' }).click();
-  assert.equal(await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'), vistos[0]);
+  const siguiente = await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa');
+  assert.ok(vistos.includes(siguiente));
+  assert.notEqual(siguiente,vistos[5]);
   await page.evaluate(() => viaje.cerrar());
 });
 
@@ -158,12 +171,13 @@ test('al terminar la música naturalmente, el cartel se retira y la tarjeta qued
   await page.evaluate(() => viaje.cerrar());
 });
 
-test('Ayuda reabre la tarjeta actual, recupera foco y no apila diálogos', async t => {
+test('Aprender recorre las seis tarjetas del nivel sin alterar la siguiente entrada', async t => {
   const page = await paginaPrueba(t);
   await page.evaluate(async level => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     const intro = crearPreparacionNivel(level);
-    window.tarjetaIntro = (await import('/src/educacion/TarjetasEducativasNivel.js')).tarjetaEducativaActual(level.numero).id;
+    window.tarjetaIntro = (await import('/src/educacion/TarjetasEducativasNivel.js')).seleccionarTarjetaEducativa(level.numero).id;
+    window.cicloAntesDeAprender = localStorage.getItem('metronet:educacion:usadas:1');
     intro.cerrar();
     const { default: PanelAyuda } = await import('/src/educacion/PanelAyudaContextual.js');
     const contenedor = document.createElement('div'); document.body.append(contenedor);
@@ -175,10 +189,33 @@ test('Ayuda reabre la tarjeta actual, recupera foco y no apila diálogos', async
   assert.equal(await page.locator('dialog[open]').count(), 1);
   assert.equal(await page.locator('.metronet-hud').getAttribute('open'), null);
   assert.equal(await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'), await page.evaluate(() => window.tarjetaIntro));
-  assert.equal(await page.locator('dialog[open]').getByRole('button').count(), 1);
+  const dialogo = page.locator('dialog[open]');
+  assert.equal(await dialogo.getByRole('button').count(), 2);
+  const inicial = await page.evaluate(() => window.tarjetaIntro);
+  const ids = [inicial];
+  const imagenes = [await dialogo.locator('img').getAttribute('src')];
+  for (let i = 0; i < 6; i++) {
+    await dialogo.getByRole('button', {name:'Siguiente tarjeta'}).click();
+    assert.equal(await dialogo.getByRole('button', {name:'Siguiente tarjeta'}).evaluate(e => e === document.activeElement), true);
+    assert.equal(await dialogo.getAttribute('aria-labelledby'), await dialogo.locator('h2').getAttribute('id'));
+    if (i < 5) {
+      ids.push(await dialogo.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'));
+      imagenes.push(await dialogo.locator('img').getAttribute('src'));
+    }
+  }
+  assert.equal(new Set(ids).size,6);
+  assert.equal(new Set(imagenes).size,6);
+  assert.equal(await dialogo.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'),inicial);
+  assert.equal(await page.evaluate(() => localStorage.getItem('metronet:educacion:usadas:1')),await page.evaluate(() => window.cicloAntesDeAprender));
   await page.getByRole('button', { name:'Volver', exact:true }).click();
   assert.equal(await page.locator('dialog[open]').count(), 0);
   assert.equal(await page.locator('.metronet-hud > summary').evaluate(e => e === document.activeElement), true);
+  await page.locator('.metronet-hud > summary').click();
+  await page.getByRole('button', { name:'Tarjeta educativa del nivel' }).evaluate(button => button.click());
+  assert.equal(await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'),inicial);
+  await page.getByRole('button', { name:'Volver', exact:true }).click();
+  const siguiente = await page.evaluate(async () => (await import('/src/educacion/TarjetasEducativasNivel.js')).seleccionarTarjetaEducativa(1).id);
+  assert.notEqual(siguiente,inicial);
   await page.evaluate(() => ayudaPrueba.eliminar());
 });
 

@@ -1,4 +1,4 @@
-import { seleccionarTarjetaEducativa, tarjetaEducativaActual } from './TarjetasEducativasNivel.js';
+import { seleccionarTarjetaEducativa, tarjetaEducativaActual, tarjetasEducativas } from './TarjetasEducativasNivel.js';
 import './tarjeta-educativa-nivel.css';
 
 let secuencia = 0;
@@ -10,7 +10,7 @@ function elemento(etiqueta, contenido, clase = '') {
   return nodo;
 }
 
-export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desdeAyuda = false } = {}) {
+export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desdeAyuda = false, posicion = 0, total = 0, alSiguiente } = {}) {
   const tarjetaVista = document.createElement('section');
   tarjetaVista.className = 'metronet-tarjeta-educativa';
   tarjetaVista.dataset.tarjetaEducativa = tarjeta.id;
@@ -47,12 +47,18 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
   fuente.append(enlace);
   const pie = document.createElement('footer');
   pie.className = 'metronet-tarjeta-educativa__pie';
-  const pista = elemento('small', 'Podés volver a leer esta tarjeta desde Ayuda.');
+  const pista = elemento('small', desdeAyuda ? `Tarjeta ${posicion} de ${total} · Nivel ${numero}` : 'Podés volver a leer esta tarjeta desde Ayuda.');
   const acciones = document.createElement('div');
   acciones.className = 'metronet-tarjeta-educativa__acciones';
-  const continuar = elemento('button', desdeAyuda ? 'Volver' : 'Continuar →', 'metronet-boton--exito metronet-boton--destacado');
+  const continuar = elemento('button', desdeAyuda ? 'Volver' : 'Continuar →', desdeAyuda ? 'metronet-boton--primario' : 'metronet-boton--exito metronet-boton--destacado');
   continuar.type = 'button';
   continuar.addEventListener('click', alContinuar);
+  if (desdeAyuda && alSiguiente) {
+    const siguiente = elemento('button', 'Siguiente tarjeta →', 'metronet-boton--exito metronet-boton--destacado');
+    siguiente.type = 'button';
+    siguiente.addEventListener('click', alSiguiente);
+    acciones.append(siguiente);
+  }
   acciones.append(continuar);
   pie.append(pista, acciones);
   tarjetaVista.append(cabecera, elemento('p', 'Una idea sobre transporte y planificación de redes.', 'metronet-tarjeta-educativa__subtitulo'), figura,
@@ -64,7 +70,8 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
 // El HUD se cierra antes de llamar; si ya hay un diálogo modal, no se apila otro.
 export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
   const tarjeta = tarjetaEducativaActual(numero);
-  if (!tarjeta || document.querySelector('dialog[open]')) return false;
+  const disponibles = tarjetasEducativas[numero - 1];
+  if (!tarjeta || !disponibles?.length || document.querySelector('dialog[open]')) return false;
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-dialogo-cambios metronet-preparacion metronet-preparacion--educativa';
   let cerrada = false;
@@ -75,11 +82,21 @@ export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
     dialogo.remove();
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
   }
-  const vista = crearTarjetaEducativaNivel(tarjeta, numero, cerrar, { desdeAyuda: true });
-  dialogo.setAttribute('aria-labelledby', vista.titulo.id);
+  let indice = disponibles.indexOf(tarjeta);
+  function mostrarTarjeta(enfocarSiguiente = false) {
+    const vista = crearTarjetaEducativaNivel(disponibles[indice], numero, cerrar, {
+      desdeAyuda: true, posicion: indice + 1, total: disponibles.length,
+      alSiguiente: () => { indice = (indice + 1) % disponibles.length; mostrarTarjeta(true); },
+    });
+    dialogo.replaceChildren(vista.elemento);
+    dialogo.setAttribute('aria-labelledby', vista.titulo.id);
+    dialogo.scrollTop = 0;
+    if (enfocarSiguiente) vista.elemento.querySelector('.metronet-tarjeta-educativa__acciones button').focus({ preventScroll: true });
+    return vista;
+  }
+  const vista = mostrarTarjeta();
   dialogo.addEventListener('cancel', evento => { evento.preventDefault(); cerrar(); });
   dialogo.addEventListener('close', cerrar);
-  dialogo.append(vista.elemento);
   try {
     document.body.append(dialogo);
     dialogo.showModal();
