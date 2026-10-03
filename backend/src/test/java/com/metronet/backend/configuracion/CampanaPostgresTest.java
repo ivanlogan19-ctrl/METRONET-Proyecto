@@ -116,14 +116,49 @@ class CampanaPostgresTest {
                 var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
                 inicializador.run();
                 var reglas = jdbc.queryForList("SELECT numero,reglas_exito::text,herramientas_habilitadas::text FROM escenario ORDER BY id_escenario");
-                var actuales = jdbc.queryForList("SELECT numero,instrucciones FROM escenario WHERE numero IN (8,10) ORDER BY numero");
+                var actuales = jdbc.queryForList("SELECT numero,objetivo,instrucciones FROM escenario WHERE numero IS NOT NULL ORDER BY numero");
+                var mapper = new ObjectMapper();
+                try (var entrada = new org.springframework.core.io.ClassPathResource("educacion/niveles-consignas-anteriores.json").getInputStream()) {
+                    for (var anterior : mapper.readTree(entrada)) {
+                        jdbc.update("UPDATE escenario SET objetivo=?, instrucciones=? WHERE numero=?",
+                            anterior.path("objetivo").asText(), anterior.path("instrucciones").asText(), anterior.path("numero").asInt());
+                    }
+                }
+                jdbc.update("UPDATE escenario SET reglas_exito=reglas_exito - 'requiereRedValida' WHERE numero=3");
                 jdbc.update("UPDATE escenario SET instrucciones=replace(instrucciones,'Guardá tu diseño y simulá','Validá y simulá') WHERE numero IN (8,10)");
                 inicializador.run(); inicializador.run();
-                assertEquals(actuales, jdbc.queryForList("SELECT numero,instrucciones FROM escenario WHERE numero IN (8,10) ORDER BY numero"));
+                assertEquals(actuales, jdbc.queryForList("SELECT numero,objetivo,instrucciones FROM escenario WHERE numero IS NOT NULL ORDER BY numero"));
                 assertEquals(reglas, jdbc.queryForList("SELECT numero,reglas_exito::text,herramientas_habilitadas::text FROM escenario ORDER BY id_escenario"));
                 jdbc.update("UPDATE escenario SET instrucciones='Consigna personalizada: Validá tu hipótesis' WHERE numero=8");
                 inicializador.run();
                 assertEquals("Consigna personalizada: Validá tu hipótesis", jdbc.queryForObject("SELECT instrucciones FROM escenario WHERE numero=8", String.class));
+            } finally { conexion.rollback(); }
+        }
+    }
+
+    @Test
+    void nivelCuatroConTextoPersonalizadoNoSeSobrescribePorReglaLegada() throws Exception {
+        try (var conexion = DriverManager.getConnection(System.getenv("METRONET_TEST_POSTGRES_URL"),
+            System.getenv().getOrDefault("METRONET_TEST_POSTGRES_USER", "postgres"),
+            System.getenv().getOrDefault("METRONET_TEST_POSTGRES_PASSWORD", ""))) {
+            conexion.setAutoCommit(false);
+            var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
+            try {
+                prepararTablasTemporales(jdbc);
+                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
+                inicializador.run();
+                String anterior = "{\"minimoEstaciones\":3,\"minimoLineas\":1,\"minimoTramos\":2,\"minimoMetros\":1,\"requiereRedValida\":true,\"requiereSimulacion\":true}";
+                jdbc.update("UPDATE escenario SET instrucciones='Consigna personalizada', reglas_exito=CAST(? AS jsonb) WHERE numero=4", anterior);
+                inicializador.run();
+                assertEquals("Consigna personalizada", jdbc.queryForObject("SELECT instrucciones FROM escenario WHERE numero=4", String.class));
+                assertTrue(jdbc.queryForObject("SELECT NOT (reglas_exito ? 'aprendizajeSimulacion') FROM escenario WHERE numero=4", Boolean.class));
+                var preUv = new ObjectMapper();
+                try (var entrada = new org.springframework.core.io.ClassPathResource("educacion/niveles-pre-uv.json").getInputStream()) {
+                    var nivel = preUv.readTree(entrada).get(0);
+                    jdbc.update("UPDATE escenario SET objetivo=?, instrucciones=? WHERE numero=4", nivel.path("objetivo").asText(), nivel.path("instrucciones").asText());
+                }
+                inicializador.run(); inicializador.run();
+                assertTrue(jdbc.queryForObject("SELECT reglas_exito ? 'aprendizajeSimulacion' FROM escenario WHERE numero=4", Boolean.class));
             } finally { conexion.rollback(); }
         }
     }

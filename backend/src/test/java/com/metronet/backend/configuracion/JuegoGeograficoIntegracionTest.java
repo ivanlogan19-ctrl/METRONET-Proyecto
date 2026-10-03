@@ -15,6 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.metronet.backend.controller.JuegoEducativoController;
+import com.metronet.backend.service.AuthService;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Ejecuta SQL y servicios reales sobre H2. No prueba PostgreSQL ni modifica sus datos. */
 class JuegoGeograficoIntegracionTest {
@@ -177,6 +183,48 @@ class JuegoGeograficoIntegracionTest {
         simular(8);
         assertTrue(juego.evaluarEscenario(7, 8).completado());
         assertEquals(2, juego.obtenerDesempeno(7, 8).unidades().stream().map(u -> u.velocidad()).distinct().count());
+    }
+
+    @Test
+    void cambioGlobalRequiereTodasLasUnidadesAunqueHayaMasDelMinimo() throws Exception {
+        jdbc.update("INSERT INTO intento VALUES (8,7,8,8,1,'EN_DESARROLLO',0,NULL,NULL)");
+        redAvanzada(8, 8);
+        jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,velocidad_promedio) VALUES (8,'Principal',4)");
+        simular(8);
+        jdbc.update("UPDATE metro SET velocidad_promedio=5 WHERE id_diseno=8");
+        jdbc.update("UPDATE metro SET velocidad_promedio=4 WHERE id_diseno=8 AND id_tren=(SELECT MAX(id_tren) FROM metro WHERE id_diseno=8)");
+        simular(8);
+        assertFalse(juego.obtenerConsigna(usuario, 8).condiciones().stream()
+            .filter(c -> c.clave().equals("aprendizajeSimulacion:global")).findFirst().orElseThrow().completado());
+        jdbc.update("UPDATE metro SET velocidad_promedio=4 WHERE id_diseno=8");
+        simular(8);
+        jdbc.update("UPDATE metro SET velocidad_promedio=5 WHERE id_diseno=8");
+        simular(8);
+        assertTrue(juego.obtenerConsigna(usuario, 8).condiciones().stream()
+            .filter(c -> c.clave().equals("aprendizajeSimulacion:global")).findFirst().orElseThrow().completado());
+    }
+
+    @Test
+    void nivelTresNoCompletaConEstacionesAisladasONucleosDesconectados() throws Exception {
+        red(3);
+        jdbc.update("INSERT INTO estacion VALUES (3,'D',720,470,FALSE)");
+        var autenticacion = mock(AuthService.class);
+        when(autenticacion.obtenerUsuarioConSesion("Bearer prueba")).thenReturn(usuario);
+        var api = MockMvcBuilders.standaloneSetup(new JuegoEducativoController(autenticacion, juego)).build();
+        api.perform(post("/api/juego/disenos/3/evaluar").header("Authorization", "Bearer prueba"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.completado").value(false));
+        assertFalse(juego.evaluarEscenario(7, 3).completado());
+        assertFalse(juego.obtenerConsigna(usuario, 3).condiciones().stream()
+            .filter(c -> c.clave().equals("requiereRedValida")).findFirst().orElseThrow().completado());
+        jdbc.update("INSERT INTO linea VALUES (3,'Roja')");
+        jdbc.update("INSERT INTO estacion VALUES (3,'E',730,470,FALSE)");
+        jdbc.update("INSERT INTO tramo VALUES (3,'Roja','D','E')");
+        jdbc.update("INSERT INTO pasa VALUES (3,'Roja','D'),(3,'Roja','E')");
+        assertFalse(juego.evaluarEscenario(7, 3).completado(), "Dos recorridos separados no son una red conectada");
+        assertNull(juego.evaluarEscenario(7, 3).idSiguienteEscenario());
+        jdbc.update("INSERT INTO tramo VALUES (3,'Azul','C','D')");
+        jdbc.update("INSERT INTO pasa VALUES (3,'Azul','D')");
+        assertTrue(juego.evaluarEscenario(7, 3).completado());
     }
 
     @Test

@@ -3,7 +3,7 @@ import './tutorial-inicial.css';
 
 const PASOS = [
   ['#visorSimulacion', 'Mapa', 'Acá observás la misma red que construiste. La simulación conserva sus estaciones y conexiones.'],
-  ['#unidadCirculacion', 'Unidad', 'Todas aplica las UV a todas las unidades. Elegí un metro para modificar solamente ese; MIXTO indica valores distintos.'],
+  ['#unidadCirculacion', 'Unidad', 'Todas las unidades aplica una misma UV a todos los metros. Elegí un metro para modificar solamente ese; MIXTO indica valores distintos.'],
   ['.simulacion-parametro-velocidad', 'Velocidad · UV', 'METRONET representa la velocidad en UV, una escala didáctica propia. Aplicá el cambio con el disquete.'],
   ['#duracionSimulacion', 'Duración · h', 'La duración indica cuántas horas simuladas representa la ejecución, no horas reales de espera.'],
   ['.simulacion-ritmo', 'Ritmo · ×', 'El ritmo cambia qué tan rápido ves la simulación. No modifica las UV ni las horas simuladas.'],

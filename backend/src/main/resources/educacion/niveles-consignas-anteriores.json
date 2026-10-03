@@ -1,0 +1,52 @@
+[
+  {
+    "numero": 1,
+    "objetivo": "Creá una línea con al menos dos estaciones sobre el mapa.",
+    "instrucciones": "Ubicá dos estaciones y unilas mediante una línea de metro."
+  },
+  {
+    "numero": 2,
+    "objetivo": "Construí un recorrido con tres estaciones y dos conexiones.",
+    "instrucciones": "Agregá estaciones y conexiones para completar el recorrido de una línea."
+  },
+  {
+    "numero": 3,
+    "objetivo": "Asigná una unidad de metro a una red con recorrido válido.",
+    "instrucciones": "Construí una red conectada y agregá una unidad de metro a una de sus líneas."
+  },
+  {
+    "numero": 4,
+    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido. Experimentá con la configuración de simulación.",
+    "instrucciones": "Ubicá estaciones a un máximo de 60 unidades del mapa de cada POI objetivo y unilas con tramos continuos de una misma línea. Incluí al menos una estación en cada zona: Oeste y Este. Consultá sus barrios en el mapa, asigná un metro y simulá. La red se valida automáticamente. Ejecutá una primera simulación. Después cambiá las UV, conservá las horas simuladas y ejecutá nuevamente para observar la diferencia."
+  },
+  {
+    "numero": 5,
+    "objetivo": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios. Experimentá con la configuración de simulación.",
+    "instrucciones": "Construí al menos cuatro estaciones y tres tramos. Cubrí cada POI a 40 unidades del mapa y conectalos por una misma línea. Ubicá estaciones en Aguada, Tres Cruces y Punta Gorda; simulá para comprobar automáticamente la red. Compará dos ejecuciones: mantené las UV y cambiá las horas simuladas antes de volver a ejecutar."
+  },
+  {
+    "numero": 6,
+    "objetivo": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este. Experimentá con la configuración de simulación.",
+    "instrucciones": "Construí al menos cinco estaciones y cuatro tramos. Cubrí los cuatro POI a 30 unidades del mapa mediante una misma línea continua. Atendé también Centro y las tres zonas indicadas; simulá para comprobar automáticamente la red. Compará configuraciones cambiando un parámetro por vez: primero UV con las mismas horas y después horas con las mismas UV. Ejecutá después de cada cambio."
+  },
+  {
+    "numero": 7,
+    "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
+    "instrucciones": "Cubrí los cinco POI a 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicadas. Mantené un recorrido continuo común a los POI. Construí seis estaciones, dos líneas, cinco tramos y dos metros. Marcá como transbordo una estación compartida por ambas líneas; simulá para comprobar automáticamente la red. Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades."
+  },
+  {
+    "numero": 8,
+    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
+    "instrucciones": "Cubrí los seis POI a 20 unidades del mapa. Construí ocho estaciones, tres líneas, siete tramos y tres metros; usá dos transbordos entre líneas. Mantené un recorrido continuo común a los POI y atendé los seis barrios y cuatro zonas indicadas. Guardá tu diseño y simulá. Compará cambios individuales y globales: ejecutá, cambiá solo un metro y ejecutá otra vez; después elegí Todas, cambiá las UV de todas las unidades y volvé a ejecutar. Mantené las horas."
+  },
+  {
+    "numero": 9,
+    "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones, tres líneas, siete tramos y tres metros, con dos transbordos. Cubrí los seis POI a 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Planificá tu recorrido, simulá para comprobar automáticamente la red. Compará una ejecución cambiando solo las horas y otra combinando cambios de UV y horas. Ejecutá después de cada modificación."
+  },
+  {
+    "numero": 10,
+    "objetivo": "Integrá ocho POI, ocho barrios y cuatro zonas en una red de tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
+    "instrucciones": "Diseñá entre diez y once estaciones, tres líneas, nueve tramos y tres metros, con tres transbordos. Cubrí los ocho POI a 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicadas y conectá los objetivos por una misma línea continua. Guardá tu diseño y simulá la red integral. Compará configuraciones individuales y globales con las mismas horas; después combiná cambios de UV y horas. Ejecutá cada configuración para registrar la comparación."
+  }
+]

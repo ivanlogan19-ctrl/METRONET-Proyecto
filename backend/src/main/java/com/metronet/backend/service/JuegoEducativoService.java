@@ -16,9 +16,13 @@ import com.metronet.backend.enums.Rol;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -522,7 +526,29 @@ public class JuegoEducativoService {
                 WHERE e.id_diseno = ? GROUP BY e.nombre HAVING COUNT(p.nombre_estacion) = 0
             ) AS estaciones_aisladas
             """, Integer.class, idDiseno);
-        return (aisladas == null || aisladas == 0) && !tieneRamificaciones(idDiseno);
+        return (aisladas == null || aisladas == 0) && !tieneRamificaciones(idDiseno) && estacionesConectadas(idDiseno);
+    }
+
+    private boolean estacionesConectadas(Integer idDiseno) {
+        List<String> estaciones = jdbcTemplate.queryForList("SELECT nombre FROM estacion WHERE id_diseno = ?", String.class, idDiseno);
+        Map<String, Set<String>> adyacentes = new HashMap<>();
+        for (String estacion : estaciones) adyacentes.put(estacion, new HashSet<>());
+        List<String[]> tramos = jdbcTemplate.query("SELECT nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?",
+            (resultado, fila) -> new String[]{resultado.getString(1), resultado.getString(2)}, idDiseno);
+        for (String[] tramo : tramos) {
+            if (!adyacentes.containsKey(tramo[0]) || !adyacentes.containsKey(tramo[1])) return false;
+            adyacentes.get(tramo[0]).add(tramo[1]);
+            adyacentes.get(tramo[1]).add(tramo[0]);
+        }
+        if (estaciones.isEmpty()) return false;
+        Set<String> visitadas = new HashSet<>();
+        ArrayDeque<String> pendientes = new ArrayDeque<>();
+        pendientes.add(estaciones.getFirst());
+        while (!pendientes.isEmpty()) {
+            String actual = pendientes.removeFirst();
+            if (visitadas.add(actual)) pendientes.addAll(adyacentes.get(actual));
+        }
+        return visitadas.size() == estaciones.size();
     }
 
     private boolean tieneRamificaciones(Integer idDiseno) {

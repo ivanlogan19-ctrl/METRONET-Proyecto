@@ -41,6 +41,7 @@ async function aplicar(p, valor) {
 test('Velocidad global e individual: persiste cada unidad, representa MIXTO y no altera UV al cambiar ritmo', async t => {
   const { pagina: p, red, solicitudes } = await abrir(t);
   assert.equal(await p.locator('#velocidadUnidad').count(), 1);
+  assert.equal(await p.locator('#unidadCirculacion option[value="todas"]').textContent(), 'Todas las unidades');
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '3');
   await aplicar(p, 5);
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [5, 5]);

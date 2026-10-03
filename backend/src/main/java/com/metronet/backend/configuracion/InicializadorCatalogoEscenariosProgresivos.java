@@ -27,6 +27,10 @@ public class InicializadorCatalogoEscenariosProgresivos {
             try (var entrada = new ClassPathResource("educacion/niveles-pre-uv.json").getInputStream()) {
                 anterioresUV = new ObjectMapper().readTree(entrada);
             }
+            JsonNode consignasAnteriores;
+            try (var entrada = new ClassPathResource("educacion/niveles-consignas-anteriores.json").getInputStream()) {
+                consignasAnteriores = new ObjectMapper().readTree(entrada);
+            }
             for (JsonNode nivel : niveles) {
                 for (JsonNode anterior : anterioresUV) {
                     if (anterior.path("numero").asInt() != nivel.path("numero").asInt()) continue;
@@ -43,30 +47,40 @@ public class InicializadorCatalogoEscenariosProgresivos {
                     nivel.path("objetivo").asText(), nivel.path("dificultad").asText(),
                     nivel.path("instrucciones").asText(), nivel.path("reglasExito").toString(),
                     nivel.path("herramientasHabilitadas").toString());
-                if (nivel.path("numero").asInt() == 4) actualizarReglasNivel4(jdbcTemplate, nivel);
+                if (nivel.path("numero").asInt() == 4) actualizarReglasNivel4(jdbcTemplate, nivel, anterioresUV);
+                if (nivel.path("numero").asInt() == 3) actualizarReglasNivel3(jdbcTemplate, nivel, consignasAnteriores);
                 // Completar exclusivamente el seed conocido, sin sustituir consignas personalizadas.
                 var anteriores = nivel.path("reglasExito").deepCopy();
                 ((com.fasterxml.jackson.databind.node.ObjectNode) anteriores).remove("puntuacion");
                 jdbcTemplate.update("UPDATE escenario SET reglas_exito=CAST(? AS jsonb) WHERE progresivo=TRUE AND numero=? AND reglas_exito=CAST(? AS jsonb)",
                     nivel.path("reglasExito").toString(), nivel.path("numero").asInt(), anteriores.toString());
-                actualizarInstruccionGuardado(jdbcTemplate, nivel);
+                actualizarInstruccionCatalogo(jdbcTemplate, nivel, consignasAnteriores);
             }
             insertarModoLibre(jdbcTemplate);
         };
     }
 
-    private void actualizarInstruccionGuardado(JdbcTemplate jdbcTemplate, JsonNode nivel) {
+    private void actualizarInstruccionCatalogo(JdbcTemplate jdbcTemplate, JsonNode nivel, JsonNode consignasAnteriores) {
         int numero = nivel.path("numero").asInt();
-        if (numero != 8 && numero != 10) return;
-        String actual = nivel.path("instrucciones").asText();
-        String anterior = actual.replace("Guardá tu diseño y simulá", "Validá y simulá");
-        // Corregir solo el texto original conocido. No sobrescribir escenarios
-        // personalizados ni sus reglas, herramientas o resultados históricos.
+        for (JsonNode anterior : consignasAnteriores) {
+            if (anterior.path("numero").asInt() != numero) continue;
+            String texto = anterior.path("instrucciones").asText();
+            // El texto «Validá y simulá» fue publicado solo para estos dos niveles.
+            if (numero == 8 || numero == 10) actualizarInstruccionConocida(jdbcTemplate, nivel,
+                anterior.path("objetivo").asText(), texto.replace("Guardá tu diseño y simulá", "Validá y simulá"));
+            actualizarInstruccionConocida(jdbcTemplate, nivel, anterior.path("objetivo").asText(), texto);
+            break;
+        }
+    }
+
+    private void actualizarInstruccionConocida(JdbcTemplate jdbcTemplate, JsonNode nivel, String objetivoAnterior, String instruccionAnterior) {
+        // Solo el catálogo conocido: no tocar consignas personalizadas, intentos ni resultados.
         jdbcTemplate.update("""
-            UPDATE escenario SET instrucciones=?
-            WHERE progresivo=TRUE AND numero=? AND instrucciones=?
+            UPDATE escenario SET objetivo=?, instrucciones=?
+            WHERE progresivo=TRUE AND numero=? AND objetivo=? AND instrucciones=?
               AND reglas_exito=CAST(? AS jsonb) AND herramientas_habilitadas=CAST(? AS jsonb)
-            """, actual, numero, anterior, nivel.path("reglasExito").toString(), nivel.path("herramientasHabilitadas").toString());
+            """, nivel.path("objetivo").asText(), nivel.path("instrucciones").asText(), nivel.path("numero").asInt(),
+            objetivoAnterior, instruccionAnterior, nivel.path("reglasExito").toString(), nivel.path("herramientasHabilitadas").toString());
     }
 
     private void insertarNivel(JdbcTemplate jdbcTemplate, int numero, String nombre, String objetivo, String dificultad,
@@ -88,7 +102,32 @@ public class InicializadorCatalogoEscenariosProgresivos {
             """);
     }
 
-    private void actualizarReglasNivel4(JdbcTemplate jdbcTemplate, JsonNode nivel) {
+    private void actualizarReglasNivel3(JdbcTemplate jdbcTemplate, JsonNode nivel, JsonNode consignasAnteriores) {
+        for (JsonNode anterior : consignasAnteriores) {
+            if (anterior.path("numero").asInt() != 3) continue;
+            var reglasAnteriores = (com.fasterxml.jackson.databind.node.ObjectNode) nivel.path("reglasExito").deepCopy();
+            reglasAnteriores.remove("requiereRedValida");
+            actualizarReglasConocidasNivel3(jdbcTemplate, nivel, anterior, reglasAnteriores);
+            reglasAnteriores.remove("puntuacion");
+            actualizarReglasConocidasNivel3(jdbcTemplate, nivel, anterior, reglasAnteriores);
+            break;
+        }
+    }
+
+    private void actualizarReglasConocidasNivel3(JdbcTemplate jdbcTemplate, JsonNode nivel, JsonNode anterior, JsonNode reglasAnteriores) {
+        // Solo la versión canónica previa. Un objetivo, instrucciones o reglas personalizados quedan intactos.
+        jdbcTemplate.update("""
+            UPDATE escenario SET reglas_exito=CAST(? AS jsonb)
+            WHERE progresivo=TRUE AND numero=3 AND objetivo=? AND instrucciones=?
+              AND reglas_exito=CAST(? AS jsonb) AND herramientas_habilitadas=CAST(? AS jsonb)
+            """, nivel.path("reglasExito").toString(), anterior.path("objetivo").asText(),
+            anterior.path("instrucciones").asText(), reglasAnteriores.toString(), nivel.path("herramientasHabilitadas").toString());
+    }
+
+    private void actualizarReglasNivel4(JdbcTemplate jdbcTemplate, JsonNode nivel, JsonNode anterioresUV) {
+        JsonNode anterior = null;
+        for (JsonNode candidato : anterioresUV) if (candidato.path("numero").asInt() == 4) anterior = candidato;
+        if (anterior == null) return;
         jdbcTemplate.update("""
             UPDATE escenario
             SET objetivo = ?,
@@ -96,7 +135,12 @@ public class InicializadorCatalogoEscenariosProgresivos {
                 reglas_exito = COALESCE(reglas_exito, '{}'::jsonb) || CAST(? AS jsonb)
             WHERE progresivo = TRUE AND numero = 4
               AND (reglas_exito = CAST(? AS jsonb) OR reglas_exito = CAST(? AS jsonb))
+              AND herramientas_habilitadas = CAST(? AS jsonb)
+              AND ((objetivo=? AND (instrucciones=? OR instrucciones=?))
+                   OR (objetivo=? AND instrucciones=?))
             """, nivel.path("objetivo").asText(), nivel.path("instrucciones").asText(), nivel.path("reglasExito").toString(), REGLAS_NIVEL_4_ANTERIORES,
-            "{\"minimoEstaciones\":3,\"minimoLineas\":1,\"minimoTramos\":2,\"minimoMetros\":1,\"requiereRedValida\":true,\"requiereSimulacion\":true}");
+            "{\"minimoEstaciones\":3,\"minimoLineas\":1,\"minimoTramos\":2,\"minimoMetros\":1,\"requiereRedValida\":true,\"requiereSimulacion\":true}",
+            nivel.path("herramientasHabilitadas").toString(), anterior.path("objetivo").asText(), anterior.path("instrucciones").asText(),
+            anterior.path("instruccionesLegadas").asText(anterior.path("instrucciones").asText()), nivel.path("objetivo").asText(), nivel.path("instrucciones").asText());
     }
 }

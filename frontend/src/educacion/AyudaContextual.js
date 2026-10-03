@@ -85,7 +85,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
       velocidad: 'Probá cambiar solamente las UV y mantené las mismas horas. Ejecutá antes y después para comparar.',
       duracion: 'Mantené las UV y cambiá las horas simuladas. Compará dos ejecuciones con esa diferencia.',
       individual: 'Seleccioná una unidad y cambiá solo sus UV. Las otras y las horas deben quedar iguales al comparar ejecuciones.',
-      global: 'Probá Todas después de una ejecución. Aplicá una UV diferente a todas las unidades y volvé a ejecutar con las mismas horas.',
+      global: 'Seleccioná Todas las unidades después de una ejecución. Aplicá una misma UV nueva a todos los metros y volvé a ejecutar con las mismas horas.',
       combinacion: 'Después de una ejecución, cambiá tanto las UV como las horas y observá la nueva combinación.',
     };
     return aviso(practica.clave, pistas[practica.clave.split(':')[1]], 'El ritmo × solo cambia cómo ves la ejecución; no cuenta como cambio de UV ni de horas.', ['velocidad', 'duracion', 'ritmo'], 'EXPERIMENTÁ');
