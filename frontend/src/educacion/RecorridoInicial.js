@@ -45,6 +45,7 @@ export default class RecorridoInicial {
   mostrar() {
     const paso = this.pasos[this.indice];
     this.objetivo = paso ? document.querySelector(paso[0]) : null;
+    this.ladoPreferido = null;
     // Los objetivos pueden ser reemplazados al refrescar la consigna.
     if (paso && !visible(this.objetivo)) { this.indice++; this.mostrar(); return; }
     this.dialogo.dataset.objetivo = paso?.[0] ?? 'fin';
@@ -70,17 +71,48 @@ export default class RecorridoInicial {
     const margen = 12, espacio = 12;
     const r = this.objetivo?.getBoundingClientRect();
     const w = this.dialogo.offsetWidth, h = this.dialogo.offsetHeight;
-    const candidatos = r ? [
-      [r.left - w - espacio, r.top], [r.left, r.bottom + espacio],
-      [r.left, r.top - h - espacio], [r.right + espacio, r.top],
-    ] : [];
-    const punto = candidatos.find(([x,y]) => x >= margen && y >= margen && x + w <= innerWidth - margen && y + h <= innerHeight - margen)
-      ?? (r ? [r.left, r.top > innerHeight / 2 ? r.top - h - espacio : r.bottom + espacio] : [(innerWidth - w) / 2, (innerHeight - h) / 2]);
-    this.dialogo.style.left = `${Math.max(margen, Math.min(punto[0], innerWidth - w - margen))}px`;
-    this.dialogo.style.top = `${Math.max(margen, Math.min(punto[1], innerHeight - h - margen))}px`;
     const marca = this.dialogo.querySelector('.metronet-recorrido__marca');
-    marca.hidden = !r;
-    if (r) Object.assign(marca.style, { left: `${r.left - 3}px`, top: `${r.top - 3}px`, width: `${r.width + 6}px`, height: `${r.height + 6}px` });
+    const evitarSuperposicion = () => {
+      if (marca.hidden) return;
+      const tarjeta = this.dialogo.getBoundingClientRect(), foco = marca.getBoundingClientRect();
+      if (tarjeta.left < foco.right && tarjeta.right > foco.left && tarjeta.top < foco.bottom && tarjeta.bottom > foco.top) marca.hidden = true;
+    };
+    const visible = r && r.right > 0 && r.bottom > 0 && r.left < innerWidth && r.top < innerHeight;
+    marca.hidden = !visible;
+    if (visible) {
+      const izquierda = Math.max(0, r.left - 3), arriba = Math.max(0, r.top - 3);
+      const derecha = Math.min(innerWidth, r.right + 3), abajo = Math.min(innerHeight, r.bottom + 3);
+      Object.assign(marca.style, {
+        left: `${izquierda}px`, top: `${arriba}px`, width: `${derecha - izquierda}px`, height: `${abajo - arriba}px`,
+        borderLeftWidth: r.left < 3 ? '0' : '3px', borderTopWidth: r.top < 3 ? '0' : '3px',
+        borderRightWidth: r.right > innerWidth - 3 ? '0' : '3px', borderBottomWidth: r.bottom > innerHeight - 3 ? '0' : '3px',
+      });
+    }
+    const limitar = (valor, tamano, limite) => Math.max(margen, Math.min(valor, Math.max(margen, limite - tamano - margen)));
+    if (r && !visible) {
+      this.dialogo.style.left = `${limitar(parseFloat(this.dialogo.style.left) || margen, w, innerWidth)}px`;
+      this.dialogo.style.top = `${limitar(parseFloat(this.dialogo.style.top) || margen, h, innerHeight)}px`;
+      evitarSuperposicion();
+      return;
+    }
+    const candidatos = r ? [
+      { lado: 'izquierda', x: r.left - w - espacio, y: r.top },
+      { lado: 'abajo', x: r.left, y: r.bottom + espacio },
+      { lado: 'arriba', x: r.left, y: r.top - h - espacio },
+      { lado: 'derecha', x: r.right + espacio, y: r.top },
+    ] : [];
+    const cabe = ({ x, y }) => x >= margen && y >= margen && x + w <= innerWidth - margen && y + h <= innerHeight - margen;
+    const espacioLibre = {
+      izquierda: r?.left ?? 0, abajo: r ? innerHeight - r.bottom : 0,
+      arriba: r?.top ?? 0, derecha: r ? innerWidth - r.right : 0,
+    };
+    const elegido = candidatos.find(c => c.lado === this.ladoPreferido)
+      ?? candidatos.find(cabe)
+      ?? candidatos.reduce((mejor, c) => espacioLibre[c.lado] > espacioLibre[mejor.lado] ? c : mejor, candidatos[0]);
+    if (elegido && !this.ladoPreferido) this.ladoPreferido = elegido.lado;
+    this.dialogo.style.left = `${limitar(elegido?.x ?? (innerWidth - w) / 2, w, innerWidth)}px`;
+    this.dialogo.style.top = `${limitar(elegido?.y ?? (innerHeight - h) / 2, h, innerHeight)}px`;
+    evitarSuperposicion();
   }
   terminar(notificar = true) {
     if (!this.dialogo) return;

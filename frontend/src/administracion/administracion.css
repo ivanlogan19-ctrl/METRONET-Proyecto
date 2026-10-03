@@ -305,7 +305,12 @@
 
 .admin-lista-configuracion {
   max-width: 860px;
+  gap: var(--space-xl);
 }
+
+.admin-configuracion-grupo { display: grid; gap: var(--space-sm); }
+.admin-configuracion-grupo > h2 { margin: 0; color: var(--text-primary); }
+.admin-configuracion-grupo > p { margin: 0 0 var(--space-xs); color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
 
 .admin-lista-disenos article,
 .admin-detalle-diseno,

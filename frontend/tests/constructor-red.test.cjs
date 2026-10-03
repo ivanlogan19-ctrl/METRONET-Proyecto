@@ -184,7 +184,7 @@ test('las herramientas no habilitadas por el nivel permanecen deshabilitadas', a
 for (const [tipo, coleccion, respuestas, rutaEsperada] of [
   ['linea', 'lineas', ['Violeta'], '/api/simulaciones/77/lineas/Azul'],
   ['tramo', 'tramos', ['Azul', 'Centro', 'Este'], '/api/simulaciones/77/tramos'],
-  ['unidad', 'unidadesMetro', ['Azul', '450', '60'], '/api/simulaciones/77/unidades/1'],
+  ['unidad', 'unidadesMetro', ['Azul', '60'], '/api/simulaciones/77/unidades/1'],
 ]) {
   test(`acciones contextuales de ${tipo}: modificar y eliminar mantienen los contratos existentes`, async (t) => {
     const { pagina, solicitudes } = await preparar(t);
@@ -193,6 +193,7 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
     }, { tipo, coleccion });
     await seleccionar();
     await pagina.locator(`[data-editar-${tipo}]`).click();
+    if (tipo === 'unidad') assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Capacidad', { exact: true }).count(), 0);
     for (const [indice, respuesta] of respuestas.entries()) {
       const campo = pagina.locator('[data-editar-elemento] input, [data-editar-elemento] select').nth(indice);
       if (await campo.evaluate(e => e.tagName === 'SELECT')) await campo.selectOption(respuesta);
@@ -204,13 +205,16 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
       const diseno = editorPrueba.disenoActual;
       return tipo === 'linea' ? diseno.lineas[0].nombre === 'Violeta'
         : tipo === 'tramo' ? diseno.tramos[0].estacionB === 'Este'
-          : diseno.unidadesMetro[0].capacidad === 450;
+          : diseno.unidadesMetro[0].velocidadPromedio === 60;
     }, tipo);
     assert.equal(solicitudes[0].metodo, 'PATCH');
     assert.equal(solicitudes[0].ruta, rutaEsperada);
     if (tipo === 'linea') assert.deepEqual(solicitudes[0].datos, { nombre: 'Violeta' });
     if (tipo === 'tramo') assert.deepEqual(solicitudes[0].datos, { nombreLinea: 'Azul', estacionA: 'Centro', estacionB: 'Este' });
-    if (tipo === 'unidad') assert.deepEqual(solicitudes[0].datos, { nombreLinea: 'Azul', capacidad: 450, velocidadPromedio: 60 });
+    if (tipo === 'unidad') {
+      assert.deepEqual(solicitudes[0].datos, { nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 60 });
+      assert.equal(await pagina.evaluate(() => editorPrueba.disenoActual.unidadesMetro[0].capacidad), 300);
+    }
     await seleccionar();
     await pagina.locator(`[data-eliminar-${tipo}]`).click();
     await pagina.locator('[data-confirmar-eliminar]').click();
@@ -219,6 +223,29 @@ for (const [tipo, coleccion, respuestas, rutaEsperada] of [
     assert.equal(await pagina.locator('[data-elemento-seleccionado]').isVisible(), false);
   });
 }
+
+test('unidad histórica conserva capacidad al editar UV y recargar el diseño', async t => {
+  const { pagina, solicitudes, diseno } = await preparar(t);
+  diseno.unidadesMetro[0].capacidad = 450;
+  await pagina.reload();
+  await pagina.waitForFunction(() => window.juegoPrueba?.scene?.getScene('MapaScene')?.editorRedMetro?.disenoActual?.unidadesMetro?.[0]?.capacidad === 450);
+  await pagina.evaluate(() => {
+    window.editorPrueba = juegoPrueba.scene.getScene('MapaScene').editorRedMetro;
+    editorPrueba.seleccionarElemento({ tipo: 'unidad', valor: editorPrueba.disenoActual.unidadesMetro[0] });
+  });
+  await pagina.locator('[data-editar-unidad]').click();
+  assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Capacidad', { exact: true }).count(), 0);
+  await pagina.locator('[data-editar-elemento]').getByLabel('Velocidad promedio (UV)', { exact: true }).fill('55');
+  await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.unidadesMetro[0].velocidadPromedio === 55);
+  assert.deepEqual(solicitudes.at(-1).datos, { nombreLinea: 'Azul', capacidad: 450, velocidadPromedio: 55 });
+  await pagina.reload();
+  await pagina.waitForFunction(() => window.juegoPrueba?.scene?.getScene('MapaScene')?.editorRedMetro?.disenoActual?.unidadesMetro?.[0]?.velocidadPromedio === 55);
+  assert.equal(await pagina.evaluate(() => {
+    const unidad = juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.unidadesMetro[0];
+    return unidad.capacidad;
+  }), 450);
+});
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 1024, height: 768 }, { width: 768, height: 1024 }, { width: 375, height: 667 }]) {
   test(`distribución sin desbordes ni superposición del panel y el mapa: ${viewport.width}px`, async (t) => {

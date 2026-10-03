@@ -23,38 +23,24 @@
           <p>Elegí un desafío para continuar tu recorrido de aprendizaje. Tu avance se conserva en cada nivel.</p>
         </div>
       </header>
-      <section class="metronet-escenarios-pagina__progreso" aria-labelledby="tituloProgresoEscenarios">
-        <div class="metronet-escenarios-pagina__seccion-cabecera">
-          <div>
-            <p class="metronet-inicio__etiqueta">Recorrido</p>
-            <h2 id="tituloProgresoEscenarios">Progreso de aprendizaje</h2>
-          </div>
-          <p id="descripcionProgresoEscenarios">Cargando el progreso de la campaña actual…</p>
-        </div>
-        <ol id="progresoEscenarios" class="metronet-escenarios-pagina__pasos-progreso" aria-label="Progreso de niveles"></ol>
-      </section>
-      <section class="metronet-escenarios-pagina__logros" aria-labelledby="tituloLogrosEscenarios">
-        <div class="metronet-escenarios-pagina__seccion-cabecera">
-          <div>
-            <p class="metronet-inicio__etiqueta">Logros permanentes</p>
-            <h2 id="tituloLogrosEscenarios">Desbloqueos</h2>
-          </div>
-          <p>Los logros registrados se mantienen al iniciar un nuevo recorrido.</p>
-        </div>
-        <ul id="listaLogrosEscenarios" class="metronet-escenarios-pagina__lista-logros" aria-live="polite"></ul>
-        <button id="botonReiniciarRecorrido" class="metronet-escenarios-pagina__reiniciar" type="button" hidden>Reiniciar recorrido</button>
-      </section>
       <section class="metronet-escenarios-pagina__desafios" aria-labelledby="tituloDesafios">
         <div class="metronet-escenarios-pagina__seccion-cabecera">
           <div>
-            <p class="metronet-inicio__etiqueta">Desafíos disponibles</p>
             <h2 id="tituloDesafios">Elegí un nivel</h2>
           </div>
-          <p>Podés continuar el nivel en curso o iniciar el próximo desafío desbloqueado.</p>
+          <p id="descripcionProgresoEscenarios">Cargando el progreso de la campaña actual…</p>
         </div>
         <p id="mensajeEscenarios" class="metronet-inicio__mensaje" role="status" aria-live="polite"></p>
         <p id="estadoCargaEscenarios" class="metronet-escenarios-pagina__estado-carga" role="status" aria-live="polite">Cargando niveles…</p>
         <section id="listaEscenarios" class="metronet-escenarios-pagina__lista" aria-live="polite" aria-busy="true"></section>
+      </section>
+      <section class="metronet-escenarios-pagina__logros" aria-labelledby="tituloLogrosEscenarios">
+        <div class="metronet-escenarios-pagina__seccion-cabecera">
+          <div><h2 id="tituloLogrosEscenarios">Desbloqueos</h2></div>
+          <p>Los logros registrados se mantienen al iniciar un nuevo recorrido.</p>
+        </div>
+        <ul id="listaLogrosEscenarios" class="metronet-escenarios-pagina__lista-logros" aria-live="polite"></ul>
+        <button id="botonReiniciarRecorrido" class="metronet-escenarios-pagina__reiniciar" type="button" hidden>Reiniciar recorrido</button>
       </section>
     </main>
     <dialog id="dialogoReiniciarRecorrido" class="metronet-dialogo-cambios metronet-escenarios-pagina__dialogo-reinicio" aria-labelledby="tituloReiniciarRecorrido">

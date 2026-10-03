@@ -40,16 +40,16 @@
               <div class="simulacion-progreso"><dt id="tituloProgresoEjecucion">Ejecución</dt><dd><span id="valorProgresoEjecucion">0%</span><span id="progresoEjecucion" class="simulacion-barra" role="progressbar" aria-labelledby="tituloProgresoEjecucion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="rellenoProgresoEjecucion"></span></span></dd></div>
             </dl>
             <div class="metronet-barra-geografica" aria-label="Opciones del mapa"><div data-contenedor-referencias></div><div data-hud-mapa><div data-ayuda-contextual></div></div></div>
-            <div id="visorSimulacion" class="simulacion-lienzo-contenedor" aria-label="Mapa Phaser de Montevideo con la red seleccionada"></div>
             <div class="simulacion-mandos" aria-label="Controles de simulación">
-              <form id="formularioEjecucion" class="simulacion-formulario"><input id="velocidadSimulacion" type="hidden" value="1" /><button class="simulacion-primario" type="submit" aria-label="Iniciar simulación">Iniciar</button></form>
-              <div class="simulacion-acciones-ejecucion">
-                <button id="pausarSimulacion" type="button" disabled>Pausar</button>
-                <button id="reanudarSimulacion" type="button" disabled hidden>Reanudar</button>
-                <button id="detenerSimulacion" class="simulacion-accion-detener" type="button" disabled>Detener</button>
-                <button id="reiniciarSimulacion" type="button" disabled>Reiniciar</button>
+              <form id="formularioEjecucion" class="simulacion-formulario"><input id="velocidadSimulacion" type="hidden" value="1" /><button class="simulacion-primario" type="submit" aria-label="Iniciar simulación" data-etiqueta-corta="Iniciar">Iniciar</button></form>
+              <div class="simulacion-acciones-ejecucion" role="group" aria-label="Controlar la ejecución">
+                <button id="pausarSimulacion" type="button" data-etiqueta-corta="Pausar" disabled>Pausar</button>
+                <button id="reanudarSimulacion" type="button" data-etiqueta-corta="Reanudar" disabled hidden>Reanudar</button>
+                <button id="detenerSimulacion" class="simulacion-accion-detener" type="button" data-etiqueta-corta="Detener" disabled>Detener</button>
+                <button id="reiniciarSimulacion" type="button" data-etiqueta-corta="Reiniciar" disabled>Reiniciar</button>
               </div>
             </div>
+            <div id="visorSimulacion" class="simulacion-lienzo-contenedor" aria-label="Mapa Phaser de Montevideo con la red seleccionada"></div>
           </section>
         </section>
         <div class="simulacion-avisos" aria-label="Estado y avisos de la red">
@@ -59,8 +59,9 @@
         </div>
         <aside id="instrumentosSimulacion" class="simulacion-instrumentos" aria-label="Controles de simulación">
           <h2 class="simulacion-panel-titulo">Simulación</h2>
-          <section id="seccionCirculacion" data-requiere-diseno hidden><div id="desempenoNivel" class="simulacion-desempeno"></div></section>
+          <section id="seccionCirculacion" data-requiere-diseno hidden><h3 class="simulacion-seccion-titulo">Unidades y UV</h3><div id="desempenoNivel" class="simulacion-desempeno"></div></section>
           <section id="seccionConfiguracion" class="simulacion-parametros" data-requiere-diseno hidden>
+            <h3 class="simulacion-seccion-titulo">Duración y ritmo</h3>
             <div class="simulacion-parametro-titulo" title="Duración simulada"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
             <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en horas" type="number" min="1" step="1" value="6" required /><span>h</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button></div>
             <div class="simulacion-ritmo"><span class="simulacion-etiqueta-control">Ritmo visual (×)</span><div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
@@ -68,7 +69,7 @@
             </div></div>
           </section>
           <section id="seccionMetricas" class="simulacion-ficha-unidad" hidden aria-label="Unidad seleccionada"><strong id="metroSimulacion"></strong><span id="lineaSimulacion"></span><span id="proximaEstacionSimulacion"></span></section>
-          <div class="simulacion-seguimiento" data-requiere-diseno hidden><button id="seguirMetro" type="button" aria-pressed="false" disabled>Seguir metro</button></div>
+          <div class="simulacion-seguimiento" data-requiere-diseno hidden><button id="seguirMetro" type="button" aria-pressed="false" data-etiqueta-corta="Seguir metro" disabled>Seguir metro</button></div>
           <details id="seccionResultados" class="simulacion-seccion" data-requiere-diseno hidden>
             <summary id="tituloResultadosSimulacion">Resultados</summary>
             <div class="simulacion-seccion-contenido"><div id="listaResultadosSimulacion" class="simulacion-lista-elementos"></div><a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con niveles</a></div>

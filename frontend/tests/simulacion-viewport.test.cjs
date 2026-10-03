@@ -19,12 +19,12 @@ async function abrir(t, width, multiple = false) {
     simulacion: { idDiseno: 77, idEscenario: 42, nombre: 'Prueba de viewport', estado: 'VALIDADO', modo: 'NIVEL', puntosInteresObjetivo: [{ idPunto: 1, posicionX: 596, posicionY: 493, radioCobertura: 60 }] },
     estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 }, { nombre: 'C', posicionX: 810, posicionY: 480 }],
     lineas: [{ nombre: 'Azul' }], tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B' }, { nombreLinea: 'Azul', estacionA: 'B', estacionB: 'C' }],
-    unidadesMetro: [{ idTren: 1, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 40 }],
+    unidadesMetro: [{ idTren: 1, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 1 }],
     preparadoParaSimular: true, territorio: { areas: [], errores: [] }, resultados: [],
   };
   if (multiple) {
     red.lineas.push({ nombre: 'Verde' }); red.tramos.push({ nombreLinea: 'Verde', estacionA: 'A', estacionB: 'C' });
-    red.unidadesMetro.push({ idTren: 2, nombreLinea: 'Verde', capacidad: 300, velocidadPromedio: 50 });
+    red.unidadesMetro.push({ idTren: 2, nombreLinea: 'Verde', capacidad: 300, velocidadPromedio: 1.5 });
   }
   const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport: { width, height: 1000 }, responder: async req => {
     const p = new URL(req.url()).pathname;
@@ -117,4 +117,22 @@ test('Ajustar red y cambiar de diseño conservan el encuadre explícito; resize 
   const otra = await capturar(pagina); assert.ok(otra.ajustes >= 1);
   await pagina.setViewportSize({ width: 768, height: 900 }); await cuadros(pagina, 30); const resized = await capturar(pagina); assert.notEqual(resized.canvas.pixelsX, otra.canvas.pixelsX);
   await pagina.locator('#formularioEjecucion button[type=submit]').scrollIntoViewIfNeeded(); await cuadros(pagina); const referencia = await capturar(pagina); await cuadros(pagina, 30); estable(referencia, await capturar(pagina));
+});
+for (const width of [1440, 390]) test(`Mandos visibles y agrupados ${width}: mapa ampliado y panel accesible`, async t => {
+  const { pagina } = await abrir(t, width);
+  const mandos = await pagina.locator('.simulacion-mandos').boundingBox();
+  const mapa = await pagina.locator('#visorSimulacion').boundingBox();
+  assert.ok(mandos.y >= 0 && mandos.y + mandos.height <= 1000, 'Los mandos deben verse sin desplazar la página');
+  assert.ok(mandos.y + mandos.height <= mapa.y, 'Los mandos deben preceder al mapa');
+  assert.equal(await pagina.getByRole('button', { name: 'Iniciar simulación' }).isEnabled(), true);
+  assert.equal(await pagina.locator('#pausarSimulacion').isHidden(), true);
+  assert.equal(await pagina.getByRole('button', { name: 'Detener simulación' }).isDisabled(), true);
+  assert.equal(await pagina.locator('#formularioEjecucion button').evaluate(e => getComputedStyle(e, '::after').content.includes('Iniciar')), true);
+  assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Sin desborde horizontal');
+  await pagina.getByRole('button', { name: 'Ocultar panel' }).click();
+  assert.equal(await pagina.locator('#instrumentosSimulacion').isHidden(), true);
+  assert.equal(await pagina.locator('.simulacion-mandos').isVisible(), true);
+  await pagina.getByRole('button', { name: 'Mostrar panel' }).click();
+  assert.equal(await pagina.locator('#instrumentosSimulacion').isVisible(), true);
+  assert.equal(await pagina.getByRole('spinbutton', { name: 'Duración simulada en horas' }).inputValue(), '6');
 });

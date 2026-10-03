@@ -104,7 +104,7 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     const mapa = await p.locator('#visorSimulacion').boundingBox();
     const panel = await p.locator('#instrumentosSimulacion').boundingBox();
-    if (width > 1050) { assert.ok(panel.x >= mapa.x + mapa.width); assert.ok(panel.width <= 282); }
+    if (width > 1050) { assert.ok(panel.x >= mapa.x + mapa.width); assert.ok(panel.width >= 280 && panel.width <= 322); }
     else assert.ok(panel.y > mapa.y + mapa.height);
     await p.locator('#unidadCirculacion').selectOption('2');
     await p.locator('#velocidadUnidad').focus();

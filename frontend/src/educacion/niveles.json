@@ -112,12 +112,12 @@
     },
     "preparacion": {
       "concepto": "Unidades de metro",
-      "explicacion": "Una unidad de metro se asigna a una línea de la red. Su capacidad y velocidad promedio son parámetros que podés configurar en METRONET.",
+      "explicacion": "Una unidad de metro se asigna a una línea de la red. Podés configurar su velocidad promedio en UV.",
       "contexto": "Asigná una unidad de metro a una red con recorrido válido.",
       "consejo": "Revisá que todas las estaciones formen parte del mismo recorrido y elegí la línea a la que vas a asignar la unidad."
     },
     "transicion": {
-      "aprendizaje": "Una unidad de metro se asigna a una línea de la red. Su capacidad y velocidad promedio son parámetros que podés configurar en METRONET.",
+      "aprendizaje": "Una unidad de metro se asigna a una línea de la red. Podés configurar su velocidad promedio en UV.",
       "ciudad": "Una unidad de metro circula por la línea asignada. La cobertura de lugares depende de dónde se ubican las estaciones, además de la circulación."
     },
     "historia": {

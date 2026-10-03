@@ -59,7 +59,7 @@ function renderizarTablero(contenedor, progreso) {
   contenedor.replaceChildren(
     crearTarjetaContinuar(resumen),
     crearTarjetaModoLibre(resumen),
-    crearTarjetaProgreso(resumen),
+    crearTarjetaAccesos(resumen),
   );
 }
 
@@ -89,13 +89,13 @@ function crearTarjetaContinuar(resumen) {
   if (resumen.escenarioContinuar) {
     const escenario = resumen.escenarioContinuar;
     contenido.append(
-      crearTituloTarjeta(`Nivel ${escenario.numero} · ${escenario.nombre}`),
+      crearTituloTarjeta(`Nivel ${escenario.numero} · ${nombreSinNumero(escenario)}`),
       crearEstado(estadoLegible(escenario.estado), 'activo'),
       crearDescripcion(escenario.objetivo || escenario.instrucciones || 'Retomá el próximo paso de tu recorrido.'),
-      crearMeta(`${resumen.cantidadCompletados} de ${resumen.niveles.length} niveles completados · Progreso del nivel: ${progresoLegible(escenario.progreso)}`),
+      crearMeta(`Progreso del nivel: ${progresoLegible(escenario.progreso)}`),
     );
     const boton = crearBoton(
-      ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado) ? 'Continuar nivel' : 'Comenzar nivel',
+      ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado) ? 'Continuar' : 'Jugar',
       'azul',
       () => iniciarEscenario(escenario, boton),
     );
@@ -107,7 +107,6 @@ function crearTarjetaContinuar(resumen) {
       crearTituloTarjeta('Recorrido completado'),
       crearEstado('Completado', 'completado'),
       crearDescripcion('Completaste todos los niveles de aprendizaje. El Modo Libre ya está disponible para crear sin consigna.'),
-      crearMeta(`${resumen.cantidadCompletados} de ${resumen.niveles.length} niveles completados`),
     );
     tarjeta.append(contenido, crearPieTarjeta(null, '/escenarios.html', 'Ver recorrido completo'));
     return tarjeta;
@@ -142,37 +141,31 @@ function crearTarjetaModoLibre(resumen) {
       crearTituloTarjeta('Modo Libre'),
       crearEstado('Bloqueado', 'bloqueado'),
       crearDescripcion('Completá los niveles de aprendizaje para diseñar una red sin consigna obligatoria.'),
-      crearMeta(`${resumen.cantidadCompletados} de ${resumen.niveles.length} niveles completados`),
     );
     tarjeta.append(contenido);
     return tarjeta;
   }
   contenido.append(
     crearTituloTarjeta('Modo Libre'),
-    crearEstado('Disponible', 'disponible'),
+    crearEstado(ESTADOS_CON_INTENTO_ACTIVO.has(modoLibre.estado) ? 'En curso' : 'Disponible', 'disponible'),
     crearDescripcion(resumen.campanaCompletadaHistoricamente
       ? 'Logro permanente desbloqueado. Creá una red propia sin reiniciar tus avances anteriores.'
       : 'Creá una red propia, definí líneas, estaciones, conexiones y unidades de metro antes de simularla.'),
   );
-  const boton = crearBoton('Iniciar Modo Libre', 'verde', () => iniciarEscenario(modoLibre, boton));
-  tarjeta.append(contenido, crearPieTarjeta(boton, '/', 'Abrir mis diseños'));
+  const boton = crearBoton(ESTADOS_CON_INTENTO_ACTIVO.has(modoLibre.estado) ? 'Continuar en Modo Libre' : 'Jugar en Modo Libre', 'verde', () => iniciarEscenario(modoLibre, boton));
+    tarjeta.append(contenido, crearPieTarjeta(boton, '/disenos.html', 'Abrir mis diseños'));
   return tarjeta;
 }
 
-function crearTarjetaProgreso(resumen) {
-  const tarjeta = crearTarjeta('progreso', 'Progreso');
+function crearTarjetaAccesos(resumen) {
+  const tarjeta = crearTarjeta('progreso', 'Tu recorrido');
   const encabezado = document.createElement('div');
   encabezado.className = 'metronet-inicio__tarjeta-contenido';
   encabezado.append(
-    crearTituloTarjeta('Tu recorrido'),
     crearDescripcion(resumen.niveles.length
       ? `${resumen.cantidadCompletados} de ${resumen.niveles.length} niveles completados.`
       : 'Todavía no hay niveles disponibles.'),
   );
-  const pasos = document.createElement('ol');
-  pasos.className = 'metronet-inicio__pasos';
-  pasos.style.setProperty('--columnas-niveles', String(Math.min(5, Math.max(1, Math.ceil(resumen.niveles.length / 2)))));
-  pasos.append(...resumen.niveles.map((escenario) => crearPasoProgreso(escenario, resumen.escenarioContinuar)));
   const accesos = document.createElement('nav');
   accesos.className = 'metronet-inicio__accesos';
   accesos.setAttribute('aria-label', 'Accesos al jugador');
@@ -183,7 +176,7 @@ function crearTarjetaProgreso(resumen) {
     misDisenos,
     crearEnlace('/simulacion.html', 'Simulaciones'),
   );
-  tarjeta.append(encabezado, pasos, accesos);
+  tarjeta.append(encabezado, accesos);
   return tarjeta;
 }
 
@@ -195,35 +188,6 @@ function crearTarjeta(variante, etiqueta) {
   identificador.textContent = etiqueta;
   tarjeta.append(identificador);
   return tarjeta;
-}
-
-function crearPasoProgreso(escenario, escenarioContinuar) {
-  const paso = document.createElement('li');
-  const estado = estadoPaso(escenario, escenarioContinuar);
-  paso.className = `metronet-inicio__paso metronet-inicio__paso--${estado}`;
-  if (escenario.idEscenario === escenarioContinuar?.idEscenario) paso.setAttribute('aria-current', 'step');
-  const indicador = document.createElement('span');
-  indicador.className = 'metronet-inicio__paso-indicador';
-  indicador.setAttribute('aria-hidden', 'true');
-  indicador.textContent = escenario.numero ?? '∞';
-  const texto = document.createElement('span');
-  texto.textContent = escenario.numero === null ? 'Modo Libre' : `Nivel ${escenario.numero}`;
-  const detalle = document.createElement('small');
-  detalle.className = 'metronet-inicio__paso-estado';
-  detalle.textContent = {
-    completado: 'Completado', actual: 'En curso', disponible: 'Disponible', bloqueado: 'Bloqueado',
-  }[estado];
-  if (estado === 'actual' && !ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado)) detalle.textContent = 'Disponible';
-  paso.append(indicador, texto, detalle);
-  return paso;
-}
-
-function estadoPaso(escenario, escenarioContinuar) {
-  if (ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado)) return 'actual';
-  if (escenario.completadoEnCampanaActual || escenario.estado === 'COMPLETADO') return 'completado';
-  if (escenario.idEscenario === escenarioContinuar?.idEscenario) return 'actual';
-  if (escenario.desbloqueado) return 'disponible';
-  return 'bloqueado';
 }
 
 function crearPieTarjeta(boton, ruta, textoEnlace) {
@@ -285,7 +249,7 @@ async function iniciarEscenario(escenario, boton) {
   const textoOriginal = boton.textContent;
   let navegando = false;
   boton.textContent = 'Preparando…';
-  mostrarMensaje('Preparando el nivel…');
+  mostrarMensaje(escenario.numero === null ? 'Preparando Modo Libre…' : 'Preparando el nivel…');
   try {
     const inicio = await iniciarNivelConTransicion(escenario,
       signal => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST', signal }));
@@ -314,7 +278,7 @@ function renderizarError(contenedor, detalleError) {
   const acciones = document.createElement('div');
   acciones.className = 'metronet-inicio__error-acciones';
   const reintentar = crearBoton('Reintentar', 'azul', cargarTablero);
-  acciones.append(reintentar, crearEnlace('/escenarios.html', 'Ir a niveles'), crearEnlace('/', 'Abrir mis diseños'));
+  acciones.append(reintentar, crearEnlace('/escenarios.html', 'Ir a niveles'), crearEnlace('/disenos.html', 'Abrir mis diseños'));
   tarjeta.append(titulo, detalle, acciones);
   contenedor.replaceChildren(tarjeta);
 }
@@ -346,4 +310,8 @@ function estadoLegible(estado) {
 
 function progresoLegible(progreso) {
   return `${Math.max(0, Math.min(100, Number(progreso) || 0))}%`;
+}
+
+function nombreSinNumero(escenario) {
+  return String(escenario.nombre ?? '').replace(new RegExp(`^Nivel\\s+${escenario.numero}\\s*[·:–-]\\s*`, 'i'), '');
 }

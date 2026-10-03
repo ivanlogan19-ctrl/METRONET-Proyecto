@@ -4,6 +4,7 @@ import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrado
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
 
 const sesion = obtenerSesionAdministrador();
+const CAPACIDAD_COMPATIBILIDAD = 300;
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
 
@@ -343,7 +344,7 @@ function renderizarDetalleDiseno(detalle) {
       <tr><td>${escaparHtml(tramo.nombreLinea)}</td><td>${escaparHtml(tramo.estacionA)} · ${escaparHtml(tramo.estacionB)}</td><td>${botonesAccion("tramo", diseno.idDiseno, { linea: tramo.nombreLinea, estacionA: tramo.estacionA, estacionB: tramo.estacionB })}</td></tr>`)}
     <button class="admin-guardar" type="button" data-crear-diseno="tramo" data-id-diseno="${diseno.idDiseno}">Agregar tramo</button>
     ${crearTablaElementos("Unidades de metro", unidadesMetro, (unidad) => `
-      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Capacidad: ${unidad.capacidad} · Velocidad: ${formatearVelocidad(unidad.velocidadPromedio)}</td><td>${botonesAccion("unidad", diseno.idDiseno, { idTren: unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
+      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Velocidad: ${formatearVelocidad(unidad.velocidadPromedio)}</td><td>${botonesAccion("unidad", diseno.idDiseno, { 'id-tren': unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
     <button class="admin-guardar" type="button" data-crear-diseno="unidad" data-id-diseno="${diseno.idDiseno}">Agregar unidad de metro</button>
   `;
 }
@@ -452,10 +453,11 @@ async function ejecutarAccionDiseno(boton, token) {
   if (accion.includes("unidad")) {
     if (accion === "editar-unidad") {
       const nombreLinea = await pedirDatoSistema("Línea asignada:", boton.dataset.linea);
-      const capacidad = await pedirDatoSistema("Capacidad:", boton.dataset.capacidad);
       const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (UV):", boton.dataset.velocidad);
-      if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
-      opciones.body = JSON.stringify({ nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) });
+      if (!nombreLinea || velocidadPromedio === null) return;
+      const capacidad = Number(boton.dataset.capacidad);
+      if (!Number.isInteger(capacidad) || capacidad < 1) return mostrarMensajeDisenos('No se pudo conservar el dato interno de la unidad.', 'error');
+      opciones.body = JSON.stringify({ nombreLinea, capacidad, velocidadPromedio: Number(velocidadPromedio) });
     } else if (!await confirmarSistema("¿Eliminar esta unidad de metro?")) {
       return;
     } else {
@@ -515,10 +517,9 @@ async function crearElementoDiseno(boton, token) {
 
   if (tipo === "unidad") {
     const nombreLinea = await pedirDatoSistema("Nombre de la línea asignada:");
-    const capacidad = await pedirDatoSistema("Capacidad:", "300");
     const velocidadPromedio = await pedirDatoSistema("Velocidad (UV):", String(VELOCIDAD_INICIAL));
-    if (!nombreLinea || capacidad === null || velocidadPromedio === null) return;
-    cuerpo = { nombreLinea, capacidad: Number(capacidad), velocidadPromedio: Number(velocidadPromedio) };
+    if (!nombreLinea || velocidadPromedio === null) return;
+    cuerpo = { nombreLinea, capacidad: CAPACIDAD_COMPATIBILIDAD, velocidadPromedio: Number(velocidadPromedio) };
     ruta = "unidades";
   }
 
@@ -559,29 +560,52 @@ async function cargarConfiguracion(token) {
 
 function renderizarConfiguracion(configuraciones) {
   const lista = document.getElementById("listaConfiguracion");
-  lista.replaceChildren(...configuraciones.map((configuracion) => {
+  // El valor legado de capacidad se conserva en datos, pero no es un ajuste de juego.
+  const visibles = configuraciones.filter(configuracion => configuracion.clave !== 'capacidad_unidad');
+  const grupos = [
+    { titulo: 'Experiencia del jugador', descripcion: 'Ritmo inicial de reproducción. El jugador puede cambiarlo antes de simular.', claves: ['velocidad_simulacion'] },
+    { titulo: 'Operación', descripcion: 'Disponibilidad de las acciones de edición y simulación para jugadores.', claves: ['modo_mantenimiento'] },
+  ];
+  const conocidas = new Set(grupos.flatMap(grupo => grupo.claves));
+  if (visibles.some(configuracion => !conocidas.has(configuracion.clave))) {
+    grupos.push({ titulo: 'Otros parámetros', descripcion: 'Configuración adicional de la plataforma.', claves: visibles.filter(configuracion => !conocidas.has(configuracion.clave)).map(configuracion => configuracion.clave) });
+  }
+  lista.replaceChildren(...grupos.filter(grupo => visibles.some(configuracion => grupo.claves.includes(configuracion.clave))).map(grupo => {
+    const seccion = document.createElement('section');
+    seccion.className = 'admin-configuracion-grupo';
+    const titulo = document.createElement('h2');
+    titulo.textContent = grupo.titulo;
+    const descripcion = document.createElement('p');
+    descripcion.textContent = grupo.descripcion;
+    seccion.append(titulo, descripcion, ...visibles.filter(configuracion => grupo.claves.includes(configuracion.clave)).map(crearCampoConfiguracion));
+    return seccion;
+  }));
+}
+
+function crearCampoConfiguracion(configuracion) {
     const elemento = document.createElement("article");
-    const esCapacidadUnidad = configuracion.clave === "capacidad_unidad";
     const esRitmoReproduccion = configuracion.clave === "velocidad_simulacion";
     const esMantenimiento = configuracion.clave === "modo_mantenimiento";
     const modo = String(configuracion.valor).trim().toLowerCase();
-    const tipoCampo = esCapacidadUnidad ? "number" : "text";
-    const restricciones = esCapacidadUnidad ? 'min="1" step="1"' : "";
-    const unidad = esCapacidadUnidad ? '<span class="admin-unidad-configuracion">pasajeros</span>' : esRitmoReproduccion ? '<span class="admin-unidad-configuracion">×</span>' : "";
     const titulo = esRitmoReproduccion ? "Ritmo de reproducción (×)" : formatearClave(configuracion.clave);
-    const descripcion = esRitmoReproduccion ? "Ritmo inicial de la animación: 0.5×, 1×, 2× o 4×. No modifica los UV de las unidades ni los puntos." : configuracion.descripcion;
+    const descripcion = esRitmoReproduccion
+      ? 'Ritmo inicial al abrir Simulaciones: 0.5×, 1×, 2× o 4×. El jugador puede cambiarlo; no modifica UV, horas ni puntos.'
+      : esMantenimiento
+        ? 'Al activarlo, impide a los jugadores crear, editar o simular. Las consultas siguen disponibles; las pantallas abiertas actualizan el aviso al recuperar el foco.'
+        : configuracion.descripcion;
     const atributos = `class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" aria-label="Valor de ${escaparHtml(titulo)}"`;
     const campo = esMantenimiento
       ? `<select ${atributos}>${["activado", "desactivado"].includes(modo) ? "" : '<option value="" selected disabled>Seleccioná un estado</option>'}${["desactivado", "activado"].map(valor => `<option value="${valor}" ${modo === valor ? "selected" : ""}>${valor.toUpperCase()}</option>`).join("")}</select>`
-      : `<input ${atributos} type="${tipoCampo}" ${restricciones} value="${escaparHtml(configuracion.valor)}" />`;
+      : esRitmoReproduccion
+        ? `<select ${atributos}>${['0.5', '1', '2', '4'].map(valor => `<option value="${valor}" ${Number(configuracion.valor) === Number(valor) ? 'selected' : ''}>${valor}×</option>`).join('')}</select>`
+      : `<input ${atributos} type="text" value="${escaparHtml(configuracion.valor)}" />`;
     elemento.className = "admin-configuracion-item";
     elemento.innerHTML = `
       <div><h3>${escaparHtml(titulo)}</h3><p>${escaparHtml(descripcion)}</p></div>
-      <div class="admin-campo-configuracion">${campo}${unidad}</div>
+      <div class="admin-campo-configuracion">${campo}</div>
       <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
     `;
     return elemento;
-  }));
 }
 
 async function guardarConfiguracion(clave, token) {

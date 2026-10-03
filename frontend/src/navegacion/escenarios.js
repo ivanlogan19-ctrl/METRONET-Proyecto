@@ -67,22 +67,6 @@ function renderizarProgreso(progreso) {
   descripcion.textContent = niveles.length
     ? `${progreso.campanaCompletada ? "Campaña completada. " : ""}${progreso.nivelesCompletados} de ${progreso.cantidadNiveles} niveles completados en la campaña actual.`
     : 'Todavía no hay niveles configurados.';
-  const lista = document.getElementById('progresoEscenarios');
-  const pasoActual = niveles.find((escenario) => obtenerEstadoVisual(escenario).id === 'actual')?.idEscenario
-    ?? niveles.find((escenario) => obtenerEstadoVisual(escenario).id === 'disponible')?.idEscenario;
-  lista.replaceChildren(...niveles.map((escenario) => {
-    const estado = obtenerEstadoVisual(escenario);
-    const paso = document.createElement('li');
-    paso.className = `metronet-escenarios-pagina__paso-progreso metronet-escenarios-pagina__paso-progreso--${estado.id}`;
-    if (escenario.idEscenario === pasoActual) paso.setAttribute('aria-current', 'step');
-    const numero = document.createElement('span');
-    numero.setAttribute('aria-hidden', 'true');
-    numero.textContent = escenario.numero;
-    const etiqueta = document.createElement('span');
-    etiqueta.textContent = `Nivel ${escenario.numero}`;
-    paso.append(numero, etiqueta);
-    return paso;
-  }));
 }
 
 function renderizarLogros(progreso) {
@@ -135,37 +119,44 @@ function crearTarjetaEscenario(escenario) {
   tarjeta.className = `metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--${estado.id}${escenario.desbloqueado ? '' : ' bloqueada'}`;
   const encabezado = document.createElement('header');
   encabezado.className = 'metronet-escenarios-pagina__tarjeta-cabecera';
-  const identificador = document.createElement('p');
-  identificador.textContent = escenario.numero === null ? 'Modo Libre' : `Nivel ${escenario.numero}`;
   const etiquetaEstado = document.createElement('span');
   etiquetaEstado.className = `metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--${estado.id}`;
   etiquetaEstado.textContent = estado.texto;
-  encabezado.append(identificador, etiquetaEstado);
+  encabezado.append(etiquetaEstado);
   const titulo = document.createElement('h2');
-  titulo.textContent = escenario.nombre;
+  titulo.id = `titulo-escenario-${escenario.idEscenario}`;
+  titulo.textContent = escenario.numero === null ? escenario.nombre : `${escenario.numero} · ${nombreSinNumero(escenario)}`;
+  tarjeta.setAttribute('aria-labelledby', titulo.id);
   const contenido = document.createElement('div');
   contenido.className = 'metronet-escenarios-pagina__tarjeta-contenido';
   const objetivo = document.createElement('p');
   objetivo.className = 'metronet-escenarios-pagina__objetivo';
-  const etiquetaObjetivo = document.createElement('strong');
-  etiquetaObjetivo.textContent = 'Objetivo';
-  objetivo.append(etiquetaObjetivo, document.createTextNode(`: ${escenario.objetivo ?? 'Sin objetivo definido.'}`));
+  objetivo.textContent = escenario.objetivo ?? 'Sin objetivo definido.';
+  if (escenario.desbloqueado) {
+    destacarConceptos(objetivo, conceptosDelNivel(escenario));
+  }
+  contenido.append(objetivo);
+  if (estado.id === 'actual' || estado.id === 'completado') contenido.append(crearProgresoTarjeta(escenario, estado));
+  const detalles = document.createElement('details');
+  detalles.className = 'metronet-escenarios-pagina__detalles';
+  const resumen = document.createElement('summary');
+  resumen.textContent = 'Ver instrucciones y datos';
+  resumen.setAttribute('aria-describedby', titulo.id);
   const instrucciones = document.createElement('p');
   instrucciones.className = 'metronet-escenarios-pagina__instrucciones';
   instrucciones.textContent = escenario.instrucciones ?? 'Sin instrucciones disponibles.';
-  if (escenario.desbloqueado) {
-    destacarConceptos(objetivo, conceptosDelNivel(escenario));
-    destacarConceptos(instrucciones, conceptosDelNivel(escenario));
-  }
-  contenido.append(objetivo, instrucciones, crearProgresoTarjeta(escenario, estado));
+  if (escenario.desbloqueado) destacarConceptos(instrucciones, conceptosDelNivel(escenario));
+  detalles.append(resumen, instrucciones);
   const estadisticas = crearEstadisticas(escenario);
-  if (estadisticas) contenido.append(estadisticas);
+  if (estadisticas) detalles.append(estadisticas);
+  contenido.append(detalles);
   const acciones = document.createElement('footer');
   acciones.className = 'metronet-escenarios-pagina__acciones';
   const boton = document.createElement('button');
   boton.type = 'button';
   boton.disabled = !escenario.desbloqueado || accionEnCurso;
   boton.textContent = estado.accion;
+  boton.setAttribute('aria-describedby', titulo.id);
   if (estado.id !== 'bloqueado') {
     boton.addEventListener('click', () => iniciarEscenario(escenario, boton, estado.id === 'completado'));
   }
@@ -221,6 +212,10 @@ function crearEstadisticas(escenario) {
   if (escenario.ultimoPuntaje !== null && escenario.ultimoPuntaje !== undefined) datos.push(`Mejor del último intento: ${escenario.ultimoPuntaje}`);
   estadisticas.textContent = datos.join(' · ');
   return estadisticas;
+}
+
+function nombreSinNumero(escenario) {
+  return String(escenario.nombre ?? '').replace(new RegExp(`^Nivel\\s+${escenario.numero}\\s*[·:–-]\\s*`, 'i'), '');
 }
 
 async function iniciarEscenario(escenario, boton, volverAJugar) {

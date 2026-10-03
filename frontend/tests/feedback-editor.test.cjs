@@ -167,11 +167,12 @@ test('editar conserva los datos ante error del servidor y evita envíos duplicad
   });
   await pagina.evaluate(() => editorPrueba.seleccionarElemento({ tipo: 'unidad', valor: editorPrueba.disenoActual.unidadesMetro[0] }));
   await pagina.locator('[data-editar-unidad]').click();
-  await pagina.locator('[data-editar-elemento]').getByLabel('Capacidad', { exact: true }).fill('420');
+  assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Capacidad', { exact: true }).count(), 0);
+  await pagina.locator('[data-editar-elemento]').getByLabel('Velocidad promedio (UV)', { exact: true }).fill('60');
   await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).dblclick();
   await pagina.waitForFunction(() => document.querySelector('[data-estado-editor]').dataset.tipo === 'error');
   assert.equal(envios, 1);
-  assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Capacidad', { exact: true }).inputValue(), '420');
+  assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Velocidad promedio (UV)', { exact: true }).inputValue(), '60');
   assert.equal(await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).isEnabled(), true);
   await pagina.getByRole('button', { name: 'Cancelar edición', exact: true }).click();
   assert.equal(solicitudes.length, 0);

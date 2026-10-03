@@ -25,6 +25,37 @@ for (const width of [1440, 390]) test(`Tutorial de simulación ${width}: accione
   const p=v.pagina, tutorial=p.locator('.metronet-recorrido');
   await tutorial.waitFor();
   assert.equal(await tutorial.evaluate(e=>e.matches(':modal')),false,'Los controles deben seguir utilizables');
+  const posicionInicial = await tutorial.boundingBox();
+  await p.evaluate(() => window.scrollBy({ top: 100, behavior: 'instant' }));
+  await p.waitForTimeout(100);
+  const posicionDesplazada = await tutorial.boundingBox();
+  assert.ok(Math.abs(posicionDesplazada.y - posicionInicial.y) <= 150,
+    'La tarjeta del mapa no debe saltar de un extremo al otro al desplazar la página');
+  await p.evaluate(() => window.scrollBy({ top: 500, behavior: 'instant' }));
+  await p.waitForTimeout(100);
+  const marca = await p.locator('.metronet-recorrido__marca').evaluate(e => {
+    const r = e.getBoundingClientRect();
+    return { oculta: e.hidden, izquierda: r.left, arriba: r.top, derecha: r.right, abajo: r.bottom };
+  });
+  assert.ok(marca.oculta || (marca.izquierda >= 0 && marca.arriba >= 0 && marca.derecha <= width && marca.abajo <= 900),
+    'El marco del recorrido debe quedar dentro del viewport visible');
+  const tarjetaDesplazada = await tutorial.boundingBox();
+  assert.ok(marca.oculta || tarjetaDesplazada.x >= marca.derecha || tarjetaDesplazada.x + tarjetaDesplazada.width <= marca.izquierda
+    || tarjetaDesplazada.y >= marca.abajo || tarjetaDesplazada.y + tarjetaDesplazada.height <= marca.arriba,
+  'El marco no debe atravesar el texto ni los botones de la tarjeta');
+  await p.evaluate(() => {
+    const espacio = document.createElement('div'); espacio.id = 'espacioPruebaRecorrido'; espacio.style.height = '1000px'; document.body.append(espacio);
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+  });
+  await p.waitForTimeout(100);
+  assert.equal(await p.locator('.metronet-recorrido__marca').isHidden(), true,
+    'El marco debe ocultarse cuando el objetivo sale por completo de pantalla');
+  await p.evaluate(() => document.getElementById('espacioPruebaRecorrido').remove());
+  await p.setViewportSize({ width, height: 210 });
+  const tarjetaBaja = await tutorial.evaluate(e => ({ alto: e.clientHeight, contenido: e.scrollHeight }));
+  assert.ok(tarjetaBaja.contenido > tarjetaBaja.alto, 'La tarjeta debe permitir scroll interno en ventanas bajas');
+  await tutorial.getByRole('button',{name:'Siguiente',exact:true}).scrollIntoViewIfNeeded();
+  await p.setViewportSize({ width, height: 900 });
   for(let i=0;i<7;i++) {
     const caja = await tutorial.boundingBox();
     assert.ok(caja.x >= 0 && caja.x + caja.width <= width, 'Burbuja dentro del viewport');

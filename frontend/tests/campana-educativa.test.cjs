@@ -44,7 +44,8 @@ for (const width of [1440, 768, 390]) {
   });
   test(`Campaña y transición ${width}: diez niveles, contenido contextual y controles accesibles`, async t => {
     const { pagina, solicitudes } = await abrir(t, '/escenarios.html', { viewport: { width, height: 900 } });
-    assert.equal(await pagina.locator('#progresoEscenarios > li').count(), 10);
+    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').count(), 10);
+    assert.equal(await pagina.locator('#progresoEscenarios').count(), 0);
     assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /4 de 10/);
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
     const dialogo = pagina.getByRole('dialog', { name: niveles[4].nombre, exact: true });

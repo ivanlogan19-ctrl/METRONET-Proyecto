@@ -21,7 +21,7 @@ for (const administrador of [false, true]) for (const width of [390, 820, 1440])
     assert.equal(await principal.isVisible(), width > 1024);
     assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : administrador ? 6 : 5);
     assert.equal(await menu.getByRole('link', { name: 'Mi perfil' }).isVisible(), true);
-    if (width <= 1024) assert.equal(await menu.getByRole('link', { name: 'Escenarios' }).isVisible(), true);
+    if (width <= 1024) assert.equal(await menu.getByRole('link', { name: 'Niveles' }).isVisible(), true);
     await menu.getByRole('link', { name: 'Mi perfil' }).click();
     await p.waitForURL('**/perfil.html');
     await p.locator('.perfil-contenedor[aria-busy="false"]').waitFor();

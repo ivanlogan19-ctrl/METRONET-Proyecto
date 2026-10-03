@@ -16,15 +16,15 @@ const responder=req=>{
 };
 async function abrir(t,ruta,opciones={}){const v=await abrirPantalla(navegador,ruta,{responder,...opciones});t.after(()=>v.contexto.close());t.after(()=>assert.deepEqual(v.errores,[]));return v;}
 async function ingresar(p){await p.locator('#usuario').fill('operador');await p.locator('#password').fill('Prueba1!');await p.locator('#loginAdminButton').click();await p.locator('.metronet-bienvenida').waitFor();await p.locator('[data-continuar-bienvenida]').click();await p.waitForURL('**/admin.html');await p.locator('[data-editar-usuario]').first().waitFor();}
-test('Recorrido completo: editor, escenarios, administración, logout, bienvenida, inicio, ranking y diseños',async t=>{
+test('Recorrido completo: editor, niveles, administración, logout, bienvenida, inicio, ranking y diseños',async t=>{
  const {pagina:p}=await abrir(t,'/admin-login.html');await ingresar(p);
  const alturas=[];
  const ir=async nombre=>{await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:nombre,exact:true}).click();await p.locator('.metronet-navegacion__enlace.activo').first().waitFor();alturas.push(await p.locator('.metronet-navegacion').evaluate(e=>e.getBoundingClientRect().height));};
  await ir('Mis diseños');await p.locator('#listaMisDisenos[aria-busy=false]').waitFor();await p.getByRole('link',{name:'Abrir diseño: Red de Montevideo'}).click();await p.waitForURL(url=>url.pathname==='/'&&url.searchParams.get('idDiseno')==='77');await p.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
- await ir('Escenarios');await p.locator('.metronet-escenarios-pagina__tarjeta').first().waitFor();await ir('Administración');
+ await ir('Niveles');await p.locator('.metronet-escenarios-pagina__tarjeta').first().waitFor();await ir('Administración');
  await p.locator('.metronet-navegacion__usuario>summary').click();await p.getByRole('button',{name:'Cerrar sesión',exact:true}).click();await p.waitForURL('**/login.html');
  await p.getByRole('link',{name:'Acceso administrativo',exact:true}).click();await ingresar(p);
- for(const nombre of ['Inicio','Escenarios','Ranking','Mis diseños'])await ir(nombre);
+ for(const nombre of ['Inicio','Niveles','Ranking','Mis diseños'])await ir(nombre);
  await p.locator('#listaMisDisenos[aria-busy=false]').waitFor();await p.getByRole('link',{name:'Abrir diseño: Red de Montevideo'}).click();await p.waitForURL(url=>url.pathname==='/'&&url.searchParams.get('idDiseno')==='77');await p.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
  await p.waitForFunction(()=>{const m=document.querySelector('#metronet-mapa'),c=m?.querySelector('canvas');return c&&Math.abs(c.height-m.getBoundingClientRect().height)<3;});
  assert.deepEqual([...new Set(alturas)],[76]);

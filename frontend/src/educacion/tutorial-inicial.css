@@ -16,9 +16,10 @@ html:root body .metronet-tutorial__panel h2, html:root body dialog.metronet-reco
 .metronet-tutorial__repetir { margin-top:8px; }
 .metronet-tutorial__error { color:var(--warning-text, #ffe59b); border-left:2px solid currentColor; padding-left:8px; }
 .metronet-tutorial details + details { margin-top:6px; }
-.metronet-recorrido { position:fixed; inset:auto; margin:0; width:min(310px, calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:visible; }
+.metronet-recorrido { position:fixed; inset:auto; margin:0; width:min(310px, calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow-y:auto; overscroll-behavior:contain; }
 .metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%); }
-.metronet-recorrido__marca { position:fixed; pointer-events:none; border:3px solid var(--tutorial-acento); box-shadow:0 0 0 2px var(--bg-primary), 4px 4px 0 var(--shadow-color); }
+.metronet-recorrido__marca { position:fixed; box-sizing:border-box; pointer-events:none; border:3px solid var(--tutorial-acento); box-shadow:0 0 0 2px var(--bg-primary), 4px 4px 0 var(--shadow-color); }
+.metronet-recorrido__marca[hidden] { display:none; }
 .metronet-recorrido [data-recorrido-progreso] { color:var(--text-secondary); font-size:12px; }
 .metronet-editor-acceso-teclado { font:14px/1.5 var(--font-ui); }
 .metronet-editor-acceso-teclado label { display:grid; gap:6px; }
