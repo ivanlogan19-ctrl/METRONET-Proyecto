@@ -12,6 +12,7 @@ const rutas = ['/login.html', '/admin-login.html', '/registro.html', '/recuperar
 async function abrir(t, ruta = '/login.html', opciones = {}) {
   const vista = await abrirPantalla(navegador, ruta, opciones);
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
+  vista.pagina.setDefaultTimeout(45000);
   return vista;
 }
 async function reproduciendo(p) {
@@ -26,29 +27,29 @@ async function ingresar(p, rol) {
   await p.locator(rol === 'ADMIN' ? '#loginAdminButton' : '#loginButton').click();
 }
 
-for (const ruta of rutas) test(`Acceso sin sesión: pista exclusiva y control disponible en ${ruta}`, async t => {
+for (const ruta of rutas) test(`Acceso sin sesión: Extra y control disponible en ${ruta}`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, ruta);
   await reproduciendo(p);
   assert.equal(await p.locator(audio).count(), 1);
   const datos = await p.locator(audio).evaluate(a => ({ src: a.getAttribute('src'), loop: a.loop, duracion: a.duration }));
-  assert.equal(datos.src, '/audio/auth-theme.mp3');
+  assert.equal(datos.src, '/audio/extra-theme.mp3');
   assert.equal(datos.loop, true);
-  assert.ok(datos.duracion > 169 && datos.duracion < 171);
+  assert.ok(datos.duracion > 32 && datos.duracion < 32.2);
   assert.equal(await p.locator('[data-control-musica]').count(), 1);
   assert.equal(await p.evaluate(() => localStorage.getItem('sesionUsuario') || localStorage.getItem('sesionAdministrador')), null);
   assert.deepEqual(solicitudes, [], 'La música no agrega llamadas a backend');
-  assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('gameplay-theme'))), false);
+  assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('menu-theme'))), false);
 });
 
 test('Navegar entre formularios, recargar y completar el loop conserva una sola pista', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 30; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.getByRole('link', { name: 'Crear cuenta', exact: true }).click();
   await p.waitForURL('**/registro.html'); await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 30));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.reload(); await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 30));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .3; });
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
   await p.getByRole('link', { name: 'Leer el uso de mis datos' }).click();
@@ -83,7 +84,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: error de login conserva m�
   await p.locator('.metronet-navegacion__usuario > summary').click();
   await p.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
   await p.waitForURL('**/login.html'); await reproduciendo(p);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/auth-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/extra-theme.mp3');
 });
 
 test('Volumen y silencio persisten; eventos de almacenamiento sin sesión no detienen el contexto auth', async t => {
@@ -127,7 +128,7 @@ test('Autoplay bloqueado ofrece activación accesible sin impedir escribir en el
 test('MP3 ausente no bloquea el login ni la bienvenida', async t => {
   const { pagina: p } = await abrir(t, '/login.html', { reducedMotion: 'reduce', responder: req => /\/auth\/login$/.test(req.url())
     ? { json: { token: 'sesion-local-de-prueba', usuario: { idUsuario: 7, nombre: 'Ana', rol: 'JUGADOR' } } } : null });
-  await p.route('**/audio/auth-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/extra-theme.mp3', route => route.fulfill({ status: 404 }));
   await p.reload();
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   await ingresar(p, 'JUGADOR');

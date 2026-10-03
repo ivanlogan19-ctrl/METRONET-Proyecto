@@ -20,6 +20,7 @@ async function preparar(t, rol = 'JUGADOR', opciones = {}) {
     },
   });
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
+  vista.pagina.setDefaultTimeout(45000);
   const navegaciones = [];
   vista.pagina.on('framenavigated', frame => { if (frame === vista.pagina.mainFrame()) navegaciones.push(new URL(frame.url()).pathname); });
   return { ...vista, navegaciones };
@@ -67,8 +68,8 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     assert.equal(await pantalla(p).locator('canvas').evaluate(e => getComputedStyle(e).imageRendering), 'pixelated');
     await capturar(p, `bienvenida-${rol.toLowerCase()}`);
     await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
-    assert.ok(Date.now() - inicio >= 8500, 'La bienvenida espera el final del audio de acceso');
-    assert.ok(Date.now() - inicio < 11500);
+    assert.ok(Date.now() - inicio >= 32000, 'La bienvenida espera el final del audio de acceso');
+    assert.ok(Date.now() - inicio < 36000);
     assert.deepEqual(navegaciones, [rol === 'ADMIN' ? '/admin.html' : '/inicio.html']);
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
     assert.equal(await p.evaluate(() => sessionStorage.getItem('metronet:bienvenida-pendiente')), null);
@@ -188,7 +189,7 @@ test('movimiento reducido: bienvenida estática, sin barrido y sincronizada con 
   assert.equal(await pantalla(p).locator('canvas').evaluate(e => e.toDataURL()), imagenInicial);
   await capturar(p, 'movimiento-reducido');
   await p.waitForURL('**/inicio.html');
-  assert.ok(Date.now() - inicio >= 8500 && Date.now() - inicio < 11500);
+  assert.ok(Date.now() - inicio >= 32000 && Date.now() - inicio < 36000);
 });
 
 test('redimensionar durante el recorrido mantiene el lienzo nítido y el destino', async t => {
@@ -235,7 +236,7 @@ for (const fallo of ['modulo', 'css', 'logo', 'render', 'canvas', 'dibujo', 'fra
       Storage.prototype.setItem = function (...args) { if (this === sessionStorage) throw new Error('Sin almacenamiento temporal'); return original.apply(this, args); };
     });
     await ingresar(p);
-    await p.waitForURL('**/inicio.html', { timeout: 11500 });
+    await p.waitForURL('**/inicio.html', { timeout: 36000 });
     assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('sesionUsuario')).usuario.rol), 'JUGADOR');
     if (fallo === 'logo') assert.ok(fallosLogo > 0);
   });
@@ -243,13 +244,16 @@ for (const fallo of ['modulo', 'css', 'logo', 'render', 'canvas', 'dibujo', 'fra
 
 test('import visual lento no extiende la espera y no vuelve a mostrar login', async t => {
   const { pagina: p, navegaciones } = await preparar(t);
-  await p.route('**/PantallaBienvenida.js*', async route => { await new Promise(r => setTimeout(r, 12000)); await route.abort().catch(() => {}); });
+  let liberar;
+  const pendiente = new Promise(resolve => { liberar = resolve; });
+  await p.route('**/PantallaBienvenida.js*', async route => { await pendiente; await route.abort().catch(() => {}); });
+  t.after(() => liberar());
   const inicio = Date.now();
   await ingresar(p);
   await p.locator('.metronet-bienvenida').waitFor();
   assert.equal(await p.locator('.auth-page').evaluate(e => e.inert), true);
-  await p.waitForURL('**/inicio.html', { timeout: 11500 });
-  assert.ok(Date.now() - inicio < 11500);
+  await p.waitForURL('**/inicio.html', { timeout: 36000 });
+  assert.ok(Date.now() - inicio < 36000);
   assert.deepEqual(navegaciones, ['/inicio.html']);
 });
 
@@ -268,19 +272,21 @@ test('vía, metro pixelado hacia la derecha y salida de túnel sin alterar el lo
   await p.waitForTimeout(650);
   await capturar(p, '01-via-en-construccion');
   await p.waitForFunction(() => document.querySelector('.metronet-bienvenida')?.dataset.fase === 'viaje');
-  await p.waitForTimeout(350);
-  const inspeccionarTren = () => p.locator('canvas').evaluate(canvas => {
+  const inspeccionarTren = () => {
+    const canvas = document.querySelector('.metronet-bienvenida canvas');
     const ctx = canvas.getContext('2d');
     const fila = ctx.getImageData(0, 62, canvas.width, 1).data;
     const posiciones = [];
     for (let x = 0; x < canvas.width; x++) if (fila[x*4] === 41 && fila[x*4+1] === 159 && fila[x*4+2] === 238) posiciones.push(x);
-    return { extremo: Math.max(...posiciones), ancho: canvas.width };
-  });
-  const entrando = await inspeccionarTren();
+    return posiciones.length ? { extremo: Math.max(...posiciones), ancho: canvas.width } : null;
+  };
+  // La canción determina el avance: observar la salida real del túnel.
+  const entrando = await (await p.waitForFunction(inspeccionarTren)).jsonValue();
   assert.ok(entrando.extremo > 0 && entrando.extremo < entrando.ancho / 2);
   await capturar(p, '02-metro-entrando');
-  await p.waitForTimeout(1150);
-  const pasando = await inspeccionarTren();
+  const avance = await p.locator('audio[data-musica-metronet]').evaluate(a => a.currentTime + a.duration * .13);
+  await p.waitForFunction(avance => document.querySelector('audio[data-musica-metronet]').currentTime >= avance, avance);
+  const pasando = await p.evaluate(inspeccionarTren);
   assert.ok(pasando.extremo > entrando.extremo + 40, 'El metro avanza de izquierda a derecha');
   const pixeles = await p.locator('canvas').evaluate(canvas => {
     const ctx = canvas.getContext('2d'), datos = ctx.getImageData(0, 0, canvas.width, canvas.height).data;

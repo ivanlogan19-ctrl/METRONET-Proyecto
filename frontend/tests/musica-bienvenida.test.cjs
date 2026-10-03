@@ -19,6 +19,7 @@ async function abrir(t, rol = 'JUGADOR', opciones = {}) {
     },
   });
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
+  vista.pagina.setDefaultTimeout(45000);
   return vista;
 }
 async function ingresar(p, rol = 'JUGADOR') {
@@ -49,9 +50,9 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: un solo MP3 sin bucle, fin
   assert.equal(await p.locator(audio).count(), 1);
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
   const duracion = await p.locator(audio).evaluate(a => a.duration);
-  assert.ok(duracion > 8.6 && duracion < 8.9);
-  await p.waitForFunction(() => document.querySelector('audio')?.currentTime > 5.5);
-  assert.equal(await p.locator('.metronet-bienvenida').isVisible(), true, 'No termina al antiguo límite de 5,2 segundos');
+  assert.ok(duracion > 32.5 && duracion < 32.7);
+  await p.waitForFunction(() => document.querySelector('audio')?.currentTime > 9);
+  assert.equal(await p.locator('.metronet-bienvenida').isVisible(), true, 'No termina al antiguo final de 8,75 segundos');
   await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
   const fin = await p.evaluate(() => JSON.parse(sessionStorage.getItem('prueba:fin-audio')));
   assert.equal(fin.src, pista);
@@ -67,7 +68,7 @@ test('Login inválido no carga la pista de bienvenida', async t => {
   await p.locator('#email').fill('ana@example.test'); await p.locator('#password').fill('Prueba1!');
   await p.locator('#loginButton').click(); await p.locator('#mensaje.error').waitFor();
   assert.equal(await p.locator('.metronet-bienvenida').count(), 0);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/auth-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/extra-theme.mp3');
   assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('welcome-theme'))), false);
 });
 
@@ -131,7 +132,7 @@ test('Audio interrumpido sin ended tiene un límite de salida independiente de l
 test('El reloj del tren sigue el audio y no avanza mientras la pestaña está oculta', async t => {
   const { pagina: p } = await abrir(t);
   await ingresar(p); await sonando(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 4; });
+  await p.locator(audio).evaluate(a => { a.currentTime = a.duration * .46; });
   await p.waitForFunction(() => document.querySelector('.metronet-bienvenida')?.dataset.fase === 'viaje');
   await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);

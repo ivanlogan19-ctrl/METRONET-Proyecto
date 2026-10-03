@@ -18,7 +18,7 @@ async function medir(p){return p.evaluate(()=>[...document.querySelectorAll('aud
 
 test('Administración: tabs, clics repetidos y enlaces propios conservan documento, manager y audio',async t=>{
  const {pagina:p,solicitudes}=await abrir(t,'/admin.html');
- await p.evaluate(()=>{window.docPrueba=crypto.randomUUID();window.audioPrueba=gestorPrueba.audio;window.eventosPrueba=[];for(const e of ['pause','play','emptied'])audioPrueba.addEventListener(e,()=>eventosPrueba.push(e));audioPrueba.currentTime=60;});
+ await p.evaluate(()=>{window.docPrueba=crypto.randomUUID();window.audioPrueba=gestorPrueba.audio;window.eventosPrueba=[];for(const e of ['pause','play','emptied'])audioPrueba.addEventListener(e,()=>eventosPrueba.push(e));audioPrueba.currentTime=3;});
  const id=await p.evaluate(()=>docPrueba);
  for(const vista of ['disenos','configuracion','actividad','usuarios','disenos']) await p.locator(`[data-vista="${vista}"]`).click();
  const solicitudesAntes=solicitudes.length;
@@ -30,17 +30,17 @@ test('Administración: tabs, clics repetidos y enlaces propios conservan documen
  assert.equal(await p.evaluate(()=>docPrueba),id);
  assert.equal(await p.evaluate(()=>audioPrueba===gestorPrueba.audio),true);
  assert.deepEqual(await p.evaluate(()=>eventosPrueba),[]);
- assert.ok(await p.evaluate(()=>audioPrueba.currentTime>=60));
+ assert.ok(await p.evaluate(()=>audioPrueba.currentTime>=3));
 });
 
 test('Misma pista menu→admin y carga de 200ms no tocan play, pause ni volumen',async t=>{
  const {pagina:p}=await abrir(t);
- await p.evaluate(()=>{window.audioPrueba=gestorPrueba.audio;window.eventosPrueba=[];for(const e of ['pause','play','emptied'])audioPrueba.addEventListener(e,()=>eventosPrueba.push(e));audioPrueba.currentTime=25;gestorPrueba.establecerContexto('admin');window.liberarCarga=gestorPrueba.usarContextoTemporal('loading');});
+ await p.evaluate(()=>{window.audioPrueba=gestorPrueba.audio;window.eventosPrueba=[];for(const e of ['pause','play','emptied'])audioPrueba.addEventListener(e,()=>eventosPrueba.push(e));audioPrueba.currentTime=3;gestorPrueba.establecerContexto('admin');window.liberarCarga=gestorPrueba.usarContextoTemporal('loading');});
  await p.waitForTimeout(200);await p.evaluate(()=>liberarCarga());await p.waitForTimeout(600);
  assert.equal(await p.evaluate(()=>gestorPrueba.audio===audioPrueba),true);
  assert.deepEqual(await p.evaluate(()=>eventosPrueba),[]);
  assert.equal((await medir(p))[0].volumen,.35);
- assert.ok((await medir(p))[0].tiempo>25);
+ assert.ok((await medir(p))[0].tiempo>3);
 });
 
 test('Cambio de pista mezcla durante 180ms y respeta 40% maestro',async t=>{
@@ -52,16 +52,16 @@ test('Cambio de pista mezcla durante 180ms y respeta 40% maestro',async t=>{
  assert.ok(mezcla.every(a=>!a.pausado&&a.volumen>0&&a.volumen<.4),JSON.stringify(mezcla));
  assert.ok(Math.abs(mezcla.reduce((s,a)=>s+a.volumen,0)-.4)<.025);
  await p.waitForFunction(()=>!gestorPrueba.obtenerEstado().mezclando);
- const final=await medir(p);assert.equal(final.length,1);assert.equal(final[0].pista,'/audio/gameplay-theme.mp3');assert.equal(final[0].volumen,.4);
+ const final=await medir(p);assert.equal(final.length,1);assert.equal(final[0].pista,'/audio/extra-theme.mp3');assert.equal(final[0].volumen,.4);
  assert.equal(await p.evaluate(()=>gestorPrueba.temporizadorMezcla),null);
 });
 
-test('A→B→A reutiliza A sin reinicio; A→B→C→A nunca deja pistas duplicadas',async t=>{
+test('Ida y vuelta de contextos reutiliza la pista sin reinicio ni canales duplicados',async t=>{
  const {pagina:p}=await abrir(t);
- await p.evaluate(()=>{window.originalAudio=gestorPrueba.audio;originalAudio.currentTime=45;gestorPrueba.establecerContexto('gameplay');});
+ await p.evaluate(()=>{window.originalAudio=gestorPrueba.audio;originalAudio.currentTime=3;gestorPrueba.establecerContexto('gameplay');});
  await p.waitForTimeout(40);await p.evaluate(()=>gestorPrueba.establecerContexto('admin'));
  assert.equal(await p.evaluate(()=>originalAudio===gestorPrueba.audio),true);
- await estable(p);assert.ok((await medir(p))[0].tiempo>=45);
+ await estable(p);assert.ok((await medir(p))[0].tiempo>=3);
  for(const contexto of ['gameplay','auth','menu','gameplay','admin']) {
   await p.evaluate(c=>gestorPrueba.establecerContexto(c),contexto);await p.waitForTimeout(60);
   const canales=await medir(p);assert.ok(canales.length<=2);assert.equal(new Set(canales.map(c=>c.pista)).size,canales.length);
@@ -82,7 +82,7 @@ test('Mute durante una mezcla detiene todas las pistas y se conserva al navegar'
 
 test('Pista de destino fallida no deja mezcla ni promesas sin capturar',async t=>{
  const {pagina:p}=await abrir(t);
- await p.route('**/audio/gameplay-theme.mp3',r=>r.fulfill({status:404}));
+ await p.route('**/audio/extra-theme.mp3',r=>r.fulfill({status:404}));
  await p.evaluate(()=>gestorPrueba.establecerContexto('gameplay'));
  await p.waitForFunction(()=>gestorPrueba.obtenerEstado().error&&!gestorPrueba.obtenerEstado().mezclando);
  assert.ok((await medir(p)).every(a=>a.pausado));
@@ -102,10 +102,10 @@ test('Carga larga se silencia y cancelar su fade recupera la misma pista',async 
 test('Navegación HTML legítima recupera posición sin otra entrada desde volumen cero',async t=>{
  const {pagina:p,contexto}=await abrir(t);
  await contexto.addInitScript(()=>{window.primerVolumen=null;window.primeraPosicion=null;document.addEventListener('playing',e=>{if(e.target instanceof HTMLMediaElement&&primerVolumen===null){primerVolumen=e.target.volume;primeraPosicion=e.target.currentTime;}},true);});
- await p.locator('[data-musica-metronet]').evaluate(a=>a.currentTime=80);
+ await p.locator('[data-musica-metronet]').evaluate(a=>a.currentTime=3);
  await p.locator('.metronet-navegacion__enlaces a[href="/escenarios.html"]').click();
- await estable(p);assert.ok((await medir(p))[0].tiempo>=80);
+ await estable(p);assert.ok((await medir(p))[0].tiempo>=3);
  await p.waitForFunction(()=>primerVolumen!==null);
  assert.equal(await p.evaluate(()=>primerVolumen),.35);
- assert.ok(await p.evaluate(()=>primeraPosicion>=80));
+ assert.ok(await p.evaluate(()=>primeraPosicion>=3));
 });

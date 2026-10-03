@@ -54,14 +54,14 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: descarga demorada seis seg
   const datos = await v.evaluate(() => fin);
   t.diagnostic(JSON.stringify(datos));
   assert.equal(datos.finalNatural, true, 'La carga lenta no debe disparar la salida anticipada');
-  assert.ok(datos.duracion > 14.8 && datos.duracion < 15.2);
-  assert.ok(datos.ms - datos.primerSonido >= 14800, JSON.stringify(datos));
-  assert.ok(datos.ms > 20000 && datos.ms < 28000, JSON.stringify(datos));
+  assert.ok(datos.duracion > 13.7 && datos.duracion < 13.9);
+  assert.ok(datos.ms - datos.primerSonido >= 13600, JSON.stringify(datos));
+  assert.ok(datos.ms > 19500 && datos.ms < 28000, JSON.stringify(datos));
   assert.equal(datos.cortes, 0);
   assert.equal(datos.accion, tipo === 'intro' ? true : 'siguiente');
 });
 
-for (const tipo of ['intro', 'outro']) test(`${tipo}: silencio conserva los quince segundos de presentación`, async t => {
+for (const tipo of ['intro', 'outro']) test(`${tipo}: silencio conserva la duración de la pista`, async t => {
   const { pagina: p, vista: v } = await abrir(t);
   await v.evaluate(() => g.establecerSilencio(true));
   await p.clock.install();
@@ -73,7 +73,7 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: silencio conserva los quin
   assert.equal(await v.evaluate(() => termino), false);
   await p.clock.runFor(3000);
   const datos = await v.evaluate(() => fin);
-  assert.ok(datos.ms >= 14900 && datos.ms <= 15000, JSON.stringify(datos));
+  assert.ok(datos.ms >= 13700 && datos.ms <= 13800, JSON.stringify(datos));
   assert.equal(datos.accion, tipo === 'intro' ? true : 'siguiente');
 });
 

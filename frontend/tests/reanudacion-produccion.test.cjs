@@ -34,7 +34,7 @@ for (const cargaLenta of ['pantalla', 'estilos']) {
     const { contexto, pagina, errores } = await abrirPantalla(navegador, '/inicio.html');
     t.after(async () => { await contexto.close(); assert.deepEqual(errores, []); });
     await pagina.waitForFunction(() => document.querySelector('audio')?.volume === .35 && !document.querySelector('audio').paused);
-    await pagina.locator('audio').evaluate(audio => { audio.currentTime = 70; });
+    await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
     let liberar;
     const pendiente = new Promise(resolve => { liberar = resolve; });
     const patron = cargaLenta === 'pantalla' ? /\/assets\/escenarios-[^/]+\.js$/ : /\.css$/;
@@ -43,7 +43,7 @@ for (const cargaLenta of ['pantalla', 'estilos']) {
       await pagina.goto(`${origen}/escenarios.html`, { waitUntil: 'commit' });
       await pagina.waitForFunction(() => {
         const audio = document.querySelector('audio');
-        return audio && !audio.paused && audio.currentTime >= 70 && audio.volume === .35;
+        return audio && !audio.paused && audio.currentTime >= 3 && audio.volume === .35;
       // CSS pendiente impide pintar: consultar audio sin depender de RAF.
       }, null, { timeout: 5000, polling: 50 });
       assert.equal(await pagina.locator('script[async][src*="reanudacionMusica-"]').count(), 1);

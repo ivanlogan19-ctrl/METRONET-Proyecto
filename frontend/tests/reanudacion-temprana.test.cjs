@@ -38,13 +38,13 @@ async function retenerPantalla(pagina, patron) {
 
 test('Escenarios reanuda la música antes de descargar su módulo de pantalla', async t => {
   const { pagina } = await abrir(t);
-  await pagina.locator('audio').evaluate(audio => { audio.currentTime = 60; });
+  await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/navegacion/escenarios.js*');
   try {
     await pagina.goto('http://127.0.0.1:5173/escenarios.html', { waitUntil: 'commit' });
     await pagina.waitForFunction(() => {
       const audio = document.querySelector('[data-musica-metronet]');
-      return audio && !audio.paused && audio.currentTime >= 60 && audio.volume === .35;
+      return audio && !audio.paused && audio.currentTime >= 3 && audio.volume === .35;
     }, null, { ...ANTES_DEL_RENDER, timeout: 2500 });
     assert.equal(await pagina.locator('.metronet-navegacion').count(), 0);
     await pagina.evaluate(() => { window.audioTemprano = document.querySelector('audio'); });
@@ -56,15 +56,15 @@ test('Escenarios reanuda la música antes de descargar su módulo de pantalla', 
 
 test('Registro recupera la pista de acceso mientras su formulario todavía carga', async t => {
   const { pagina } = await abrir(t, '/login.html');
-  await pagina.locator('audio').evaluate(audio => { audio.currentTime = 35; });
+  await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/autenticacion/registro.js*');
   try {
     await pagina.goto('http://127.0.0.1:5173/registro.html', { waitUntil: 'commit' });
     await pagina.waitForFunction(() => {
       const audio = document.querySelector('audio');
-      return audio && !audio.paused && audio.currentTime >= 35;
+      return audio && !audio.paused && audio.currentTime >= 3;
     }, null, ANTES_DEL_RENDER);
-    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/auth-theme.mp3');
+    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/extra-theme.mp3');
     assert.equal(await pagina.locator('[data-control-musica]').count(), 0);
   } finally { await liberar(); }
   assert.equal(await pagina.locator('audio').count(), 1);
@@ -72,12 +72,13 @@ test('Registro recupera la pista de acceso mientras su formulario todavía carga
 
 test('Administración conserva la pista del menú sin esperar a cargar sus vistas', async t => {
   const { pagina } = await abrir(t, '/inicio.html', { administrador: true });
-  await pagina.locator('audio').evaluate(audio => { audio.currentTime = 45; });
+  await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/administracion/administracion.js*');
   try {
     await pagina.goto('http://127.0.0.1:5173/admin.html', { waitUntil: 'commit' });
-    await pagina.waitForFunction(() => document.querySelector('audio')?.currentTime >= 45, null, ANTES_DEL_RENDER);
+    await pagina.waitForFunction(() => document.querySelector('audio')?.currentTime >= 3, null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').evaluate(audio => audio.paused), false);
+    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/menu-theme.mp3');
     assert.equal(await pagina.locator('.metronet-navegacion').count(), 0);
   } finally { await liberar(); }
   await pagina.locator('[data-editar-usuario]').first().waitFor();
@@ -92,9 +93,9 @@ test('Simulación prepara gameplay en silencio y reutiliza ese reproductor al ca
   });
   await pagina.waitForFunction(() => {
     const audio = document.querySelector('[data-musica-metronet]');
-    return audio?.getAttribute('src') === '/audio/gameplay-theme.mp3' && !audio.paused && audio.volume === .35;
+    return audio?.getAttribute('src') === '/audio/extra-theme.mp3' && !audio.paused && audio.volume === .35;
   });
-  await pagina.locator('[data-musica-metronet]').evaluate(audio => { audio.currentTime = 90; });
+  await pagina.locator('[data-musica-metronet]').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/simulacion/simulacion.js*');
   try {
     await pagina.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77', { waitUntil: 'commit' });
@@ -105,7 +106,7 @@ test('Simulación prepara gameplay en silencio y reutiliza ese reproductor al ca
     });
     assert.equal(estado.pausado, true);
     assert.equal(estado.volumen, 0);
-    assert.ok(estado.posicion >= 90);
+    assert.ok(estado.posicion >= 3);
     assert.equal(await pagina.locator('canvas').count(), 0);
   } finally { await liberar(); }
   await pagina.locator('#panelSimulacion:not([hidden])').waitFor();

@@ -105,7 +105,9 @@ test('Último nivel recién completado: victoria → celebración → Modo Libre
   });
   await p.clock.install();
   await p.evaluate(() => { window.resultadoEntrada = editorPrueba.evaluarEscenarioGuardado(77); });
-  await p.locator('.metronet-victoria').waitFor(); await p.clock.runFor(15000);
+  await p.locator('.metronet-victoria').waitFor();
+  const duracion = await p.evaluate(async () => (await import('/src/educacion/ConfiguracionTransicion.js')).CONFIGURACION_TRANSICION.audioNivelEstimadoMs);
+  await p.clock.runFor(duracion + 50);
   await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
   assert.match(await p.locator('.metronet-identificacion').innerText(), /RECORRIDO COMPLETADO.*ESTÁS LISTO PARA EL MODO LIBRE/s);
   assert.equal(inicios, 1);
@@ -186,7 +188,7 @@ for (const width of [1920,1440,1366,1280,768,390,320]) test(`Cartel ${width}px: 
   const medidas = await p.locator('.metronet-identificacion__cartel').evaluate(e => ({r:e.getBoundingClientRect().toJSON(), animacion:getComputedStyle(e).animationName}));
   assert.equal(medidas.animacion,'none'); assert.ok(medidas.r.x>=0 && medidas.r.right<=width);
   assert.equal(await p.evaluate(() => document.querySelector('audio[data-musica-metronet]') === audioPrevio), true);
-  assert.equal(await p.evaluate(() => audioPrevio?.getAttribute('src')), '/audio/gameplay-theme.mp3');
+  assert.equal(await p.evaluate(() => audioPrevio?.getAttribute('src')), '/audio/extra-theme.mp3');
   assert.ok(await p.evaluate(() => !audioPrevio || audioPrevio.currentTime >= .5));
   await p.clock.runFor(1100); assert.equal(await p.evaluate(() => fin),true);
   await p.evaluate(async () => {

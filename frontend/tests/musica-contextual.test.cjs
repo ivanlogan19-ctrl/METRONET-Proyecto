@@ -19,7 +19,7 @@ async function abrirMusica(p) {
     await p.locator('[data-hud-vista=musica]').click();
   } else await p.locator('.metronet-audio summary').click();
 }
-async function reproduciendo(p, pista = '/audio/gameplay-theme.mp3') {
+async function reproduciendo(p, pista = '/audio/extra-theme.mp3') {
   await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume === 0.35; }, pista);
 }
 async function gestor(p, accion, valor) {
@@ -29,17 +29,17 @@ async function gestor(p, accion, valor) {
   }, { accion, valor });
 }
 
-for (const ruta of ['/login.html', '/admin-login.html', '/inicio.html', '/escenarios.html', '/ranking.html', '/perfil.html', '/admin.html', '/simulacion.html']) {
-  test(`La pista de gameplay no se carga fuera del juego: ${ruta}`, async t => {
+for (const ruta of ['/inicio.html', '/escenarios.html', '/ranking.html', '/perfil.html', '/admin.html', '/simulacion.html']) {
+  test(`Los menús no cargan Extra: ${ruta}`, async t => {
     const { pagina: p } = await abrir(t, ruta === '/simulacion.html' ? '/inicio.html' : ruta);
     if (ruta === '/simulacion.html') { await p.goto('http://127.0.0.1:5173/simulacion.html'); await p.locator('#estadoVacio').waitFor(); }
-    assert.equal(await p.locator(`${audio}[src="/audio/gameplay-theme.mp3"]`).count(), 0);
-    const recursos = await p.evaluate(() => performance.getEntriesByType('resource').filter(r => r.name.includes('gameplay-theme')).length);
+    assert.equal(await p.locator(`${audio}[src="/audio/extra-theme.mp3"]`).count(), 0);
+    const recursos = await p.evaluate(() => performance.getEntriesByType('resource').filter(r => r.name.includes('extra-theme')).length);
     assert.equal(recursos, 0);
     if (!ruta.includes('login')) {
       await reproduciendo(p, '/audio/menu-theme.mp3');
       assert.equal(await p.locator(audio).count(), 1);
-      assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('auth-theme'))), false);
+      assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('extra-theme'))), false);
     }
   });
 }
@@ -48,13 +48,42 @@ test('MP3 real en modo libre: una instancia, 35 %, loop y final sin detenerse', 
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   const inicial = await p.locator(audio).evaluate(a => ({ duration: a.duration, loop: a.loop, volumen: a.volume, src: a.getAttribute('src') }));
-  assert.ok(inicial.duration > 167 && inicial.duration < 169);
+  assert.ok(inicial.duration > 32 && inicial.duration < 32.2);
   assert.equal(inicial.loop, true); assert.equal(inicial.volumen, .35);
-  assert.equal(inicial.src, '/audio/gameplay-theme.mp3');
+  assert.equal(inicial.src, '/audio/extra-theme.mp3');
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .4; });
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
   for (let i = 0; i < 5; i++) await gestor(p, 'establecerContexto', 'gameplay');
   assert.equal(await p.locator(audio).count(), 1);
+});
+
+test('Administración reproduce Menus de 13 segundos en bucle y conserva volumen y silencio', async t => {
+  const { pagina: p } = await abrir(t, '/admin.html');
+  await reproduciendo(p, '/audio/menu-theme.mp3');
+  const datos = await p.locator(audio).evaluate(a => ({ duracion: a.duration, loop: a.loop }));
+  assert.ok(datos.duracion > 13.1 && datos.duracion < 13.2);
+  assert.equal(datos.loop, true);
+  await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .4; });
+  await p.waitForFunction(() => { const a = document.querySelector('audio'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
+  await gestor(p, 'establecerVolumen', .42);
+  await gestor(p, 'establecerSilencio', true);
+  await p.reload();
+  await p.waitForFunction(() => document.querySelector('audio')?.readyState >= 2);
+  assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
+  await gestor(p, 'establecerSilencio', false);
+  await p.waitForFunction(() => { const a = document.querySelector('audio'); return !a.paused && a.volume === .42; });
+  assert.equal(await p.locator(audio).count(), 1);
+});
+
+test('Archivo de menú ausente no bloquea Administración ni la salida a Simulación', async t => {
+  const { pagina: p } = await abrir(t, '/admin.html');
+  await p.route('**/audio/menu-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.reload();
+  await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
+  await p.locator('[data-vista="configuracion"]').click();
+  assert.equal(await p.locator('#vista-configuracion').isVisible(), true);
+  await p.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77');
+  await reproduciendo(p, '/audio/extra-theme.mp3');
 });
 
 test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin superponer pistas', async t => {
@@ -65,17 +94,17 @@ test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin s
   });
   await reproduciendo(p, '/audio/menu-theme.mp3');
   const datos = await p.locator(audio).evaluate(a => ({ duracion: a.duration, loop: a.loop }));
-  assert.ok(datos.duracion > 151 && datos.duracion < 153);
+  assert.ok(datos.duracion > 13.1 && datos.duracion < 13.2);
   assert.equal(datos.loop, true);
-  await p.locator(audio).evaluate(a => { a.currentTime = 30; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   for (const ruta of ['escenarios', 'ranking', 'perfil', 'admin', 'inicio']) {
     await p.goto(`http://127.0.0.1:5173/${ruta}.html`);
     await reproduciendo(p, '/audio/menu-theme.mp3');
-    assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 30));
+    assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
     assert.equal(await p.locator(audio).count(), 1);
   }
   await p.reload(); await reproduciendo(p, '/audio/menu-theme.mp3');
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 30));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .3; });
   await p.waitForFunction(() => { const a = document.querySelector('audio'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
 });
@@ -83,18 +112,18 @@ test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin s
 test('Lista de diseños → edición libre → lista recupera cada canción desde su posición', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 28; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.goto('http://127.0.0.1:5173/');
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.equal(await p.locator('[data-editor-activo]').isHidden(), true);
-  await p.locator(audio).evaluate(a => { a.currentTime = 42; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.goto('http://127.0.0.1:5173/?idDiseno=77');
   await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 28));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator('[data-editor-activo]').isVisible(), true);
   await p.goto('http://127.0.0.1:5173/');
   await reproduciendo(p, '/audio/menu-theme.mp3');
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 42));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator(audio).count(), 1);
 });
 
@@ -107,20 +136,20 @@ test('Selector de simulación usa menú; abrir una red cambia a gameplay', async
   } });
   await p.goto('http://127.0.0.1:5173/simulacion.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
-  await p.locator(audio).evaluate(a => { a.currentTime = 20; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.locator('#estadoVacio').getByRole('link',{name:'Mis diseños'}).click();
   await p.getByRole('link',{name:'Simular diseño: Red de Montevideo'}).click();
   await reproduciendo(p);
   assert.equal(await p.locator('#panelSimulacion').isVisible(), true);
   await p.goto('http://127.0.0.1:5173/inicio.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 20));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
 });
 
-test('La preparación inicial usa Donkey Kong y al cancelar recupera el menú', async t => {
+test('La preparación inicial usa FalsaCargaDeVictoria y al cancelar recupera el menú', async t => {
   const { pagina: p } = await abrir(t, '/escenarios.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
-  await p.locator(audio).evaluate(a => { a.currentTime = 15; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.evaluate(async () => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionMenu = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
@@ -128,7 +157,7 @@ test('La preparación inicial usa Donkey Kong y al cancelar recupera el menú', 
   await reproduciendo(p, '/audio/victory-theme.mp3');
   await p.evaluate(() => preparacionMenu.cerrar());
   await reproduciendo(p, '/audio/menu-theme.mp3');
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 15));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
 });
 
 test('Audio de menú ausente no impide navegar ni iniciar el juego', async t => {
@@ -164,26 +193,26 @@ test('Menú: bloqueo de autoplay y silencio se recuperan con los controles exist
 test('Niveles y cambios internos conservan la pista y su posición', async t => {
   const { pagina: p } = await abrir(t, 'editor', { escenario: { idEscenario: 41, numero: 1, nombre: 'Red inicial', estado: 'DISPONIBLE', progreso: 0, desbloqueado: true, herramientasHabilitadas: { estaciones: true, lineas: true } } });
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 35; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.evaluate(async () => { for (let i = 0; i < 3; i++) await editorPrueba.abrirDiseno(77); });
   await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 35));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator(audio).count(), 1);
 });
 
 test('Mapa → simulación → mapa y refresh recuperan posición, sin reiniciar', async t => {
   const { pagina: p } = await abrir(t, '/simulacion.html?idDiseno=77', { responder: request => new URL(request.url()).pathname === '/api/juego/escenarios' ? { json: [] } : null });
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 35; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.locator('#volverEdicion').click();
   await p.waitForURL('**/?idDiseno=77*');
   await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 35));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77');
   await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 35));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.reload(); await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 35));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.goto('http://127.0.0.1:5173/inicio.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.equal(await p.locator(audio).count(), 1);
@@ -192,7 +221,7 @@ test('Mapa → simulación → mapa y refresh recuperan posición, sin reiniciar
 test('Mute y volumen persisten; volver de silencio no reinicia', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 12; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await abrirMusica(p);
   await p.getByLabel('Silenciar música').check();
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
@@ -204,15 +233,15 @@ test('Mute y volumen persisten; volver de silencio no reinicia', async t => {
   assert.equal(await p.getByRole('slider', { name: 'Volumen de música' }).inputValue(), '42');
   assert.equal(await p.getByLabel('Silenciar música').isChecked(), true);
   await p.getByLabel('Silenciar música').uncheck();
-  await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.volume === .42 && a.currentTime >= 12; });
+  await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.volume === .42 && a.currentTime >= 3; });
   await p.getByRole('slider', { name: 'Volumen de música' }).fill('0');
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
 });
 
-test('Donkey Kong en preparación; victoria usa la misma pista puntual y al cancelar recupera gameplay', async t => {
+test('FalsaCargaDeVictoria en preparación; victoria usa la misma pista puntual y al cancelar recupera gameplay', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 25; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.evaluate(async () => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionAudio = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
@@ -235,7 +264,7 @@ test('Donkey Kong en preparación; victoria usa la misma pista puntual y al canc
   });
   await reproduciendo(p);
   await p.evaluate(() => liberarB()); await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 25));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator(audio).count(), 1);
 });
 
@@ -258,7 +287,7 @@ test('Autoplay rechazado no bloquea; el siguiente gesto lo recupera', async t =>
 
 test('Archivo ausente y almacenamiento bloqueado no bloquean gameplay', async t => {
   const { pagina: p } = await abrir(t, '/inicio.html');
-  await p.route('**/audio/gameplay-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/extra-theme.mp3', route => route.fulfill({ status: 404 }));
   await p.evaluate(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
@@ -300,7 +329,7 @@ test('Cambiar rápidamente de contexto mientras play está pendiente recupera el
 test('Pestaña oculta y pagehide pausan; regreso recupera y logout detiene', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
-  await p.locator(audio).evaluate(a => { a.currentTime = 18; });
+  await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
   await p.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
@@ -309,7 +338,7 @@ test('Pestaña oculta y pagehide pausan; regreso recupera y logout detiene', asy
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
   await p.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
   await reproduciendo(p);
-  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 18));
+  assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.evaluate(async () => (await import('/src/autenticacion/sesion.js')).eliminarSesiones());
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
   assert.deepEqual(await p.evaluate(() => JSON.parse(sessionStorage.getItem('metronet:musica:posiciones'))), {});
@@ -319,11 +348,11 @@ test('Pestaña oculta y pagehide pausan; regreso recupera y logout detiene', asy
     window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
   });
   // La protección de sesión retira una página conservada de una cuenta cerrada.
-  // El login tiene su propia música: esperar la navegación evita observar al azar
+  // El login tiene su propio contexto: esperar la navegación evita observar al azar
   // el reproductor del documento anterior o el de autenticación.
   await p.waitForURL('**/login.html');
-  await reproduciendo(p, '/audio/auth-theme.mp3');
-  assert.equal(await p.locator(`${audio}[src="/audio/gameplay-theme.mp3"]`).count(), 0);
+  await reproduciendo(p, '/audio/extra-theme.mp3');
+  assert.equal((await gestor(p, 'obtenerEstado')).contexto, 'auth');
   assert.equal(await p.locator(audio).count(), 1);
 });
 

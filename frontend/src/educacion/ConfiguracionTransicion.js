@@ -3,7 +3,7 @@
 export const CONFIGURACION_TRANSICION = Object.freeze({
   duracionMs: 1800,
   identificacionMs: 1000,
-  audioNivelEstimadoMs: 14968,
+  audioNivelEstimadoMs: 13767,
   esperaMaximaAudioMs: 20000,
   cartelEn: 0.78,
   salidaEn: 0.06,
