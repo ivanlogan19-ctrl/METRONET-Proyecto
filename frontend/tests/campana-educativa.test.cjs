@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 const niveles = require('../src/educacion/niveles.json');
+const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
@@ -122,7 +123,7 @@ test('Un progreso mal formado produce estado recuperable sin errores de JavaScri
   const pagina = await contexto.newPage(); const errores = [];
   pagina.on('pageerror', e => errores.push(e.message));
   await pagina.route('**/api/juego/**', route => route.fulfill({ json: { escenarios: null } }));
-  await pagina.goto('http://127.0.0.1:5173/escenarios.html');
+  await pagina.goto(`${BASE}/escenarios.html`);
   await pagina.getByText('Niveles no disponibles', { exact: true }).waitFor();
   assert.deepEqual(errores, []);
 });

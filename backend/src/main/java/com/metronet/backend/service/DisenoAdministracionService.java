@@ -262,8 +262,11 @@ public class DisenoAdministracionService {
         }
         asegurarConexion(idDiseno, tramo.nombreLinea(), tramo.estacionA());
         asegurarConexion(idDiseno, tramo.nombreLinea(), tramo.estacionB());
+        quitarConexionSinTramos(idDiseno, nombreLineaActual, estacionAActual);
+        quitarConexionSinTramos(idDiseno, nombreLineaActual, estacionBActual);
     }
 
+    @Transactional
     public void eliminarTramo(Integer idDiseno, String nombreLinea, String estacionA, String estacionB) {
         verificarDisenoEditable(idDiseno);
         if (jdbcTemplate.update("""
@@ -271,6 +274,8 @@ public class DisenoAdministracionService {
             """, idDiseno, nombreLinea, estacionA, estacionB) == 0) {
             throw noEncontrado("No existe el tramo solicitado");
         }
+        quitarConexionSinTramos(idDiseno, nombreLinea, estacionA);
+        quitarConexionSinTramos(idDiseno, nombreLinea, estacionB);
     }
 
     public UnidadMetroResponse crearUnidadMetro(Integer idDiseno, ActualizarUnidadMetroRequest solicitud) {
@@ -437,6 +442,17 @@ public class DisenoAdministracionService {
             """, Boolean.class, idDiseno, nombreLinea, nombreEstacion))) {
             jdbcTemplate.update("INSERT INTO pasa (id_diseno, nombre_linea, nombre_estacion) VALUES (?, ?, ?)", idDiseno, nombreLinea, nombreEstacion);
         }
+    }
+
+    private void quitarConexionSinTramos(Integer idDiseno, String nombreLinea, String nombreEstacion) {
+        jdbcTemplate.update("""
+            DELETE FROM pasa WHERE id_diseno = ? AND nombre_linea = ? AND nombre_estacion = ?
+              AND NOT EXISTS (
+                SELECT 1 FROM tramo t WHERE t.id_diseno = pasa.id_diseno
+                  AND t.nombre_linea = pasa.nombre_linea
+                  AND (t.nombre_estacion_a = pasa.nombre_estacion OR t.nombre_estacion_b = pasa.nombre_estacion)
+              )
+            """, idDiseno, nombreLinea, nombreEstacion);
     }
 
     private boolean existeTramo(Integer idDiseno, String nombreLinea, String estacionA, String estacionB) {

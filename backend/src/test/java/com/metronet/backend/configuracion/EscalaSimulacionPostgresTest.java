@@ -11,6 +11,8 @@ import com.metronet.backend.enums.Rol;
 import com.metronet.backend.repository.UsuarioRepository;
 import com.metronet.backend.service.*;
 import java.util.UUID;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -45,6 +47,7 @@ class EscalaSimulacionPostgresTest {
     @Autowired PasswordEncoder encoder;
     @Autowired AuthService auth;
     @Autowired JdbcTemplate jdbc;
+    @Autowired CondicionesGeograficasService condiciones;
     @MockitoBean ServicioCorreo correo;
 
     @ParameterizedTest @EnumSource(Rol.class)
@@ -91,6 +94,74 @@ class EscalaSimulacionPostgresTest {
             .andExpect(jsonPath("$[0].escala").value("HISTORICA")).andExpect(jsonPath("$[0].duracion").value(60))
             .andExpect(jsonPath("$[0].unidades").isEmpty());
         assertEquals(3, jdbc.queryForObject("SELECT COUNT(*) FROM simulacion WHERE id_intento=?", Integer.class, intento));
+    }
+
+    @Test
+    void resultadoCuentaSoloTransbordosEntreLineas() throws Exception {
+        var u = new Usuario(); String identificador = UUID.randomUUID().toString();
+        u.setNombre("Transbordo de prueba"); u.setEmail(identificador + "@example.test");
+        u.setPassword(encoder.encode("Clave1!")); u.setRol(Rol.ADMIN); u.setIdentificadorAdministrador(identificador);
+        usuarios.saveAndFlush(u);
+        String token = "Bearer " + auth.iniciarSesionAdministrador(new LoginAdministradorRequest(identificador, "Clave1!")).token();
+        int id = enviar("/api/simulaciones", "{\"nombre\":\"Transbordos\"}", token).path("idDiseno").asInt();
+        String ruta = "/api/simulaciones/" + id;
+        enviar(ruta + "/estaciones", "{\"nombre\":\"A\",\"posicionX\":660,\"posicionY\":460}", token);
+        enviar(ruta + "/estaciones", "{\"nombre\":\"B\",\"posicionX\":670,\"posicionY\":460}", token);
+        enviar(ruta + "/estaciones", "{\"nombre\":\"C\",\"posicionX\":680,\"posicionY\":460}", token);
+        enviar(ruta + "/lineas", "{\"nombre\":\"Azul\",\"estaciones\":[\"A\",\"B\",\"C\"]}", token);
+        enviar(ruta + "/unidades", "{\"nombreLinea\":\"Azul\",\"capacidad\":300,\"velocidadPromedio\":4}", token);
+        http.perform(patch(ruta + "/estaciones/A").header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"nombre\":\"A\",\"posicionX\":660,\"posicionY\":460,\"transbordo\":true}"))
+            .andExpect(status().isOk());
+        enviar(ruta + "/validacion", "{}", token);
+        var sinSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
+        assertTrue(sinSegundaLinea.path("comentarios").asText().contains("0 punto(s) de transbordo"));
+
+        enviar(ruta + "/estaciones", "{\"nombre\":\"D\",\"posicionX\":690,\"posicionY\":460}", token);
+        enviar(ruta + "/lineas", "{\"nombre\":\"Rosa\",\"estaciones\":[\"A\",\"C\",\"D\"]}", token);
+        cambiarTransbordo(ruta, token, "A", 660, false);
+        assertEquals(0, transbordosDeConsigna(id));
+        cambiarTransbordo(ruta, token, "A", 660, true);
+        assertEquals(1, transbordosDeConsigna(id));
+        enviar(ruta + "/validacion", "{}", token);
+        var conSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
+        assertTrue(conSegundaLinea.path("comentarios").asText().contains("1 punto(s) de transbordo"));
+        assertEquals(1, transbordosDeConsigna(id));
+
+        http.perform(patch(ruta + "/tramos").header("Authorization", token)
+            .param("lineaActual", "Rosa").param("estacionAActual", "A").param("estacionBActual", "C")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"nombreLinea\":\"Rosa\",\"estacionA\":\"B\",\"estacionB\":\"C\"}"))
+            .andExpect(status().isOk());
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM pasa WHERE id_diseno=? AND nombre_linea='Rosa' AND nombre_estacion='A'", Integer.class, id));
+        assertEquals(0, transbordosDeConsigna(id));
+        enviar(ruta + "/validacion", "{}", token);
+        var sinConexionReal = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
+        assertTrue(sinConexionReal.path("comentarios").asText().contains("0 punto(s) de transbordo"));
+
+        cambiarTransbordo(ruta, token, "B", 670, true);
+        assertEquals(1, transbordosDeConsigna(id));
+        http.perform(delete(ruta + "/tramos").header("Authorization", token)
+            .param("linea", "Rosa").param("estacionA", "B").param("estacionB", "C"))
+            .andExpect(status().isOk());
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM pasa WHERE id_diseno=? AND nombre_linea='Rosa' AND nombre_estacion='B'", Integer.class, id));
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM pasa WHERE id_diseno=? AND nombre_linea='Rosa' AND nombre_estacion='C'", Integer.class, id));
+        assertEquals(0, transbordosDeConsigna(id));
+        enviar(ruta + "/validacion", "{}", token);
+        var trasEliminar = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
+        assertTrue(trasEliminar.path("comentarios").asText().contains("0 punto(s) de transbordo"));
+    }
+
+    private void cambiarTransbordo(String ruta, String token, String nombre, int x, boolean transbordo) throws Exception {
+        http.perform(patch(ruta + "/estaciones/" + nombre).header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"nombre\":\"" + nombre + "\",\"posicionX\":" + x + ",\"posicionY\":460,\"transbordo\":" + transbordo + "}"))
+            .andExpect(status().isOk());
+    }
+
+    private int transbordosDeConsigna(int idDiseno) {
+        return condiciones.evaluar(idDiseno, Map.of("minimoTransbordos", 1), java.util.List.of()).stream()
+            .filter(condicion -> condicion.clave().equals("minimoTransbordos"))
+            .findFirst().orElseThrow().actual();
     }
     private JsonNode enviar(String ruta, String cuerpo, String token) throws Exception {
         return json.readTree(http.perform(post(ruta).header("Authorization", token).contentType(MediaType.APPLICATION_JSON).content(cuerpo))

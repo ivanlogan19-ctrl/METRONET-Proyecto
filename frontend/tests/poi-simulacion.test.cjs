@@ -2,6 +2,7 @@ const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
 const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
 const {abrirPantalla}=require('./soporte/pantallas.cjs');
+const BASE=process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5173';
 let navegador;
 before(async()=>{navegador=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
 after(async()=>navegador?.close());
@@ -36,7 +37,7 @@ for(const width of [1440,768,390,320]) test(`Simulación ${width}px: panel compa
 test('Música accesible también antes de elegir un diseño',async t=>{
   const {pagina:p,contexto,errores}=await abrirPantalla(navegador,'/inicio.html');
   t.after(async()=>{await contexto.close();assert.deepEqual(errores,[]);});
-  await p.goto('http://127.0.0.1:5173/simulacion.html');
+  await p.goto(`${BASE}/simulacion.html`);
   await p.locator('.metronet-hud>summary').waitFor();await p.locator('.metronet-hud>summary').click();await p.locator('[data-hud-vista=musica]').click();
   assert.equal(await p.getByRole('slider',{name:'Volumen de música'}).isVisible(),true);
 });
@@ -47,7 +48,7 @@ test('Carga inicial tardía no mueve el HUD ni pierde el clic de Música',async 
   let liberar;const espera=new Promise(r=>liberar=r);
   await p.route('**/api/configuraciones',async r=>{await espera;await r.fulfill({json:[],headers:{'access-control-allow-origin':'*'}});});
   try {
-    await p.goto('http://127.0.0.1:5173/simulacion.html');
+    await p.goto(`${BASE}/simulacion.html`);
     await p.locator('.metronet-hud>summary').click();await p.locator('[data-hud-vista=musica]').hover();
     await p.mouse.down();liberar();
     await p.waitForFunction(()=>window[Symbol.for('metronet:gestor-musica')].obtenerContexto()==='menu');

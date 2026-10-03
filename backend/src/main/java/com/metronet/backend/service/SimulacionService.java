@@ -343,7 +343,12 @@ public class SimulacionService {
         }
         int lineas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", Integer.class, idDiseno);
         int estaciones = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
-        int transbordos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ? AND transbordo = TRUE", Integer.class, idDiseno);
+        int transbordos = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ? AND e.transbordo = TRUE
+              AND (SELECT COUNT(DISTINCT t.nombre_linea) FROM tramo t
+                   WHERE t.id_diseno = e.id_diseno
+                     AND (t.nombre_estacion_a = e.nombre OR t.nombre_estacion_b = e.nombre)) >= 2
+            """, Integer.class, idDiseno);
         int puntaje = 0; // Sin criterios de escenario no se asignan puntos por cantidad de elementos.
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + solicitud.duracion()
             + " h simuladas. La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";

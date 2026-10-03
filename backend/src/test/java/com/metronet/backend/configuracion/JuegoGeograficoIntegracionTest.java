@@ -404,7 +404,9 @@ class JuegoGeograficoIntegracionTest {
         jdbc.update("UPDATE estacion SET transbordo=TRUE WHERE nombre='A'");
         assertFalse(juego.evaluarEscenario(7, 4).completado());
         jdbc.update("INSERT INTO linea VALUES (4,'Roja')");
-        jdbc.update("INSERT INTO pasa VALUES (4,'Roja','A')");
+        jdbc.update("INSERT INTO pasa VALUES (4,'Roja','A'),(4,'Roja','B')");
+        assertFalse(juego.evaluarEscenario(7, 4).completado());
+        jdbc.update("INSERT INTO tramo VALUES (4,'Roja','A','B')");
         assertTrue(juego.evaluarEscenario(7, 4).completado());
         reglas("{\"areasObjetivo\":[{\"tipo\":\"barrio\",\"nombre\":\"Sin geometría\"}]}");
         assertFalse(juego.evaluarEscenario(7, 4).completado());

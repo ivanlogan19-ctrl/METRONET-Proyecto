@@ -83,7 +83,7 @@ test('referencias territoriales permiten construir y las áreas restringidas exp
   await clic(pagina, 595.82, 492.99, 3);
   assert.equal(solicitudes.length, 1);
   assert.match(await pagina.locator('body').innerText(), /No se permiten estaciones en AGUADA/);
-  assert.match(await pagina.getByRole('list', { name: 'Áreas territoriales del escenario', includeHidden:true }).textContent(), /AGUADA: sin estaciones/);
+  assert.match(await pagina.getByRole('list', { name: 'Áreas territoriales del nivel', includeHidden:true }).textContent(), /AGUADA: sin estaciones/);
   await pagina.locator('.metronet-poi>summary').click();
   await pagina.getByRole('button', { name: 'Zonas verdes', exact: true }).click();
   assert.equal(await pagina.evaluate(() => editorPrueba.escena.territorioMapa.errorEstacion({ posicionX: 595.82, posicionY: 492.99 }) !== null), true);

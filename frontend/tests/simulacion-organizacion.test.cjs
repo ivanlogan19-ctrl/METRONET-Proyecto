@@ -3,6 +3,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
@@ -123,7 +124,7 @@ test('Los errores permanecen fuera del panel al ampliar y los resultados se abre
 test('Sin diseño en la URL, Mis diseños conserva la apertura sin duplicar el selector', async t => {
   const { pagina:p } = await abrir(t);
   await p.route('**/api/juego/progreso', route => route.fulfill({json:{modoLibreDesbloqueado:true,escenarios:[]},headers:{'access-control-allow-origin':'*'}}));
-  await p.goto('http://127.0.0.1:5173/simulacion.html');
+  await p.goto(`${BASE}/simulacion.html`);
   await p.locator('#estadoVacio').waitFor();
   assert.equal(await p.locator('#listaDisenos').count(),0);
   await p.locator('#estadoVacio').getByRole('link',{name:'Mis diseños'}).click();

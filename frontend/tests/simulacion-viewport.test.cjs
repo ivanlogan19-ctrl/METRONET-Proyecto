@@ -3,6 +3,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
@@ -111,7 +112,7 @@ test('Seguimiento explícito: pausa y detención congelan la cámara sin persegu
 test('Ajustar red y cambiar de diseño conservan el encuadre explícito; resize permanece operativo', async t => {
   const { pagina } = await abrir(t, 1440); await posicionar(pagina, 'desplazado');
   const antes = await capturar(pagina); await pagina.getByRole('button', { name: 'Ajustar red', exact: true }).click(); await cuadros(pagina); assert.ok((await capturar(pagina)).ajustes > antes.ajustes);
-  await pagina.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=78'); await pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.simulacion.idDiseno === 78);
+  await pagina.goto(`${BASE}/simulacion.html?idDiseno=78`); await pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.simulacion.idDiseno === 78);
   await pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.metricasUnidades?.length); await cuadros(pagina);
   const otra = await capturar(pagina); assert.ok(otra.ajustes >= 1);
   await pagina.setViewportSize({ width: 768, height: 900 }); await cuadros(pagina, 30); const resized = await capturar(pagina); assert.notEqual(resized.canvas.pixelsX, otra.canvas.pixelsX);

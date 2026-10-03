@@ -47,8 +47,9 @@ public class CondicionesGeograficasService {
             boolean valido = minimo.isIntegralNumber() && minimo.canConvertToInt() && minimo.intValue() > 0;
             Integer actual = valido ? jdbc.queryForObject("""
                 SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ? AND e.transbordo = TRUE
-                  AND (SELECT COUNT(DISTINCT p.nombre_linea) FROM pasa p
-                       WHERE p.id_diseno = e.id_diseno AND p.nombre_estacion = e.nombre) >= 2
+                  AND (SELECT COUNT(DISTINCT t.nombre_linea) FROM tramo t
+                       WHERE t.id_diseno = e.id_diseno
+                         AND (t.nombre_estacion_a = e.nombre OR t.nombre_estacion_b = e.nombre)) >= 2
                 """, Integer.class, idDiseno) : 0;
             condiciones.add(new CondicionConsignaResponse("minimoTransbordos",
                 valido ? "Usar al menos " + minimo.intValue() + " transbordos entre líneas" : "Cantidad de transbordos inválida en la consigna",
