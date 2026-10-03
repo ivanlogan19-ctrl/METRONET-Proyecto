@@ -32,6 +32,14 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
     if (!publica && !/login|registro|contrasena|codigo|privacidad/.test(location.pathname)) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
     sessionStorage.setItem(`${location.hostname}:recuperacionContrasena`, JSON.stringify({ email: usuario.email, idSolicitud: 99, tokenRecuperacion: 'prueba-local', reenvioDisponibleEn: 0 }));
   }, { admin, publica, usuario, contenedor: opciones.contenedor });
+  // Las suites anteriores verifican navegación y música; la etapa educativa
+  // se prueba por separado y aquí se continúa automáticamente al aparecer.
+  await contexto.addInitScript(() => {
+    window.addEventListener('DOMContentLoaded', () => {
+      const continuar = () => document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button')?.click();
+      new MutationObserver(continuar).observe(document.body, { childList:true, subtree:true });
+    });
+  });
   const pagina = await contexto.newPage();
   const errores = [], solicitudes = [];
   pagina.on('pageerror', error => errores.push(error.message));

@@ -14,7 +14,12 @@ export async function iniciarNivelConTransicion(escenario, iniciar, { preparado 
 }
 
 async function prepararNivel(escenario, iniciar, preparado) {
-  if (preparado || !Number.isInteger(escenario?.numero)) return iniciarSinViaje(iniciar);
+  if (preparado && Number.isInteger(escenario?.numero)) {
+    const { presentarTarjetaEducativaTrasVictoria } = await import('./TarjetaEducativaNivel.js');
+    if (!await presentarTarjetaEducativaTrasVictoria(escenario.numero)) return null;
+    return iniciarSinViaje(iniciar);
+  }
+  if (!Number.isInteger(escenario?.numero)) return iniciarSinViaje(iniciar);
   const controlador = new AbortController();
   let viaje = null, cancelar;
   const cancelacion = new Promise(resolve => {

@@ -26,7 +26,7 @@ async function cargarProgreso() {
   } catch (error) {
     mostrarMensaje(error.message, 'error');
     renderizarPantalla(progresoVacio());
-    renderizarEstadoVacio('No fue posible cargar los escenarios. Volvé a intentarlo en unos instantes.');
+    renderizarEstadoVacio('No fue posible cargar los niveles. Volvé a intentarlo en unos instantes.');
   } finally {
     establecerEstadoCarga(false);
   }
@@ -125,7 +125,7 @@ function crearLogro(titulo, estado, detalle, positivo = false) {
 
 function renderizarEscenarios(escenarios) {
   const lista = document.getElementById('listaEscenarios');
-  if (!escenarios.length) return renderizarEstadoVacio('Todavía no hay escenarios configurados para este recorrido.');
+  if (!escenarios.length) return renderizarEstadoVacio('Todavía no hay niveles configurados para este recorrido.');
   lista.replaceChildren(...escenarios.map(crearTarjetaEscenario));
 }
 
@@ -136,7 +136,7 @@ function crearTarjetaEscenario(escenario) {
   const encabezado = document.createElement('header');
   encabezado.className = 'metronet-escenarios-pagina__tarjeta-cabecera';
   const identificador = document.createElement('p');
-  identificador.textContent = escenario.numero === null ? 'Modo Libre' : `Escenario ${escenario.numero}`;
+  identificador.textContent = escenario.numero === null ? 'Modo Libre' : `Nivel ${escenario.numero}`;
   const etiquetaEstado = document.createElement('span');
   etiquetaEstado.className = `metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--${estado.id}`;
   etiquetaEstado.textContent = estado.texto;
@@ -230,7 +230,7 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
   let navegando = false;
   boton.disabled = true;
   boton.textContent = 'Preparando…';
-  mostrarMensaje(volverAJugar ? 'Creando un nuevo intento…' : 'Preparando el escenario…');
+  mostrarMensaje(volverAJugar ? 'Creando un nuevo intento…' : 'Preparando el nivel…');
   try {
     const ruta = volverAJugar ? `/escenarios/${escenario.idEscenario}/volver-a-jugar` : `/escenarios/${escenario.idEscenario}/iniciar`;
     const inicio = await iniciarNivelConTransicion(escenario,
@@ -298,7 +298,7 @@ function renderizarEstadoVacio(texto) {
   const vacio = document.createElement('section');
   vacio.className = 'metronet-escenarios-pagina__vacio';
   const titulo = document.createElement('h2');
-  titulo.textContent = 'Escenarios no disponibles';
+  titulo.textContent = 'Niveles no disponibles';
   const detalle = document.createElement('p');
   detalle.textContent = texto;
   vacio.append(titulo, detalle);

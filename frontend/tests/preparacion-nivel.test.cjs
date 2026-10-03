@@ -46,6 +46,13 @@ async function abrir(t, escenarios, ruta = '/escenarios.html', opciones = {}) {
     Storage.prototype.getItem = function(k) { if (k.startsWith('metronet:transicion:')) throw new Error('No disponible'); return get.call(this, k); };
     Storage.prototype.setItem = function(k, v) { if (k.startsWith('metronet:transicion:')) throw new Error('No disponible'); return set.call(this, k, v); };
   });
+  // Esta suite verifica el viaje preexistente; la tarjeta inicial tiene su propia suite.
+  await pagina.addInitScript(() => {
+    window.addEventListener('DOMContentLoaded', () => {
+      const continuar = () => document.querySelector('.metronet-viaje--educativo .metronet-tarjeta-educativa__acciones .metronet-boton--exito')?.click();
+      new MutationObserver(continuar).observe(document.body, { childList:true, subtree:true });
+    });
+  });
   await pagina.goto(`${BASE}${ruta}`);
   // Las pruebas de flujo usan el respaldo silencioso; el MP3 real se verifica en musica-inicio-nivel.
   await pagina.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
@@ -64,7 +71,7 @@ for (const ruta of ['/escenarios.html', '/inicio.html']) {
     for (const numero of niveles.map(n => n.numero)) await t.test(`nivel ${numero}`, async t => {
       const escenario = nivel(numero);
       const { pagina, solicitudes } = await abrir(t, [escenario], ruta);
-      await pagina.getByRole('button', { name: ruta === '/inicio.html' ? 'Comenzar escenario' : 'Comenzar', exact: true }).click();
+      await pagina.getByRole('button', { name: ruta === '/inicio.html' ? 'Comenzar nivel' : 'Comenzar', exact: true }).click();
       const dialogo = pagina.getByRole('dialog', { name: escenario.nombre, exact: true });
       await dialogo.waitFor();
       await pagina.waitForFunction(() => document.querySelector('[role="progressbar"]'));

@@ -54,7 +54,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     'POI y barrio tienen distinta cobertura. Compará ambos criterios en la consigna.', ['poi', 'barrio', 'cobertura', 'estacion']);
   if (!estaciones && permite('estaciones')) return aviso('primera-estacion',
     inicial ? 'Aún no hay estaciones. Pensá qué puntos querés relacionar antes de ubicar el primero.' : 'Aún no hay estaciones. Pensá qué ubicaciones pueden sostener el recorrido de la consigna.',
-    inicial && !tutorialActivo ? 'Elegí el icono de estación y una ubicación. El nombre se asigna automáticamente.' : 'Relacioná cada estación con una necesidad del escenario.', ['estacion']);
+    inicial && !tutorialActivo ? 'Elegí el icono de estación y una ubicación. El nombre se asigna automáticamente.' : 'Relacioná cada estación con una necesidad del nivel.', ['estacion']);
   if (estaciones === 1 && !lineas && permite('estaciones')) return aviso('primera-ubicada',
     'Ya ubicaste la primera estación. Pensá qué lugar conviene relacionar con ella.',
     inicial ? 'Una línea necesita estaciones distintas. Elegí qué otra ubicación puede aportar al recorrido.' : 'Considerá la separación y la función de las próximas ubicaciones, no solo la cantidad.', ['estacion', 'linea']);
@@ -95,6 +95,6 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
   if (soloCirculacion && (falta('requiereSimulacion') || falta('simulacionActual')) && permite('simulacion')) return aviso('simular',
     pantalla === 'simulacion' ? 'El diseño cumple las condiciones consultadas. Observá qué ocurre al simular.' : 'Falta observar la red en circulación. Simular comprueba automáticamente si está preparada.',
     'Si cambian el diseño o la velocidad, la simulación anterior puede quedar desactualizada.', ['simulacion', 'unidad', 'velocidad'], 'POR REVISAR');
-  if (!pendientes.length) return aviso('listo', 'Las condiciones están satisfechas. La evaluación del escenario confirma el resultado.', pantalla === 'editor' && !permite('simulacion') ? 'El disquete Guardar también solicita la evaluación del intento en este escenario.' : 'La evaluación al finalizar la simulación confirma el resultado del intento.', ['objetivo', 'simulacion'], 'POR CONFIRMAR');
+  if (!pendientes.length) return aviso('listo', 'Las condiciones están satisfechas. La evaluación del nivel confirma el resultado.', pantalla === 'editor' && !permite('simulacion') ? 'El disquete Guardar también solicita la evaluación del intento en este nivel.' : 'La evaluación al finalizar la simulación confirma el resultado del intento.', ['objetivo', 'simulacion'], 'POR CONFIRMAR');
   return aviso('otra-condicion', 'Queda una condición pendiente. Compará su descripción con el estado actual de tu red.', 'Si falta una herramienta o el criterio no es claro, conservá el diseño y revisá el aviso.', ['objetivo']);
 }

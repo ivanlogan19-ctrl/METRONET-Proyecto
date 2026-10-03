@@ -4,6 +4,8 @@ import { seleccionarMensajeTransicion } from './MensajesTransicion.js';
 import { CONFIGURACION_TRANSICION, MENSAJES_TRANSICION } from './ConfiguracionTransicion.js';
 import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
+import { seleccionarTarjetaEducativa, tarjetaEducativaActual } from './TarjetasEducativasNivel.js';
+import { crearTarjetaEducativaNivel } from './TarjetaEducativaNivel.js';
 import './transicion-nivel.css';
 
 let transicionActiva = null;
@@ -19,6 +21,7 @@ function texto(etiqueta, valor, clase = '') {
 export function crearPreparacionNivel(escenario) {
   transicionActiva?.cerrar();
   const contenido = obtenerContenidoNivel(escenario.numero);
+  const hayTarjetas = Boolean(tarjetaEducativaActual(escenario.numero));
   const mensaje = seleccionarMensajeTransicion(escenario.numero);
   const movimientoReducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const focoAnterior = document.activeElement;
@@ -74,6 +77,8 @@ export function crearPreparacionNivel(escenario) {
   pie.className = 'metronet-viaje__pie';
   pie.append(estado, acciones);
   cuerpo.append(cabecera, recorrido, progreso, informacion, pie);
+  let tarjetaAbierta = false, tarjetaCompletada = !hayTarjetas, viajeIniciado = false;
+  let tarjetaVista = null;
   dialogo.append(cuerpo);
 
   let cerrado = false, cancelada = false;
@@ -87,11 +92,51 @@ export function crearPreparacionNivel(escenario) {
     jugar.title = datosListos ? '' : 'Esperando los datos del nivel';
     if (recorridoTerminado) estado.textContent = datosListos ? 'Entrando al nivel…' : 'Esperando la respuesta del nivel…';
     else estado.textContent = MENSAJES_TRANSICION.entrada;
-    if (recorridoTerminado && datosListos) resolver(true);
+    if (recorridoTerminado && datosListos) {
+      if (tarjetaCompletada) resolver(true);
+      else if (!tarjetaAbierta) mostrarTarjeta();
+    }
   }
   function finalizarRecorrido() {
     recorridoTerminado = true;
     actualizarEstado();
+  }
+  function iniciarViaje() {
+    if (viajeIniciado || cerrado) return;
+    viajeIniciado = true;
+    presentacion = crearPresentacionMusicalNivel({
+      dialogo, contexto: 'inicioNivel', titulo: `NIVEL ${escenario.numero}`,
+      puedeMostrarCartel: () => datosListos,
+      alTerminar: () => animacion.finalizar(),
+    });
+    animacion.iniciar({
+      progreso, porcentaje, obtenerTiempo: presentacion.obtenerTiempo,
+      alAvanzar: tiempo => {
+        if (movimientoReducido || tiempo >= CONFIGURACION_TRANSICION.revelarConsignaEn) dialogo.classList.add('metronet-viaje--consigna-visible');
+        presentacion.actualizar(tiempo);
+      },
+      alFinalizar: finalizarRecorrido,
+    });
+  }
+  function mostrarTarjeta() {
+    if (cerrado || tarjetaAbierta) return;
+    const tarjeta = seleccionarTarjetaEducativa(escenario.numero);
+    if (!tarjeta) { tarjetaCompletada = true; resolver(true); return; }
+    tarjetaVista = crearTarjetaEducativaNivel(tarjeta, escenario.numero, continuarTarjeta);
+    presentacion?.eliminar();
+    tarjetaAbierta = true;
+    cuerpo.hidden = true;
+    dialogo.classList.add('metronet-viaje--educativo');
+    dialogo.setAttribute('aria-labelledby', tarjetaVista.titulo.id);
+    dialogo.prepend(tarjetaVista.elemento);
+    tarjetaVista.titulo.focus({ preventScroll: true });
+  }
+  function continuarTarjeta() {
+    if (!tarjetaAbierta || cerrado) return;
+    tarjetaAbierta = false;
+    tarjetaCompletada = true;
+    tarjetaVista.elemento.remove();
+    resolver(true);
   }
   function cerrar() {
     if (cerrado) return;
@@ -115,7 +160,7 @@ export function crearPreparacionNivel(escenario) {
     marcarDatosListos() { datosListos = true; actualizarEstado(); },
   };
   volver.addEventListener('click', cerrar);
-  dialogo.addEventListener('cancel', evento => { evento.preventDefault(); cerrar(); });
+  dialogo.addEventListener('cancel', evento => { evento.preventDefault(); if (tarjetaAbierta) continuarTarjeta(); else cerrar(); });
   dialogo.addEventListener('close', cerrar);
   jugar.addEventListener('click', () => {
     if (!datosListos || recorridoTerminado || cerrado) return;
@@ -130,19 +175,7 @@ export function crearPreparacionNivel(escenario) {
     window.addEventListener('pagehide', cerrar);
     window.addEventListener('popstate', cerrar);
     observador.observe(document.body, { childList: true });
-    presentacion = crearPresentacionMusicalNivel({
-      dialogo, contexto: 'inicioNivel', titulo: `NIVEL ${escenario.numero}`,
-      puedeMostrarCartel: () => datosListos,
-      alTerminar: () => animacion.finalizar(),
-    });
-    animacion.iniciar({
-      progreso, porcentaje, obtenerTiempo: presentacion.obtenerTiempo,
-      alAvanzar: tiempo => {
-        if (movimientoReducido || tiempo >= CONFIGURACION_TRANSICION.revelarConsignaEn) dialogo.classList.add('metronet-viaje--consigna-visible');
-        presentacion.actualizar(tiempo);
-      },
-      alFinalizar: finalizarRecorrido,
-    });
+    iniciarViaje();
     return controlador;
   } catch (error) { cerrar(); throw error; }
 }

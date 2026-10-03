@@ -1,0 +1,56 @@
+.metronet-preparacion.metronet-preparacion--educativa,
+.metronet-preparacion.metronet-viaje--educativo {
+  width: min(94vw, 790px);
+  max-height: min(94dvh, 960px);
+  overflow: auto;
+  border: 2px solid var(--border-active);
+  box-shadow: var(--shadow-panel), var(--shadow-floating);
+}
+.metronet-preparacion.metronet-preparacion--educativa::before,
+.metronet-preparacion.metronet-viaje--educativo::before {
+  content: '';
+  display: block;
+  height: 5px;
+  background: var(--module-stripe);
+}
+.metronet-tarjeta-educativa { display: grid; gap: 14px; padding: clamp(16px, 3vw, 30px); }
+.metronet-tarjeta-educativa__cabecera { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.metronet-tarjeta-educativa__cabecera > div { min-width: 0; }
+.metronet-tarjeta-educativa__etiqueta {
+  display: block; margin-bottom: 8px; color: var(--info-active);
+  font: 400 12px/1.4 var(--font-arcade);
+}
+html:root body .metronet-tarjeta-educativa h2 {
+  margin: 0; color: var(--text-primary); font: 400 clamp(18px, 2.4vw, 27px)/1.3 var(--font-arcade);
+  overflow-wrap: anywhere;
+}
+html:root body .metronet-tarjeta-educativa__subtitulo { margin: 0; color: var(--text-secondary); font-size: 13px; }
+.metronet-tarjeta-educativa__figura { margin: 0; border: 1px solid var(--border); background: var(--bg-secondary); }
+.metronet-tarjeta-educativa__figura img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 246; object-fit: contain; }
+.metronet-tarjeta-educativa__respaldo { min-height: 130px; padding: 20px; }
+html:root body .metronet-tarjeta-educativa__texto { margin: 0; color: var(--text-primary); font: 400 15px/1.6 var(--font-ui); }
+html:root body .metronet-tarjeta-educativa__aprendizaje {
+  margin: 0; padding: 12px 14px; border: 1px solid var(--border);
+  border-left: 3px solid var(--warning); background: var(--bg-secondary);
+  color: var(--text-primary); font: 400 13px/1.5 var(--font-ui);
+}
+.metronet-tarjeta-educativa__aprendizaje strong { color: var(--warning); font: 400 12px/1.5 var(--font-arcade); }
+html:root body .metronet-tarjeta-educativa__fuente { margin: 0; color: var(--text-secondary); font-size: 12px; overflow-wrap: anywhere; }
+.metronet-tarjeta-educativa__fuente a { color: var(--border-active); text-underline-offset: 3px; }
+.metronet-tarjeta-educativa__fuente a:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
+.metronet-hud__opciones { flex-wrap: wrap; }
+.metronet-tarjeta-educativa__pie { display: flex; justify-content: space-between; align-items: end; gap: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.metronet-tarjeta-educativa__pie small { max-width: 300px; color: var(--text-secondary); font: 400 11px/1.5 var(--font-ui); }
+.metronet-tarjeta-educativa__acciones { display: flex; gap: 9px; flex: none; }
+html:root body .metronet-tarjeta-educativa__acciones button { min-height: 44px; }
+@media (max-width: 620px) {
+  .metronet-tarjeta-educativa { gap: 11px; padding: 16px; }
+  .metronet-tarjeta-educativa__etiqueta { font-size: 10px; }
+  html:root body .metronet-tarjeta-educativa h2 { font-size: 18px; }
+  html:root body .metronet-tarjeta-educativa__texto { font-size: 13px; line-height: 1.5; }
+  html:root body .metronet-tarjeta-educativa__aprendizaje { font-size: 12px; padding: 10px; }
+  .metronet-tarjeta-educativa__aprendizaje strong { display: block; margin-bottom: 3px; font-size: 10px; }
+  .metronet-tarjeta-educativa__pie { display: grid; gap: 11px; padding-top: 11px; }
+  .metronet-tarjeta-educativa__acciones { display: grid; grid-template-columns: 1fr; }
+  html:root body .metronet-tarjeta-educativa__acciones button { min-width: 0; padding: 6px; font-size: 11px; }
+}

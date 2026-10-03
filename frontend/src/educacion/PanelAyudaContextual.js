@@ -5,6 +5,7 @@ import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { crearControlMusica } from '../audio/ControlMusica.js';
 import PanelTutorialInicial from './PanelTutorialInicial.js';
 import { conceptosDelNivel } from './glosario/ContextoConceptos.js';
+import { abrirTarjetaEducativaDesdeAyuda } from './TarjetaEducativaNivel.js';
 import './ayuda-contextual.css';
 import '../mapa/estilos/referencias-poi.css';
 
@@ -38,7 +39,7 @@ export default class PanelAyudaContextual {
     this.tutorial = new PanelTutorialInicial(contenedor);
     this.indicaciones = document.createElement('details');
     this.indicaciones.dataset.indicacionesEscenario = '';
-    this.indicaciones.innerHTML = '<summary>Indicaciones del escenario</summary><p></p>';
+    this.indicaciones.innerHTML = '<summary>Indicaciones del nivel</summary><p></p>';
     this.elemento.querySelector('.metronet-assist').append(this.indicaciones);
     for (const [vista, etiqueta] of [['controles', 'Controles del mapa'], ['pista', 'Pista'], ['musica', 'Música']]) {
       const boton = document.createElement('button');
@@ -49,6 +50,17 @@ export default class PanelAyudaContextual {
       this.opciones.set(vista, boton);
       this.elemento.querySelector('.metronet-hud__opciones').append(boton);
     }
+    this.botonHistoria = document.createElement('button');
+    this.botonHistoria.type = 'button';
+    this.botonHistoria.textContent = 'Aprender';
+    this.botonHistoria.setAttribute('aria-label', 'Tarjeta educativa del nivel');
+    this.botonHistoria.hidden = true;
+    this.botonHistoria.addEventListener('click', () => {
+      const numero = this.numeroEducativo;
+      this.cerrar();
+      if (numero) abrirTarjetaEducativaDesdeAyuda(numero, this.acceso);
+    });
+    this.elemento.querySelector('.metronet-hud__opciones').append(this.botonHistoria);
     this.mensaje = this.elemento.querySelector('[data-assist-mensaje]');
     this.boton = this.elemento.querySelector('[data-assist-pista]');
     this.boton.addEventListener('click', () => { this.ampliada = !this.ampliada; this.renderizar(); });
@@ -90,6 +102,8 @@ export default class PanelAyudaContextual {
 
   actualizar(contexto) {
     if (this.eliminada) return;
+    this.numeroEducativo = Number.isInteger(contexto.escenario?.numero) ? contexto.escenario.numero : null;
+    this.botonHistoria.hidden = !this.numeroEducativo;
     const tutorialActivo = this.tutorial.actualizar(contexto);
     contexto = { ...contexto, tutorialActivo };
     const instrucciones = contexto.escenario?.instrucciones ?? contexto.diseno?.simulacion?.instrucciones ?? '';
@@ -103,7 +117,7 @@ export default class PanelAyudaContextual {
     }
     const ayuda = obtenerAyudaContextual(contexto) ?? {
       clave: 'sin-escenario', etiqueta: 'PISTA', conceptos: [],
-      texto: contexto.diseno ? 'Las pistas acompañan los escenarios educativos. Este diseño no tiene una consigna activa.' : 'Abrí un escenario para recibir pistas de su consigna.',
+      texto: contexto.diseno ? 'Este diseño no tiene una consigna activa.' : 'Abrí un nivel para recibir pistas de su consigna.',
     };
     const contextoId = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario, contexto.escenario?.numero]);
     const identidad = JSON.stringify([contextoId, ayuda]);

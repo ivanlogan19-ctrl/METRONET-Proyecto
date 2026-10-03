@@ -8,7 +8,7 @@ import { crearControlMusica } from '../audio/ControlMusica.js';
 import { consultarAccesoMisDisenos, aplicarAccesoMisDisenos } from './AccesoMisDisenos.js';
 
 const ETAPAS_FLUJO = [
-  { id: 'escenario', texto: 'Escenario' },
+  { id: 'escenario', texto: 'Nivel' },
   { id: 'edicion', texto: 'Edición' },
   { id: 'simulacion', texto: 'Simulación' },
   { id: 'resultados', texto: 'Resultados' },
@@ -169,7 +169,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   enlaces.setAttribute('aria-label', 'Navegación principal');
   enlaces.append(
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
-    crearEnlace('Escenarios', '/escenarios.html', actual === 'escenarios'),
+    crearEnlace('Niveles', '/escenarios.html', actual === 'escenarios'),
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );
@@ -183,7 +183,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   menuUsuario.className = 'metronet-navegacion__menu-usuario';
   menuUsuario.append(
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
-    crearEnlace('Escenarios', '/escenarios.html', actual === 'escenarios'),
+    crearEnlace('Niveles', '/escenarios.html', actual === 'escenarios'),
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );

@@ -11,7 +11,7 @@ export default class CapaTerritorial {
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-territorio';
     this.lista = document.createElement('ul');
-    this.lista.setAttribute('aria-label', 'Áreas territoriales del escenario');
+    this.lista.setAttribute('aria-label', 'Áreas territoriales del nivel');
     this.elemento.append(this.lista);
     this.dibujar();
   }

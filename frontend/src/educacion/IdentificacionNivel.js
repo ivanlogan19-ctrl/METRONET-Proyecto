@@ -38,7 +38,7 @@ export function crearIdentificacionNivel(contenedor) {
   const cobertura = document.createElement('section');
   cobertura.className = 'metronet-identificacion';
   cobertura.dataset.fase = 'preparando';
-  cobertura.setAttribute('aria-label', 'Entrada al escenario');
+  cobertura.setAttribute('aria-label', 'Entrada al nivel');
   const cartel = document.createElement('div');
   cartel.className = 'metronet-identificacion__cartel';
   cartel.setAttribute('role', 'status');

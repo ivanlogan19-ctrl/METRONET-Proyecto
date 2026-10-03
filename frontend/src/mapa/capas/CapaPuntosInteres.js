@@ -1589,7 +1589,7 @@ export default class CapaPuntosInteres {
 
     estado.className = 'metronet-punto-interes-estado';
 
-    estado.textContent = punto.objetivo ? `Objetivo del escenario · ${this.obtenerEtiquetaEstado(punto.estado)}` : 'Referencia del mapa';
+    estado.textContent = punto.objetivo ? `Objetivo del nivel · ${this.obtenerEtiquetaEstado(punto.estado)}` : 'Referencia del mapa';
 
     const tipo = document.createElement('p');
 

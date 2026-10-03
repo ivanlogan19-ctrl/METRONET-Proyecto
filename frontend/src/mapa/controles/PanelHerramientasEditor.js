@@ -5,7 +5,7 @@ const HERRAMIENTAS = [
   ['conexiones', 'Conexión', 'Construcción', 'Elegí la línea activa y dos estaciones para conectar. Después podés seguir extendiendo el recorrido.'],
   ['seleccion', 'Seleccionar', 'Edición', 'Seleccioná un elemento del mapa para consultar sus acciones.'],
   ['metros', 'Metros', 'Unidades', 'Hacé clic sobre una vía para asignar un metro. Sus parámetros se editan después.'],
-  ['escenarios', 'Actividad propia', 'Proyecto', 'Configurá el nombre y la dificultad de un escenario propio.'],
+  ['escenarios', 'Actividad propia', 'Proyecto', 'Configurá el nombre y la dificultad de una actividad propia.'],
 ];
 
 // Solo organiza controles y estados visuales. Las operaciones siguen en EditorRedMetro.
@@ -71,7 +71,7 @@ export default class PanelHerramientasEditor {
   actualizarDisponibilidad(herramientas, esProgresivo) {
     this.botones.forEach((boton, clave) => {
       boton.disabled = herramientas[clave] === false || (clave === 'escenarios' && esProgresivo);
-      boton.title = boton.disabled ? 'No disponible en este escenario.' : boton.getAttribute('aria-label');
+      boton.title = boton.disabled ? 'No disponible aquí.' : boton.getAttribute('aria-label');
       if (clave === 'escenarios') boton.closest('fieldset').hidden = boton.disabled;
     });
     if (this.botones.get(this.activa).disabled) this.seleccionar('seleccion');

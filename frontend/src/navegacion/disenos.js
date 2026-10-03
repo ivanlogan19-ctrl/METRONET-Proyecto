@@ -47,7 +47,7 @@ function iniciar() {
       const nombre = document.createElement('strong');
       nombre.textContent = d.nombre;
       const estado = document.createElement('small');
-      estado.textContent = `${textoEstado(d)}${protegido(d) && catalogoDisponible ? ' · Escenario educativo' : ''}`;
+      estado.textContent = `${textoEstado(d)}${protegido(d) && catalogoDisponible ? ' · Nivel educativo' : ''}`;
       identidad.append(nombre, estado);
       if (administrador) {
         const propietario = document.createElement('small');

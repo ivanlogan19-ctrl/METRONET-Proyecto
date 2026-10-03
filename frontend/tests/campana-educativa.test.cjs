@@ -123,7 +123,7 @@ test('Un progreso mal formado produce estado recuperable sin errores de JavaScri
   pagina.on('pageerror', e => errores.push(e.message));
   await pagina.route('**/api/juego/**', route => route.fulfill({ json: { escenarios: null } }));
   await pagina.goto('http://127.0.0.1:5173/escenarios.html');
-  await pagina.getByText('Escenarios no disponibles', { exact: true }).waitFor();
+  await pagina.getByText('Niveles no disponibles', { exact: true }).waitFor();
   assert.deepEqual(errores, []);
 });
 for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel ${numero} abre la transición y conserva su destino`, async t => {

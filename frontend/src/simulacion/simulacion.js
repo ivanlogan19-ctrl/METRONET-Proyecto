@@ -185,7 +185,7 @@ async function cargarConsignaReal(idDiseno) {
     actualizarConsignaSimulacion(disenoActual.simulacion);
     return;
   }
-  mensajeConsigna = 'Consultando el estado real de los objetivos del escenario…';
+  mensajeConsigna = 'Consultando el estado real de los objetivos del nivel…';
   if (disenoActual?.simulacion?.idDiseno === idDiseno) actualizarConsignaSimulacion(disenoActual.simulacion);
   try {
     const consigna = await obtenerConsignaReal(idDiseno);
@@ -222,7 +222,7 @@ function esSolicitudConsignaVigente(solicitud, idDiseno) {
 
 function obtenerMensajeConsignaNoDisponible(error) {
   if (error?.estado === 404) return 'Este diseño no tiene una consigna de objetivos disponible.';
-  return 'No fue posible actualizar los objetivos reales del escenario. La consigna general continúa disponible.';
+  return 'No fue posible actualizar los objetivos reales del nivel. La consigna general continúa disponible.';
 }
 
 function actualizarProgresoEjecucion(estado) {
@@ -368,7 +368,7 @@ async function evaluarEscenarioProgresivo(idDiseno) {
   // Los diseños no progresivos no se evalúan mediante esta ruta.
   if (respuesta.status === 404) return null;
   if (respuesta.ok) return respuesta.json();
-  let mensaje = 'La simulación se registró, pero no fue posible evaluar el escenario.';
+  let mensaje = 'La simulación se registró, pero no fue posible evaluar el nivel.';
   try {
     mensaje = (await respuesta.json()).detail ?? mensaje;
   } catch {
@@ -521,7 +521,7 @@ async function finalizarEjecucionVisible() {
           const inicio = await iniciarNivelConTransicion(accion.siguiente, async signal => {
             const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
             const respuestaInicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/${operacion}`, { method: 'POST', headers, signal });
-            if (!respuestaInicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Escenarios.');
+            if (!respuestaInicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Niveles.');
             return respuestaInicio.json();
           }, { preparado: true });
           if (inicio && !controlador.signal.aborted && disenoActual?.simulacion?.idDiseno === pendiente.idDiseno) {
@@ -534,7 +534,7 @@ async function finalizarEjecucionVisible() {
   } catch (error) {
     if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
     document.getElementById('continuarEscenarios').hidden = false;
-    mostrarMensaje(`El recorrido terminó, pero no se pudo evaluar el escenario: ${error.message}`, 'error');
+    mostrarMensaje(`El recorrido terminó, pero no se pudo evaluar el nivel: ${error.message}`, 'error');
   } finally {
     resultadoEnCurso = false;
     actualizarControlesSimulacion(estadoMotor);

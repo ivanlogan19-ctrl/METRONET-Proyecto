@@ -74,10 +74,10 @@ export default class EditorRedMetro {
           <div class="metronet-editor-fila" data-lineas-superpuestas hidden role="group" aria-label="Elegir línea del metro"></div>
         </div>
         <div class="metronet-editor-grupo" data-herramienta="escenarios">
-          <label class="metronet-editor-etiqueta">Escenario de aprendizaje</label>
-          <input data-nombre-escenario type="text" maxlength="100" placeholder="Nombre del escenario" />
-          <div class="metronet-editor-fila"><select data-modo-escenario aria-label="Tipo de escenario"><option value="NIVEL">Nivel</option><option value="EDICION_LIBRE">Edición libre</option></select><select data-dificultad-escenario aria-label="Dificultad"><option value="Inicial">Inicial</option><option value="Intermedio">Intermedio</option><option value="Avanzado">Avanzado</option></select></div>
-          <div class="metronet-editor-acciones"><button data-crear-escenario type="button">Crear escenario</button><button data-actualizar-escenario type="button">Actualizar escenario</button></div>
+          <label class="metronet-editor-etiqueta">Actividad propia</label>
+          <input data-nombre-escenario type="text" maxlength="100" placeholder="Nombre de la actividad" />
+          <div class="metronet-editor-fila"><select data-modo-escenario aria-label="Tipo de actividad"><option value="NIVEL">Nivel</option><option value="EDICION_LIBRE">Edición libre</option></select><select data-dificultad-escenario aria-label="Dificultad"><option value="Inicial">Inicial</option><option value="Intermedio">Intermedio</option><option value="Avanzado">Avanzado</option></select></div>
+          <div class="metronet-editor-acciones"><button data-crear-escenario type="button">Crear actividad</button><button data-actualizar-escenario type="button">Actualizar actividad</button></div>
         </div>
         <div class="metronet-editor-acciones"><button data-guardar type="button">Guardar</button><button data-ir-simulacion type="button" disabled>Simular diseño</button></div>
         <article data-elemento-seleccionado class="metronet-editor-seleccionado" hidden></article>
@@ -158,7 +158,7 @@ export default class EditorRedMetro {
     finalizacion.append(ayudaSimulacion);
     editorActivo.append(finalizacion);
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño'],
-      ['[data-crear-escenario]', 'escenarios', 'Crear escenario'], ['[data-actualizar-escenario]', 'guardar', 'Guardar escenario']]
+      ['[data-crear-escenario]', 'escenarios', 'Crear actividad'], ['[data-actualizar-escenario]', 'guardar', 'Guardar actividad']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
     const acceso = document.createElement('details');
@@ -386,20 +386,20 @@ export default class EditorRedMetro {
 
   async crearEscenario() {
     const nombre = this.obtener('[data-nombre-escenario]').value.trim();
-    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para el escenario.', 'advertencia');
+    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para la actividad.', 'advertencia');
     const datos = { nombre, modo: this.obtener('[data-modo-escenario]').value, dificultad: this.obtener('[data-dificultad-escenario]').value };
     try {
       const escenario = await this.clienteDisenos.solicitar(`/${this.idDiseno()}/escenarios`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
       this.obtener('[data-nombre-escenario]').value = '';
       await this.cargarDisenos(escenario.idDiseno);
-      this.mostrarMensaje('Escenario creado desde el diseño validado.', 'exito');
+      this.mostrarMensaje('Actividad creada desde el diseño validado.', 'exito');
     } catch (error) { this.mostrarError(error); }
   }
 
   async actualizarEscenario() {
     const nombre = this.obtener('[data-nombre-escenario]').value.trim() || this.disenoActual.simulacion.nombre;
     const datos = { nombre, dificultad: this.obtener('[data-dificultad-escenario]').value, objetivo: this.disenoActual.simulacion.objetivo, instrucciones: this.disenoActual.simulacion.instrucciones };
-    await this.ejecutarAccion(`/${this.idDiseno()}/escenario`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }, 'Escenario actualizado.');
+    await this.ejecutarAccion(`/${this.idDiseno()}/escenario`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }, 'Actividad actualizada.');
   }
 
   async irASimulacion() {
@@ -768,7 +768,7 @@ export default class EditorRedMetro {
     const porcentaje = this.normalizarProgresoConsigna(detalleDisponible ? consignaActual.progreso : escenario.progreso);
     const objetivo = String(escenario.objetivo ?? '').trim();
     const instrucciones = String(escenario.instrucciones ?? '').trim();
-    const descripcion = objetivo || instrucciones || 'Sin objetivo definido para este escenario.';
+    const descripcion = objetivo || instrucciones || 'Sin objetivo definido para este nivel.';
 
     consigna.hidden = false;
     consigna.classList.toggle('es-compacta', this.consignaCompacta);
@@ -819,7 +819,7 @@ export default class EditorRedMetro {
     if (this.estadoConsigna === 'cargando') {
       const disponibilidad = document.createElement('p');
       disponibilidad.className = 'metronet-consigna__disponibilidad es-cargando';
-      disponibilidad.textContent = 'Actualizando las condiciones del escenario…';
+      disponibilidad.textContent = 'Actualizando las condiciones del nivel…';
       contenidoInterno.append(disponibilidad);
     } else if (this.estadoConsigna === 'noDisponible') {
       const disponibilidad = document.createElement('p');
@@ -899,8 +899,8 @@ export default class EditorRedMetro {
     barraProgreso.setAttribute('aria-valuemax', '100');
     barraProgreso.setAttribute('aria-valuenow', String(porcentaje));
     barraProgreso.setAttribute('aria-valuetext', detalleDisponible
-      ? `${porcentaje}% según las condiciones actuales del escenario`
-      : `${porcentaje}% registrado para el escenario`);
+      ? `${porcentaje}% según las condiciones actuales del nivel`
+      : `${porcentaje}% registrado para el nivel`);
     const rellenoProgreso = document.createElement('span');
     rellenoProgreso.style.setProperty('--progreso-consigna', `${porcentaje}%`);
     barraProgreso.append(rellenoProgreso);
@@ -925,15 +925,15 @@ export default class EditorRedMetro {
   }
 
   obtenerContextoConsigna(escenario) {
-    if (Number.isInteger(escenario?.numero)) return `Escenario ${escenario.numero}`;
+    if (Number.isInteger(escenario?.numero)) return `Nivel ${escenario.numero}`;
     if (escenario?.modo === 'EDICION_LIBRE') return 'Modo Libre';
-    return 'Escenario';
+    return 'Actividad';
   }
 
   obtenerTituloConsigna(escenario) {
     const nombre = String(escenario?.nombre ?? '').trim();
     const titulo = nombre.replace(/^nivel\s+\d+\s*[·:—-]\s*/i, '').trim();
-    return titulo || nombre || 'Objetivo del escenario';
+    return titulo || nombre || 'Objetivo del nivel';
   }
 
   obtenerEstadoConsigna(escenario, consigna) {

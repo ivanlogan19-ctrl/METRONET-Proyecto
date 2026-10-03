@@ -4,6 +4,14 @@ async function abrirEditor(navegador, opciones = {}) {
   const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
   await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })));
+  // Las suites de edición continúan la tarjeta para probar sus flujos previos;
+  // la presentación educativa se valida en tarjetas-educativas.test.cjs.
+  await contexto.addInitScript(() => {
+    window.addEventListener('DOMContentLoaded', () => {
+      const continuar = () => document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button')?.click();
+      new MutationObserver(continuar).observe(document.body, { childList:true, subtree:true });
+    });
+  });
   if (opciones.escenario && opciones.primeraPasada !== false) await contexto.addInitScript(escenario => {
     if (performance.getEntriesByType('navigation')[0]?.type === 'reload') return;
     sessionStorage.setItem('metronet:inicio-tutorial', JSON.stringify({idDiseno:77,idEscenario:escenario.idEscenario,idIntento:123,numeroCampana:1,idUsuario:7,creada:Date.now()}));
