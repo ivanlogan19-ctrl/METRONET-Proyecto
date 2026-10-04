@@ -12,9 +12,15 @@ const LECCIONES = {
 export function leccionesDisponibles({ diseno, escenario, pantalla }) {
   if (!diseno) return [];
   const herramientas = escenario?.herramientasHabilitadas;
-  return Object.entries(LECCIONES)
+  const lecciones = Object.entries(LECCIONES)
     .filter(([clave]) => pantalla === 'simulacion' ? clave === 'simulacion' : !herramientas || herramientas[clave] === true)
     .map(([clave, [titulo, texto]]) => ({ clave, titulo, texto }));
+  if (pantalla !== 'simulacion') lecciones.unshift({
+    clave: 'orientacion-mapa',
+    titulo: 'Orientación del mapa',
+    texto: 'La rosa de los vientos está dentro del mapa, abajo a la derecha. Usá las flechas para girarlo; la aguja señala el norte. Tocá la rosa para volver a orientar el norte hacia arriba.',
+  });
+  return lecciones;
 }
 
 export function herramientasIntroducidas(escenario, catalogo = []) {

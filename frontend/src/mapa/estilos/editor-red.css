@@ -83,7 +83,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   min-width: 0;
   gap: var(--space-xs);
 }
-.metronet-consigna__cabecera { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.metronet-consigna__cabecera { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; }
 .metronet-consigna__resumen { min-width: 0; }
 .metronet-consigna__contexto-grupo { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: var(--space-xs); }
 .metronet-consigna__contexto {
@@ -358,9 +358,10 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-herramientas__barra fieldset:last-child { grid-column: 1 / -1; }
 .metronet-herramientas__barra legend { margin-bottom: 6px; padding: 0; color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .metronet-herramientas__barra button { flex: 1; min-width: 0; padding-inline: 5px; }
-.metronet-herramientas__ayuda { margin: 0; padding: 10px 12px; border-left: var(--border-accent) solid var(--info-active); background: var(--bg-secondary); color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
-.operacion-en-curso .metronet-herramientas__ayuda { border-color: var(--warning); color: var(--text-primary); }
 .metronet-herramientas__opciones { min-width: 0; }
+.metronet-herramientas__opciones:has(> .metronet-editor-grupo:empty) { display: none; }
+#opciones-editor-lineas:has([data-lista-lineas]:empty),
+#opciones-editor-metros:has([data-lista-metros]:empty):has([data-lineas-superpuestas][hidden]) { display: none; }
 .metronet-herramientas .metronet-editor-grupo { display: grid; gap: 12px; }
 .metronet-herramientas .metronet-editor-fila,
 .metronet-herramientas .metronet-editor-acciones { flex-wrap: wrap; }
@@ -368,7 +369,41 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-herramientas .metronet-editor-fila > select,
 .metronet-herramientas .metronet-editor-fila > button,
 .metronet-herramientas .metronet-editor-acciones > button { flex: 1 1 100%; width: 100%; }
-.metronet-editor-red [data-cancelar-herramienta] { border-color: var(--warning); color: var(--warning); }
+.metronet-editor-red [data-cancelar-herramienta] { border-color: var(--danger); color: var(--danger); }
+
+/* Un símbolo por función: la caja conserva las mismas medidas y estados. */
+#metronet-panel-controles [data-elegir-herramienta="estaciones"],
+body.metronet-pagina-editor [data-elegir-estacion-teclado] { --herramienta-color: #ff9b90; }
+#metronet-panel-controles [data-elegir-herramienta="lineas"] { --herramienta-color: #c7a6ff; }
+#metronet-panel-controles [data-elegir-herramienta="conexiones"] { --herramienta-color: #63dbdb; }
+#metronet-panel-controles [data-elegir-herramienta="seleccion"] { --herramienta-color: #b8d4ed; }
+#metronet-panel-controles [data-elegir-herramienta="metros"] { --herramienta-color: #ffb66d; }
+#metronet-panel-controles [data-elegir-herramienta="escenarios"],
+body.metronet-pagina-editor [data-crear-escenario] { --herramienta-color: #ff91c1; }
+body.metronet-pagina-editor :is([data-guardar], [data-actualizar-escenario]) { --herramienta-color: var(--info-active); }
+body.metronet-pagina-editor [data-ir-simulacion] { --herramienta-color: var(--success); }
+#metronet-panel-controles [data-cancelar-herramienta] { --herramienta-color: var(--danger); }
+html:root body.metronet-pagina-editor :is([data-elegir-herramienta], [data-elegir-estacion-teclado],
+  [data-crear-escenario], [data-actualizar-escenario], [data-guardar], [data-ir-simulacion],
+  [data-cancelar-herramienta]).metronet-boton-icono {
+  --boton-fondo: var(--bg-secondary);
+  --boton-hover: var(--control-secundario-hover);
+  --boton-texto: var(--herramienta-color);
+}
+html:root body.metronet-pagina-editor #metronet-panel-controles
+  :is([data-crear-escenario], [data-actualizar-escenario], [data-guardar], [data-ir-simulacion]).metronet-boton-icono {
+  --boton-fondo: var(--bg-secondary);
+  --boton-hover: var(--control-secundario-hover);
+  --boton-texto: var(--herramienta-color);
+}
+body.metronet-pagina-editor :is([data-elegir-herramienta], [data-elegir-estacion-teclado],
+  [data-crear-escenario], [data-actualizar-escenario], [data-guardar], [data-ir-simulacion],
+  [data-cancelar-herramienta]).metronet-boton-icono > .metronet-icono {
+  color: var(--herramienta-color);
+}
+body.metronet-pagina-editor :is([data-elegir-herramienta], [data-elegir-estacion-teclado],
+  [data-crear-escenario], [data-actualizar-escenario], [data-guardar], [data-ir-simulacion],
+  [data-cancelar-herramienta]):disabled > .metronet-icono { color: var(--text-disabled); }
 .metronet-editor-red [hidden] { display: none !important; }
 .metronet-editor-acordeones { display: grid; gap: 7px; }
 .metronet-editor-acordeon { border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel-elevated); }
@@ -516,7 +551,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   .metronet-consigna__cabecera { align-items: start; }
   .metronet-consigna__estado { max-width: 100%; }
   .metronet-consigna__alternar { min-height: 36px; }
-  .metronet-consigna__titulo { font-size: 14px; }
+  .metronet-consigna__titulo { font-size: 15px; }
   .metronet-consigna__referencia { min-height: 40px; padding: 6px 8px; }
   .metronet-consigna__referencia span:last-child { font-size: 9px; }
 }
@@ -642,22 +677,21 @@ body .metronet-pantalla-editor #metronet-aplicacion {
 /* Las tareas permanecen a la vista; solo su lista se desplaza cuando crece. */
 body .metronet-pantalla-editor #metronet-aplicacion {
   grid-template-columns: minmax(0, 1fr) clamp(330px, 26vw, 380px);
-  grid-template-rows: minmax(0, 40%) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden]) {
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: 'mapa herramientas';
 }
 .metronet-consigna-externa.metronet-consigna {
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
-  max-height: none;
+  max-height: min(46svh, 460px);
   overflow: hidden;
 }
 .metronet-consigna__resumen {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 7px;
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
 }
 .metronet-consigna__resumen-activo {
@@ -671,6 +705,8 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
   -webkit-line-clamp: unset;
 }
 .metronet-consigna__lista-breve {
+  grid-auto-rows: max-content;
+  align-content: start;
   min-height: 0;
   max-height: none;
   overflow-y: auto;
@@ -680,7 +716,7 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
   scrollbar-width: thin;
 }
 .metronet-consigna__lista-breve:focus-visible { outline: 2px solid var(--info-active); outline-offset: -2px; }
-.metronet-consigna__lista-breve li { align-items: start; padding: 3px 0; }
+.metronet-consigna__lista-breve li { align-items: start; min-height: 0; padding: 6px 0; line-height: 1.45; }
 .metronet-consigna__lista-breve .metronet-consigna__texto-objetivo { overflow-wrap: anywhere; }
 
 /* El pie de proyecto se mantiene visible mientras se consultan herramientas. */
@@ -697,8 +733,32 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
   scrollbar-width: thin;
 }
 #metronet-panel-controles .metronet-panel-editor-cabecera { padding: 8px 12px; }
+#metronet-panel-controles .metronet-panel-editor-cabecera,
+.metronet-consigna-externa.metronet-consigna { border-left: var(--border-accent) solid var(--info-active); }
+#metronet-panel-controles .metronet-panel-editor-cabecera,
+.metronet-consigna-externa.metronet-consigna,
+#metronet-panel-controles .metronet-panel-editor-pie { padding-left: 12px; padding-right: 12px; }
 #metronet-panel-controles .metronet-panel-editor-sobretitulo { margin-bottom: 2px; }
-#metronet-panel-controles .metronet-panel-titulo { font-size: 17px; line-height: 1.2; }
+#metronet-panel-controles .metronet-panel-titulo { font-size: 15px; line-height: 1.25; }
+html:root body .metronet-consigna-externa .metronet-consigna__titulo,
+html:root body #metronet-panel-controles .metronet-panel-titulo,
+html:root body #metronet-panel-controles .metronet-editor-finalizar h3 {
+  --titulo-relleno: 0;
+  --titulo-marco: 0px;
+  --titulo-fondo: transparent;
+  --titulo-sombra: none;
+  --titulo-brillo: none;
+  --titulo-animacion: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: 700 15px/1.25 var(--font-tecnica);
+  letter-spacing: -.01em;
+  text-shadow: none;
+  animation: none;
+}
 #metronet-panel-controles .metronet-panel-editor-contenido { gap: 6px; padding: 8px 12px; }
 #metronet-panel-controles .metronet-panel-editor-pie {
   padding: 0 12px 10px;
@@ -711,6 +771,8 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
   padding-top: 9px;
   border-top: 0;
 }
+#metronet-panel-controles .metronet-editor-finalizar h3 { font-size: 15px; line-height: 1.25; }
+#metronet-panel-controles .metronet-editor-finalizar__acciones { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #metronet-panel-controles .metronet-editor-finalizar__ayuda { display: none; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones { justify-content: start; }
 @media (max-width: 920px) {
@@ -742,25 +804,99 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
     height: min(42svh, 340px);
     min-height: 210px;
   }
-  #metronet-panel-controles .metronet-panel-editor-pie {
-    position: fixed;
-    z-index: 40;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 5px 12px max(5px, env(safe-area-inset-bottom));
-    border-top: var(--border-width) solid var(--border-active);
-    pointer-events: none;
-  }
-  #metronet-panel-controles .metronet-editor-finalizar { padding: 0; }
-  #metronet-panel-controles .metronet-editor-finalizar h3,
+  #metronet-panel-controles .metronet-panel-editor-pie { position: static; padding: 10px 12px; border-top: var(--border-width) solid var(--border); }
+  #metronet-panel-controles .metronet-editor-finalizar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0; }
+  #metronet-panel-controles .metronet-editor-finalizar h3 { display: block; }
   #metronet-panel-controles .metronet-editor-finalizar__ayuda { display: none; }
-  #metronet-panel-controles .metronet-editor-finalizar__acciones { display: flex !important; justify-content: center; pointer-events: none; }
+  #metronet-panel-controles .metronet-editor-finalizar__acciones { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; pointer-events: auto; }
   #metronet-panel-controles .metronet-editor-finalizar__acciones > button {
-    flex: 0 0 44px;
-    width: 44px;
+    width: 100%;
     min-height: 44px;
     pointer-events: auto;
   }
-  body .metronet-pantalla-editor #metronet-aplicacion { padding-bottom: 86px; }
+  body .metronet-pantalla-editor #metronet-aplicacion { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+
+/* Los tres bloques del nivel comparten el mismo encabezado completo. */
+.metronet-consigna-externa.metronet-consigna { gap: 0; padding: 0; }
+html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
+  #metronet-panel-controles .metronet-panel-editor-cabecera,
+  #metronet-panel-controles .metronet-editor-finalizar__cabecera) {
+  box-sizing: border-box;
+  min-height: 38px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--info-active);
+  background: var(--panel-elevated);
+  box-shadow: var(--shadow-header);
+}
+.metronet-consigna-externa .metronet-consigna__resumen,
+.metronet-consigna-externa .metronet-consigna__contenido { padding: 10px 12px; }
+#metronet-panel-controles.metronet-panel-nivel :is([data-flujo-navegacion], .metronet-diseno-activo) { display: none; }
+#metronet-panel-controles .metronet-panel-editor-pie { border-top: 0; }
+#metronet-panel-controles .metronet-editor-finalizar { gap: 0; margin: 0; padding: 0; border: 0; }
+#metronet-panel-controles .metronet-editor-finalizar__cabecera { margin: 0 -12px 10px; }
+#metronet-panel-controles .metronet-editor-finalizar__acciones {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  width: auto;
+}
+#metronet-panel-controles .metronet-editor-finalizar__acciones > button {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+}
+
+@media (min-width: 921px) {
+  body .metronet-pantalla-editor #metronet-aplicacion {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .metronet-consigna-externa.metronet-consigna {
+    height: 100%;
+    max-height: none;
+  }
+  #metronet-panel-controles {
+    grid-template-rows: auto auto auto;
+    align-self: start;
+  }
+  #metronet-panel-controles .metronet-panel-editor-contenido {
+    overflow: visible;
+  }
+}
+
+/* Las acciones de la selección pertenecen a Edición de nivel. */
+#metronet-panel-controles .metronet-editor-seleccionado {
+  gap: 5px;
+  padding: 8px;
+  border-left-width: var(--border-width);
+  background: var(--panel-elevated);
+}
+#metronet-panel-controles .metronet-editor-seleccionado__titulo {
+  margin: 0 0 3px;
+  padding-bottom: 5px;
+  border-bottom: var(--border-width) solid var(--border);
+  color: var(--text-secondary);
+  font: 700 11px/1.3 var(--font-tecnica);
+}
+#metronet-panel-controles .metronet-editor-seleccionado__acciones { gap: 6px; }
+#metronet-panel-controles .metronet-editor-seleccionado__acciones > button {
+  box-sizing: border-box;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 5px;
+}
+#metronet-panel-controles .metronet-editor-seleccionado__acciones > .metronet-editor-seleccionado__editar {
+  border-color: var(--info-active);
+  color: var(--info-active);
+}
+#metronet-panel-controles .metronet-editor-finalizar__acciones {
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
 }

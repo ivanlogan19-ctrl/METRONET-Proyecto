@@ -1239,15 +1239,13 @@ export default class CapaPuntosInteres {
     }
 
     const zoom = Math.max(0.01, Number(camara.zoom) || 1);
-    const vistaCamara = camara.worldView;
-    const ancho = Number.isFinite(vistaCamara?.width)
-      ? vistaCamara.width
-      : camara.width / zoom;
-    const alto = Number.isFinite(vistaCamara?.height)
-      ? vistaCamara.height
-      : camara.height / zoom;
-    const x = Number.isFinite(vistaCamara?.x) ? vistaCamara.x : camara.scrollX;
-    const y = Number.isFinite(vistaCamara?.y) ? vistaCamara.y : camara.scrollY;
+    const rotacion = camara.rotation || 0;
+    const coseno = Math.abs(Math.cos(rotacion));
+    const seno = Math.abs(Math.sin(rotacion));
+    const ancho = (camara.width * coseno + camara.height * seno) / zoom;
+    const alto = (camara.width * seno + camara.height * coseno) / zoom;
+    const x = camara.scrollX + camara.width / 2 - ancho / 2;
+    const y = camara.scrollY + camara.height / 2 - alto / 2;
     const margenX = Math.max(MARGEN_VIEWPORT_MINIMO, ancho * MARGEN_VIEWPORT_RELATIVO);
     const margenY = Math.max(MARGEN_VIEWPORT_MINIMO, alto * MARGEN_VIEWPORT_RELATIVO);
 
@@ -1261,6 +1259,7 @@ export default class CapaPuntosInteres {
       ancho,
       alto,
       zoom,
+      rotacion,
     };
   }
 
@@ -1270,6 +1269,10 @@ export default class CapaPuntosInteres {
     }
 
     if (Math.abs(vista.zoom - this.vistaAnterior.zoom) >= DIFERENCIA_ZOOM_SIGNIFICATIVA) {
+      return true;
+    }
+
+    if (Math.abs(vista.rotacion - (this.vistaAnterior.rotacion ?? 0)) > 0.01) {
       return true;
     }
 

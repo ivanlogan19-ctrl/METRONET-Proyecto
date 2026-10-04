@@ -1,6 +1,7 @@
 import { CONFIGURACION_TRANSICION, MENSAJES_TRANSICION } from './ConfiguracionTransicion.js';
 import { crearPresentacionMusicalNivel } from './PresentacionMusicalNivel.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
+import { obtenerContenidoNivel } from './ContenidoPreparacion.js';
 import './victoria-nivel.css';
 
 let victoriaActiva = null;
@@ -56,7 +57,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   progreso.append(texto('span', final ? 'RECORRIDO FINAL' : 'PREPARANDO SIGUIENTE ESTACIÓN'), porcentaje);
   const destino = texto('div', '', 'metronet-victoria__destino');
   destino.append(texto('p', siguiente ? `Próxima estación · Nivel ${siguiente.numero}` : final ? 'Llegaste al final de la línea' : 'Elegí tu próximo recorrido'),
-    texto('p', siguiente?.objetivo || siguiente?.nombre || 'Tu red forma parte del recorrido de METRONET.'));
+    texto('p', siguiente ? (siguiente.objetivo || obtenerContenidoNivel(siguiente.numero)?.objetivo || 'La consigna del próximo nivel estará disponible al entrar.') : 'Tu red forma parte del recorrido de METRONET.'));
   const puedeJugar = Boolean(siguiente || modoLibre);
   const estado = texto('p', MENSAJES_TRANSICION.entrada, 'metronet-victoria__estado');
   estado.setAttribute('role', 'status');

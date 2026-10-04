@@ -11,8 +11,8 @@ import { obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import './ayuda-contextual.css';
 import '../mapa/estilos/referencias-poi.css';
 
-const CONTROLES_EDITOR = 'Arrastrá para mover el mapa. Zoom: rueda, botones + − o pinza de dos dedos. Clic: acción de la herramienta activa. Para colocar estaciones con teclado: enfocá el mapa, mové el cursor con las flechas y pulsá Enter. Escape termina la herramienta.';
-const CONTROLES_SIMULACION = 'Arrastrá para mover el mapa. Zoom: rueda, botones + − o pinza de dos dedos. Seleccioná una estación o un metro para consultar su información.';
+const CONTROLES_EDITOR = 'Arrastrá para mover el mapa. Clic: acción de la herramienta activa. Para colocar estaciones con teclado: enfocá el mapa, mové el cursor con las flechas y pulsá Enter. Escape termina la herramienta.';
+const CONTROLES_SIMULACION = 'Arrastrá para mover el mapa. Seleccioná una estación o un metro para consultar su información.';
 const CONTROLES_BUSQUEDA = ' La estrella abre las referencias. La lupa busca por nombre, tipo o barrio. Cerrar la búsqueda conserva el punto localizado; borrar el texto retira su marca.';
 let secuenciaAyuda = 0;
 
@@ -22,20 +22,20 @@ export default class PanelAyudaContextual {
     this.contenedor = contenedor;
     contenedor.classList.add('metronet-accesos-ayuda');
     this.integrado = controles;
-    this.vista = null;
+    this.vista = controles ? 'musica' : null;
     this.elemento = document.createElement('details');
     this.elemento.name = 'metronet-asistencia';
     this.elemento.className = 'metronet-hud';
-    this.elemento.setAttribute('aria-label', 'Controles del mapa, pista y música');
+    this.elemento.setAttribute('aria-label', controles ? 'Música' : 'Controles del mapa, pista y música');
     const id = `metronet-hud-${++secuenciaAyuda}`;
     this.elemento.innerHTML = `<summary></summary><div class="metronet-hud__panel"><header><h2 data-hud-titulo>Controles del mapa</h2><button type="button" data-hud-cerrar></button></header><div class="metronet-hud__opciones" role="group" aria-label="Opciones del mapa"></div><section class="metronet-hud__contenido" id="${id}"><div data-hud-tecnico><p data-hud-controles></p><div data-hud-teclado></div></div><section class="metronet-assist" hidden><div data-assist-mensaje aria-live="polite" aria-atomic="true" tabindex="0" aria-label="Orientación actual"></div><button type="button" data-assist-pista>Más pista</button></section><div data-hud-musica hidden></div></section></div>`;
     for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) this.elemento.querySelector('.metronet-hud__panel').addEventListener(tipo, e => e.stopPropagation());
     this.acceso = this.elemento.querySelector('summary');
-    configurarBotonIcono(this.acceso, 'controles', 'Controles');
+    configurarBotonIcono(this.acceso, controles ? 'musica' : 'controles', controles ? 'Música' : 'Controles');
     this.acceso.setAttribute('aria-controls', id);
     this.acceso.setAttribute('aria-expanded', 'false');
     const cerrar = this.elemento.querySelector('[data-hud-cerrar]');
-    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar controles');
+    configurarBotonIcono(cerrar, 'cancelar', controles ? 'Cerrar música' : 'Cerrar controles');
     cerrar.addEventListener('click', () => this.cerrar(true));
     this.opciones = new Map();
     this.tutorial = new PanelTutorialInicial(contenedor);
@@ -43,7 +43,7 @@ export default class PanelAyudaContextual {
     this.indicaciones.dataset.indicacionesEscenario = '';
     this.indicaciones.innerHTML = '<summary>Indicaciones del nivel</summary><p></p><div data-estadisticas-nivel></div>';
     this.elemento.querySelector('.metronet-assist').append(this.indicaciones);
-    for (const [vista, etiqueta] of [['controles', 'Controles del mapa'], ['pista', 'Pista'], ['musica', 'Música']]) {
+    for (const [vista, etiqueta] of (controles ? [] : [['controles', 'Controles del mapa'], ['pista', 'Pista'], ['musica', 'Música']])) {
       const boton = document.createElement('button');
       boton.type = 'button';
       boton.dataset.hudVista = vista;
@@ -54,15 +54,21 @@ export default class PanelAyudaContextual {
     }
     this.botonHistoria = document.createElement('button');
     this.botonHistoria.type = 'button';
-    this.botonHistoria.textContent = 'Aprender';
-    this.botonHistoria.setAttribute('aria-label', 'Tarjeta educativa del nivel');
+    if (controles) {
+      configurarBotonIcono(this.botonHistoria, 'tutorial', 'Aprender');
+      this.botonHistoria.classList.add('metronet-aprender-acceso');
+    } else {
+      this.botonHistoria.textContent = 'Aprender';
+      this.botonHistoria.setAttribute('aria-label', 'Tarjeta educativa del nivel');
+    }
     this.botonHistoria.hidden = true;
     this.botonHistoria.addEventListener('click', () => {
       const numero = this.numeroEducativo;
       this.cerrar();
       if (numero) abrirTarjetaEducativaDesdeAyuda(numero, this.acceso);
     });
-    this.elemento.querySelector('.metronet-hud__opciones').append(this.botonHistoria);
+    if (controles) contenedor.insertBefore(this.botonHistoria, this.tutorial.elemento);
+    else this.elemento.querySelector('.metronet-hud__opciones').append(this.botonHistoria);
     this.mensaje = this.elemento.querySelector('[data-assist-mensaje]');
     this.boton = this.elemento.querySelector('[data-assist-pista]');
     this.boton.addEventListener('click', () => { this.ampliada = !this.ampliada; this.renderizar(); });
@@ -95,7 +101,7 @@ export default class PanelAyudaContextual {
   mostrarVista() {
     if (this.elemento.querySelector('.metronet-glosario-contextual')) cerrarDefinicion();
     for (const [vista, boton] of this.opciones) boton.setAttribute('aria-pressed', String(vista === this.vista));
-    this.elemento.querySelector('[data-hud-titulo]').textContent = this.opciones.get(this.vista)?.getAttribute('aria-label') ?? 'Ayuda del mapa';
+    this.elemento.querySelector('[data-hud-titulo]').textContent = this.opciones.get(this.vista)?.getAttribute('aria-label') ?? (this.integrado ? 'Música' : 'Ayuda del mapa');
     this.elemento.querySelector('[data-hud-tecnico]').hidden = this.vista !== 'controles';
     this.elemento.querySelector('.metronet-assist').hidden = this.vista !== 'pista';
     this.elemento.querySelector('[data-hud-musica]').hidden = this.vista !== 'musica';
@@ -177,6 +183,7 @@ export default class PanelAyudaContextual {
     this.liberarPosicion();
     this.musica.eliminar();
     this.tutorial.eliminar();
+    this.botonHistoria.remove();
     this.elemento.remove();
   }
 }

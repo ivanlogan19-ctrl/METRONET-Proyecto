@@ -39,7 +39,124 @@
   cursor: default;
 }
 
+.metronet-control-zoom__brujula {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 15;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  box-shadow: var(--shadow-floating);
+}
+.metronet-control-zoom__panel-mapa {
+  --mando-mapa: 38px;
+  --separacion-mapa: 2px;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 15;
+  display: grid;
+  grid-template-columns: var(--mando-mapa) calc(2 * var(--mando-mapa) + var(--separacion-mapa));
+  gap: var(--separacion-mapa);
+  padding: 4px;
+  border: var(--border-width) solid var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow-floating);
+}
+.metronet-control-zoom__panel-mapa .metronet-control-zoom {
+  display: grid;
+  grid-template-rows: repeat(3, var(--mando-mapa));
+  gap: var(--separacion-mapa);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.metronet-control-zoom__panel-mapa .metronet-control-zoom__brujula {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(2, var(--mando-mapa));
+  grid-template-rows: calc(2 * var(--mando-mapa) + var(--separacion-mapa)) var(--mando-mapa);
+  gap: var(--separacion-mapa);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+html:root body .metronet-control-zoom__panel-mapa .metronet-control-zoom-boton {
+  width: var(--mando-mapa);
+  min-width: var(--mando-mapa);
+  height: var(--mando-mapa);
+  min-height: var(--mando-mapa);
+  padding: 0;
+}
+.metronet-control-zoom__panel-mapa .metronet-control-zoom__brujula > :first-child { grid-column: 1; grid-row: 2; }
+.metronet-control-zoom__panel-mapa .metronet-control-zoom__brujula > :last-child { grid-column: 2; grid-row: 2; }
+html:root body .metronet-control-zoom__panel-mapa .metronet-control-zoom__norte {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: calc(2 * var(--mando-mapa) + var(--separacion-mapa));
+  height: calc(2 * var(--mando-mapa) + var(--separacion-mapa));
+}
+.metronet-control-zoom__panel-mapa .metronet-control-zoom__rosa { width: 42px; height: 42px; }
+.metronet-control-zoom__panel-mapa .metronet-control-zoom__letra-norte { top: -9px; font-size: 11px; }
+.metronet-control-zoom__panel-mapa .metronet-control-zoom__aguja { inset: 7px; }
+.metronet-control-zoom__panel-mapa[hidden] { display: none; }
+.metronet-control-zoom__norte { position: relative; }
+.metronet-control-zoom__rosa {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent 47%, currentColor 49%, currentColor 51%, transparent 53%),
+    linear-gradient(transparent 47%, currentColor 49%, currentColor 51%, transparent 53%);
+}
+.metronet-control-zoom__letra-norte {
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 50%;
+  padding: 0 2px;
+  background: var(--panel);
+  font: 800 9px/1 var(--font-tecnica);
+  transform: translateX(-50%);
+}
+.metronet-control-zoom__aguja {
+  position: absolute;
+  inset: 3px;
+  transform: rotate(var(--giro-brujula, 0deg));
+}
+.metronet-control-zoom__aguja::before,
+.metronet-control-zoom__aguja::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.metronet-control-zoom__aguja::before {
+  top: 0;
+  border-right: 4px solid transparent;
+  border-bottom: 8px solid var(--accent, #60b7ff);
+  border-left: 4px solid transparent;
+  transform: translateX(-50%) rotate(180deg);
+}
+.metronet-control-zoom__aguja::after {
+  bottom: 1px;
+  width: 2px;
+  height: 6px;
+  background: currentColor;
+}
+
 @media (max-width: 620px) {
   .metronet-control-zoom--superpuesto { right: 10px; bottom: 10px; }
   .metronet-control-zoom-boton { width: 38px; height: 38px; }
+  .metronet-control-zoom__brujula { right: 10px; bottom: 10px; }
+  .metronet-control-zoom__panel-mapa { --mando-mapa: 38px; right: 10px; bottom: 10px; }
+  .metronet-control-zoom__panel-mapa .metronet-control-zoom__rosa { width: 42px; height: 42px; }
 }

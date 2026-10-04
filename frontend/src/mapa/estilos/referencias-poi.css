@@ -61,6 +61,11 @@ html:root body :is(.metronet-poi__panel,.metronet-hud__panel) header h2 { font-s
 @media(prefers-reduced-motion:reduce) { .metronet-poi *, .metronet-hud * { animation:none !important; transition:none !important; } }
 
 .metronet-poi__categorias .metronet-icono { color:var(--referencia-color); }
+html:root body .metronet-poi > summary.metronet-boton-icono {
+  --boton-texto:var(--warning);
+  color:var(--warning);
+}
+.metronet-poi > summary.metronet-boton-icono > .metronet-icono { color:var(--warning); }
 
 html:root body .metronet-poi__zoom .metronet-control-zoom-boton { width:44px; min-width:44px; height:44px; min-height:44px; padding:0; }
 .metronet-capas-activas span { border:1px solid var(--referencia-color); box-sizing:border-box; }

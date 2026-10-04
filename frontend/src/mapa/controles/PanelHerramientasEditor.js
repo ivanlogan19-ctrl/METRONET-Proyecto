@@ -1,11 +1,11 @@
 import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 const HERRAMIENTAS = [
-  ['estaciones', 'Estación', 'Construcción', 'Hacé clic en el mapa para colocar estaciones. Arrastrá para moverlo; Escape termina la herramienta.'],
-  ['lineas', 'Línea', 'Construcción', 'Elegí dos estaciones para crear una línea. El nombre se asigna automáticamente.'],
-  ['conexiones', 'Conexión', 'Construcción', 'Elegí la línea activa y dos estaciones para conectar. Después podés seguir extendiendo el recorrido.'],
-  ['seleccion', 'Seleccionar', 'Edición', 'Seleccioná un elemento del mapa para consultar sus acciones.'],
-  ['metros', 'Metros', 'Unidades', 'Hacé clic sobre una vía para asignar un metro. Sus parámetros se editan después.'],
-  ['escenarios', 'Actividad propia', 'Proyecto', 'Configurá el nombre y la dificultad de una actividad propia.'],
+  ['estaciones', 'Estación', 'Construcción'],
+  ['lineas', 'Línea', 'Construcción'],
+  ['conexiones', 'Conexión', 'Construcción'],
+  ['seleccion', 'Seleccionar', 'Edición'],
+  ['metros', 'Metros', 'Unidades'],
+  ['escenarios', 'Actividad propia', 'Proyecto'],
 ];
 
 // Solo organiza controles y estados visuales. Las operaciones siguen en EditorRedMetro.
@@ -46,15 +46,12 @@ export default class PanelHerramientasEditor {
       else if (grupos.has(clave)) panel.append(grupos.get(clave));
       this.paneles.set(clave, panel);
     }
-    this.ayuda = document.createElement('p');
-    this.ayuda.className = 'metronet-herramientas__ayuda';
-    this.ayuda.setAttribute('role', 'status');
     this.cancelar = document.createElement('button');
     this.cancelar.type = 'button';
     configurarBotonIcono(this.cancelar, 'cancelar', 'Cancelar operación');
     this.cancelar.dataset.cancelarHerramienta = '';
     this.cancelar.addEventListener('click', () => this.seleccionar('seleccion'));
-    contenedor.append(barra, this.ayuda, ...this.paneles.values(), this.cancelar);
+    contenedor.append(barra, ...this.paneles.values(), this.cancelar);
     this.seleccionar('seleccion', false);
     this.actualizarOperacion('normal');
   }
@@ -77,14 +74,7 @@ export default class PanelHerramientasEditor {
     if (this.botones.get(this.activa).disabled) this.seleccionar('seleccion');
   }
 
-  actualizarOperacion(modo, estaciones = []) {
-    const mensajes = {
-      crearEstacion: 'Clic para colocar estaciones; arrastrá para mover el mapa.',
-      reubicarEstacion: 'Seleccioná la nueva posición de la estación en el mapa.',
-      crearLinea: `Nueva línea: ${estaciones.length ? `origen ${estaciones[0]}. Elegí el destino.` : 'elegí su primera estación.'}`,
-      crearTramo: `Conexión: ${estaciones.length ? `desde ${estaciones[0]}. Elegí el destino.` : 'elegí una estación de origen.'}`,
-    };
-    this.ayuda.textContent = mensajes[modo] ?? HERRAMIENTAS.find(([clave]) => clave === this.activa)[3];
+  actualizarOperacion(modo) {
     this.cancelar.hidden = modo === 'normal';
     this.contenedor.classList.toggle('operacion-en-curso', modo !== 'normal');
   }

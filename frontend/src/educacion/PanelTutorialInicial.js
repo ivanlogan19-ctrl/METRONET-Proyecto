@@ -19,7 +19,7 @@ export default class PanelTutorialInicial {
     this.elemento.setAttribute('aria-label', 'Tutorial de herramientas');
     this.elemento.innerHTML = '<summary></summary><section class="metronet-tutorial__panel"><header><h2>Tutorial</h2><button type="button" data-tutorial-cerrar></button></header><div data-tutorial-contenido aria-live="polite"></div></section>';
     this.acceso = this.elemento.querySelector('summary');
-    configurarBotonIcono(this.acceso, 'tutorial', 'Tutorial');
+    configurarBotonIcono(this.acceso, 'tutorialPizarra', 'Tutorial');
     const panel = this.elemento.querySelector('section');
     panel.id = `metronet-tutorial-${++secuenciaTutorial}`;
     this.acceso.setAttribute('aria-controls', panel.id);

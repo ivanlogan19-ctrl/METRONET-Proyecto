@@ -64,6 +64,11 @@ export default class ControlZoom {
 
     this.botonRestaurar = null;
 
+    this.botonNorte = null;
+
+    this.brujula = null;
+    this.panelMapa = null;
+
     this.punteros = new Map();
 
     this.arrastre = null;
@@ -170,7 +175,60 @@ export default class ControlZoom {
 
     this.contenedor.appendChild(this.botonRestaurar);
 
-    this.contenedorPadre.appendChild(this.contenedor);
+    if (this.escena?.contenedorEditorRed) {
+      this.brujula = document.createElement('div');
+      this.brujula.className = 'metronet-control-zoom__brujula';
+      const botonIzquierda = document.createElement('button');
+      botonIzquierda.type = 'button';
+      botonIzquierda.className = 'metronet-control-zoom-boton';
+      botonIzquierda.textContent = '↶';
+      botonIzquierda.setAttribute('aria-label', 'Girar mapa a la izquierda');
+      botonIzquierda.addEventListener('click', () => this.girarMapa(-Math.PI / 12));
+      this.botonNorte = document.createElement('button');
+      this.botonNorte.type = 'button';
+      this.botonNorte.className = 'metronet-control-zoom-boton metronet-control-zoom__norte';
+      const rosa = document.createElement('span');
+      rosa.className = 'metronet-control-zoom__rosa';
+      rosa.setAttribute('aria-hidden', 'true');
+      const letraNorte = document.createElement('span');
+      letraNorte.className = 'metronet-control-zoom__letra-norte';
+      letraNorte.textContent = 'N';
+      const aguja = document.createElement('span');
+      aguja.className = 'metronet-control-zoom__aguja';
+      rosa.append(letraNorte, aguja);
+      this.botonNorte.append(rosa);
+      this.botonNorte.setAttribute('aria-label', 'Volver al norte arriba');
+      this.botonNorte.addEventListener('click', () => this.girarMapa(0, true));
+      const botonDerecha = document.createElement('button');
+      botonDerecha.type = 'button';
+      botonDerecha.className = 'metronet-control-zoom-boton';
+      botonDerecha.textContent = '↷';
+      botonDerecha.setAttribute('aria-label', 'Girar mapa a la derecha');
+      botonDerecha.addEventListener('click', () => this.girarMapa(Math.PI / 12));
+      this.brujula.append(botonIzquierda, this.botonNorte, botonDerecha);
+      this.panelMapa = document.createElement('div');
+      this.panelMapa.className = 'metronet-control-zoom__panel-mapa';
+      this.panelMapa.setAttribute('role', 'group');
+      this.panelMapa.setAttribute('aria-label', 'Zoom y orientación del mapa');
+      this.panelMapa.append(this.contenedor, this.brujula);
+      (this.escena.contenedorMapa ?? this.contenedorPadre).append(this.panelMapa);
+    } else {
+      this.contenedorPadre.appendChild(this.contenedor);
+    }
+  }
+
+  girarMapa(angulo, absoluto = false) {
+    const camara = this.obtenerCamara();
+    if (!camara) return;
+    const nuevaRotacion = absoluto ? 0 : camara.rotation + angulo;
+    camara.setRotation(Math.atan2(Math.sin(nuevaRotacion), Math.cos(nuevaRotacion)));
+    this.actualizarLimitesCamara();
+    this.restringirCamara();
+    if (this.botonNorte) {
+      const grados = Math.round(camara.rotation * 180 / Math.PI);
+      this.botonNorte.style.setProperty('--giro-brujula', `${-grados}deg`);
+      this.botonNorte.title = grados ? `Norte: ${grados}° de giro; tocar para orientar` : 'Norte arriba';
+    }
   }
 
   obtenerCamara() {
@@ -240,15 +298,19 @@ export default class ControlZoom {
       return;
     }
 
-    const puntoAntes = camara.getWorldPoint(xPantalla, yPantalla);
+    const zoomAnterior = camara.zoom;
+    const zoomNuevo = this.normalizar(zoom);
+    const centroX = camara.x + camara.width * camara.originX;
+    const centroY = camara.y + camara.height * camara.originY;
+    const deltaX = xPantalla - centroX;
+    const deltaY = yPantalla - centroY;
+    const coseno = Math.cos(camara.rotation);
+    const seno = Math.sin(camara.rotation);
+    const diferenciaEscala = 1 / zoomAnterior - 1 / zoomNuevo;
 
-    camara.setZoom(this.normalizar(zoom));
-
-    const puntoDespues = camara.getWorldPoint(xPantalla, yPantalla);
-
-    camara.scrollX += puntoAntes.x - puntoDespues.x;
-
-    camara.scrollY += puntoAntes.y - puntoDespues.y;
+    camara.setZoom(zoomNuevo);
+    camara.scrollX += (deltaX * coseno + deltaY * seno) * diferenciaEscala;
+    camara.scrollY += (deltaY * coseno - deltaX * seno) * diferenciaEscala;
 
     this.zoomActual = camara.zoom;
 
@@ -390,7 +452,12 @@ export default class ControlZoom {
     const alto = Math.max(altoMinimo, limites.maximoY - limites.minimoY);
     const anchoDisponible = Math.max(160, this.escena.scale.width - margen * 2);
     const altoDisponible = Math.max(140, this.escena.scale.height - margen * 2);
-    const zoom = this.normalizar(Math.min(anchoDisponible / ancho, altoDisponible / alto));
+    const rotacion = this.obtenerCamara()?.rotation ?? 0;
+    const coseno = Math.abs(Math.cos(rotacion));
+    const seno = Math.abs(Math.sin(rotacion));
+    const anchoGirado = ancho * coseno + alto * seno;
+    const altoGirado = ancho * seno + alto * coseno;
+    const zoom = this.normalizar(Math.min(anchoDisponible / anchoGirado, altoDisponible / altoGirado));
     const esEnfoquePuntual = limites.maximoX - limites.minimoX < 1 && limites.maximoY - limites.minimoY < 1;
     return esEnfoquePuntual ? Math.min(zoom, this.zoomMaximoEnfoquePuntual) : zoom;
   }
@@ -584,13 +651,11 @@ export default class ControlZoom {
       maximoY: limitesMapa.maximoY + margen,
     };
 
-    camara.setBounds(
+    if (Math.abs(camara.rotation) > 0.0001) camara.removeBounds();
+    else camara.setBounds(
       this.limitesCamara.minimoX,
-
       this.limitesCamara.minimoY,
-
       this.limitesCamara.maximoX - this.limitesCamara.minimoX,
-
       this.limitesCamara.maximoY - this.limitesCamara.minimoY,
     );
   }
@@ -604,8 +669,24 @@ export default class ControlZoom {
 
     // Los límites nativos incluyen el origen y el zoom de la cámara.
     // Recortar scroll contra coordenadas del mapa desplazaba la vista al redimensionar.
-    camara.scrollX = camara.clampX(camara.scrollX);
-    camara.scrollY = camara.clampY(camara.scrollY);
+    if (Math.abs(camara.rotation) <= 0.0001) {
+      camara.scrollX = camara.clampX(camara.scrollX);
+      camara.scrollY = camara.clampY(camara.scrollY);
+      return;
+    }
+    const coseno = Math.abs(Math.cos(camara.rotation));
+    const seno = Math.abs(Math.sin(camara.rotation));
+    const medioAncho = (camara.width * coseno + camara.height * seno) / (2 * camara.zoom);
+    const medioAlto = (camara.width * seno + camara.height * coseno) / (2 * camara.zoom);
+    const limitarCentro = (centro, minimo, maximo, semiextension) => {
+      const desde = minimo + semiextension;
+      const hasta = maximo - semiextension;
+      return desde > hasta ? (minimo + maximo) / 2 : Math.max(desde, Math.min(hasta, centro));
+    };
+    camara.scrollX = limitarCentro(camara.scrollX + camara.width / 2,
+      this.limitesCamara.minimoX, this.limitesCamara.maximoX, medioAncho) - camara.width / 2;
+    camara.scrollY = limitarCentro(camara.scrollY + camara.height / 2,
+      this.limitesCamara.minimoY, this.limitesCamara.maximoY, medioAlto) - camara.height / 2;
   }
 
   marcarVistaManual() {
@@ -842,9 +923,12 @@ export default class ControlZoom {
       return;
     }
 
-    camara.scrollX -= (posicion.x - this.arrastre.x) / camara.zoom;
-
-    camara.scrollY -= (posicion.y - this.arrastre.y) / camara.zoom;
+    const deltaX = posicion.x - this.arrastre.x;
+    const deltaY = posicion.y - this.arrastre.y;
+    const coseno = Math.cos(camara.rotation);
+    const seno = Math.sin(camara.rotation);
+    camara.scrollX -= (deltaX * coseno + deltaY * seno) / camara.zoom;
+    camara.scrollY -= (deltaY * coseno - deltaX * seno) / camara.zoom;
 
     this.arrastre = { ...this.arrastre, ...posicion };
 
@@ -928,15 +1012,19 @@ export default class ControlZoom {
   }
 
   mostrar() {
+    if (this.panelMapa) this.panelMapa.hidden = false;
     if (this.contenedor) {
       this.contenedor.style.display = 'flex';
     }
+    if (this.brujula) this.brujula.style.display = 'flex';
   }
 
   ocultar() {
+    if (this.panelMapa) this.panelMapa.hidden = true;
     if (this.contenedor) {
       this.contenedor.style.display = 'none';
     }
+    if (this.brujula) this.brujula.style.display = 'none';
   }
 
   eliminar() {
@@ -969,6 +1057,11 @@ export default class ControlZoom {
     if (this.contenedor) {
       this.contenedor.remove();
     }
+
+    this.brujula?.remove();
+    this.brujula = null;
+    this.panelMapa?.remove();
+    this.panelMapa = null;
 
     this.contenedor = null;
 

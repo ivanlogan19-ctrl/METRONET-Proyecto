@@ -1,3 +1,10 @@
+html:root body .metronet-accesos-ayuda button.metronet-aprender-acceso.metronet-boton-icono {
+  --boton-texto: var(--info-active);
+  color: var(--info-active);
+  border-color: var(--info-active);
+  background: var(--panel-elevated);
+}
+
 .metronet-assist {
   min-width: 0;
   padding: 10px 12px;

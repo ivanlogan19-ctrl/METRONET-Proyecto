@@ -144,7 +144,7 @@ export default class EditorRedMetro {
     botonActualizarEscenario?.classList.add('metronet-accion-advertencia');
     const finalizacion = document.createElement('section');
     finalizacion.className = 'metronet-editor-finalizar';
-    finalizacion.innerHTML = '<h3>Proyecto</h3>';
+    finalizacion.innerHTML = '<header class="metronet-editor-finalizar__cabecera"><h3>Acciones</h3></header>';
     if (accionesFinales) {
       accionesFinales.classList.add('metronet-editor-finalizar__acciones');
       this.obtener('[data-guardar]')?.classList.add('metronet-accion-advertencia');
@@ -469,10 +469,11 @@ export default class EditorRedMetro {
     this.renderizarListaLineas(this.disenoActual?.lineas ?? []);
     this.renderizarListaUnidades(this.disenoActual?.unidadesMetro ?? []);
     panel.hidden = false;
-    panel.innerHTML = `<span class="metronet-editor-seleccionado__tipo">${etiqueta}</span><strong>${this.escapar(nombre)}</strong><span>${tipo === 'tramo' ? this.escapar(valor.nombreLinea) : ''}</span><div>${acciones}<button data-quitar-seleccion type="button">Quitar selección</button></div>`;
+    panel.innerHTML = `${acciones ? '<h3 class="metronet-editor-seleccionado__titulo">Editar elemento</h3>' : ''}<span class="metronet-editor-seleccionado__tipo">${etiqueta}</span><strong>${this.escapar(nombre)}</strong><span>${tipo === 'tramo' ? this.escapar(valor.nombreLinea) : ''}</span><div class="metronet-editor-seleccionado__acciones">${acciones}<button data-quitar-seleccion type="button">Quitar selección</button></div>`;
     panel.querySelectorAll('button').forEach(boton => {
       const clave = Object.keys(boton.dataset)[0];
       configurarBotonIcono(boton, clave?.startsWith('eliminar') ? 'eliminar' : clave === 'reubicarEstacion' ? 'mover' : clave === 'quitarSeleccion' ? 'cancelar' : 'editar', boton.textContent + ' ' + etiqueta.toLowerCase());
+      if (clave?.startsWith('editar')) boton.classList.add('metronet-editor-seleccionado__editar');
       if (clave?.startsWith('eliminar')) boton.classList.add('metronet-accion-peligrosa');
     });
   }
@@ -597,13 +598,7 @@ export default class EditorRedMetro {
     const lista = this.obtener('[data-lista-lineas]');
     if (!lista) return;
     lista.replaceChildren();
-    if (!lineas.length) {
-      const vacio = document.createElement('p');
-      vacio.className = 'metronet-editor-lista-vacia';
-      vacio.textContent = 'Todavía no hay líneas creadas.';
-      lista.append(vacio);
-      return;
-    }
+    if (!lineas.length) return;
     lineas.forEach((linea) => {
       const boton = document.createElement('button');
       boton.type = 'button';
@@ -631,13 +626,7 @@ export default class EditorRedMetro {
     const lista = this.obtener('[data-lista-metros]');
     if (!lista) return;
     lista.replaceChildren();
-    if (!unidades.length) {
-      const vacio = document.createElement('p');
-      vacio.className = 'metronet-editor-lista-vacia';
-      vacio.textContent = 'Agregá una unidad cuando la red esté construida.';
-      lista.append(vacio);
-      return;
-    }
+    if (!unidades.length) return;
     unidades.forEach((unidad) => {
       const boton = document.createElement('button');
       boton.type = 'button';
@@ -689,6 +678,13 @@ export default class EditorRedMetro {
   aplicarHerramientas() {
     const herramientas = this.escenarioJuegoActual?.herramientasHabilitadas ?? { estaciones: true, lineas: true, conexiones: true, metros: true, escenarios: true };
     const esEscenarioProgresivo = this.esEscenarioProgresivo();
+    const tituloEditor = document.querySelector('[data-titulo-editor]');
+    if (tituloEditor) tituloEditor.textContent = esEscenarioProgresivo ? 'Edición de nivel' : 'Edición de red';
+    const panelEditor = document.querySelector('#metronet-panel-controles');
+    panelEditor?.setAttribute('aria-label', tituloEditor?.textContent ?? 'Edición de red');
+    panelEditor?.classList.toggle('metronet-panel-nivel', esEscenarioProgresivo);
+    const tituloAcciones = this.contenedorPieEditor?.querySelector('.metronet-editor-finalizar h3');
+    if (tituloAcciones) tituloAcciones.textContent = esEscenarioProgresivo ? 'Acciones de nivel' : 'Acciones';
     this.panelHerramientas?.actualizarDisponibilidad(herramientas, esEscenarioProgresivo);
     const consigna = this.obtenerContenedorConsigna();
     consigna.hidden = !this.escenarioJuegoActual;
@@ -767,10 +763,8 @@ export default class EditorRedMetro {
     const consignaActual = this.consignaActual;
     const detalleDisponible = this.estadoConsigna === 'disponible' && Boolean(consignaActual);
     const condiciones = detalleDisponible ? consignaActual.condiciones : [];
-    const porcentaje = this.normalizarProgresoConsigna(detalleDisponible ? consignaActual.progreso : escenario.progreso);
-    const objetivo = String(escenario.objetivo ?? '').trim();
-    const instrucciones = String(escenario.instrucciones ?? '').trim();
-    const descripcion = objetivo || instrucciones || 'Sin objetivo definido para este nivel.';
+    const referencias = detalleDisponible ? this.obtenerReferenciasObjetivoConsigna() : [];
+    const esNivel = Number.isInteger(escenario?.numero);
 
     consigna.hidden = false;
     consigna.classList.toggle('es-compacta', this.consignaCompacta);
@@ -782,27 +776,32 @@ export default class EditorRedMetro {
     contextoGrupo.className = 'metronet-consigna__contexto-grupo';
     const contexto = document.createElement('p');
     contexto.className = 'metronet-consigna__contexto';
-    contexto.textContent = this.obtenerContextoConsigna(escenario);
+    contexto.textContent = esNivel ? '' : this.obtenerContextoConsigna(escenario);
+    contexto.hidden = !contexto.textContent;
     const estado = document.createElement('span');
     estado.className = 'metronet-consigna__estado';
     estado.textContent = this.obtenerEstadoConsigna(escenario, consignaActual);
     estado.classList.toggle('es-cargando', this.estadoConsigna === 'cargando');
-    contextoGrupo.append(contexto, estado);
+    if (!esNivel) contextoGrupo.append(contexto, estado);
     const botonAlternar = document.createElement('button');
     botonAlternar.type = 'button';
     botonAlternar.className = 'metronet-consigna__alternar metronet-control-panel';
     botonAlternar.dataset.alternarConsigna = '';
+    botonAlternar.hidden = !referencias.length;
     botonAlternar.setAttribute('aria-expanded', String(!this.consignaCompacta));
-    configurarBotonIcono(botonAlternar, this.consignaCompacta ? 'desplegar' : 'plegar', this.consignaCompacta ? 'Más información del nivel' : 'Ocultar información del nivel');
+    configurarBotonIcono(botonAlternar, this.consignaCompacta ? 'desplegar' : 'plegar', this.consignaCompacta ? 'Ver referencias objetivo' : 'Ocultar referencias objetivo');
     botonAlternar.addEventListener('click', () => this.alternarConsigna());
-    cabecera.append(contextoGrupo, botonAlternar);
+    if (!esNivel) cabecera.append(contextoGrupo);
+    cabecera.append(botonAlternar);
 
     const resumen = document.createElement('div');
     resumen.className = 'metronet-consigna__resumen';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-consigna__titulo';
-    titulo.textContent = this.obtenerTituloConsigna(escenario);
-    resumen.append(titulo);
+    titulo.textContent = esNivel
+      ? `Nivel ${escenario.numero}`
+      : this.obtenerTituloConsigna(escenario);
+    cabecera.prepend(titulo);
     const resumenActivo = document.createElement('div');
     resumenActivo.className = 'metronet-consigna__resumen-activo';
     if (condiciones.length) {
@@ -820,7 +819,11 @@ export default class EditorRedMetro {
     } else {
       const objetivoBreve = document.createElement('p');
       objetivoBreve.className = 'metronet-consigna__objetivo-breve';
-      objetivoBreve.textContent = descripcion;
+      objetivoBreve.textContent = !esNivel
+        ? String(escenario.objetivo || escenario.instrucciones || 'Sin objetivo definido para esta actividad.')
+        : this.estadoConsigna === 'cargando'
+          ? 'Cargando requisitos del nivel…'
+          : 'Los requisitos del nivel no están disponibles por ahora.';
       resumenActivo.append(objetivoBreve);
     }
     resumen.append(resumenActivo);
@@ -828,16 +831,13 @@ export default class EditorRedMetro {
     const contenido = document.createElement('div');
     contenido.className = 'metronet-consigna__contenido';
     contenido.id = this.obtenerIdContenidoConsigna(escenario);
-    contenido.setAttribute('aria-hidden', String(this.consignaCompacta));
-    contenido.hidden = this.consignaCompacta;
-    contenido.toggleAttribute('inert', this.consignaCompacta);
+    const contenidoOculto = this.consignaCompacta || !referencias.length;
+    contenido.setAttribute('aria-hidden', String(contenidoOculto));
+    contenido.hidden = contenidoOculto;
+    contenido.toggleAttribute('inert', contenidoOculto);
     botonAlternar.setAttribute('aria-controls', contenido.id);
     const contenidoInterno = document.createElement('div');
     contenidoInterno.className = 'metronet-consigna__contenido-interno';
-    const textoObjetivo = document.createElement('p');
-    textoObjetivo.className = 'metronet-consigna__objetivo-principal';
-    textoObjetivo.textContent = descripcion;
-    contenidoInterno.append(textoObjetivo);
     if (this.estadoConsigna === 'cargando') {
       const disponibilidad = document.createElement('p');
       disponibilidad.className = 'metronet-consigna__disponibilidad es-cargando';
@@ -846,11 +846,10 @@ export default class EditorRedMetro {
     } else if (this.estadoConsigna === 'noDisponible') {
       const disponibilidad = document.createElement('p');
       disponibilidad.className = 'metronet-consigna__disponibilidad';
-      disponibilidad.textContent = 'No se pudo consultar el detalle de condiciones. El progreso mostrado es el último estado registrado.';
+      disponibilidad.textContent = 'No se pudo consultar el detalle de condiciones.';
       contenidoInterno.append(disponibilidad);
     }
 
-    const referencias = detalleDisponible ? this.obtenerReferenciasObjetivoConsigna() : [];
     if (referencias.length) {
       const bloqueReferencias = document.createElement('section');
       bloqueReferencias.className = 'metronet-consigna__referencias';
@@ -890,36 +889,11 @@ export default class EditorRedMetro {
 
     contenido.append(contenidoInterno);
 
-    const progreso = document.createElement('div');
-    progreso.className = 'metronet-consigna__progreso';
-    const encabezadoProgreso = document.createElement('div');
-    encabezadoProgreso.className = 'metronet-consigna__progreso-encabezado';
-    const etiquetaProgreso = document.createElement('span');
-    etiquetaProgreso.textContent = detalleDisponible ? 'Progreso actual' : 'Progreso registrado';
-    const valorProgreso = document.createElement('strong');
-    const completadas = condiciones.filter((condicion) => condicion.completado).length;
-    valorProgreso.textContent = condiciones.length ? `${completadas}/${condiciones.length} · ${porcentaje}%` : `${porcentaje}%`;
-    encabezadoProgreso.append(etiquetaProgreso, valorProgreso);
-    const barraProgreso = document.createElement('div');
-    barraProgreso.className = 'metronet-consigna__barra-progreso';
-    barraProgreso.setAttribute('role', 'progressbar');
-    barraProgreso.setAttribute('aria-label', `Progreso de ${this.obtenerTituloConsigna(escenario)}`);
-    barraProgreso.setAttribute('aria-valuemin', '0');
-    barraProgreso.setAttribute('aria-valuemax', '100');
-    barraProgreso.setAttribute('aria-valuenow', String(porcentaje));
-    barraProgreso.setAttribute('aria-valuetext', detalleDisponible
-      ? `${porcentaje}% según las condiciones actuales del nivel`
-      : `${porcentaje}% registrado para el nivel`);
-    const rellenoProgreso = document.createElement('span');
-    rellenoProgreso.style.setProperty('--progreso-consigna', `${porcentaje}%`);
-    barraProgreso.append(rellenoProgreso);
-    progreso.append(encabezadoProgreso, barraProgreso);
-
     const siguienteEscenario = escenario.estado === 'COMPLETADO'
       ? this.obtenerSiguienteEscenarioDesbloqueado(escenario)
       : null;
     const accionContinuar = siguienteEscenario ? this.crearAccionContinuarEscenario(siguienteEscenario) : null;
-    consigna.append(cabecera, resumen, contenido, progreso);
+    consigna.append(cabecera, resumen, contenido);
     if (accionContinuar) consigna.append(accionContinuar);
     destacarConceptos(contenidoInterno, conceptosDelNivel(escenario), { contextual: true });
   }
