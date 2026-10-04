@@ -42,7 +42,7 @@ test('primera estación, nombre automático, línea: eventos reales del editor y
   await estado(p, 'primera-estacion');
   assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(), /Usá la rueda/);
   await p.locator('[data-assist-pista]').click();
-  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del escenario/);
+  assert.match(await p.locator('[data-assist-mensaje]').innerText(), /necesidad del nivel/);
   assert.equal(await p.locator('.metronet-tutorial__panel').isVisible(), false, 'La pista sigue disponible sin repetir el tutorial inicial');
   await p.locator('[data-elegir-herramienta=estaciones]').click();
 

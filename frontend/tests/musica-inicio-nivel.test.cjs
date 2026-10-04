@@ -27,7 +27,7 @@ for (const reducido of [false, true]) test(`Viaje y cartel comparten FalsaCargaD
   let terminoAudio = false;
   await p.exposeFunction('registrarFinAudioPrueba', () => { terminoAudio = true; });
   const inicio = Date.now();
-  await p.getByRole('button', { name: 'Comenzar nivel', exact: true }).click();
+  await p.getByRole('button', { name: 'Jugar', exact: true }).click();
   await p.locator('.metronet-viaje').waitFor();
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/victory-theme.mp3' && a.currentTime > .4 && !a.paused; });
   const antes = await p.locator(audio).evaluate(a => {
@@ -61,7 +61,7 @@ for (const fallo of ['archivo', 'silencio']) test(`FalsaCargaDeVictoria ${fallo}
   const { pagina: p } = await abrir(t);
   if (fallo === 'archivo') await p.route('**/audio/victory-theme.mp3', route => route.fulfill({ status: 404 }));
   else await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
-  await p.getByRole('button', { name: 'Comenzar nivel', exact: true }).click();
+  await p.getByRole('button', { name: 'Jugar', exact: true }).click();
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123', { timeout: 20000 });
   await p.getByRole('button', { name: 'Mostrar tutorial', exact: true }).waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
@@ -70,7 +70,7 @@ for (const fallo of ['archivo', 'silencio']) test(`FalsaCargaDeVictoria ${fallo}
 test('Cancelar recupera menú; repetir comienza una sola FalsaCargaDeVictoria desde el principio', async t => {
   const { pagina: p } = await abrir(t);
   for (let vuelta = 0; vuelta < 2; vuelta++) {
-    await p.getByRole('button', { name: 'Comenzar nivel', exact: true }).click();
+    await p.getByRole('button', { name: 'Jugar', exact: true }).click();
     await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/victory-theme.mp3' && a.currentTime > .1; });
     assert.ok(await p.locator(audio).evaluate(a => a.currentTime < 1));
     assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 1);

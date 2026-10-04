@@ -7,6 +7,7 @@ let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL, args: ['--autoplay-policy=no-user-gesture-required'] }); });
 after(async () => { await navegador?.close(); });
 const audio = 'audio[data-musica-metronet]';
+const base = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 
 async function abrir(t, ruta = 'editor', opciones = {}) {
   const vista = ruta === 'editor' ? await abrirEditor(navegador, opciones) : await abrirPantalla(navegador, ruta, opciones);
@@ -32,7 +33,7 @@ async function gestor(p, accion, valor) {
 for (const ruta of ['/inicio.html', '/escenarios.html', '/ranking.html', '/perfil.html', '/admin.html', '/simulacion.html']) {
   test(`Los menús no cargan Extra: ${ruta}`, async t => {
     const { pagina: p } = await abrir(t, ruta === '/simulacion.html' ? '/inicio.html' : ruta);
-    if (ruta === '/simulacion.html') { await p.goto('http://127.0.0.1:5173/simulacion.html'); await p.locator('#estadoVacio').waitFor(); }
+    if (ruta === '/simulacion.html') { await p.goto(`${base}/simulacion.html`); await p.locator('#estadoVacio').waitFor(); }
     assert.equal(await p.locator(`${audio}[src="/audio/extra-theme.mp3"]`).count(), 0);
     const recursos = await p.evaluate(() => performance.getEntriesByType('resource').filter(r => r.name.includes('extra-theme')).length);
     assert.equal(recursos, 0);
@@ -82,7 +83,7 @@ test('Archivo de menú ausente no bloquea Administración ni la salida a Simulac
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   await p.locator('[data-vista="configuracion"]').click();
   assert.equal(await p.locator('#vista-configuracion').isVisible(), true);
-  await p.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77');
+  await p.goto(`${base}/simulacion.html?idDiseno=77`);
   await reproduciendo(p, '/audio/extra-theme.mp3');
 });
 
@@ -98,7 +99,7 @@ test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin s
   assert.equal(datos.loop, true);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   for (const ruta of ['escenarios', 'ranking', 'perfil', 'admin', 'inicio']) {
-    await p.goto(`http://127.0.0.1:5173/${ruta}.html`);
+    await p.goto(`${base}/${ruta}.html`);
     await reproduciendo(p, '/audio/menu-theme.mp3');
     assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
     assert.equal(await p.locator(audio).count(), 1);
@@ -113,15 +114,15 @@ test('Lista de diseños → edición libre → lista recupera cada canción desd
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
-  await p.goto('http://127.0.0.1:5173/');
+  await p.goto(`${base}/`);
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.equal(await p.locator('[data-editor-activo]').isHidden(), true);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
-  await p.goto('http://127.0.0.1:5173/?idDiseno=77');
+  await p.goto(`${base}/?idDiseno=77`);
   await reproduciendo(p);
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator('[data-editor-activo]').isVisible(), true);
-  await p.goto('http://127.0.0.1:5173/');
+  await p.goto(`${base}/`);
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator(audio).count(), 1);
@@ -134,14 +135,14 @@ test('Selector de simulación usa menú; abrir una red cambia a gameplay', async
     if (ruta === '/api/juego/progreso') return { json: { escenarios: [], modoLibreDesbloqueado: true } };
     return null;
   } });
-  await p.goto('http://127.0.0.1:5173/simulacion.html');
+  await p.goto(`${base}/simulacion.html`);
   await reproduciendo(p, '/audio/menu-theme.mp3');
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.locator('#estadoVacio').getByRole('link',{name:'Mis diseños'}).click();
   await p.getByRole('link',{name:'Simular diseño: Red de Montevideo'}).click();
   await reproduciendo(p);
   assert.equal(await p.locator('#panelSimulacion').isVisible(), true);
-  await p.goto('http://127.0.0.1:5173/inicio.html');
+  await p.goto(`${base}/inicio.html`);
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
 });
@@ -166,7 +167,7 @@ test('Audio de menú ausente no impide navegar ni iniciar el juego', async t => 
   await p.reload();
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   assert.equal(await p.locator('.metronet-inicio__tarjeta').first().isVisible(), true);
-  await p.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77');
+  await p.goto(`${base}/simulacion.html?idDiseno=77`);
   await reproduciendo(p);
 });
 
@@ -208,12 +209,12 @@ test('Mapa → simulación → mapa y refresh recuperan posición, sin reiniciar
   await p.waitForURL('**/?idDiseno=77*');
   await reproduciendo(p);
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
-  await p.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77');
+  await p.goto(`${base}/simulacion.html?idDiseno=77`);
   await reproduciendo(p);
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.reload(); await reproduciendo(p);
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
-  await p.goto('http://127.0.0.1:5173/inicio.html');
+  await p.goto(`${base}/inicio.html`);
   await reproduciendo(p, '/audio/menu-theme.mp3');
   assert.equal(await p.locator(audio).count(), 1);
 });

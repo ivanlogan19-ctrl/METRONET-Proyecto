@@ -2,6 +2,8 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const niveles = require('../src/educacion/niveles.json');
+const catalogo = require('../src/educacion/catalogo-svgs-niveles.json');
 
 let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
@@ -42,32 +44,101 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   if (process.env.METRONET_CAPTURAS_UVUT) await p.screenshot({path:`${process.env.METRONET_CAPTURAS_UVUT}/simulacion-v2-chrome.png`,fullPage:true});
 });
 
-test('Admin previsualiza sin publicar y aplica solo tras la acción explícita', async t => {
-  let version = 1;
-  const configuracion = () => [{ numero:10, version, limiteUt:2, presupuestoUv:6.5,
-    tramosFixture:[9,1,1], uvMinimaFixture:5.5, viable:true, aviso:'Fixture geográfico verificable' }];
+test('Admin guarda UV/UT en borrador y publica la versión completa tras validar', async t => {
+  let version = 1, revision = 1;
+  const nivel = niveles[9];
+  const tarjetas = catalogo[9].tarjetas.map(t => ({ id:t.id,titulo:t.titulo,texto:t.texto,
+    aprendizaje:t.aprendizaje,fuente:t.fuente,urlFuente:t.url,descripcionImagen:t.descripcionImagen,idSvgCatalogo:t.imagen }));
+  let contenido = { desafio:{nombre:nivel.nombre,relato:'Relato original',objetivo:nivel.objetivo,
+    instrucciones:nivel.instrucciones,dificultad:nivel.dificultad},reglasExito:nivel.reglasExito,
+    herramientasHabilitadas:nivel.herramientasHabilitadas,criterioUvUt:{limiteUt:2,presupuestoUv:6.5},ayudas:[] };
+  const redReferencia = {estaciones:[],lineas:[],tramos:[],unidades:[],ejecuciones:[]};
+  const borrador = () => ({numero:10,versionBase:version,revision,contenido,redReferencia,tarjetas});
   const vista = await abrirPantalla(navegador, '/admin.html', { administrador:true, responder: req => {
     const ruta = new URL(req.url()).pathname;
-    if (ruta === '/api/admin/niveles/criterio-uvut') return {json:configuracion()};
-    if (ruta.endsWith('/previsualizar')) return {json:{...configuracion()[0],presupuestoUv:req.postDataJSON().presupuestoUv}};
-    if (ruta.endsWith('/criterio-uvut/10') && req.method()==='PUT') { version++; return {json:configuracion()[0]}; }
+    if (ruta === '/api/admin/niveles') return {json:[{numero:10,nombre:nivel.nombre,versionPublicada:version,revisionBorrador:revision}]};
+    if (ruta.endsWith('/10/borrador')) {
+      if (req.method()==='PUT') { const pedido=req.postDataJSON(); revision++; contenido={...contenido,
+        desafio:pedido.desafio,reglasExito:pedido.reglasExito,herramientasHabilitadas:pedido.herramientasHabilitadas,
+        criterioUvUt:pedido.criterioUvUt,ayudas:pedido.ayudas}; }
+      return {json:borrador()};
+    }
+    if (ruta.endsWith('/10/versiones')) return {json:[]};
+    if (ruta.endsWith('/10/previsualizar')) return {json:{numero:10,versionPublicada:version,revisionBorrador:revision,
+      contenido,tarjetas,diagnostico:{viable:true,mensaje:'Referencia viable',huella:'qa-huella',condiciones:[]}}};
+    if (ruta.endsWith('/10/publicar')) { version++;revision++;return {json:{numero:10,version,versionCriterioUvUt:version,huella:'qa-huella'}}; }
   }});
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
   const p = vista.pagina;
   assert.match(await p.locator('[data-vista="disenos"]').textContent(), /Diseños/);
   assert.equal(await p.locator('#vista-disenos h2').textContent(), 'Diseños de jugadores');
-  await p.locator('[data-vista="niveles-uvut"]').click();
-  await p.getByRole('heading',{name:'Nivel 10 · criterio UV/UT'}).waitFor();
-  await p.getByLabel('Presupuesto UV del nivel 10').fill('7');
-  const aplicar = p.getByRole('button',{name:'Aplicar a intentos nuevos'});
-  assert.equal(await aplicar.isDisabled(), true);
-  await p.getByRole('button',{name:'Previsualizar'}).click();
-  await p.waitForFunction(() => !document.querySelector('#vista-niveles-uvut .admin-guardar')?.disabled);
-  assert.equal(await aplicar.isEnabled(), true);
-  await p.waitForFunction(() => getComputedStyle(document.querySelector('#vista-niveles-uvut .admin-guardar')).backgroundColor === 'rgb(72, 180, 255)');
-  assert.equal(vista.solicitudes.filter(s=>s.method==='PUT' && s.path.endsWith('/criterio-uvut/10')).length,0);
-  if (process.env.METRONET_CAPTURAS_UVUT) await p.screenshot({path:`${process.env.METRONET_CAPTURAS_UVUT}/admin-uvut-chrome.png`,fullPage:true});
-  await aplicar.click();
-  await p.getByText('Criterio del nivel 10 publicado para intentos nuevos.').waitFor();
-  assert.equal(vista.solicitudes.filter(s=>s.method==='PUT' && s.path.endsWith('/criterio-uvut/10')).length,1);
+  await p.getByRole('button',{name:'Experiencia de juego'}).click();
+  await p.getByRole('button',{name:'Editar'}).click();
+  assert.equal(await p.getByRole('button',{name:'Quitar Puntuación'}).count(),0);
+  assert.equal(await p.getByRole('option',{name:'Puntuación'}).count(),0);
+  const primeraTarjeta=p.locator('.admin-niveles__tarjetas details').first();
+  await primeraTarjeta.locator('summary').click();
+  const fuente=primeraTarjeta.getByLabel('Url Fuente');
+  const urlOriginal=await fuente.inputValue();
+  await fuente.fill('https:foo');
+  await p.getByRole('button',{name:'Guardar borrador'}).click();
+  await p.getByText('Cada tarjeta necesita una URL HTTP(S) con host válido para su fuente.').waitFor();
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/borrador')&&s.method==='PUT').length,0);
+  await fuente.fill(urlOriginal);
+  await p.getByLabel('Presupuesto UV').fill('7');
+  const publicar = p.getByRole('button',{name:'Publicar versión'});
+  assert.equal(await publicar.isDisabled(),true);
+  await p.getByRole('button',{name:'Guardar borrador'}).click();
+  await p.getByRole('button',{name:'Previsualizar y validar'}).click();
+  await p.getByText('Referencia viable').waitFor();
+  assert.equal(await publicar.isEnabled(),true);
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/publicar')).length,0);
+  await publicar.click();
+  await p.getByText('Confirmá la revisión editorial de textos, fuentes e imágenes.').waitFor();
+  await p.locator('[data-confirmacion-editorial]').check();
+  await publicar.click();
+  await p.getByText('Nivel 10 publicado como versión 2.').waitFor();
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/publicar')).length,1);
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/criterio-uvut/10')).length,0);
+});
+
+test('Admin protege cambios sin guardar antes de preparar la reversión inicial', async t => {
+  const nivel=niveles[0];
+  const tarjetas=catalogo[0].tarjetas.map(t=>({id:t.id,titulo:t.titulo,texto:t.texto,
+    aprendizaje:t.aprendizaje,fuente:t.fuente,urlFuente:t.url,descripcionImagen:t.descripcionImagen,idSvgCatalogo:t.imagen}));
+  const inicial={desafio:{nombre:nivel.nombre,relato:'Relato inicial',objetivo:nivel.objetivo,
+    instrucciones:nivel.instrucciones,dificultad:nivel.dificultad},reglasExito:nivel.reglasExito,
+    herramientasHabilitadas:nivel.herramientasHabilitadas,criterioUvUt:null,ayudas:[]};
+  const redVacia={estaciones:[],lineas:[],tramos:[],unidades:[],ejecuciones:[]};
+  const redPublicada={estaciones:[{nombre:'A',x:660,y:460},{nombre:'B',x:665,y:460}],
+    lineas:[{nombre:'Principal'}],tramos:[{linea:'Principal',a:'A',b:'B'}],unidades:[],ejecuciones:[]};
+  let contenido=structuredClone(inicial),revision=1;
+  const borrador=()=>({numero:1,versionBase:2,revision,contenido,redReferencia:redPublicada,tarjetas});
+  const versiones=[{version:2,publicadoEn:'2026-10-04',contenido,redReferencia:redPublicada,tarjetas},
+    {version:1,publicadoEn:'2026-10-03',contenido:inicial,redReferencia:redVacia,tarjetas}];
+  const vista=await abrirPantalla(navegador,'/admin.html',{administrador:true,responder:req=>{
+    const ruta=new URL(req.url()).pathname;
+    if(ruta==='/api/admin/niveles')return {json:[{numero:1,nombre:nivel.nombre,versionPublicada:2,revisionBorrador:revision}]};
+    if(ruta.endsWith('/1/borrador'))return {json:borrador()};
+    if(ruta.endsWith('/1/versiones'))return {json:versiones};
+    if(ruta.endsWith('/1/versiones/1/preparar-reversion')&&req.method()==='POST'){
+      revision++;contenido=structuredClone(inicial);return {json:borrador()};
+    }
+  }});
+  t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[])});
+  const p=vista.pagina;
+  await p.getByRole('button',{name:'Experiencia de juego'}).click();
+  await p.getByRole('button',{name:'Editar'}).click();
+  const nombre=p.locator('[data-editor-nivel] .admin-niveles__seccion').first().getByLabel('Nombre',{exact:true}).first();
+  await nombre.fill('Cambio sin guardar');
+  const revertir=p.getByRole('button',{name:'Preparar reversión'}).last();
+  assert.equal(await revertir.isEnabled(),true,'La V1 puede usar la red de V2');
+  await revertir.click();
+  await p.getByRole('dialog',{name:'Confirmar acción'}).getByRole('button',{name:'Cancelar'}).click();
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/preparar-reversion')).length,0);
+  assert.equal(await nombre.inputValue(),'Cambio sin guardar');
+  await revertir.click();
+  await p.getByRole('dialog',{name:'Confirmar acción'}).getByRole('button',{name:'Aceptar'}).click();
+  await p.getByText(/Se conservó una referencia publicada reciente/).waitFor();
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/preparar-reversion')).length,1);
 });

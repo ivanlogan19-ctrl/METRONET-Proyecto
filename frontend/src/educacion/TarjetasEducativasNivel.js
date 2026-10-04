@@ -146,6 +146,70 @@ const ultimasEnMemoria = new Map();
 const usadasEnMemoria = new Map();
 const prefijo = 'metronet:educacion:ultimo:';
 const prefijoUsadas = 'metronet:educacion:usadas:';
+const publicadas = new Map();
+const ultimaPublicadaEnMemoria = new Map();
+const usadasPublicadasEnMemoria = new Map();
+
+export function registrarTarjetasPublicadas(numero, contenido, idUsuario, idIntento = null) {
+  if (!Number.isInteger(numero) || !Array.isArray(contenido?.tarjetas) || contenido.tarjetas.length !== 6) return;
+  const ids = contenido.tarjetas.map(t => t.id);
+  if (new Set(ids).size !== 6 || ids.some(id => typeof id !== 'string' || !id)) return;
+  publicadas.set(numero, { tarjetas: contenido.tarjetas, version: contenido.version,
+    usuario: idUsuario ?? 'sesion', idIntento });
+}
+
+export function limpiarTarjetasPublicadas(numero) {
+  publicadas.delete(numero);
+}
+
+export function tarjetasDisponibles(numero) {
+  return publicadas.get(numero)?.tarjetas ?? tarjetasEducativas[numero - 1] ?? [];
+}
+
+function estadoPublicado(numero) {
+  const publicacion = publicadas.get(numero);
+  if (!publicacion) return null;
+  const clave = `${publicacion.usuario}:${numero}:${publicacion.version}`;
+  const ultimoKey = `metronet:educacion:ultimo-id:${clave}`;
+  const usadasKey = `metronet:educacion:usadas-id:${clave}`;
+  let ultimo = ultimaPublicadaEnMemoria.get(clave) ?? null;
+  let usadas = usadasPublicadasEnMemoria.get(clave) ?? null;
+  const ids = publicacion.tarjetas.map(t => t.id);
+  try {
+    if (ultimo === null) ultimo = localStorage.getItem(ultimoKey);
+    if (usadas === null) usadas = JSON.parse(localStorage.getItem(usadasKey));
+    const migradaKey = `metronet:educacion:migrada:${clave}`;
+    if (publicacion.version === 1 && !localStorage.getItem(migradaKey)) {
+      const indiceAnterior = Number(localStorage.getItem(`${prefijo}${numero}`));
+      const indices = JSON.parse(localStorage.getItem(`${prefijoUsadas}${numero}`));
+      if (localStorage.getItem(`${prefijo}${numero}`) !== null && Number.isInteger(indiceAnterior))
+        ultimo = ids[indiceAnterior] ?? null;
+      if (Array.isArray(indices) && indices.every(i => Number.isInteger(i) && ids[i]))
+        usadas = [...new Set(indices.map(i => ids[i]))];
+      localStorage.setItem(migradaKey, '1');
+    }
+  } catch { /* El almacenamiento puede estar deshabilitado o contener datos legados inválidos. */ }
+  if (!ids.includes(ultimo)) ultimo = null;
+  if (!Array.isArray(usadas) || usadas.some(id => !ids.includes(id)) || new Set(usadas).size !== usadas.length) usadas = [];
+  return { publicacion, clave, ultimoKey, usadasKey, ultimo, usadas };
+}
+
+function seleccionarPublicada(numero) {
+  const estado = estadoPublicado(numero);
+  if (!estado) return null;
+  const tarjetas = estado.publicacion.tarjetas;
+  const usadas = estado.usadas.length === tarjetas.length ? [] : estado.usadas;
+  let candidatas = tarjetas.filter(t => !usadas.includes(t.id));
+  if (!usadas.length && candidatas.length > 1) candidatas = candidatas.filter(t => t.id !== estado.ultimo);
+  const tarjeta = candidatas[Math.floor(Math.random() * candidatas.length)];
+  usadasPublicadasEnMemoria.set(estado.clave, [...usadas, tarjeta.id]);
+  ultimaPublicadaEnMemoria.set(estado.clave, tarjeta.id);
+  try {
+    localStorage.setItem(estado.ultimoKey, tarjeta.id);
+    localStorage.setItem(estado.usadasKey, JSON.stringify([...usadas, tarjeta.id]));
+  } catch { /* La rotación sigue en memoria. */ }
+  return tarjeta;
+}
 
 function ultima(numero) {
   if (ultimasEnMemoria.has(numero)) return ultimasEnMemoria.get(numero);
@@ -158,6 +222,7 @@ function ultima(numero) {
 }
 
 export function seleccionarTarjetaEducativa(numero) {
+  if (publicadas.has(numero)) return seleccionarPublicada(numero);
   const pareja = tarjetasEducativas[numero - 1];
   if (!pareja) return null;
   let usadas = usadasEnMemoria.get(numero);
@@ -184,6 +249,9 @@ export function seleccionarTarjetaEducativa(numero) {
 }
 
 export function tarjetaEducativaActual(numero) {
+  const publicada = estadoPublicado(numero);
+  if (publicada) return publicada.publicacion.tarjetas.find(t => t.id === publicada.ultimo)
+    ?? publicada.publicacion.tarjetas[0];
   const pareja = tarjetasEducativas[numero - 1];
   if (!pareja) return null;
   return pareja[Math.max(0, ultima(numero))];

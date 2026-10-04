@@ -76,7 +76,7 @@ test('Mute durante una mezcla detiene todas las pistas y se conserva al navegar'
  assert.ok((await medir(p)).every(a=>a.pausado&&a.volumen===0));
  await p.evaluate(()=>gestorPrueba.establecerContexto('menu'));
  assert.ok((await medir(p)).every(a=>a.pausado&&a.volumen===0));
- await p.goto('http://127.0.0.1:5173/escenarios.html');await p.locator('[data-musica-metronet]').waitFor({state:'attached'});
+ await p.goto(`${process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173'}/escenarios.html`);await p.locator('[data-musica-metronet]').waitFor({state:'attached'});
  assert.ok((await medir(p)).every(a=>a.pausado&&a.volumen===0));
 });
 

@@ -41,7 +41,7 @@ async function comenzar(p, tipo, nivel = niveles[0], final = false) {
     promesa.then(valor => { resultado = valor; continuaciones++; window.transcurrido = performance.now() - inicio; });
   }, { tipo, nivel, final });
 }
-for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan 14968 ms en los diez niveles (${movimiento})`, async t => {
+for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin música conservan la duración y tarjeta en los diez niveles (${movimiento})`, async t => {
   const p = await abrir(t, movimiento);
   for (const nivel of niveles) {
     let geometria;
@@ -55,12 +55,18 @@ for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin
         assert.ok(await p.locator('[data-mensaje-id] p').textContent());
       } else assert.deepEqual(dibujo, geometria, 'Reutiliza toda la geometría original de victoria');
       assert.equal(await escena.count(), 1);
-      await p.clock.runFor(14967);
+      await p.clock.runFor(13000);
       assert.equal(await p.evaluate(() => resultado), undefined, 'No continúa antes del límite');
-      await p.clock.runFor(1);
-      assert.deepEqual(await p.evaluate(() => ({ resultado, continuaciones, transcurrido })), {
-        resultado: tipo === 'intro' ? true : 'siguiente', continuaciones: 1, transcurrido: 14968,
-      });
+      await p.clock.runFor(2000);
+      if (tipo === 'intro') {
+        await p.locator('.metronet-tarjeta-educativa').waitFor();
+        assert.equal(await p.evaluate(() => resultado), undefined, 'La tarjeta educativa requiere Continuar');
+        await p.locator('.metronet-tarjeta-educativa button').click();
+      }
+      const final = await p.evaluate(() => ({ resultado, continuaciones, transcurrido }));
+      assert.equal(final.resultado, tipo === 'intro' ? true : 'siguiente');
+      assert.equal(final.continuaciones, 1);
+      assert.ok(final.transcurrido >= 13000 && final.transcurrido <= 15000);
       if (tipo === 'intro') await p.evaluate(() => intro.cerrar());
       await p.clock.runFor(1000);
       assert.equal(await p.evaluate(() => continuaciones), 1);
@@ -84,6 +90,11 @@ for (const tipo of ['intro', 'outro']) for (const fallo of ['sinFrames', 'errorF
   }, fallo);
   await comenzar(p, tipo);
   await p.clock.runFor(14968);
+  if (tipo === 'intro') {
+    await p.locator('.metronet-tarjeta-educativa').waitFor({ state: 'attached' });
+    assert.equal(await p.evaluate(() => resultado), undefined);
+    await p.locator('.metronet-tarjeta-educativa button').click();
+  }
   assert.equal(await p.evaluate(() => resultado), tipo === 'intro' ? true : 'siguiente');
   if (tipo === 'intro') {
     assert.equal(await p.locator('.metronet-viaje__consigna p').textContent(), niveles[0].objetivo);
@@ -127,16 +138,19 @@ test('Jugar adelanta la entrada y el resumen final conserva la información', as
   await comenzar(p, 'intro');
   await p.clock.runFor(200);
   await p.getByRole('button', { name: 'Jugar', exact: true }).press('Enter');
+  assert.equal(await p.locator('[role="progressbar"]').getAttribute('aria-valuenow'), '100');
+  await p.locator('.metronet-tarjeta-educativa').waitFor();
+  assert.equal(await p.evaluate(() => resultado), undefined);
+  await p.getByRole('button', { name: 'Continuar →' }).click();
   assert.equal(await p.evaluate(() => resultado), true);
-  assert.equal(await p.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
   await p.clock.runFor(2000);
   assert.equal(await p.evaluate(() => continuaciones), 1);
   await p.evaluate(() => intro.cerrar());
   await comenzar(p, 'outro', niveles[9], true);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), false);
-  await p.clock.runFor(14967);
+  await p.clock.runFor(10000);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), false);
-  await p.clock.runFor(1);
+  await p.clock.runFor(5000);
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(), true);
   assert.equal(await p.evaluate(() => resultado), undefined);
   await p.getByRole('button', { name: 'Ver desempeño y ranking' }).click();

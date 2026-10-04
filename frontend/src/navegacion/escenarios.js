@@ -2,6 +2,7 @@ import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
+import { cargarContenidoPublicado } from '../educacion/ContenidoPublicadoNivel.js';
 
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
 // Relato de selección: la misión comprobable sigue en la consigna del editor.
@@ -39,6 +40,22 @@ async function cargarProgreso() {
   establecerEstadoCarga(true);
   try {
     progresoActual = await solicitar('/progreso');
+    const niveles = (progresoActual.escenarios ?? []).filter(e => Number.isInteger(e.numero));
+    await Promise.allSettled(niveles.map(async escenario => {
+      const enCurso = ESTADOS_EN_CURSO.has(escenario.estado);
+      try {
+        const contenido = await cargarContenidoPublicado(escenario.numero, {
+          idIntento: enCurso ? escenario.idIntento : null,
+        });
+        escenario.contenidoPublicado = contenido;
+        escenario.nombre = contenido.desafio?.nombre ?? escenario.nombre;
+        escenario.dificultad = contenido.desafio?.dificultad ?? escenario.dificultad;
+        if (!enCurso) {
+          escenario.objetivo = contenido.desafio?.objetivo ?? escenario.objetivo;
+          escenario.instrucciones = contenido.desafio?.instrucciones ?? escenario.instrucciones;
+        }
+      } catch { /* La vista conserva el catálogo local si falla la lectura editorial. */ }
+    }));
     renderizarPantalla(progresoActual);
   } catch (error) {
     mostrarMensaje(error.message, 'error');
@@ -163,7 +180,8 @@ function crearTarjetaEscenario(escenario) {
   }
   const relato = document.createElement('p');
   relato.className = 'metronet-escenarios-pagina__relato';
-  relato.textContent = HISTORIA_NIVELES[escenario.numero] ?? escenario.objetivo ?? 'Sin descripción disponible.';
+  relato.textContent = escenario.contenidoPublicado?.desafio?.relato
+    ?? HISTORIA_NIVELES[escenario.numero] ?? escenario.objetivo ?? 'Sin descripción disponible.';
   contenido.append(relato);
   if (estado.id === 'actual' || estado.id === 'completado') contenido.append(crearProgresoTarjeta(escenario, estado));
   const acciones = document.createElement('footer');
@@ -234,7 +252,12 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
   try {
     const ruta = volverAJugar ? `/escenarios/${escenario.idEscenario}/volver-a-jugar` : `/escenarios/${escenario.idEscenario}/iniciar`;
     const inicio = await iniciarNivelConTransicion(escenario,
-      signal => solicitar(ruta, { method: 'POST', signal }));
+      signal => solicitar(ruta, {
+        method: 'POST', signal,
+        ...(escenario.contenidoPublicado?.version && (volverAJugar || !ESTADOS_EN_CURSO.has(escenario.estado))
+          ? { headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ versionEsperada: escenario.contenidoPublicado.version }) } : {}),
+      }));
     if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;

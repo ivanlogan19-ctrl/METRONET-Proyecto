@@ -7,6 +7,7 @@ import com.metronet.backend.service.PuntuacionService;
 import com.metronet.backend.dto.ConsignaDisenoResponse;
 import com.metronet.backend.dto.EvaluacionEscenarioResponse;
 import com.metronet.backend.dto.InicioEscenarioResponse;
+import com.metronet.backend.dto.IniciarNivelRequest;
 import com.metronet.backend.dto.ProgresoJuegoResponse;
 import com.metronet.backend.dto.ReiniciarRecorridoRequest;
 import com.metronet.backend.entity.Usuario;
@@ -52,17 +53,23 @@ public class JuegoEducativoController {
     @PostMapping("/escenarios/{idEscenario}/iniciar")
     public InicioEscenarioResponse iniciarEscenario(
         @PathVariable Integer idEscenario,
+        @RequestBody(required = false) IniciarNivelRequest solicitud,
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
-        return juegoEducativoService.iniciarEscenario(obtenerUsuario(autorizacion).getIdUsuario(), idEscenario);
+        int usuario=obtenerUsuario(autorizacion).getIdUsuario();
+        return solicitud==null ? juegoEducativoService.iniciarEscenario(usuario,idEscenario)
+            : juegoEducativoService.iniciarEscenario(usuario,idEscenario,solicitud.versionEsperada());
     }
 
     @PostMapping("/escenarios/{idEscenario}/volver-a-jugar")
     public InicioEscenarioResponse volverAJugar(
         @PathVariable Integer idEscenario,
+        @RequestBody(required = false) IniciarNivelRequest solicitud,
         @RequestHeader(value = "Authorization", required = false) String autorizacion
     ) {
-        return juegoEducativoService.volverAJugar(obtenerUsuario(autorizacion).getIdUsuario(), idEscenario);
+        int usuario=obtenerUsuario(autorizacion).getIdUsuario();
+        return solicitud==null ? juegoEducativoService.volverAJugar(usuario,idEscenario)
+            : juegoEducativoService.volverAJugar(usuario,idEscenario,solicitud.versionEsperada());
     }
 
     @PostMapping("/recorrido/reiniciar")

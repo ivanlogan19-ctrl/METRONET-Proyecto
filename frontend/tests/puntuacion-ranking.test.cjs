@@ -2,6 +2,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 const niveles = require('../src/educacion/niveles.json');
 let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
@@ -37,11 +38,11 @@ test('Administrador: todos disponibles sin fingir completados y ranking no compe
  const libre={idEscenario:11,numero:null,nombre:'Modo Libre',estado:'DISPONIBLE',desbloqueado:true,herramientasHabilitadas:{}};
  const admin={...progreso,campanaCompletada:false,nivelesCompletados:0,modoLibreDesbloqueado:true,escenarios:[...progreso.escenarios.map(n=>({...n,estado:'DISPONIBLE',progreso:0,mejorPuntaje:null,cantidadIntentos:0})),libre]};
  const {pagina}=await abrir(t,'/admin.html',{responder:async req=>req.url().endsWith('/progreso')?{json:admin}:null});
- await pagina.goto('http://127.0.0.1:5173/escenarios.html');
+ await pagina.goto(`${BASE}/escenarios.html`);
  await pagina.getByRole('button',{name:'Entrar al Modo Libre',exact:true}).waitFor();
  assert.equal(await pagina.getByRole('button',{name:'Comenzar',exact:true}).count(),10);
- assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(),/0 de 10/);
- await pagina.goto('http://127.0.0.1:5173/ranking.html');
+ assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(),/0\/10/);
+ await pagina.goto(`${BASE}/ranking.html`);
  await pagina.getByText(/Esta cuenta no participa en el ranking/).waitFor();
 });
 for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta}, UV, horas simuladas y guardado mediante API existente`,async t=>{

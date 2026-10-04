@@ -80,7 +80,7 @@ test('varios objetivos conservan etiquetas y radios, y se limpian al cambiar de 
   assert.ok(escalas.every(escala => escala === 1), 'el radio debe conservar sus unidades del mapa al hacer zoom');
   await pagina.evaluate(() => poi.seleccionarPunto(26));
   const texto = await pagina.getByRole('dialog').innerText();
-  assert.match(texto, /Objetivo del escenario/i);
+  assert.match(texto, /Objetivo del nivel/i);
   assert.match(texto, /60 unidades del mapa/);
   assert.match(texto, /Barrio según el mapa: PUNTA GORDA/);
   assert.match(texto, /Barrio del catálogo: CARRASCO/);

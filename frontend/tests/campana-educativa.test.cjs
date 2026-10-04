@@ -76,6 +76,7 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
   await pagina.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent === 'Comenzar' && !b.disabled));
   assert.equal(await pagina.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
   await pagina.reload();
+  await pagina.waitForFunction(() => /9\/10/.test(document.querySelector('#descripcionProgresoEscenarios')?.textContent ?? ''));
   assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /9\/10/);
   assert.equal(solicitudes.filter(r => r.method === 'POST').length, 1);
   await pagina.getByRole('button', { name: 'Volver a jugar', exact: true }).first().click();
@@ -157,7 +158,7 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
     await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
     await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
     await pagina.waitForURL('**/escenarios.html');
-    assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10\/10/);
+    await pagina.locator('#descripcionProgresoEscenarios').filter({ hasText: /10\/10/ }).waitFor();
     assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);
   } else {
     // La pista real de victoria dura ~15 s: incluir audio y navegación, como en el cierre final.

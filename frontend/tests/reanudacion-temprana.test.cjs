@@ -2,6 +2,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 
 let navegador;
 before(async () => {
@@ -41,7 +42,7 @@ test('Escenarios reanuda la música antes de descargar su módulo de pantalla', 
   await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/navegacion/escenarios.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/escenarios.html', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/escenarios.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => {
       const audio = document.querySelector('[data-musica-metronet]');
       return audio && !audio.paused && audio.currentTime >= 3 && audio.volume === .35;
@@ -59,7 +60,7 @@ test('Registro recupera la pista de acceso mientras su formulario todavía carga
   await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/autenticacion/registro.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/registro.html', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/registro.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => {
       const audio = document.querySelector('audio');
       return audio && !audio.paused && audio.currentTime >= 3;
@@ -75,7 +76,7 @@ test('Administración conserva la pista del menú sin esperar a cargar sus vista
   await pagina.locator('audio').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/administracion/administracion.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/admin.html', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/admin.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => document.querySelector('audio')?.currentTime >= 3, null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').evaluate(audio => audio.paused), false);
     assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/menu-theme.mp3');
@@ -98,7 +99,7 @@ test('Simulación prepara gameplay en silencio y reutiliza ese reproductor al ca
   await pagina.locator('[data-musica-metronet]').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/simulacion/simulacion.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/simulacion.html?idDiseno=77', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/simulacion.html?idDiseno=77`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => document.querySelector('audio')?.readyState >= 2, null, ANTES_DEL_RENDER);
     const estado = await pagina.locator('audio').evaluate(audio => {
       window.audioPreparado = audio;
@@ -123,7 +124,7 @@ test('Silencio del usuario impide la reanudación temprana y se conserva al carg
   });
   const liberar = await retenerPantalla(pagina, '**/src/navegacion/escenarios.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/escenarios.html', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/escenarios.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => window[Symbol.for('metronet:gestor-musica')], null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').count(), 0);
   } finally { await liberar(); }
@@ -134,7 +135,7 @@ test('Una entrada asíncrona tardía no reemplaza bienvenida ni transiciones', a
   const { pagina } = await abrir(t);
   const liberar = await retenerPantalla(pagina, '**/src/audio/ReanudacionTemprana.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/escenarios.html', { waitUntil: 'domcontentloaded' });
+    await pagina.goto(`${BASE}/escenarios.html`, { waitUntil: 'domcontentloaded' });
     await pagina.locator('.metronet-navegacion').waitFor();
     await pagina.evaluate(async () => {
       const { gestorMusica } = await import('/src/audio/GestorMusica.js');
@@ -151,7 +152,7 @@ test('Un JUGADOR no anticipa audio administrativo ni altera su redirección de a
   const { pagina } = await abrir(t);
   const liberar = await retenerPantalla(pagina, '**/src/administracion/administracion.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/admin.html', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/admin.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => window[Symbol.for('metronet:gestor-musica')], null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').count(), 0);
   } finally { await liberar(); }
@@ -168,7 +169,7 @@ test('Un registro obsoleto no inicia audio anticipado', async t => {
   });
   const liberar = await retenerPantalla(pagina, '**/src/navegacion/escenarios.js*');
   try {
-    await pagina.goto('http://127.0.0.1:5173/escenarios.html', { waitUntil: 'commit' });
+    await pagina.goto(`${BASE}/escenarios.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => window[Symbol.for('metronet:gestor-musica')], null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').count(), 0);
   } finally { await liberar(); }

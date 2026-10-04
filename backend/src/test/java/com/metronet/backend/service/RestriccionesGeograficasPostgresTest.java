@@ -25,8 +25,10 @@ class RestriccionesGeograficasPostgresTest {
             conexion.setAutoCommit(false);
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
-                Integer idUsuario = jdbc.queryForObject("SELECT MIN(id_usuario) FROM usuario", Integer.class);
-                assertNotNull(idUsuario, "Se necesita un usuario existente para la FK del intento");
+                Integer idUsuario = jdbc.queryForObject("""
+                    INSERT INTO usuario(nombre,email,password,rol)
+                    VALUES ('Jugador territorial QA',?,'hash-de-prueba','JUGADOR') RETURNING id_usuario
+                    """, Integer.class, "territorial-" + java.util.UUID.randomUUID() + "@local.test");
                 jdbc.update("INSERT INTO diseno(id_diseno) VALUES (?)", id);
                 jdbc.update("INSERT INTO escenario(id_escenario,nombre,modo,progresivo,reglas_exito) VALUES (?,'Prueba territorial temporal','EDICION_LIBRE',FALSE,'{}'::jsonb)", id);
                 jdbc.update("INSERT INTO intento(id_intento,id_usuario,id_escenario,id_diseno,estado) VALUES (?,?,?,?,'EN_DISENO')", id, idUsuario, id, id);

@@ -9,7 +9,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Configuración acotada del criterio didáctico, sin editar contenido educativo general. */
@@ -50,24 +49,6 @@ public class AdministracionUvUtService {
             WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=?
             """, (r, fila) -> vista(numero, actual.version(), cambio.limiteUt(), cambio.presupuestoUv(),
                 r.getString(1), r.getString(2)), numero).getFirst();
-    }
-
-    @Transactional
-    public Vista aplicar(int numero, Cambio cambio) {
-        // Bloqueo y versión esperada impiden sobrescribir una publicación concurrente.
-        Integer id = jdbc.query("SELECT id_escenario FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero=? FOR UPDATE",
-            (r, fila) -> r.getInt(1), numero).stream().findFirst()
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el nivel solicitado"));
-        Vista vista = previsualizar(numero, cambio);
-        if (!vista.viable()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, vista.aviso());
-        if (vista.version() == 0) {
-            jdbc.update("INSERT INTO criterio_uv_ut(id_escenario,version,limite_ut,presupuesto_uv) VALUES (?,1,?,?)",
-                id, cambio.limiteUt(), cambio.presupuestoUv());
-        } else {
-            jdbc.update("UPDATE criterio_uv_ut SET version=version+1,limite_ut=?,presupuesto_uv=? WHERE id_escenario=? AND version=?",
-                cambio.limiteUt(), cambio.presupuestoUv(), id, vista.version());
-        }
-        return obtener(numero);
     }
 
     private Vista obtener(int numero) {

@@ -111,13 +111,36 @@ test('Cancelación, reemplazo y desmontaje limpian frames y evitan dobles contin
   assert.equal(await pagina.locator('.metronet-victoria').count(),0);assert.equal(await pagina.evaluate(()=>framesVictoria.size),0);assert.equal(await pagina.evaluate(()=>anterior.querySelector('[role=progressbar]').getAttribute('aria-valuenow')),p);
  }
 });
-test('Tras la victoria: salida durante API lenta evita otra carga y navegación tardía',async t=>{
+test('Salir durante la consulta de contenido cancela el inicio antes de abrir el nivel',async t=>{
  const {pagina}=await abrir(t);await pagina.evaluate(async()=>{
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=(url,opciones)=>String(url).includes('/api/juego/niveles/2/contenido')
+   ?new Promise((_,rechazar)=>{window.senalContenido=opciones.signal;opciones.signal.addEventListener('abort',()=>rechazar(new DOMException('Cancelado','AbortError')),{once:true});})
+   :originalFetch(url,opciones);
   const {iniciarNivelConTransicion}=await import('/src/educacion/PreparacionNivel.js');window.llamadas=0;
   window.inicio=iniciarNivelConTransicion({numero:2},signal=>{window.signalInicio=signal;llamadas++;return new Promise(r=>window.liberarInicio=r);},{preparado:true});
  });
- assert.equal(await pagina.locator('.metronet-viaje').count(),0);await pagina.evaluate(()=>window.dispatchEvent(new Event('popstate')));assert.equal(await pagina.evaluate(()=>inicio),null);
- await pagina.evaluate(()=>liberarInicio({idDiseno:42}));assert.equal(await pagina.evaluate(()=>signalInicio.aborted),true);assert.equal(await pagina.evaluate(()=>llamadas),1);
+ await pagina.waitForFunction(()=>Boolean(window.senalContenido));
+ assert.equal(await pagina.locator('.metronet-viaje').count(),0);
+ await pagina.evaluate(()=>window.dispatchEvent(new Event('popstate')));
+ assert.equal(await pagina.evaluate(()=>inicio),null);
+ assert.equal(await pagina.evaluate(()=>senalContenido.aborted),true);
+ assert.equal(await pagina.evaluate(()=>llamadas),0);
+});
+test('Tras la victoria: salida durante API de inicio lenta evita navegación tardía',async t=>{
+ const {pagina}=await abrir(t);await pagina.evaluate(async()=>{
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=(url,opciones)=>String(url).includes('/api/juego/niveles/2/contenido')
+   ?Promise.resolve(new Response('',{status:404})):originalFetch(url,opciones);
+  const {iniciarNivelConTransicion}=await import('/src/educacion/PreparacionNivel.js');window.llamadas=0;
+  window.inicio=iniciarNivelConTransicion({numero:2},signal=>{window.signalInicio=signal;llamadas++;return new Promise(r=>window.liberarInicio=r);},{preparado:true});
+ });
+ await pagina.waitForFunction(()=>typeof window.liberarInicio==='function');
+ await pagina.evaluate(()=>window.dispatchEvent(new Event('popstate')));
+ assert.equal(await pagina.evaluate(()=>inicio),null);
+ await pagina.evaluate(()=>liberarInicio({idDiseno:42}));
+ assert.equal(await pagina.evaluate(()=>signalInicio.aborted),true);
+ assert.equal(await pagina.evaluate(()=>llamadas),1);
 });
 test('Constructor real: evaluación única, victoria y siguiente nivel sin segunda carga',async t=>{
  const progreso=resumen(0);progreso.escenarios[0].estado='EN_DESARROLLO';progreso.escenarios[1].desbloqueado=true;

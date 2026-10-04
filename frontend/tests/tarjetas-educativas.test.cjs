@@ -2,6 +2,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const niveles = require('../src/educacion/niveles.json');
+const catalogoPublicado = require('../src/educacion/catalogo-svgs-niveles.json');
 const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 let browser;
 before(async () => { browser = await chromium.launch({ headless:true, channel:process.env.METRONET_BROWSER_CHANNEL }); });
@@ -43,6 +44,80 @@ test('10 niveles tienen seis pares únicos de texto, fuente e imagen local váli
     assert.match(card.svg, /ESQUEMA ORIGINAL/);
     assert.doesNotMatch(card.svg, /<script|<foreignObject|(?:href|xlink:href)=["']https?:/i);
   }
+});
+
+test('las 60 imágenes mantienen el encuadre 720:246 al renderizarse', async t => {
+  const page = await paginaPrueba(t);
+  await page.addStyleTag({ url: '/src/educacion/tarjeta-educativa-nivel.css' });
+  const tarjetas = catalogoPublicado.flatMap(nivel => nivel.tarjetas);
+  const resultado = await page.evaluate(async tarjetas => {
+    const filas = [];
+    for (const tarjeta of tarjetas) {
+      const contenido = await (await fetch(tarjeta.imagen)).text();
+      const svg = new DOMParser().parseFromString(contenido, 'image/svg+xml').documentElement;
+      const figura = document.createElement('figure');
+      figura.className = 'metronet-tarjeta-educativa__figura';
+      figura.style.width = '300px';
+      const imagen = document.createElement('img');
+      imagen.src = tarjeta.imagen;
+      imagen.width = 720;
+      imagen.height = 246;
+      figura.append(imagen);
+      document.querySelector('main').append(figura);
+      await imagen.decode();
+      const caja = imagen.getBoundingClientRect();
+      filas.push({ id: tarjeta.id, viewBox: svg.getAttribute('viewBox'),
+        ancho: caja.width, alto: caja.height, natural: imagen.naturalWidth });
+      figura.remove();
+    }
+    return filas;
+  }, tarjetas);
+  assert.equal(resultado.length, 60);
+  assert.equal(new Set(resultado.map(fila => fila.id)).size, 60);
+  for (const fila of resultado) {
+    assert.equal(fila.viewBox, '0 0 720 246', fila.id);
+    assert.ok(fila.natural > 0, fila.id);
+    assert.ok(fila.ancho > 290 && fila.ancho <= 300, JSON.stringify(fila));
+    assert.ok(Math.abs(fila.ancho / fila.alto - 720 / 246) < 0.01, fila.id);
+  }
+});
+
+test('contenido en caché reactiva las seis tarjetas de la versión del nivel elegido', async t => {
+  const page = await paginaPrueba(t);
+  const tarjetas = catalogoPublicado[0].tarjetas;
+  let consultasActuales = 0;
+  await page.evaluate(() => localStorage.setItem('sesionUsuario', JSON.stringify({
+    token:'qa-local',usuario:{idUsuario:17,rol:'JUGADOR'},
+  })));
+  await page.route('**/api/juego/**/contenido', route => {
+    if (route.request().url().includes('/intentos/82/')) return route.fulfill({status:404});
+    const anterior = route.request().url().includes('/intentos/81/');
+    if (!anterior) consultasActuales++;
+    return route.fulfill({ contentType:'application/json', body:JSON.stringify({
+      numero:1,version:anterior?1:2,desafio:{nombre:'Nivel 1'},ayudas:[],
+      tarjetas:tarjetas.map(t => ({...t,id:`${anterior?'vieja':'nueva'}-${t.id}`})),
+    }) });
+  });
+  const resultado = await page.evaluate(async () => {
+    const contenido = await import('/src/educacion/ContenidoPublicadoNivel.js');
+    const { tarjetasDisponibles } = await import('/src/educacion/TarjetasEducativasNivel.js');
+    await contenido.cargarContenidoPublicado(1);
+    const actual = tarjetasDisponibles(1)[0].id;
+    await contenido.cargarContenidoPublicado(1,{idIntento:81});
+    const anterior = tarjetasDisponibles(1)[0].id;
+    await contenido.cargarContenidoPublicado(1);
+    const restaurada = tarjetasDisponibles(1)[0].id;
+    await contenido.cargarContenidoPublicado(1,{idIntento:81});
+    const intentoEnCache = tarjetasDisponibles(1)[0].id;
+    try { await contenido.cargarContenidoPublicado(1,{idIntento:82}); } catch {}
+    return {actual,anterior,restaurada,intentoEnCache,legada:tarjetasDisponibles(1)[0].id};
+  });
+  assert.match(resultado.actual,/^nueva-/);
+  assert.match(resultado.anterior,/^vieja-/);
+  assert.equal(resultado.restaurada,resultado.actual);
+  assert.equal(resultado.intentoEnCache,resultado.anterior);
+  assert.equal(resultado.legada,'1-1');
+  assert.equal(consultasActuales,2,'La publicación vigente se vuelve a consultar antes de iniciar');
 });
 
 test('selección aleatoria agota las seis tarjetas antes de repetir y persiste al recargar', async t => {
@@ -143,8 +218,13 @@ test('música y preparación preceden la tarjeta; Continuar abre el nivel en el 
   const textoEducativo = await dialog.locator('.metronet-tarjeta-educativa').innerText();
   assert.doesNotMatch(textoEducativo, /NIVEL 1|CONSIGNA|PRÓXIMO DESAFÍO|PUNTOS/i);
   assert.equal(textoEducativo.includes(niveles[0].objetivo), false);
-  const img = await dialog.locator('.metronet-tarjeta-educativa img').evaluate(i => ({ naturalWidth:i.naturalWidth, alt:i.alt }));
-  assert.equal(img.naturalWidth, 720);
+  const img = await dialog.locator('.metronet-tarjeta-educativa img').evaluate(async i => {
+    await i.decode();
+    const rect = i.getBoundingClientRect();
+    return { naturalWidth:i.naturalWidth, ancho:rect.width, alto:rect.height, alt:i.alt };
+  });
+  assert.ok(img.naturalWidth > 0);
+  assert.ok(img.ancho > 0 && Math.abs(img.ancho / img.alto - 720 / 246) < 0.01);
   assert.match(img.alt, /^Esquema original/);
   assert.equal(await dialog.getByRole('button').count(), 1);
   await dialog.getByRole('button', { name:'Continuar' }).click();

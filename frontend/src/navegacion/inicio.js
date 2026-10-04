@@ -249,7 +249,12 @@ async function iniciarEscenario(escenario, boton) {
   mostrarMensaje(escenario.numero === null ? 'Preparando Modo Libre…' : 'Preparando el nivel…');
   try {
     const inicio = await iniciarNivelConTransicion(escenario,
-      signal => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, { method: 'POST', signal }));
+      signal => solicitar(`/escenarios/${escenario.idEscenario}/iniciar`, {
+        method: 'POST', signal,
+        ...(escenario.contenidoPublicado?.version && !ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado)
+          ? { headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ versionEsperada: escenario.contenidoPublicado.version }) } : {}),
+      }));
     if (!inicio) { mostrarMensaje(''); return; }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;

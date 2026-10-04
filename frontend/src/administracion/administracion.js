@@ -2,13 +2,13 @@ import { formatearVelocidad, VELOCIDAD_INICIAL } from '../simulacion/EscalaSimul
 import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
 import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
-import { crearAdministracionUvUt } from './AdministracionUvUt.js';
+import { crearAdministracionNiveles } from './AdministracionNiveles.js';
 
 const sesion = obtenerSesionAdministrador();
 const CAPACIDAD_COMPATIBILIDAD = 300;
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
-let administracionUvUt = null;
+let administracionNiveles = null;
 
 if (!sesion) {
   window.location.replace("/admin-login.html");
@@ -17,9 +17,9 @@ if (!sesion) {
 }
 
 function inicializarAdministracion(sesionAdministrador) {
-  administracionUvUt = crearAdministracionUvUt({
-    contenedor: document.getElementById('listaNivelesUvUt'),
-    mensaje: document.getElementById('mensajeNivelesUvUt'),
+  administracionNiveles = crearAdministracionNiveles({
+    contenedor: document.getElementById('listaNivelesAdmin'),
+    mensaje: document.getElementById('mensajeNivelesAdmin'),
     token: sesionAdministrador.token,
     urlServidor: obtenerUrlServidor,
     errorRespuesta: obtenerMensajeError,
@@ -48,7 +48,7 @@ function inicializarAdministracion(sesionAdministrador) {
       if (boton.dataset.vista === "configuracion") {
         cargarConfiguracion(sesionAdministrador.token);
       }
-      if (boton.dataset.vista === 'niveles-uvut') administracionUvUt.cargar();
+      if (boton.dataset.vista === 'niveles') administracionNiveles.cargar();
 
       if (boton.dataset.vista === "actividad") {
         cargarActividad(sesionAdministrador.token);
@@ -136,7 +136,7 @@ function mostrarVista(nombreVista) {
     usuarios: "Gestión de usuarios",
     disenos: "Supervisión de diseños",
     configuracion: "Configuración general",
-    'niveles-uvut': 'Criterios UV/UT',
+    niveles: 'Experiencia de juego',
     actividad: "Actividad reciente",
   };
 

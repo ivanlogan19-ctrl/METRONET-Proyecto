@@ -356,7 +356,7 @@ button { cursor: pointer; }
   background: color-mix(in srgb, var(--panel) 65%, transparent);
   text-align: center;
 }
-.metronet-escenarios-pagina__presentacion p { margin: 0; color: var(--text-secondary); line-height: 1.45; text-wrap: pretty; }
+.metronet-escenarios-pagina__presentacion p { max-width: 66ch; margin: 0 auto; color: var(--text-secondary); line-height: 1.45; text-align: justify; text-align-last: left; hyphens: auto; text-wrap: wrap; overflow-wrap: break-word; }
 .metronet-escenarios-pagina__presentacion p + p { margin-top: var(--space-xs); }
 .metronet-escenarios-pagina__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 14px; }.metronet-escenarios-pagina__tarjeta { display: grid; align-content: start; gap: 9px; min-height: 260px; padding: 18px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }.metronet-escenarios-pagina__tarjeta > p, .metronet-escenarios-pagina__tarjeta h2, .metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small, .metronet-escenarios-pagina__tarjeta b { margin: 0; }.metronet-escenarios-pagina__tarjeta > p { color: var(--info-active); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }.metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small { color: var(--text-secondary); line-height: 1.45; }.metronet-escenarios-pagina__tarjeta b { color: var(--success); font-size: 12px; }.metronet-escenarios-pagina__tarjeta button { align-self: end; min-height: 38px; margin-top: auto; }.metronet-escenarios-pagina__tarjeta.bloqueada { background: var(--bg-secondary); }.metronet-escenarios-pagina__tarjeta.bloqueada > p, .metronet-escenarios-pagina__tarjeta.bloqueada b { color: var(--text-disabled); }
 
@@ -887,7 +887,7 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-escenarios-pagina__tarjeta-contenido { display: grid; align-content: start; gap: var(--space-sm); }
 .metronet-escenarios-pagina__personaje { display: flex; align-items: center; gap: 8px; min-height: 40px; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; }
 .metronet-escenarios-pagina__personaje img { display: block; width: 40px; height: 40px; flex: 0 0 40px; image-rendering: pixelated; }
-.metronet-escenarios-pagina__relato { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.metronet-escenarios-pagina__relato { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; text-align: justify; text-align-last: left; hyphens: auto; overflow-wrap: break-word; }
 .metronet-escenarios-pagina__progreso-tarjeta { display: grid; gap: 6px; color: var(--text-secondary); font-size: 12px; }
 .metronet-escenarios-pagina__barra-progreso { height: 6px; overflow: hidden; border-radius: var(--radius-control); background: var(--bg-secondary); }
 .metronet-escenarios-pagina__barra-progreso > span { display: block; width: var(--progreso-escenario, 0%); height: 100%; background: var(--success); }
@@ -927,6 +927,7 @@ body.metronet-pagina-editor { overflow: hidden; }
   .metronet-escenarios-pagina__presentacion { margin-top: 4px; padding: 2px 8px; }
   .metronet-escenarios-pagina__presentacion p { font-size: 14px; line-height: 1.4; }
   .metronet-escenarios-pagina__presentacion p + p { margin-top: 4px; }
+  .metronet-escenarios-pagina__relato { text-align: left; hyphens: none; }
   .metronet-escenarios-pagina__equipo { gap: 6px; margin-top: 5px; }
   .metronet-escenarios-pagina__equipo li { gap: 4px; padding: 4px; }
   .metronet-escenarios-pagina__equipo img { width: 28px; height: 28px; flex-basis: 28px; }

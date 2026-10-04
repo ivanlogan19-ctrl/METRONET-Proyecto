@@ -17,6 +17,7 @@ function cerrar(t, vista) { t.after(async () => { await vista.contexto.close(); 
 for (const width of [1440, 390]) test(`Inicio ${width}px: una sola marca grande y navegación intacta`, async t => {
   const v = await abrirPantalla(navegador, '/inicio.html', { viewport: { width, height: 844 } }); cerrar(t, v);
   const p = v.pagina;
+  await p.locator('.metronet-inicio__tarjeta').first().waitFor();
   assert.equal(await p.locator('.metronet-navegacion__marca').count(), 0);
   assert.equal(await p.locator('.metronet-inicio__marca .metronet-logo__imagen').count(), 1);
   assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 4);
@@ -25,17 +26,21 @@ for (const width of [1440, 390]) test(`Inicio ${width}px: una sola marca grande 
   const progreso = await p.locator('.metronet-inicio__tarjeta--progreso').boundingBox();
   const continuar = await p.locator('.metronet-inicio__tarjeta--continuar').boundingBox();
   const crear = await p.locator('.metronet-inicio__tarjeta--crear').boundingBox();
-  assert.ok(progreso.y >= Math.max(continuar.y + continuar.height, crear.y + crear.height));
   if (width === 1440) {
+    assert.ok(progreso.y >= Math.max(continuar.y + continuar.height, crear.y + crear.height));
     assert.ok(Math.abs(progreso.x - continuar.x) < 1);
     assert.ok(Math.abs(progreso.x + progreso.width - crear.x - crear.width) < 1);
-  } else assert.ok(Math.abs(progreso.width - continuar.width) < 1);
+  } else {
+    assert.ok(progreso.y >= continuar.y + continuar.height);
+    assert.ok(crear.y >= progreso.y + progreso.height);
+    assert.ok(Math.abs(progreso.width - continuar.width) < 1);
+  }
   await p.locator('.metronet-navegacion__usuario > summary').click();
   assert.equal(await p.getByRole('link', { name: 'Inicio', exact: true }).last().isVisible(), true);
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
 });
 
-for (const width of [1440, 390, 320]) test(`Inicio ${width}px: diez niveles agrupados y alineados`, async t => {
+for (const width of [1440, 390, 320]) test(`Inicio ${width}px: resumen compacto y acceso a los diez niveles`, async t => {
   const escenarios = Array.from({length:10}, (_, i) => ({
     idEscenario:i + 1, numero:i + 1, nombre:`Nivel ${i + 1}`, estado:i ? 'BLOQUEADO' : 'DISPONIBLE',
     desbloqueado:i === 0, progreso:0, objetivo:'Conectá estaciones.'
@@ -45,20 +50,13 @@ for (const width of [1440, 390, 320]) test(`Inicio ${width}px: diez niveles agru
     new URL(req.url()).pathname==='/api/juego/progreso'
       ? {json:{escenarios,nivelesCompletados:0,modoLibreDesbloqueado:false}}
       : null}); cerrar(t,v);
-  const p=v.pagina, pasos=p.locator('.metronet-inicio__paso');
-  assert.equal(await pasos.count(),10);
-  assert.match(await pasos.first().innerText(),/Disponible/);
-  assert.doesNotMatch(await pasos.first().innerText(),/En curso/);
+  const p=v.pagina;
+  await p.locator('.metronet-inicio__tarjeta').first().waitFor();
+  assert.equal(await p.locator('.metronet-inicio__tarjeta').count(),3);
+  assert.equal(await p.locator('.metronet-inicio__paso').count(),0);
+  assert.match(await p.locator('.metronet-inicio__avance-recorrido').innerText(),/0\/10/);
+  assert.equal(await p.getByRole('link',{name:'Niveles',exact:true}).count()>0,true);
   assert.equal(await p.locator('.metronet-inicio__tarjeta--crear').getByText('Modo Libre').count(),1);
-  const cajas=await pasos.evaluateAll(elementos=>elementos.map(e=>{
-    const r=e.getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,h:r.height};
-  }));
-  const columnas=width>720?5:2;
-  assert.equal(new Set(cajas.map(c=>Math.round(c.y))).size,10/columnas);
-  for(let i=0;i<cajas.length;i++) {
-    assert.ok(Math.abs(cajas[i].x-cajas[i%columnas].x)<1);
-    assert.ok(Math.abs(cajas[i].w-cajas[i%columnas].w)<1);
-  }
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
 });
 

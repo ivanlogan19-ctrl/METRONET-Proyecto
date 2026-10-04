@@ -6,6 +6,8 @@ import { crearControlMusica } from '../audio/ControlMusica.js';
 import PanelTutorialInicial from './PanelTutorialInicial.js';
 import { conceptosDelNivel } from './glosario/ContextoConceptos.js';
 import { abrirTarjetaEducativaDesdeAyuda } from './TarjetaEducativaNivel.js';
+import { cargarContenidoPublicado, contenidoPublicadoEnCache } from './ContenidoPublicadoNivel.js';
+import { obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import './ayuda-contextual.css';
 import '../mapa/estilos/referencias-poi.css';
 
@@ -103,6 +105,14 @@ export default class PanelAyudaContextual {
   actualizar(contexto) {
     if (this.eliminada) return;
     this.numeroEducativo = Number.isInteger(contexto.escenario?.numero) ? contexto.escenario.numero : null;
+    const idIntento = obtenerContextoRuta().idIntento;
+    if (this.numeroEducativo && idIntento && !contenidoPublicadoEnCache(this.numeroEducativo,idIntento)
+      && this.cargaContenidoIntento !== idIntento) {
+      this.cargaContenidoIntento = idIntento;
+      cargarContenidoPublicado(this.numeroEducativo,{ idIntento })
+        .then(() => { if (!this.eliminada) this.actualizar(contexto); })
+        .catch(() => {});
+    }
     this.botonHistoria.hidden = !this.numeroEducativo;
     const tutorialActivo = this.tutorial.actualizar(contexto);
     contexto = { ...contexto, tutorialActivo };
@@ -124,10 +134,14 @@ export default class PanelAyudaContextual {
     if (escenario?.ultimoPuntaje != null) datos.push(`Mejor del último intento: ${escenario.ultimoPuntaje}`);
     estadisticas.textContent = datos.join(' · ');
     estadisticas.hidden = !datos.length;
-    const ayuda = obtenerAyudaContextual(contexto) ?? {
+    let ayuda = obtenerAyudaContextual(contexto) ?? {
       clave: 'sin-escenario', etiqueta: 'PISTA', conceptos: [],
       texto: contexto.diseno ? 'Este diseño no tiene una consigna activa.' : 'Abrí un nivel para recibir pistas de su consigna.',
     };
+    const editorial = contenidoPublicadoEnCache(this.numeroEducativo,idIntento)?.ayudas
+      ?.find(item => item.claveCondicion === ayuda.clave);
+    if (editorial) ayuda = { ...ayuda, texto: editorial.texto || ayuda.texto,
+      pista: editorial.pista || ayuda.pista };
     const contextoId = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario, contexto.escenario?.numero]);
     const identidad = JSON.stringify([contextoId, ayuda]);
     if (identidad === this.identidad) return;

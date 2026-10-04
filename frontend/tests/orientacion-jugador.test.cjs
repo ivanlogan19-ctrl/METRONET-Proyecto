@@ -115,6 +115,39 @@ test('Inicio conserva tres accesos legibles a 320 px', async t => {
   assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 });
 
+for (const width of [320, 390, 1440]) {
+  test(`Niveles justifica la introducción y preserva lectura a ${width} px`, async t => {
+    const { pagina } = await abrir(t, '/escenarios.html', { viewport: { width, height: width === 320 ? 740 : 844 } });
+    const estilo = await pagina.evaluate(() => {
+      const intro = document.querySelector('.metronet-escenarios-pagina__presentacion p');
+      const relato = document.querySelector('.metronet-escenarios-pagina__relato');
+      const titulo = document.querySelector('#tituloEscenarios').getBoundingClientRect();
+      const bloque = document.querySelector('.metronet-escenarios-pagina__presentacion').getBoundingClientRect();
+      return { intro: getComputedStyle(intro).textAlign, ultima: getComputedStyle(intro).textAlignLast,
+        guiones: getComputedStyle(intro).hyphens, relato: getComputedStyle(relato).textAlign,
+        diferenciaCentros: Math.abs((titulo.x + titulo.width / 2) - (bloque.x + bloque.width / 2)),
+        desborde: document.documentElement.scrollWidth > innerWidth };
+    });
+    assert.equal(estilo.intro, 'justify');
+    assert.equal(estilo.ultima, 'left');
+    assert.equal(estilo.guiones, 'auto');
+    assert.equal(estilo.relato, width <= 620 ? 'left' : 'justify');
+    assert.ok(estilo.diferenciaCentros < 2);
+    assert.equal(estilo.desborde, false);
+    if (width === 390) {
+      const accion = await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' }).boundingBox();
+      assert.ok(accion && accion.y + accion.height <= 844);
+    }
+  });
+}
+
+test('Privacidad nombra niveles y actividades propias sin alterar los demás datos descritos', async t => {
+  const { pagina } = await abrir(t, '/privacidad.html');
+  const texto = await pagina.locator('.privacy-notice').innerText();
+  assert.match(texto, /diseños de redes, niveles y actividades propias, intentos y resultados de simulaciones/);
+  assert.doesNotMatch(texto, /escenarios/i);
+});
+
 test('Los diez niveles cuentan capítulos distintos y dejan la misión técnica para el editor', async t => {
   const niveles = require('../src/educacion/niveles.json');
   const campana = { ...progreso, escenarios: niveles.map(nivel => ({

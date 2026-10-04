@@ -582,3 +582,84 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
     grid-column: auto;
   }
 }
+
+.admin-niveles,
+.admin-niveles__editor,
+.admin-niveles__lista,
+.admin-niveles__tarjetas,
+.admin-niveles__tablas-red {
+  display: grid;
+  gap: var(--space-md, 16px);
+  min-width: 0;
+}
+
+.admin-niveles__fila,
+.admin-niveles__cabecera,
+.admin-niveles__seccion,
+.admin-niveles__vista,
+.admin-niveles__historial,
+.admin-niveles__grupo {
+  min-width: 0;
+  padding: var(--space-md, 16px);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+}
+
+.admin-niveles__fila {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm, 12px);
+}
+.admin-niveles__lista { grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); }
+.admin-niveles__lista .admin-niveles__fila { align-content: start; }
+
+.admin-niveles__fila strong { flex: 1 1 250px; }
+.admin-niveles__fila span { color: var(--text-secondary); }
+.admin-niveles__fila button { margin-left: auto; }
+.admin-niveles__cabecera h2 { margin: 0 0 var(--space-xs, 8px); }
+.admin-niveles__cabecera p { margin: .25rem 0; }
+.admin-niveles__seccion > summary { cursor: pointer; font-weight: 700; }
+.admin-niveles__seccion[open] > summary { margin-bottom: var(--space-md, 16px); }
+.admin-niveles__seccion fieldset { min-width: 0; margin: var(--space-sm, 12px) 0; padding: var(--space-sm, 12px); border: 1px solid var(--border); }
+.admin-niveles__seccion legend { padding: 0 .4rem; color: var(--text-secondary); }
+.admin-niveles__campo { display: grid; gap: .4rem; margin: .7rem 0; color: var(--text-secondary); }
+.admin-niveles__campo input:not([type="checkbox"]),
+.admin-niveles__campo textarea,
+.admin-niveles__campo select,
+.admin-red-referencia__controles select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: .55rem .7rem;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-control);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  font: inherit;
+}
+.admin-niveles__campo textarea { resize: vertical; }
+.admin-niveles__campo input[type="checkbox"] { width: 22px; height: 22px; }
+.admin-niveles__regla { margin: .6rem 0; }
+.admin-niveles__regla > button { margin-bottom: .6rem; }
+.admin-niveles__acciones { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-sm, 12px); }
+.admin-niveles__acciones label { display: flex; align-items: center; gap: .5rem; max-width: 430px; }
+.admin-niveles__acciones button:disabled { opacity: .5; cursor: not-allowed; }
+.admin-niveles__vista ul { padding-left: 1.3rem; }
+.admin-niveles__vista figure { display: inline-grid; width: min(100%, 230px); margin: .5rem; vertical-align: top; }
+.admin-niveles__vista img { width: 100%; aspect-ratio: 720 / 246; object-fit: contain; }
+.admin-niveles__vista figcaption { overflow-wrap: anywhere; font-size: .8rem; }
+.admin-red-referencia__controles { display: flex; gap: var(--space-sm, 12px); flex-wrap: wrap; margin-bottom: .6rem; }
+.admin-red-referencia__controles select { flex: 1 1 190px; width: auto; }
+.admin-red-referencia__mapa { display: block; width: 100%; max-height: 55vh; border: 2px solid var(--border-active); background: #0a1425; touch-action: manipulation; }
+.admin-red-referencia__mapa g[role="button"] { cursor: pointer; }
+.admin-red-referencia__mapa g[role="button"]:focus-visible { outline: 3px solid #fff1ac; }
+.admin-red-referencia__estado { min-height: 1.5em; color: var(--text-secondary); }
+
+@media (max-width: 720px) {
+  .admin-niveles__fila { display: grid; }
+  .admin-niveles__fila button { margin-left: 0; justify-self: start; }
+  .admin-niveles__acciones { display: grid; }
+  .admin-red-referencia__mapa { max-height: none; }
+}

@@ -37,7 +37,7 @@ async function ir(v,p,nombre,ruta) {
 
 test('Doce cambios de menú, Atrás/Adelante: mismo Audio, sin pause/play/seek ni acumulación',async t=>{
   const {pagina:p,vista:v}=await abrir(t); await sonar(p); await marcar(p);
-  for(let i=0;i<3;i++) for(const [n,r] of [['Escenarios','escenarios'],['Ranking','ranking'],['Administración','admin'],['Inicio','inicio']]) await ir(v,p,n,r);
+  for(let i=0;i<3;i++) for(const [n,r] of [['Niveles','escenarios'],['Ranking','ranking'],['Administración','admin'],['Inicio','inicio']]) await ir(v,p,n,r);
   await continuidad(p);
   await p.goBack(); await v.waitForURL('**/admin.html'); await p.waitForURL('**/admin.html');
   await p.goBack(); await v.waitForURL('**/ranking.html'); await p.waitForURL('**/ranking.html');
@@ -128,7 +128,7 @@ test('Recarga explícita recupera posición y conserva tipo reload en la vista',
 });
 
 test('Historial reemplazado por editor mantiene URL, título y solo una entrada',async t=>{
-  const {pagina:p,vista:v}=await abrir(t); await ir(v,p,'Escenarios','escenarios');
+  const {pagina:p,vista:v}=await abrir(t); await ir(v,p,'Niveles','escenarios');
   await v.evaluate(()=>history.replaceState({},'', '/escenarios.html?prueba=77#objetivo'));
   await p.waitForURL('**/escenarios.html?prueba=77#objetivo');assert.equal(await p.title(),await v.title());
   await p.goBack();await p.waitForURL('**/inicio.html');await v.waitForURL('**/inicio.html');
@@ -187,7 +187,7 @@ for(const reducido of [false,true]) test(`Intro y cartel de nivel conservan canc
     if(path.endsWith('/escenarios/1/iniciar'))return{json:{idDiseno:77,idEscenario:1,idIntento:123,numeroCampana:1,mostrarTutorial:true}};
     if(path==='/api/simulaciones/77')return{json:red};
   }});
-  const inicio=Date.now();await v.getByRole('button',{name:'Comenzar escenario',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'victory');await marcar(p);
+  const inicio=Date.now();await v.getByRole('button',{name:'Jugar',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'victory');await marcar(p);
   await v.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
   assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>10.5&&a.currentTime<13.9));
   await v.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
@@ -201,7 +201,7 @@ test('Outro y siguiente nivel mantienen la canción completa y liberan su contex
   await sonar(p,'victory');await marcar(p);const inicio=Date.now();
   await v.locator('.metronet-victoria .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
   assert.equal(await v.evaluate(()=>finPrueba),'siguiente');assert.ok(Date.now()-inicio>13000);
-  await ir(v,p,'Escenarios','escenarios');await sonar(p);assert.equal(await p.evaluate(()=>window[Symbol.for('metronet:gestor-musica')].temporales.size),0);
+  await ir(v,p,'Niveles','escenarios');await sonar(p);assert.equal(await p.evaluate(()=>window[Symbol.for('metronet:gestor-musica')].temporales.size),0);
 });
 
 test('Gesto de usuario dentro del iframe habilita audio y conserva acceso con autoplay bloqueado',async t=>{

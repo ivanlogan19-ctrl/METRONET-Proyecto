@@ -1,16 +1,42 @@
 import { gestorMusica } from '../audio/GestorMusica.js';
 import { registrarInicioTutorial } from './InicioTutorial.js';
 import { registrarIdentificacionPresentada } from './IdentificacionPresentada.js';
+import { cargarContenidoPublicado } from './ContenidoPublicadoNivel.js';
 
 // El acceso manual prepara el nivel; una victoria ya realizó el viaje de entrada.
 export async function iniciarNivelConTransicion(escenario, iniciar, { preparado = false } = {}) {
-  const datos = await prepararNivel(escenario, iniciar, preparado);
-  if (datos) {
-    registrarInicioTutorial(datos, escenario);
-    if (preparado && Number.isInteger(escenario?.numero)) registrarIdentificacionPresentada(datos);
-    gestorMusica.establecerContexto('gameplay');
+  const consulta = new AbortController();
+  let cancelado = false;
+  const cancelarConsulta = () => { cancelado = true; consulta.abort(); };
+  window.addEventListener('pagehide', cancelarConsulta);
+  window.addEventListener('popstate', cancelarConsulta);
+  try {
+    if (Number.isInteger(escenario?.numero)) {
+      try {
+        const contenido = await cargarContenidoPublicado(escenario.numero, {
+          idIntento: escenario.idIntento && !preparado && escenario.estado !== 'COMPLETADO' ? escenario.idIntento : null,
+          signal: consulta.signal,
+        });
+        if (cancelado) return null;
+        escenario.contenidoPublicado = contenido;
+        escenario.nombre = contenido.desafio?.nombre ?? escenario.nombre;
+        if (!escenario.idIntento || escenario.estado === 'COMPLETADO')
+          escenario.objetivo = contenido.desafio?.objetivo ?? escenario.objetivo;
+      } catch { /* La preparación conserva los datos de progreso disponibles. */ }
+    }
+    if (cancelado) return null;
+    const datos = await prepararNivel(escenario, iniciar, preparado);
+    if (cancelado) return null;
+    if (datos) {
+      registrarInicioTutorial(datos, escenario);
+      if (preparado && Number.isInteger(escenario?.numero)) registrarIdentificacionPresentada(datos);
+      gestorMusica.establecerContexto('gameplay');
+    }
+    return datos;
+  } finally {
+    window.removeEventListener('pagehide', cancelarConsulta);
+    window.removeEventListener('popstate', cancelarConsulta);
   }
-  return datos;
 }
 
 async function prepararNivel(escenario, iniciar, preparado) {

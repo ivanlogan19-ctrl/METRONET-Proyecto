@@ -83,7 +83,7 @@ for (const ruta of ['/escenarios.html', '/inicio.html']) {
     for (const numero of niveles.map(n => n.numero)) await t.test(`nivel ${numero}`, async t => {
       const escenario = nivel(numero);
       const { pagina, solicitudes } = await abrir(t, [escenario], ruta);
-      await pagina.getByRole('button', { name: ruta === '/inicio.html' ? 'Comenzar nivel' : 'Comenzar', exact: true }).click();
+      await pagina.getByRole('button', { name: ruta === '/inicio.html' ? 'Jugar' : 'Comenzar', exact: true }).click();
       const dialogo = pagina.getByRole('dialog', { name: escenario.nombre, exact: true });
       await dialogo.waitFor();
       await pagina.waitForFunction(() => document.querySelector('[role="progressbar"]'));

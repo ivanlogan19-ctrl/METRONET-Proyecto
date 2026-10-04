@@ -336,7 +336,11 @@ class CampanaPostgresTest {
                     var cambio = new AdministracionUvUtService.Cambio(2, presupuestos[nivel], 1);
                     var vista = admin.previsualizar(nivel, cambio);
                     assertTrue(vista.viable(), "Presupuesto nivel " + nivel);
-                    assertEquals(2, admin.aplicar(nivel, cambio).version());
+                    // Esta prueba usa tablas temporales sin publicaciones: prepara el criterio del motor directamente.
+                    jdbc.update("UPDATE criterio_uv_ut SET version=2,limite_ut=?,presupuesto_uv=? WHERE id_escenario=?",
+                        cambio.limiteUt(), cambio.presupuestoUv(), escenario);
+                    assertEquals(2, jdbc.queryForObject(
+                        "SELECT version FROM criterio_uv_ut WHERE id_escenario=?", Integer.class, escenario));
                     jdbc.update("INSERT INTO diseno(id_diseno) VALUES (?)", nivel);
                     jdbc.update("INSERT INTO intento VALUES (?,7,?,?,1,'EN_DESARROLLO',0,NULL,NULL)", nivel, escenario, nivel);
                     criterio.iniciarIntento(nivel, escenario);

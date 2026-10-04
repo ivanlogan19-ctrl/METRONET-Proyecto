@@ -42,6 +42,9 @@ html:root body :is(.metronet-inicio__presentacion, .metronet-escenarios-pagina__
   .metronet-ranking > header)::after {
   content: ''; display: block; width: 72px; height: 5px; margin-top: var(--space-md); background: var(--module-stripe);
 }
+html:root body .metronet-escenarios-pagina__encabezado { text-align: center; }
+html:root body .metronet-escenarios-pagina__encabezado > div { max-width: 800px; margin-inline: auto; }
+html:root body .metronet-escenarios-pagina__encabezado::after { margin-inline: auto; }
 html:root body :is(.perfil-encabezado, .metronet-panel-editor-cabecera, .simulacion-visor-encabezado) {
   border-bottom: var(--border-width) solid var(--info-active); background: var(--panel-elevated); box-shadow: var(--shadow-header);
 }

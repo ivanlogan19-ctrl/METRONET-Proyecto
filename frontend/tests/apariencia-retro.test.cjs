@@ -31,7 +31,7 @@ async function comprobarMarcaYAnchura(pagina) {
     };
   });
   assert.equal(resultado.desborde, false);
-  assert.equal(resultado.logos.length, new URL(pagina.url()).pathname === '/inicio.html' ? 2 : 1);
+  assert.equal(resultado.logos.length, 1);
   for (const logo of resultado.logos) {
     assert.equal(logo.cargado && logo.intacto && logo.proporcion, true, JSON.stringify(logo));
     assert.equal(logo.src, '/assets/metronet-logo-pixel.png');

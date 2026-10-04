@@ -1,4 +1,4 @@
-import { seleccionarTarjetaEducativa, tarjetaEducativaActual, tarjetasEducativas } from './TarjetasEducativasNivel.js';
+import { seleccionarTarjetaEducativa, tarjetaEducativaActual, tarjetasDisponibles } from './TarjetasEducativasNivel.js';
 import './tarjeta-educativa-nivel.css';
 
 let secuencia = 0;
@@ -70,7 +70,7 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
 // El HUD se cierra antes de llamar; si ya hay un diálogo modal, no se apila otro.
 export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
   const tarjeta = tarjetaEducativaActual(numero);
-  const disponibles = tarjetasEducativas[numero - 1];
+  const disponibles = tarjetasDisponibles(numero);
   if (!tarjeta || !disponibles?.length || document.querySelector('dialog[open]')) return false;
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-dialogo-cambios metronet-preparacion metronet-preparacion--educativa';

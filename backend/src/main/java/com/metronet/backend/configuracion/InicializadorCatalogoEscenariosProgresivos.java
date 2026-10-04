@@ -35,6 +35,7 @@ public class InicializadorCatalogoEscenariosProgresivos {
                 consignasAnteriores = new ObjectMapper().readTree(entrada);
             }
             for (JsonNode nivel : niveles) {
+                if (tienePublicacionAdministrada(jdbcTemplate, nivel.path("numero").asInt())) continue;
                 if (nivel.path("numero").asInt() == 4) actualizarSeedInicialNivel4(jdbcTemplate, nivel);
                 for (JsonNode anterior : anterioresUV) {
                     if (anterior.path("numero").asInt() != nivel.path("numero").asInt()) continue;
@@ -67,6 +68,7 @@ public class InicializadorCatalogoEscenariosProgresivos {
             for (JsonNode nivel : niveles) {
                 int numero = nivel.path("numero").asInt();
                 if (numero < 4 || numero > 10) continue;
+                if (tienePublicacionAdministrada(jdbcTemplate, numero)) continue;
                 jdbcTemplate.update("""
                     INSERT INTO criterio_uv_ut(id_escenario,version,limite_ut,presupuesto_uv)
                     SELECT id_escenario,1,2,CAST(? AS numeric)
@@ -78,6 +80,19 @@ public class InicializadorCatalogoEscenariosProgresivos {
                     nivel.path("reglasExito").toString(), nivel.path("herramientasHabilitadas").toString());
             }
         };
+    }
+
+    private boolean tienePublicacionAdministrada(JdbcTemplate jdbc, int numero) {
+        // Las pruebas históricas usan tablas TEMP; su id_escenario puede coincidir
+        // con un ID permanente y no debe mezclarse con publicaciones de otra tabla.
+        Boolean esquemaReal = jdbc.queryForObject("SELECT to_regclass('escenario')=to_regclass('public.escenario')", Boolean.class);
+        if (!Boolean.TRUE.equals(esquemaReal)) return false;
+        Boolean existeTabla = jdbc.queryForObject("SELECT to_regclass('public.nivel_publicacion') IS NOT NULL", Boolean.class);
+        if (!Boolean.TRUE.equals(existeTabla)) return false;
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+            SELECT EXISTS (SELECT 1 FROM public.nivel_publicacion p JOIN public.escenario e ON e.id_escenario=p.id_escenario
+              WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=?)
+            """, Boolean.class, numero));
     }
 
     private void actualizarSeedInicialNivel4(JdbcTemplate jdbcTemplate, JsonNode nivel) {

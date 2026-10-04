@@ -60,7 +60,7 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   }}); cerrar(t,v); const p = v.pagina;
   await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
   await p.clock.install();
-  await p.getByRole('button',{name:'Comenzar escenario',exact:true}).click();
+  await p.getByRole('button',{name:'Jugar',exact:true}).click();
   await p.locator('.metronet-viaje').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(),0);
   await p.clock.runFor(12000);
