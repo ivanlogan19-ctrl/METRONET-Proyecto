@@ -98,7 +98,7 @@ test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', a
   }, resumen);
   await pagina.getByRole('dialog', { name: 'Nivel final completado', exact: true }).waitFor();
   assert.equal(await pagina.getByText('Continuar con Nivel 11').count(), 0);
-  // El resumen se revela al terminar la pista de victoria (~15 s), con límite de seguridad de 24 s.
+  // El resumen se revela al terminar el recorrido visible (~11 s), sin crear un nivel 11.
   await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
   await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
   assert.deepEqual(await pagina.evaluate(() => window.resultadoTransicion), { destino: '/escenarios.html' });

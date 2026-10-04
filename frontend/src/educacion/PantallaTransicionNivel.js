@@ -60,7 +60,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   const puedeJugar = Boolean(siguiente || modoLibre);
   const estado = texto('p', MENSAJES_TRANSICION.entrada, 'metronet-victoria__estado');
   estado.setAttribute('role', 'status');
-  if (!puedeJugar) estado.textContent = final ? 'Al terminar la música verás el resumen. Podés abrirlo ahora.' : 'Al terminar la música volverás a los niveles. Podés elegir uno ahora.';
+  if (!puedeJugar) estado.textContent = final ? 'Al terminar el recorrido verás el resumen. Podés abrirlo ahora.' : 'Al terminar el recorrido volverás a los niveles. Podés elegir uno ahora.';
   const cierre = texto('section', '', 'metronet-victoria__resumen'); cierre.hidden = true;
   const resumenTitulo = texto('h3', resumen?.campanaCompletada ? '¡Campaña completada!' : 'Resumen del recorrido');
   resumenTitulo.tabIndex = -1;

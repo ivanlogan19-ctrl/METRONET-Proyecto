@@ -119,12 +119,11 @@ test('Credenciales inválidas: permanece login, sin bienvenida ni cambio de pist
   await v.locator('#mensaje.error').waitFor();assert.equal(await v.locator('.metronet-bienvenida').count(),0); await continuidad(p);
 });
 
-test('Recarga explícita recupera posición y conserva tipo reload en la vista',async t=>{
-  const {pagina:p}=await abrir(t); await sonar(p); await p.locator('audio').evaluate(a=>a.currentTime=3);
+test('Recarga explícita vuelve a login y conserva la sesión almacenada',async t=>{
+  const {pagina:p}=await abrir(t); await sonar(p);
   await p.reload(); await p.locator('#pantalla-metronet').waitFor(); const v=await (await p.locator('#pantalla-metronet').elementHandle()).contentFrame();
-  await v.locator('.metronet-inicio__tarjeta').first().waitFor(); await sonar(p);
-  assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>=3));
-  assert.equal(await v.evaluate(()=>window[Symbol.for('metronet:tipo-navegacion')]),'reload');
+  await v.locator('#loginForm').waitFor(); await sonar(p,'extra');
+  assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador'))?.token),'prueba-visual');
 });
 
 test('Historial reemplazado por editor mantiene URL, título y solo una entrada',async t=>{
@@ -177,7 +176,7 @@ test('Fallo de entrada del contenedor ofrece acceso al HTML de respaldo',async t
   await p.locator('#abrir-documento').click();await p.locator('#loginForm').waitFor();assert.equal(await p.locator('iframe').count(),0);
 });
 
-for(const reducido of [false,true]) test(`Intro y cartel de nivel conservan canción y duración completa (reducido ${reducido})`,async t=>{
+for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 11 s (reducido ${reducido})`,async t=>{
   const nivel={...require('../src/educacion/niveles.json')[0],idEscenario:1,estado:'DISPONIBLE',desbloqueado:true};
   const red={simulacion:{idDiseno:77,idEscenario:1,nombre:'Primera red',modo:'NIVEL',estado:'EN_DISENO'},estaciones:[],lineas:[],tramos:[],unidadesMetro:[],preparadoParaSimular:false,territorio:{areas:[],errores:[]}};
   const {pagina:p,vista:v}=await abrir(t,'/inicio.html',{administrador:false,reducedMotion:reducido?'reduce':'no-preference',responder:req=>{
@@ -189,18 +188,18 @@ for(const reducido of [false,true]) test(`Intro y cartel de nivel conservan canc
   }});
   const inicio=Date.now();await v.getByRole('button',{name:'Jugar',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'victory');await marcar(p);
   await v.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
-  assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>10.5&&a.currentTime<13.9));
+  assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>8.3&&a.currentTime<11.5));
   await v.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
-  assert.ok(Date.now()-inicio>=13600&&Date.now()-inicio<20000);await sonar(p,'extra');
+  assert.ok(Date.now()-inicio>=10800&&Date.now()-inicio<16000);await sonar(p,'extra');
   await v.getByRole('button',{name:'Mostrar tutorial',exact:true}).waitFor();assert.equal(await v.locator('.metronet-identificacion').count(),0);
 });
 
-test('Outro y siguiente nivel mantienen la canción completa y liberan su contexto al navegar',async t=>{
+test('Outro y siguiente nivel completan el viaje de 11 s y liberan su contexto al navegar',async t=>{
   const {pagina:p,vista:v}=await abrir(t);await sonar(p);
   await v.evaluate(async()=>{const {mostrarTransicionNivel}=await import('/src/educacion/PantallaTransicionNivel.js');window.finPrueba=mostrarTransicionNivel({numero:1},{numero:2},{puntaje:100});});
   await sonar(p,'victory');await marcar(p);const inicio=Date.now();
   await v.locator('.metronet-victoria .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
-  assert.equal(await v.evaluate(()=>finPrueba),'siguiente');assert.ok(Date.now()-inicio>13000);
+  assert.equal(await v.evaluate(()=>finPrueba),'siguiente');assert.ok(Date.now()-inicio>10500);
   await ir(v,p,'Niveles','escenarios');await sonar(p);assert.equal(await p.evaluate(()=>window[Symbol.for('metronet:gestor-musica')].temporales.size),0);
 });
 
@@ -230,11 +229,11 @@ for(const reducido of [false,true]) test(`Entrada contenida breve y redirects re
   }
 });
 
-test('Ranking largo: Atrás y recarga completa restauran scroll dentro de la vista',async t=>{
+test('Ranking largo: Atrás restaura scroll y la recarga completa vuelve a login',async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/ranking.html',{viewport:{width:1280,height:720},responder:req=>new URL(req.url()).pathname==='/api/juego/ranking'?{json:{jugadores:Array.from({length:40},(_,i)=>({posicion:i+1,jugador:'Jugador '+i,puntajeTotal:1000-i,nivelesCompletados:10})),puntajeTotal:0,puntajeMaximo:1000,tuPosicion:null}}:null});
   await v.locator('#clasificacionRanking tr').first().waitFor();await v.evaluate(()=>scrollTo(0,600));assert.equal(await v.evaluate(()=>scrollY),600);
   await v.evaluate(()=>location.assign('/inicio.html'));await v.locator('.metronet-inicio__tarjeta').first().waitFor();
   await p.goBack();await v.locator('#clasificacionRanking tr').first().waitFor();await v.waitForFunction(()=>scrollY===600);
   await p.reload();await p.locator('#pantalla-metronet').waitFor();const f=await(await p.locator('#pantalla-metronet').elementHandle()).contentFrame();
-  await f.locator('#clasificacionRanking tr').first().waitFor();await f.waitForFunction(()=>scrollY===600);
+  await f.locator('#loginForm').waitFor();
 });

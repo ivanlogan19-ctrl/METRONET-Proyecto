@@ -92,6 +92,8 @@ export default class EditorRedMetro {
       if (this.errorAyuda) this.actualizarAyuda(true);
     });
     this.contenedor.addEventListener('click', (evento) => this.procesarAccion(evento));
+    this.manejadorAccionesPie = (evento) => this.procesarAccion(evento);
+    this.contenedorPieEditor?.addEventListener('click', this.manejadorAccionesPie);
     this.manejadorCancelarHerramienta = (evento) => {
       if (evento.key !== 'Escape' || evento.defaultPrevented || this.modo === 'normal' || document.querySelector('dialog[open]')) return;
       this.panelHerramientas.seleccionar('seleccion');
@@ -156,7 +158,8 @@ export default class EditorRedMetro {
     ayudaSimulacion.dataset.ayudaSimulacion = '';
     ayudaSimulacion.textContent = 'Guardar y Simular comprueban la red automáticamente.';
     finalizacion.append(ayudaSimulacion);
-    editorActivo.append(finalizacion);
+    this.contenedorPieEditor = document.querySelector('[data-panel-editor-pie]');
+    (this.contenedorPieEditor ?? editorActivo).append(finalizacion);
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño'],
       ['[data-crear-escenario]', 'escenarios', 'Crear actividad'], ['[data-actualizar-escenario]', 'guardar', 'Guardar actividad']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
@@ -790,7 +793,7 @@ export default class EditorRedMetro {
     botonAlternar.className = 'metronet-consigna__alternar metronet-control-panel';
     botonAlternar.dataset.alternarConsigna = '';
     botonAlternar.setAttribute('aria-expanded', String(!this.consignaCompacta));
-    configurarBotonIcono(botonAlternar, this.consignaCompacta ? 'desplegar' : 'plegar', this.consignaCompacta ? 'Mostrar panel' : 'Ocultar panel');
+    configurarBotonIcono(botonAlternar, this.consignaCompacta ? 'desplegar' : 'plegar', this.consignaCompacta ? 'Más información del nivel' : 'Ocultar información del nivel');
     botonAlternar.addEventListener('click', () => this.alternarConsigna());
     cabecera.append(contextoGrupo, botonAlternar);
 
@@ -800,6 +803,27 @@ export default class EditorRedMetro {
     titulo.className = 'metronet-consigna__titulo';
     titulo.textContent = this.obtenerTituloConsigna(escenario);
     resumen.append(titulo);
+    const resumenActivo = document.createElement('div');
+    resumenActivo.className = 'metronet-consigna__resumen-activo';
+    if (condiciones.length) {
+      const pendientes = condiciones.filter(condicion => !condicion.completado);
+      const cuenta = document.createElement('strong');
+      cuenta.textContent = pendientes.length ? `${pendientes.length} requisito${pendientes.length === 1 ? '' : 's'} pendiente${pendientes.length === 1 ? '' : 's'}` : 'Todos los requisitos cumplidos';
+      resumenActivo.append(cuenta);
+      const listaBreve = document.createElement('ul');
+      listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';
+      listaBreve.tabIndex = 0;
+      listaBreve.setAttribute('aria-label', 'Tareas del nivel');
+      condiciones
+        .forEach(condicion => listaBreve.append(this.crearElementoCondicionConsigna(condicion)));
+      resumenActivo.append(listaBreve);
+    } else {
+      const objetivoBreve = document.createElement('p');
+      objetivoBreve.className = 'metronet-consigna__objetivo-breve';
+      objetivoBreve.textContent = descripcion;
+      resumenActivo.append(objetivoBreve);
+    }
+    resumen.append(resumenActivo);
 
     const contenido = document.createElement('div');
     contenido.className = 'metronet-consigna__contenido';
@@ -814,7 +838,6 @@ export default class EditorRedMetro {
     textoObjetivo.className = 'metronet-consigna__objetivo-principal';
     textoObjetivo.textContent = descripcion;
     contenidoInterno.append(textoObjetivo);
-
     if (this.estadoConsigna === 'cargando') {
       const disponibilidad = document.createElement('p');
       disponibilidad.className = 'metronet-consigna__disponibilidad es-cargando';
@@ -825,19 +848,6 @@ export default class EditorRedMetro {
       disponibilidad.className = 'metronet-consigna__disponibilidad';
       disponibilidad.textContent = 'No se pudo consultar el detalle de condiciones. El progreso mostrado es el último estado registrado.';
       contenidoInterno.append(disponibilidad);
-    }
-
-    if (condiciones.length) {
-      const bloqueObjetivos = document.createElement('section');
-      bloqueObjetivos.className = 'metronet-consigna__objetivos';
-      const tituloObjetivos = document.createElement('h3');
-      tituloObjetivos.textContent = 'Objetivos';
-      const listaObjetivos = document.createElement('ul');
-      listaObjetivos.className = 'metronet-consigna__lista-objetivos';
-      listaObjetivos.dataset.consignaObjetivos = '';
-      condiciones.forEach((condicion) => listaObjetivos.append(this.crearElementoCondicionConsigna(condicion)));
-      bloqueObjetivos.append(tituloObjetivos, listaObjetivos);
-      contenidoInterno.append(bloqueObjetivos);
     }
 
     const referencias = detalleDisponible ? this.obtenerReferenciasObjetivoConsigna() : [];
@@ -1095,6 +1105,7 @@ export default class EditorRedMetro {
   cambiarVisibilidadEditor(mostrar) {
     gestorMusica.establecerContexto(mostrar ? 'gameplay' : 'menu');
     this.obtener('[data-editor-activo]').hidden = !mostrar;
+    if (this.contenedorPieEditor) this.contenedorPieEditor.hidden = !mostrar;
     this.obtener('[data-editor-vacio]').hidden = mostrar;
     this.actualizarResumenDiseno();
     if (!mostrar) {
@@ -1114,7 +1125,7 @@ export default class EditorRedMetro {
   esEscenarioProgresivo() { return Number.isInteger(this.escenarioJuegoActual?.numero); }
   esEscenarioSinSimulacion() { return this.esEscenarioProgresivo() && this.escenarioJuegoActual?.herramientasHabilitadas?.simulacion === false; }
   idDiseno() { return this.disenoActual.simulacion.idDiseno; }
-  obtener(selector) { return this.contenedor.querySelector(selector); }
+  obtener(selector) { return this.contenedor.querySelector(selector) ?? this.contenedorPieEditor?.querySelector(selector); }
   escapar(valor) { return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[caracter]); }
   formatearEstado(estado) { return ({ INICIADO: 'Iniciado', PARCIAL: 'En curso', LISTO: 'Listo', EN_DESARROLLO: 'En diseño', EN_DISENO: 'En diseño', GUARDADO: 'Guardado', VALIDADO: 'Validado', COMPLETADA: 'Completada', COMPLETADO: 'Completado' })[estado] ?? estado; }
   mostrarError(error) {
@@ -1147,7 +1158,7 @@ export default class EditorRedMetro {
     else if (tipo === 'exito' || !orientarError) this.errorAyuda = null;
     this.actualizarAyuda();
   }
-  eliminar() { this.activo = false; this.versionApertura += 1; this.identificacion?.cancelar(); this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(false); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
+  eliminar() { this.activo = false; this.versionApertura += 1; this.identificacion?.cancelar(); this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.contenedorPieEditor?.removeEventListener('click', this.manejadorAccionesPie); this.contenedorPieEditor?.replaceChildren(); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(false); this.dialogoEliminar?.remove(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
 }
 
 function establecerRutaSimulacion(idDiseno, contexto) { return establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto); }

@@ -20,5 +20,15 @@
   }, true);
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('#reintentar-pantalla')?.addEventListener('click', () => location.reload());
+    document.querySelector('#abrir-documento')?.addEventListener('click', evento => {
+      try {
+        const destino = new URL(evento.currentTarget.href);
+        if (destino.origin !== location.origin) return;
+        window.name = 'metronet:respaldo';
+        sessionStorage.setItem('metronet:continuacion-documento', JSON.stringify({
+          origen: location.origin, destino: destino.pathname + destino.search + destino.hash, instante: Date.now(),
+        }));
+      } catch { /* Un fallo del marcador vuelve al acceso normal. */ }
+    });
   }, { once:true });
 })();

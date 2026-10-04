@@ -170,8 +170,8 @@ function crearTarjetaEscenario(escenario) {
     const imagen = document.createElement('img');
     imagen.src = PERSONAJES[protagonista].imagen;
     imagen.alt = '';
-    imagen.width = 40;
-    imagen.height = 40;
+    imagen.width = 64;
+    imagen.height = 64;
     imagen.decoding = 'async';
     const nombre = document.createElement('span');
     nombre.textContent = `${protagonista} · ${PERSONAJES[protagonista].rol}`;

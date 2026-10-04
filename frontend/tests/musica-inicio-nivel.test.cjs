@@ -22,7 +22,7 @@ async function abrir(t, opciones = {}) {
   return v;
 }
 
-for (const reducido of [false, true]) test(`Viaje y cartel comparten FalsaCargaDeVictoria completa, sin navegar entre fases (reducido ${reducido})`, async t => {
+for (const reducido of [false, true]) test(`Viaje y cartel duran unos 11 s sin navegar entre fases (reducido ${reducido})`, async t => {
   const { pagina: p } = await abrir(t, { reducedMotion: reducido ? 'reduce' : 'no-preference' });
   let terminoAudio = false;
   await p.exposeFunction('registrarFinAudioPrueba', () => { terminoAudio = true; });
@@ -46,11 +46,11 @@ for (const reducido of [false, true]) test(`Viaje y cartel comparten FalsaCargaD
   const continuidad = await p.locator(audio).evaluate(a => ({ mismo: a === window.audioDelViaje, tiempo: a.currentTime, cortes: window.cortesDelViaje }));
   assert.equal(continuidad.mismo, true);
   assert.equal(continuidad.cortes, 0);
-  assert.ok(continuidad.tiempo >= 10.5 && continuidad.tiempo < 13.9);
+  assert.ok(continuidad.tiempo >= 8.3 && continuidad.tiempo < 11.5);
   assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 1);
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
-  assert.equal(terminoAudio, true, 'Navegar después del evento ended real');
-  assert.ok(Date.now() - inicio >= 13600 && Date.now() - inicio < 20000);
+  assert.equal(terminoAudio, false, 'La salida visual no acelera la reproducción');
+  assert.ok(Date.now() - inicio >= 10800 && Date.now() - inicio < 16000);
   await p.getByRole('button', { name: 'Mostrar tutorial', exact: true }).waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
   assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 0, 'No repetir canción en el editor');

@@ -1,30 +1,50 @@
 import { gestorMusica } from './GestorMusica.js';
 
 // Reloj común de las presentaciones con una pista puntual. No evalúa niveles
-// ni autentica usuarios: avisa al terminar el audio o al agotarse su respaldo.
+// ni autentica usuarios: avisa al terminar el audio o el tiempo visible previsto.
 export function iniciarAudioPresentacion({ contexto, inicio = performance.now(), duracionVisualMs,
-  duracionAudioEstimadaMs, demoraSinAudioMs = duracionVisualMs, esperaMaximaMs, alTerminar,
+  duracionAudioEstimadaMs, duracionMaximaMs, demoraSinAudioMs = duracionVisualMs, esperaMaximaMs, alTerminar,
   contextoAlFinalizar = 'transition' }) {
+  const duracionVisible = Number.isFinite(duracionMaximaMs) && duracionMaximaMs > 0 ? duracionMaximaMs : null;
   let eliminada = false, finalizada = false, audioIniciado = false, sinAudio = false;
   let ultimaPosicion = 0;
+  let tiempoVisible = 0, desde = performance.now(), oculta = document.hidden, limiteDuracion = null;
   let desuscribir = () => {};
   let liberar = gestorMusica.usarContextoTemporal(contexto, { reiniciar: true });
+  const obtenerTiempoVisible = () => tiempoVisible + (oculta ? 0 : performance.now() - desde);
+  const programarDuracion = () => {
+    if (duracionVisible && !oculta && !finalizada && !eliminada)
+      limiteDuracion = setTimeout(finalizar, Math.max(0, duracionVisible - obtenerTiempoVisible()));
+  };
+  const alCambiarVisibilidad = () => {
+    if (document.hidden === oculta) return;
+    clearTimeout(limiteDuracion);
+    if (document.hidden) { tiempoVisible = obtenerTiempoVisible(); oculta = true; }
+    else { desde = performance.now(); oculta = false; programarDuracion(); }
+  };
+  const limpiar = () => {
+    clearTimeout(limiteInicio); clearTimeout(limiteInactividad); clearTimeout(limiteDuracion);
+    document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+    desuscribir();
+  };
   const finalizar = () => {
     if (eliminada || finalizada) return;
+    if (duracionVisible && document.hidden) { alCambiarVisibilidad(); return; }
     finalizada = true;
-    clearTimeout(limiteInicio); clearTimeout(limiteInactividad); desuscribir();
+    limpiar();
     // El resumen puede permanecer abierto. También ante un fallo, mantener
     // silencio hasta que su dueño lo cierre, sin reiniciar gameplay detrás.
     const mantenerSilencio = gestorMusica.usarContextoTemporal(contextoAlFinalizar);
     liberar(); liberar = mantenerSilencio;
     alTerminar();
   };
-  let limiteInicio = setTimeout(finalizar, demoraSinAudioMs);
-  let limiteInactividad = setTimeout(finalizar, esperaMaximaMs);
+  let limiteInicio = duracionVisible ? null : setTimeout(finalizar, demoraSinAudioMs);
+  let limiteInactividad = duracionVisible ? null : setTimeout(finalizar, esperaMaximaMs);
   desuscribir = gestorMusica.suscribir(estado => {
     if (eliminada || finalizada || estado.contexto !== contexto) return;
     sinAudio = estado.error || estado.esperandoGesto || estado.silenciado || estado.volumen === 0;
     if (estado.finalizada) { finalizar(); return; }
+    if (duracionVisible) return;
     if (estado.reproduciendo && !sinAudio) {
       audioIniciado = true;
       clearTimeout(limiteInicio); limiteInicio = null;
@@ -39,6 +59,7 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
       limiteInicio = setTimeout(finalizar, Math.max(0, demoraSinAudioMs - (performance.now() - inicio)));
     }
   });
+  if (duracionVisible) { document.addEventListener('visibilitychange', alCambiarVisibilidad); programarDuracion(); }
   function obtenerEscalaDuracion() {
     if (sinAudio) return demoraSinAudioMs / duracionVisualMs;
     const duracion = gestorMusica.obtenerEstado().duracion;
@@ -48,13 +69,14 @@ export function iniciarAudioPresentacion({ contexto, inicio = performance.now(),
     obtenerEscalaDuracion,
     obtenerTiempo() {
       if (finalizada) return duracionVisualMs;
+      if (duracionVisible) return Math.min(duracionVisualMs, obtenerTiempoVisible() * duracionVisualMs / duracionVisible);
       if (sinAudio) return (performance.now() - inicio) / obtenerEscalaDuracion();
       return audioIniciado ? gestorMusica.obtenerEstado().posicion * 1000 / obtenerEscalaDuracion() : 0;
     },
     eliminar({ alNavegar = false } = {}) {
       if (eliminada) return;
       eliminada = true;
-      clearTimeout(limiteInicio); clearTimeout(limiteInactividad); desuscribir();
+      limpiar();
       if (alNavegar) gestorMusica.establecerContexto('general');
       liberar();
     },

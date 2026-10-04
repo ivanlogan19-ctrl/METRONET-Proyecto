@@ -16,7 +16,7 @@ async function abrir(t){
  });
  return v.pagina;
 }
-for(const tipo of ['intro','outro'])for(const fase of ['viaje','cartel'])test(`${tipo}/${fase}: ${fase==='viaje'?'Jugar permite avanzar':'el número de nivel oculta las acciones y conserva la música'}`,async t=>{
+for(const tipo of ['intro','outro'])for(const fase of ['viaje','cartel'])test(`${tipo}/${fase}: ${fase==='viaje'?'Jugar permite avanzar':'el número de nivel oculta las acciones durante el viaje'}`,async t=>{
  const p=await abrir(t);
  await p.evaluate(tipo=>{
   window.continuaciones=0;
@@ -29,19 +29,17 @@ for(const tipo of ['intro','outro'])for(const fase of ['viaje','cartel'])test(`$
  },tipo);
  await p.waitForFunction(()=>audioInicial.currentTime>.1&&!audioInicial.paused);
  assert.equal(await p.getByRole('button',{name:'Leer sin prisa'}).count(),0);
- assert.equal(await p.locator(tipo==='intro'?'.metronet-viaje__estado':'.metronet-victoria__estado').textContent(),'Entrarás al terminar la música. Pulsá Jugar para comenzar ahora.');
+ assert.equal(await p.locator(tipo==='intro'?'.metronet-viaje__estado':'.metronet-victoria__estado').textContent(),'Entrarás al terminar el recorrido. Pulsá Jugar para comenzar ahora.');
  if(fase==='cartel'){
   await p.getByRole('button',{name:'Jugar',exact:true}).focus();
-  await p.evaluate(()=>audioInicial.currentTime=12);
-  await p.locator('.metronet-cartel-transicion:not([hidden])').waitFor();
+  await p.locator('.metronet-cartel-transicion:not([hidden])').waitFor({timeout:12000});
   const pie=p.locator(tipo==='intro'?'.metronet-viaje__pie':'.metronet-victoria__acciones');
   assert.equal(await pie.isVisible(),false);
   for(const boton of await pie.locator('button').all())assert.equal(await boton.isVisible(),false);
   await p.keyboard.press('Tab');
   assert.equal(await pie.evaluate(e=>e.contains(document.activeElement)),false,'Los botones ocultos no reciben foco');
-  assert.equal(await p.evaluate(()=>g.audio===audioInicial&&!audioInicial.paused&&audioInicial.currentTime>=12),true);
+  assert.equal(await p.evaluate(()=>g.audio===audioInicial&&!audioInicial.paused&&audioInicial.playbackRate===1),true);
   assert.equal(await p.evaluate(()=>continuaciones),0);
-  await p.evaluate(()=>audioInicial.currentTime=audioInicial.duration-.3);
   await p.waitForFunction(()=>continuaciones===1);
  }else{
   const inicio=Date.now();
@@ -94,7 +92,7 @@ for(const [width,height]of [[375,667],[320,568]])test(`Acciones visibles solo du
   const rect=await boton.boundingBox();
   assert.ok(rect.y>=0&&rect.y+rect.height<=height,'Jugar visible durante la animación sin scroll previo');
   assert.ok(rect.height>=44&&rect.x>=0&&rect.x+rect.width<=width);
-  await p.clock.runFor(11300);
+  await p.clock.runFor(8000);
   assert.equal(await p.locator('.metronet-cartel-transicion').isVisible(),true);
   assert.equal(await p.locator(tipo==='intro'?'.metronet-viaje__pie':'.metronet-victoria__acciones').isVisible(),false);
   assert.equal(await boton.isVisible(),false);

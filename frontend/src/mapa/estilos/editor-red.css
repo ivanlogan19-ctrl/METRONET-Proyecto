@@ -62,7 +62,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 }
 .metronet-panel-editor-contenido { display: grid; gap: 10px; padding: 12px; }
 #metronet-panel-controles .metronet-flujo { margin: 0; padding: 0 2px; font-size: 10px; }
-#metronet-panel-controles .metronet-consigna {
+#metronet-panel-controles .metronet-consigna,
+.metronet-consigna-externa.metronet-consigna {
   display: grid;
   min-width: 0;
   gap: var(--space-xs);
@@ -72,7 +73,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   border-radius: var(--radius-md);
   background: var(--panel-elevated);
 }
-#metronet-panel-controles .metronet-consigna[hidden] { display: none; }
+#metronet-panel-controles .metronet-consigna[hidden],
+.metronet-consigna-externa.metronet-consigna[hidden] { display: none; }
 .metronet-consigna__cabecera,
 .metronet-consigna__progreso-encabezado {
   display: flex;
@@ -601,3 +603,164 @@ html:root body .metronet-estado-editor [data-revisar-error] { flex-shrink: 0; mi
 .metronet-consigna__contenido:not([hidden]) { animation:metronet-panel-contexto 160ms linear both; }
 @keyframes metronet-panel-contexto { from { opacity:0; } }
 @media(prefers-reduced-motion:reduce) { .metronet-consigna__contenido:not([hidden]) { animation:none; } }
+
+/* La misión queda junto al mapa y fuera del desplazamiento de herramientas. */
+body .metronet-pantalla-editor #metronet-aplicacion {
+  grid-template-columns: minmax(0, 1fr) clamp(270px, 22vw, 360px);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: 'mapa objetivo' 'mapa herramientas';
+}
+.metronet-area-mapa { grid-area: mapa; }
+.metronet-consigna-externa { grid-area: objetivo; min-width: 0; }
+.metronet-consigna-externa:empty,
+.metronet-consigna-externa:has(> .metronet-consigna[hidden]) { display: none; }
+#metronet-panel-controles { grid-area: herramientas; min-height: 0; }
+.metronet-consigna-externa.metronet-consigna { max-height: min(44svh, 430px); overflow-y: auto; }
+.metronet-consigna__resumen-activo { display: grid; gap: 6px; }
+.metronet-consigna__resumen-activo[hidden] { display: none; }
+.metronet-consigna__objetivo-breve {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.metronet-consigna__resumen-activo > strong { color: var(--info-active); font-size: 11px; }
+.metronet-consigna__lista-breve { max-height: 10em; overflow: hidden; }
+@media (max-width: 920px) {
+  body .metronet-pantalla-editor #metronet-aplicacion {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: 'objetivo' 'mapa' 'herramientas';
+  }
+  .metronet-consigna-externa.metronet-consigna { max-height: min(38svh, 320px); }
+}
+
+/* Las tareas permanecen a la vista; solo su lista se desplaza cuando crece. */
+body .metronet-pantalla-editor #metronet-aplicacion {
+  grid-template-columns: minmax(0, 1fr) clamp(330px, 26vw, 380px);
+  grid-template-rows: minmax(0, 40%) minmax(0, 1fr);
+}
+body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden]) {
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'mapa herramientas';
+}
+.metronet-consigna-externa.metronet-consigna {
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+}
+.metronet-consigna__resumen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 7px;
+  min-height: 0;
+}
+.metronet-consigna__resumen-activo {
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
+.metronet-consigna__contenido:not([hidden]) { max-height: 110px; overflow-y: auto; }
+.metronet-consigna__objetivo-breve {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+.metronet-consigna__lista-breve {
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-color: var(--border-active) transparent;
+  scrollbar-width: thin;
+}
+.metronet-consigna__lista-breve:focus-visible { outline: 2px solid var(--info-active); outline-offset: -2px; }
+.metronet-consigna__lista-breve li { align-items: start; padding: 3px 0; }
+.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo { overflow-wrap: anywhere; }
+
+/* El pie de proyecto se mantiene visible mientras se consultan herramientas. */
+#metronet-panel-controles {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+#metronet-panel-controles .metronet-panel-editor-contenido {
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+  scrollbar-color: var(--border-active) transparent;
+  scrollbar-width: thin;
+}
+#metronet-panel-controles .metronet-panel-editor-cabecera { padding: 8px 12px; }
+#metronet-panel-controles .metronet-panel-editor-sobretitulo { margin-bottom: 2px; }
+#metronet-panel-controles .metronet-panel-titulo { font-size: 17px; line-height: 1.2; }
+#metronet-panel-controles .metronet-panel-editor-contenido { gap: 6px; padding: 8px 12px; }
+#metronet-panel-controles .metronet-panel-editor-pie {
+  padding: 0 12px 10px;
+  border-top: var(--border-width) solid var(--border);
+  background: var(--panel);
+}
+#metronet-panel-controles .metronet-panel-editor-pie[hidden] { display: none; }
+#metronet-panel-controles .metronet-editor-finalizar {
+  gap: 6px;
+  padding-top: 9px;
+  border-top: 0;
+}
+#metronet-panel-controles .metronet-editor-finalizar__ayuda { display: none; }
+#metronet-panel-controles .metronet-editor-finalizar__acciones { justify-content: start; }
+@media (max-width: 920px) {
+  body .metronet-pantalla-editor #metronet-aplicacion,
+  body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: 'objetivo' 'mapa' 'herramientas';
+  }
+  .metronet-consigna-externa.metronet-consigna {
+    height: min(40svh, 350px);
+    min-height: 220px;
+  }
+  #metronet-panel-controles { overflow: visible; }
+  #metronet-panel-controles .metronet-panel-editor-contenido { max-height: 360px; }
+}
+@media (max-width: 920px) {
+  body.metronet-pagina-editor { overflow-y: auto; }
+  body .metronet-pantalla-editor { height: auto; min-height: 100svh; }
+  body .metronet-pantalla-editor #metronet-aplicacion {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    grid-template-rows: auto auto auto;
+  }
+  #metronet-panel-controles { display: block; }
+  #metronet-panel-controles .metronet-panel-editor-contenido { max-height: none; overflow: visible; }
+  .metronet-consigna-externa.metronet-consigna {
+    height: min(42svh, 340px);
+    min-height: 210px;
+  }
+  #metronet-panel-controles .metronet-panel-editor-pie {
+    position: fixed;
+    z-index: 40;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 5px 12px max(5px, env(safe-area-inset-bottom));
+    border-top: var(--border-width) solid var(--border-active);
+    pointer-events: none;
+  }
+  #metronet-panel-controles .metronet-editor-finalizar { padding: 0; }
+  #metronet-panel-controles .metronet-editor-finalizar h3,
+  #metronet-panel-controles .metronet-editor-finalizar__ayuda { display: none; }
+  #metronet-panel-controles .metronet-editor-finalizar__acciones { display: flex !important; justify-content: center; pointer-events: none; }
+  #metronet-panel-controles .metronet-editor-finalizar__acciones > button {
+    flex: 0 0 44px;
+    width: 44px;
+    min-height: 44px;
+    pointer-events: auto;
+  }
+  body .metronet-pantalla-editor #metronet-aplicacion { padding-bottom: 86px; }
+}

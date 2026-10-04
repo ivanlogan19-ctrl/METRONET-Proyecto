@@ -130,7 +130,7 @@ export default class MapaScene extends Phaser.Scene {
     this.contenedorControlesMapa = this.contenedorControles?.querySelector('[data-contenedor-controles-mapa]') ?? null;
     this.contenedorPuntosInteres = areaMapa?.querySelector('[data-contenedor-puntos-interes]') ?? null;
     this.contenedorEditorRed = this.contenedorControles?.querySelector('[data-contenedor-editor-red]') ?? null;
-    this.contenedorConsigna = this.contenedorControles?.querySelector('[data-contenedor-consigna]') ?? null;
+    this.contenedorConsigna = document.querySelector('[data-contenedor-consigna]') ?? null;
     this.contenedorPieEditor = this.contenedorControles?.querySelector('[data-panel-editor-pie]') ?? null;
   }
 

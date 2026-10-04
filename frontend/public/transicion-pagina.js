@@ -20,6 +20,11 @@
   // La animación CSS no interviene en permisos, destinos ni restauración de scroll.
   if (window === window.top) {
     document.documentElement.dataset.navegacionDocumento = '';
+    if (window[Symbol.for('metronet:documento-respaldo')]) window.addEventListener('pagehide', () => {
+      try { sessionStorage.setItem('metronet:continuacion-documento', JSON.stringify({
+        origen: location.origin, instante: Date.now(),
+      })); } catch { /* El respaldo sigue disponible sin almacenamiento. */ }
+    });
   }
 
   // La restauración nativa puede ocurrir antes de recibir una tabla asíncrona y

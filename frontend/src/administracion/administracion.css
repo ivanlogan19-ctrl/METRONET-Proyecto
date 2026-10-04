@@ -646,6 +646,33 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
 .admin-niveles__acciones { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-sm, 12px); }
 .admin-niveles__acciones label { display: flex; align-items: center; gap: .5rem; max-width: 430px; }
 .admin-niveles__acciones button:disabled { opacity: .5; cursor: not-allowed; }
+.admin-niveles__acciones {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+  padding: 12px 16px;
+  border: var(--border-width) solid var(--border-active);
+  border-radius: var(--radius-control);
+  background: var(--panel-elevated);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--bg-primary) 55%, transparent);
+}
+.admin-niveles__estado { margin: 0; color: var(--text-primary); font-weight: 700; }
+.admin-niveles__acciones label { grid-column: 1 / -1; grid-row: 2; max-width: none; font-size: 13px; }
+.admin-niveles__acciones [data-publicar-nivel] { grid-column: 4; grid-row: 1; }
+.admin-niveles__acciones button { min-height: 42px; }
+.admin-niveles__cambiar {
+  padding: 12px 16px;
+  border: var(--border-width) solid var(--border);
+  background: var(--panel);
+}
+.admin-niveles__cambiar > summary { cursor: pointer; font-weight: 700; }
+.admin-niveles__cambiar .admin-niveles__lista { margin-top: 16px; }
+.admin-niveles__red-trabajo { display: grid; grid-template-columns: minmax(0, 3fr) minmax(250px, 2fr); gap: 16px; align-items: start; }
+.admin-niveles__red-trabajo .admin-niveles__tablas-red { max-height: min(70vh, 720px); overflow-y: auto; }
+.admin-niveles__vista[hidden] { display: none; }
+.admin-niveles__seccion > summary { min-height: 30px; }
 .admin-niveles__vista ul { padding-left: 1.3rem; }
 .admin-niveles__vista figure { display: inline-grid; width: min(100%, 230px); margin: .5rem; vertical-align: top; }
 .admin-niveles__vista img { width: 100%; aspect-ratio: 720 / 246; object-fit: contain; }
@@ -660,6 +687,18 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
 @media (max-width: 720px) {
   .admin-niveles__fila { display: grid; }
   .admin-niveles__fila button { margin-left: 0; justify-self: start; }
-  .admin-niveles__acciones { display: grid; }
+  .admin-niveles__acciones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-niveles__estado, .admin-niveles__acciones label { grid-column: 1 / -1; }
+  .admin-niveles__acciones label { grid-row: auto; }
+  .admin-niveles__acciones [data-publicar-nivel] { grid-column: auto; grid-row: auto; }
+  .admin-niveles__acciones button { width: 100%; }
+  .admin-niveles__red-trabajo { grid-template-columns: minmax(0, 1fr); }
+  .admin-niveles__red-trabajo .admin-niveles__tablas-red { max-height: none; overflow: visible; }
   .admin-red-referencia__mapa { max-height: none; }
 }
+@media (max-width: 460px) {
+  .admin-niveles__acciones { position: static; grid-template-columns: minmax(0, 1fr); }
+  .admin-niveles__estado, .admin-niveles__acciones label { grid-column: auto; }
+}
+
+html:root body .admin-menu .admin-enlace { letter-spacing: 0; }

@@ -4,6 +4,16 @@ import { obtenerDestinoSeguro } from './DestinoSeguro.js';
 const CLAVE_PENDIENTE = 'metronet:bienvenida-pendiente';
 let bienvenidaActiva = null;
 
+function prepararContinuacionDocumento(destino) {
+  if (!new URLSearchParams(location.search).has('documento')) return;
+  try {
+    window.name = 'metronet:respaldo';
+    sessionStorage.setItem('metronet:continuacion-documento', JSON.stringify({
+      origen: location.origin, destino, instante: Date.now(),
+    }));
+  } catch { /* El acceso normal sigue disponible si falla el respaldo. */ }
+}
+
 function quitarPendiente() {
   try { sessionStorage.removeItem(CLAVE_PENDIENTE); } catch { /* La presentación no exige almacenamiento. */ }
 }
@@ -17,7 +27,9 @@ export function reanudarBienvenida(sesion) {
     if (!sesion?.token || pendiente.rol !== sesion.usuario?.rol
       || pendiente.origen !== location.pathname + location.search
       || !pendiente.destino?.startsWith('/') || pendiente.destino.startsWith('//')) return false;
-    location.replace(obtenerDestinoSeguro(pendiente.destino));
+    const destino = obtenerDestinoSeguro(pendiente.destino);
+    prepararContinuacionDocumento(destino);
+    location.replace(destino);
     return true;
   } catch { return false; }
 }
@@ -44,6 +56,7 @@ export function continuarConBienvenida(sesion, destino) {
       audio?.eliminar({ alNavegar: true });
       quitarPendiente();
       // La cobertura permanece hasta pagehide: no reaparece el login entre pantallas.
+      prepararContinuacionDocumento(destino);
       location.assign(destino);
       resolve(true);
     };

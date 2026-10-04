@@ -63,7 +63,7 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   await p.getByRole('button',{name:'Jugar',exact:true}).click();
   await p.locator('.metronet-viaje').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(),0);
-  await p.clock.runFor(12000);
+  await p.clock.runFor(9000);
   await p.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();
   assert.equal(await p.locator('.metronet-cartel-transicion strong').textContent(),'NIVEL 1');
   assert.equal(new URL(p.url()).pathname,'/inicio.html');
@@ -106,7 +106,7 @@ test('Último nivel recién completado: victoria → celebración → Modo Libre
   await p.clock.install();
   await p.evaluate(() => { window.resultadoEntrada = editorPrueba.evaluarEscenarioGuardado(77); });
   await p.locator('.metronet-victoria').waitFor();
-  const duracion = await p.evaluate(async () => (await import('/src/educacion/ConfiguracionTransicion.js')).CONFIGURACION_TRANSICION.audioNivelEstimadoMs);
+  const duracion = await p.evaluate(async () => (await import('/src/educacion/ConfiguracionTransicion.js')).CONFIGURACION_TRANSICION.duracionVisibleMs);
   await p.clock.runFor(duracion + 50);
   await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
   assert.match(await p.locator('.metronet-identificacion').innerText(), /RECORRIDO COMPLETADO.*ESTÁS LISTO PARA EL MODO LIBRE/s);

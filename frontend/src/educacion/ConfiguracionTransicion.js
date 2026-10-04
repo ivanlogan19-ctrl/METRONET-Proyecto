@@ -1,7 +1,8 @@
-// El recorrido se normaliza a 1800 ms; la presentación dura la canción completa.
-// Sin sonido conserva su duración estimada. El límite de audio mide inactividad.
+// El recorrido se normaliza a 1800 ms y se muestra durante 11 s visibles.
+// La música suena a velocidad normal y se desvanece al concluir el viaje.
 export const CONFIGURACION_TRANSICION = Object.freeze({
   duracionMs: 1800,
+  duracionVisibleMs: 11000,
   identificacionMs: 1000,
   audioNivelEstimadoMs: 13767,
   esperaMaximaAudioMs: 20000,
@@ -15,5 +16,5 @@ export const CONFIGURACION_TRANSICION = Object.freeze({
 
 export const MENSAJES_TRANSICION = Object.freeze({
   accion: 'Jugar',
-  entrada: 'Entrarás al terminar la música. Pulsá Jugar para comenzar ahora.',
+  entrada: 'Entrarás al terminar el recorrido. Pulsá Jugar para comenzar ahora.',
 });

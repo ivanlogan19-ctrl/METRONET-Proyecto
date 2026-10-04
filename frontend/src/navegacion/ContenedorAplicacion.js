@@ -15,7 +15,12 @@ function rutaPermitida(ruta) {
 }
 
 const parametros = new URLSearchParams(location.search);
-const inicial = rutaPermitida(parametros.get('destino')) ?? new URL('/login.html', location.origin);
+const solicitada = rutaPermitida(parametros.get('destino'));
+// Abrir directamente el contenedor con una URL guardada también es un arranque.
+// Los cambios de pantalla dentro del iframe no vuelven a crear el contenedor.
+const inicial = solicitada && !new Set(['/', '/index.html', '/inicio.html', '/escenarios.html',
+  '/ranking.html', '/disenos.html', '/perfil.html', '/admin.html', '/simulacion.html']).has(solicitada.pathname)
+  ? solicitada : new URL('/login.html', location.origin);
 let primeraVista = true;
 function recibirEntrada(vista) {
   if (!primeraVista || vista !== marco.contentWindow) return null;

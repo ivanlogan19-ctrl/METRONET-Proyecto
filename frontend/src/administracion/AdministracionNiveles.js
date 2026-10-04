@@ -49,7 +49,11 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     }
     const editor=contenedor.querySelector('[data-editor-nivel]') ?? crear('div','','admin-niveles__editor');
     editor.dataset.editorNivel='';
-    contenedor.replaceChildren(...(actual?[editor,tabla]:[tabla,editor]));
+    if(actual) {
+      const cambiar=crear('details','','admin-niveles__cambiar');
+      cambiar.append(crear('summary','Cambiar de nivel'),tabla);
+      contenedor.replaceChildren(editor,cambiar);
+    } else contenedor.replaceChildren(tabla,editor);
     if(actual) pintarEditor();
   }
 
@@ -80,6 +84,8 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const boton=contenedor.querySelector('[data-publicar-nivel]'); if(boton) boton.disabled=true;
     const indicador=contenedor.querySelector('[data-estado-borrador]');
     if(indicador) indicador.textContent='Cambios sin guardar';
+    const vista=contenedor.querySelector('[data-vista-previa]');
+    if(vista) { vista.hidden=true; vista.replaceChildren(); }
   }
 
   function campo(parent,nombre,valor,alCambiar,{tipo,opciones}={}) {
@@ -143,8 +149,19 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const cabecera=crear('header','','admin-niveles__cabecera');
     cabecera.append(crear('h2',`Nivel ${numero} · ${nombreCorto(numero,datos.desafio.nombre)}`),
       crear('p',`Versión base ${borrador.versionBase} · Revisión ${borrador.revision}`));
-    const estado=crear('p',actual.sucio?'Cambios sin guardar':'Borrador guardado');
-    estado.dataset.estadoBorrador='';cabecera.append(estado);editor.append(cabecera);
+    const estado=crear('p',actual.sucio?'Cambios sin guardar':'Borrador guardado','admin-niveles__estado');
+    estado.dataset.estadoBorrador='';editor.append(cabecera);
+
+    const acciones=crear('div','','admin-niveles__acciones');
+    const guardar=crear('button','Guardar borrador','admin-guardar'); guardar.type='button';guardar.addEventListener('click',guardarBorrador);
+    const previsualizar=crear('button','Previsualizar y validar','admin-secundario');previsualizar.type='button';
+    previsualizar.addEventListener('click',previsualizarNivel);
+    const confirmar=crear('label','Revisé las afirmaciones, fuentes e imágenes de las seis tarjetas.');
+    const casilla=crear('input');casilla.type='checkbox';casilla.dataset.confirmacionEditorial='';confirmar.prepend(casilla);
+    const publicar=crear('button','Publicar versión','admin-guardar');publicar.type='button';publicar.dataset.publicarNivel='';
+    publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
+    publicar.addEventListener('click',publicarNivel);
+    acciones.append(estado,guardar,previsualizar,confirmar,publicar);editor.append(acciones);
 
     const desafio=seccion('1. Desafío');
     for(const clave of ['nombre','relato','objetivo','instrucciones','dificultad'])
@@ -152,7 +169,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
         {tipo:['relato','objetivo','instrucciones'].includes(clave)?'multiline':undefined});
     editor.append(desafio);
 
-    const reglas=seccion('2. Reglas, herramientas y red de referencia');
+    const reglas=seccion('2. Reglas y herramientas');
     const conocidas=new Map(nivelesIniciales.flatMap(n=>Object.entries(n.reglasExito)));
     for(const [clave,valor] of Object.entries(datos.reglasExito)) {
       if(clave==='puntuacion')continue;
@@ -176,22 +193,26 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     for(const [clave,valor] of Object.entries(datos.herramientasHabilitadas))
       campo(herramientas,etiqueta(clave),valor,nuevo=>{datos.herramientasHabilitadas[clave]=nuevo});
     reglas.append(herramientas);
-    reglas.append(crear('h3','Red de referencia privada'));
-    reglas.append(crear('p','Ubicá estaciones en el mapa, uní sus recorridos y describí las unidades. La referencia comprueba una solución; revisá también su valor pedagógico.'));
-    const visor=crear('div','','admin-red-referencia');reglas.append(visor);
-    mapa=crearEditorRedReferenciaNivel(visor,datos.redReferencia,()=>{marcarSucio();pintarTablasRed()});
-    const tablas=crear('div','','admin-niveles__tablas-red');tablas.dataset.tablasRed='';reglas.append(tablas);
     editor.append(reglas);
 
+    const red=seccion('3. Red de referencia');
+    red.append(crear('p','Ubicá estaciones en el mapa, uní sus recorridos y describí las unidades. La referencia comprueba una solución; revisá también su valor pedagógico.'));
+    const redTrabajo=crear('div','','admin-niveles__red-trabajo');
+    const visor=crear('div','','admin-red-referencia');redTrabajo.append(visor);
+    mapa=crearEditorRedReferenciaNivel(visor,datos.redReferencia,()=>{marcarSucio();pintarTablasRed()});
+    const tablas=crear('div','','admin-niveles__tablas-red');tablas.dataset.tablasRed='';redTrabajo.append(tablas);
+    red.append(redTrabajo);
+    editor.append(red);
+
     if(numero>=4) {
-      const criterio=seccion('3. Tiempo UT y presupuesto UV');
+      const criterio=seccion('4. Tiempo UT y presupuesto UV');
       for(const clave of ['limiteUt','presupuestoUv'])
         campo(criterio,clave==='limiteUt'?'Límite UT':'Presupuesto UV',datos.criterioUvUt?.[clave],
           valor=>{datos.criterioUvUt??={};datos.criterioUvUt[clave]=valor},{tipo:'number'});
       editor.append(criterio);
     }
 
-    const educacion=seccion(numero>=4?'4. Educación y ayudas':'3. Educación y ayudas');
+    const educacion=seccion(numero>=4?'5. Tarjetas y ayudas':'4. Tarjetas y ayudas');
     educacion.append(crear('p','Cada nivel conserva seis tarjetas con su ID. Revisá juntos texto, fuente e imagen antes de publicar.'));
     const tarjetas=crear('div','','admin-niveles__tarjetas');
     datos.tarjetas.forEach((tarjeta,i)=>{
@@ -217,17 +238,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     agregarAyuda.addEventListener('click',()=>{datos.ayudas.push({claveCondicion:'minimoEstaciones',texto:'',pista:''});marcarSucio();pintarEditor()});
     educacion.append(ayudas,agregarAyuda);editor.append(educacion);
 
-    const acciones=crear('div','','admin-niveles__acciones');
-    const guardar=crear('button','Guardar borrador','admin-guardar'); guardar.type='button';guardar.addEventListener('click',guardarBorrador);
-    const previsualizar=crear('button','Previsualizar y validar','admin-secundario');previsualizar.type='button';
-    previsualizar.addEventListener('click',previsualizarNivel);
-    const confirmar=crear('label','Revisé las afirmaciones, fuentes e imágenes de las seis tarjetas.');
-    const casilla=crear('input');casilla.type='checkbox';casilla.dataset.confirmacionEditorial='';confirmar.prepend(casilla);
-    const publicar=crear('button','Publicar versión','admin-guardar');publicar.type='button';publicar.dataset.publicarNivel='';
-    publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
-    publicar.addEventListener('click',publicarNivel);
-    acciones.append(guardar,previsualizar,confirmar,publicar);editor.append(acciones);
-    const vista=crear('div','','admin-niveles__vista');vista.dataset.vistaPrevia='';editor.append(vista);
+    const vista=crear('div','','admin-niveles__vista');vista.dataset.vistaPrevia='';vista.hidden=!actual.vista;editor.append(vista);
     const historial=crear('section','','admin-niveles__historial');historial.append(crear('h3','Historial y reversión'));
     actual.versiones.forEach(version=>{
       const fila=crear('div','','admin-niveles__fila');fila.append(crear('span',`Versión ${version.version} · ${version.publicadoEn}`));
@@ -308,6 +319,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
 
   function pintarVista(vista) {
     const panel=contenedor.querySelector('[data-vista-previa]');if(!panel)return;
+    panel.hidden=false;
     panel.replaceChildren(crear('h3','Vista previa para Inicio, Niveles, preparación y Ayuda'));
     const d=vista.contenido.desafio;
     panel.append(crear('h4',d.nombre),crear('p',d.relato),crear('p',d.objetivo),crear('p',d.instrucciones));

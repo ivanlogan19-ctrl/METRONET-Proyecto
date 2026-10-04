@@ -29,7 +29,7 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
   await contexto.addInitScript(({ admin, publica, usuario, contenedor }) => {
     if (contenedor && sessionStorage.getItem("fixture-persistente")) return;
     if (contenedor) sessionStorage.setItem("fixture-persistente", "1");
-    if (!publica && !/login|registro|contrasena|codigo|privacidad/.test(location.pathname)) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
+    if (!publica && (contenedor || !/login|registro|contrasena|codigo|privacidad/.test(location.pathname))) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
     sessionStorage.setItem(`${location.hostname}:recuperacionContrasena`, JSON.stringify({ email: usuario.email, idSolicitud: 99, tokenRecuperacion: 'prueba-local', reenvioDisponibleEn: 0 }));
   }, { admin, publica, usuario, contenedor: opciones.contenedor });
   // Las suites anteriores verifican navegación y música; la etapa educativa
@@ -68,9 +68,17 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
     else return route.fulfill({ status: 400, json: { detail: 'Respuesta de prueba: operación no disponible.' }, headers: { 'access-control-allow-origin': '*' } });
     await route.fulfill({ json: respuesta, headers: { 'access-control-allow-origin': '*' } });
   });
-  await pagina.goto(`${process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173'}${ruta}`);
+  const base = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
+  // Las pantallas protegidas se abren desde una navegación interna autenticada.
+  // Una URL directa representa un arranque nuevo y ahora comienza en login.
+  const abrirDesdeLogin = opciones.contenedor && !publica;
+  await pagina.goto(`${base}${abrirDesdeLogin ? '/login.html' : ruta}`);
   if (opciones.contenedor) await pagina.locator('#pantalla-metronet').waitFor();
   const vista = opciones.contenedor ? await (await pagina.locator('#pantalla-metronet').elementHandle()).contentFrame() : pagina;
+  if (abrirDesdeLogin) {
+    await vista.evaluate(destino => window.location.assign(destino), ruta);
+    await vista.waitForURL(`${base}${ruta}`);
+  }
   await vista.waitForLoadState('domcontentloaded');
   await vista.evaluate(() => document.fonts.ready);
   if (ruta.startsWith('/simulacion.html')) await vista.locator('#panelSimulacion:not([hidden])').waitFor();

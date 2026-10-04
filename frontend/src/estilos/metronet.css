@@ -742,7 +742,9 @@ body.metronet-pagina-editor { overflow: hidden; }
 }
 .metronet-escenarios-pagina__equipo img {
   display: block;
-  flex: 0 0 32px;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
   image-rendering: pixelated;
 }
 .metronet-escenarios-pagina__equipo span { display: grid; min-width: 0; line-height: 1.2; }
@@ -885,8 +887,8 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-escenarios-pagina__estado--disponible { border-color: color-mix(in srgb, var(--info-active) 66%, var(--border)); color: var(--info-active); }
 .metronet-escenarios-pagina__estado--bloqueado { color: var(--text-disabled); }
 .metronet-escenarios-pagina__tarjeta-contenido { display: grid; align-content: start; gap: var(--space-sm); }
-.metronet-escenarios-pagina__personaje { display: flex; align-items: center; gap: 8px; min-height: 40px; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; }
-.metronet-escenarios-pagina__personaje img { display: block; width: 40px; height: 40px; flex: 0 0 40px; image-rendering: pixelated; }
+.metronet-escenarios-pagina__personaje { display: flex; align-items: center; gap: 8px; min-height: 64px; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; }
+.metronet-escenarios-pagina__personaje img { display: block; width: 64px; height: 64px; flex: 0 0 64px; image-rendering: pixelated; }
 .metronet-escenarios-pagina__relato { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; text-align: justify; text-align-last: left; hyphens: auto; overflow-wrap: break-word; }
 .metronet-escenarios-pagina__progreso-tarjeta { display: grid; gap: 6px; color: var(--text-secondary); font-size: 12px; }
 .metronet-escenarios-pagina__barra-progreso { height: 6px; overflow: hidden; border-radius: var(--radius-control); background: var(--bg-secondary); }
@@ -929,8 +931,8 @@ body.metronet-pagina-editor { overflow: hidden; }
   .metronet-escenarios-pagina__presentacion p + p { margin-top: 4px; }
   .metronet-escenarios-pagina__relato { text-align: left; hyphens: none; }
   .metronet-escenarios-pagina__equipo { gap: 6px; margin-top: 5px; }
-  .metronet-escenarios-pagina__equipo li { gap: 4px; padding: 4px; }
-  .metronet-escenarios-pagina__equipo img { width: 28px; height: 28px; flex-basis: 28px; }
+  .metronet-escenarios-pagina__equipo li { flex-direction: column; justify-content: center; gap: 4px; padding: 6px 4px; text-align: center; }
+  .metronet-escenarios-pagina__equipo img { width: 64px; height: 64px; flex-basis: 64px; }
   .metronet-escenarios-pagina__equipo small { font-size: 10px; }
   .metronet-inicio__accesos .metronet-inicio__enlace { font-family: var(--font-tecnica); font-size: 10px; letter-spacing: 0; white-space: nowrap; }
 }

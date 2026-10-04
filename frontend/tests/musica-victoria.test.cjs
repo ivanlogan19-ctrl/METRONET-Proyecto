@@ -11,7 +11,7 @@ async function abrir(t) {
  t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[]);});
  return vista.pagina;
 }
-test('Finales 1 → 2 → 3: viaje y nuevo nivel usan una sola canción completa sin repetir al abrir', async t => {
+test('Finales 1 → 2 → 3: viaje de 11 s y nuevo nivel sin repetir la pista al abrir', async t => {
  const p=await abrir(t);
  const datos=await p.evaluate(async()=>{
   const {gestorMusica:g}=await import('/src/audio/GestorMusica.js');
@@ -46,14 +46,14 @@ test('Finales 1 → 2 → 3: viaje y nuevo nivel usan una sola canción completa
   return estados;
  });
  for(const [i,e] of datos.entries()){
-  assert.equal(e.accion,'siguiente');assert.equal(e.termino,true);assert.equal(e.cortes,0);assert.equal(e.loop,false);
-  assert.ok(e.ms>=13600&&e.ms<18000);assert.ok(e.duracion>13.7&&e.duracion<13.9);
+  assert.equal(e.accion,'siguiente');assert.equal(e.termino,false);assert.equal(e.cortes,0);assert.equal(e.loop,false);
+  assert.ok(e.ms>=10800&&e.ms<14000);assert.ok(e.duracion>13.7&&e.duracion<13.9);
   assert.equal(e.cartel.mismo,true);assert.equal(e.cartel.instancias,1);assert.match(e.cartel.texto,new RegExp(`NIVEL ${i+2}`));
-  assert.ok(e.cartel.tiempo>10.5&&e.cartel.tiempo<13.9);assert.ok(e.demoraRepeticion<200);
+  assert.ok(e.cartel.tiempo>8.3&&e.cartel.tiempo<11.5);assert.ok(e.demoraRepeticion<200);
   assert.equal(e.pistaSiguiente,'/audio/extra-theme.mp3');
  }
 });
-for(const fallo of ['silencio','archivo','autoplay'])test(`Sin sonido (${fallo}) conserva la duración de la pista sin bloquear la finalización`,async t=>{
+for(const fallo of ['silencio','archivo','autoplay'])test(`Sin sonido (${fallo}) conserva los 11 s visibles sin bloquear la finalización`,async t=>{
  const p=await abrir(t);
  if(fallo==='archivo')await p.route('**/audio/victory-theme.mp3',r=>r.fulfill({status:404}));
  const resultado=await p.evaluate(async fallo=>{
@@ -64,7 +64,7 @@ for(const fallo of ['silencio','archivo','autoplay'])test(`Sin sonido (${fallo})
   const inicio=performance.now(); const accion=await mostrarTransicionNivel({numero:1},{numero:2},{puntaje:100});
   return {ms:performance.now()-inicio,accion,overlays:document.querySelectorAll('.metronet-victoria').length};
  },fallo);
- assert.equal(resultado.accion,'siguiente');assert.ok(resultado.ms>=13700&&resultado.ms<16000);assert.equal(resultado.overlays,0);
+ assert.equal(resultado.accion,'siguiente');assert.ok(resultado.ms>=10800&&resultado.ms<14000);assert.equal(resultado.overlays,0);
 });
 test('Menú → gameplay mezcla pistas distintas una vez; repetir contexto no reinicia ni mezcla consigo mismo',async t=>{
  const p=await abrir(t);
