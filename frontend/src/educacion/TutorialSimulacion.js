@@ -16,12 +16,18 @@ const PASOS = [
 
 // El servidor descarta campañas con ejecuciones previas. El navegador recuerda
 // una presentación interrumpida antes de Play; nunca escribe progreso ni puntaje.
-export function presentarTutorialSimulacion({ progreso, escenario, idUsuario, resultados = [] }) {
+export function presentarTutorialSimulacion({ progreso, escenario, idUsuario, resultados = [], esUvUt = false }) {
   if (!Number.isInteger(escenario?.numero) || escenario.herramientasHabilitadas?.simulacion !== true || !progreso?.tutorialSimulacionDisponible || resultados.length
       || !Number.isInteger(progreso.numeroCampanaActual) || idUsuario == null) return null;
   const clave = `metronet:tutorial-simulacion:${idUsuario}:${progreso.numeroCampanaActual}`;
   try { if (localStorage.getItem(clave)) return null; } catch { return null; }
-  const recorrido = new RecorridoInicial(() => {}, { pasos: PASOS, interactivo: true });
+  const pasos = PASOS.map(paso => {
+    if (!esUvUt) return paso;
+    return paso.map((texto, indice) => indice > 0 && typeof texto === 'string'
+      ? texto.replaceAll('horas simuladas', 'UT').replaceAll('horas', 'UT').replace('Duración · h', 'Duración · UT')
+      : texto);
+  });
+  const recorrido = new RecorridoInicial(() => {}, { pasos, interactivo: true });
   recorrido.iniciar();
   try { localStorage.setItem(clave, 'presentado'); } catch { /* No altera la ejecución. */ }
   return recorrido;

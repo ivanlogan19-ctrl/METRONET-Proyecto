@@ -1,5 +1,5 @@
 // Explicaciones del comportamiento IMPLEMENTADO, no transcripciones del Documento
-// METRONET. UV, horas y ritmo reflejan el cambio formal de escala aprobado;
+// METRONET. UV, duración didáctica y ritmo se muestran según la versión del intento;
 // la actualización del documento académico se registra por separado.
 const concepto = (id, termino, definicion, categoria, alias = [], nombreCompleto = null) =>
   Object.freeze({ id, termino, nombreCompleto, definicion, categoria, alias: Object.freeze(alias) });
@@ -20,13 +20,13 @@ export const CONCEPTOS = Object.freeze([
   concepto('zona', 'Zona', 'Agrupación de barrios utilizada por METRONET para organizar sectores del mapa.', 'Geografía', ['zonas']),
   concepto('barrio', 'Barrio', 'Área delimitada en el mapa. Una estación pertenece a un barrio cuando está dentro de sus límites.', 'Geografía', ['barrios']),
   concepto('transbordo', 'Transbordo', 'Estación compartida por al menos dos líneas y marcada como transbordo. Permite relacionar sus recorridos.', 'Red', ['transbordos']),
-  concepto('unidad', 'Unidad de metro', 'Metro asignado a una línea. Configurás su velocidad promedio desde el Constructor.', 'Circulación', ['unidades de metro', 'unidad', 'unidades', 'metro', 'metros']),
+  concepto('unidad', 'Unidad de metro', 'Metro asignado a una línea. Ajustás sus UV en Simular diseño con Aplicar velocidad.', 'Circulación', ['unidades de metro', 'unidad', 'unidades', 'metro', 'metros']),
   concepto('cantidad-unidades', 'Cantidad de unidades', 'Número de metros asignados a la red. Revisá la cantidad requerida por la consigna y su distribución entre líneas.', 'Circulación'),
-  concepto('velocidad', 'UV — Unidad de Velocidad', 'Escala didáctica de METRONET para representar la velocidad de las unidades de metro. No equivale a una velocidad física.', 'Circulación', ['UV', 'unidad de velocidad', 'velocidad', 'velocidades', 'velocidad promedio', 'velocidades promedio']),
+  concepto('velocidad', 'UV — Unidad de Velocidad', 'Escala didáctica de METRONET para representar la velocidad de las unidades de metro. En el criterio UV/UT, 1 UV permite recorrer un tramo lógico por UT; no equivale a una velocidad física.', 'Circulación', ['UV', 'unidad de velocidad', 'velocidad', 'velocidades', 'velocidad promedio', 'velocidades promedio']),
   concepto('simulacion', 'Simulación', 'Representación del movimiento de los metros sobre los recorridos del diseño. Permite observar su circulación y consultar resultados.', 'Simulación', ['simulaciones']),
-  concepto('ritmo', 'Ritmo de reproducción', 'Multiplicador ×0.5, ×1, ×2 o ×4 que cambia la rapidez de la animación. No cambia las UV de los metros ni las horas simuladas; no otorga puntos.', 'Simulación', ['ritmo']),
-  concepto('duracion', 'Duración simulada', 'Cantidad de horas representadas dentro de una ejecución. No es el tiempo real que tarda la animación.', 'Simulación', ['duración']),
-  concepto('tiempo-estimado', 'Tiempo simulado', 'Horas representadas que ya transcurrieron durante la ejecución. Su avance visual depende del ritmo de reproducción.', 'Simulación', ['tiempos estimados', 'tiempo de recorrido']),
+  concepto('ritmo', 'Ritmo de reproducción', 'Multiplicador ×0.5, ×1, ×2 o ×4 que cambia la rapidez de la animación. No cambia las UV de los metros ni la duración simulada; no otorga puntos.', 'Simulación', ['ritmo']),
+  concepto('duracion', 'Duración simulada', 'Cantidad de tiempo representada dentro de una ejecución: UT en niveles con criterio UV/UT u horas en ejecuciones anteriores. No es el tiempo real que tarda la animación.', 'Simulación', ['duración']),
+  concepto('tiempo-estimado', 'Tiempo simulado', 'Duración representada que ya transcurrió durante la ejecución. Se muestra en UT para niveles UV/UT y en horas para ejecuciones anteriores; su avance visual depende del ritmo de reproducción.', 'Simulación', ['tiempos estimados', 'tiempo de recorrido']),
   concepto('objetivo', 'Objetivo', 'Resultado que te pide alcanzar la consigna del nivel.', 'Aprendizaje', ['objetivos']),
   concepto('regla-exito', 'Regla de éxito', 'Condición que se comprueba para completar el nivel, como alcanzar una cantidad de estaciones o cubrir los lugares indicados.', 'Aprendizaje', ['reglas de éxito', 'condiciones']),
   concepto('herramientas', 'Herramientas habilitadas', 'Acciones disponibles para construir la red en el nivel actual.', 'Aprendizaje'),

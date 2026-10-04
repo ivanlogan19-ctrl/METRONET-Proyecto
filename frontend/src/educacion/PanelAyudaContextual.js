@@ -39,7 +39,7 @@ export default class PanelAyudaContextual {
     this.tutorial = new PanelTutorialInicial(contenedor);
     this.indicaciones = document.createElement('details');
     this.indicaciones.dataset.indicacionesEscenario = '';
-    this.indicaciones.innerHTML = '<summary>Indicaciones del nivel</summary><p></p>';
+    this.indicaciones.innerHTML = '<summary>Indicaciones del nivel</summary><p></p><div data-estadisticas-nivel></div>';
     this.elemento.querySelector('.metronet-assist').append(this.indicaciones);
     for (const [vista, etiqueta] of [['controles', 'Controles del mapa'], ['pista', 'Pista'], ['musica', 'Música']]) {
       const boton = document.createElement('button');
@@ -115,6 +115,15 @@ export default class PanelAyudaContextual {
       this.indicaciones.querySelector('p').textContent = instrucciones;
       destacarConceptos(this.indicaciones.querySelector('p'), conceptosDelNivel(contexto.escenario ?? contexto.diseno?.simulacion), { contextual:true });
     }
+    const estadisticas = this.indicaciones.querySelector('[data-estadisticas-nivel]');
+    const escenario = contexto.escenario;
+    const datos = Number.isInteger(escenario?.numero)
+      ? [`Intentos: ${escenario.cantidadIntentos ?? 0}`, `Máximo: ${escenario.puntajeMaximo ?? 100} puntos`]
+      : [];
+    if (escenario?.mejorPuntaje != null) datos.push(`Mejor puntaje: ${escenario.mejorPuntaje} / ${escenario.puntajeMaximo ?? 100}`);
+    if (escenario?.ultimoPuntaje != null) datos.push(`Mejor del último intento: ${escenario.ultimoPuntaje}`);
+    estadisticas.textContent = datos.join(' · ');
+    estadisticas.hidden = !datos.length;
     const ayuda = obtenerAyudaContextual(contexto) ?? {
       clave: 'sin-escenario', etiqueta: 'PISTA', conceptos: [],
       texto: contexto.diseno ? 'Este diseño no tiene una consigna activa.' : 'Abrí un nivel para recibir pistas de su consigna.',

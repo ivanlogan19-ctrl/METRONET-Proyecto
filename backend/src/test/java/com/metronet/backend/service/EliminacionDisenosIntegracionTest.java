@@ -46,6 +46,9 @@ class EliminacionDisenosIntegracionTest {
             new FileSystemResource("../database/014_progresion_educativa.sql")
         ).execute(fuente);
         jdbc = new JdbcTemplate(fuente);
+        jdbc.execute("CREATE TABLE intento_catalogo_v1(id_intento INT, reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
+        jdbc.execute("CREATE TABLE intento_uv_ut(id_intento INT, version INT, limite_ut INT, presupuesto_uv DECIMAL(8,2), reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
+        jdbc.execute("CREATE TABLE resultado_uv_ut(id_simulacion INT, version INT, huella_problema VARCHAR, huella_ejecucion VARCHAR, limite_ut INT, presupuesto_uv DECIMAL(8,2), ut_ejecutadas INT, suma_uv DECIMAL(8,2), completo BOOLEAN, unidades VARCHAR)");
         jdbc.update("INSERT INTO usuario(id_usuario,nombre,email,password,rol) VALUES (7,'Admin','admin@example.test','prueba','ADMIN'),(8,'Jugador','jugador@example.test','prueba','JUGADOR')");
         jdbc.update("INSERT INTO diseno(id_diseno) VALUES (101),(102),(103)");
         jdbc.update("INSERT INTO escenario(id_escenario,nombre,modo) VALUES (201,'Red propia','EDICION_LIBRE'),(202,'Red ajena','EDICION_LIBRE')");

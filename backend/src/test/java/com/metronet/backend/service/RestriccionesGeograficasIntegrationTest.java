@@ -31,6 +31,9 @@ class RestriccionesGeograficasIntegrationTest {
         jdbc.execute("CREATE TABLE diseno(id_diseno INT PRIMARY KEY)");
         jdbc.execute("CREATE TABLE escenario(id_escenario INT, nombre VARCHAR, modo VARCHAR, dificultad VARCHAR, objetivo VARCHAR, instrucciones VARCHAR, id_diseno_base INT, progresivo BOOLEAN, reglas_exito VARCHAR)");
         jdbc.execute("CREATE TABLE intento(id_intento INT, id_diseno INT, id_escenario INT, id_usuario INT, estado VARCHAR)");
+        jdbc.execute("CREATE TABLE intento_catalogo_v1(id_intento INT, reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
+        jdbc.execute("CREATE TABLE intento_uv_ut(id_intento INT, version INT, limite_ut INT, presupuesto_uv DECIMAL(8,2), reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
+        jdbc.execute("CREATE TABLE resultado_uv_ut(id_simulacion INT, version INT, huella_problema VARCHAR, huella_ejecucion VARCHAR, limite_ut INT, presupuesto_uv DECIMAL(8,2), ut_ejecutadas INT, suma_uv DECIMAL(8,2), completo BOOLEAN, unidades VARCHAR)");
         jdbc.execute("CREATE TABLE estacion(id_diseno INT NOT NULL, nombre VARCHAR NOT NULL, posicion_x NUMERIC(10,2), posicion_y NUMERIC(10,2), transbordo BOOLEAN, modificable BOOLEAN)");
         jdbc.execute("CREATE TABLE linea(id_diseno INT NOT NULL, nombre VARCHAR NOT NULL, modificable BOOLEAN)");
         jdbc.execute("CREATE TABLE tramo(id_diseno INT, nombre_linea VARCHAR, nombre_estacion_a VARCHAR, nombre_estacion_b VARCHAR)");

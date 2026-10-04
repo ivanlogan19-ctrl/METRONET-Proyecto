@@ -40,9 +40,20 @@ public class JuegoEducativoService {
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
     private final CondicionesGeograficasService condicionesGeograficasService;
     private final PuntuacionService puntuacion;
+    private final CriterioUvUtService criterioUvUt;
 
     public JuegoEducativoService(JdbcTemplate jdbc, ObjectMapper mapper, ObjetivosPuntosInteresService objetivos, CondicionesGeograficasService condiciones) {
         this(jdbc, mapper, objetivos, condiciones, new PuntuacionService(jdbc, mapper));
+    }
+
+    public JuegoEducativoService(
+        JdbcTemplate jdbcTemplate,
+        ObjectMapper objectMapper,
+        ObjetivosPuntosInteresService objetivosPuntosInteresService,
+        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion
+    ) {
+        this(jdbcTemplate, objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion,
+            new CriterioUvUtService(jdbcTemplate, objectMapper, puntuacion));
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -50,13 +61,15 @@ public class JuegoEducativoService {
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
         ObjetivosPuntosInteresService objetivosPuntosInteresService,
-        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion
+        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion,
+        CriterioUvUtService criterioUvUt
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.objetivosPuntosInteresService = objetivosPuntosInteresService;
         this.condicionesGeograficasService = condicionesGeograficasService;
         this.puntuacion = puntuacion;
+        this.criterioUvUt = criterioUvUt;
     }
 
     public List<EscenarioJuegoResponse> obtenerProgreso(Integer idUsuario) {
@@ -75,9 +88,11 @@ public class JuegoEducativoService {
             String estado = intento == null ? (desbloqueado ? "DISPONIBLE" : ESTADO_BLOQUEADO) : intento.estado();
             Integer progreso = intento == null ? 0 : intento.progreso();
             EstadisticasIntento estadisticas = obtenerEstadisticas(idUsuario, escenario.idEscenario());
+            var presentacion = criterioUvUt.presentacion(intento == null ? null : intento.idIntento(),
+                escenario.idEscenario(), escenario.objetivo(), escenario.instrucciones(), escenario.herramientas());
             respuesta.add(new EscenarioJuegoResponse(
-                escenario.idEscenario(), escenario.numero(), escenario.nombre(), escenario.objetivo(), escenario.dificultad(),
-                escenario.instrucciones(), estado, progreso, desbloqueado, leerHerramientas(escenario.herramientas()),
+                escenario.idEscenario(), escenario.numero(), escenario.nombre(), presentacion.objetivo(), escenario.dificultad(),
+                presentacion.instrucciones(), estado, progreso, desbloqueado, leerHerramientas(presentacion.herramientas()),
                 completadoEnCampanaActual, estadisticas.cantidadIntentos(), estadisticas.mejorPuntaje(), estadisticas.ultimoPuntaje(), escenario.numero() == null ? null : puntuacion.maximo(escenario.reglasExito())
             ));
         }
@@ -109,12 +124,12 @@ public class JuegoEducativoService {
         ProgresoUsuario progresoUsuario = obtenerProgresoUsuario(idUsuario);
         EscenarioBase escenario = obtenerEscenario(idEscenario);
         if (!esDesbloqueado(idUsuario, escenario, progresoUsuario)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Completá los niveles anteriores para desbloquear este escenario");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Completá los niveles anteriores para desbloquear este nivel");
         }
         IntentoJuego intentoExistente = obtenerIntentoActual(idUsuario, idEscenario, progresoUsuario.numeroCampanaActual());
         if (intentoExistente != null) {
             if (ESTADO_COMPLETADO.equals(intentoExistente.estado())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Este escenario ya fue completado. Elegí Volver a jugar para crear un nuevo intento");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Este nivel ya fue completado. Elegí Volver a jugar para crear un nuevo intento");
             }
             return new InicioEscenarioResponse(intentoExistente.idDiseno(), idEscenario, intentoExistente.idIntento(), intentoExistente.estado(), progresoUsuario.numeroCampanaActual(), false);
         }
@@ -129,14 +144,14 @@ public class JuegoEducativoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El Modo Libre se inicia desde su acción principal");
         }
         if (!esDesbloqueado(idUsuario, escenario, progresoUsuario)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Completá los niveles anteriores para desbloquear este escenario");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Completá los niveles anteriores para desbloquear este nivel");
         }
         IntentoJuego intentoActual = obtenerIntentoActual(idUsuario, idEscenario, progresoUsuario.numeroCampanaActual());
         if (intentoActual != null && !ESTADO_COMPLETADO.equals(intentoActual.estado())) {
             return new InicioEscenarioResponse(intentoActual.idDiseno(), idEscenario, intentoActual.idIntento(), intentoActual.estado(), progresoUsuario.numeroCampanaActual(), false);
         }
         if (!nivelCompletado(idUsuario, escenario.numero(), progresoUsuario.numeroCampanaActual())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este escenario todavía no fue completado en el recorrido actual");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este nivel todavía no fue completado en el recorrido actual");
         }
         return crearIntento(idUsuario, escenario, progresoUsuario.numeroCampanaActual(), false);
     }
@@ -165,6 +180,7 @@ public class JuegoEducativoService {
             VALUES (?, ?, ?, ?, 'EN_DESARROLLO', 0, NULL)
             RETURNING id_intento
             """, Integer.class, idUsuario, escenario.idEscenario(), idDiseno, numeroCampana);
+        criterioUvUt.iniciarIntento(idIntento, escenario.idEscenario());
         return new InicioEscenarioResponse(idDiseno, escenario.idEscenario(), idIntento, ESTADO_EN_DESARROLLO, numeroCampana, primeraPasada);
     }
 
@@ -173,7 +189,7 @@ public class JuegoEducativoService {
         ProgresoUsuario progresoUsuario = obtenerProgresoUsuario(idUsuario);
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
         if (intento == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El diseño no pertenece a un escenario progresivo");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El diseño no pertenece a un nivel progresivo");
         }
         if (MODO_EDICION_LIBRE.equals(intento.modo())) {
             return new EvaluacionEscenarioResponse(true, 100, intento.puntaje(), "Modo Libre activo: todas las herramientas están habilitadas.", null, true);
@@ -225,7 +241,13 @@ public class JuegoEducativoService {
     }
 
     private DesempenoNivelResponse calcularDesempeno(IntentoEvaluable intento, int idDiseno, EvaluacionCondiciones evaluacion) {
-        return puntuacion.calcular(idDiseno, intento.reglasExito(), evaluacion.condiciones());
+        var base = puntuacion.calcular(idDiseno, intento.reglasExito(), evaluacion.condiciones());
+        var resultado = criterioUvUt.ultimo(intento.idIntento(), idDiseno);
+        var configuracion = criterioUvUt.configuracionIntento(intento.idIntento());
+        if (configuracion == null) return base;
+        return new DesempenoNivelResponse(base.puntaje(), base.puntajeMaximo(), base.puntosResolucion(),
+            base.puntosEficiencia(), base.puntosVelocidad(), base.redResuelta(), base.aprendizajeCumplido(),
+            base.simulacionActual(), base.etapa(), base.explicacion(), base.unidades(), resultado, configuracion);
     }
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
@@ -260,7 +282,7 @@ public class JuegoEducativoService {
 
     private EscenarioBase obtenerEscenario(Integer idEscenario) {
         return listarEscenariosProgresivos().stream().filter(escenario -> escenario.idEscenario().equals(idEscenario)).findFirst()
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el escenario educativo solicitado"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el nivel o modo libre solicitado"));
     }
 
     private ProgresoUsuario obtenerProgresoUsuario(Integer idUsuario) {
@@ -288,8 +310,11 @@ public class JuegoEducativoService {
 
     private IntentoEvaluable obtenerIntentoPorDiseno(Integer idUsuario, Integer idDiseno) {
         return jdbcTemplate.query("""
-            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo, e.reglas_exito::text AS reglas_exito
+            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo,
+                   COALESCE(v.reglas_exito,h.reglas_exito,e.reglas_exito)::text AS reglas_exito
             FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
+            LEFT JOIN intento_uv_ut v ON v.id_intento=i.id_intento
+            LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
             WHERE i.id_usuario = ? AND i.id_diseno = ? AND e.progresivo = TRUE
             """, (resultado, fila) -> new IntentoEvaluable(
                 resultado.getInt("id_intento"), resultado.getString("estado"), resultado.getObject("puntaje", Integer.class),
@@ -300,8 +325,11 @@ public class JuegoEducativoService {
     private IntentoEvaluable obtenerIntentoParaConsigna(Usuario solicitante, Integer idDiseno) {
         String filtroPropietario = solicitante.getRol() == Rol.ADMIN ? "" : " AND i.id_usuario = ?";
         String consulta = """
-            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo, e.reglas_exito::text AS reglas_exito
+            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo,
+                   COALESCE(v.reglas_exito,h.reglas_exito,e.reglas_exito)::text AS reglas_exito
             FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
+            LEFT JOIN intento_uv_ut v ON v.id_intento=i.id_intento
+            LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
             WHERE i.id_diseno = ? AND e.progresivo = TRUE%s
             ORDER BY i.id_intento DESC LIMIT 1
             """.formatted(filtroPropietario);
@@ -467,12 +495,16 @@ public class JuegoEducativoService {
             condiciones.add(new CondicionConsignaResponse("configuracionPuntosInteres", error, 0, 1, false));
         }
         condiciones.addAll(condicionesGeograficasService.evaluar(idDiseno, reglas, puntosInteresObjetivo));
-        var circulacion = puntuacion.condicionesCirculacion(idDiseno, intento.idIntento(), intento.reglasExito(), booleano(reglas, "requiereSimulacion"));
+        var configuracionUt = criterioUvUt.configuracionIntento(intento.idIntento());
+        var circulacion = puntuacion.condicionesCirculacion(idDiseno, intento.idIntento(), intento.reglasExito(),
+            booleano(reglas, "requiereSimulacion"), configuracionUt != null);
         // Una simulación vigente satisface la obligación de simular: no contar dos veces la misma condición.
         if (circulacion.stream().anyMatch(c -> c.clave().equals("simulacionActual"))) {
             condiciones.removeIf(c -> c.clave().equals("requiereSimulacion"));
         }
         condiciones.addAll(circulacion);
+        CondicionConsignaResponse llegada = criterioUvUt.condicion(intento.idIntento(), idDiseno);
+        if (llegada != null) condiciones.add(llegada);
         int progreso = PuntuacionService.normalizar(condiciones);
         boolean completado = !condiciones.isEmpty() && condiciones.stream().allMatch(CondicionConsignaResponse::completado);
         return new EvaluacionCondiciones(
@@ -594,7 +626,7 @@ public class JuegoEducativoService {
 
     private Map<String, Object> leerJson(String json) {
         try { return objectMapper.readValue(json == null ? "{}" : json, new TypeReference<LinkedHashMap<String, Object>>() {}); }
-        catch (Exception error) { throw new IllegalStateException("No fue posible leer la configuración del escenario", error); }
+        catch (Exception error) { throw new IllegalStateException("No fue posible leer la configuración del nivel", error); }
     }
 
     private Map<String, Boolean> leerHerramientas(String json) {

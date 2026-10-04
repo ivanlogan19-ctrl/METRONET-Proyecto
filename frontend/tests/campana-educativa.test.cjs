@@ -46,7 +46,7 @@ for (const width of [1440, 768, 390]) {
     const { pagina, solicitudes } = await abrir(t, '/escenarios.html', { viewport: { width, height: 900 } });
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').count(), 10);
     assert.equal(await pagina.locator('#progresoEscenarios').count(), 0);
-    assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /4 de 10/);
+    assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /4\/10/);
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
     const dialogo = pagina.getByRole('dialog', { name: niveles[4].nombre, exact: true });
     await dialogo.waitFor();
@@ -76,7 +76,7 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
   await pagina.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent === 'Comenzar' && !b.disabled));
   assert.equal(await pagina.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
   await pagina.reload();
-  assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /9 de 10/);
+  assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /9\/10/);
   assert.equal(solicitudes.filter(r => r.method === 'POST').length, 1);
   await pagina.getByRole('button', { name: 'Volver a jugar', exact: true }).first().click();
   await pagina.getByRole('dialog', { name: niveles[0].nombre }).waitFor();
@@ -90,7 +90,7 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
 test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', async t => {
   const resumen = progreso(10);
   const { pagina, solicitudes } = await abrir(t, '/escenarios.html', { progreso: resumen });
-  assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /Campaña completada.*10 de 10/);
+  assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10\/10 completados · Campaña completa/);
   await pagina.evaluate(async resumen => {
     const { presentarResultadoNivel } = await import('/src/educacion/TransicionNivel.js');
     window.resultadoTransicion = presentarResultadoNivel(resumen, 110, { completado: true, puntaje: 100, idSiguienteEscenario: null });
@@ -157,7 +157,7 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
     await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
     await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
     await pagina.waitForURL('**/escenarios.html');
-    assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10 de 10/);
+    assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10\/10/);
     assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);
   } else {
     // La pista real de victoria dura ~15 s: incluir audio y navegación, como en el cierre final.

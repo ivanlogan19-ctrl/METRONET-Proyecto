@@ -59,11 +59,11 @@
         </div>
         <aside id="instrumentosSimulacion" class="simulacion-instrumentos" aria-label="Controles de simulación">
           <h2 class="simulacion-panel-titulo">Simulación</h2>
-          <section id="seccionCirculacion" data-requiere-diseno hidden><h3 class="simulacion-seccion-titulo">Unidades y UV</h3><div id="desempenoNivel" class="simulacion-desempeno"></div></section>
+          <section id="seccionCirculacion" data-requiere-diseno hidden><h3 class="simulacion-seccion-titulo">Unidades y UV</h3><div id="desempenoNivel" class="simulacion-desempeno"></div><p id="resumenCriterioUvUt" class="simulacion-texto-secundario" hidden></p></section>
           <section id="seccionConfiguracion" class="simulacion-parametros" data-requiere-diseno hidden>
             <h3 class="simulacion-seccion-titulo">Duración y ritmo</h3>
             <div class="simulacion-parametro-titulo" title="Duración simulada"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
-            <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en horas" type="number" min="1" step="1" value="6" required /><span>h</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button></div>
+            <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en horas" type="number" min="1" step="1" value="6" required /><span id="unidadDuracionSimulacion">h</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button></div>
             <div class="simulacion-ritmo"><span class="simulacion-etiqueta-control">Ritmo visual (×)</span><div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
               <button type="button" data-paso-ritmo="-1" aria-label="Reducir ritmo">−</button><output id="ritmoVisible" for="velocidadSimulacion">1×</output><button type="button" data-paso-ritmo="1" aria-label="Aumentar ritmo">+</button>
             </div></div>

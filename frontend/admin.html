@@ -36,11 +36,12 @@
             Usuarios
           </button>
           <button class="admin-enlace" type="button" data-vista="disenos">
-            Escenarios
+            Diseños
           </button>
           <button class="admin-enlace" type="button" data-vista="configuracion">
             Configuración
           </button>
+          <button class="admin-enlace" type="button" data-vista="niveles-uvut">UV y UT</button>
           <button class="admin-enlace" type="button" data-vista="actividad">
             Actividad
           </button>
@@ -105,7 +106,7 @@
         </section>
 
         <section id="vista-disenos" class="admin-vista">
-          <h2>Escenarios diseñados</h2>
+          <h2>Diseños de jugadores</h2>
           <p>
             Consultá los diseños creados por los jugadores. Al abrir uno podés
             modificar o eliminar sus líneas de metro, estaciones y conexiones.
@@ -124,6 +125,12 @@
           <p class="admin-descripcion">Definí el ritmo inicial de reproducción y controlá las operaciones de la plataforma.</p>
           <p id="mensajeConfiguracion" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div id="listaConfiguracion" class="admin-lista-configuracion"></div>
+        </section>
+        <section id="vista-niveles-uvut" class="admin-vista">
+          <h2>Tiempo UT y presupuesto UV por nivel</h2>
+          <p>Revisá la viabilidad antes de aplicar. Los intentos existentes conservan sus reglas y resultados.</p>
+          <p id="mensajeNivelesUvUt" class="admin-mensaje" role="status" aria-live="polite"></p>
+          <div id="listaNivelesUvUt" class="admin-lista-configuracion"></div>
         </section>
         <section id="vista-actividad" class="admin-vista">
           <h2>Actividad reciente</h2>

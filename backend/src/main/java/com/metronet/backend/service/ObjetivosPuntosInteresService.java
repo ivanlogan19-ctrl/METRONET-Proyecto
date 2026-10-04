@@ -54,7 +54,7 @@ public class ObjetivosPuntosInteresService {
             if (reglas == null || !reglas.isObject()) return List.of("La configuración de los POI no es válida.");
             if (!reglas.path("requiereCoberturaPuntosInteres").asBoolean() && !reglas.path("requiereObjetivosMismaLinea").asBoolean()) return List.of();
             JsonNode objetivos = reglas.path("puntosInteresObjetivo");
-            if (!objetivos.isArray() || objetivos.isEmpty()) return List.of("El escenario requiere POI pero no tiene objetivos configurados.");
+            if (!objetivos.isArray() || objetivos.isEmpty()) return List.of("El diseño requiere puntos de interés pero no tiene objetivos configurados.");
             List<String> errores = new ArrayList<>();
             for (JsonNode objetivo : objetivos) {
                 if (convertirObjetivo(objetivo) == null) {

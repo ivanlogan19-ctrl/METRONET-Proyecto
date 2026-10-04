@@ -2,11 +2,13 @@ import { formatearVelocidad, VELOCIDAD_INICIAL } from '../simulacion/EscalaSimul
 import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
 import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
+import { crearAdministracionUvUt } from './AdministracionUvUt.js';
 
 const sesion = obtenerSesionAdministrador();
 const CAPACIDAD_COMPATIBILIDAD = 300;
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
+let administracionUvUt = null;
 
 if (!sesion) {
   window.location.replace("/admin-login.html");
@@ -15,6 +17,13 @@ if (!sesion) {
 }
 
 function inicializarAdministracion(sesionAdministrador) {
+  administracionUvUt = crearAdministracionUvUt({
+    contenedor: document.getElementById('listaNivelesUvUt'),
+    mensaje: document.getElementById('mensajeNivelesUvUt'),
+    token: sesionAdministrador.token,
+    urlServidor: obtenerUrlServidor,
+    errorRespuesta: obtenerMensajeError,
+  });
   inicializarNavegacion({ actual: "administracion" });
   actualizarEtiquetaAdministrador(sesionAdministrador.usuario);
   // Esta marca vuelve al panel inicial; no necesita recargar admin.html.
@@ -39,6 +48,7 @@ function inicializarAdministracion(sesionAdministrador) {
       if (boton.dataset.vista === "configuracion") {
         cargarConfiguracion(sesionAdministrador.token);
       }
+      if (boton.dataset.vista === 'niveles-uvut') administracionUvUt.cargar();
 
       if (boton.dataset.vista === "actividad") {
         cargarActividad(sesionAdministrador.token);
@@ -124,8 +134,9 @@ function inicializarAdministracion(sesionAdministrador) {
 function mostrarVista(nombreVista) {
   const titulos = {
     usuarios: "Gestión de usuarios",
-    disenos: "Supervisión de escenarios diseñados",
+    disenos: "Supervisión de diseños",
     configuracion: "Configuración general",
+    'niveles-uvut': 'Criterios UV/UT',
     actividad: "Actividad reciente",
   };
 
@@ -211,7 +222,7 @@ function filtrarUsuarios() {
 }
 
 async function cargarDisenos(token) {
-  mostrarMensajeDisenos("Cargando diseños y escenarios…");
+  mostrarMensajeDisenos("Cargando diseños…");
 
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos`, {
@@ -238,15 +249,15 @@ function renderizarDisenos(disenos) {
   detalle.replaceChildren();
   lista.replaceChildren(...(disenos.length ? disenos.map((diseno) => {
       const tarjeta = document.createElement("article");
-      const escenario = diseno.idEscenario
-        ? `Escenario #${diseno.idEscenario} · ${formatearModoEscenario(diseno.modoEscenario)}`
-        : "Sin escenario asociado";
+      const actividad = diseno.idEscenario
+        ? `Actividad #${diseno.idEscenario} · ${formatearModoEscenario(diseno.modoEscenario)}`
+        : "Sin actividad asociada";
 
       tarjeta.innerHTML = `
         <div>
           <h3>Diseño #${diseno.idDiseno}</h3>
           <p>${escaparHtml(diseno.propietario)} · ${escaparHtml(diseno.correoPropietario ?? "Sin correo")}</p>
-          <p>${escaparHtml(escenario)}</p>
+          <p>${escaparHtml(actividad)}</p>
         </div>
         <div class="admin-acciones-linea">
           <button class="admin-guardar" type="button" data-ver-diseno="${diseno.idDiseno}">Abrir diseño</button>
@@ -266,7 +277,7 @@ function filtrarDisenos() {
   });
 
   renderizarDisenos(disenosFiltrados);
-  mostrarMensajeDisenos(disenosDisponibles.length && !disenosFiltrados.length ? "No hay diseños que coincidan con el filtro." : disenosDisponibles.length ? "" : "Todavía no hay diseños ni escenarios creados por jugadores.");
+  mostrarMensajeDisenos(disenosDisponibles.length && !disenosFiltrados.length ? "No hay diseños que coincidan con el filtro." : disenosDisponibles.length ? "" : "Todavía no hay diseños creados por jugadores.");
 }
 
 function crearFilaVacia(mensaje, cantidadColumnas) {
@@ -680,7 +691,7 @@ function formatearClave(clave) {
 }
 
 function formatearModoEscenario(modo) {
-  return modo === "NIVEL" ? "Nivel" : modo === "EDICION_LIBRE" ? "Edición libre" : "Escenario";
+  return modo === "NIVEL" ? "Nivel" : modo === "EDICION_LIBRE" ? "Edición libre" : "Actividad";
 }
 
 async function eliminarUsuario(idUsuario, nombreUsuario, token) {

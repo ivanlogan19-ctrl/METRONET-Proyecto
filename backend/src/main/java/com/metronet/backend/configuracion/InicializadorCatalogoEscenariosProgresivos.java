@@ -15,6 +15,9 @@ public class InicializadorCatalogoEscenariosProgresivos {
     private static final String REGLAS_NIVEL_4_ANTERIORES = """
         {"minimoEstaciones":3,"minimoLineas":1,"minimoTramos":2,"minimoMetros":1,"requiereRedValida":true,"requiereSimulacion":true,"requiereCoberturaPuntosInteres":true,"puntosInteresObjetivo":[{"idPunto":1,"nombrePunto":"Palacio Legislativo","posicionX":596,"posicionY":493,"radioCobertura":60},{"idPunto":26,"nombrePunto":"Rambla de Carrasco","posicionX":864,"posicionY":503,"radioCobertura":60}]}
         """;
+    private static final String REGLAS_NIVEL_4_014 = """
+        {"minimoEstaciones":3,"minimoLineas":1,"minimoTramos":2,"minimoMetros":1,"requiereRedValida":true,"requiereSimulacion":true}
+        """;
 
     @Bean
     CommandLineRunner inicializarCatalogoEscenariosProgresivos(JdbcTemplate jdbcTemplate) {
@@ -32,6 +35,7 @@ public class InicializadorCatalogoEscenariosProgresivos {
                 consignasAnteriores = new ObjectMapper().readTree(entrada);
             }
             for (JsonNode nivel : niveles) {
+                if (nivel.path("numero").asInt() == 4) actualizarSeedInicialNivel4(jdbcTemplate, nivel);
                 for (JsonNode anterior : anterioresUV) {
                     if (anterior.path("numero").asInt() != nivel.path("numero").asInt()) continue;
                     // Solo el seed exacto anterior: conserva escenarios personalizados e históricos.
@@ -57,7 +61,38 @@ public class InicializadorCatalogoEscenariosProgresivos {
                 actualizarInstruccionCatalogo(jdbcTemplate, nivel, consignasAnteriores);
             }
             insertarModoLibre(jdbcTemplate);
+            // Activar el criterio nuevo solo en el catálogo canónico y solo para
+            // intentos futuros. Una configuración administrativa existente prevalece.
+            String[] presupuestos = {null, null, null, null, "2", "2.5", "3", "4", "5.5", "5.5", "6.5"};
+            for (JsonNode nivel : niveles) {
+                int numero = nivel.path("numero").asInt();
+                if (numero < 4 || numero > 10) continue;
+                jdbcTemplate.update("""
+                    INSERT INTO criterio_uv_ut(id_escenario,version,limite_ut,presupuesto_uv)
+                    SELECT id_escenario,1,2,CAST(? AS numeric)
+                    FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero=?
+                      AND objetivo=? AND instrucciones=? AND reglas_exito=CAST(? AS jsonb)
+                      AND herramientas_habilitadas=CAST(? AS jsonb)
+                      AND NOT EXISTS (SELECT 1 FROM criterio_uv_ut c WHERE c.id_escenario=escenario.id_escenario)
+                    """, presupuestos[numero], numero, nivel.path("objetivo").asText(), nivel.path("instrucciones").asText(),
+                    nivel.path("reglasExito").toString(), nivel.path("herramientasHabilitadas").toString());
+            }
         };
+    }
+
+    private void actualizarSeedInicialNivel4(JdbcTemplate jdbcTemplate, JsonNode nivel) {
+        // 014 contiene la versión anterior a los objetivos geográficos. Los
+        // intentos V1 ya quedaron congelados por 017 antes de esta actualización.
+        jdbcTemplate.update("""
+            UPDATE escenario SET objetivo=?, instrucciones=?, reglas_exito=CAST(? AS jsonb)
+            WHERE progresivo=TRUE AND modo='NIVEL' AND numero=4 AND nombre=? AND dificultad=?
+              AND objetivo=? AND instrucciones=? AND reglas_exito=CAST(? AS jsonb)
+              AND herramientas_habilitadas=CAST(? AS jsonb)
+            """, nivel.path("objetivo").asText(), nivel.path("instrucciones").asText(), nivel.path("reglasExito").toString(),
+            nivel.path("nombre").asText(), nivel.path("dificultad").asText(),
+            "Validá la red, asigná un metro y ejecutá una simulación.",
+            "Completá una red válida y simulá la circulación de la unidad de metro.", REGLAS_NIVEL_4_014,
+            nivel.path("herramientasHabilitadas").toString());
     }
 
     private void actualizarInstruccionCatalogo(JdbcTemplate jdbcTemplate, JsonNode nivel, JsonNode consignasAnteriores) {

@@ -88,14 +88,16 @@ class SeguridadPostgresTest {
 
     @Test void rutasAdministrativasRechazanAnonimoYJugadorYAdmitenAdministrador() throws Exception {
         String jugador=token(crear(Rol.JUGADOR)), admin=token(crear(Rol.ADMIN));
-        for (String ruta : new String[]{"/api/admin/usuarios","/api/admin/disenos","/api/admin/configuracion","/api/admin/actividades"}) {
+        for (String ruta : new String[]{"/api/admin/usuarios","/api/admin/disenos","/api/admin/configuracion","/api/admin/actividades",
+                "/api/admin/niveles/criterio-uvut"}) {
             http.perform(get(ruta)).andExpect(status().isUnauthorized());
             http.perform(get(ruta).header("Authorization",jugador)).andExpect(status().isUnauthorized());
             http.perform(get(ruta).header("Authorization",admin)).andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control","no-store"));
         }
         for (String caso : new String[]{"DELETE /api/admin/usuarios/999","PATCH /api/admin/usuarios/999/rol",
-                "DELETE /api/admin/disenos/999","PATCH /api/admin/configuracion/modo_mantenimiento"}) {
+                "DELETE /api/admin/disenos/999","PATCH /api/admin/configuracion/modo_mantenimiento",
+                "POST /api/admin/niveles/criterio-uvut/4/previsualizar","PUT /api/admin/niveles/criterio-uvut/4"}) {
             String[] p=caso.split(" ");
             http.perform(request(HttpMethod.valueOf(p[0]),p[1]).header("Authorization",jugador)
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))

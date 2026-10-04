@@ -348,7 +348,16 @@ button { cursor: pointer; }
 .metronet-inicio__mensaje.error { color: var(--danger); }
 .metronet-escenarios-pagina__encabezado { display: block; margin-bottom: 26px; }
 .metronet-escenarios-pagina__encabezado > div { width: 100%; max-width: none; }
-.metronet-escenarios-pagina__encabezado > div > p:not(.metronet-inicio__etiqueta) { max-width: none; margin: 9px 0 0; text-wrap: pretty; }
+.metronet-escenarios-pagina__presentacion {
+  max-width: 800px;
+  margin: var(--space-md) auto 0;
+  padding: var(--space-sm) var(--space-lg);
+  border-inline: var(--border-width) solid var(--border);
+  background: color-mix(in srgb, var(--panel) 65%, transparent);
+  text-align: center;
+}
+.metronet-escenarios-pagina__presentacion p { margin: 0; color: var(--text-secondary); line-height: 1.45; text-wrap: pretty; }
+.metronet-escenarios-pagina__presentacion p + p { margin-top: var(--space-xs); }
 .metronet-escenarios-pagina__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 14px; }.metronet-escenarios-pagina__tarjeta { display: grid; align-content: start; gap: 9px; min-height: 260px; padding: 18px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }.metronet-escenarios-pagina__tarjeta > p, .metronet-escenarios-pagina__tarjeta h2, .metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small, .metronet-escenarios-pagina__tarjeta b { margin: 0; }.metronet-escenarios-pagina__tarjeta > p { color: var(--info-active); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }.metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small { color: var(--text-secondary); line-height: 1.45; }.metronet-escenarios-pagina__tarjeta b { color: var(--success); font-size: 12px; }.metronet-escenarios-pagina__tarjeta button { align-self: end; min-height: 38px; margin-top: auto; }.metronet-escenarios-pagina__tarjeta.bloqueada { background: var(--bg-secondary); }.metronet-escenarios-pagina__tarjeta.bloqueada > p, .metronet-escenarios-pagina__tarjeta.bloqueada b { color: var(--text-disabled); }
 
 body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
@@ -581,7 +590,14 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__tarjeta--continuar { grid-area: continuar; border-color: color-mix(in srgb, var(--info-active) 62%, var(--border)); }
 .metronet-inicio__tarjeta--crear { grid-area: crear; border-color: color-mix(in srgb, var(--success) 56%, var(--border)); }
 .metronet-inicio__tarjeta--progreso { grid-area: progreso; }
-.metronet-inicio__tarjeta--progreso { grid-template-rows: auto auto auto; gap: var(--space-xs); }
+.metronet-inicio__tarjeta--progreso {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+  padding-block: var(--space-md);
+}
+.metronet-inicio__avance-recorrido { justify-self: end; text-align: right; font-variant-numeric: tabular-nums; }
 .metronet-inicio__tarjeta--bloqueada { border-style: dashed; border-color: var(--border); background: var(--bg-secondary); }
 .metronet-inicio__tarjeta h2,
 .metronet-inicio__tarjeta p { margin: 0; }
@@ -676,11 +692,20 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__paso--disponible { border-top-color: var(--info-active); color: var(--text-primary); background: color-mix(in srgb, var(--info-active) 8%, var(--panel)); }
 .metronet-inicio__paso--bloqueado { color: var(--text-secondary); }
 .metronet-inicio__accesos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
   padding-top: var(--space-sm);
   border-top: var(--border-width) solid var(--border);
+}
+.metronet-inicio__accesos .metronet-inicio__enlace {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 42px;
+  padding: var(--space-xs);
+  text-align: center;
 }
 .metronet-inicio__error {
   display: grid;
@@ -697,6 +722,32 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__error-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
 
 .metronet-escenarios-pagina__encabezado { margin-bottom: 0; }
+.metronet-escenarios-pagina__equipo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+  max-width: 620px;
+  margin: var(--space-md) auto 0;
+  padding: 0;
+  list-style: none;
+}
+.metronet-escenarios-pagina__equipo li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: 5px 8px;
+  border: var(--border-width) solid var(--border);
+  background: var(--panel);
+}
+.metronet-escenarios-pagina__equipo img {
+  display: block;
+  flex: 0 0 32px;
+  image-rendering: pixelated;
+}
+.metronet-escenarios-pagina__equipo span { display: grid; min-width: 0; line-height: 1.2; }
+.metronet-escenarios-pagina__equipo strong { color: var(--text-primary); font-size: 12px; }
+.metronet-escenarios-pagina__equipo small { color: var(--text-secondary); font-size: 11px; }
 .metronet-escenarios-pagina__progreso {
   display: grid;
   gap: var(--space-lg);
@@ -834,13 +885,9 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-escenarios-pagina__estado--disponible { border-color: color-mix(in srgb, var(--info-active) 66%, var(--border)); color: var(--info-active); }
 .metronet-escenarios-pagina__estado--bloqueado { color: var(--text-disabled); }
 .metronet-escenarios-pagina__tarjeta-contenido { display: grid; align-content: start; gap: var(--space-sm); }
-.metronet-escenarios-pagina__detalles { color: var(--text-secondary); font-size: 13px; }
-.metronet-escenarios-pagina__detalles > summary { width: fit-content; cursor: pointer; color: var(--info-active); text-decoration: underline; text-underline-offset: 3px; }
-.metronet-escenarios-pagina__detalles > summary:focus-visible { outline: 2px solid var(--info-active); outline-offset: 3px; }
-.metronet-escenarios-pagina__detalles > p { margin-top: var(--space-xs); }
-.metronet-escenarios-pagina__objetivo,
-.metronet-escenarios-pagina__instrucciones { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
-.metronet-escenarios-pagina__objetivo strong { color: var(--text-primary); }
+.metronet-escenarios-pagina__personaje { display: flex; align-items: center; gap: 8px; min-height: 40px; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; }
+.metronet-escenarios-pagina__personaje img { display: block; width: 40px; height: 40px; flex: 0 0 40px; image-rendering: pixelated; }
+.metronet-escenarios-pagina__relato { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 .metronet-escenarios-pagina__progreso-tarjeta { display: grid; gap: 6px; color: var(--text-secondary); font-size: 12px; }
 .metronet-escenarios-pagina__barra-progreso { height: 6px; overflow: hidden; border-radius: var(--radius-control); background: var(--bg-secondary); }
 .metronet-escenarios-pagina__barra-progreso > span { display: block; width: var(--progreso-escenario, 0%); height: 100%; background: var(--success); }
@@ -870,6 +917,23 @@ body.metronet-pagina-editor { overflow: hidden; }
   .metronet-escenarios-pagina__paso-progreso:last-child { grid-column: 1 / -1; }
 }
 
+@media (max-width: 620px) {
+  .metronet-escenarios-pagina { gap: 4px; padding-top: 4px; }
+  .metronet-escenarios-pagina__encabezado { padding-block: var(--space-sm) 4px; }
+  .metronet-escenarios-pagina__encabezado::after { margin-top: 0; }
+  .metronet-escenarios-pagina__desafios { gap: 4px; }
+  .metronet-escenarios-pagina__seccion-cabecera { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-xs); }
+  .metronet-escenarios-pagina__seccion-cabecera > p { text-align: right; font-size: 12px; }
+  .metronet-escenarios-pagina__presentacion { margin-top: 4px; padding: 2px 8px; }
+  .metronet-escenarios-pagina__presentacion p { font-size: 14px; line-height: 1.4; }
+  .metronet-escenarios-pagina__presentacion p + p { margin-top: 4px; }
+  .metronet-escenarios-pagina__equipo { gap: 6px; margin-top: 5px; }
+  .metronet-escenarios-pagina__equipo li { gap: 4px; padding: 4px; }
+  .metronet-escenarios-pagina__equipo img { width: 28px; height: 28px; flex-basis: 28px; }
+  .metronet-escenarios-pagina__equipo small { font-size: 10px; }
+  .metronet-inicio__accesos .metronet-inicio__enlace { font-family: var(--font-tecnica); font-size: 10px; letter-spacing: 0; white-space: nowrap; }
+}
+
 @media (max-width: 880px) and (min-width: 721px) {
   .metronet-inicio__tablero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -886,6 +950,10 @@ body.metronet-pagina-editor { overflow: hidden; }
   .metronet-inicio__tarjeta-pie,
   .metronet-inicio__error-acciones { align-items: stretch; flex-direction: column; }
   .metronet-inicio__boton { width: 100%; }
+}
+
+@media (max-width: 360px) {
+  .metronet-inicio__tarjeta--progreso { padding-inline: var(--space-sm); }
 }
 
 @media (prefers-reduced-motion: reduce) {

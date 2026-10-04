@@ -44,6 +44,7 @@ public class SimulacionService {
     private final DisenoAdministracionService disenoAdministracionService;
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
     private final JuegoEducativoService juegoEducativoService;
+    private final CriterioUvUtService criterioUvUt;
 
     public SimulacionService(
         JdbcTemplate jdbcTemplate,
@@ -52,20 +53,39 @@ public class SimulacionService {
         JuegoEducativoService juegoEducativoService,
         RestriccionesGeograficasService restriccionesGeograficas
     ) {
+        this(jdbcTemplate, disenoAdministracionService, objetivosPuntosInteresService, juegoEducativoService,
+            restriccionesGeograficas, new CriterioUvUtService(jdbcTemplate, new com.fasterxml.jackson.databind.ObjectMapper(),
+                new PuntuacionService(jdbcTemplate, new com.fasterxml.jackson.databind.ObjectMapper())));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SimulacionService(
+        JdbcTemplate jdbcTemplate,
+        DisenoAdministracionService disenoAdministracionService,
+        ObjetivosPuntosInteresService objetivosPuntosInteresService,
+        JuegoEducativoService juegoEducativoService,
+        RestriccionesGeograficasService restriccionesGeograficas,
+        CriterioUvUtService criterioUvUt
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.restriccionesGeograficas = restriccionesGeograficas;
         this.disenoAdministracionService = disenoAdministracionService;
         this.objetivosPuntosInteresService = objetivosPuntosInteresService;
         this.juegoEducativoService = juegoEducativoService;
+        this.criterioUvUt = criterioUvUt;
     }
 
     public List<SimulacionResumenResponse> listarSimulaciones(Integer idUsuario) {
         return jdbcTemplate.query("""
             SELECT i.id_diseno, i.id_escenario, e.nombre, i.estado, e.modo,
-                   COALESCE(e.dificultad, 'Inicial') AS dificultad, e.objetivo, e.instrucciones, e.id_diseno_base,
-                   e.reglas_exito::text AS reglas_exito
+                   COALESCE(e.dificultad, 'Inicial') AS dificultad,
+                   CASE WHEN v.id_intento IS NOT NULL THEN v.objetivo WHEN h.id_intento IS NOT NULL THEN h.objetivo ELSE e.objetivo END AS objetivo,
+                   CASE WHEN v.id_intento IS NOT NULL THEN v.instrucciones WHEN h.id_intento IS NOT NULL THEN h.instrucciones ELSE e.instrucciones END AS instrucciones,
+                   e.id_diseno_base, COALESCE(v.reglas_exito,h.reglas_exito,e.reglas_exito)::text AS reglas_exito
             FROM intento i
             JOIN escenario e ON e.id_escenario = i.id_escenario
+            LEFT JOIN intento_uv_ut v ON v.id_intento=i.id_intento
+            LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
             WHERE i.id_usuario = ?
             ORDER BY i.id_diseno DESC
             """, (resultado, fila) -> mapearResumen(resultado), idUsuario);
@@ -96,11 +116,11 @@ public class SimulacionService {
     public SimulacionResumenResponse crearEscenario(Integer idUsuario, Integer idDisenoBase, CrearEscenarioRequest solicitud) {
         SimulacionResumenResponse base = obtenerResumen(idUsuario, idDisenoBase);
         if (!"VALIDADO".equals(base.estado())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validá el diseño antes de crear un escenario de aprendizaje");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validá el diseño antes de crear una actividad de aprendizaje");
         }
 
         restriccionesGeograficas.validarDiseno(idDisenoBase);
-        String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para el escenario");
+        String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para la actividad");
         String modo = modoValido(solicitud == null ? null : solicitud.modo());
         String dificultad = dificultadValida(solicitud == null ? null : solicitud.dificultad());
         String objetivo = textoOpcional(solicitud == null ? null : solicitud.objetivo(), "Aplicar los conceptos de diseño de una red de metro.");
@@ -302,9 +322,9 @@ public class SimulacionService {
     public SimulacionResumenResponse actualizarEscenario(Integer idUsuario, Integer idDiseno, ActualizarEscenarioRequest solicitud) {
         SimulacionResumenResponse resumen = obtenerResumenParaEdicion(idUsuario, idDiseno);
         if (esEscenarioProgresivo(resumen.idEscenario())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No podés editar un escenario progresivo.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No podés editar un nivel progresivo.");
         }
-        String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para el escenario");
+        String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para la actividad");
         String dificultad = dificultadValida(solicitud == null ? null : solicitud.dificultad());
         String objetivo = textoOpcional(solicitud == null ? null : solicitud.objetivo(), "Aplicar los conceptos de diseño de una red de metro.");
         String instrucciones = textoOpcional(solicitud == null ? null : solicitud.instrucciones(), instruccionesPredeterminadas(resumen.modo(), dificultad));
@@ -328,7 +348,9 @@ public class SimulacionService {
     @Transactional
     public ResultadoSimulacionResponse ejecutarSimulacion(Integer idUsuario, Integer idDiseno, EjecutarSimulacionRequest solicitud) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
-        ParametrosSimulacion.validar(solicitud);
+        Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
+        boolean uvUt = criterioUvUt.configuracionIntento(idIntento) != null;
+        ParametrosSimulacion.validar(solicitud, uvUt);
         ValidacionDisenoResponse estructura = evaluarDiseno(resumen, idDiseno);
         if (!estructura.valido()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(" ", estructura.observaciones()));
@@ -351,14 +373,14 @@ public class SimulacionService {
             """, Integer.class, idDiseno);
         int puntaje = 0; // Sin criterios de escenario no se asignan puntos por cantidad de elementos.
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + solicitud.duracion()
-            + " h simuladas. La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
-        Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
+            + (uvUt ? " UT." : " h simuladas.") + " La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
         boolean progresivo = juegoEducativoService.esDisenoProgresivo(idUsuario, idDiseno);
         comentarios += juegoEducativoService.marcaRedSimulada(idDiseno);
         Integer idSimulacion = jdbcTemplate.queryForObject("""
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
             """, Integer.class, idIntento, solicitud.velocidad(), solicitud.duracion(), comentarios, puntaje);
+        criterioUvUt.registrar(idIntento, idDiseno, idSimulacion, solicitud.duracion());
         if (progresivo) {
             var desempeno = juegoEducativoService.obtenerDesempeno(idUsuario, idDiseno);
             if (desempeno != null) puntaje = desempeno.puntaje();
@@ -628,10 +650,14 @@ public class SimulacionService {
     private SimulacionResumenResponse obtenerResumen(Integer idUsuario, Integer idDiseno) {
         List<SimulacionResumenResponse> resultados = jdbcTemplate.query("""
             SELECT i.id_diseno, i.id_escenario, e.nombre, i.estado, e.modo,
-                   COALESCE(e.dificultad, 'Inicial') AS dificultad, e.objetivo, e.instrucciones, e.id_diseno_base,
-                   e.reglas_exito::text AS reglas_exito
+                   COALESCE(e.dificultad, 'Inicial') AS dificultad,
+                   CASE WHEN v.id_intento IS NOT NULL THEN v.objetivo WHEN h.id_intento IS NOT NULL THEN h.objetivo ELSE e.objetivo END AS objetivo,
+                   CASE WHEN v.id_intento IS NOT NULL THEN v.instrucciones WHEN h.id_intento IS NOT NULL THEN h.instrucciones ELSE e.instrucciones END AS instrucciones,
+                   e.id_diseno_base, COALESCE(v.reglas_exito,h.reglas_exito,e.reglas_exito)::text AS reglas_exito
             FROM intento i
             JOIN escenario e ON e.id_escenario = i.id_escenario
+            LEFT JOIN intento_uv_ut v ON v.id_intento=i.id_intento
+            LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
             WHERE i.id_usuario = ? AND i.id_diseno = ?
             """, (resultado, fila) -> mapearResumen(resultado), idUsuario, idDiseno);
 
@@ -776,6 +802,7 @@ public class SimulacionService {
 
     private ResultadoSimulacionResponse mapearResultado(ResultSet resultado) throws SQLException {
         var registro = RegistroSimulacionDidactica.leer(resultado.getString("comentarios"));
+        var uvUt = criterioUvUt.resultadoDeSimulacion(resultado.getInt("id_simulacion"));
         return new ResultadoSimulacionResponse(
             resultado.getInt("id_simulacion"),
             resultado.getBigDecimal("velocidad"),
@@ -784,8 +811,9 @@ public class SimulacionService {
             resultado.getInt("puntaje"),
             PuntuacionService.comentarioVisible(resultado.getString("comentarios")),
             resultado.getTimestamp("fecha_ejecucion").toLocalDateTime(),
-            registro == null ? "HISTORICA" : "UV_H_V1",
-            registro == null ? List.of() : registro.unidades()
+            uvUt != null ? "UV_UT_V2" : registro == null ? "HISTORICA" : "UV_H_V1",
+            registro == null ? List.of() : registro.unidades(),
+            uvUt
         );
     }
 
@@ -829,7 +857,7 @@ public class SimulacionService {
 
     private String modoValido(String modo) {
         if (!"NIVEL".equals(modo) && !"EDICION_LIBRE".equals(modo)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí el tipo de escenario");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí el tipo de actividad");
         }
         return modo;
     }

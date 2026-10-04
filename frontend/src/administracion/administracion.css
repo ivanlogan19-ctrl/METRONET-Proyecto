@@ -376,6 +376,20 @@
   min-width: 0;
 }
 
+.admin-criterio-uv-ut {
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+}
+
+.admin-criterio-uv-ut > div:first-child { grid-column: 1 / -1; }
+.admin-criterio-uv-ut .admin-campo-configuracion { flex-wrap: wrap; gap: var(--space-sm, 8px); }
+.admin-criterio-uv-ut label { display: grid; gap: 4px; font-size: 12px; }
+.admin-criterio-uv-ut label input { width: 128px; }
+html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
+  color: var(--bg-primary);
+  background: var(--info-active);
+  border-color: var(--info-active);
+}
+
 .admin-configuracion-valor {
   width: 100%;
   min-width: 0;
@@ -483,6 +497,10 @@
   .admin-configuracion-item {
     grid-template-columns: minmax(0, 1fr) minmax(150px, 200px);
   }
+
+  .admin-criterio-uv-ut { grid-template-columns: minmax(0, 1fr) auto; }
+  .admin-criterio-uv-ut .admin-campo-configuracion { grid-column: 1 / -1; }
+  .admin-criterio-uv-ut > .admin-guardar { grid-column: auto; }
 
   .admin-configuracion-item > .admin-guardar {
     grid-column: 1 / -1;

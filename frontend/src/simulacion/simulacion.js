@@ -45,6 +45,7 @@ let controlUnidades = null;
 let unidadSeleccionada = 'todas';
 let guardandoVelocidad = false;
 let catalogoProgresoDisponible = false;
+let configuracionUvUt = null;
 const VELOCIDADES_SIMULACION = new Set(RITMOS);
 
 if (!sesion) {
@@ -114,7 +115,7 @@ async function inicializar() {
   if (!paginaActiva) return;
   tutorialSimulacion = presentarTutorialSimulacion({ progreso: progresoSimulacion,
     escenario: escenariosGlosario.find(e => e.idEscenario === disenoActual?.simulacion?.idEscenario),
-    idUsuario: sesion.usuario?.idUsuario, resultados: disenoActual?.resultados });
+    idUsuario: sesion.usuario?.idUsuario, resultados: disenoActual?.resultados, esUvUt: Boolean(configuracionUvUt) });
   if (idDisenoInicial && consumirInicioSimulacion(idDisenoInicial) && !tutorialSimulacion) await ejecutarSimulacion({ preventDefault() {} });
 }
 
@@ -141,6 +142,7 @@ async function abrirDiseno(idDiseno) {
     const diseno = await cliente.obtener(idDiseno);
     if (version !== versionDiseno || !paginaActiva) return;
     disenoActual = diseno;
+    configuracionUvUt = null;
     const contexto = obtenerContextoDiseno(idDiseno);
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
     visor.escena.establecerDiseno(disenoActual);
@@ -242,6 +244,21 @@ async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
   try { desempeno = await consultarJuego(`/disenos/${idDiseno}/desempeno`); } catch { /* Mantener disponible la simulación habitual. */ }
   if (!paginaActiva || version !== versionDiseno || disenoActual?.simulacion?.idDiseno !== idDiseno) return;
   if (!Number.isFinite(desempeno?.puntajeMaximo)) desempeno = null;
+  configuracionUvUt = desempeno?.configuracionUvUt ?? null;
+  const esUvUt = Boolean(configuracionUvUt);
+  if (esUvUt && !parametrosUltimaEjecucion && !ejecucionPendiente) {
+    document.getElementById('duracionSimulacion').value = String(configuracionUvUt.limiteUt);
+  }
+  document.getElementById('duracionSimulacion').setAttribute('aria-label', esUvUt ? 'Duración simulada en UT' : 'Duración simulada en horas');
+  document.getElementById('unidadDuracionSimulacion').textContent = esUvUt ? 'UT' : 'h';
+  const resumenCriterio = document.getElementById('resumenCriterioUvUt');
+  resumenCriterio.hidden = !esUvUt;
+  if (esUvUt) {
+    const ultimo = desempeno.resultadoUvUt;
+    resumenCriterio.textContent = `Objetivo: completar todos los recorridos en hasta ${configuracionUvUt.limiteUt} UT con ${configuracionUvUt.presupuestoUv} UV como máximo. ${ultimo ? `Última ejecución: ${ultimo.sumaUv} UV, ${ultimo.completo ? 'recorridos completos' : 'objetivo pendiente'}.` : ''} ${ultimo?.mejorUv != null ? `Mejor UV para esta red: ${ultimo.mejorUv}.` : ''}`;
+  }
+  renderizarResultados();
+  actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
   if (actualizarMotor) visor?.escena.establecerDiseno(disenoActual);
   if (!disenoActual.unidadesMetro?.some(u => String(u.idTren) === unidadSeleccionada)) unidadSeleccionada = 'todas';
@@ -309,10 +326,13 @@ function renderizarResultados() {
   contenedor.replaceChildren(...resultados.map((resultado) => {
     const elemento = document.createElement('article');
     elemento.className = 'simulacion-resultado';
+    const v2 = resultado.escala === 'UV_UT_V2' && resultado.resultadoUvUt;
     const actual = resultado.escala === 'UV_H_V1';
-    const tiempo = actual ? `Duración simulada: ${formatearDuracion(resultado.duracion)}` : `Registro histórico · duración original: ${resultado.duracion} s (escala anterior)`;
-    const unidades = actual ? (resultado.unidades ?? []).map(u => `Metro ${u.idTren}: ${formatearVelocidad(u.velocidad)}`).join(' · ') : '';
-    elemento.innerHTML = `<strong>${escapar(resultado.estado)} · ${resultado.puntaje} puntos</strong><span>${escapar(tiempo)} · ritmo inicial ${formatearRitmo(resultado.velocidad)}</span><span>${escapar(unidades)}</span><p>${escapar(resultado.comentarios)}</p>`;
+    const tiempo = v2 ? `Duración: ${resultado.duracion} UT · ${resultado.resultadoUvUt.sumaUv} / ${resultado.resultadoUvUt.presupuestoUv} UV`
+      : actual ? `Duración simulada: ${formatearDuracion(resultado.duracion)}` : `Registro histórico · duración original: ${resultado.duracion} s (escala anterior)`;
+    const unidades = v2 ? resultado.resultadoUvUt.unidades.map(u => `Metro ${u.idTren} (${u.linea}): ${u.tramos} tramos, ${u.uv} UV, llegada ${u.utLlegada} UT ${u.termino ? '✓' : 'pendiente'}`).join(' · ')
+      : actual ? (resultado.unidades ?? []).map(u => `Metro ${u.idTren}: ${formatearVelocidad(u.velocidad)}`).join(' · ') : '';
+    elemento.innerHTML = `<strong>${escapar(resultado.estado)} · ${resultado.puntaje} puntos</strong><span>${escapar(tiempo)} · ritmo inicial ${formatearRitmo(resultado.velocidad)}</span><span>${escapar(unidades)}</span>${v2 ? `<span>${resultado.resultadoUvUt.completo ? 'Objetivo UV/UT cumplido' : 'Objetivo UV/UT pendiente'}${resultado.resultadoUvUt.mejorUv != null ? ` · Mejor UV: ${escapar(resultado.resultadoUvUt.mejorUv)}` : ''}</span>` : ''}<p>${escapar(resultado.comentarios)}</p>`;
     return elemento;
   }));
   if (!resultados.length) contenedor.textContent = 'Aún no se registraron ejecuciones para este diseño.';
@@ -332,7 +352,7 @@ async function ejecutarSimulacion(evento) {
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
   const duracion = Number(document.getElementById('duracionSimulacion').value);
   if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion <= 0) {
-    mostrarMensaje('Elegí un ritmo de reproducción disponible (×) y una cantidad entera de horas simuladas mayor que cero.', 'error');
+    mostrarMensaje(`Elegí un ritmo de reproducción disponible (×) y una cantidad entera de ${configuracionUvUt ? 'UT' : 'horas simuladas'} mayor que cero.`, 'error');
     return;
   }
   preparacionEnCurso = true;
@@ -595,7 +615,7 @@ function crearEstadoInicial() {
   };
 }
 
-function formatearTiempo(horas) { return formatearDuracion(Math.max(0, Number(horas) || 0)); }
+function formatearTiempo(horas) { const valor = Math.max(0, Number(horas) || 0); return configuracionUvUt ? `${valor.toLocaleString('es-UY', { maximumFractionDigits: 2 })} UT` : formatearDuracion(valor); }
 
 function formatearEstadoMotor(estado) {
   return ({

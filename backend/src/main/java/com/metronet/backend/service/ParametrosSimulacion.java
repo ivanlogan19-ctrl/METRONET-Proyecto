@@ -11,9 +11,14 @@ public final class ParametrosSimulacion {
     private static final Set<BigDecimal> RITMOS = Set.of(new BigDecimal("0.5"), BigDecimal.ONE, new BigDecimal("2"), new BigDecimal("4"));
 
     public static void validar(EjecutarSimulacionRequest solicitud) {
+        validar(solicitud, false);
+    }
+
+    public static void validar(EjecutarSimulacionRequest solicitud, boolean escalaUt) {
         if (solicitud == null || solicitud.velocidad() == null || !RITMOS.contains(solicitud.velocidad().stripTrailingZeros())
             || solicitud.duracion() == null || solicitud.duracion() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de 0.5×, 1×, 2× o 4× y horas simuladas enteras mayores que cero");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de 0.5×, 1×, 2× o 4× y "
+                + (escalaUt ? "UT enteras mayores que cero" : "horas simuladas enteras mayores que cero"));
         }
     }
 

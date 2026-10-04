@@ -159,13 +159,10 @@ function crearTarjetaModoLibre(resumen) {
 
 function crearTarjetaAccesos(resumen) {
   const tarjeta = crearTarjeta('progreso', 'Tu recorrido');
-  const encabezado = document.createElement('div');
-  encabezado.className = 'metronet-inicio__tarjeta-contenido';
-  encabezado.append(
-    crearDescripcion(resumen.niveles.length
-      ? `${resumen.cantidadCompletados} de ${resumen.niveles.length} niveles completados.`
-      : 'Todavía no hay niveles disponibles.'),
-  );
+  const avance = crearMeta(resumen.niveles.length
+    ? `${resumen.cantidadCompletados}/${resumen.niveles.length} niveles completados`
+    : 'Sin niveles disponibles');
+  avance.classList.add('metronet-inicio__avance-recorrido');
   const accesos = document.createElement('nav');
   accesos.className = 'metronet-inicio__accesos';
   accesos.setAttribute('aria-label', 'Accesos al jugador');
@@ -176,7 +173,7 @@ function crearTarjetaAccesos(resumen) {
     misDisenos,
     crearEnlace('/simulacion.html', 'Simulaciones'),
   );
-  tarjeta.append(encabezado, accesos);
+  tarjeta.append(avance, accesos);
   return tarjeta;
 }
 

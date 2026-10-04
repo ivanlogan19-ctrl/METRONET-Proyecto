@@ -134,7 +134,7 @@ public class DisenoAdministracionService {
         if (Boolean.TRUE.equals(logroProtegido)) {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT,
-                "El diseño pertenece a un escenario progresivo completado y quedó bloqueado para conservar el logro."
+                "El diseño pertenece a un nivel completado y quedó bloqueado para conservar el logro."
             );
         }
     }

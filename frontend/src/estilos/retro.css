@@ -128,11 +128,23 @@ html:root .perfil-contenedor .requisitos-contrasena { margin-top: var(--space-xs
   html:root .metronet-escenarios-pagina__acciones { grid-column: 2; grid-row: 3; }
 }
 @media (max-width: 620px) {
+  html:root body .metronet-inicio__accesos .metronet-inicio__enlace {
+    max-width: none;
+    width: 100%;
+    padding: 6px 3px;
+    font: 700 11px/1.2 var(--font-tecnica);
+    white-space: nowrap;
+  }
+  html:root body .metronet-escenarios-pagina__encabezado { padding-block: var(--space-sm) 4px; }
+  html:root body .metronet-escenarios-pagina__encabezado::after { margin-top: 0; }
   html:root body .metronet-escenarios-pagina__tarjeta { grid-template-columns: minmax(0, 1fr); padding: var(--space-md); }
   html:root .metronet-escenarios-pagina__tarjeta > :is(header, h2, div, footer) { grid-column: 1; grid-row: auto; }
   html:root .metronet-escenarios-pagina__tarjeta-cabecera { display: flex; justify-content: space-between; flex-wrap: wrap; }
   html:root body :is(.input-wrapper input, .admin-formulario-editor input, .admin-filtros input) { font-size: 16px; }
   html:root .perfil-seccion__encabezado { grid-template-columns: 1fr; }
+}
+@media (max-width: 360px) {
+  html:root body .metronet-inicio__accesos .metronet-inicio__enlace { padding-inline: 2px; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html *, html *::before, html *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

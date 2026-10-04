@@ -22,6 +22,10 @@ class ParametrosSimulacionTest {
         assertThrows(ResponseStatusException.class, () -> ParametrosSimulacion.validar(null));
         assertThrows(ResponseStatusException.class, () -> ParametrosSimulacion.validar(new EjecutarSimulacionRequest(null, 6)));
         assertThrows(ResponseStatusException.class, () -> ParametrosSimulacion.validar(new EjecutarSimulacionRequest(new BigDecimal("3"), 6)));
+        var errorUt = assertThrows(ResponseStatusException.class,
+            () -> ParametrosSimulacion.validar(new EjecutarSimulacionRequest(BigDecimal.ONE, 0), true));
+        assertTrue(errorUt.getReason().contains("UT enteras"));
+        assertFalse(errorUt.getReason().contains("horas"));
     }
 
     @Test void uvPositivaYRepresentableSinRedondeoSilencioso() {

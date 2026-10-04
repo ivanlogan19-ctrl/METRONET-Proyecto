@@ -7,7 +7,7 @@ const niveles=require('../src/educacion/niveles.json');
 let navegador;
 before(async()=>{navegador=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
 after(async()=>{await navegador?.close();});
-const nivel={...niveles[0],idEscenario:1,desbloqueado:true,estado:'EN_DESARROLLO'};
+const nivel={...niveles[0],idEscenario:1,desbloqueado:true,estado:'EN_DESARROLLO',cantidadIntentos:2,mejorPuntaje:80,ultimoPuntaje:65,puntajeMaximo:100};
 const cerrar=(t,v)=>t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});
 for(const width of [1440,390,320])test(`Editor ${width}: sin navegadores duplicados, manual a demanda y un contenido auxiliar`,async t=>{
  const v=await abrirEditor(navegador,{viewport:{width,height:900},escenario:nivel,estaciones:[],lineas:[],tramos:[]});cerrar(t,v);const p=v.pagina;
@@ -29,6 +29,7 @@ for(const width of [1440,390,320])test(`Editor ${width}: sin navegadores duplica
  await p.getByRole('button',{name:'Cerrar tutorial',exact:true}).click();assert.equal(await p.locator('.metronet-hud').getAttribute('open'),null);
  await p.locator('.metronet-hud>summary').click();await p.getByRole('button',{name:'Pista',exact:true}).click();
  await p.locator('[data-indicaciones-escenario]>summary').click();assert.equal(await p.locator('[data-indicaciones-escenario] p').innerText(),nivel.instrucciones);
+ assert.match(await p.locator('[data-estadisticas-nivel]').innerText(),/Intentos: 2 · Máximo: 100 puntos · Mejor puntaje: 80 \/ 100 · Mejor del último intento: 65/);
  assert.equal(await p.getByText('Más información',{exact:true}).count(),0);
  await p.keyboard.press('Escape');
  if(width<620)await p.locator('[data-panel-edicion-toggle]').click();

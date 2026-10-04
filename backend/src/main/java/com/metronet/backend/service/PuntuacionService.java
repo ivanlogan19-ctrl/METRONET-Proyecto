@@ -41,6 +41,11 @@ public class PuntuacionService {
 
     /** Las interacciones se comprueban comparando ejecuciones persistidas del mismo intento. */
     public List<CondicionConsignaResponse> condicionesCirculacion(int idDiseno, int idIntento, String reglas, boolean requiereSimulacion) {
+        return condicionesCirculacion(idDiseno, idIntento, reglas, requiereSimulacion, false);
+    }
+
+    public List<CondicionConsignaResponse> condicionesCirculacion(int idDiseno, int idIntento, String reglas,
+            boolean requiereSimulacion, boolean escalaUt) {
         List<CondicionConsignaResponse> condiciones = new ArrayList<>();
         JsonNode aprendizaje;
         try { aprendizaje = mapper.readTree(reglas == null ? "{}" : reglas).path("aprendizajeSimulacion"); }
@@ -83,11 +88,13 @@ public class PuntuacionService {
         for (String clave : List.of("velocidad", "duracion", "individual", "global", "combinacion")) {
             if (!aprendizaje.path(clave).asBoolean()) continue;
             boolean cumplida = realizadas.contains(clave);
-            condiciones.add(new CondicionConsignaResponse("aprendizajeSimulacion:" + clave, textos.get(clave), cumplida ? 1 : 0, 1, cumplida));
+            condiciones.add(new CondicionConsignaResponse("aprendizajeSimulacion:" + clave,
+                escalaUt ? textos.get(clave).replace("horas", "UT") : textos.get(clave), cumplida ? 1 : 0, 1, cumplida));
         }
         if (requiereSimulacion) {
-            boolean actual = !ejecuciones.isEmpty() && ejecuciones.getLast().registro != null
-                && ejecuciones.getLast().comentarios.endsWith(marcaRed(idDiseno));
+            boolean actual = escalaUt ? simulacionVigenteUvUt(idIntento, idDiseno)
+                : !ejecuciones.isEmpty() && ejecuciones.getLast().registro != null
+                    && ejecuciones.getLast().comentarios.endsWith(marcaRed(idDiseno));
             condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y UV actuales", actual ? 1 : 0, 1, actual));
         }
         return condiciones;
@@ -98,16 +105,16 @@ public class PuntuacionService {
     public DesempenoNivelResponse calcular(int idDiseno, String reglas, List<CondicionConsignaResponse> condiciones) {
         JsonNode c = configuracion(reglas);
         boolean redResuelta = !condiciones.isEmpty() && condiciones.stream()
-            .filter(condicion -> !Set.of("requiereSimulacion", "simulacionActual").contains(condicion.clave()) && !condicion.clave().startsWith("aprendizajeSimulacion:"))
+            .filter(condicion -> !Set.of("requiereSimulacion", "simulacionActual", "criterioUvUt").contains(condicion.clave()) && !condicion.clave().startsWith("aprendizajeSimulacion:"))
             .allMatch(CondicionConsignaResponse::completado);
         boolean aprendizajeCumplido = condiciones.stream().filter(condicion -> condicion.clave().startsWith("aprendizajeSimulacion:"))
             .allMatch(CondicionConsignaResponse::completado);
-        boolean simulacionActual = condiciones.stream().filter(condicion -> Set.of("requiereSimulacion", "simulacionActual").contains(condicion.clave()))
+        boolean simulacionActual = condiciones.stream().filter(condicion -> Set.of("requiereSimulacion", "simulacionActual", "criterioUvUt").contains(condicion.clave()))
             .allMatch(CondicionConsignaResponse::completado);
         int puntos = normalizar(condiciones);
         long satisfechas = condiciones.stream().filter(CondicionConsignaResponse::completado).count();
         String etapa = !redResuelta ? "RED" : !aprendizajeCumplido ? "EXPERIMENTAR" : !simulacionActual ? "SIMULACION" : "LISTO";
-        String explicacion = condiciones.isEmpty() ? "Este escenario no tiene criterios de evaluación: no se asignan puntos."
+        String explicacion = condiciones.isEmpty() ? "Este diseño no tiene criterios de evaluación: no se asignan puntos."
             : satisfechas + " de " + condiciones.size() + " criterios satisfechos: " + puntos + "/100. Cada criterio obligatorio tiene el mismo peso."
                 + " Las pistas, el tutorial, los errores y el tiempo no descuentan puntos."
                 + (satisfechas < condiciones.size() ? " Aún quedan condiciones por cumplir antes de completar el nivel." : " Todos los criterios están satisfechos.");
@@ -132,20 +139,36 @@ public class PuntuacionService {
 
     private String marcaEstructura(int idDiseno) { return marcaRed(idDiseno, false); }
 
+    /** V2 compara solo componentes que intervienen en recorridos y asignación UV. */
+    public String marcaProblemaUvUt(int idDiseno) { return marcaRed(idDiseno, false, false); }
+    public String marcaEjecucionUvUt(int idDiseno) { return marcaRed(idDiseno, true, false); }
+
     /** Identifica la red y sus velocidades tal como fueron simuladas, usando el campo comentarios existente. */
     public String marcaRed(int idDiseno) { return marcaRed(idDiseno, true); }
 
-    private String marcaRed(int idDiseno, boolean incluirVelocidad) {
+    private String marcaRed(int idDiseno, boolean incluirVelocidad) { return marcaRed(idDiseno, incluirVelocidad, true); }
+
+    private String marcaRed(int idDiseno, boolean incluirVelocidad, boolean incluirCapacidad) {
         try {
             var datos = List.of(
                 jdbc.queryForList("SELECT nombre,posicion_x,posicion_y,transbordo FROM estacion WHERE id_diseno=? ORDER BY nombre", idDiseno),
                 jdbc.queryForList("SELECT nombre FROM linea WHERE id_diseno=? ORDER BY nombre", idDiseno),
                 jdbc.queryForList("SELECT nombre_linea,nombre_estacion FROM pasa WHERE id_diseno=? ORDER BY nombre_linea,nombre_estacion", idDiseno),
                 jdbc.queryForList("SELECT nombre_linea,nombre_estacion_a,nombre_estacion_b FROM tramo WHERE id_diseno=? ORDER BY nombre_linea,nombre_estacion_a,nombre_estacion_b", idDiseno),
-                jdbc.queryForList("SELECT id_tren,nombre_linea," + (incluirVelocidad ? "velocidad_promedio," : "") + "capacidad FROM metro WHERE id_diseno=? ORDER BY id_tren", idDiseno));
+                jdbc.queryForList("SELECT id_tren,nombre_linea" + (incluirVelocidad ? ",velocidad_promedio" : "")
+                    + (incluirCapacidad ? ",capacidad" : "") + " FROM metro WHERE id_diseno=? ORDER BY id_tren", idDiseno));
             byte[] hash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsString(datos).getBytes(StandardCharsets.UTF_8));
             return MARCA + HexFormat.of().formatHex(hash) + "]";
         } catch (Exception e) { throw new IllegalStateException("No fue posible identificar la red simulada", e); }
+    }
+
+    private boolean simulacionVigenteUvUt(int idIntento, int idDiseno) {
+        var ultima = jdbc.query("""
+            SELECT r.huella_ejecucion FROM resultado_uv_ut r
+            JOIN simulacion s ON s.id_simulacion=r.id_simulacion
+            WHERE s.id_intento=? ORDER BY s.id_simulacion DESC LIMIT 1
+            """, (r, fila) -> r.getString(1), idIntento);
+        return !ultima.isEmpty() && ultima.getFirst().equals(marcaEjecucionUvUt(idDiseno));
     }
 
     public static String comentarioVisible(String comentario) {

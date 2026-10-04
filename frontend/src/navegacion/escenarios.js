@@ -1,11 +1,28 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
-import { destacarConceptos } from '../educacion/glosario/GlosarioContextual.js';
-import { conceptosDelNivel } from '../educacion/glosario/ContextoConceptos.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
+// Relato de selección: la misión comprobable sigue en la consigna del editor.
+const HISTORIA_NIVELES = Object.freeze({
+  1: 'Ari despliega el mapa sobre la mesa. Sol señala dos lugares que necesitan conectarse y Dani propone comenzar por un recorrido sencillo. El proyecto de metro hipotético empieza con una primera línea.',
+  2: 'La primera línea ya une dos lugares, pero Sol observa que deja fuera otro destino. Ari extiende el trazado y Dani revisa que el recorrido tenga continuidad. El equipo descubre que crecer exige conectar, no solo dibujar estaciones.',
+  3: 'Sobre el plano, todo parece listo. Dani les recuerda que una unidad de metro necesita una ruta sin cortes para circular. Ari y Sol revisan la red antes de poner en marcha el primer tren de su propuesta.',
+  4: 'El equipo mira dos extremos de Montevideo: Palacio Legislativo y Rambla de Carrasco. Sol plantea unirlos sin perder de vista los barrios; Dani pide probar en la simulación si la propuesta realmente funciona.',
+  5: 'El mapa suma Terminal Tres Cruces y Plaza Virgilio. Ari busca un trazado que acerque esos destinos; Sol comprueba los barrios y Dani compara el recorrido en otra ejecución. Cada decisión cambia la lectura de la red.',
+  6: 'El Mirador de la Intendencia entra en la discusión. Para atender el Centro junto al Oeste y el Este, Sol revisa la cobertura, Ari ajusta las conexiones y Dani propone comparar resultados antes de dar el diseño por resuelto.',
+  7: 'El avance hacia Brazo Oriental complica la red. Ari plantea dos líneas y Sol encuentra un punto donde cambiar entre ellas. Dani quiere comprobar que ambas puedan operar: el primer transbordo se convierte en una decisión del equipo.',
+  8: 'La red llega al entorno del Estadio Centenario. Sol detecta nuevos destinos; Ari organiza más líneas y transbordos. Dani compara cómo responde cada unidad y después el conjunto, porque una red mayor pide coordinación.',
+  9: 'El equipo tiene poco margen para sumar estaciones. Sol exige acercarlas a los lugares clave, Ari simplifica el trazado y Dani prueba distintos supuestos. Descubren que una red más precisa puede ser más útil que una más extensa.',
+  10: 'Llega la presentación final del proyecto. Ari defiende las conexiones, Sol explica la cobertura de barrios y zonas, y Dani muestra las comparaciones de operación. El equipo reúne lo aprendido en una red hipotética completa y revisable.',
+});
+const PERSONAJES = Object.freeze({
+  Ari: { imagen: '/assets/personajes/ari.svg', rol: 'Trazados' },
+  Sol: { imagen: '/assets/personajes/sol.svg', rol: 'Cobertura' },
+  Dani: { imagen: '/assets/personajes/dani.svg', rol: 'Operación' },
+});
+const PROTAGONISTAS_NIVEL = Object.freeze(['Ari', 'Sol', 'Dani', 'Sol', 'Ari', 'Sol', 'Ari', 'Dani', 'Sol', 'Dani']);
 const sesion = requerirSesion('/escenarios.html');
 let progresoActual = null;
 let accionEnCurso = false;
@@ -65,7 +82,7 @@ function renderizarProgreso(progreso) {
   const niveles = obtenerNiveles(progreso.escenarios);
   const descripcion = document.getElementById('descripcionProgresoEscenarios');
   descripcion.textContent = niveles.length
-    ? `${progreso.campanaCompletada ? "Campaña completada. " : ""}${progreso.nivelesCompletados} de ${progreso.cantidadNiveles} niveles completados en la campaña actual.`
+    ? `${progreso.nivelesCompletados}/${progreso.cantidadNiveles} completados${progreso.campanaCompletada ? ' · Campaña completa' : ''}`
     : 'Todavía no hay niveles configurados.';
 }
 
@@ -129,27 +146,26 @@ function crearTarjetaEscenario(escenario) {
   tarjeta.setAttribute('aria-labelledby', titulo.id);
   const contenido = document.createElement('div');
   contenido.className = 'metronet-escenarios-pagina__tarjeta-contenido';
-  const objetivo = document.createElement('p');
-  objetivo.className = 'metronet-escenarios-pagina__objetivo';
-  objetivo.textContent = escenario.objetivo ?? 'Sin objetivo definido.';
-  if (escenario.desbloqueado) {
-    destacarConceptos(objetivo, conceptosDelNivel(escenario));
+  const protagonista = PROTAGONISTAS_NIVEL[escenario.numero - 1];
+  if (protagonista) {
+    const personaje = document.createElement('div');
+    personaje.className = 'metronet-escenarios-pagina__personaje';
+    const imagen = document.createElement('img');
+    imagen.src = PERSONAJES[protagonista].imagen;
+    imagen.alt = '';
+    imagen.width = 40;
+    imagen.height = 40;
+    imagen.decoding = 'async';
+    const nombre = document.createElement('span');
+    nombre.textContent = `${protagonista} · ${PERSONAJES[protagonista].rol}`;
+    personaje.append(imagen, nombre);
+    contenido.append(personaje);
   }
-  contenido.append(objetivo);
+  const relato = document.createElement('p');
+  relato.className = 'metronet-escenarios-pagina__relato';
+  relato.textContent = HISTORIA_NIVELES[escenario.numero] ?? escenario.objetivo ?? 'Sin descripción disponible.';
+  contenido.append(relato);
   if (estado.id === 'actual' || estado.id === 'completado') contenido.append(crearProgresoTarjeta(escenario, estado));
-  const detalles = document.createElement('details');
-  detalles.className = 'metronet-escenarios-pagina__detalles';
-  const resumen = document.createElement('summary');
-  resumen.textContent = 'Ver instrucciones y datos';
-  resumen.setAttribute('aria-describedby', titulo.id);
-  const instrucciones = document.createElement('p');
-  instrucciones.className = 'metronet-escenarios-pagina__instrucciones';
-  instrucciones.textContent = escenario.instrucciones ?? 'Sin instrucciones disponibles.';
-  if (escenario.desbloqueado) destacarConceptos(instrucciones, conceptosDelNivel(escenario));
-  detalles.append(resumen, instrucciones);
-  const estadisticas = crearEstadisticas(escenario);
-  if (estadisticas) detalles.append(estadisticas);
-  contenido.append(detalles);
   const acciones = document.createElement('footer');
   acciones.className = 'metronet-escenarios-pagina__acciones';
   const boton = document.createElement('button');
@@ -201,17 +217,6 @@ function crearProgresoTarjeta(escenario, estado) {
   barra.append(relleno);
   contenedor.append(etiqueta, barra);
   return contenedor;
-}
-
-function crearEstadisticas(escenario) {
-  if (!Number.isInteger(escenario.numero)) return null;
-  const estadisticas = document.createElement('p');
-  estadisticas.className = 'metronet-escenarios-pagina__estadisticas';
-  const datos = [`Intentos: ${escenario.cantidadIntentos ?? 0}`, `Máximo: ${escenario.puntajeMaximo ?? 100} puntos`];
-  if (escenario.mejorPuntaje !== null && escenario.mejorPuntaje !== undefined) datos.push(`Mejor puntaje: ${escenario.mejorPuntaje} / ${escenario.puntajeMaximo ?? 100}`);
-  if (escenario.ultimoPuntaje !== null && escenario.ultimoPuntaje !== undefined) datos.push(`Mejor del último intento: ${escenario.ultimoPuntaje}`);
-  estadisticas.textContent = datos.join(' · ');
-  return estadisticas;
 }
 
 function nombreSinNumero(escenario) {
