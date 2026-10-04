@@ -211,7 +211,8 @@ export default class ControlZoom {
       this.panelMapa.setAttribute('role', 'group');
       this.panelMapa.setAttribute('aria-label', 'Zoom y orientación del mapa');
       this.panelMapa.append(this.contenedor, this.brujula);
-      (this.escena.contenedorMapa ?? this.contenedorPadre).append(this.panelMapa);
+      (this.escena.contenedorMapa?.closest('.metronet-area-mapa')?.querySelector('.metronet-mandos-mapa')
+        ?? this.escena.contenedorMapa ?? this.contenedorPadre).append(this.panelMapa);
     } else {
       this.contenedorPadre.appendChild(this.contenedor);
     }

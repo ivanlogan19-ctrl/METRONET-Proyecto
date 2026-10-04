@@ -51,7 +51,8 @@ export default class PanelHerramientasEditor {
     configurarBotonIcono(this.cancelar, 'cancelar', 'Cancelar operación');
     this.cancelar.dataset.cancelarHerramienta = '';
     this.cancelar.addEventListener('click', () => this.seleccionar('seleccion'));
-    contenedor.append(barra, ...this.paneles.values(), this.cancelar);
+    categorias.get('Edición').append(this.cancelar);
+    contenedor.append(barra, ...this.paneles.values());
     this.seleccionar('seleccion', false);
     this.actualizarOperacion('normal');
   }

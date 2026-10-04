@@ -603,11 +603,17 @@ html:root body .metronet-estado-editor [data-revisar-error] { flex-shrink: 0; mi
    Abrir capas o selectores no cambia el tamaño de la cámara. */
 .metronet-area-mapa {
   display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 140px;
   min-width: 0; min-height: 0; container-type: inline-size;
 }
+.metronet-barra-geografica { grid-column: 1 / -1; }
+.metronet-area-mapa #metronet-mapa { grid-column: 1; }
+.metronet-mandos-mapa { display: flex; align-items: flex-end; justify-content: center; min-width: 0; }
+.metronet-mandos-mapa .metronet-control-zoom__panel-mapa { position: static; margin-bottom: 2px; }
 @media (max-width: 920px) {
   .metronet-area-mapa { display: flex; flex-direction: column; min-height: auto; }
   .metronet-area-mapa #metronet-mapa { flex: 0 0 auto; height: clamp(430px, 62svh, 660px); }
+  .metronet-mandos-mapa { align-self: flex-end; }
 }
 @media (max-width: 620px) {
   .metronet-area-mapa #metronet-mapa { height: clamp(400px, 62svh, 620px); }
@@ -897,6 +903,6 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
 }
 #metronet-panel-controles .metronet-editor-finalizar__acciones {
   justify-content: center;
-  gap: 10px;
+  gap: 18px;
   width: 100%;
 }
