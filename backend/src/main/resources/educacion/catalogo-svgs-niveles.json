@@ -67,6 +67,17 @@
         "url": "https://data.ny.gov/Transportation/MTA-Subway-Origin-Destination-Ridership-Estimate-2/jsu2-fbtj",
         "descripcionImagen": "Tres viajes hipotéticos muestran qué orígenes y destinos logra conectar una red de metro.",
         "sha256": "0d4cb28feea8ebb3709cde80052bada0ac78fcef7d0eae339ed4fe313e0b173d"
+      },
+      {
+        "id": "1-7",
+        "imagen": "/assets/educacion/metro-ciudad.svg",
+        "titulo": "El metro también modifica la ciudad",
+        "texto": "Una estación no solamente responde a la demanda de transporte existente: también puede crear nueva demanda. Al mejorar la accesibilidad de una zona, puede favorecer la aparición de viviendas, comercios y oficinas alrededor de ella. Por este motivo, transporte y planificación urbana están estrechamente relacionados y las decisiones sobre dónde construir una línea pueden influir en el crecimiento futuro de una ciudad.",
+        "aprendizaje": "Relacionar accesibilidad y desarrollo urbano.",
+        "fuente": "TransLink, Transit-Oriented Communities",
+        "url": "https://www.translink.ca/plans-and-projects/strategies-plans-and-guidelines/transit-oriented-communities",
+        "descripcionImagen": "Una estación de metro conecta un barrio con viviendas, comercios y oficinas.",
+        "sha256": "ee47b91eefdf9f928230869866edddcd4a8e1657529f499d03edaafab16cdce1"
       }
     ]
   },
@@ -138,6 +149,17 @@
         "url": "https://ocw.mit.edu/courses/1-258j-public-transportation-systems-spring-2017/3a9389405af95c3e4a02985c5262c358_MIT1_258JS17_lec15.pdf",
         "descripcionImagen": "Caminar, cambiar de nivel y esperar son partes de un transbordo entre trenes de metro.",
         "sha256": "139f2e914638a84ff13a9bb6ecada3fdaeaaab3c8422b18d9352db295e3605be"
+      },
+      {
+        "id": "2-7",
+        "imagen": "/assets/educacion/metro-vapor-1863.svg",
+        "titulo": "El primer metro del mundo",
+        "texto": "El primer ferrocarril subterráneo del mundo comenzó a funcionar en Londres en 1863. Curiosamente, el primer metro de Londres todavía no usaba trenes eléctricos: las primeras locomotoras funcionaban a vapor, por lo que controlar el humo y la ventilación dentro de los túneles era uno de los grandes problemas del sistema. La electrificación posterior hizo posible desarrollar redes subterráneas mucho más extensas.",
+        "aprendizaje": "Distinguir el metro a vapor de su electrificación posterior.",
+        "fuente": "Transport for London, Tube 160 Heritage Leaflet",
+        "url": "https://foi.tfl.gov.uk/FOI-0773-2324/TUBE160%20Heritage%20Leaflet.pdf",
+        "descripcionImagen": "Un tren a vapor circula por un túnel histórico con ventilación hacia la superficie.",
+        "sha256": "c74fb213d5cdb6391d40c4bfac243a27513de7a463d373cfd98dabdcb1198f80"
       }
     ]
   },
@@ -209,6 +231,17 @@
         "url": "https://ocw.mit.edu/courses/1-258j-public-transportation-systems-spring-2017/3a9389405af95c3e4a02985c5262c358_MIT1_258JS17_lec15.pdf",
         "descripcionImagen": "Dos diseños de metro conectan los mismos lugares mediante una línea sinuosa o dos líneas con intercambio.",
         "sha256": "80151ad2c5a4d6a55a9fc4bb01737e8e734f119bbdebccb92b787b2bc248f52f"
+      },
+      {
+        "id": "3-7",
+        "imagen": "/assets/educacion/metro-red-radial.svg",
+        "titulo": "El problema de las redes radiales",
+        "texto": "Muchas redes históricas crecieron conectando los barrios periféricos con el centro de la ciudad. Este diseño funciona muy bien cuando la mayoría de los viajes tienen como destino el centro, pero puede hacer incómodo viajar entre dos barrios periféricos: a veces el pasajero debe acercarse al centro para después volver a alejarse. Las líneas circulares y transversales ayudan a evitar este problema.",
+        "aprendizaje": "Comparar recorridos radiales con conexiones transversales.",
+        "fuente": "Société des Grands Projets, Grand Paris Express",
+        "url": "https://www.grandparisexpress.fr/gpe-essentiel",
+        "descripcionImagen": "Una red radial obliga a pasar por el centro; un arco transversal une dos barrios exteriores.",
+        "sha256": "36fc645e4b4bb3839706b7c3836ec6cffea76c4fc5810abd85e836554628c684"
       }
     ]
   },
@@ -280,6 +313,17 @@
         "url": "https://www.gov.uk/government/publications/transport-connectivity-metric/transport-connectivity-metric",
         "descripcionImagen": "Dos estaciones atienden el mismo hospital; mover una permite incorporar una biblioteca sin contar dos veces el hospital.",
         "sha256": "2086286e5bf141d256dc1e20c492d970eda394e760570368e440e8d208cf8638"
+      },
+      {
+        "id": "4-7",
+        "imagen": "/assets/educacion/metro-distancia-estaciones.svg",
+        "titulo": "Más estaciones no siempre significa mejor servicio",
+        "texto": "Colocar muchas estaciones aumenta la cantidad de lugares a los que llega una línea, pero también hace que los trenes tengan que detenerse, frenar y acelerar con mayor frecuencia. Separarlas demasiado produce el problema contrario: los viajes son más rápidos, pero menos personas tienen una estación cerca. Elegir la distancia entre estaciones es, por tanto, un equilibrio entre cobertura y velocidad.",
+        "aprendizaje": "Equilibrar cobertura y velocidad al ubicar estaciones.",
+        "fuente": "TransLink, Transit-Oriented Communities",
+        "url": "https://www.translink.ca/plans-and-projects/strategies-plans-and-guidelines/transit-oriented-communities",
+        "descripcionImagen": "Dos esquemas comparan estaciones cercanas y separadas con áreas de cobertura.",
+        "sha256": "d480e08a620c70564f2cc4286046b60310ff39f83fb90fee450bfae050617efd"
       }
     ]
   },
@@ -351,6 +395,17 @@
         "url": "https://ocw.mit.edu/courses/1-258j-public-transportation-systems-spring-2017/3780d832f90b2d2cd2c9b772924a32c3_MIT1_258JS17_lec20.pdf",
         "descripcionImagen": "Dos secuencias con la misma cantidad de trenes muestran intervalos uniformes o un hueco largo entre llegadas.",
         "sha256": "e8820be5c149c52e9f480ceabc2f517efe28fbb5fb773029139b79a00281a3be"
+      },
+      {
+        "id": "5-7",
+        "imagen": "/assets/educacion/metro-grafo.svg",
+        "titulo": "Una red de metro también es un problema matemático",
+        "texto": "Para estudiar una red de metro no es necesario dibujar calles, edificios o incluso las distancias reales entre estaciones. Podemos imaginarla simplemente como puntos unidos por líneas: cada punto representa una estación y cada unión indica que es posible viajar directamente entre ambas. Esta representación se conoce como grafo y permite responder preguntas como cuál es el camino más corto entre dos estaciones, qué recorrido requiere menos transbordos o qué estaciones son fundamentales para mantener conectada la red. La misma idea se utiliza para estudiar carreteras, redes informáticas e incluso relaciones entre personas.",
+        "aprendizaje": "Modelar estaciones y conexiones como un grafo.",
+        "fuente": "Princeton University, Algorithms, Undirected Graphs",
+        "url": "https://algs4.cs.princeton.edu/41graph/index.php",
+        "descripcionImagen": "Un mapa esquemático de metro se transforma en nodos y enlaces de un grafo.",
+        "sha256": "d64f6e48740d3ab1ed1b45ece434c03e5236781f271758d4f2478acf18aa6501"
       }
     ]
   },
@@ -422,6 +477,17 @@
         "url": "https://www.lta.gov.sg/content/ltagov/en/getting_around/public_transport/rail_network/circle_line.html",
         "descripcionImagen": "Una estación próxima a un estadio recibe actividad distinta en un día habitual y al terminar un evento.",
         "sha256": "c2086d91c1709cde755c352a73c1b2a710c45f3d116ce6aed0fbd2d473ecc03a"
+      },
+      {
+        "id": "6-7",
+        "imagen": "/assets/educacion/metro-bajo-tierra.svg",
+        "titulo": "¿Por qué construir bajo tierra?",
+        "texto": "Construir túneles es mucho más caro y complejo que instalar vías en la superficie, pero tiene una gran ventaja en ciudades densamente construidas: permite crear nuevas rutas sin ocupar calles ni dividir barrios con vías ferroviarias. Además, al circular en una infraestructura completamente separada, los trenes no interfieren con automóviles, peatones o semáforos. Por eso muchos sistemas combinan tramos subterráneos en las zonas más congestionadas con tramos elevados o en superficie donde existe más espacio.",
+        "aprendizaje": "Comparar tramos subterráneos y superficiales según el espacio urbano.",
+        "fuente": "Metrolinx, Ontario Line and other world-class transit systems",
+        "url": "https://www.metrolinx.com/en/discover/how-the-ontario-line-lines-up-other-world-class-transit-systems",
+        "descripcionImagen": "Corte de ciudad con peatones y tránsito en superficie, y un tren en un túnel separado debajo.",
+        "sha256": "3e978129b936ffc9bd28c2566f92c64f32d1a675ee98118bbc6b8a9c7b9f7f6e"
       }
     ]
   },
@@ -493,6 +559,17 @@
         "url": "https://ocw.mit.edu/courses/1-258j-public-transportation-systems-spring-2017/354e8a5bb66fa39450b92d29066e8bf6_MIT1_258JS17_lec07.pdf",
         "descripcionImagen": "La construcción de una red y su operación cotidiana requieren tipos distintos de recursos.",
         "sha256": "9303e331604d3000798aef64ced284ce2a3961d8f993e48879aa8ac5cf967f38"
+      },
+      {
+        "id": "7-7",
+        "imagen": "/assets/educacion/metro-transbordos.svg",
+        "titulo": "Los transbordos conectan la red",
+        "texto": "Los transbordos permiten pasar de una línea a otra y hacen posible llegar a lugares que una sola línea no podría cubrir. Su ubicación es especialmente importante, un transbordo bien situado puede evitar grandes rodeos, mientras que una red con pocas conexiones entre líneas puede obligar a los pasajeros a realizar recorridos mucho más largos, caminar más de lo deseado o incluso combinar varios sistemas de transporte diferentes. Por eso, al diseñar una red, no sólo importa por dónde pasa cada línea, sino también dónde se conectan entre sí.",
+        "aprendizaje": "Ubicar conexiones entre líneas para evitar rodeos.",
+        "fuente": "Transport for London, West London Orbital",
+        "url": "https://haveyoursay.tfl.gov.uk/west-london-orbital?tool=news_feed",
+        "descripcionImagen": "Dos líneas de metro se conectan en una estación de intercambio, con recorridos antes y después.",
+        "sha256": "19654592ce1388e00bc0956325f6f64d6928ead3696ecfd176c340a15ef2847d"
       }
     ]
   },
@@ -564,6 +641,17 @@
         "url": "https://www.gov.uk/government/publications/tag-unit-a4-2-distributional-impact-appraisal",
         "descripcionImagen": "La misma ampliación de metro conecta nuevos destinos para un barrio, mientras otro sigue aislado.",
         "sha256": "a970a2e0d9d6a9430e6a51e6c9c913780d9ee512c71680d38a12ebf54ec9b84b"
+      },
+      {
+        "id": "8-7",
+        "imagen": "/assets/educacion/metro-nueva-linea.svg",
+        "titulo": "Una línea nueva puede mejorar líneas antiguas",
+        "texto": "El beneficio de construir una línea no se limita a las estaciones nuevas que incorpora. Si cruza varias líneas existentes y crea nuevos transbordos, también puede reducir los recorridos necesarios entre estaciones que ya formaban parte de la red. Por eso, al planificar una ampliación, importa tanto qué lugares atraviesa, como las conexiones que genera.",
+        "aprendizaje": "Evaluar conexiones nuevas entre estaciones existentes.",
+        "fuente": "Société des Grands Projets, Benefit of the metro for Île-de-France",
+        "url": "https://www.grandparisexpress.fr/benefit-metro-ile-de-france",
+        "descripcionImagen": "Una línea nueva enlaza dos líneas antiguas mediante estaciones de transbordo.",
+        "sha256": "9cbb7f0ca7783703d7857203075b1c4647f425a224e2f267375217a695a19961"
       }
     ]
   },
@@ -635,6 +723,17 @@
         "url": "https://www.lta.gov.sg/content/dam/ltagov/Interactive_map/pdf/EWL%20Train%20Service%20Adjustments%20Brochure%20-%2014%20to%2017%20Mar.pdf",
         "descripcionImagen": "Un tramo de metro en obras se sustituye temporalmente por un ómnibus mientras otro tramo mantiene un tren lanzadera.",
         "sha256": "334868ec4af22cb7f3d8388e981105a36a7d62ce8809bfd691b252538e0c280b"
+      },
+      {
+        "id": "9-7",
+        "imagen": "/assets/educacion/metro-redundancia.svg",
+        "titulo": "Construir redundancia tiene un precio",
+        "texto": "Tener varios caminos posibles entre dos zonas hace que una red sea más resistente: si un tramo queda fuera de servicio, los pasajeros pueden utilizar otra ruta. Sin embargo, construir infraestructura redundante también cuesta dinero. Parte del diseño de una red consiste en decidir dónde merece la pena disponer de alternativas y dónde una única conexión resulta suficiente.",
+        "aprendizaje": "Comparar resiliencia de rutas alternativas con su costo.",
+        "fuente": "Federal Highway Administration, Transportation Network Redundancy",
+        "url": "https://ops.fhwa.dot.gov/publications/fhwahop08015/lit6_8.htm",
+        "descripcionImagen": "Un tramo bloqueado contrasta una red con ruta alternativa y otra sin desvío.",
+        "sha256": "c8b3fccdebc26c948fb269b24563bd8af259f3e2ca7164b6288a175b51c9a9f3"
       }
     ]
   },
@@ -706,6 +805,17 @@
         "url": "https://dspace.mit.edu/entities/publication/4d7ae0f7-3472-4458-9156-576bbfd918dc",
         "descripcionImagen": "Una investigación universitaria compara la variación de los viajes entre dos estaciones del metro.",
         "sha256": "f6a7eb3ef252f5d569a0935b201cef69596c9b5220e1af302f5cb6cb0c1c9c15"
+      },
+      {
+        "id": "10-7",
+        "imagen": "/assets/educacion/metro-estacion-critica.svg",
+        "titulo": "Una estación puede ser importante aunque no sea la más utilizada",
+        "texto": "Algunas estaciones tienen un papel crítico simplemente por su posición dentro de la red. Si queda fuera de servicio una estación que constituye el único enlace entre dos sectores, esto podría obligar a realizar enormes desvíos o incluso separar la red en dos partes. Analizar estos puntos vulnerables permite diseñar sistemas más resistentes ante averías o interrupciones.",
+        "aprendizaje": "Identificar estaciones cuyo enlace sostiene la conectividad de la red.",
+        "fuente": "Princeton University, Algorithms, Undirected Graphs",
+        "url": "https://algs4.cs.princeton.edu/41graph/index.php",
+        "descripcionImagen": "Una estación puente es el único enlace entre dos sectores; al interrumpirse el paso, los sectores quedan separados.",
+        "sha256": "9023d0054f986640e61d231ba8bd9a6288b3701252a87a2f514bb9426a244f39"
       }
     ]
   }

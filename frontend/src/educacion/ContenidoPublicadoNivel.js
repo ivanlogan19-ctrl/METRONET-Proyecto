@@ -24,7 +24,8 @@ export async function cargarContenidoPublicado(numero, { idIntento = null, signa
       ? 'El contenido de esta partida no está disponible.' : 'No se pudo cargar el contenido publicado.');
   }
   const contenido = await respuesta.json();
-  if (contenido.numero !== numero || !Array.isArray(contenido.tarjetas) || contenido.tarjetas.length !== 6) {
+  if (contenido.numero !== numero || !Array.isArray(contenido.tarjetas)
+    || ![6, 7].includes(contenido.tarjetas.length)) {
     if (idIntento) limpiarTarjetasPublicadas(numero);
     throw new Error('El contenido publicado está incompleto.');
   }

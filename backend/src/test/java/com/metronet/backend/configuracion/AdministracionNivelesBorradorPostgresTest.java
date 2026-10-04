@@ -33,7 +33,9 @@ class AdministracionNivelesBorradorPostgresTest {
                     """,Integer.class);
                 assertEquals(10,servicio.listar().size());
                 var anterior = servicio.borrador(1);
-                assertEquals(1,servicio.versiones(1).size());
+                assertEquals(2,servicio.versiones(1).size());
+                assertEquals(6,servicio.versiones(1).getLast().tarjetas().size());
+                assertEquals(7,servicio.versiones(1).getFirst().tarjetas().size());
                 ObjectNode reglasAlteradas = anterior.contenido().path("reglasExito").deepCopy();
                 reglasAlteradas.withObject("puntuacion").put("maximo", 80);
                 var edicionPuntuacion = new EdicionNivelRequest(anterior.versionBase(),anterior.revision(),
@@ -70,7 +72,7 @@ class AdministracionNivelesBorradorPostgresTest {
                     () -> servicio.prepararReversion(1,1,idAdmin));
                 assertEquals(HttpStatus.CONFLICT,sinReferencia.getStatusCode());
                 assertEquals(guardado.revision(),servicio.borrador(1).revision());
-                assertEquals(1,servicio.versiones(1).size(),"Preparar una reversión no publica");
+                assertEquals(2,servicio.versiones(1).size(),"Preparar una reversión no publica");
             } finally { conexion.rollback(); }
         }
     }

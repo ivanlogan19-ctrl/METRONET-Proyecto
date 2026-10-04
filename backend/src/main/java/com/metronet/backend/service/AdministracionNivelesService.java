@@ -3,6 +3,7 @@ package com.metronet.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.metronet.backend.dto.EdicionNivelRequest;
 import java.net.URI;
 import java.util.HashSet;
@@ -140,9 +141,24 @@ public class AdministracionNivelesService {
               red_referencia=CAST(? AS jsonb),tarjetas=CAST(? AS jsonb),autor_id=?,actualizado_en=clock_timestamp()
             WHERE id_escenario=? AND revision=?
             """, vigente,origen.contenido().toString(),redReferencia.toString(),
-            origen.tarjetas().toString(),idAdmin,id,previo.revision());
+            tarjetasParaNuevoBorrador(numero, origen.tarjetas()).toString(),idAdmin,id,previo.revision());
         if (filas != 1) throw conflicto("El borrador cambió mientras preparabas la reversión");
         return borrador(numero);
+    }
+
+    /** Una reversión de v1 conserva sus seis textos históricos y añade solo la tarjeta nueva. */
+    private JsonNode tarjetasParaNuevoBorrador(int numero, JsonNode historicas) {
+        if (historicas.size() != 6) return historicas;
+        ArrayNode tarjetas = historicas.deepCopy();
+        JsonNode septima = catalogo.get(numero - 1).path("tarjetas").get(6);
+        ObjectNode nueva = mapper.createObjectNode();
+        nueva.put("id", septima.path("id").asText());
+        for (String campo : List.of("titulo", "texto", "aprendizaje", "fuente", "descripcionImagen"))
+            nueva.put(campo, septima.path(campo).asText());
+        nueva.put("urlFuente", septima.path("url").asText());
+        nueva.put("idSvgCatalogo", septima.path("imagen").asText());
+        tarjetas.add(nueva);
+        return tarjetas;
     }
 
     private boolean referenciaConstruida(JsonNode red) {
@@ -249,10 +265,10 @@ public class AdministracionNivelesService {
             if (ayuda.hasNonNull("pista") && !ayuda.path("pista").asText().isBlank())
                 texto(ayuda.path("pista"),"pista de ayuda",4000);
         }
-        if (edicion.tarjetas() == null || !edicion.tarjetas().isArray() || edicion.tarjetas().size() != 6)
-            throw invalido("Cada nivel necesita exactamente seis tarjetas");
+        if (edicion.tarjetas() == null || !edicion.tarjetas().isArray() || edicion.tarjetas().size() != 7)
+            throw invalido("Cada nivel necesita exactamente siete tarjetas");
         Set<String> ids = new HashSet<>();
-        for (int i=0; i<6; i++) {
+        for (int i=0; i<7; i++) {
             JsonNode tarjeta = edicion.tarjetas().get(i);
             if (tarjeta == null || !tarjeta.isObject()) throw invalido("Tarjeta inválida en posición " + (i+1));
             String id = texto(tarjeta.path("id"),"ID de tarjeta",100);

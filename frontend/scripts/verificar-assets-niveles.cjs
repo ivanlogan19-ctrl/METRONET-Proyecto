@@ -23,8 +23,8 @@ async function verificar() {
   if (manifiesto.length !== 10 || actuales.length !== 10) throw new Error('Deben existir diez niveles');
   const ids = new Set();
   for (const [indice, nivel] of manifiesto.entries()) {
-    if (nivel.numero !== indice + 1 || nivel.tarjetas.length !== 6 || actuales[indice].length !== 6)
-      throw new Error(`El nivel ${indice + 1} debe tener seis tarjetas`);
+    if (nivel.numero !== indice + 1 || nivel.tarjetas.length !== 7 || actuales[indice].length !== 7)
+      throw new Error(`El nivel ${indice + 1} debe tener siete tarjetas`);
     for (const [posicion, tarjeta] of nivel.tarjetas.entries()) {
       const actual = actuales[indice][posicion];
       if (!tarjeta.id || ids.has(tarjeta.id)) throw new Error(`ID duplicado o vacío: ${tarjeta.id}`);
@@ -39,8 +39,8 @@ async function verificar() {
       if (huella !== tarjeta.sha256) throw new Error(`SVG modificado: ${tarjeta.id}`);
     }
   }
-  if (ids.size !== 60) throw new Error('Deben existir 60 IDs únicos');
-  process.stdout.write('Preflight SVG: 10 niveles, 60 tarjetas e imágenes verificadas.\n');
+  if (ids.size !== 70) throw new Error('Deben existir 70 IDs únicos');
+  process.stdout.write('Preflight SVG: 10 niveles, 70 tarjetas e imágenes verificadas.\n');
 }
 
 verificar().catch(error => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });

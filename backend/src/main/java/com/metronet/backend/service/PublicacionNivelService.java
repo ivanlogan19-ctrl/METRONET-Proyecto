@@ -94,7 +94,7 @@ public class PublicacionNivelService {
         if (pedido.huellaPreview()==null || !pedido.huellaPreview().equals(diagnostico.huella()))
             throw conflicto("La vista previa ya no corresponde al borrador actual");
         JsonNode contenido=borrador.contenido(), desafio=contenido.path("desafio"), tarjetas=borrador.tarjetas();
-        if (!tarjetas.isArray() || tarjetas.size()!=6) throw invalido("Cada nivel requiere seis tarjetas");
+        if (!tarjetas.isArray() || tarjetas.size()!=7) throw invalido("Cada nivel requiere siete tarjetas");
         Integer versionCriterio=null;
         JsonNode criterio=contenido.path("criterioUvUt");
         if (numero>=4) {
@@ -110,7 +110,7 @@ public class PublicacionNivelService {
             VALUES (?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),?,?,TRUE) RETURNING id_nivel_publicacion
             """,Long.class,id,siguiente,versionCriterio,contenido.toString(),borrador.redReferencia().toString(),
             diagnostico.huella(),idAdmin);
-        for (int i=0;i<6;i++) {
+        for (int i=0;i<7;i++) {
             JsonNode tarjeta=tarjetas.get(i);
             String imagen=tarjeta.path("idSvgCatalogo").asText();
             String hash=svgConHuella.get(imagen);

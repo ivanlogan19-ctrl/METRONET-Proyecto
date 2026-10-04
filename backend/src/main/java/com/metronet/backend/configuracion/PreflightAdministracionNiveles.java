@@ -30,12 +30,26 @@ public class PreflightAdministracionNiveles {
             if (publicaciones == null || publicaciones != 10 || tarjetas == null || tarjetas != 60) {
                 throw new IllegalStateException("La migración 018 no contiene diez niveles y 60 tarjetas iniciales");
             }
+            Integer nivelesActualesIncompletos = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM (
+                  SELECT e.id_escenario,COUNT(t.id_tarjeta) AS cantidad
+                  FROM escenario e
+                  JOIN LATERAL (SELECT id_nivel_publicacion FROM nivel_publicacion
+                    WHERE id_escenario=e.id_escenario ORDER BY numero_version DESC LIMIT 1) p ON TRUE
+                  LEFT JOIN nivel_publicacion_tarjeta t ON t.id_nivel_publicacion=p.id_nivel_publicacion
+                  WHERE e.progresivo=TRUE AND e.modo='NIVEL'
+                  GROUP BY e.id_escenario
+                ) niveles WHERE cantidad<>7
+                """, Integer.class);
+            if (nivelesActualesIncompletos == null || nivelesActualesIncompletos != 0) {
+                throw new IllegalStateException("Falta aplicar 019_siete_tarjetas_niveles.sql antes de iniciar METRONET");
+            }
             try (InputStream entrada = new ClassPathResource("educacion/catalogo-svgs-niveles.json").getInputStream()) {
                 JsonNode catalogo = mapper.readTree(entrada);
                 if (!catalogo.isArray() || catalogo.size() != 10) throw new IllegalStateException("Catálogo SVG incompleto");
                 for (int numero = 1; numero <= 10; numero++) {
                     JsonNode nivel = catalogo.get(numero - 1);
-                    if (nivel.path("numero").asInt() != numero || nivel.path("tarjetas").size() != 6)
+                    if (nivel.path("numero").asInt() != numero || nivel.path("tarjetas").size() != 7)
                         throw new IllegalStateException("Catálogo SVG incompleto en nivel " + numero);
                 }
             }

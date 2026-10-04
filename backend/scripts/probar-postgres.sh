@@ -45,9 +45,13 @@ trap 'exit 143' TERM
 touch "$temporal/preparacion.log"
 puerto=$(python3 - <<'PY'
 import socket
-with socket.socket() as s:
-    s.bind(('127.0.0.1', 0))
-    print(s.getsockname()[1])
+while True:
+    with socket.socket() as s:
+        s.bind(('127.0.0.1', 0))
+        puerto = s.getsockname()[1]
+    if puerto != 5432:
+        print(puerto)
+        break
 PY
 )
 export METRONET_TEST_POSTGRES_USER=metronet_pruebas
@@ -60,11 +64,32 @@ chmod 600 "$temporal/clave"
 "$pg_bin/pg_ctl" -D "$temporal/datos" -l "$temporal/servidor.log" \
   -o "-h 127.0.0.1 -p $puerto -k $temporal" -w start >> "$temporal/preparacion.log" 2>&1
 psql=("$pg_bin/psql" -X -v ON_ERROR_STOP=1 -h "$temporal" -p "$puerto" -U "$METRONET_TEST_POSTGRES_USER")
+if [[ "$temporal" != *"/metronet-pruebas-pg."* || "$puerto" == 5432 ]]; then
+  echo 'El destino PostgreSQL no es el clúster temporal esperado.' >&2
+  exit 1
+fi
 "${psql[@]}" -d postgres -c 'CREATE DATABASE metronet_pruebas' >> "$temporal/preparacion.log" 2>&1
+"${psql[@]}" -d postgres -c 'CREATE ROLE metronet_app NOLOGIN' >> "$temporal/preparacion.log" 2>&1
 for archivo in "$raiz"/database/*.sql; do
   case "$(basename "$archivo")" in
     001_creacion_base.sql|003_datos_prueba.sql) continue ;;
   esac
+  if [[ "$(basename "$archivo")" == 018_administracion_niveles.sql ]]; then
+    python3 - "$raiz/backend/src/main/resources/educacion/niveles.json" > "$temporal/niveles.sql" <<'PY'
+import json,sys
+def literal(valor): return "'" + str(valor).replace("'", "''") + "'"
+for nivel in json.load(open(sys.argv[1])):
+    datos = [literal(nivel[campo]) for campo in ('nombre','objetivo')]
+    datos += [str(nivel['numero']),"'NIVEL'",literal(nivel['dificultad']),literal(nivel['instrucciones']),'TRUE']
+    datos += [literal(json.dumps(nivel[campo],ensure_ascii=False))+'::jsonb' for campo in ('reglasExito','herramientasHabilitadas')]
+    print('INSERT INTO escenario(nombre,objetivo,numero,modo,dificultad,instrucciones,progresivo,reglas_exito,herramientas_habilitadas)')
+    print('SELECT '+','.join(datos)+' WHERE NOT EXISTS (SELECT 1 FROM escenario WHERE progresivo=TRUE AND modo=\'NIVEL\' AND numero='+str(nivel['numero'])+');')
+    print('UPDATE escenario SET nombre='+datos[0]+',objetivo='+datos[1]+',dificultad='+datos[4]+',instrucciones='+datos[5]+',reglas_exito='+datos[7]+',herramientas_habilitadas='+datos[8]+' WHERE progresivo=TRUE AND modo=\'NIVEL\' AND numero='+str(nivel['numero'])+';')
+    if nivel['numero']>=4:
+        print('INSERT INTO criterio_uv_ut(id_escenario,version,limite_ut,presupuesto_uv) SELECT id_escenario,1,2,3 FROM escenario WHERE progresivo=TRUE AND modo=\'NIVEL\' AND numero='+str(nivel['numero'])+' ON CONFLICT(id_escenario) DO NOTHING;')
+PY
+    "${psql[@]}" -d metronet_pruebas -f "$temporal/niveles.sql" >> "$temporal/preparacion.log" 2>&1
+  fi
   "${psql[@]}" -d metronet_pruebas -f "$archivo" >> "$temporal/preparacion.log" 2>&1
 done
 "${psql[@]}" -d metronet_pruebas -c "INSERT INTO usuario(nombre,email,password,rol) VALUES ('Prueba aislada','pruebas@example.invalid','!acceso-inhabilitado','JUGADOR')" >> "$temporal/preparacion.log" 2>&1

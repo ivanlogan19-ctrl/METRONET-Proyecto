@@ -21,7 +21,7 @@ async function paginaPrueba(t, viewport = { width: 1440, height: 900 }) {
   return page;
 }
 
-test('10 niveles tienen seis pares únicos de texto, fuente e imagen local válida', async t => {
+test('10 niveles tienen siete tarjetas únicas de texto, fuente e imagen local válida', async t => {
   const page = await paginaPrueba(t);
   const result = await page.evaluate(async () => {
     const { tarjetasEducativas } = await import('/src/educacion/TarjetasEducativasNivel.js');
@@ -32,9 +32,9 @@ test('10 niveles tienen seis pares únicos de texto, fuente e imagen local váli
     }
     return { counts:tarjetasEducativas.map(p => p.length), rows };
   });
-  assert.deepEqual(result.counts, Array(10).fill(6));
-  assert.equal(new Set(result.rows.map(row => row.id)).size, 60);
-  assert.equal(new Set(result.rows.map(row => row.imagen)).size, 60);
+  assert.deepEqual(result.counts, Array(10).fill(7));
+  assert.equal(new Set(result.rows.map(row => row.id)).size, 70);
+  assert.equal(new Set(result.rows.map(row => row.imagen)).size, 70);
   for (const card of result.rows) {
     assert.ok(card.titulo && card.texto && card.aprendizaje && card.fuente && card.descripcionImagen);
     assert.match(card.url, /^https:\/\//);
@@ -46,7 +46,7 @@ test('10 niveles tienen seis pares únicos de texto, fuente e imagen local váli
   }
 });
 
-test('las 60 imágenes mantienen el encuadre 720:246 al renderizarse', async t => {
+test('las 70 imágenes mantienen el encuadre 720:246 al renderizarse', async t => {
   const page = await paginaPrueba(t);
   await page.addStyleTag({ url: '/src/educacion/tarjeta-educativa-nivel.css' });
   const tarjetas = catalogoPublicado.flatMap(nivel => nivel.tarjetas);
@@ -72,8 +72,8 @@ test('las 60 imágenes mantienen el encuadre 720:246 al renderizarse', async t =
     }
     return filas;
   }, tarjetas);
-  assert.equal(resultado.length, 60);
-  assert.equal(new Set(resultado.map(fila => fila.id)).size, 60);
+  assert.equal(resultado.length, 70);
+  assert.equal(new Set(resultado.map(fila => fila.id)).size, 70);
   for (const fila of resultado) {
     assert.equal(fila.viewBox, '0 0 720 246', fila.id);
     assert.ok(fila.natural > 0, fila.id);
@@ -82,7 +82,7 @@ test('las 60 imágenes mantienen el encuadre 720:246 al renderizarse', async t =
   }
 });
 
-test('contenido en caché reactiva las seis tarjetas de la versión del nivel elegido', async t => {
+test('contenido en caché reactiva las tarjetas de cada versión de la versión del nivel elegido', async t => {
   const page = await paginaPrueba(t);
   const tarjetas = catalogoPublicado[0].tarjetas;
   let consultasActuales = 0;
@@ -95,7 +95,7 @@ test('contenido en caché reactiva las seis tarjetas de la versión del nivel el
     if (!anterior) consultasActuales++;
     return route.fulfill({ contentType:'application/json', body:JSON.stringify({
       numero:1,version:anterior?1:2,desafio:{nombre:'Nivel 1'},ayudas:[],
-      tarjetas:tarjetas.map(t => ({...t,id:`${anterior?'vieja':'nueva'}-${t.id}`})),
+      tarjetas:(anterior ? tarjetas.slice(0,6) : tarjetas).map(t => ({...t,id:`${anterior?'vieja':'nueva'}-${t.id}`})),
     }) });
   });
   const resultado = await page.evaluate(async () => {
@@ -120,28 +120,28 @@ test('contenido en caché reactiva las seis tarjetas de la versión del nivel el
   assert.equal(consultasActuales,2,'La publicación vigente se vuelve a consultar antes de iniciar');
 });
 
-test('selección aleatoria agota las seis tarjetas antes de repetir y persiste al recargar', async t => {
+test('selección aleatoria agota las siete tarjetas antes de repetir y persiste al recargar', async t => {
   const page = await paginaPrueba(t);
   const ids = await page.evaluate(async () => {
     const { seleccionarTarjetaEducativa } = await import('/src/educacion/TarjetasEducativasNivel.js');
     const original = Math.random;
     let sorteos = 0;
     Math.random = () => { sorteos++; return .75; };
-    try { return { tarjetas:Array.from({ length:6 }, () => seleccionarTarjetaEducativa(3).id), sorteos }; }
+    try { return { tarjetas:Array.from({ length:7 }, () => seleccionarTarjetaEducativa(3).id), sorteos }; }
     finally { Math.random = original; }
   });
-  assert.equal(ids.sorteos,6);
+  assert.equal(ids.sorteos,7);
   const visitadas = ids.tarjetas;
-  assert.equal(new Set(visitadas).size, 6);
+  assert.equal(new Set(visitadas).size, 7);
   await page.reload();
   const next = await page.evaluate(async () => (await import('/src/educacion/TarjetasEducativasNivel.js')).seleccionarTarjetaEducativa(3).id);
   assert.ok(visitadas.includes(next));
   assert.notEqual(next, visitadas[5]);
   const nuevas = await page.evaluate(async () => {
     const { seleccionarTarjetaEducativa } = await import('/src/educacion/TarjetasEducativasNivel.js');
-    return Array.from({length:5},()=>seleccionarTarjetaEducativa(3).id);
+    return Array.from({length:6},()=>seleccionarTarjetaEducativa(3).id);
   });
-  assert.equal(new Set([next,...nuevas]).size,6);
+  assert.equal(new Set([next,...nuevas]).size,7);
 });
 
 test('sin almacenamiento, la rotación sigue en memoria sin repetir la tarjeta actual', async t => {
@@ -151,14 +151,14 @@ test('sin almacenamiento, la rotación sigue en memoria sin repetir la tarjeta a
     Storage.prototype.getItem = function(k) { if (k.startsWith('metronet:educacion:')) throw new Error('Bloqueado'); return get.call(this,k); };
     Storage.prototype.setItem = function(k,v) { if (k.startsWith('metronet:educacion:')) throw new Error('Bloqueado'); return set.call(this,k,v); };
     const { seleccionarTarjetaEducativa } = await import('/src/educacion/TarjetasEducativasNivel.js');
-    return Array.from({ length:7 }, () => seleccionarTarjetaEducativa(8).id);
+    return Array.from({ length:8 }, () => seleccionarTarjetaEducativa(8).id);
   });
-  assert.equal(new Set(ids.slice(0,6)).size, 6);
-  assert.ok(ids.slice(0,6).includes(ids[6]));
-  assert.notEqual(ids[6], ids[5]);
+  assert.equal(new Set(ids.slice(0,7)).size, 7);
+  assert.ok(ids.slice(0,7).includes(ids[7]));
+  assert.notEqual(ids[7], ids[6]);
 });
 
-test('cancelar antes de mostrar no consume; seis visitas agotan el ciclo y recarga conserva progreso', async t => {
+test('cancelar antes de mostrar no consume; siete visitas agotan el ciclo y recarga conserva progreso', async t => {
   const page = await paginaPrueba(t);
   for (let i = 0; i < 5; i++) {
     await page.evaluate(async level => {
@@ -169,7 +169,7 @@ test('cancelar antes de mostrar no consume; seis visitas agotan el ciclo y recar
   }
   assert.equal(await page.evaluate(() => localStorage.getItem('metronet:educacion:ultimo:5')), null);
   const vistos = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     await page.evaluate(async level => {
       const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
       window.viaje = crearPreparacionNivel(level);
@@ -180,7 +180,7 @@ test('cancelar antes de mostrar no consume; seis visitas agotan el ciclo y recar
     await page.getByRole('button', { name:'Continuar' }).click();
     await page.evaluate(() => viaje.cerrar());
   }
-  assert.equal(new Set(vistos).size, 6);
+  assert.equal(new Set(vistos).size, 7);
   await page.reload();
   await page.evaluate(async level => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
@@ -251,7 +251,7 @@ test('al terminar la música naturalmente, el cartel se retira y la tarjeta qued
   await page.evaluate(() => viaje.cerrar());
 });
 
-test('Aprender recorre las seis tarjetas del nivel sin alterar la siguiente entrada', async t => {
+test('Aprender recorre las siete tarjetas del nivel sin alterar la siguiente entrada', async t => {
   const page = await paginaPrueba(t);
   await page.evaluate(async level => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
@@ -274,17 +274,17 @@ test('Aprender recorre las seis tarjetas del nivel sin alterar la siguiente entr
   const inicial = await page.evaluate(() => window.tarjetaIntro);
   const ids = [inicial];
   const imagenes = [await dialogo.locator('img').getAttribute('src')];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     await dialogo.getByRole('button', {name:'Siguiente tarjeta'}).click();
     assert.equal(await dialogo.getByRole('button', {name:'Siguiente tarjeta'}).evaluate(e => e === document.activeElement), true);
     assert.equal(await dialogo.getAttribute('aria-labelledby'), await dialogo.locator('h2').getAttribute('id'));
-    if (i < 5) {
+    if (i < 6) {
       ids.push(await dialogo.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'));
       imagenes.push(await dialogo.locator('img').getAttribute('src'));
     }
   }
-  assert.equal(new Set(ids).size,6);
-  assert.equal(new Set(imagenes).size,6);
+  assert.equal(new Set(ids).size,7);
+  assert.equal(new Set(imagenes).size,7);
   assert.equal(await dialogo.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'),inicial);
   assert.equal(await page.evaluate(() => localStorage.getItem('metronet:educacion:usadas:1')),await page.evaluate(() => window.cicloAntesDeAprender));
   await page.getByRole('button', { name:'Volver', exact:true }).click();

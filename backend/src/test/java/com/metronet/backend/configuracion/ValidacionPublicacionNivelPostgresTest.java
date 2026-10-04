@@ -118,16 +118,16 @@ class ValidacionPublicacionNivelPostgresTest {
                     contenido4.path("herramientasHabilitadas"),criterio4,red4,contenido4.path("ayudas"),tarjetas4),admin);
                 var publicadoUvUt=publicador.publicarCriterioUvUt(4,new AdministracionUvUtService.Cambio(
                     criterio4.path("limiteUt").asInt(),criterio4.path("presupuestoUv").decimalValue(),1),admin);
-                assertEquals(2,publicadoUvUt.version());
+                assertEquals(3,publicadoUvUt.version());
                 assertEquals(2,publicadoUvUt.versionCriterioUvUt());
-                assertEquals(2,lectorVersion(jdbc,4));
+                assertEquals(3,lectorVersion(jdbc,4));
                 int jugador=jdbc.queryForObject("""
                     INSERT INTO usuario(nombre,email,password,rol) VALUES
                       ('Jugador QA','jugador-version-qa@local.test','hash-de-prueba','JUGADOR') RETURNING id_usuario
                     """,Integer.class);
                 var intentoAnterior=juego.iniciarEscenario(jugador,escenario);
                 var lector=new ContenidoPublicadoNivelService(jdbc,mapper);
-                assertEquals(1,lector.deIntento(intentoAnterior.idIntento(),jugador).version());
+                assertEquals(2,lector.deIntento(intentoAnterior.idIntento(),jugador).version());
                 var previo=borradores.borrador(1);
                 ((ObjectNode)contenido.path("desafio")).put("objetivo","Conectá dos estaciones con una línea revisada.");
                 var edicion=new EdicionNivelRequest(previo.versionBase(),previo.revision(),
@@ -151,21 +151,21 @@ class ValidacionPublicacionNivelPostgresTest {
                     tarjetas.toString(),escenario);
                 var publicado=publicador.publicar(1,new PublicarNivelRequest(vista.versionPublicada(),
                     guardado.revision(),vista.diagnostico().huella(),true),admin);
-                assertEquals(2,publicado.version());
+                assertEquals(3,publicado.version());
                 var reversionInicial=borradores.prepararReversion(1,1,admin);
-                assertEquals(2,reversionInicial.versionBase());
+                assertEquals(3,reversionInicial.versionBase());
                 assertEquals(2,reversionInicial.redReferencia().path("estaciones").size(),
                     "La versión inicial sin referencia usa una red publicada, no una red vacía");
                 var vistaReversion=publicador.previsualizar(1,admin);
                 assertTrue(vistaReversion.diagnostico().viable(),vistaReversion.diagnostico().mensaje());
-                assertEquals(2,lectorVersion(jdbc,1),"Preparar reversión no publica ni borra versiones");
-                assertEquals(1,lector.deIntento(intentoAnterior.idIntento(),jugador).version());
-                assertEquals(2,lector.actual(1).version());
+                assertEquals(3,lectorVersion(jdbc,1),"Preparar reversión no publica ni borra versiones");
+                assertEquals(2,lector.deIntento(intentoAnterior.idIntento(),jugador).version());
+                assertEquals(3,lector.actual(1).version());
                 assertNotEquals(lector.actual(1).desafio().path("objetivo").asText(),
                     lector.deIntento(intentoAnterior.idIntento(),jugador).desafio().path("objetivo").asText());
                 jdbc.update("UPDATE intento SET estado='COMPLETADO',progreso=100,puntaje=100 WHERE id_intento=?",
                     intentoAnterior.idIntento());
-                var intentoNuevo=juego.volverAJugar(jugador,escenario,2);
+                var intentoNuevo=juego.volverAJugar(jugador,escenario,publicado.version());
                 assertEquals(publicado.version(),lector.deIntento(intentoNuevo.idIntento(),jugador).version());
                 assertEquals(publicado.version(),jdbc.queryForObject("""
                     SELECT p.numero_version FROM intento i JOIN nivel_publicacion p ON p.id_nivel_publicacion=i.id_nivel_publicacion
@@ -179,9 +179,9 @@ class ValidacionPublicacionNivelPostgresTest {
                     ()->juego.iniciarEscenario(jugadorNuevo,escenario,1));
                 assertEquals(org.springframework.http.HttpStatus.CONFLICT,preparacionObsoleta.getStatusCode());
                 assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM intento WHERE id_usuario=?",Integer.class,jugadorNuevo));
-                assertEquals(6,jdbc.queryForObject("""
+                assertEquals(7,jdbc.queryForObject("""
                     SELECT COUNT(*) FROM nivel_publicacion_tarjeta t JOIN nivel_publicacion p USING(id_nivel_publicacion)
-                    WHERE p.id_escenario=? AND p.numero_version=2
+                    WHERE p.id_escenario=? AND p.numero_version=3
                     """,Integer.class,escenario));
                 assertEquals(intentos+2,jdbc.queryForObject("SELECT COUNT(*) FROM intento",Integer.class));
                 assertEquals(simulacionesPrevias,jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class));

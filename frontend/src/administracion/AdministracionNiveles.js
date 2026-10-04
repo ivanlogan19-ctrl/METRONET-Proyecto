@@ -156,7 +156,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const guardar=crear('button','Guardar borrador','admin-guardar'); guardar.type='button';guardar.addEventListener('click',guardarBorrador);
     const previsualizar=crear('button','Previsualizar y validar','admin-secundario');previsualizar.type='button';
     previsualizar.addEventListener('click',previsualizarNivel);
-    const confirmar=crear('label','Revisé las afirmaciones, fuentes e imágenes de las seis tarjetas.');
+    const confirmar=crear('label','Revisé las afirmaciones, fuentes e imágenes de las siete tarjetas.');
     const casilla=crear('input');casilla.type='checkbox';casilla.dataset.confirmacionEditorial='';confirmar.prepend(casilla);
     const publicar=crear('button','Publicar versión','admin-guardar');publicar.type='button';publicar.dataset.publicarNivel='';
     publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
@@ -213,7 +213,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     }
 
     const educacion=seccion(numero>=4?'5. Tarjetas y ayudas':'4. Tarjetas y ayudas');
-    educacion.append(crear('p','Cada nivel conserva seis tarjetas con su ID. Revisá juntos texto, fuente e imagen antes de publicar.'));
+    educacion.append(crear('p','Cada nivel conserva siete tarjetas con su ID. Revisá juntos texto, fuente e imagen antes de publicar.'));
     const tarjetas=crear('div','','admin-niveles__tarjetas');
     datos.tarjetas.forEach((tarjeta,i)=>{
       const panel=seccion(`Tarjeta ${i+1} · ${tarjeta.id}`);panel.open=false;

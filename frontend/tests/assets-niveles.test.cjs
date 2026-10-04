@@ -8,10 +8,10 @@ const { spawnSync } = require('node:child_process');
 const raiz = path.resolve(__dirname, '..');
 const verificador = path.join(raiz, 'scripts/verificar-assets-niveles.cjs');
 
-test('el paquete incluye diez niveles, 60 tarjetas y SVG íntegros', () => {
+test('el paquete incluye diez niveles, 70 tarjetas y SVG íntegros', () => {
   const resultado = spawnSync(process.execPath, [verificador], { encoding: 'utf8' });
   assert.equal(resultado.status, 0, resultado.stderr);
-  assert.match(resultado.stdout, /60 tarjetas/);
+  assert.match(resultado.stdout, /70 tarjetas/);
 });
 
 test('un SVG alterado detiene el preflight antes de 018', () => {
