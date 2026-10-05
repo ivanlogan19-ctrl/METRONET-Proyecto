@@ -248,7 +248,7 @@ button { cursor: pointer; }
 }
 .metronet-navegacion__menu-usuario .metronet-navegacion__enlace { display: none; }
 .metronet-navegacion__menu-usuario .metronet-navegacion__enlace-perfil { display: inline-flex; }
-.metronet-navegacion__menu-usuario button { width: 100%; text-align: left; }
+.metronet-navegacion__menu-usuario button { width: 100%; justify-content: center; text-align: center; }
 .metronet-flujo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; color: var(--text-disabled); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .metronet-flujo__paso.actual { color: var(--info-active); }
 .metronet-flujo__separador { color: var(--border-active); font-size: 16px; line-height: 1; }
