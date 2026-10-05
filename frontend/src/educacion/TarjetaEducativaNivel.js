@@ -105,8 +105,8 @@ export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
   } catch { cerrar(); return false; }
 }
 
-// La victoria ya realizó el viaje musical al siguiente nivel. Antes de abrir
-// el editor, presenta únicamente la etapa educativa pendiente.
+// La victoria ya realizó el viaje musical al siguiente nivel. La presentación
+// del número ocurre antes de abrir esta tarjeta educativa.
 export function presentarTarjetaEducativaTrasVictoria(numero) {
   if (document.querySelector('dialog[open]')) return Promise.resolve(false);
   const tarjeta = seleccionarTarjetaEducativa(numero);

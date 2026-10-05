@@ -42,6 +42,7 @@ export function crearPresentacionMusicalNivel({ dialogo, contexto, titulo, subti
     get identificacionPresentada() { return presentada; },
     obtenerTiempo: () => Math.min(1, audio.obtenerTiempo() / TIEMPOS.duracionMs),
     actualizar,
+    detenerAudio() { audio.eliminar(); },
     ocultarCartel() { cartel.hidden = true; dialogo.classList.remove('metronet-transicion--cartel'); },
     eliminar() { audio.eliminar(); cartel.remove(); dialogo.classList.remove('metronet-transicion--cartel'); },
   };

@@ -73,3 +73,18 @@ test('los límites contienen el centro de cámara con rotación', () => {
   assert.ok(camara.scrollX + 400 <= 2000 - medioAncho + 1e-9);
   assert.ok(camara.scrollY + 300 >= medioAlto - 1e-9);
 });
+
+test('el encuadre despeja los mandos interiores sin cambiar el zoom', () => {
+  const camara = { width: 400, height: 300, zoom: 1, rotation: 0,
+    midPoint: { x: 200, y: 150 },
+    centerOn(x, y) { this.midPoint = { x, y }; } };
+  const escena = { cameras: { main: camara },
+    contenedorMapa: { querySelector: () => ({ getBoundingClientRect: () => ({ left: 0, top: 0 }) }) } };
+  const control = new ControlZoom(escena);
+  control.panelMapa = { getBoundingClientRect: () => ({ left: 270, top: 170, right: 398, bottom: 298 }) };
+  control.restringirCamara = () => {};
+  control.despejarMandosDeRed({ minimoX: 100, maximoX: 320, minimoY: 100, maximoY: 260 });
+  assert.equal(camara.zoom, 1);
+  assert.equal(camara.midPoint.x, 280);
+  assert.equal(camara.midPoint.y, 150);
+});

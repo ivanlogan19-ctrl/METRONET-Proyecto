@@ -600,20 +600,18 @@ html:root body .metronet-estado-editor [data-revisar-error] { flex-shrink: 0; mi
 }
 
 /* La geografía comparte una barra fuera del lienzo y libera el panel de edición.
-   Abrir capas o selectores no cambia el tamaño de la cámara. */
+   Los mandos ocupan una esquina dentro del marco, sin quitar ancho al mapa. */
 .metronet-area-mapa {
   display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px;
-  grid-template-columns: minmax(0, 1fr) 140px;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0; min-height: 0; container-type: inline-size;
 }
-.metronet-barra-geografica { grid-column: 1 / -1; }
-.metronet-area-mapa #metronet-mapa { grid-column: 1; }
-.metronet-mandos-mapa { display: flex; align-items: flex-end; justify-content: center; min-width: 0; }
-.metronet-mandos-mapa .metronet-control-zoom__panel-mapa { position: static; margin-bottom: 2px; }
+.metronet-area-mapa #metronet-mapa { position: relative; }
+.metronet-mandos-mapa { position: absolute; right: 10px; bottom: 10px; z-index: 15; display: flex; pointer-events: none; }
+.metronet-mandos-mapa .metronet-control-zoom__panel-mapa { position: static; pointer-events: auto; }
 @media (max-width: 920px) {
   .metronet-area-mapa { display: flex; flex-direction: column; min-height: auto; }
   .metronet-area-mapa #metronet-mapa { flex: 0 0 auto; height: clamp(430px, 62svh, 660px); }
-  .metronet-mandos-mapa { align-self: flex-end; }
 }
 @media (max-width: 620px) {
   .metronet-area-mapa #metronet-mapa { height: clamp(400px, 62svh, 620px); }
@@ -778,6 +776,7 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar h3 {
   border-top: 0;
 }
 #metronet-panel-controles .metronet-editor-finalizar h3 { font-size: 15px; line-height: 1.25; }
+html:root body #metronet-panel-controles .metronet-editor-finalizar h3::before { content: none; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #metronet-panel-controles .metronet-editor-finalizar__ayuda { display: none; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones { justify-content: start; }

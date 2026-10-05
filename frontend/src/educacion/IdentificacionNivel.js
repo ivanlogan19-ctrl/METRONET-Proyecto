@@ -69,12 +69,12 @@ export function crearIdentificacionNivel(contenedor) {
   function alTeclado(e) { if (e.key === 'Escape') { e.preventDefault(); finalizar(true); } }
   const entrada = {
     cancelar,
-    async mostrar(escenario, idDiseno, { modo } = {}) {
+    async mostrar(escenario, idDiseno, { modo, conservarMusica = false } = {}) {
       if (terminada) return false;
       const nivel = Number.isInteger(escenario?.numero);
       const libre = escenario?.numero === null || modo === 'EDICION_LIBRE';
       if (!nivel && !libre) { finalizar(true); return true; }
-      gestorMusica.establecerContexto('gameplay');
+      if (!conservarMusica) gestorMusica.establecerContexto('gameplay');
       if (nivel && consumirIdentificacionPresentada(idDiseno, escenario.idEscenario)) { finalizar(true); return true; }
       const especial = consumirEntradaRecorrido(idDiseno, escenario);
       const titulo = document.createElement('strong');

@@ -78,6 +78,7 @@ export function crearPreparacionNivel(escenario) {
   pie.append(estado, acciones);
   cuerpo.append(cabecera, recorrido, progreso, informacion, pie);
   let tarjetaAbierta = false, tarjetaCompletada = !hayTarjetas, viajeIniciado = false;
+  let identificando = false, identificacionLista = false, temporizadorIdentificacion;
   let tarjetaVista = null;
   dialogo.append(cuerpo);
 
@@ -93,8 +94,16 @@ export function crearPreparacionNivel(escenario) {
     if (recorridoTerminado) estado.textContent = datosListos ? 'Entrando al nivel…' : 'Esperando la respuesta del nivel…';
     else estado.textContent = MENSAJES_TRANSICION.entrada;
     if (recorridoTerminado && datosListos) {
-      if (tarjetaCompletada) resolver(true);
-      else if (!tarjetaAbierta) mostrarTarjeta();
+      if (!identificacionLista && !identificando) {
+        identificando = true;
+        presentacion.actualizar(1);
+        temporizadorIdentificacion = setTimeout(() => {
+          identificando = false;
+          identificacionLista = true;
+          if (tarjetaCompletada) resolver(true);
+          else mostrarTarjeta();
+        }, CONFIGURACION_TRANSICION.identificacionMs);
+      }
     }
   }
   function finalizarRecorrido() {
@@ -106,7 +115,7 @@ export function crearPreparacionNivel(escenario) {
     viajeIniciado = true;
     presentacion = crearPresentacionMusicalNivel({
       dialogo, contexto: 'inicioNivel', titulo: `NIVEL ${escenario.numero}`,
-      puedeMostrarCartel: () => datosListos,
+      puedeMostrarCartel: () => identificando,
       alTerminar: () => animacion.finalizar(),
     });
     animacion.iniciar({
@@ -142,6 +151,7 @@ export function crearPreparacionNivel(escenario) {
     if (cerrado) return;
     cerrado = true;
     cancelada = true;
+    clearTimeout(temporizadorIdentificacion);
     animacion.destruir();
     presentacion?.eliminar();
     window.removeEventListener('pagehide', cerrar);
@@ -164,8 +174,8 @@ export function crearPreparacionNivel(escenario) {
   dialogo.addEventListener('close', cerrar);
   jugar.addEventListener('click', () => {
     if (!datosListos || recorridoTerminado || cerrado) return;
+    presentacion?.detenerAudio();
     animacion.finalizar();
-    presentacion?.eliminar();
   });
   try {
     document.body.append(dialogo);

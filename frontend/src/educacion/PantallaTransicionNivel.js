@@ -145,6 +145,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
       dialogo, contexto: 'victory',
       titulo: siguiente ? `NIVEL ${siguiente.numero}` : final ? 'RECORRIDO COMPLETADO' : 'NIVEL COMPLETADO',
       subtitulo: modoLibre ? 'ESTÁS LISTO PARA EL MODO LIBRE' : null,
+      puedeMostrarCartel: () => !siguiente,
       alTerminar: () => animacion.finalizar(),
     });
     animacion.iniciar({

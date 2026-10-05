@@ -225,6 +225,11 @@ export default class ControlZoom {
     camara.setRotation(Math.atan2(Math.sin(nuevaRotacion), Math.cos(nuevaRotacion)));
     this.actualizarLimitesCamara();
     this.restringirCamara();
+    if (this.estadoVista === 'ajustada' && this.limitesAjustados) {
+      this.ajustarArea(this.limitesAjustados, { estadoVista: 'ajustada' });
+    } else if (this.estadoVista === 'mapa') {
+      this.despejarMandosDeRed(this.obtenerLimitesAjuste?.());
+    }
     if (this.botonNorte) {
       const grados = Math.round(camara.rotation * 180 / Math.PI);
       this.botonNorte.style.setProperty('--giro-brujula', `${-grados}deg`);
@@ -433,8 +438,57 @@ export default class ControlZoom {
     this.limitesAjustados = { ...limites };
 
     this.restringirCamara();
+    this.despejarMandosDeRed(limites);
 
     this.actualizarBotones();
+  }
+
+  despejarMandosDeRed(limites) {
+    const camara = this.obtenerCamara();
+    const lienzo = this.escena.contenedorMapa?.querySelector('canvas');
+    if (!camara || !limites || !lienzo || !this.panelMapa) return;
+    const marco = lienzo.getBoundingClientRect();
+    const mandos = this.panelMapa.getBoundingClientRect();
+    const izquierdaMandos = mandos.left - marco.left;
+    const arribaMandos = mandos.top - marco.top;
+    const derechaMandos = mandos.right - marco.left;
+    const abajoMandos = mandos.bottom - marco.top;
+    const coseno = Math.cos(camara.rotation);
+    const seno = Math.sin(camara.rotation);
+    const margen = 30;
+    const ocupar = () => {
+      const puntos = [
+        [limites.minimoX, limites.minimoY], [limites.minimoX, limites.maximoY],
+        [limites.maximoX, limites.minimoY], [limites.maximoX, limites.maximoY],
+      ].map(([x, y]) => {
+        const dx = (x - camara.midPoint.x) * camara.zoom;
+        const dy = (y - camara.midPoint.y) * camara.zoom;
+        return { x: camara.width / 2 + dx * coseno - dy * seno,
+          y: camara.height / 2 + dx * seno + dy * coseno };
+      });
+      return { izquierda: Math.min(...puntos.map(p => p.x)) - margen,
+        derecha: Math.max(...puntos.map(p => p.x)) + margen,
+        arriba: Math.min(...puntos.map(p => p.y)) - margen,
+        abajo: Math.max(...puntos.map(p => p.y)) + margen };
+    };
+    const seSolapa = red => red.derecha > izquierdaMandos && red.abajo > arribaMandos &&
+      red.izquierda < derechaMandos && red.arriba < abajoMandos;
+    const desplazar = (dx, dy) => {
+      camara.centerOn(
+        camara.midPoint.x - (dx * coseno + dy * seno) / camara.zoom,
+        camara.midPoint.y - (dy * coseno - dx * seno) / camara.zoom,
+      );
+      this.restringirCamara();
+    };
+    let red = ocupar();
+    if (!seSolapa(red)) return;
+    const moverArriba = arribaMandos - red.abajo;
+    const moverIzquierda = izquierdaMandos - red.derecha;
+    const primeroArriba = Math.abs(moverArriba) <= Math.abs(moverIzquierda);
+    desplazar(primeroArriba ? 0 : moverIzquierda, primeroArriba ? moverArriba : 0);
+    red = ocupar();
+    if (seSolapa(red)) desplazar(primeroArriba ? izquierdaMandos - red.derecha : 0,
+      primeroArriba ? 0 : arribaMandos - red.abajo);
   }
 
   obtenerZoomAjustado(limites, opciones = {}) {
@@ -768,6 +822,7 @@ export default class ControlZoom {
       );
 
       this.restringirCamara();
+      this.despejarMandosDeRed(this.obtenerLimitesAjuste?.());
     }
 
     this.escena.actualizarVisibilidadLogo?.(true);

@@ -64,10 +64,13 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   await p.locator('.metronet-viaje').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(),0);
   await p.clock.runFor(9000);
+  assert.equal(await p.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').count(),0);
+  await p.clock.runFor(2100);
   await p.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();
   assert.equal(await p.locator('.metronet-cartel-transicion strong').textContent(),'NIVEL 1');
+  assert.equal(await p.locator('.metronet-tarjeta-educativa').count(),0);
   assert.equal(new URL(p.url()).pathname,'/inicio.html');
-  await p.clock.runFor(3000);
+  await p.clock.runFor(1100);
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
   assert.equal(await p.locator('.metronet-viaje').count(),0);
   await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).waitFor();

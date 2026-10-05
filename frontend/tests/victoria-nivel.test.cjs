@@ -135,12 +135,43 @@ test('Tras la victoria: salida durante API de inicio lenta evita navegación tar
   const {iniciarNivelConTransicion}=await import('/src/educacion/PreparacionNivel.js');window.llamadas=0;
   window.inicio=iniciarNivelConTransicion({numero:2},signal=>{window.signalInicio=signal;llamadas++;return new Promise(r=>window.liberarInicio=r);},{preparado:true});
  });
+ await pagina.clock.runFor(1100);
  await pagina.waitForFunction(()=>typeof window.liberarInicio==='function');
  await pagina.evaluate(()=>window.dispatchEvent(new Event('popstate')));
  assert.equal(await pagina.evaluate(()=>inicio),null);
  await pagina.evaluate(()=>liberarInicio({idDiseno:42}));
  assert.equal(await pagina.evaluate(()=>signalInicio.aborted),true);
  assert.equal(await pagina.evaluate(()=>llamadas),1);
+});
+test('Victoria: el cartel del siguiente nivel precede a la tarjeta y a una sola API de inicio',async t=>{
+ const {pagina}=await abrir(t);
+ await pagina.evaluate(async()=>{
+  const click=HTMLElement.prototype.click;
+  HTMLElement.prototype.click=function(...args){if(this.closest('.metronet-tarjeta-educativa'))return;return click.apply(this,args);};
+  const {mostrarTransicionNivel}=await import('/src/educacion/PantallaTransicionNivel.js');
+  const {iniciarNivelConTransicion}=await import('/src/educacion/PreparacionNivel.js');
+  window.inicios=0;
+  window.siguiente=(async()=>{
+   const accion=await mostrarTransicionNivel({numero:1,nombre:'Red inicial'},{numero:2,nombre:'Conexiones'},{puntaje:95});
+   return accion==='siguiente' ? iniciarNivelConTransicion({numero:2,idEscenario:2},()=>{
+    window.inicios++;return new Promise(resolve=>window.resolverInicio=resolve);
+   },{preparado:true}) : null;
+  })();
+ });
+ await pagina.clock.runFor(10900);
+ assert.equal(await pagina.locator('.metronet-victoria .metronet-cartel-transicion:not([hidden])').count(),0);
+ await pagina.clock.runFor(300);
+ await pagina.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
+ assert.equal(await pagina.locator('.metronet-identificacion strong').textContent(),'NIVEL 2');
+ assert.equal(await pagina.locator('.metronet-tarjeta-educativa').count(),0);
+ await pagina.clock.runFor(1100);
+ await pagina.locator('.metronet-tarjeta-educativa').waitFor();
+ assert.equal(await pagina.evaluate(()=>window.inicios),0);
+ await pagina.locator('.metronet-tarjeta-educativa__acciones button').click();
+ await pagina.waitForFunction(()=>typeof window.resolverInicio==='function');
+ assert.equal(await pagina.evaluate(()=>window.inicios),1);
+ await pagina.evaluate(()=>resolverInicio({idDiseno:77,idEscenario:2}));
+ assert.deepEqual(await pagina.evaluate(()=>siguiente),{idDiseno:77,idEscenario:2});
 });
 test('Constructor real: evaluación única, victoria y siguiente nivel sin segunda carga',async t=>{
  const progreso=resumen(0);progreso.escenarios[0].estado='EN_DESARROLLO';progreso.escenarios[1].desbloqueado=true;

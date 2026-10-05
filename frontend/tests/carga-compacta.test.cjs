@@ -110,6 +110,9 @@ test('La recarga varía el mensaje y mantiene una sola consigna; Jugar/cancelaci
     await p.clock.runFor(1);
     assert.equal(await p.evaluate(() => window.resultadoCarga), undefined);
     await dialogo.getByRole('button',{name:'Jugar',exact:true}).press('Enter');
+    assert.equal(await dialogo.locator('.metronet-cartel-transicion:not([hidden]) strong').textContent(), `NIVEL ${numero}`);
+    assert.equal(await p.evaluate(() => window.resultadoCarga), undefined);
+    await p.clock.runFor(1100);
     assert.equal(await p.evaluate(() => window.resultadoCarga), true);
     await cargar(p, nivel);
     assert.notEqual(await dialogo.locator('[data-mensaje-id]').getAttribute('data-mensaje-id'), anterior);
@@ -128,4 +131,28 @@ test('Sin objetivo ni catálogo: no inserta instrucciones largas ni bloquea el a
   assert.equal(await p.evaluate(() => window.resultadoCarga),undefined, 'La transición respeta la duración musical aun sin catálogo');
   await p.clock.runFor(12500);
   assert.equal(await p.evaluate(() => window.resultadoCarga),true);
+});
+
+test('API lenta: termina el viaje antes del cartel y la tarjeta espera la presentación', async t => {
+  const p = await abrir(t, {width:1366,height:768});
+  await p.evaluate(() => {
+    const click = HTMLElement.prototype.click;
+    HTMLElement.prototype.click = function (...args) {
+      if (this.closest('.metronet-tarjeta-educativa')) return;
+      return click.apply(this, args);
+    };
+  });
+  const dialogo = await cargar(p, niveles[0]);
+  await p.clock.runFor(11000);
+  assert.equal(await dialogo.locator('.metronet-cartel-transicion:not([hidden])').count(), 0);
+  assert.equal(await dialogo.locator('.metronet-tarjeta-educativa').count(), 0);
+  await p.evaluate(() => cargaCompacta.marcarDatosListos());
+  assert.equal(await dialogo.locator('.metronet-cartel-transicion:not([hidden]) strong').textContent(), 'NIVEL 1');
+  await p.clock.runFor(950);
+  assert.equal(await dialogo.locator('.metronet-tarjeta-educativa').count(), 0);
+  await p.clock.runFor(100);
+  await dialogo.locator('.metronet-tarjeta-educativa').waitFor();
+  await dialogo.locator('.metronet-tarjeta-educativa__acciones button').click();
+  assert.equal(await p.evaluate(() => cargaCompacta.finalizada), true);
+  await p.evaluate(() => cargaCompacta.cerrar());
 });

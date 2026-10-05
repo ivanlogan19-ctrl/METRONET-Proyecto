@@ -41,6 +41,9 @@ export async function iniciarNivelConTransicion(escenario, iniciar, { preparado 
 
 async function prepararNivel(escenario, iniciar, preparado) {
   if (preparado && Number.isInteger(escenario?.numero)) {
+    const { crearIdentificacionNivel } = await import('./IdentificacionNivel.js');
+    const identificacion = crearIdentificacionNivel();
+    if (!await identificacion.mostrar(escenario, null, { conservarMusica: true })) return null;
     const { presentarTarjetaEducativaTrasVictoria } = await import('./TarjetaEducativaNivel.js');
     if (!await presentarTarjetaEducativaTrasVictoria(escenario.numero)) return null;
     return iniciarSinViaje(iniciar);
