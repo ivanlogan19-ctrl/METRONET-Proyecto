@@ -41,6 +41,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.alActualizarEstado = opciones.alActualizarEstado ?? (() => {});
     this.alSeleccionarUnidad = opciones.alSeleccionarUnidad ?? (() => {});
     this.idUnidadSeleccionada = null;
+    this.vistaGeograficaPendiente = null;
   }
 
   preload() {
@@ -93,6 +94,7 @@ class EscenaSimulacion extends Phaser.Scene {
 
   establecerDiseno(diseno) {
     const cambiaDiseno = !this.disenoActual || this.disenoActual.simulacion?.idDiseno !== diseno.simulacion?.idDiseno;
+    if (cambiaDiseno) this.vistaGeograficaPendiente = null;
     this.disenoActual = diseno;
     this.territorioMapa?.configurar(diseno.territorio);
     this.capaTerritorial?.dibujar();
@@ -192,7 +194,7 @@ class EscenaSimulacion extends Phaser.Scene {
 
   actualizarSeleccionVisual(elemento = null) {
     if (!this.etiquetaSeleccion) return;
-    this.etiquetaSeleccion.setText(this.obtenerTextoSeleccion(elemento)).setVisible(Boolean(elemento));
+    this.etiquetaSeleccion.setText(this.obtenerTextoSeleccion(elemento)).setVisible(false);
   }
 
   obtenerTextoSeleccion(elemento) {
@@ -284,12 +286,25 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaTerritorial?.dibujar();
     this.capaRedMetro?.actualizarTamano();
     this.controlZoom?.restaurarVistaTrasRedimension(vistaAnterior, this.obtenerLimitesRed());
+    this.aplicarVistaGeograficaPendiente();
     this.dibujarMarcoVisor();
     this.actualizarContextoVisual();
   }
 
+  solicitarVistaGeografica(vista) {
+    this.vistaGeograficaPendiente = vista;
+    this.aplicarVistaGeograficaPendiente();
+  }
+
+  aplicarVistaGeograficaPendiente() {
+    if (!this.vistaGeograficaPendiente || !this.game.canvas.width || !this.game.canvas.height) return;
+    if (this.controlZoom?.aplicarVistaGeografica(this.vistaGeograficaPendiente)) {
+      this.vistaGeograficaPendiente = null;
+    }
+  }
+
   crearControlZoom() {
-    const contenedorPadre = this.referenciasGeograficas?.panel.herramientas;
+    const contenedorPadre = document.querySelector('[data-mandos-camara]');
     if (!contenedorPadre) return;
     this.controlZoom = new ControlZoom(this, {
       capaBarrios: this.capaBarrios,
@@ -304,6 +319,7 @@ class EscenaSimulacion extends Phaser.Scene {
       mostrarAyudaNavegacion: false,
       contenedorPadre,
       integrado: true,
+      mostrarOrientacion: true,
     });
     this.controlZoom.crear();
   }
@@ -316,21 +332,21 @@ class EscenaSimulacion extends Phaser.Scene {
     this.marcoVisor = this.add.graphics().setDepth(PROFUNDIDAD_CONTEXTO).setScrollFactor(0);
     this.indicadorActividad = this.add.circle(0, 0, 4, COLORES_INTERFAZ_MAPA.ACTIVO)
       .setDepth(PROFUNDIDAD_CONTEXTO + 1)
-      .setScrollFactor(0);
+      .setScrollFactor(0).setVisible(false);
     this.etiquetaEstado = this.add.text(0, 0, '', {
       color: COLOR_TEXTO,
       fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
       fontSize: '11px',
       fontStyle: '700',
       letterSpacing: 0.7,
-    }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0);
+    }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0).setVisible(false);
     this.etiquetaRed = this.add.text(0, 0, '', {
       color: COLOR_TEXTO_SECUNDARIO,
       fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
       fontSize: '10px',
       fontStyle: '600',
       letterSpacing: 0.4,
-    }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0).setOrigin(1, 0);
+    }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0).setOrigin(1, 0).setVisible(false);
     this.etiquetaSeleccion = this.add.text(0, 0, '', {
       color: COLOR_TEXTO,
       fontFamily: FUENTES_INTERFAZ_MAPA.SISTEMA,
@@ -377,13 +393,13 @@ class EscenaSimulacion extends Phaser.Scene {
     this.etiquetaRed
       .setPosition(this.scale.width - 30, 23)
       .setText(`${estaciones} EST. · ${lineas} LÍN. · ${unidades} METRO${unidades === 1 ? '' : 'S'}`)
-      .setVisible(!compacto && Boolean(this.disenoActual));
+      .setVisible(false);
     this.etiquetaSeleccion.setPosition(this.scale.width - 30, this.scale.height - 28);
   }
 
   iniciarPulsoActividad() {
     this.detenerPulsoActividad();
-    if (!this.indicadorActividad) return;
+    if (!this.indicadorActividad?.visible) return;
     this.tweenActividad = this.tweens.add({
       targets: this.indicadorActividad,
       alpha: { from: 1, to: 0.35 },

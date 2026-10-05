@@ -25,6 +25,7 @@ export default class CapaRedMetro {
     this.alSeleccionar = opciones.alSeleccionar ?? (() => {});
     this.alUbicarEstacion = opciones.alUbicarEstacion ?? (() => {});
     this.editable = opciones.editable ?? typeof opciones.alUbicarEstacion === 'function';
+    this.mostrarTextoEnMapa = false;
     this.coloresLineas = new Map();
     this.diseno = null;
     this.rutasPorLinea = new Map();
@@ -266,6 +267,9 @@ export default class CapaRedMetro {
   }
 
   crearEtiquetaEstacion(estacion, punto, indice, radio) {
+    // Las etiquetas sobre el lienzo se omiten también en Edición.
+    // La estación sigue siendo seleccionable mediante su marcador.
+    if (!this.mostrarTextoEnMapa) return;
     const nombre = String(estacion.nombre ?? '').trim().toLocaleUpperCase('es-UY');
     if (!nombre) return;
     const texto = this.escena.add.text(0, 0, nombre, {
@@ -398,6 +402,8 @@ export default class CapaRedMetro {
   }
 
   crearIdentificadorMetro(idTren) {
+    // El número permanece disponible en los controles, no sobre el mapa.
+    if (!this.mostrarTextoEnMapa) return null;
     if (idTren === null || idTren === undefined) return null;
     return this.escena.add.text(-13, -4, String(idTren), {
       color: COLOR_FONDO,

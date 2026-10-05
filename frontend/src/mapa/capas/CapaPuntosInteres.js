@@ -45,6 +45,7 @@ const MAXIMO_MARCADORES_POR_NIVEL = Object.freeze({
 export default class CapaPuntosInteres {
   constructor(escena, opciones = {}) {
     this.escena = escena;
+    this.mostrarTextoEnMapa = false;
 
     this.capaBarrios = opciones.capaBarrios || null;
 
@@ -1070,6 +1071,8 @@ export default class CapaPuntosInteres {
   }
 
   crearEtiquetaPunto(punto, objetivo, estado, posicion, indice) {
+    // Mantener el punto seleccionable sin dibujar texto en el lienzo.
+    if (!this.mostrarTextoEnMapa) return null;
     const etiqueta = objetivo?.etiqueta || this.obtenerTextoEtiqueta(punto, estado);
 
     const texto = this.escena.add.text(0, 0, etiqueta, {

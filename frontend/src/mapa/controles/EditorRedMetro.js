@@ -16,6 +16,7 @@ import PanelHerramientasEditor from './PanelHerramientasEditor.js';
 import { destacarConceptos } from '../../educacion/glosario/GlosarioContextual.js';
 import { conceptosDelNivel } from '../../educacion/glosario/ContextoConceptos.js';
 import '../estilos/editor-red.css';
+import { consumirVistaParaNavegacion, guardarVistaParaNavegacion } from '../VistaGeografica.js';
 
 const MAXIMO_REFERENCIAS_VISIBLES_EN_CONSIGNA = 3;
 
@@ -299,6 +300,10 @@ export default class EditorRedMetro {
       this.actualizarPuntosInteresObjetivo();
       if (cambioDeDiseno) this.escena.controlZoom?.ajustarRed();
       this.cambiarVisibilidadEditor(true);
+      if (cambioDeDiseno) {
+        const vista = consumirVistaParaNavegacion(idDiseno, obtenerSesionActiva(), 'edicion');
+        if (vista) this.escena.controlZoom?.aplicarVistaGeografica(vista);
+      }
       await this.actualizarConsigna();
       if (apertura !== this.versionApertura || !this.activo) return false;
       // El cartel identifica la entrada; no agregar un aviso que desplace el
@@ -428,6 +433,9 @@ export default class EditorRedMetro {
       await prepararDiseno(this.clienteDisenos, id, { guardar:true, paraSimular:true, vigente });
       this.cambiosPendientes = false;
       this.restablecerModo();
+      guardarVistaParaNavegacion(id,
+        this.escena.controlZoom?.capturarVistaParaNavegacion(),
+        obtenerSesionActiva(), 'simulacion');
       solicitarInicioSimulacion(id);
       await navegarConCambiosPendientes(establecerRutaSimulacion(id, this.obtenerContextoDiseno(id)));
     } catch (error) { if (vigente()) this.mostrarError(error); }

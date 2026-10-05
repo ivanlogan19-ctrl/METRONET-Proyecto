@@ -71,7 +71,7 @@ html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="su
 .simulacion-parametro-valor > button[type="button"] { flex: 0 0 32px; min-width: 32px; min-height: 40px; padding: 4px; }
 .simulacion-selector-velocidad button { min-width: 0; min-height: 40px; padding: 4px; font-size: 12px; }
 [data-velocidad-mixta] { font: 12px var(--font-tecnica); color: var(--info-active); }
-.simulacion-ficha-unidad { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 8px; padding: var(--space-sm); border-top: var(--border-width) solid var(--border); font-size: 12px; overflow-wrap: anywhere; }
+.simulacion-ficha-unidad { display: none; }
 .simulacion-ficha-unidad > :last-child { grid-column: 1 / -1; }
 .simulacion-seguimiento { padding: 0 var(--space-sm) var(--space-sm); }
 .simulacion-seccion { border-top: var(--border-width) solid var(--border); }
@@ -106,3 +106,228 @@ html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="su
   html:root body.simulacion-pagina .simulacion-mandos button.metronet-boton-icono { min-width: 0; padding-inline: 7px; }
   .simulacion-mandos button.metronet-boton-icono::after { font-size: 10px; }
 }
+
+/* Vista previa aislada: datos de ejecución en el panel y más mapa. */
+.simulacion-pagina { --simulacion-mapa-alto: clamp(430px, calc(100svh - 220px), 840px); }
+.simulacion-espacio-trabajo { grid-template-areas: 'mapa instrumentos'; align-items: stretch; }
+.simulacion-editor { align-self: stretch; }
+.simulacion-visor-mapa { height: 100%; grid-template-rows: auto minmax(var(--simulacion-mapa-alto), 1fr); }
+.simulacion-visor-encabezado { display: none !important; }
+.simulacion-instrumentos { display: flex; flex-direction: column; max-height: none; overflow: visible; }
+.simulacion-lienzo-contenedor { min-height: var(--simulacion-mapa-alto); }
+.simulacion-mandos-camara { position: absolute; right: 10px; bottom: 10px; z-index: 20; pointer-events: none; }
+.simulacion-mandos-camara .metronet-control-zoom__panel-mapa { position: static; pointer-events: auto; }
+.simulacion-instrumentos .simulacion-banda-estado { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 4px 8px; padding: 10px 12px; }
+.simulacion-instrumentos .simulacion-progreso { grid-column: 1 / -1; }
+.simulacion-instrumentos .simulacion-avisos { display: grid; gap: 4px; padding: 8px 12px; border-bottom: var(--border-width) solid var(--border); }
+.simulacion-instrumentos .simulacion-avisos { display: none; }
+.simulacion-instrumentos .simulacion-avisos:has(.simulacion-mensaje.error:not(:empty)) { display: grid; }
+.simulacion-instrumentos #estadoEjecucion { display: none; }
+.simulacion-instrumentos .simulacion-mensaje:not(.error) { display: none; }
+.simulacion-instrumentos .simulacion-mensaje.error { margin: 0; }
+#verResultadosSimulacion, #resumenCriterioUvUt, .simulacion-ritmo, .simulacion-seguimiento, .simulacion-pagina .metronet-aprender-acceso { display: none !important; }
+.simulacion-pagina { --simulacion-mapa-alto: clamp(400px, calc(100svh - 430px), 560px); }
+html:root body.simulacion-pagina .simulacion-panel-titulo,
+html:root body.simulacion-pagina .simulacion-seccion-titulo,
+.simulacion-pagina .simulacion-seccion > summary,
+.simulacion-pagina .simulacion-seccion > h3 {
+  margin: 0; padding: 8px 10px; min-height: 36px;
+  color: var(--info-active); background: var(--bg-secondary);
+  font: 700 12px/1.4 var(--font-tecnica); text-transform: uppercase;
+  border-bottom: var(--border-width) solid var(--border);
+}
+.simulacion-instrumentos .simulacion-banda-estado { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 5px 8px; padding: 8px 10px; }
+.simulacion-instrumentos .simulacion-banda-estado dt { font-size: 10px; }
+.simulacion-instrumentos .simulacion-banda-estado dd { font-size: 12px; margin-top: 1px; }
+.simulacion-desempeno { gap: 6px; padding: 8px 10px; }
+.simulacion-desempeno > label { display: none; }
+html:root body.simulacion-pagina .simulacion-desempeno > .simulacion-seccion-titulo { margin: 4px -10px 0; }
+.simulacion-parametros { gap: 6px; padding: 8px 10px; }
+html:root body.simulacion-pagina .simulacion-parametros > .simulacion-seccion-titulo { margin: -8px -10px 2px; }
+#aplicarUnidadTiempo.metronet-boton-icono { width: 100%; min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px; }
+#aplicarUnidadTiempo.metronet-boton-icono::after { content: 'Aplicar UT'; font: 700 12px/1.2 var(--font-tecnica); }
+#aplicarUnidadTiempo.metronet-boton-icono .metronet-icono { width: 24px; height: 24px; }
+html:root body.simulacion-pagina #aplicarUnidadTiempo.metronet-boton-icono { width: 100%; max-width: none; }
+.simulacion-instrumentos #seccionResultados { margin-top: auto; }
+#listaResultadosSimulacion.metronet-vacio::before { display: none; }
+.simulacion-pagina .metronet-barra-geografica { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 8px; }
+.simulacion-pagina .metronet-barra-geografica > [data-contenedor-referencias] { justify-self: center; }
+.simulacion-pagina .metronet-barra-geografica > [data-hud-mapa] { justify-self: end; }
+.simulacion-pagina .metronet-barra-geografica .simulacion-mandos { position: static; display: flex; flex-wrap: nowrap; gap: 6px; padding: 0; border: 0; background: none; }
+.simulacion-pagina .metronet-barra-geografica .simulacion-formulario { padding: 0; border: 0; }
+.simulacion-pagina .metronet-barra-geografica .simulacion-acciones-ejecucion { flex-wrap: nowrap; }
+@media (max-width: 640px) {
+  .simulacion-pagina .metronet-barra-geografica { grid-template-columns: 1fr auto; }
+  .simulacion-pagina .metronet-barra-geografica .simulacion-mandos { grid-column: 1 / -1; grid-row: 2; }
+  .simulacion-pagina .metronet-barra-geografica > [data-contenedor-referencias] { grid-column: 1; grid-row: 1; justify-self: center; }
+  .simulacion-pagina .metronet-barra-geografica > [data-hud-mapa] { grid-column: 2; grid-row: 1; }
+  .simulacion-pagina .metronet-barra-geografica .simulacion-mandos { width: 100%; justify-content: space-between; gap: 4px; }
+  .simulacion-pagina .metronet-barra-geografica .simulacion-formulario,
+  .simulacion-pagina .metronet-barra-geografica .simulacion-acciones-ejecucion { width: auto; flex: 0 1 auto; display: flex; gap: 4px; }
+  .simulacion-pagina .metronet-barra-geografica .simulacion-mandos button.metronet-boton-icono { padding-inline: 5px; gap: 3px; }
+  .simulacion-pagina .metronet-barra-geografica .simulacion-mandos button.metronet-boton-icono::after { font-size: 9px; }
+}
+.simulacion-mapa-ampliado .simulacion-espacio-trabajo { grid-template-areas: 'mapa'; }
+@media (max-width: 1050px) { .simulacion-espacio-trabajo { grid-template-areas: 'mapa' 'instrumentos'; } }
+@media (max-width: 640px) { .simulacion-pagina { --simulacion-mapa-alto: max(430px, 55svh); } }
+
+/* Revisión de vista previa: mandos en el encabezado y accesos sobre el lienzo. */
+.simulacion-pagina { --simulacion-panel-ancho: clamp(224px, 15vw, 228px); }
+.simulacion-ruta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.simulacion-ruta > [data-flujo-navegacion] { flex: 0 0 360px; width: 360px; min-width: 0; }
+.simulacion-ruta .simulacion-volver { flex: 0 0 360px; width: 360px; font-size: 11px; padding: 7px 10px; }
+.simulacion-ruta .metronet-flujo { width: 100%; min-height: 36px; display: flex; align-items: center; }
+.simulacion-ruta .metronet-flujo, .simulacion-ruta .simulacion-volver { height: 40px; min-height: 40px; }
+.simulacion-visor-mapa { grid-template-rows: auto minmax(var(--simulacion-mapa-alto), 1fr); }
+.simulacion-instrumentos > .simulacion-panel-titulo,
+.simulacion-instrumentos > .simulacion-banda-estado { display: none; }
+html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-seccion-titulo,
+.simulacion-pagina .simulacion-seccion > summary,
+.simulacion-pagina .simulacion-seccion > h3 { white-space: nowrap; font-size: 11px; }
+.simulacion-encabezado .simulacion-mandos { position: static; display: flex; flex-wrap: nowrap; gap: 6px; padding: 0; border: 0; background: none; }
+.simulacion-pagina .simulacion-encabezado-acciones { width: var(--simulacion-panel-ancho); flex: 0 0 var(--simulacion-panel-ancho); }
+.simulacion-encabezado .simulacion-mandos { width: 100%; justify-content: space-between; }
+.simulacion-encabezado .simulacion-mandos { display: grid; grid-template-columns: repeat(3, 44px); align-items: center; }
+html:root body.simulacion-pagina .simulacion-encabezado .simulacion-acciones-ejecucion { display: contents; }
+.simulacion-encabezado .simulacion-formulario { width: auto; padding: 0; border: 0; }
+.simulacion-encabezado .simulacion-acciones-ejecucion { width: auto; display: flex; flex-wrap: nowrap; }
+html:root body.simulacion-pagina .simulacion-encabezado .simulacion-mandos button.metronet-boton-icono { width: 44px; max-width: 44px; min-width: 44px; height: 44px; padding: 8px; justify-content: center; }
+.simulacion-encabezado .simulacion-mandos button.metronet-boton-icono::after { display: none; }
+.simulacion-visor-mapa > .metronet-barra-geografica {
+  position: relative; display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; min-height: 48px; padding: 2px 8px; gap: 6px;
+  background: var(--bg-secondary);
+}
+.simulacion-visor-mapa > .metronet-barra-geografica > [data-contenedor-referencias] { grid-column: 2; justify-self: center; }
+.simulacion-visor-mapa > .metronet-barra-geografica > [data-hud-mapa] { grid-column: 3; justify-self: end; }
+@media (max-width: 640px) {
+  .simulacion-ruta { flex-wrap: wrap; }
+  .simulacion-ruta > [data-flujo-navegacion], .simulacion-ruta .simulacion-volver { flex-basis: 100%; width: 100%; }
+  .simulacion-pagina .simulacion-encabezado-acciones { width: 100%; flex-basis: 100%; justify-content: start; flex-wrap: wrap; }
+  .simulacion-encabezado .simulacion-mandos { width: 100%; justify-content: space-between; }
+  .simulacion-encabezado .simulacion-mandos button.metronet-boton-icono { padding-inline: 5px; gap: 3px; }
+  .simulacion-encabezado .simulacion-mandos button.metronet-boton-icono::after { font-size: 9px; }
+}
+
+/* Los accesos acompañan al título; el lienzo ocupa el alto disponible. */
+html:root body.simulacion-pagina .simulacion-encabezado {
+  display: grid; grid-template-columns: minmax(0,1fr) auto var(--simulacion-panel-ancho);
+  align-items: center; gap: var(--space-sm);
+}
+.simulacion-accesos-titulo { grid-column: 2; display: flex; align-items: center; gap: 6px; }
+.simulacion-accesos-titulo [data-contenedor-referencias],
+.simulacion-accesos-titulo [data-hud-mapa] { display: flex; align-items: center; gap: 6px; }
+.simulacion-accesos-titulo [data-hud-mapa] [data-ayuda-contextual] { display: flex; align-items: center; }
+.simulacion-pagina .simulacion-encabezado-acciones { grid-column: 3; }
+.simulacion-pagina { --simulacion-mapa-alto: max(430px, calc(100svh - 194px)); }
+.simulacion-visor-mapa { grid-template-rows: minmax(var(--simulacion-mapa-alto),1fr); }
+.simulacion-instrumentos #seccionResultados { flex: 1; margin-top: 0; display: flex; flex-direction: column; }
+.simulacion-instrumentos #seccionResultados .simulacion-seccion-contenido { flex: 1; }
+#listaResultadosSimulacion.metronet-vacio { align-content: center; text-align: center; }
+@media (max-width: 1050px) {
+  html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr) auto; }
+  .simulacion-accesos-titulo { grid-column: 2; }
+  .simulacion-pagina .simulacion-encabezado-acciones { grid-column: 1 / -1; width: 100%; flex-basis: 100%; }
+}
+@media (max-width: 640px) {
+  html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr); }
+  .simulacion-accesos-titulo { grid-column: 1; justify-content: center; }
+  .simulacion-pagina .simulacion-encabezado-acciones { grid-column: 1; }
+  .simulacion-pagina { --simulacion-mapa-alto: max(430px,55svh); }
+}
+
+/* El alto del panel no debe estirar el mapa ni realimentar el tamaño del canvas Phaser. */
+.simulacion-espacio-trabajo { align-items: start; }
+.simulacion-editor { align-self: start; }
+.simulacion-visor-mapa { height: auto; grid-template-rows: var(--simulacion-mapa-alto); }
+.simulacion-lienzo-contenedor { height: var(--simulacion-mapa-alto); min-height: 0; }
+
+/* Encabezado compacto: navegación redundante fuera y acciones agrupadas. */
+.simulacion-identidad { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.simulacion-identidad h1 { min-width: 0; }
+.simulacion-identidad .simulacion-volver { flex: 0 0 auto; padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+.simulacion-encabezado .simulacion-mandos { justify-content: center; gap: 10px; }
+.simulacion-encabezado .simulacion-formulario:has(> button[hidden]) { display: none; }
+.simulacion-accesos-titulo [data-contenedor-referencias],
+.simulacion-accesos-titulo .metronet-tutorial { display: none; }
+.simulacion-accesos-titulo { grid-column: 3; justify-self: end; }
+.simulacion-accesos-titulo .simulacion-volver-icono {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; min-height: 44px; padding: 0;
+  border: var(--border-width) solid var(--border-active);
+  background: var(--bg-secondary); color: var(--text-primary);
+}
+.simulacion-accesos-titulo .simulacion-volver-icono svg { width: 24px; height: 24px; }
+.simulacion-accesos-titulo #tutorialPantallaSimulacion {
+  color: var(--tutorial-acento);
+  border-color: var(--tutorial-acento);
+}
+.simulacion-accesos-titulo #volverEdicion {
+  color: var(--info-active);
+  border-color: var(--info-active);
+}
+.simulacion-accesos-titulo .simulacion-volver-icono:hover,
+.simulacion-accesos-titulo .simulacion-volver-icono:focus-visible { border-color: var(--info-active); color: var(--info-active); }
+@media (max-width: 640px) {
+  .simulacion-identidad { flex-wrap: wrap; }
+}
+
+/* Las acciones pertenecen al panel y los rótulos secundarios no compiten con sus títulos. */
+.simulacion-pagina .simulacion-acciones-panel { border-bottom: var(--border-width) solid var(--border); }
+.simulacion-acciones-panel .simulacion-mandos {
+  position: static; display: grid; grid-template-columns: repeat(3,44px);
+  justify-content: center; align-items: center; gap: 10px;
+  width: 100%; padding: 8px 0; border: 0; background: none;
+}
+html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-acciones-ejecucion { display: contents; }
+.simulacion-acciones-panel .simulacion-formulario { width: auto; min-height: 0; padding: 0; border: 0; }
+.simulacion-acciones-panel .simulacion-formulario:has(> button[hidden]) { display: none; }
+html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono {
+  width: 44px; max-width: 44px; min-width: 44px; height: 44px; padding: 8px; justify-content: center;
+}
+.simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono::after { display: none; }
+html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr) auto var(--simulacion-panel-ancho); }
+.simulacion-instrumentos .simulacion-desempeno select { font-size: 10px; }
+html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-titulo,
+html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-titulo button { font-size: 10px; }
+.simulacion-instrumentos #seccionResultados { margin-top: 14px; }
+html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo,
+html:root body.simulacion-pagina .simulacion-instrumentos #tituloResultadosSimulacion { font: 700 13px/1.4 var(--font-tecnica); }
+html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo { padding-inline: 6px; }
+html:root body.simulacion-pagina .simulacion-instrumentos #tituloResultadosSimulacion { padding: 8px 6px; }
+.simulacion-instrumentos .simulacion-parametro-titulo .metronet-icono,
+.simulacion-instrumentos [data-icono-duracion] { display: none; }
+.simulacion-instrumentos .simulacion-parametro-valor input { text-align: center; }
+html:root body.simulacion-pagina .simulacion-instrumentos h3::before {
+  top: 50% !important; transform: translateY(-50%);
+}
+.simulacion-instrumentos #seccionResultados .simulacion-seccion-contenido { padding: 2px 4px 4px; }
+#listaResultadosSimulacion.metronet-vacio { padding: 8px; }
+
+/* La banda del diseño comparte el borde derecho con el mapa. */
+html:root body.simulacion-pagina .simulacion-encabezado {
+  grid-template-columns: minmax(0, 1fr) var(--simulacion-panel-ancho);
+}
+.simulacion-identidad { width: 100%; }
+html:root body.simulacion-pagina #tituloSimulacion { width: 100%; font-size: 28px; }
+.simulacion-accesos-titulo { grid-column: 2; }
+@media (max-width: 1050px) {
+  html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0, 1fr) auto; }
+}
+@media (max-width: 640px) {
+  html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0, 1fr); }
+  .simulacion-accesos-titulo { grid-column: 1; }
+}
+
+#continuarEscenarios { display: none !important; }
+@media (max-width: 1050px) {
+  html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr) auto; }
+  .simulacion-accesos-titulo { grid-column: 2; }
+}
+@media (max-width: 640px) {
+  html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr); }
+  .simulacion-accesos-titulo { grid-column: 1; justify-self: end; }
+}
+
+/* Los tres accesos comparten el eje central de la columna derecha. */
+.simulacion-accesos-titulo { justify-self: stretch; justify-content: center; }

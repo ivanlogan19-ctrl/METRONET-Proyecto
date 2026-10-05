@@ -1,4 +1,5 @@
 import '../estilos/control-zoom.css';
+import { capturarVistaGeografica, proyectarVistaGeografica } from '../VistaGeografica.js';
 
 const MARGEN_AJUSTE_MINIMO = 40;
 const MARGEN_AJUSTE_MAXIMO = 96;
@@ -16,6 +17,9 @@ export default class ControlZoom {
     this.zoomMinimo = opciones.zoomMinimo ?? 1;
 
     this.zoomMaximo = opciones.zoomMaximo ?? 8;
+
+    this.escalaVisibleMinima = null;
+    this.escalaVisibleMaxima = null;
 
     this.zoomActual = this.zoomMinimo;
 
@@ -51,6 +55,7 @@ export default class ControlZoom {
     this.contenedorPadre = opciones.contenedorPadre ?? document.body;
 
     this.integrado = Boolean(opciones.integrado);
+    this.mostrarOrientacion = Boolean(opciones.mostrarOrientacion);
 
     this.ancladoAlMapa = Boolean(opciones.ancladoAlMapa);
 
@@ -175,7 +180,7 @@ export default class ControlZoom {
 
     this.contenedor.appendChild(this.botonRestaurar);
 
-    if (this.escena?.contenedorEditorRed) {
+    if (this.escena?.contenedorEditorRed || this.mostrarOrientacion) {
       this.brujula = document.createElement('div');
       this.brujula.className = 'metronet-control-zoom__brujula';
       const botonIzquierda = document.createElement('button');
@@ -230,11 +235,14 @@ export default class ControlZoom {
     } else if (this.estadoVista === 'mapa') {
       this.despejarMandosDeRed(this.obtenerLimitesAjuste?.());
     }
-    if (this.botonNorte) {
-      const grados = Math.round(camara.rotation * 180 / Math.PI);
-      this.botonNorte.style.setProperty('--giro-brujula', `${-grados}deg`);
-      this.botonNorte.title = grados ? `Norte: ${grados}° de giro; tocar para orientar` : 'Norte arriba';
-    }
+    this.actualizarBrujula();
+  }
+
+  actualizarBrujula() {
+    if (!this.botonNorte) return;
+    const grados = Math.round((this.obtenerCamara()?.rotation ?? 0) * 180 / Math.PI);
+    this.botonNorte.style.setProperty('--giro-brujula', `${-grados}deg`);
+    this.botonNorte.title = grados ? `Norte: ${grados}° de giro; tocar para orientar` : 'Norte arriba';
   }
 
   obtenerCamara() {
@@ -564,7 +572,15 @@ export default class ControlZoom {
   }
 
   obtenerZoomMaximoPermitido() {
-    return this.zoomMaximo;
+    const escala = this.capaBarrios?.calcularEscalaMapa?.()?.escala;
+    return escala > 0 && this.escalaVisibleMaxima
+      ? Math.max(this.zoomMaximo, this.escalaVisibleMaxima / escala) : this.zoomMaximo;
+  }
+
+  obtenerZoomMinimoPermitido() {
+    const escala = this.capaBarrios?.calcularEscalaMapa?.()?.escala;
+    return escala > 0 && this.escalaVisibleMinima
+      ? Math.min(this.zoomMinimo, this.escalaVisibleMinima / escala) : this.zoomMinimo;
   }
 
   obtenerZoomMaximoSeguroSeleccion() {
@@ -681,7 +697,7 @@ export default class ControlZoom {
     };
   }
 
-  actualizarLimitesCamara() {
+  actualizarLimitesCamara(vistaSolicitada = null) {
     const camara = this.obtenerCamara();
 
     const limitesMapa = this.obtenerLimitesMapa();
@@ -694,6 +710,8 @@ export default class ControlZoom {
 
     this.limitesMapaVista = limitesMapa;
 
+    this.tamanoCamaraVista = { ancho: camara.width, alto: camara.height };
+
     const margen = Math.max(28, Math.min(this.escena.scale.width, this.escena.scale.height) * 0.08);
 
     this.limitesCamara = {
@@ -705,6 +723,17 @@ export default class ControlZoom {
 
       maximoY: limitesMapa.maximoY + margen,
     };
+
+    if (vistaSolicitada) {
+      const coseno = Math.abs(Math.cos(vistaSolicitada.rotacion));
+      const seno = Math.abs(Math.sin(vistaSolicitada.rotacion));
+      const medioAncho = (camara.width * coseno + camara.height * seno) / (2 * vistaSolicitada.zoom);
+      const medioAlto = (camara.width * seno + camara.height * coseno) / (2 * vistaSolicitada.zoom);
+      this.limitesCamara.minimoX = Math.min(this.limitesCamara.minimoX, vistaSolicitada.x - medioAncho);
+      this.limitesCamara.maximoX = Math.max(this.limitesCamara.maximoX, vistaSolicitada.x + medioAncho);
+      this.limitesCamara.minimoY = Math.min(this.limitesCamara.minimoY, vistaSolicitada.y - medioAlto);
+      this.limitesCamara.maximoY = Math.max(this.limitesCamara.maximoY, vistaSolicitada.y + medioAlto);
+    }
 
     if (Math.abs(camara.rotation) > 0.0001) camara.removeBounds();
     else camara.setBounds(
@@ -755,42 +784,61 @@ export default class ControlZoom {
     // al mapa anterior: normalizarlo con los límites nuevos desplaza el encuadre.
     const limitesMapa = this.limitesMapaVista ?? this.obtenerLimitesMapa();
     if (!camara || !limitesMapa) return null;
-    const anchoMapa = limitesMapa.maximoX - limitesMapa.minimoX;
-    const altoMapa = limitesMapa.maximoY - limitesMapa.minimoY;
-    return {
-      estadoVista: this.estadoVista,
-      zoom: camara.zoom,
-      proporcionX: anchoMapa ? (camara.midPoint.x - limitesMapa.minimoX) / anchoMapa : 0.5,
-      proporcionY: altoMapa ? (camara.midPoint.y - limitesMapa.minimoY) / altoMapa : 0.5,
+    const anchoAnterior = this.tamanoCamaraVista?.ancho ?? camara.width;
+    const altoAnterior = this.tamanoCamaraVista?.alto ?? camara.height;
+    const vista = capturarVistaGeografica({
+      midPoint: { x: camara.scrollX + anchoAnterior * camara.originX,
+        y: camara.scrollY + altoAnterior * camara.originY },
+      zoom: camara.zoom, rotation: camara.rotation,
+    }, limitesMapa, this.capaBarrios?.transformacion);
+    return this.agregarRangoEscalaVisible(vista, limitesMapa);
+  }
+
+  capturarVistaParaNavegacion() {
+    const limites = this.obtenerLimitesMapa();
+    return this.agregarRangoEscalaVisible(capturarVistaGeografica(this.obtenerCamara(), limites,
+      this.capaBarrios?.transformacion), limites);
+  }
+
+  agregarRangoEscalaVisible(vista, limites) {
+    const geografia = this.capaBarrios?.transformacion;
+    const escala = (limites?.maximoX - limites?.minimoX) / (geografia?.maxX - geografia?.minX);
+    if (!vista || !Number.isFinite(escala) || escala <= 0) return vista;
+    return { ...vista,
+      escalaVisibleMinima: Math.min(this.escalaVisibleMinima ?? Infinity, this.zoomMinimo * escala),
+      escalaVisibleMaxima: Math.max(this.escalaVisibleMaxima ?? 0, this.zoomMaximo * escala),
     };
+  }
+
+  aplicarVistaGeografica(vista) {
+    const camara = this.obtenerCamara();
+    const destino = proyectarVistaGeografica(vista,
+      this.capaBarrios?.calcularEscalaMapa?.(), this.capaBarrios?.transformacion);
+    if (!camara || !destino || !Number.isFinite(destino.zoom) || destino.zoom <= 0) return false;
+    // Una vista ya alcanzada en la otra escena nunca se recorta en silencio.
+    this.escalaVisibleMinima = Math.min(this.escalaVisibleMinima ?? Infinity,
+      vista.escalaVisibleMinima ?? vista.escalaVisible, vista.escalaVisible);
+    this.escalaVisibleMaxima = Math.max(this.escalaVisibleMaxima ?? 0,
+      vista.escalaVisibleMaxima ?? vista.escalaVisible, vista.escalaVisible);
+    camara.setRotation(destino.rotacion);
+    camara.setZoom(destino.zoom);
+    this.actualizarLimitesCamara(destino);
+    camara.centerOn(destino.x, destino.y);
+    this.zoomActual = camara.zoom;
+    this.marcarVistaManual();
+    this.restringirCamara();
+    this.actualizarBrujula();
+    this.actualizarBotones();
+    return true;
   }
 
   restaurarVistaTrasRedimension(vista, limitesRed = null) {
     this.actualizarLimitesCamara();
-    if (!vista || vista.estadoVista === 'mapa') {
+    if (!vista) {
       this.restaurar();
       return;
     }
-    if (vista.estadoVista === 'ajustada' && limitesRed) {
-      this.ajustarArea(limitesRed, { estadoVista: 'ajustada' });
-      return;
-    }
-    if (vista.estadoVista === 'seleccion' && this.limitesSeleccion) {
-      this.limitesSeleccion = this.obtenerLimitesBarrios(this.barriosEnfocados);
-      this.ajustarArea(this.limitesSeleccion, { estadoVista: 'seleccion' });
-      return;
-    }
-    const camara = this.obtenerCamara();
-    const limitesMapa = this.obtenerLimitesMapa();
-    if (!camara || !limitesMapa) return;
-    camara.setZoom(this.normalizar(vista.zoom));
-    camara.centerOn(
-      limitesMapa.minimoX + (limitesMapa.maximoX - limitesMapa.minimoX) * vista.proporcionX,
-      limitesMapa.minimoY + (limitesMapa.maximoY - limitesMapa.minimoY) * vista.proporcionY,
-    );
-    this.estadoVista = 'manual';
-    this.restringirCamara();
-    this.actualizarBotones();
+    this.aplicarVistaGeografica(vista);
   }
 
   restaurar() {
@@ -867,7 +915,7 @@ export default class ControlZoom {
 
     this.botonAcercar.disabled = zoom >= this.obtenerZoomMaximoPermitido() - 0.01;
 
-    this.botonAlejar.disabled = zoom <= this.zoomMinimo + 0.01;
+    this.botonAlejar.disabled = zoom <= this.obtenerZoomMinimoPermitido() + 0.01;
   }
 
   normalizar(zoom) {
@@ -881,7 +929,7 @@ export default class ControlZoom {
       Math.max(
         numero,
 
-        this.zoomMinimo,
+        this.obtenerZoomMinimoPermitido(),
       ),
 
       this.obtenerZoomMaximoPermitido(),

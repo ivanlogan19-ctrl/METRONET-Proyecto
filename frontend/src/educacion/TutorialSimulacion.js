@@ -2,33 +2,32 @@ import RecorridoInicial from './RecorridoInicial.js';
 import './tutorial-inicial.css';
 
 const PASOS = [
-  ['#visorSimulacion', 'Mapa', 'Acá observás la misma red que construiste. La simulación conserva sus estaciones y conexiones.'],
-  ['#unidadCirculacion', 'Unidad', 'Todas las unidades aplica una misma UV a todos los metros. Elegí un metro para modificar solamente ese; MIXTO indica valores distintos.'],
-  ['.simulacion-parametro-velocidad', 'Velocidad · UV', 'METRONET representa la velocidad en UV, una escala didáctica propia. Aplicá el cambio con el disquete.'],
-  ['#duracionSimulacion', 'Duración · h', 'La duración indica cuántas horas simuladas representa la ejecución, no horas reales de espera.'],
-  ['.simulacion-ritmo', 'Ritmo · ×', 'El ritmo cambia qué tan rápido ves la simulación. No modifica las UV ni las horas simuladas.'],
-  ['.simulacion-mandos', 'Play / Pausa', 'Play comprueba y guarda la red antes de ejecutar. Pausa detiene el avance y permite reanudarlo.'],
-  ['.simulacion-mandos', 'Detener / Reiniciar', 'Detener interrumpe la animación. Reiniciar vuelve al principio conservando la configuración.'],
-  ['.simulacion-parametro-velocidad', 'Probá las UV', 'Cambiá realmente las UV y aplicalas con el disquete. El tutorial continúa cuando se guardan.', 'velocidad'],
-  ['#duracionSimulacion', 'Probá las horas', 'Cambiá la cantidad de horas simuladas. Las UV permanecen iguales.', 'duracion'],
-  ['#formularioEjecucion button[type=submit]', 'Poné la red en marcha', 'Iniciá la simulación. Después compará ejecuciones siguiendo la pista del nivel.', 'inicio'],
+  ['#visorSimulacion', 'Mapa de la red', 'Acá ves estaciones, conexiones y metros. Arrastrá el mapa para recorrerlo.'],
+  ['.simulacion-mandos-camara', 'Vista del mapa', 'Usá estos botones para acercar, alejar, ajustar la red o girar el mapa.'],
+  ['.simulacion-acciones-panel', 'Acciones', 'Iniciá, pausá, reanudá, detené o reiniciá el recorrido con los botones disponibles según su estado.'],
+  ['#unidadCirculacion', 'Metros', 'Elegí todos los metros o uno en particular para configurar su velocidad.'],
+  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', 'Ajustá el valor y pulsá Aplicar UV para usar esa velocidad.'],
+  ['#seccionConfiguracion', 'Unidad de tiempo · UT', 'Ajustá la duración de la ejecución y pulsá Aplicar UT.'],
+  ['#seccionResultados', 'Resultado de simulación', 'Después de ejecutar, consultá acá el resultado del recorrido.'],
+  ['.simulacion-accesos-titulo', 'Sonido y salida', 'Desde esta fila podés controlar el sonido, repetir el tutorial o volver a Edición.'],
 ];
 
-// El servidor descarta campañas con ejecuciones previas. El navegador recuerda
-// una presentación interrumpida antes de Play; nunca escribe progreso ni puntaje.
-export function presentarTutorialSimulacion({ progreso, escenario, idUsuario, resultados = [], esUvUt = false }) {
-  if (!Number.isInteger(escenario?.numero) || escenario.herramientasHabilitadas?.simulacion !== true || !progreso?.tutorialSimulacionDisponible || resultados.length
-      || !Number.isInteger(progreso.numeroCampanaActual) || idUsuario == null) return null;
-  const clave = `metronet:tutorial-simulacion:${idUsuario}:${progreso.numeroCampanaActual}`;
-  try { if (localStorage.getItem(clave)) return null; } catch { return null; }
-  const pasos = PASOS.map(paso => {
-    if (!esUvUt) return paso;
-    return paso.map((texto, indice) => indice > 0 && typeof texto === 'string'
-      ? texto.replaceAll('horas simuladas', 'UT').replaceAll('horas', 'UT').replace('Duración · h', 'Duración · UT')
-      : texto);
+export function abrirTutorialSimulacion() {
+  const recorrido = new RecorridoInicial(() => {}, {
+    pasos: PASOS,
+    tituloFinal: 'Pantalla lista',
+    textoFinal: 'Ya conocés los controles de esta pantalla. Podés repetir el recorrido junto al botón de sonido.',
   });
-  const recorrido = new RecorridoInicial(() => {}, { pasos, interactivo: true });
   recorrido.iniciar();
-  try { localStorage.setItem(clave, 'presentado'); } catch { /* No altera la ejecución. */ }
+  return recorrido;
+}
+
+export function presentarTutorialSimulacion({ idUsuario } = {}) {
+  const clave = `metronet:tutorial-pantalla-simulacion:v2:${idUsuario ?? 'invitado'}`;
+  try {
+    if (localStorage.getItem(clave)) return null;
+  } catch { /* El recorrido sigue disponible si el almacenamiento está bloqueado. */ }
+  const recorrido = abrirTutorialSimulacion();
+  try { localStorage.setItem(clave, 'presentado'); } catch { /* No afecta la simulación. */ }
   return recorrido;
 }

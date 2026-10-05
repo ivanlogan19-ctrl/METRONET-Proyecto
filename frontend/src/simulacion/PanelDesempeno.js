@@ -5,8 +5,9 @@ import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 // Un único editor de velocidad didáctica; el multiplicador visual vive fuera de él.
 export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opciones = {}) {
   contenedor.innerHTML = `
-    <label for="unidadCirculacion">Unidad</label>
-    <select id="unidadCirculacion" aria-label="Unidad de metro"></select>
+    <label for="unidadCirculacion">Metro</label>
+    <select id="unidadCirculacion" aria-label="Metro"></select>
+    <h3 class="simulacion-seccion-titulo">Unidad de velocidad · UV</h3>
     <form class="simulacion-parametro-velocidad">
       <fieldset data-controles-circulacion>
         <div class="simulacion-parametro-titulo" title="Velocidad">${iconoRetro('velocidad')}<span>Velocidad</span></div>
@@ -22,7 +23,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
   const boton = contenedor.querySelector('button[type="submit"]'), campo = contenedor.querySelector('fieldset');
   const mixto = contenedor.querySelector('[data-velocidad-mixta]');
-  selector.replaceChildren(new Option('Todas las unidades', 'todas'), ...unidades.map(u => new Option(`Metro ${u.idTren} · ${u.nombreLinea}`, String(u.idTren))));
+  selector.replaceChildren(new Option('Todos los metros', 'todas'), ...unidades.map(u => new Option(`Metro ${u.idTren} · ${u.nombreLinea}`, String(u.idTren))));
   const permitidas = unidades.length > 0 && (!Number.isFinite(desempeno?.puntajeMaximo) || desempeno.redResuelta);
   input.disabled = boton.disabled = !permitidas;
   campo.disabled = opciones.bloqueado === true;
