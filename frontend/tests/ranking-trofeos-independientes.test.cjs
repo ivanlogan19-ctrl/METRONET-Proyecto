@@ -37,9 +37,11 @@ test('un fallo de trofeos conserva Ranking y su reintento recupera solo premios'
     return Promise.resolve({ escenarios: [{ numero: 1, nombre: 'Nivel 1', mejorPuntaje: 100, puntajeMaximo: 100 }], nivelesCompletados: 1, cantidadNiveles: 10 });
   };
   const origen = fs.readFileSync(path.join(__dirname, '../src/educacion/ranking.js'), 'utf8');
+  const arte = fs.readFileSync(path.join(__dirname, '../src/educacion/IconosTrofeos.js'), 'utf8');
   const codigo = origen.replace(/^import .*;\s*$/gm, '').replace('if (sesion) {', 'if (false) {');
   const contexto = vm.createContext({ document: documento, consultarJuego,
     requerirSesion: () => ({ usuario: { rol: 'JUGADOR' } }), inicializarNavegacion() {} });
+  vm.runInContext(arte.replace('export const iconosTrofeos', 'var iconosTrofeos'), contexto);
   vm.runInContext(codigo, contexto);
 
   await Promise.all([contexto.cargar(), contexto.cargarTrofeos()]);

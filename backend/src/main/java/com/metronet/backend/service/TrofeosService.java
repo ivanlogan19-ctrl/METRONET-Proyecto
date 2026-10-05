@@ -23,6 +23,15 @@ public class TrofeosService {
     private record Nivel(int numero, int maximo, boolean completo, Integer mejor) {}
 
     public List<Trofeo> consultar(Usuario usuario) {
+        return consultar(usuario.getIdUsuario(), usuario.getRol() == Rol.ADMIN);
+    }
+
+    public List<Trofeo> consultar(Integer idUsuario) {
+        boolean admin = jdbc.queryForObject("SELECT rol = 'ADMIN' FROM usuario WHERE id_usuario=?", Boolean.class, idUsuario);
+        return consultar(idUsuario, admin);
+    }
+
+    private List<Trofeo> consultar(Integer idUsuario, boolean admin) {
         List<Nivel> niveles = jdbc.query("""
             SELECT e.numero,e.reglas_exito::text,MAX(i.id_intento) AS intento_completado,MAX(i.puntaje) AS mejor
             FROM escenario e LEFT JOIN intento i ON i.id_escenario=e.id_escenario
@@ -30,12 +39,11 @@ public class TrofeosService {
             WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero BETWEEN 1 AND 10
             GROUP BY e.id_escenario,e.numero,e.reglas_exito ORDER BY e.numero
             """, (r, fila) -> new Nivel(r.getInt(1), puntuacion.maximo(r.getString(2)),
-                r.getObject(3) != null, r.getObject(4, Integer.class)), usuario.getIdUsuario());
+                r.getObject(3) != null, r.getObject(4, Integer.class)), idUsuario);
         Map<Integer, Nivel> porNumero = niveles.stream().collect(Collectors.toMap(Nivel::numero, n -> n, (a, b) -> a));
         long completados = porNumero.values().stream().filter(Nivel::completo).count();
         boolean diez = porNumero.size() == 10 && completados == 10;
         boolean platino = diez && porNumero.values().stream().allMatch(n -> n.mejor() != null && n.mejor() >= n.maximo());
-        boolean admin = usuario.getRol() == Rol.ADMIN;
         return List.of(
             trofeo("corona", "Corona de platino", "Puntuación máxima en los 10 niveles.",
                 "Alcanzaste la puntuación máxima en cada uno de los diez niveles.", platino, admin),

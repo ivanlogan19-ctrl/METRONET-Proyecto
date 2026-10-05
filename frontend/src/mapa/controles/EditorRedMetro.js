@@ -10,6 +10,7 @@ import BarraEstadoEditor from './BarraEstadoEditor.js';
 import { mostrarFormularioElemento } from './FormularioElemento.js';
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
 import { consultarEstadoAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
+import { celebrarTrofeosNuevos } from '../../educacion/CelebracionTrofeos.js';
 import { crearIdentificacionNivel, registrarEntradaRecorrido } from '../../educacion/IdentificacionNivel.js';
 import PanelHerramientasEditor from './PanelHerramientasEditor.js';
 import { destacarConceptos } from '../../educacion/glosario/GlosarioContextual.js';
@@ -359,6 +360,12 @@ export default class EditorRedMetro {
     this.evaluacionEnCurso = true;
     const controlador = new AbortController();
     const cancelar = () => controlador.abort();
+    let premiosPendientes = [];
+    const celebrar = async () => {
+      const premios = premiosPendientes;
+      premiosPendientes = [];
+      await celebrarTrofeosNuevos(premios, { signal: controlador.signal });
+    };
     window.addEventListener('pagehide', cancelar);
     window.addEventListener('popstate', cancelar);
     try {
@@ -366,6 +373,7 @@ export default class EditorRedMetro {
       const estadoAnterior = await consultarEstadoAnterior(idEscenario);
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
       const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST' });
+      premiosPendientes = evaluacion.completado ? evaluacion.trofeosNuevos ?? [] : [];
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
       if (evaluacion.completado) this.cambiosPendientes = false;
       await this.cargarJuego();
@@ -375,12 +383,15 @@ export default class EditorRedMetro {
         const progreso = await this.solicitarJuego('/progreso');
         if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
         const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { ...estadoAnterior, signal: controlador.signal });
+        await celebrar();
+        if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
         if (accion?.siguiente) {
           const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
           await this.abrirEscenario(`/escenarios/${accion.siguiente.idEscenario}/${operacion}`, accion.siguiente.idEscenario, true, accion.celebrarRecorrido);
         } else if (accion?.destino) window.location.assign(accion.destino);
       }
     } finally {
+      await celebrar();
       this.evaluacionEnCurso = false;
       window.removeEventListener('pagehide', cancelar);
       window.removeEventListener('popstate', cancelar);

@@ -1,0 +1,14 @@
+.metronet-premio { width: min(94vw, 780px); max-height: 94svh; border: 3px solid var(--warning); background: var(--panel); color: var(--text-primary); }
+.metronet-premio::backdrop { background: rgb(2 6 17 / .96); }
+.metronet-premio__contenido { display: grid; justify-items: center; gap: clamp(10px, 2svh, 20px); padding: clamp(20px, 4vw, 48px); text-align: center; }
+.metronet-premio__etiqueta { margin: 0; color: var(--warning); font-family: var(--font-arcade); letter-spacing: .12em; }
+.metronet-premio__emblema { display: grid; place-items: center; width: clamp(150px, 28svh, 240px); aspect-ratio: 1; border: 3px solid var(--warning); border-radius: 50%; color: var(--warning); background: var(--panel-elevated); box-shadow: 0 0 0 10px rgb(255 193 7 / .08), 0 0 48px rgb(255 193 7 / .28); animation: premio-entrada 500ms ease-out both, premio-brillo 2s ease-in-out infinite alternate; }
+.metronet-premio__emblema svg { width: 72%; height: 72%; }
+.metronet-premio h2, .metronet-premio h3, .metronet-premio p { margin: 0; }
+.metronet-premio h2 { color: var(--success); font-family: var(--font-arcade); font-size: clamp(18px, 3vw, 30px); }
+.metronet-premio h3 { font-size: clamp(20px, 3vw, 32px); }
+.metronet-premio #motivoPremioNuevo { max-width: 56ch; line-height: 1.5; }
+.metronet-premio button { min-width: 170px; min-height: 48px; }
+@keyframes premio-entrada { from { opacity: 0; transform: scale(.7) rotate(-9deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes premio-brillo { to { box-shadow: 0 0 0 16px rgb(255 193 7 / .04), 0 0 70px rgb(255 193 7 / .45); } }
+@media (prefers-reduced-motion: reduce) { .metronet-premio__emblema { animation: none; } }

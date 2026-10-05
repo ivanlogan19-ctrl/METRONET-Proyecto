@@ -8,6 +8,7 @@ import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
 import { consultarEstadoAnterior, presentarResultadoNivel } from '../educacion/TransicionNivel.js';
+import { celebrarTrofeosNuevos } from '../educacion/CelebracionTrofeos.js';
 import { registrarEntradaRecorrido } from '../educacion/IdentificacionNivel.js';
 import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
@@ -501,6 +502,12 @@ async function finalizarEjecucionVisible() {
   actualizarControlesSimulacion(estadoMotor);
   const controlador = new AbortController();
   const cancelar = () => controlador.abort();
+  let premiosPendientes = [];
+  const celebrar = async () => {
+    const premios = premiosPendientes;
+    premiosPendientes = [];
+    await celebrarTrofeosNuevos(premios, { signal: controlador.signal });
+  };
   window.addEventListener('pagehide', cancelar);
   window.addEventListener('popstate', cancelar);
   try {
@@ -508,6 +515,7 @@ async function finalizarEjecucionVisible() {
     const estadoAnterior = await consultarEstadoAnterior(idEscenario);
     if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
     const evaluacion = await evaluarEscenarioProgresivo(pendiente.idDiseno);
+    premiosPendientes = evaluacion?.completado ? evaluacion.trofeosNuevos ?? [] : [];
     const correspondeAlDisenoActual = disenoActual?.simulacion?.idDiseno === pendiente.idDiseno;
     if (!correspondeAlDisenoActual || controlador.signal.aborted) return;
     if (evaluacion) {
@@ -537,6 +545,8 @@ async function finalizarEjecucionVisible() {
         const progreso = await respuesta.json();
         if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
         const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { ...estadoAnterior, signal: controlador.signal });
+        await celebrar();
+        if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
         if (accion?.siguiente) {
           const inicio = await iniciarNivelConTransicion(accion.siguiente, async signal => {
             const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
@@ -556,6 +566,7 @@ async function finalizarEjecucionVisible() {
     document.getElementById('continuarEscenarios').hidden = false;
     mostrarMensaje(`El recorrido terminó, pero no se pudo evaluar el nivel: ${error.message}`, 'error');
   } finally {
+    await celebrar();
     resultadoEnCurso = false;
     actualizarControlesSimulacion(estadoMotor);
     window.removeEventListener('pagehide', cancelar);

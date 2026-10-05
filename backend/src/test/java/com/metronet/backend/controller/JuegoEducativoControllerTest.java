@@ -83,6 +83,21 @@ class JuegoEducativoControllerTest {
     }
 
     @Test
+    void evaluacionExponeSoloLosPremiosNuevosDelResultado() throws Exception {
+        when(authService.obtenerUsuarioConSesion(AUTORIZACION)).thenReturn(usuario());
+        var premio = new com.metronet.backend.service.TrofeosService.Trofeo(
+            "estacion", "Primera estación", "Completar el Nivel 1.", "Completaste el primer nivel.", true);
+        when(juegoEducativoService.evaluarEscenario(ID_USUARIO, 55)).thenReturn(
+            new com.metronet.backend.dto.EvaluacionEscenarioResponse(true, 100, 100,
+                "Nivel completado", 2, false, null, List.of(premio)));
+        mockMvc.perform(post("/api/juego/disenos/55/evaluar").header("Authorization", AUTORIZACION))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.trofeosNuevos.length()").value(1))
+            .andExpect(jsonPath("$.trofeosNuevos[0].id").value("estacion"))
+            .andExpect(jsonPath("$.trofeosNuevos[0].motivo").value("Completaste el primer nivel."));
+    }
+
+    @Test
     void obtieneElResumenDeLaCampanaActualDelJugadorAutenticado() throws Exception {
         ProgresoJuegoResponse progreso = progreso(3, 2, false, true, true);
         when(authService.obtenerUsuarioConSesion(AUTORIZACION)).thenReturn(usuario());

@@ -41,6 +41,7 @@ public class JuegoEducativoService {
     private final CondicionesGeograficasService condicionesGeograficasService;
     private final PuntuacionService puntuacion;
     private final CriterioUvUtService criterioUvUt;
+    private final TrofeosService trofeos;
 
     public JuegoEducativoService(JdbcTemplate jdbc, ObjectMapper mapper, ObjetivosPuntosInteresService objetivos, CondicionesGeograficasService condiciones) {
         this(jdbc, mapper, objetivos, condiciones, new PuntuacionService(jdbc, mapper));
@@ -56,7 +57,6 @@ public class JuegoEducativoService {
             new CriterioUvUtService(jdbcTemplate, objectMapper, puntuacion));
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
     public JuegoEducativoService(
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
@@ -64,12 +64,24 @@ public class JuegoEducativoService {
         CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion,
         CriterioUvUtService criterioUvUt
     ) {
+        this(jdbcTemplate, objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion,
+            criterioUvUt, new TrofeosService(jdbcTemplate, puntuacion));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public JuegoEducativoService(
+        JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
+        ObjetivosPuntosInteresService objetivosPuntosInteresService,
+        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion,
+        CriterioUvUtService criterioUvUt, TrofeosService trofeos
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.objetivosPuntosInteresService = objetivosPuntosInteresService;
         this.condicionesGeograficasService = condicionesGeograficasService;
         this.puntuacion = puntuacion;
         this.criterioUvUt = criterioUvUt;
+        this.trofeos = trofeos;
     }
 
     public List<EscenarioJuegoResponse> obtenerProgreso(Integer idUsuario) {
@@ -258,6 +270,8 @@ public class JuegoEducativoService {
 
     @Transactional
     public EvaluacionEscenarioResponse evaluarEscenario(Integer idUsuario, Integer idDiseno) {
+        // Serializa las evaluaciones del mismo jugador antes de comparar premios.
+        jdbcTemplate.queryForObject("SELECT id_usuario FROM usuario WHERE id_usuario=? FOR UPDATE", Integer.class, idUsuario);
         ProgresoUsuario progresoUsuario = obtenerProgresoUsuario(idUsuario);
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
         if (intento == null) {
@@ -273,6 +287,7 @@ public class JuegoEducativoService {
         int progreso = evaluacion.progreso();
         DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
         boolean completado = evaluacion.completado() && (desempeno == null || (desempeno.aprendizajeCumplido() && desempeno.simulacionActual()));
+        List<TrofeosService.Trofeo> anteriores = completado ? trofeos.consultar(idUsuario) : List.of();
         if (!completado) progreso = Math.min(progreso, 99);
         Integer puntaje = desempeno.puntaje();
         String estado = estadoLuegoDeEvaluacion(completado, intento.estado());
@@ -302,7 +317,11 @@ public class JuegoEducativoService {
             ? (modoLibre ? "¡Nivel completado! Modo Libre desbloqueado." : "¡Consigna completada! El siguiente nivel ya está disponible.")
             : mensajePendiente(progreso, evaluacion.requiereCoberturaPuntosInteres(), evaluacion.coberturaPuntosInteres());
         if (desempeno != null) mensaje = (completado ? "Nivel completado. " : "") + desempeno.explicacion();
-        return new EvaluacionEscenarioResponse(completado, completado ? 100 : Math.min(progreso, 99), puntaje, mensaje, siguiente, modoLibre, desempeno);
+        Set<String> idsAnteriores = new HashSet<>();
+        anteriores.stream().filter(TrofeosService.Trofeo::obtenido).forEach(t -> idsAnteriores.add(t.id()));
+        List<TrofeosService.Trofeo> nuevos = completado ? trofeos.consultar(idUsuario).stream()
+            .filter(t -> t.obtenido() && !idsAnteriores.contains(t.id())).toList() : List.of();
+        return new EvaluacionEscenarioResponse(completado, completado ? 100 : Math.min(progreso, 99), puntaje, mensaje, siguiente, modoLibre, desempeno, nuevos);
     }
 
     @Transactional(readOnly = true)

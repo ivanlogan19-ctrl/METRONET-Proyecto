@@ -136,6 +136,7 @@ class CampanaPostgresTest {
         assertFalse(evaluacion.completado());
         assertEquals(0, evaluacion.progreso());
         assertEquals(0, evaluacion.puntaje());
+        assertTrue(evaluacion.trofeosNuevos().isEmpty());
     }
 
     @Test
@@ -276,6 +277,15 @@ class CampanaPostgresTest {
                     var resultado = juego.evaluarEscenario(7, nivel);
                     assertTrue(resultado.completado(), "Nivel " + nivel);
                     assertEquals(100, resultado.puntaje(), "Todos los criterios del nivel " + nivel);
+                    var premiosEsperados = switch (nivel) {
+                        case 1 -> List.of("estacion");
+                        case 5 -> List.of("camino");
+                        case 10 -> List.of("corona", "biblioteca", "copa");
+                        default -> List.<String>of();
+                    };
+                    assertEquals(premiosEsperados, resultado.trofeosNuevos().stream().map(t -> t.id()).toList());
+                    assertTrue(juego.evaluarEscenario(7, nivel).trofeosNuevos().isEmpty(),
+                        "Reevaluar el mismo intento no vuelve a conceder premios");
                     assertEquals(nivel == 10, resultado.idSiguienteEscenario() == null);
                     assertEquals(nivel, juego.obtenerResumenProgreso(7).nivelesCompletados());
                 }
