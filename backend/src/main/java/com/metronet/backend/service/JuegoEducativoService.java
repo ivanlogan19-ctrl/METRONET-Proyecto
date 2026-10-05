@@ -127,6 +127,22 @@ public class JuegoEducativoService {
         return esAdministrador(idUsuario) || obtenerProgresoUsuario(idUsuario).campanaCompletadaHistoricamente();
     }
 
+    /** El contenido vigente puede acompañar un nivel jugable; los demás quedan cerrados. */
+    public boolean puedeConsultarContenidoActual(Integer idUsuario, int numero) {
+        if (numero < 1 || numero > 10) return false;
+        if (esAdministrador(idUsuario)) return true;
+        Boolean completadoAntes = jdbcTemplate.queryForObject("""
+            SELECT EXISTS (SELECT 1 FROM intento i JOIN escenario e ON e.id_escenario=i.id_escenario
+                WHERE i.id_usuario=? AND i.estado='COMPLETADO' AND e.progresivo=TRUE
+                  AND e.modo='NIVEL' AND e.numero=?)
+            """, Boolean.class, idUsuario, numero);
+        if (Boolean.TRUE.equals(completadoAntes)) return true;
+        ProgresoUsuario progreso = obtenerProgresoUsuario(idUsuario);
+        return listarEscenariosProgresivos().stream()
+            .filter(escenario -> Integer.valueOf(numero).equals(escenario.numero()))
+            .findFirst().map(escenario -> esDesbloqueado(idUsuario, escenario, progreso)).orElse(false);
+    }
+
     @Transactional
     public InicioEscenarioResponse iniciarEscenario(Integer idUsuario, Integer idEscenario) {
         return iniciarEscenario(idUsuario,idEscenario,null);

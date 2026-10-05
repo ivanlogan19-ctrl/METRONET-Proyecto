@@ -8,6 +8,7 @@ import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.service.AdministracionNivelesService;
 import com.metronet.backend.service.AuthService;
 import com.metronet.backend.service.ContenidoPublicadoNivelService;
+import com.metronet.backend.service.JuegoEducativoService;
 import com.metronet.backend.service.PublicacionNivelService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,47 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 class AdministracionNivelesControllerTest {
+    @Test
+    void contenidoVigenteDeniegaNivelBloqueadoSinEntregarTarjetas() throws Exception {
+        var auth=mock(AuthService.class);
+        var contenido=mock(ContenidoPublicadoNivelService.class);
+        var juego=mock(JuegoEducativoService.class);
+        var jugador=mock(Usuario.class);
+        when(jugador.getIdUsuario()).thenReturn(17);
+        when(auth.obtenerUsuarioConSesion("Bearer jugador")).thenReturn(jugador);
+        var http=MockMvcBuilders.standaloneSetup(new ContenidoPublicadoNivelController(auth,contenido,juego))
+            .setControllerAdvice(new ManejadorExcepcionesApi()).build();
+        http.perform(get("/api/juego/niveles/10/contenido").header("Authorization","Bearer jugador"))
+            .andExpect(status().isForbidden());
+        verify(juego).puedeConsultarContenidoActual(17,10);
+        verifyNoInteractions(contenido);
+    }
+    @Test
+    void contenidoVigenteConservaAccesoAlNivelJugable() throws Exception {
+        var auth=mock(AuthService.class);
+        var contenido=mock(ContenidoPublicadoNivelService.class);
+        var juego=mock(JuegoEducativoService.class);
+        var jugador=mock(Usuario.class);
+        when(jugador.getIdUsuario()).thenReturn(17);
+        when(auth.obtenerUsuarioConSesion("Bearer jugador")).thenReturn(jugador);
+        when(juego.puedeConsultarContenidoActual(17,2)).thenReturn(true);
+        var http=MockMvcBuilders.standaloneSetup(new ContenidoPublicadoNivelController(auth,contenido,juego))
+            .setControllerAdvice(new ManejadorExcepcionesApi()).build();
+        http.perform(get("/api/juego/niveles/2/contenido").header("Authorization","Bearer jugador"))
+            .andExpect(status().isOk());
+        verify(contenido).actual(2);
+    }
+    @Test
+    void contenidoVigenteSinSesionNoConsultaLogrosNiTarjetas() throws Exception {
+        var auth=mock(AuthService.class);
+        var contenido=mock(ContenidoPublicadoNivelService.class);
+        var juego=mock(JuegoEducativoService.class);
+        when(auth.obtenerUsuarioConSesion(null)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        var http=MockMvcBuilders.standaloneSetup(new ContenidoPublicadoNivelController(auth,contenido,juego))
+            .setControllerAdvice(new ManejadorExcepcionesApi()).build();
+        http.perform(get("/api/juego/niveles/2/contenido")).andExpect(status().isUnauthorized());
+        verifyNoInteractions(juego,contenido);
+    }
     @Test
     void todasLasRutasPrivadasRechazanJugadorAntesDeLeerDatos() throws Exception {
         var auth=mock(AuthService.class);
@@ -45,7 +87,7 @@ class AdministracionNivelesControllerTest {
         when(jugador.getIdUsuario()).thenReturn(17);
         when(auth.obtenerUsuarioConSesion("Bearer jugador" )).thenReturn(jugador);
         when(contenido.deIntento(81,17)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
-        var http=MockMvcBuilders.standaloneSetup(new ContenidoPublicadoNivelController(auth,contenido))
+        var http=MockMvcBuilders.standaloneSetup(new ContenidoPublicadoNivelController(auth,contenido,mock(JuegoEducativoService.class)))
             .setControllerAdvice(new ManejadorExcepcionesApi()).build();
         http.perform(get("/api/juego/intentos/81/contenido").header("Authorization","Bearer jugador"))
             .andExpect(status().isNotFound());

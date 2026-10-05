@@ -56,6 +56,22 @@ class JuegoEducativoServiceTest {
     private ObjetivosPuntosInteresService objetivosPuntosInteresService;
 
     @Test
+    void contenidoVigentePermiteNivelJugableYLogroHistoricoPeroNoNivelBloqueado() throws Exception {
+        prepararUsuario(NUMERO_CAMPANA, false);
+        prepararEscenarioNivelUno();
+        when(jdbcTemplate.queryForObject(contains("SELECT EXISTS (SELECT 1 FROM intento i"),
+            eq(Boolean.class), eq(ID_USUARIO), eq(1))).thenReturn(false);
+        AtomicInteger completadoAntes = new AtomicInteger(0);
+        when(jdbcTemplate.queryForObject(contains("SELECT EXISTS (SELECT 1 FROM intento i"),
+            eq(Boolean.class), eq(ID_USUARIO), eq(10))).thenAnswer(invocacion -> completadoAntes.get() == 1);
+        var servicio = crearServicio();
+        assertTrue(servicio.puedeConsultarContenidoActual(ID_USUARIO, 1));
+        assertFalse(servicio.puedeConsultarContenidoActual(ID_USUARIO, 10));
+        completadoAntes.set(1);
+        assertTrue(servicio.puedeConsultarContenidoActual(ID_USUARIO, 10));
+    }
+
+    @Test
     void volverAJugarCreaUnNuevoDisenoEIntentoSinBorrarElIntentoCompletado() throws Exception {
         prepararUsuario(NUMERO_CAMPANA, true);
         prepararEscenarioNivelUno();

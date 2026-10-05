@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es" data-contexto-musical="menu">
+<head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+  <script src="/transicion-pagina.js"></script>
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+  <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprendizaje · METRONET</title>
+  <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  <link rel="stylesheet" href="/src/estilos/retro.css" />
+  <link rel="stylesheet" href="/src/navegacion/aprendizaje.css" />
+  <script type="module" blocking="render" src="/src/navegacion/aprendizaje.js"></script>
+</head>
+<body class="metronet-pagina-navegable">
+  <div data-navegacion-global></div>
+  <main class="metronet-aprendizaje" aria-labelledby="tituloAprendizaje">
+    <header class="metronet-aprendizaje__cabecera">
+      <p class="metronet-inicio__etiqueta">Biblioteca del recorrido</p>
+      <h1 id="tituloAprendizaje">Aprendizaje</h1>
+      <p>Completá un nivel para volver a consultar sus siete tarjetas cuando quieras.</p>
+      <p id="resumenAprendizaje" role="status" aria-live="polite">Consultando tus niveles…</p>
+    </header>
+    <p id="errorAprendizaje" class="metronet-inicio__mensaje error" role="alert" hidden></p>
+    <div id="nivelesAprendizaje" class="metronet-aprendizaje__niveles" aria-busy="true"></div>
+  </main>
+  <dialog id="tarjetaAprendizaje" class="metronet-aprendizaje__dialogo" aria-labelledby="tituloTarjetaAprendizaje"></dialog>
+</body>
+</html>

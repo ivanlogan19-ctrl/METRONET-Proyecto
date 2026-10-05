@@ -1,0 +1,28 @@
+.metronet-aprendizaje { width: min(100% - 32px, 1040px); margin: auto; padding: clamp(30px, 6vw, 72px) 0; }
+.metronet-aprendizaje__cabecera { margin-bottom: 26px; }
+.metronet-aprendizaje__cabecera h1 { margin: 0; }
+.metronet-aprendizaje__cabecera > p:not(.metronet-inicio__etiqueta) { color: var(--text-secondary); line-height: 1.6; }
+.metronet-aprendizaje__niveles { display: grid; gap: 14px; }
+.metronet-aprendizaje__nivel { padding: 20px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }
+.metronet-aprendizaje__nivel--bloqueado { opacity: .76; }
+.metronet-aprendizaje__nivel-cabecera { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
+.metronet-aprendizaje__nivel h2 { margin: 0; font-size: clamp(17px, 2vw, 22px); }
+.metronet-aprendizaje__estado { color: var(--success); font-size: 13px; }
+.metronet-aprendizaje__nivel--bloqueado .metronet-aprendizaje__estado { color: var(--text-secondary); }
+.metronet-aprendizaje__nivel > p { margin: 9px 0 0; color: var(--text-secondary); }
+.metronet-aprendizaje__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 10px; margin-top: 16px; }
+.metronet-aprendizaje__tarjeta { min-height: 96px; padding: 12px; text-align: left; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.metronet-aprendizaje__tarjeta:hover, .metronet-aprendizaje__tarjeta:focus-visible { border-color: var(--border-active); outline-offset: 3px; }
+.metronet-aprendizaje__tarjeta span { display: block; margin-bottom: 8px; color: var(--info-active); font-size: 12px; }
+.metronet-aprendizaje__dialogo { width: min(94vw, 790px); max-height: 94dvh; padding: 0; overflow: auto; border: 2px solid var(--border-active); border-radius: var(--radius-control); color: var(--text-primary); background: var(--panel); box-shadow: var(--shadow-floating); }
+.metronet-aprendizaje__dialogo::backdrop { background: rgb(0 0 0 / .7); }
+.metronet-aprendizaje__lectura { display: grid; gap: 14px; padding: clamp(18px, 3vw, 30px); }
+.metronet-aprendizaje__lectura h2, .metronet-aprendizaje__lectura p, .metronet-aprendizaje__lectura figure { margin: 0; }
+.metronet-aprendizaje__lectura h2 { font-size: clamp(18px, 2.4vw, 27px); }
+.metronet-aprendizaje__lectura figure { border: 1px solid var(--border); background: var(--bg-secondary); }
+.metronet-aprendizaje__lectura img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 246; object-fit: contain; }
+.metronet-aprendizaje__idea { padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--warning); background: var(--bg-secondary); }
+.metronet-aprendizaje__fuente { font-size: 12px; overflow-wrap: anywhere; }
+.metronet-aprendizaje__fuente a { color: var(--border-active); }
+.metronet-aprendizaje__acciones { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 15px; border-top: 1px solid var(--border); }
+.metronet-aprendizaje__acciones button { min-height: 44px; }
