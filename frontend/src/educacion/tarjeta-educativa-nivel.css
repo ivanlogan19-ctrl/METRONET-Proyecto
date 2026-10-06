@@ -6,6 +6,10 @@
   border: 2px solid var(--border-active);
   box-shadow: var(--shadow-panel), var(--shadow-floating);
 }
+.metronet-preparacion.metronet-preparacion--educativa::backdrop,
+.metronet-preparacion.metronet-viaje--educativo::backdrop {
+  background: var(--bg-primary);
+}
 .metronet-preparacion.metronet-preparacion--educativa::before,
 .metronet-preparacion.metronet-viaje--educativo::before {
   content: '';

@@ -9,7 +9,7 @@ html:root body .metronet-ranking > .ranking-cabecera::after { display: none; }
 .ranking-ilustracion {
   --ranking-personaje-ancho: clamp(72px, calc((100vw - 1080px) / 2 - 28px), 192px);
   position: fixed;
-  top: clamp(110px, 27vh, 260px);
+  bottom: clamp(12px, 3vh, 28px);
   width: var(--ranking-personaje-ancho);
   height: auto;
   image-rendering: pixelated;
@@ -21,7 +21,7 @@ html:root body .metronet-ranking > .ranking-cabecera::after { display: none; }
 @media (max-width: 1259px) {
   .metronet-ranking { display: grid; grid-template-columns: 1fr 1fr; }
   .metronet-ranking > :not(.ranking-ilustracion) { grid-column: 1 / -1; }
-  .ranking-ilustracion { position: static; width: clamp(64px, 12vw, 100px); max-height: 134px; margin-bottom: 14px; }
+  .ranking-ilustracion { position: static; order: 1; width: clamp(64px, 12vw, 100px); max-height: 134px; margin-top: 18px; }
   .ranking-ilustracion--ari { justify-self: end; }
   .ranking-ilustracion--sol { justify-self: start; }
 }

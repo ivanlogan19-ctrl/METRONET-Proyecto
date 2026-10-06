@@ -53,7 +53,9 @@ export default class CapaPuntosInteres {
 
     this.puntos = [];
 
-    this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
+    this.categoriasIniciales = opciones.categoriasIniciales ?? CATEGORIAS_PUNTUALES;
+    this.mostrarObjetivosSiempre = opciones.mostrarObjetivosSiempre !== false;
+    this.categoriasVisibles = new Set(this.categoriasIniciales);
     this.mostrarTodosLosMarcadores = false;
 
     this.estacionesReferencia = [];
@@ -438,9 +440,10 @@ export default class CapaPuntosInteres {
   }
 
   categoriaEsVisible(punto) {
-    // La selección explícita y los objetivos permanecen visibles sin activar su categoría.
+    // La selección explícita sigue visible; el editor decide si mostrar objetivos sin activar su categoría.
     return this.esPuntoDestacado(punto)
-      || Boolean(this.obtenerObjetivoPunto(punto)) || this.categoriasVisibles.has(obtenerCategoriaReferencia(punto));
+      || (this.mostrarObjetivosSiempre && Boolean(this.obtenerObjetivoPunto(punto)))
+      || this.categoriasVisibles.has(obtenerCategoriaReferencia(punto));
   }
 
   obtenerResumenPuntos() {
@@ -497,7 +500,7 @@ export default class CapaPuntosInteres {
   extraerPuntos() {
     this.puntos = [];
 
-    this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
+    this.categoriasVisibles = new Set(this.categoriasIniciales);
 
     this.contextoRedPorPunto.clear();
 
@@ -961,8 +964,9 @@ export default class CapaPuntosInteres {
 
     const radio = objetivo?.radioCobertura;
     const escalaMapa = this.capaBarrios?.calcularEscalaMapa?.();
+    let cobertura = null;
     if (this.esObjetivoActivo(objetivo) && Number.isFinite(radio) && radio > 0 && escalaMapa) {
-      const cobertura = this.escena.add.graphics().setDepth(7).setName(`cobertura-poi-${punto.id}`);
+      cobertura = this.escena.add.graphics().setDepth(7).setName(`cobertura-poi-${punto.id}`);
       cobertura.fillStyle(colorEstado, 0.07);
       cobertura.lineStyle(1, colorEstado, 0.4);
       const ancho = 2 * radio / 1000 * escalaMapa.anchoMapa;
@@ -1031,6 +1035,7 @@ export default class CapaPuntosInteres {
       punto,
       objetivo,
       estado,
+      cobertura,
       contenedor,
       etiqueta,
       areaInteraccion,
@@ -1383,6 +1388,7 @@ export default class CapaPuntosInteres {
 
       representacion.contenedor.setVisible(mostrarMarcador);
       representacion.areaInteraccion.setVisible(mostrarMarcador);
+      representacion.cobertura?.setVisible(mostrarMarcador);
       representacion.etiqueta?.setVisible(mostrarEtiqueta);
 
       if (representacion.areaInteraccion.input) {
@@ -1775,7 +1781,7 @@ export default class CapaPuntosInteres {
 
     this.puntos = [];
 
-    this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
+    this.categoriasVisibles = new Set(this.categoriasIniciales);
 
     this.estacionesReferencia = [];
 

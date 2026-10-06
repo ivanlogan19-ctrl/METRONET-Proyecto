@@ -50,6 +50,7 @@ function abrirTarjeta(tarjeta, numero, posicion, total) {
 
 function renderizarNivel(nivel) {
   const seccion = nodo('section', '', `metronet-aprendizaje__nivel${nivel.desbloqueado ? '' : ' metronet-aprendizaje__nivel--bloqueado'}`);
+  seccion.dataset.numero = String(nivel.numero);
   const cabecera = nodo('header', '', 'metronet-aprendizaje__nivel-cabecera');
   const nombre = String(nivel.contenido?.desafio?.nombre ?? '').trim()
     .replace(new RegExp(`^Nivel\\s+${nivel.numero}(?!\\d)(?:\\s*[·:–-]\\s*)?`, 'i'), '');

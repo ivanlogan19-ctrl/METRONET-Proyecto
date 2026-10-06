@@ -1,9 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="192" height="256" viewBox="0 0 48 64" shape-rendering="crispEdges">
   <title>Joven levantando un trofeo</title>
+  <style>
+    .trofeo-oscilante {
+      transform-box: view-box;
+      transform-origin: 37px 25px;
+      animation: oscilar-trofeo 1.8s ease-in-out 0s infinite alternate;
+    }
+    @keyframes oscilar-trofeo {
+      from { transform: rotate(-9deg); }
+      to { transform: rotate(9deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .trofeo-oscilante { animation: none; }
+    }
+  </style>
   <!-- Trofeo dorado junto al brazo alzado. -->
+  <g class="trofeo-oscilante">
   <path fill="#17283b" d="M34 2h10v3h3v9h-3v3h-3v4h-2v3h4v3H32v-3h4v-3h-2v-4h-3v-3h-3V5h3V2h3z"/>
   <path fill="#e4b95a" d="M34 3h10v10h-2v3h-2v4h-4v-4h-2v-3h-2V3zm-5 3h3v7h-2V8h-1zm15 0h2v7h-2zM36 21h4v3h-4zm-3 4h9v1h-9z"/>
   <path fill="#f2d377" d="M35 4h2v9h-2zm3 1h4v3h-4z"/>
+  </g>
   <!-- Piernas y calzado. -->
   <path fill="#17283b" d="M12 45h22v15h-3v3H9v-5h3z"/>
   <path fill="#293f83" d="M14 47h18v12h-6V52h-5v7h-7z"/>

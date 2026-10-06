@@ -5,7 +5,8 @@ body.metronet-pagina-aprendizaje {
 .metronet-aprendizaje { width: min(100% - 32px, 1040px); margin: auto; padding: clamp(30px, 6vw, 72px) 0; }
 @media (min-width: 1100px) {
   .metronet-aprendizaje {
-    --cruz-ferroviaria-ancho: clamp(140px, 12vw, 180px);
+    --cruz-ferroviaria-ancho: clamp(108px, 11vw, 170px);
+    --separacion-cruz: clamp(36px, 3vw, 54px);
     --margen-aprendizaje: max(176px, calc((100vw - 1040px) / 2));
     position: relative;
     width: min(100% - 352px, 1040px);
@@ -16,12 +17,12 @@ body.metronet-pagina-aprendizaje {
     position: fixed;
     top: clamp(86px, 12vh, 120px);
     width: var(--cruz-ferroviaria-ancho);
-    aspect-ratio: 200 / 260;
+    aspect-ratio: 200 / 300;
     background: url('/assets/cruz-ferroviaria-aprendizaje.svg') center / contain no-repeat;
     pointer-events: none;
   }
-  .metronet-aprendizaje::before { left: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - 24px); }
-  .metronet-aprendizaje::after { right: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - 24px); }
+  .metronet-aprendizaje::before { left: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz)); }
+  .metronet-aprendizaje::after { right: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz)); }
 }
 .metronet-aprendizaje__cabecera { margin-bottom: 26px; }
 .metronet-aprendizaje__cabecera h1 { margin: 0; }
@@ -29,15 +30,71 @@ body.metronet-pagina-aprendizaje {
 .metronet-aprendizaje__niveles { display: grid; gap: 14px; }
 .metronet-aprendizaje__nivel { padding: 20px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }
 .metronet-aprendizaje__nivel--bloqueado { opacity: .76; }
+.metronet-aprendizaje__nivel[data-numero="1"] { --boleto-acento: #ffd078; }
+.metronet-aprendizaje__nivel[data-numero="2"] { --boleto-acento: #63caff; }
+.metronet-aprendizaje__nivel[data-numero="3"] { --boleto-acento: #87dbab; }
+.metronet-aprendizaje__nivel[data-numero="4"] { --boleto-acento: #ff9991; }
+.metronet-aprendizaje__nivel[data-numero="5"] { --boleto-acento: #c1a6ff; }
+.metronet-aprendizaje__nivel[data-numero="6"] { --boleto-acento: #ffb578; }
+.metronet-aprendizaje__nivel[data-numero="7"] { --boleto-acento: #64ddd0; }
+.metronet-aprendizaje__nivel[data-numero="8"] { --boleto-acento: #f5a0c9; }
+.metronet-aprendizaje__nivel[data-numero="9"] { --boleto-acento: #c9df85; }
+.metronet-aprendizaje__nivel[data-numero="10"] { --boleto-acento: #a2bfff; }
 .metronet-aprendizaje__nivel-cabecera { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
 .metronet-aprendizaje__nivel h2 { margin: 0; font-size: clamp(17px, 2vw, 22px); }
 .metronet-aprendizaje__estado { color: var(--success); font-size: 13px; }
 .metronet-aprendizaje__nivel--bloqueado .metronet-aprendizaje__estado { color: var(--danger); }
 .metronet-aprendizaje__nivel > p { margin: 9px 0 0; color: var(--text-secondary); }
 .metronet-aprendizaje__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 10px; margin-top: 16px; }
-.metronet-aprendizaje__tarjeta { min-height: 96px; padding: 12px; text-align: left; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
-.metronet-aprendizaje__tarjeta:hover, .metronet-aprendizaje__tarjeta:focus-visible { border-color: var(--border-active); outline-offset: 3px; }
-.metronet-aprendizaje__tarjeta span { display: block; margin-bottom: 8px; color: var(--info-active); font-size: 12px; }
+html:root body button.metronet-aprendizaje__tarjeta {
+  --talon-ancho: 76px;
+  display: grid;
+  grid-template-columns: var(--talon-ancho) minmax(0, 1fr);
+  align-items: stretch;
+  position: relative;
+  min-height: 104px;
+  padding: 0;
+  text-align: left;
+  border: 2px solid var(--boleto-acento, var(--warning));
+  border-radius: 0;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.metronet-aprendizaje__tarjeta::before,
+.metronet-aprendizaje__tarjeta::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: calc(var(--talon-ancho) - 7px);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--panel);
+  pointer-events: none;
+}
+.metronet-aprendizaje__tarjeta::before { top: -8px; }
+.metronet-aprendizaje__tarjeta::after { bottom: -8px; }
+html:root body button.metronet-aprendizaje__tarjeta:hover,
+html:root body button.metronet-aprendizaje__tarjeta:focus-visible { border-color: var(--border-active); outline-offset: 3px; }
+.metronet-aprendizaje__tarjeta span {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 10px 8px;
+  border-right: 2px dashed var(--boleto-acento, var(--warning));
+  background: color-mix(in srgb, var(--boleto-acento, var(--warning)) 16%, var(--bg-secondary));
+  color: var(--boleto-acento, var(--warning));
+  font-size: 10px;
+  line-height: 1.45;
+  text-align: center;
+}
+.metronet-aprendizaje__tarjeta strong {
+  align-self: center;
+  padding: 12px 10px 12px 16px;
+  line-height: 1.45;
+}
+
 .metronet-aprendizaje__dialogo { width: min(94vw, 790px); max-height: 94dvh; padding: 0; overflow: auto; border: 2px solid var(--border-active); border-radius: var(--radius-control); color: var(--text-primary); background: var(--panel); box-shadow: var(--shadow-floating); }
 .metronet-aprendizaje__dialogo::backdrop { background: rgb(0 0 0 / .7); }
 .metronet-aprendizaje__lectura { display: grid; gap: 14px; padding: clamp(18px, 3vw, 30px); }

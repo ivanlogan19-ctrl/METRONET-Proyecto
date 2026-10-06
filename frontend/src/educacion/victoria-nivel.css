@@ -13,7 +13,7 @@ html:root body .metronet-victoria .metronet-victoria__felicitacion { color: var(
 .metronet-victoria__destino { display: grid; gap: 4px; opacity: 0; transition: opacity 200ms ease-out; }
 .metronet-victoria--destino .metronet-victoria__destino { opacity: 1; }
 html:root body .metronet-victoria__destino > :first-child { color: var(--info-active); font-family: var(--font-arcade); font-size: 15px; }
-html:root body .metronet-victoria__destino > :last-child { font-size: 15px; }
+html:root body .metronet-victoria__destino > :last-child { font-size: 15px; text-align: justify; text-align-last: left; }
 html:root body .metronet-victoria__estado { font-size: 12px; }
 .metronet-victoria__acciones { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
 .metronet-victoria__acciones .metronet-victoria__estado { flex-basis: 100%; margin: 0; }

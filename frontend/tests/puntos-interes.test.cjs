@@ -72,6 +72,17 @@ test('varios objetivos conservan etiquetas y radios, y se limpian al cambiar de 
   const { pagina } = await preparar(t, { objetivos: [{ idPunto: 1, radioCobertura: 60 }, { idPunto: 26, radioCobertura: 60 }] });
   assert.deepEqual((await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).map(r => r.punto.id))).sort((a,b)=>a-b), []);
   assert.equal(await pagina.evaluate(() => poi.elementos.filter(e => e.name?.startsWith('cobertura-poi-')).length), 2);
+  const cobertura = await pagina.evaluate(async () => {
+    const { obtenerCategoriaReferencia } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
+    const referencia = poi.representaciones.find(r => r.punto.id === 1);
+    const categoria = obtenerCategoriaReferencia(referencia.punto);
+    const inicial = referencia.cobertura.visible;
+    poi.establecerCategoriasVisibles([categoria]);
+    const activada = referencia.cobertura.visible;
+    poi.establecerCategoriasVisibles([]);
+    return { inicial, activada, apagada: referencia.cobertura.visible };
+  });
+  assert.deepEqual(cobertura, { inicial: false, activada: true, apagada: false });
   const escalas = await pagina.evaluate(() => [1, 2, 4].flatMap(zoom => {
     poi.escena.cameras.main.setZoom(zoom);
     poi.actualizarTamanoIconos();

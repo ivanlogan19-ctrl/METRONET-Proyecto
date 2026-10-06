@@ -40,6 +40,7 @@ html:root body section.metronet-escenarios-pagina__reinicio {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning) 24%, transparent), var(--shadow-panel);
 }
 html:root body .metronet-escenarios-pagina__reinicio .metronet-escenarios-pagina__seccion-cabecera h2 {
+  --titulo-sombra: inset var(--border-accent) 0 0 var(--warning);
   border-left-color: var(--warning);
   color: var(--warning);
 }

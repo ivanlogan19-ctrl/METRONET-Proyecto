@@ -648,10 +648,6 @@ html:root body .metronet-area-mapa > .metronet-mapa-titulo {
 #metronet-panel-controles .metronet-editor-finalizar__acciones { display:flex !important; flex-wrap:wrap; gap:8px; }
 #metronet-panel-controles .metronet-editor-seleccionado > div { display:flex; flex-wrap:wrap; gap:6px; }
 .metronet-herramientas__opciones:empty { display:none; }
-.metronet-editor-acceso-teclado { font:12px/1.5 var(--font-ui); border-top:1px solid var(--border); padding-top:6px; }
-.metronet-editor-acceso-teclado label { display:block; }
-.metronet-editor-acceso-teclado select { width:100%; min-width:0; }
-.metronet-editor-acceso-teclado button { margin-top:6px; }
 .metronet-editor-finalizar__ayuda { font:12px/1.45 var(--font-ui); }
 .metronet-cursor-mapa { position:absolute; z-index:18; width:20px; height:20px; border:2px solid var(--text-primary); outline:2px solid var(--bg-primary); pointer-events:none; transform:translate(-50%,-50%); }
 #metronet-mapa canvas:focus-visible { outline:3px solid var(--info-active); outline-offset:-3px; }

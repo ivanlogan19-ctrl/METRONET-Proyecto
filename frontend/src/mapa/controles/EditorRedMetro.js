@@ -82,10 +82,6 @@ export default class EditorRedMetro {
     this.barraEstado = new BarraEstadoEditor(document.querySelector('[data-estado-editor]'));
     this.panelAyuda = this.barraEstado.panelAyuda;
     this.panelTutorial = this.panelAyuda.tutorial;
-    const bloqueTeclado = this.panelAyuda.elemento.querySelector('[data-hud-tecnico]');
-    bloqueTeclado.querySelector('[data-hud-controles]').hidden = true;
-    bloqueTeclado.querySelector('[data-hud-teclado]').append(this.accesoTeclado);
-    bloqueTeclado.hidden = false;
     this.contenedor.addEventListener('change', () => {
       if (this.errorAyuda) this.actualizarAyuda(true);
     });
@@ -158,15 +154,6 @@ export default class EditorRedMetro {
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
-    const acceso = document.createElement('details');
-    acceso.className = 'metronet-editor-acceso-teclado';
-    acceso.innerHTML = '<summary>Elementos del mapa / teclado</summary><label>Estación<select data-estacion-teclado></select></label><button type="button" data-elegir-estacion-teclado></button>';
-    this.accesoTeclado = acceso;
-    configurarBotonIcono(acceso.querySelector('button'), 'estaciones', 'Elegir estación');
-    acceso.querySelector('button').addEventListener('click', () => {
-      const estacion = this.disenoActual?.estaciones.find(e => e.nombre === acceso.querySelector('select').value);
-      if (estacion) this.seleccionarElemento({ tipo:'estacion', valor:estacion });
-    });
 
   }
 
@@ -284,11 +271,9 @@ export default class EditorRedMetro {
       this.aplicarHerramientas();
       this.capaRedMetro.establecerDiseno(this.disenoActual);
       this.actualizarOpcionesLineas();
-      const selectorEstacion = this.accesoTeclado.querySelector('[data-estacion-teclado]');
-      selectorEstacion?.replaceChildren(...this.disenoActual.estaciones.map(e => new Option(e.nombre,e.nombre)));
       this.actualizarAccesoSimulacion();
       this.actualizarPuntosInteresObjetivo();
-      if (cambioDeDiseno) this.escena.controlZoom?.ajustarRed();
+      if (cambioDeDiseno) this.escena.controlZoom?.restaurar();
       this.cambiarVisibilidadEditor(true);
       if (cambioDeDiseno) {
         const vista = consumirVistaParaNavegacion(idDiseno, obtenerSesionActiva(), 'edicion');

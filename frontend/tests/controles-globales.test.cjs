@@ -141,13 +141,12 @@ test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Música utiliz
 });
 
 
-test('Encabezados desplegables conservan marco de control y apertura nativa', async t => {
+test('Referencias conserva apertura nativa y el HUD de música no muestra controles de teclado', async t => {
   const editor = (await abrir(t, 'constructor')).pagina;
   await editor.locator('.metronet-hud > summary').click();
-  const summary = editor.locator('.metronet-hud [data-hud-teclado] .metronet-editor-acceso-teclado > summary');
+  assert.equal(await editor.locator('.metronet-hud [data-hud-teclado], .metronet-editor-acceso-teclado').count(), 0);
+  const summary = editor.locator('.metronet-poi > summary');
   assert.equal(await summary.isVisible(), true);
-  const css = await estilo(summary);
-  assert.equal(css.borderTopWidth, '1px'); assert.notEqual(css.boxShadow, 'none');
   await summary.focus(); await summary.press('Enter');
   assert.equal(await summary.evaluate(e => e.parentElement.open), true);
   const simulacion = (await abrir(t, '/simulacion.html?idDiseno=77')).pagina;

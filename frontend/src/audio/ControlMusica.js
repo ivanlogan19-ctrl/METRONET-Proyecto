@@ -9,7 +9,7 @@ export function crearControlMusica({ integrado = false } = {}) {
   elemento.innerHTML = ` ${integrado ? '' : '<summary aria-expanded="false"></summary>'}
     <div class="metronet-audio__panel" ${integrado ? '' : 'popover="manual"'}>
       <label><input type="checkbox" data-silencio-musica> Silenciar música</label>
-      <label>Volumen de música <span data-valor-volumen>35 %</span>
+      <label>Volumen de música
         <input type="range" min="0" max="100" step="1" aria-label="Volumen de música">
       </label>
       <p data-estado-musica></p>
@@ -47,7 +47,6 @@ export function crearControlMusica({ integrado = false } = {}) {
   const desuscribir = gestorMusica.suscribir(datos => {
     silencio.checked = datos.silenciado;
     volumen.value = String(Math.round(datos.volumen * 100));
-    elemento.querySelector('[data-valor-volumen]').textContent = `${volumen.value} %`;
     activar.hidden = !datos.esperandoGesto || !datos.disponible || datos.silenciado || datos.volumen === 0;
     estado.textContent = !datos.disponible ? 'Sin pista asignada a esta sección.'
       : datos.error ? 'Música no disponible. Podés continuar.'

@@ -178,6 +178,8 @@ export default class MapaScene extends Phaser.Scene {
 
   crearCapaPuntosInteres() {
     this.capaPuntosInteres = new CapaPuntosInteres(this, {
+      categoriasIniciales: [],
+      mostrarObjetivosSiempre: false,
       // El gesto de construcción tiene prioridad; la búsqueda explícita sigue disponible.
       permitirSeleccion: puntero => {
         if (this.editorRedMetro?.modo && this.editorRedMetro.modo !== 'normal') return false;

@@ -6,6 +6,10 @@
 .metronet-poi>summary::-webkit-details-marker,.metronet-hud>summary::-webkit-details-marker { display:none; }
 .metronet-poi__panel,.metronet-hud__panel { position:absolute; top:calc(100% + 8px); left:0; width:min(410px,calc(100vw - 40px)); max-height:min(580px,65dvh,var(--alto-panel-mapa,65dvh)); overflow:auto; overscroll-behavior:contain; padding:12px; box-sizing:border-box; border:2px solid var(--border-active); background:var(--panel); color:var(--text-primary); box-shadow:var(--shadow-floating); z-index:var(--layer-dropdown,200); }
 .metronet-hud__panel { left:auto; right:0; }
+.metronet-hud[data-vista='musica'] .metronet-hud__panel { width:min(260px,calc(100vw - 40px)); padding:10px; }
+.metronet-hud[data-vista='musica'] .metronet-hud__panel > header,
+.metronet-hud--integrado .metronet-hud__opciones { display:none; }
+.metronet-hud[data-vista='musica'] .metronet-audio__panel { gap:8px; }
 .metronet-poi__panel>header,.metronet-hud__panel>header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
 .metronet-poi__panel h2,.metronet-hud__panel h2,.metronet-poi__panel h3 { margin:0; font:700 16px/1.4 var(--font-display,var(--font-ui)); text-shadow:none; overflow-wrap:anywhere; }
 .metronet-poi__categorias { display:grid; grid-template-columns:repeat(5,minmax(44px,1fr)); gap:8px; }

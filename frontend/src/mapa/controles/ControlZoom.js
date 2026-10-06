@@ -109,7 +109,8 @@ export default class ControlZoom {
 
     this.actualizarLimitesCamara();
 
-    this.actualizarBotones();
+    if (this.escena.contenedorEditorRed) this.restaurar();
+    else this.actualizarBotones();
   }
 
   crearInterfaz() {
@@ -235,6 +236,7 @@ export default class ControlZoom {
     } else if (this.estadoVista === 'mapa') {
       this.despejarMandosDeRed(this.obtenerLimitesAjuste?.());
     }
+    this.marcarVistaManual();
     this.actualizarBrujula();
   }
 
@@ -724,6 +726,19 @@ export default class ControlZoom {
       maximoY: limitesMapa.maximoY + margen,
     };
 
+    // Phaser fija el scroll en el borde izquierdo/superior cuando los bounds
+    // son más chicos que el área visible. Incluimos la vista centrada completa.
+    const centroX = (limitesMapa.minimoX + limitesMapa.maximoX) / 2;
+    const centroY = (limitesMapa.minimoY + limitesMapa.maximoY) / 2;
+    const cosenoCamara = Math.abs(Math.cos(camara.rotation));
+    const senoCamara = Math.abs(Math.sin(camara.rotation));
+    const medioAnchoVisible = (camara.width * cosenoCamara + camara.height * senoCamara) / (2 * camara.zoom);
+    const medioAltoVisible = (camara.width * senoCamara + camara.height * cosenoCamara) / (2 * camara.zoom);
+    this.limitesCamara.minimoX = Math.min(this.limitesCamara.minimoX, centroX - medioAnchoVisible);
+    this.limitesCamara.maximoX = Math.max(this.limitesCamara.maximoX, centroX + medioAnchoVisible);
+    this.limitesCamara.minimoY = Math.min(this.limitesCamara.minimoY, centroY - medioAltoVisible);
+    this.limitesCamara.maximoY = Math.max(this.limitesCamara.maximoY, centroY + medioAltoVisible);
+
     if (vistaSolicitada) {
       const coseno = Math.abs(Math.cos(vistaSolicitada.rotacion));
       const seno = Math.abs(Math.sin(vistaSolicitada.rotacion));
@@ -833,8 +848,7 @@ export default class ControlZoom {
   }
 
   restaurarVistaTrasRedimension(vista, limitesRed = null) {
-    this.actualizarLimitesCamara();
-    if (!vista) {
+    if (!vista || this.estadoVista === 'mapa') {
       this.restaurar();
       return;
     }
@@ -857,9 +871,10 @@ export default class ControlZoom {
     const camara = this.obtenerCamara();
 
     if (camara) {
-      this.actualizarLimitesCamara();
-
       camara.setZoom(this.zoomMinimo);
+      camara.setRotation(0);
+
+      this.actualizarLimitesCamara();
 
       const centroMapa = this.obtenerCentroMapa();
 
@@ -870,10 +885,11 @@ export default class ControlZoom {
       );
 
       this.restringirCamara();
-      this.despejarMandosDeRed(this.obtenerLimitesAjuste?.());
     }
 
     this.escena.actualizarVisibilidadLogo?.(true);
+
+    this.actualizarBrujula();
 
     this.actualizarBotones();
   }

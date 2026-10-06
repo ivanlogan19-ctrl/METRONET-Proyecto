@@ -1,6 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" role="img" aria-label="Cruz ferroviaria">
-  <rect x="93" y="112" width="14" height="148" fill="#263f58" stroke="#76c7ff" stroke-width="3"/>
-  <rect x="86" y="248" width="28" height="8" fill="#263f58" stroke="#76c7ff" stroke-width="3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" role="img" aria-label="Cruz ferroviaria">
+  <style>
+    .luz-roja { animation: senal-roja 2s steps(1, end) infinite; }
+    .luz-verde { animation: senal-verde 2s steps(1, end) infinite; }
+    @keyframes senal-roja {
+      0%, 49.99% { opacity: 1; filter: drop-shadow(0 0 7px #ff5368); }
+      50%, 100% { opacity: .22; filter: none; }
+    }
+    @keyframes senal-verde {
+      0%, 49.99% { opacity: .22; filter: none; }
+      50%, 100% { opacity: 1; filter: drop-shadow(0 0 7px #59e6a1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .luz-roja, .luz-verde { animation: none; filter: none; }
+      .luz-roja { opacity: 1; }
+      .luz-verde { opacity: .22; }
+    }
+  </style>
+  <rect x="93" y="112" width="14" height="180" fill="#263f58" stroke="#76c7ff" stroke-width="3"/>
+  <rect x="86" y="288" width="28" height="8" fill="#263f58" stroke="#76c7ff" stroke-width="3"/>
   <g transform="rotate(-43 100 99)">
     <rect x="5" y="81" width="190" height="36" fill="#edf5ff" stroke="#299fee" stroke-width="5"/>
     <text x="100" y="105" text-anchor="middle" fill="#132641" font-family="monospace" font-size="15" font-weight="900" letter-spacing="1">FERROCARRIL</text>
@@ -10,4 +27,9 @@
     <text x="100" y="105" text-anchor="middle" fill="#132641" font-family="monospace" font-size="17" font-weight="900" letter-spacing="1">PASO A NIVEL</text>
   </g>
   <rect x="91" y="90" width="18" height="18" fill="#132641" stroke="#edf5ff" stroke-width="3"/>
+  <rect x="50" y="189" width="100" height="45" rx="5" fill="#132641" stroke="#76c7ff" stroke-width="3"/>
+  <circle cx="75" cy="211" r="17" fill="#071827" stroke="#edf5ff" stroke-width="2"/>
+  <circle cx="125" cy="211" r="17" fill="#071827" stroke="#edf5ff" stroke-width="2"/>
+  <circle class="luz-roja" cx="75" cy="211" r="12" fill="#ff5368"/>
+  <circle class="luz-verde" cx="125" cy="211" r="12" fill="#59e6a1"/>
 </svg>

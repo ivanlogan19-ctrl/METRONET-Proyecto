@@ -91,7 +91,14 @@ function crearControl(ControlZoom, ancho, alto, zoomMinimo, zoomMaximo) {
       if(this.useBounds) {this.scrollX=this.clampX(this.scrollX);this.scrollY=this.clampY(this.scrollY);} },
   };
   const escena = { scale: { width: ancho, height: alto }, cameras: { main: camara } };
-  const capaBarrios = { transformacion: geografia, calcularEscalaMapa: () => estado.transformacion };
+  const capaBarrios = {
+    transformacion: geografia,
+    calcularEscalaMapa: () => estado.transformacion,
+    convertirCoordenada: ([longitud, latitud], mapa) => ({
+      x: mapa.offsetX + (longitud - geografia.minX) * mapa.escala,
+      y: mapa.offsetY + (geografia.maxY - latitud) * mapa.escala,
+    }),
+  };
   const control = new ControlZoom(escena, { capaBarrios, zoomMinimo, zoomMaximo });
   control.actualizarLimitesCamara();
   return { control, escena, camara, estado };
@@ -140,4 +147,36 @@ test('la cámara sin rotación conserva un centro cercano al borde al reducir el
   assert.ok(Math.abs(despues.longitud - fuente.longitud) < 1e-9);
   assert.ok(Math.abs(despues.latitud - fuente.latitud) < 1e-9);
   assert.ok(Math.abs(despues.escalaVisible - fuente.escalaVisible) < 1e-6);
+});
+
+// El mapa completo debe quedar centrado aun cuando es más angosto que el canvas.
+test('el inicio centra Montevideo dentro del lienzo sin alterar el zoom', async () => {
+  const ControlZoom = await cargarControlZoom();
+  for (const [ancho, alto] of [[1539, 626], [1219, 522], [349, 362]]) {
+    const { control, camara, estado } = crearControl(ControlZoom, ancho, alto, 1, 8);
+    camara.setRotation(Math.PI / 6);
+    control.restaurar();
+    const mapa = estado.transformacion;
+    assert.ok(Math.abs(camara.midPoint.x - (mapa.offsetX + mapa.anchoMapa / 2)) < 1, `${ancho}x${alto}: centro horizontal`);
+    assert.ok(Math.abs(camara.midPoint.y - (mapa.offsetY + mapa.altoMapa / 2)) < 1, `${ancho}x${alto}: centro vertical`);
+    assert.equal(camara.zoom, 1);
+    assert.equal(camara.rotation, 0);
+  }
+});
+
+test('el mapa inicial conserva el encuadre de apertura al cambiar el tamaño del cuadro', async () => {
+  const ControlZoom = await cargarControlZoom();
+  const { control, escena, camara, estado } = crearControl(ControlZoom, 908, 506, 1, 8);
+  control.restaurar();
+  const vistaInicial = control.capturarVista();
+  escena.scale.width = 1539;
+  escena.scale.height = 626;
+  camara.width = 1539;
+  camara.height = 626;
+  estado.transformacion = proyeccion(1539, 626);
+  control.restaurarVistaTrasRedimension(vistaInicial);
+  const mapa = estado.transformacion;
+  assert.ok(Math.abs(camara.midPoint.x - (mapa.offsetX + mapa.anchoMapa / 2)) < 1);
+  assert.ok(Math.abs(camara.midPoint.y - (mapa.offsetY + mapa.altoMapa / 2)) < 1);
+  assert.equal(camara.zoom, 1);
 });

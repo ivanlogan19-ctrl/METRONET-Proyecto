@@ -39,7 +39,7 @@ for(const width of [1440,768,390,320]) test(`Controles ${width}px: música, Apre
   const antes=await p.locator('#metronet-mapa').boundingBox();
   assert.equal(await p.locator('[data-hud-vista=controles],[data-hud-vista=pista]').count(),0);
   assert.equal(await p.locator('.metronet-aprender-acceso').isVisible(),true);
-  assert.equal(await p.locator('.metronet-editor-acceso-teclado').count(),1);
+  assert.equal(await p.locator('.metronet-editor-acceso-teclado').count(),0);
   await abrirHud(p);
   assert.equal(await p.locator('[data-hud-musica]').isVisible(),true);
   assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(),antes);

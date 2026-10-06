@@ -14,7 +14,7 @@ for(const width of [1440,390,320])test(`Editor ${width}: controles aprobados sin
  assert.equal(await p.locator('.metronet-editor-contexto,.metronet-editor-juego,[data-selector-diseno],[data-lista-escenarios]').count(),0);
  assert.equal(await p.locator('.metronet-tutorial__panel').isVisible(),false);
  assert.equal(await p.locator('[data-panel-edicion-toggle]').isVisible(),width<620);
- assert.equal(await p.locator('.metronet-hud [data-hud-teclado] .metronet-editor-acceso-teclado').count(),1);
+ assert.equal(await p.locator('.metronet-editor-acceso-teclado').count(),0);
  assert.equal(await p.locator('[data-hud-vista=pista],[data-hud-vista=controles]').count(),0);
  assert.equal(await p.locator('.metronet-aprender-acceso').isVisible(),true);
  const mapa=await p.locator('#metronet-mapa').boundingBox();
@@ -23,7 +23,7 @@ for(const width of [1440,390,320])test(`Editor ${width}: controles aprobados sin
  assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(),mapa);
  await p.locator('.metronet-hud>summary').click();
  assert.equal(await p.locator('[data-hud-musica]').isVisible(),true);
- assert.equal(await p.locator('.metronet-hud [data-hud-teclado] .metronet-editor-acceso-teclado>summary').isVisible(),true);
+ assert.equal(await p.locator('.metronet-hud [data-hud-musica]').isVisible(),true);
  assert.deepEqual(await p.locator('#metronet-mapa').boundingBox(),mapa);
  assert.equal(await p.locator('[data-contenedor-consigna] .metronet-consigna__lista-breve').isVisible(),true);
  assert.equal(await p.locator('[data-alternar-consigna]').isVisible(),false);
