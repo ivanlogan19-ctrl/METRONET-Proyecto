@@ -64,12 +64,14 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     const inicio = Date.now();
     await ingresar(p, rol);
     await pantalla(p).waitFor();
-    assert.equal(solicitudes.length, 1);
-    assert.equal(solicitudes[0].path, rol === 'ADMIN' ? '/auth/login/admin' : '/auth/login');
-    assert.deepEqual(solicitudes[0].body, rol === 'ADMIN' ? { usuario: 'operador', password: 'Prueba1!' } : { email: 'ana@example.test', password: 'Prueba1!' });
+    const solicitudesLogin = solicitudes.filter(s => s.path.startsWith('/auth/login'));
+    assert.equal(solicitudesLogin.length, 1);
+    assert.equal(solicitudesLogin[0].path, rol === 'ADMIN' ? '/auth/login/admin' : '/auth/login');
+    assert.deepEqual(solicitudesLogin[0].body, rol === 'ADMIN' ? { usuario: 'operador', password: 'Prueba1!' } : { email: 'ana@example.test', password: 'Prueba1!' });
     assert.equal(await p.evaluate(rol => JSON.parse(localStorage.getItem(rol === 'ADMIN' ? 'sesionAdministrador' : 'sesionUsuario')).usuario.rol, rol), rol);
     await p.waitForFunction(() => document.querySelector('.metronet-bienvenida')?.dataset.fase === 'bienvenida');
-    assert.equal(await pantalla(p).getByRole('heading', { name: 'Bienvenido a METRONET' }).isVisible(), true);
+    assert.equal(await pantalla(p).getAttribute('aria-label'), 'Bienvenido a METRONET');
+    assert.equal(await pantalla(p).locator('[data-marca-bienvenida] img').isVisible(), true);
     // Decisión del usuario: saludo general hasta disponer de primer acceso por cuenta.
     assert.equal(await p.locator('[data-perfil-bienvenida]').count(), 0);
     assert.doesNotMatch(await pantalla(p).innerText(), /Ana|ADMINISTRADOR|JUGADOR|NETWORK|INITIALIZING/);
@@ -177,16 +179,20 @@ for (const viewport of [{width:320,height:568},{width:390,height:844},{width:844
     const { pagina: p } = await preparar(t, 'JUGADOR', { viewport });
     await ingresar(p); await pantalla(p).waitFor();
     await p.waitForFunction(() => document.querySelector('.metronet-bienvenida')?.dataset.fase === 'bienvenida');
-    for (const elemento of [pantalla(p).getByRole('heading'), pantalla(p).locator('img'), pantalla(p).locator('canvas'), p.locator('[data-continuar-bienvenida]')]) {
+    assert.equal(await pantalla(p).getByRole('heading', { includeHidden: true }).count(), 1);
+    for (const elemento of [pantalla(p).locator('img'), p.locator('[data-continuar-bienvenida]')]) {
       const r = await elemento.boundingBox();
       assert.ok(r.x >= 0 && r.y >= 0 && r.x+r.width <= viewport.width+1 && r.y+r.height <= viewport.height+1, JSON.stringify(r));
     }
+    // La vía aprobada ocupa todo el ancho y a 320×568 sangra 4 px por lado; el documento y los controles no se desbordan.
+    const escena = await pantalla(p).locator('.metronet-bienvenida__escena').boundingBox();
+    assert.ok(escena.x >= -4 && escena.x <= 1 && escena.x + escena.width >= viewport.width - 1 && escena.x + escena.width <= viewport.width + 4 && escena.y >= 0 && escena.y + escena.height <= viewport.height + 1, JSON.stringify(escena));
     assert.equal(await pantalla(p).evaluate(e => e.scrollWidth > e.clientWidth), false);
+    assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.equal(await pantalla(p).evaluate(e => e.scrollHeight > e.clientHeight), false);
     const logo = await pantalla(p).locator('img').boundingBox();
-    const titulo = await pantalla(p).getByRole('heading').boundingBox();
     const via = await p.locator('.metronet-bienvenida__anden').boundingBox();
-    assert.ok(Math.max(logo.y + logo.height, titulo.y + titulo.height) <= via.y, 'Vía y metro debajo de la marca y saludo');
+    assert.ok(logo.y + logo.height <= via.y, 'Vía y metro debajo de la marca');
     await capturar(p, `bienvenida-${viewport.width}x${viewport.height}`);
     await p.keyboard.press('Tab');
     assert.equal(await p.locator('[data-continuar-bienvenida]').evaluate(e => e === document.activeElement), true);
@@ -200,7 +206,7 @@ test('movimiento reducido: bienvenida estática, sin barrido y sincronizada con 
   const inicio = Date.now();
   await ingresar(p); await pantalla(p).waitFor();
   assert.equal(await pantalla(p).getAttribute('data-movimiento-reducido'), 'true');
-  assert.equal(await pantalla(p).getByRole('heading').isVisible(), true);
+  assert.equal(await pantalla(p).locator('img').isVisible(), true);
   assert.equal(await pantalla(p).evaluate(e => e.getAnimations({ subtree: true }).length), 0);
   const imagenInicial = await pantalla(p).locator('canvas').evaluate(e => e.toDataURL());
   await p.waitForTimeout(250);
@@ -338,7 +344,7 @@ for (const nombre of [undefined, null, '', 'Ana', '<img src=x onerror=alert(1)>'
       return { json: respuesta };
     } });
     await ingresar(p); await pantalla(p).waitFor();
-    assert.equal(await pantalla(p).getByRole('heading').innerText(), 'BIENVENIDO A METRONET');
+    assert.equal(await pantalla(p).getAttribute('aria-label'), 'Bienvenido a METRONET');
     assert.doesNotMatch(await pantalla(p).innerText(), /null|undefined|Ana|onerror|JUGADOR/);
     const claves = await p.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)]);
     assert.deepEqual(claves.filter(k => /bienvenida/.test(k)), ['metronet:bienvenida-pendiente']);

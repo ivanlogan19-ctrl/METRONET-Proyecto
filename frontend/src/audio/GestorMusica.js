@@ -89,14 +89,16 @@ class GestorMusica {
     // Solo anticipar una pista que ya sonaba. Una entrada tardía nunca debe
     // reemplazar el contexto decidido por la pantalla o una presentación.
     if (this.inicializado || !this.tieneContinuidadReciente()) return;
-    if (!['auth', 'menu', 'admin', 'general'].includes(contexto)) return;
+    if (!['auth', 'menu', 'admin', 'educativo', 'general'].includes(contexto)) return;
     const sesion = contexto === 'auth' ? null : obtenerSesionActiva();
     if (contexto !== 'auth' && !sesion) return;
     if (contexto === 'admin' && sesion.usuario.rol !== 'ADMIN') return;
     if (contexto === 'general') {
       // Editor/simulador: adelantar descarga y seek, pero el contexto real solo
       // lo confirma la pantalla al cargar el diseño. Nunca sonar sobre el nivel previo.
-      if (this.continuidad.pista !== PISTAS_MUSICA.gameplay && !this.tieneEntradaNivelPendiente()) return;
+      const pistaDePantalla = location.pathname === '/simulacion.html'
+        ? PISTAS_MUSICA.simulacion : PISTAS_MUSICA.gameplay;
+      if (this.continuidad.pista !== pistaDePantalla && !this.tieneEntradaNivelPendiente()) return;
       this.inicializar();
       this.seleccionarPista(this.continuidad.pista);
       this.actual.preparado = true;

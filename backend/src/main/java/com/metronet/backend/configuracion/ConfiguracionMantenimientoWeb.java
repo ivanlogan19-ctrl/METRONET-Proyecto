@@ -16,11 +16,8 @@ public class ConfiguracionMantenimientoWeb implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registro) {
         registro.addInterceptor(controlMantenimientoInterceptor)
             .addPathPatterns(
-                "/api/simulaciones/**",
-                "/api/juego/escenarios/*/iniciar",
-                "/api/juego/escenarios/*/volver-a-jugar",
-                "/api/juego/recorrido/reiniciar",
-                "/api/juego/disenos/*/evaluar"
+                "/api/**",
+                "/auth/**"
             );
     }
 }

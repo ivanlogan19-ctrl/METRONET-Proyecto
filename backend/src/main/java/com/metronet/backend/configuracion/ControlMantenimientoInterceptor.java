@@ -23,19 +23,25 @@ public class ControlMantenimientoInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest solicitud, HttpServletResponse respuesta, Object controlador) {
-        if (!esOperacionModificable(solicitud) || !configuracionService.estaModoMantenimientoActivo()) return true;
-        Usuario usuario = authService.obtenerUsuarioConSesion(solicitud.getHeader("Authorization"));
+        String ruta = solicitud.getRequestURI();
+        if ("OPTIONS".equals(solicitud.getMethod()) || "/api/estado".equals(ruta)
+            || ruta.startsWith("/api/admin/") || ruta.startsWith("/auth/login/admin")
+            || "/auth/logout".equals(ruta)
+            || !configuracionService.estaModoMantenimientoActivo()) return true;
+        if ("/auth/login".equals(ruta) || "/auth/registro".equals(ruta)) {
+            throw mantenimientoActivo();
+        }
+        String autorizacion = solicitud.getHeader("Authorization");
+        if (autorizacion == null || autorizacion.isBlank()) return true;
+        Usuario usuario = authService.obtenerUsuarioConSesion(autorizacion);
         if (usuario.getRol() == Rol.JUGADOR) {
-            throw new ResponseStatusException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "La plataforma está en mantenimiento. Por el momento no podés crear ni modificar diseños o simulaciones."
-            );
+            throw mantenimientoActivo();
         }
         return true;
     }
 
-    private boolean esOperacionModificable(HttpServletRequest solicitud) {
-        String metodo = solicitud.getMethod();
-        return !"GET".equals(metodo) && !"HEAD".equals(metodo) && !"OPTIONS".equals(metodo);
+    private ResponseStatusException mantenimientoActivo() {
+        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+            "METRONET está en mantenimiento. Disculpá las molestias. Volvé cuando finalice.");
     }
 }

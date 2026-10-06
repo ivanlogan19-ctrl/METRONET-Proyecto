@@ -19,7 +19,7 @@ for (const administrador of [false, true]) for (const width of [390, 820, 1440])
     await p.locator('.metronet-navegacion__usuario summary').click();
     const menu = p.locator('.metronet-navegacion__menu-usuario');
     assert.equal(await principal.isVisible(), width > 1024);
-    assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : administrador ? 6 : 5);
+    assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : administrador ? 7 : 6);
     assert.equal(await menu.getByRole('link', { name: 'Mi perfil' }).isVisible(), true);
     if (width <= 1024) assert.equal(await menu.getByRole('link', { name: 'Niveles' }).isVisible(), true);
     await menu.getByRole('link', { name: 'Mi perfil' }).click();
@@ -87,34 +87,6 @@ for (const width of [390, 1440]) test(`Mantenimiento cerrado: guarda, recarga y 
   assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 });
 
-for (const administrador of [false, true]) test(`Mantenimiento y simulación, cambio de estado / ${administrador ? 'ADMIN' : 'JUGADOR'}`, async t => {
-  let modo = 'activado', falla = false;
-  const { pagina: p, solicitudes } = await abrir(t, '/simulacion.html?idDiseno=77', { administrador, responder: async request => {
-    if (new URL(request.url()).pathname === '/api/configuraciones') return falla ? { status: 500, json: {} } : { json: [{ clave: 'modo_mantenimiento', valor: modo }] };
-  } });
-  const aviso = p.locator('.metronet-aviso-mantenimiento');
-  const iniciar = p.locator('#formularioEjecucion button[type=submit]');
-  assert.equal(await aviso.isVisible(), !administrador);
-  assert.equal(await iniciar.isDisabled(), !administrador);
-  if (!administrador) {
-    // Un submit programático tampoco debe iniciar una animación prohibida.
-    await p.locator('#formularioEjecucion').evaluate(e => e.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-    assert.equal(solicitudes.filter(s => s.path.endsWith('/ejecutar')).length, 0);
-    falla = true;
-    await p.evaluate(async () => { const { obtenerConfiguracionAplicacion } = await import('/src/configuracion/ConfiguracionAplicacion.js'); await obtenerConfiguracionAplicacion(JSON.parse(localStorage.sesionUsuario)); });
-    assert.equal(await aviso.isVisible(), true);
-    falla = false; modo = 'desactivado';
-    await p.evaluate(() => window.dispatchEvent(new Event('focus')));
-    await aviso.waitFor({ state: 'hidden' });
-    assert.equal(await iniciar.isEnabled(), true);
-    modo = 'activado';
-    await p.evaluate(() => window.dispatchEvent(new Event('focus')));
-    await aviso.waitFor();
-    assert.equal(await iniciar.isDisabled(), true);
-    assert.equal(await aviso.count(), 1);
-  }
-});
-
 for (const width of [390, 1440]) test(`Referencias territoriales en el mapa, controles compactos / ${width}`, async t => {
   const { pagina: p } = await abrir(t, 'constructor', { viewport: { width, height: 1000 } });
   await p.locator('.metronet-poi>summary').click();
@@ -131,45 +103,4 @@ for (const width of [390, 1440]) test(`Referencias territoriales en el mapa, con
     assert.ok(medidas.alto <= 52, JSON.stringify(medidas));
     assert.ok(medidas.texto <= medidas.ancho, JSON.stringify(medidas));
   }
-});
-
-test('Mantenimiento pausa el recorrido y el bypass visual no permite reanudar; al desactivar se recupera', async t => {
-  let modo = 'desactivado';
-  const { pagina: p, solicitudes } = await abrir(t, '/simulacion.html?idDiseno=77', { responder: request => {
-    const path = new URL(request.url()).pathname;
-    if (path === '/api/configuraciones') return { json: [{ clave: 'modo_mantenimiento', valor: modo }] };
-    if (path.endsWith('/ejecutar')) return { json: { idSimulacion: 1, estado: 'COMPLETADA', puntaje: 0, velocidad: 1, duracion: 60 } };
-  } });
-  await p.locator('#formularioEjecucion button[type=submit]').click();
-  await p.waitForFunction(() => document.getElementById('estadoTiempoReal').textContent === 'En recorrido');
-  modo = 'activado';
-  await p.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await p.waitForFunction(() => document.getElementById('estadoTiempoReal').textContent === 'Pausada');
-  assert.equal(await p.locator('#reanudarSimulacion').isDisabled(), true);
-  await p.locator('#reanudarSimulacion').evaluate(e => { e.disabled = false; e.click(); });
-  assert.equal(await p.locator('#estadoTiempoReal').textContent(), 'Pausada');
-  await p.locator('#reiniciarSimulacion').evaluate(e => { e.disabled = false; e.click(); });
-  assert.equal(await p.locator('#estadoTiempoReal').textContent(), 'Pausada');
-  modo = 'desactivado';
-  await p.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await p.locator('.metronet-aviso-mantenimiento').waitFor({ state: 'hidden' });
-  await p.locator('#reanudarSimulacion').click();
-  await p.waitForFunction(() => document.getElementById('estadoTiempoReal').textContent === 'En recorrido');
-  assert.equal(solicitudes.filter(s => s.path.endsWith('/ejecutar')).length, 1);
-});
-
-test('Editor conserva cambios ante rechazo del backend y el aviso no tapa el mapa', async t => {
-  const { pagina: p } = await abrir(t, 'constructor', { viewport: { width: 390, height: 844 } });
-  await p.route('**/api/configuraciones', r => r.fulfill({ json: [{ clave: 'modo_mantenimiento', valor: 'activado' }] }));
-  await p.route('**/api/simulaciones/77/guardar', r => r.fulfill({ status: 503, json: { detail: 'La plataforma está en mantenimiento.' } }));
-  await p.evaluate(() => { editorPrueba.cambiosPendientes = true; window.dispatchEvent(new Event('focus')); });
-  await p.locator('.metronet-aviso-mantenimiento').waitFor();
-  await p.locator('[data-panel-edicion-toggle]').click();
-  await p.locator('[data-guardar]').click();
-  await p.getByText('Error: La plataforma está en mantenimiento.', { exact: true }).first().waitFor();
-  assert.equal(await p.evaluate(() => editorPrueba.cambiosPendientes), true);
-  const aviso = await p.locator('.metronet-aviso-mantenimiento').boundingBox();
-  const editor = await p.locator('#metronet-aplicacion').boundingBox();
-  assert.ok(editor.y >= aviso.y + aviso.height - 1);
-  assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 });

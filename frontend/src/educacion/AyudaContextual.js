@@ -69,7 +69,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     ['requiereCoberturaPuntosInteres', 'estaciones', 'Queda cobertura pendiente. Compará las estaciones con las referencias sin atender.', 'La cercanía visual no confirma cobertura. Consultá cada POI en los objetivos.', ['cobertura', 'estacion', 'poi']],
     ['areas', 'estaciones', 'Hay áreas sin atender. Revisá en qué barrios y zonas quedan las estaciones.', 'Cubrir un POI no garantiza atender todas las áreas: compará ambas condiciones por separado.', ['barrio', 'zona', 'estacion', 'poi']],
     ['requiereObjetivosMismaLinea', 'conexiones', 'Las referencias necesitan un recorrido de la misma línea. Revisá dónde se interrumpe.', 'Cubrir lugares por separado y conectarlos entre sí son condiciones diferentes.', ['linea', 'cobertura', 'conexion']],
-    ['minimoTransbordos', 'lineas', 'Faltan transbordos. Revisá qué estaciones relacionan recorridos de distintas líneas.', 'Un transbordo pertenece a varias líneas y está marcado como tal; la ubicación sola no alcanza.', ['transbordo', 'linea', 'estacion']],
+    ['minimoTransbordos', 'lineas', 'Faltan transbordos. Conectá dos líneas mediante una estación compartida.', 'Cada transbordo necesita tramos de dos líneas distintas que lleguen a la misma estación; un cruce dibujado no alcanza.', ['transbordo', 'linea', 'estacion']],
     ['minimoMetros', 'metros', 'Los recorridos necesitan unidades para circular. Revisá su distribución entre líneas.', 'Una unidad está asociada a una línea. La cantidad requerida se consulta en los objetivos.', ['unidad', 'linea']],
     ['requiereRedValida', null, 'La red aún requiere revisión. Buscá recorridos aislados o ramificaciones.', 'Guardar comprueba la estructura; la consigna informa las condiciones que todavía faltan.', ['linea', 'conexion']],
   ];
@@ -85,7 +85,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
       velocidad: 'Probá cambiar solamente las UV y mantené las mismas horas. Ejecutá antes y después para comparar.',
       duracion: 'Mantené las UV y cambiá las horas simuladas. Compará dos ejecuciones con esa diferencia.',
       individual: 'Seleccioná una unidad y cambiá solo sus UV. Las otras y las horas deben quedar iguales al comparar ejecuciones.',
-      global: 'Seleccioná Todas las unidades después de una ejecución. Aplicá una misma UV nueva a todos los metros y volvé a ejecutar con las mismas horas.',
+      global: 'Seleccioná Todos los metros después de una ejecución. Aplicá una misma UV nueva a todos los metros y volvé a ejecutar con las mismas horas.',
       combinacion: 'Después de una ejecución, cambiá tanto las UV como las horas y observá la nueva combinación.',
     };
     return aviso(practica.clave, pistas[practica.clave.split(':')[1]], 'El ritmo × solo cambia cómo ves la ejecución; no cuenta como cambio de UV ni de horas.', ['velocidad', 'duracion', 'ritmo'], 'EXPERIMENTÁ');

@@ -43,6 +43,9 @@ async function abrir(t, width, multiple = false) {
   });
   await vista.pagina.reload(); await vista.pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.metricasUnidades?.length);
   await vista.pagina.locator('#desempenoNivel fieldset').waitFor({ state: 'attached' }); await cuadros(vista.pagina);
+  // El recorrido inicial es modal: el gesto debe llegar al canvas, no a su botón de pausa.
+  const omitirRecorrido = vista.pagina.locator('[data-recorrido-omitir]');
+  if (await omitirRecorrido.isVisible().catch(() => false)) await omitirRecorrido.click();
   return vista;
 }
 async function capturar(pagina) {
@@ -65,7 +68,11 @@ function estable(antes, despues) {
 async function posicionar(pagina, modo) {
   if (modo === 'inicial') return;
   const alejar = pagina.getByRole('button', { name: 'Alejar mapa', exact: true });
-  await alejar.click(); await cuadros(pagina);
+  // Para comprobar pan, usar una escala con margen de movimiento en cada viewport.
+  if (modo === 'desplazado' && await pagina.evaluate(() => innerWidth > 620))
+    await pagina.getByRole('button', { name: 'Acercar mapa', exact: true }).click();
+  else await alejar.click();
+  await cuadros(pagina);
   if (modo === 'acercado') {
     await alejar.click(); await cuadros(pagina); const antes = await capturar(pagina);
     await pagina.getByRole('button', { name: 'Acercar mapa', exact: true }).click(); await cuadros(pagina);
@@ -101,10 +108,10 @@ for (const width of [1440, 768, 390]) for (const modo of ['inicial','desplazado'
       'Cada inicio comprueba y guarda la red una vez antes de ejecutar');
   });
 }
-test('Seguimiento explícito: pausa y detención congelan la cámara sin perseguir el inicio', async t => {
+test('Pausa y detención congelan la cámara manual', async t => {
   const { pagina } = await abrir(t, 1440, true); await posicionar(pagina, 'desplazado'); await iniciar(pagina);
-
-  await pagina.locator('#seguirMetro').click(); await cuadros(pagina, 15);
+  assert.equal(await pagina.locator('#seguirMetro').isVisible(), false, 'El preview no expone seguimiento automático');
+  await cuadros(pagina, 15);
   await pagina.locator('#pausarSimulacion').click(); const pausa = await capturar(pagina); await cuadros(pagina, 15); estable(pausa, await capturar(pagina));
   await pagina.locator('#reanudarSimulacion').click(); await cuadros(pagina, 15);
   await pagina.locator('#detenerSimulacion').click(); const detenida = await capturar(pagina); await cuadros(pagina, 15); estable(detenida, await capturar(pagina));
@@ -118,21 +125,21 @@ test('Ajustar red y cambiar de diseño conservan el encuadre explícito; resize 
   await pagina.setViewportSize({ width: 768, height: 900 }); await cuadros(pagina, 30); const resized = await capturar(pagina); assert.notEqual(resized.canvas.pixelsX, otra.canvas.pixelsX);
   await pagina.locator('#formularioEjecucion button[type=submit]').scrollIntoViewIfNeeded(); await cuadros(pagina); const referencia = await capturar(pagina); await cuadros(pagina, 30); estable(referencia, await capturar(pagina));
 });
-for (const width of [1440, 390]) test(`Mandos visibles y agrupados ${width}: mapa ampliado y panel accesible`, async t => {
+for (const width of [1440, 390]) test(`Mandos visibles y agrupados ${width}: mapa y panel accesibles`, async t => {
   const { pagina } = await abrir(t, width);
   const mandos = await pagina.locator('.simulacion-mandos').boundingBox();
   const mapa = await pagina.locator('#visorSimulacion').boundingBox();
   assert.ok(mandos.y >= 0 && mandos.y + mandos.height <= 1000, 'Los mandos deben verse sin desplazar la página');
-  assert.ok(mandos.y + mandos.height <= mapa.y, 'Los mandos deben preceder al mapa');
+  assert.ok(mandos.x >= 0 && mandos.x + mandos.width <= width + 1, 'Los mandos deben caber en la pantalla');
+  assert.ok(mapa.width > width / 2, 'El mapa conserva espacio útil');
   assert.equal(await pagina.getByRole('button', { name: 'Iniciar simulación' }).isEnabled(), true);
   assert.equal(await pagina.locator('#pausarSimulacion').isHidden(), true);
   assert.equal(await pagina.getByRole('button', { name: 'Detener simulación' }).isDisabled(), true);
   assert.equal(await pagina.locator('#formularioEjecucion button').evaluate(e => getComputedStyle(e, '::after').content.includes('Iniciar')), true);
   assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Sin desborde horizontal');
-  await pagina.getByRole('button', { name: 'Ocultar panel' }).click();
-  assert.equal(await pagina.locator('#instrumentosSimulacion').isHidden(), true);
-  assert.equal(await pagina.locator('.simulacion-mandos').isVisible(), true);
-  await pagina.getByRole('button', { name: 'Mostrar panel' }).click();
+  assert.equal(await pagina.locator('#ampliarMapa').isHidden(), true);
   assert.equal(await pagina.locator('#instrumentosSimulacion').isVisible(), true);
+  assert.equal(await pagina.locator('.simulacion-mandos').isVisible(), true);
+  assert.equal(await pagina.locator('#instrumentosSimulacion').getAttribute('aria-label'), 'Controles de simulación');
   assert.equal(await pagina.getByRole('spinbutton', { name: 'Duración simulada en horas' }).inputValue(), '6');
 });

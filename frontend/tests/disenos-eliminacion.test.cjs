@@ -39,9 +39,9 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado pro
   assert.match(await p.locator('[data-diseno="88"]').innerText(), /Otro Jugador/);
   assert.equal(await p.locator('[data-diseno="88"] a').count(), 0);
   assert.equal(await p.locator('[data-diseno="77"] a').count(), 2);
-  assert.equal(await p.locator('#crearDiseno').isVisible(), true);
-  await p.getByRole('searchbox', { name: 'Buscar diseños' }).fill('otro');
-  assert.equal(await p.locator('[data-diseno]').count(), 1);
+  assert.equal(await p.locator('#irDisenoLibre').isEnabled(), true);
+  assert.equal(await p.locator('#listaMisDisenos [data-diseno="88"]').count(), 1);
+  assert.equal(await p.locator('#listaDisenosLibres [data-diseno="77"]').count(), 1);
   await p.getByRole('button', { name: 'Eliminar diseño: Nivel completado' }).click();
   assert.match(await p.locator('#nombreEliminarDiseno').innerText(), /Otro Jugador/);
   assert.match(await p.locator('#alcanceEliminarDiseno').innerText(), /intento, puntaje y resultados/);
@@ -49,7 +49,6 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado pro
   assert.equal(v.solicitudes.filter(s => s.method === 'DELETE').length, 0);
   await confirmar(p, 'Nivel completado'); await p.getByText('Diseño eliminado.', { exact: true }).waitFor();
   assert.equal(await p.locator('[data-diseno="88"]').count(), 0);
-  await p.locator('#buscarDisenos').fill('');
   await p.reload(); await p.locator('#listaMisDisenos[aria-busy=false]').waitFor({ state: 'attached' });
   assert.equal(await p.locator('[data-diseno="88"]').count(), 0);
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
@@ -124,6 +123,9 @@ test('Administración: misma advertencia y retirada inmediata sin depender de ot
   } });
   t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
   const p = v.pagina;
+  for (const selector of ['.admin-enlace', '#vista-usuarios .admin-filtros label', '#vista-usuarios .admin-tabla td']) {
+    assert.match(await p.locator(selector).first().evaluate(e => getComputedStyle(e).fontFamily), /Silkscreen/);
+  }
   await p.locator('[data-vista="disenos"]').click();
   await p.locator('[data-eliminar-diseno="88"]').click();
   assert.match(await p.locator('dialog[open]').innerText(), /intento, puntaje y resultados/);

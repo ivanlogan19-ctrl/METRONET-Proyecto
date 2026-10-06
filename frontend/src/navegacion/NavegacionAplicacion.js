@@ -1,11 +1,12 @@
 import { inicializarAvisoMantenimiento } from '../configuracion/AvisoMantenimiento.js';
-import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
+import { comprobarAccesoJugador } from '../configuracion/ControlAccesoMantenimiento.js';
 import { inicializarAyudasSistema } from '../componentes/AyudasSistema.js';
 import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import { gestorMusica } from '../audio/GestorMusica.js';
 import { crearControlMusica } from '../audio/ControlMusica.js';
-import { consultarAccesoMisDisenos, aplicarAccesoMisDisenos } from './AccesoMisDisenos.js';
+
+await comprobarAccesoJugador();
 
 const ETAPAS_FLUJO = [
   { id: 'escenario', texto: 'Nivel' },
@@ -154,16 +155,10 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   if (!marcador || !sesion) return null;
   // El editor/simulador decide la música al terminar de cargar la lista o la red.
   const esPantallaDeJuego = actual === 'edicion' || actual === 'simulacion';
-  gestorMusica.establecerContexto(esPantallaDeJuego ? 'general' : actual === 'administracion' ? 'admin' : 'menu');
+  gestorMusica.establecerContexto(esPantallaDeJuego ? 'general' : actual === 'administracion' ? 'admin' : actual === 'aprendizaje' ? 'educativo' : 'menu');
   const contexto = obtenerContextoRuta();
   const cabecera = document.createElement('header');
   cabecera.className = 'metronet-navegacion';
-  const inicio = document.createElement('a');
-  inicio.className = 'metronet-navegacion__marca';
-  inicio.href = '/inicio.html';
-  inicio.dataset.navegacion = 'true';
-  inicio.setAttribute('aria-label', 'Ir a Inicio de METRONET');
-  inicio.append(crearLogoMetronet({ alt: 'METRONET' }));
   const enlaces = document.createElement('nav');
   enlaces.className = 'metronet-navegacion__enlaces';
   enlaces.setAttribute('aria-label', 'Navegación principal');
@@ -200,13 +195,6 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   botonCerrar.addEventListener('click', () => cerrarSesion(sesion));
   menuUsuario.append(botonCerrar);
   usuario.append(menuUsuario);
-  const accesosDisenos = [...enlaces.children, ...menuUsuario.children].filter(e => e.getAttribute('href')?.startsWith('/disenos.html'));
-  const actualizarAcceso = () => consultarAccesoMisDisenos().then(permitido => {
-    accesosDisenos.forEach(enlace => aplicarAccesoMisDisenos(enlace, permitido));
-  }).catch(() => accesosDisenos.forEach(enlace => aplicarAccesoMisDisenos(enlace, false)));
-  accesosDisenos.forEach(enlace => aplicarAccesoMisDisenos(enlace, sesion.usuario?.rol === 'ADMIN'));
-  void actualizarAcceso();
-  window.addEventListener('focus', actualizarAcceso);
   const cerrarMenuAlHacerClicFuera = (evento) => {
     if (!usuario.contains(evento.target)) usuario.removeAttribute('open');
   };
@@ -224,7 +212,6 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   };
   controlMusica = ['edicion', 'simulacion'].includes(actual) ? null : crearControlMusica();
   // En Inicio ya se muestra la marca grande junto al saludo.
-  if (actual !== 'inicio') cabecera.append(inicio);
   cabecera.append(enlaces);
   if (controlMusica) cabecera.append(controlMusica.elemento);
   cabecera.append(usuario);

@@ -54,6 +54,7 @@ export default class CapaPuntosInteres {
     this.puntos = [];
 
     this.categoriasVisibles = new Set(CATEGORIAS_PUNTUALES);
+    this.mostrarTodosLosMarcadores = false;
 
     this.estacionesReferencia = [];
 
@@ -1402,6 +1403,9 @@ export default class CapaPuntosInteres {
   }
 
   obtenerClavesMarcadoresVisibles(contextos, nivelDetalle) {
+    if (this.mostrarTodosLosMarcadores) {
+      return new Set(contextos.map((contexto) => this.clavePunto(contexto.representacion.punto)));
+    }
     const claves = new Set();
     contextos
       .filter((contexto) => contexto.esSeleccionado || contexto.esObjetivoActivo)

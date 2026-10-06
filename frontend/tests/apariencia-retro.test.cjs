@@ -12,7 +12,7 @@ async function preparar(t, ruta, opciones) {
   t.after(() => assert.deepEqual(p.errores, []));
   return p;
 }
-async function comprobarMarcaYAnchura(pagina) {
+async function comprobarMarcaYAnchura(pagina, esperaLogo = true) {
   // Medir la marca después de la entrada breve de página, sin temporizador fijo.
   await pagina.evaluate(() => Promise.allSettled(document.body.getAnimations().map(a => a.finished)));
   const resultado = await pagina.evaluate(() => {
@@ -31,27 +31,29 @@ async function comprobarMarcaYAnchura(pagina) {
     };
   });
   assert.equal(resultado.desborde, false);
-  assert.equal(resultado.logos.length, 1);
+  assert.equal(resultado.logos.length, esperaLogo ? 1 : 0);
+  if (!esperaLogo) assert.equal(await pagina.locator('.metronet-navegacion').count(), 1);
   for (const logo of resultado.logos) {
     assert.equal(logo.cargado && logo.intacto && logo.proporcion, true, JSON.stringify(logo));
     assert.equal(logo.src, '/assets/metronet-logo-pixel.png');
   }
 }
 const rutas = ['/login.html', '/registro.html', '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/admin-login.html', '/privacidad.html', '/inicio.html', '/escenarios.html', '/perfil.html', '/admin.html', '/simulacion.html?idDiseno=77'];
+const rutasSinLogo = new Set(['/escenarios.html', '/perfil.html', '/admin.html', '/simulacion.html']);
 for (const width of [1440, 390]) {
-  for (const ruta of rutas) test(`presentación ${width}px: ${ruta}, logo íntegro y sin desbordes`, async t => {
+  for (const ruta of rutas) test(`presentación ${width}px: ${ruta}, marca y navegación aprobadas sin desbordes`, async t => {
     const { pagina } = await preparar(t, ruta, { viewport: { width, height: 1000 } });
     assert.equal(new URL(pagina.url()).pathname, ruta.split('?')[0]);
-    await comprobarMarcaYAnchura(pagina);
+    await comprobarMarcaYAnchura(pagina, !rutasSinLogo.has(ruta.split('?')[0]));
   });
-  test(`Constructor ${width}px conserva logo, mapa y controles`, async t => {
+  test(`Constructor ${width}px conserva navegación, mapa y controles`, async t => {
     const { pagina, contexto, errores } = await abrirEditor(navegador, { viewport: { width, height: 1000 } });
     t.after(() => contexto.close());
     await pagina.evaluate(() => document.fonts.ready);
     if (width < 620) await pagina.locator('[data-panel-edicion-toggle]').click();
     await pagina.locator('[data-elegir-herramienta="estaciones"]').click();
 
-    await comprobarMarcaYAnchura(pagina);
+    await comprobarMarcaYAnchura(pagina, false);
     assert.deepEqual(errores, []);
   });
 }
@@ -59,12 +61,17 @@ for (const width of [1440, 390]) {
 test('acceso conserva teclado, visibilidad de contraseña, carga y error', async t => {
   let resolver;
   const pendiente = new Promise(r => { resolver = r; });
-  const { pagina } = await preparar(t, '/login.html', { responder: async () => { await pendiente; return { status: 400, json: { detail: 'Credenciales de prueba inválidas.' } }; } });
+  const { pagina } = await preparar(t, '/login.html', { responder: async req => {
+    if (new URL(req.url()).pathname !== '/auth/login') return null;
+    await pendiente;
+    return { status: 400, json: { detail: 'Credenciales de prueba inválidas.' } };
+  } });
   await pagina.locator('#email').fill('ana@example.test');
   await pagina.keyboard.press('Tab');
   assert.equal(await pagina.locator('#password').evaluate(e => e === document.activeElement), true);
   assert.notEqual(await pagina.locator('#password').evaluate(e => getComputedStyle(e).outlineStyle), 'none');
   await pagina.locator('#password').fill('Prueba123!');
+  await pagina.locator('.metronet-logo__imagen').waitFor();
   await pagina.getByRole('button', { name: 'Mostrar', exact: true }).click();
   assert.equal(await pagina.locator('#password').getAttribute('type'), 'text');
   await pagina.locator('#loginButton').click();

@@ -78,7 +78,9 @@ export default class PanelPuntosInteres {
     this.campoBusqueda = document.createElement('input');
     this.campoBusqueda.id = `${this.identificador}-busqueda`;
     this.campoBusqueda.className = 'metronet-panel-puntos-busqueda';
-    this.campoBusqueda.type = 'search';
+    this.campoBusqueda.type = 'text';
+    this.campoBusqueda.inputMode = 'search';
+    this.campoBusqueda.setAttribute('role', 'searchbox');
     this.campoBusqueda.placeholder = 'Buscar punto de interés';
     this.campoBusqueda.autocomplete = 'off';
     this.campoBusqueda.setAttribute('aria-controls', `${this.identificador}-lista`);
@@ -94,11 +96,7 @@ export default class PanelPuntosInteres {
     this.estado = document.createElement('p');
     this.estado.className = 'metronet-panel-puntos-estado-contexto';
     this.estado.setAttribute('aria-live', 'polite');
-    const cerrar = document.createElement('button'); cerrar.type = 'button';
-    cerrar.className = 'metronet-panel-puntos-cerrar';
-    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar búsqueda');
-    cerrar.addEventListener('click', () => { this.establecerAbierto(false); this.botonAlternar.focus({preventScroll:true}); });
-    this.contenido.append(etiquetaBusqueda, this.campoBusqueda, cerrar, this.estado, this.lista);
+    this.contenido.append(etiquetaBusqueda, this.campoBusqueda, this.estado, this.lista);
     this.manejadorClicFuera = (evento) => {
       if (this.estaAbierto && !this.elemento.contains(evento.target) && !this.botonAlternar.contains(evento.target)) this.establecerAbierto(false);
     };
@@ -168,13 +166,12 @@ export default class PanelPuntosInteres {
 
   renderizarLista() {
     if (!this.lista || !this.estado) return;
-    const grupos = this.tieneBusquedaActiva()
-      ? this.obtenerGruposBusqueda()
-      : this.obtenerGruposContextuales().map((grupo) => ({
-        ...grupo,
-        puntos: this.filtrarPuntos(grupo.puntos),
-      })).filter((grupo) => grupo.puntos.length);
     this.lista.replaceChildren();
+    if (!this.tieneBusquedaActiva()) {
+      this.estado.textContent = '';
+      return;
+    }
+    const grupos = this.obtenerGruposBusqueda();
     if (!grupos.length) {
       this.estado.textContent = this.obtenerMensajeVacio();
       return;
@@ -186,14 +183,17 @@ export default class PanelPuntosInteres {
   crearGrupo(grupo) {
     const seccion = document.createElement('section');
     seccion.className = 'metronet-panel-puntos-grupo';
-    const titulo = document.createElement('h3');
-    titulo.className = 'metronet-panel-puntos-subtitulo';
-    titulo.textContent = grupo.titulo;
     const elementos = document.createElement('div');
     elementos.className = 'metronet-panel-puntos-elementos';
     elementos.setAttribute('aria-label', grupo.titulo);
     grupo.puntos.forEach((punto) => elementos.appendChild(this.crearItem(punto)));
-    seccion.append(titulo, elementos);
+    if (grupo.titulo !== 'Cerca de tu red') {
+      const titulo = document.createElement('h3');
+      titulo.className = 'metronet-panel-puntos-subtitulo';
+      titulo.textContent = grupo.titulo;
+      seccion.append(titulo);
+    }
+    seccion.append(elementos);
     return seccion;
   }
 

@@ -42,6 +42,7 @@ export default class CreacionDirecta {
     }
     this.lineaActiva = nombre;
     this.editor.capaRedMetro.lineaActiva = nombre;
+    this.editor.capaRedMetro.dibujar();
     this.editor.obtener('[data-linea-conexion]').value = nombre;
     this.editor.actualizarOperacionAyuda();
   }
@@ -112,9 +113,21 @@ export default class CreacionDirecta {
       } else e.mostrarMensaje('Elegí una vía existente para asignarle el metro.', 'info');
       return true;
     }
+    if (e.modo === 'crearTramo' && elemento?.tipo === 'tramo') {
+      this.elegirLinea(elemento.valor.nombreLinea);
+      return true;
+    }
+    if (e.modo === 'crearLinea' && elemento?.tipo === 'linea') {
+      const linea = e.disenoActual.lineas.find(item => item.nombre === elemento.valor.nombre);
+      if (linea) {
+        e.restablecerModo();
+        e.seleccionarElemento({ tipo: 'linea', valor: linea });
+      }
+      return true;
+    }
     if (elemento?.tipo !== 'estacion') return true;
     if (!['crearLinea', 'crearTramo'].includes(e.modo)) return true;
-    if (e.modo === 'crearTramo' && !this.lineaActiva) { e.mostrarMensaje('Elegí la línea activa antes de conectar sus estaciones.', 'info'); e.obtener('[data-linea-conexion]').focus(); return true; }
+    if (e.modo === 'crearTramo' && !this.lineaActiva) { e.mostrarMensaje('Tocá un tramo de la línea en el mapa antes de conectar sus estaciones.', 'info'); return true; }
     const nombre = elemento.valor.nombre;
     if (e.estacionesSeleccionadas[0] === nombre) { e.estacionesSeleccionadas = []; }
     else e.estacionesSeleccionadas.push(nombre);

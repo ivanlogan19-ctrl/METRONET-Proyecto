@@ -202,27 +202,46 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
   if(ruta==='/api/juego/progreso')return {json:progreso};
   if(ruta==='/api/simulaciones')return {json:[red.simulacion]};
   if(ruta==='/api/simulaciones/77')return {json:red};
-  if(ruta.endsWith('/ejecutar'))return {json:{idSimulacion:1,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4}};
+  if(ruta.endsWith('/ejecutar')){
+   const resultado={idSimulacion:1,puntaje:0,estado:'COMPLETADA',escala:'UV_H_V1',duracion:10,velocidad:4};
+   red.resultados.unshift(resultado);
+   return {json:resultado};
+  }
   if(ruta.endsWith('/evaluar'))return {json:{completado:caso!=='incompleto',puntaje:100,idSiguienteEscenario:numero?5:null,mensaje:'Resultado registrado',desempeno:{puntajeMaximo:100}}};
   if(/escenarios\/5\/(iniciar|volver-a-jugar)$/.test(ruta))return caso==='errorInicio'?{status:503,json:{}}:{json:{idDiseno:200,idEscenario:5,idIntento:300}};
  }});
  const {pagina,solicitudes}=vista;t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[]);});
- pagina.setDefaultTimeout(26000); // Incluye simulación real y transición breve.
+ pagina.setDefaultTimeout(45000); // El ritmo visual fijo requiere completar la ejecución antes de la transición.
  if(caso==='administrador')assert.equal(await pagina.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador')).usuario.rol),'ADMIN');
  await pagina.route('**/?idDiseno=200*',route=>route.fulfill({contentType:'text/html',body:'<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Consigna del nivel 5</h1>'}));
- await pagina.locator('#duracionSimulacion').fill('10');await pagina.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
+ await pagina.locator('#duracionSimulacion').fill('10');assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(),false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  if(caso==='modoLibre'||caso==='incompleto'){
-  await pagina.getByText(/Recorrido finalizado:/).waitFor();assert.equal(await pagina.locator('.metronet-victoria').count(),0);
+  await pagina.waitForFunction(()=>document.querySelector('#estadoTiempoReal')?.textContent==='Finalizada');
+  await pagina.locator('#listaResultadosSimulacion .simulacion-resultado').waitFor();
+  assert.equal(await pagina.locator('#seccionResultados').isVisible(),true,'El resultado persistido debe verse en el panel operacional');
+  assert.match(await pagina.locator('#listaResultadosSimulacion').innerText(),/COMPLETADA.*Duración simulada/s);
+  assert.equal(await pagina.locator('.metronet-victoria').count(),0);
   assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);return;
  }
  await pagina.locator('.metronet-victoria').waitFor();assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,1);
  assert.match(await pagina.locator('.metronet-victoria').innerText(),/100 \/ 100 PTS.*Nuevo récord personal/is);
  if(caso==='errorInicio'){
-  await pagina.getByText(/Resultado guardado.*No fue posible iniciar/).waitFor();assert.equal(new URL(pagina.url()).pathname,'/simulacion.html');
-  await pagina.locator('#seccionResultados > summary').click();
+  const aviso=pagina.locator('#mensajeSimulacion');
+  await pagina.waitForFunction(()=>/Resultado guardado.*No fue posible iniciar/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));
+  assert.equal(await aviso.isVisible(),true,'El fallo al iniciar el siguiente nivel debe ser visible');
+  assert.equal(await aviso.getAttribute('role'),'status');
+  assert.equal(await aviso.getAttribute('aria-live'),'polite');
+  assert.equal(await aviso.evaluate(e=>e.classList.contains('error')),true);
+  assert.equal(new URL(pagina.url()).pathname,'/simulacion.html');
   assert.equal(await pagina.locator('#continuarEscenarios').isVisible(),true);
- }else await pagina.waitForURL('**/?idDiseno=200&idEscenario=5&idIntento=300');
+  await pagina.locator('#continuarEscenarios').click();
+  await pagina.waitForURL('**/escenarios.html');
+  assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,1);
+ }else {
+  await pagina.waitForURL('**/?idDiseno=200&idEscenario=5&idIntento=300');
+  assert.equal(await pagina.locator('#mensajeSimulacion.error').count(),0);
+ }
  const inicios=solicitudes.filter(s=>/escenarios\/5\//.test(s.path));assert.equal(inicios.length,1);
  assert.equal(inicios[0].path,`/api/juego/escenarios/5/${caso==='repetido'?'volver-a-jugar':'iniciar'}`);
  assert.equal(await pagina.locator('.metronet-viaje').count(),0);

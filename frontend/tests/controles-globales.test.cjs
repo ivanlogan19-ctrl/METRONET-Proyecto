@@ -36,14 +36,16 @@ test('Eliminar y cerrar sesión comparten rojo sólido; cancelar comparte rojo s
   await admin.keyboard.press('Escape');
   const editor = (await abrir(t, 'constructor')).pagina;
   await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
-  await editor.locator('[data-eliminar-estacion]').click();
+  await editor.getByRole('button', { name: 'Eliminar elemento seleccionado' }).click();
   assert.deepEqual(await estilo(editor.locator('[data-confirmar-eliminar]')), peligro);
   assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar [value=cancelar]')), cancelar);
   await editor.keyboard.press('Escape');
   await editor.locator('[data-elegir-herramienta=estaciones]').click();
+  await editor.mouse.move(0, 0);
+  await editor.waitForTimeout(300);
 
-  assert.deepEqual(await estilo(editor.locator('[data-cancelar-herramienta]')), cancelar);
-  await editor.locator('[data-cancelar-herramienta]').click();
+  assert.deepEqual(await estilo(editor.getByRole('button', { name: 'Cancelar operación' })), cancelar);
+  await editor.getByRole('button', { name: 'Cancelar operación' }).click();
 });
 
 test('Rol nativo: teclado y guardar conservan JUGADOR ↔ ADMIN y contrato REST', async t => {
@@ -120,7 +122,7 @@ test('Lista larga de usuarios: foco en la última fila y selector junto al borde
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
 });
 
-test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Pista utilizable', async t => {
+test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Música utilizable', async t => {
   const tactil = { newContext: opciones => navegador.newContext({ ...opciones, hasTouch: true }) };
   const { pagina: p, contexto, errores } = await abrirEditor(tactil, { viewport: { width: 320, height: 844 }, escenario: { ...niveles[0], idEscenario: 41 } });
   t.after(async () => { await contexto.close(); assert.deepEqual(errores, []); });
@@ -133,20 +135,21 @@ test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Pista utilizab
     assert.ok(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top, 'Los mandos no se superponen');
   }
   await p.locator('.metronet-hud>summary').tap();
-  await p.locator('[data-hud-vista=controles]').tap();
-  assert.equal(await p.locator('.metronet-hud').getAttribute('data-vista'), 'controles');
+  assert.equal(await p.locator('.metronet-hud').getAttribute('data-vista'), 'musica');
+  assert.equal(await p.locator('[data-hud-musica]').isVisible(), true);
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
 });
 
 
 test('Encabezados desplegables conservan marco de control y apertura nativa', async t => {
-  for (const [ruta, selector] of [['constructor', '.metronet-editor-acceso-teclado > summary'], ['/simulacion.html?idDiseno=77', '.simulacion-seccion > summary']]) {
-    const p = (await abrir(t, ruta)).pagina;
-    if (ruta === 'constructor') { await p.locator('.metronet-hud>summary').click(); await p.locator('[data-hud-vista=controles]').click(); }
-    const summary = p.locator(selector).first();
-    const css = await estilo(summary);
-    assert.equal(css.borderTopWidth, '1px'); assert.notEqual(css.boxShadow, 'none');
-    await summary.focus(); await summary.press('Enter');
-    assert.equal(await summary.evaluate(e => e.parentElement.open), true);
-  }
+  const editor = (await abrir(t, 'constructor')).pagina;
+  await editor.locator('.metronet-hud > summary').click();
+  const summary = editor.locator('.metronet-hud [data-hud-teclado] .metronet-editor-acceso-teclado > summary');
+  assert.equal(await summary.isVisible(), true);
+  const css = await estilo(summary);
+  assert.equal(css.borderTopWidth, '1px'); assert.notEqual(css.boxShadow, 'none');
+  await summary.focus(); await summary.press('Enter');
+  assert.equal(await summary.evaluate(e => e.parentElement.open), true);
+  const simulacion = (await abrir(t, '/simulacion.html?idDiseno=77')).pagina;
+  assert.equal(await simulacion.getByRole('heading', { name: 'Resultado de simulación' }).isVisible(), true);
 });

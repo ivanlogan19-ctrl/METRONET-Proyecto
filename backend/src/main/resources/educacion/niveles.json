@@ -402,7 +402,7 @@
     "nombre": "Nivel 7 · Nodos de intercambio",
     "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los cinco puntos de interés a no más de 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicados. Mantené un recorrido continuo común a los puntos de interés. Construí al menos seis estaciones, dos líneas, cinco conexiones y dos metros. En una estación que pertenezca a ambas líneas, activá Permite transbordo. Abrí Simular diseño y ejecutá; seleccioná un metro, cambiá solo sus UV con Aplicar velocidad y ejecutá otra vez con las mismas horas.",
+    "instrucciones": "Cubrí los cinco puntos de interés a no más de 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicados. Mantené un recorrido continuo común a los puntos de interés. Construí al menos seis estaciones, dos líneas, cinco conexiones y dos metros. Conectá las dos líneas mediante una misma estación para formar un transbordo. Abrí Simular diseño y ejecutá; seleccioná un metro, cambiá solo sus UV con Aplicar velocidad y ejecutá otra vez con las mismas horas.",
     "reglasExito": {
       "minimoEstaciones": 6,
       "minimoLineas": 2,
@@ -483,6 +483,7 @@
         }
       ],
       "minimoTransbordos": 1,
+      "transbordosPorConexion": true,
       "puntuacion": {
         "maximo": 100,
         "pesoResolucion": 0.8,
@@ -504,12 +505,12 @@
     },
     "preparacion": {
       "concepto": "Transbordos y conectividad",
-      "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "contexto": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
       "consejo": "Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades."
     },
     "transicion": {
-      "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe pertenecer al menos a dos líneas y estar marcada como transbordo. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "ciudad": "El Estadio Centenario se ubica en el polígono Parque Batlle Villa Dolores del mapa. Incorporarlo suma una relación territorial a los intercambios entre líneas."
     },
     "historia": {
@@ -523,7 +524,7 @@
     "nombre": "Nivel 8 · Red urbana",
     "objetivo": "Integrá el Estadio Centenario a una red de al menos tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los seis puntos de interés a no más de 20 unidades del mapa y atendé los seis barrios y cuatro zonas indicados. Construí al menos ocho estaciones, tres líneas, siete conexiones, tres metros y dos transbordos. Conectá los puntos de interés por una misma línea continua. Abrí Simular diseño y ejecutá; cambiá solo las UV de un metro y ejecutá de nuevo. Luego seleccioná Todas las unidades, aplicá una misma UV nueva a todos los metros y volvé a ejecutar. Mantené las mismas horas entre ejecuciones.",
+    "instrucciones": "Cubrí los seis puntos de interés a no más de 20 unidades del mapa y atendé los seis barrios y cuatro zonas indicados. Construí al menos ocho estaciones, tres líneas, siete conexiones y tres metros. Hacé que dos estaciones tengan conexiones de dos líneas distintas para formar dos transbordos. Conectá los puntos de interés por una misma línea continua. Abrí Simular diseño y ejecutá; cambiá solo las UV de un metro y ejecutá de nuevo. Luego seleccioná Todos los metros, aplicá una misma UV nueva a todos los metros y volvé a ejecutar. Mantené las mismas horas entre ejecuciones.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
@@ -613,6 +614,7 @@
         }
       ],
       "minimoTransbordos": 2,
+      "transbordosPorConexion": true,
       "puntuacion": {
         "maximo": 100,
         "pesoResolucion": 0.7,
@@ -637,7 +639,7 @@
       "concepto": "Relaciones en una red urbana",
       "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "contexto": "Integrá el Estadio Centenario a una red de al menos tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
-      "consejo": "Ejecutá, cambiá solo las UV de un metro y ejecutá otra vez. Después seleccioná Todas las unidades, aplicá una misma UV nueva a todos los metros y ejecutá con las mismas horas."
+      "consejo": "Ejecutá, cambiá solo las UV de un metro y ejecutá otra vez. Después seleccioná Todos los metros, aplicá una misma UV nueva a todos los metros y ejecutá con las mismas horas."
     },
     "transicion": {
       "aprendizaje": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
@@ -654,7 +656,7 @@
     "nombre": "Nivel 9 · Planificación precisa",
     "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre ocho y nueve estaciones, al menos tres líneas, siete conexiones, tres metros y dos transbordos. Cubrí los seis puntos de interés a no más de 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicados y conectá los objetivos por una misma línea continua. Abrí Simular diseño y ejecutá. Después cambiá solo las horas y ejecutá otra vez; por último cambiá UV y horas y volvé a ejecutar.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones, al menos tres líneas, siete conexiones y tres metros. Conectá dos líneas distintas en cada una de dos estaciones para formar dos transbordos. Cubrí los seis puntos de interés a no más de 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicados y conectá los objetivos por una misma línea continua. Abrí Simular diseño y ejecutá. Después cambiá solo las horas y ejecutá otra vez; por último cambiá UV y horas y volvé a ejecutar.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
@@ -744,6 +746,7 @@
         }
       ],
       "minimoTransbordos": 2,
+      "transbordosPorConexion": true,
       "maximoEstaciones": 9,
       "puntuacion": {
         "maximo": 100,
@@ -786,7 +789,7 @@
     "nombre": "Nivel 10 · Desafío integral",
     "objetivo": "Integrá ocho puntos de interés, ocho barrios y cuatro zonas en una red de al menos tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre diez y once estaciones, con al menos tres líneas, nueve conexiones, tres metros y tres transbordos. Cubrí los ocho puntos de interés a no más de 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicados y conectá los objetivos por una misma línea continua. Abrí Simular diseño y ejecutá. Seleccioná un metro, cambiá solo sus UV con Aplicar velocidad y ejecutá con las mismas horas. Luego seleccioná Todas las unidades, aplicá una misma UV nueva a todos los metros y ejecutá con las mismas horas. Por último cambiá UV y horas y ejecutá otra vez.",
+    "instrucciones": "Diseñá entre diez y once estaciones, con al menos tres líneas, nueve conexiones y tres metros. Conectá dos líneas distintas en cada una de tres estaciones para formar tres transbordos. Cubrí los ocho puntos de interés a no más de 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicados y conectá los objetivos por una misma línea continua. Abrí Simular diseño y ejecutá. Seleccioná un metro, cambiá solo sus UV con Aplicar velocidad y ejecutá con las mismas horas. Luego seleccioná Todos los metros, aplicá una misma UV nueva a todos los metros y ejecutá con las mismas horas. Por último cambiá UV y horas y ejecutá otra vez.",
     "reglasExito": {
       "minimoEstaciones": 10,
       "minimoLineas": 3,
@@ -894,6 +897,7 @@
         }
       ],
       "minimoTransbordos": 3,
+      "transbordosPorConexion": true,
       "maximoEstaciones": 11,
       "puntuacion": {
         "maximo": 100,
@@ -920,7 +924,7 @@
       "concepto": "Integración territorial",
       "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
       "contexto": "Integrá ocho puntos de interés, ocho barrios y cuatro zonas en una red de al menos tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
-      "consejo": "Ejecutá; compará un cambio de UV individual y luego aplicá una misma UV nueva a Todas las unidades, conservando las horas. Por último cambiá UV y horas y ejecutá otra vez."
+      "consejo": "Ejecutá; compará un cambio de UV individual y luego aplicá una misma UV nueva a Todos los metros, conservando las horas. Por último cambiá UV y horas y ejecutá otra vez."
     },
     "transicion": {
       "aprendizaje": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",

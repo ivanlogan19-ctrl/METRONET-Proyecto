@@ -1,29 +1,26 @@
-import { EVENTO_CONFIGURACION, MENSAJE_MANTENIMIENTO, estaMantenimientoActivo, obtenerConfiguracionAplicacion } from './ConfiguracionAplicacion.js';
-import './mantenimiento.css';
+import { consultarEstadoMantenimiento } from './ControlAccesoMantenimiento.js';
 
-export function inicializarAvisoMantenimiento(contenedor, sesion) {
+// La página ya se comprobó antes de montar el juego. Repetir la consulta permite
+// retirar una sesión abierta en cuanto el administrador active mantenimiento.
+export function inicializarAvisoMantenimiento(_contenedor, sesion) {
   if (sesion.usuario?.rol !== 'JUGADOR') return () => {};
-  const aviso = document.createElement('aside');
-  aviso.className = 'metronet-aviso-mantenimiento';
-  aviso.setAttribute('role', 'status');
-  aviso.hidden = true;
-  const titulo = document.createElement('strong');
-  titulo.textContent = 'ESTADO DEL SISTEMA // MANTENIMIENTO';
-  const texto = document.createElement('p');
-  texto.textContent = MENSAJE_MANTENIMIENTO;
-  aviso.append(titulo, texto);
-  contenedor.append(aviso);
-  const actualizar = () => { aviso.hidden = !estaMantenimientoActivo(sesion); };
-  const consultar = () => { if (!document.hidden) void obtenerConfiguracionAplicacion(sesion); };
-  window.addEventListener(EVENTO_CONFIGURACION, actualizar);
-  window.addEventListener('focus', consultar);
-  document.addEventListener('visibilitychange', consultar);
-  actualizar();
-  void obtenerConfiguracionAplicacion(sesion);
+  let detenido = false;
+  let consultando = false;
+  const comprobar = async () => {
+    if (detenido || consultando || document.hidden) return;
+    consultando = true;
+    try {
+      if (await consultarEstadoMantenimiento() && !detenido) location.replace('/mantenimiento.html');
+    } catch { /* El servidor verifica cada operación del jugador. */ }
+    finally { consultando = false; }
+  };
+  const intervalo = window.setInterval(comprobar, 10000);
+  window.addEventListener('focus', comprobar);
+  document.addEventListener('visibilitychange', comprobar);
   return () => {
-    window.removeEventListener(EVENTO_CONFIGURACION, actualizar);
-    window.removeEventListener('focus', consultar);
-    document.removeEventListener('visibilitychange', consultar);
-    aviso.remove();
+    detenido = true;
+    window.clearInterval(intervalo);
+    window.removeEventListener('focus', comprobar);
+    document.removeEventListener('visibilitychange', comprobar);
   };
 }

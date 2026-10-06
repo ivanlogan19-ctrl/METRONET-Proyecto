@@ -48,8 +48,8 @@ test('Finales 1 → 2 → 3: viaje de 11 s y nuevo nivel sin repetir la pista al
  for(const [i,e] of datos.entries()){
   assert.equal(e.accion,'siguiente');assert.equal(e.termino,false);assert.equal(e.cortes,0);assert.equal(e.loop,false);
   assert.ok(e.ms>=10800&&e.ms<14000);assert.ok(e.duracion>13.7&&e.duracion<13.9);
-  assert.equal(e.cartel.mismo,true);assert.equal(e.cartel.instancias,1);assert.match(e.cartel.texto,new RegExp(`NIVEL ${i+2}`));
-  assert.ok(e.cartel.tiempo>8.3&&e.cartel.tiempo<11.5);assert.ok(e.demoraRepeticion<200);
+  assert.equal(e.cartel,null,'La victoria con siguiente nivel usa el destino integrado, sin cartel adicional');
+  assert.ok(e.demoraRepeticion<200);
   assert.equal(e.pistaSiguiente,'/audio/extra-theme.mp3');
  }
 });

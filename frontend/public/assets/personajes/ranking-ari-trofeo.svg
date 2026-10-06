@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="256" viewBox="0 0 48 64" shape-rendering="crispEdges">
+  <title>Joven levantando un trofeo</title>
+  <!-- Trofeo dorado junto al brazo alzado. -->
+  <path fill="#17283b" d="M34 2h10v3h3v9h-3v3h-3v4h-2v3h4v3H32v-3h4v-3h-2v-4h-3v-3h-3V5h3V2h3z"/>
+  <path fill="#e4b95a" d="M34 3h10v10h-2v3h-2v4h-4v-4h-2v-3h-2V3zm-5 3h3v7h-2V8h-1zm15 0h2v7h-2zM36 21h4v3h-4zm-3 4h9v1h-9z"/>
+  <path fill="#f2d377" d="M35 4h2v9h-2zm3 1h4v3h-4z"/>
+  <!-- Piernas y calzado. -->
+  <path fill="#17283b" d="M12 45h22v15h-3v3H9v-5h3z"/>
+  <path fill="#293f83" d="M14 47h18v12h-6V52h-5v7h-7z"/>
+  <path fill="#405bb3" d="M15 49h4v8h-4zm12 0h4v8h-4z"/>
+  <path fill="#17283b" d="M10 59h10v4H8v-2h2zm17 0h9v2h3v2H27z"/>
+  <!-- Brazo izquierdo y torso. -->
+  <path fill="#17283b" d="M10 32h6v5h-3v10h-3V36H7v-3h3zm7-2h15v3h4v16H13V33h4z"/>
+  <path fill="#42a39c" d="M16 33h17v14H14V36h2z"/>
+  <path fill="#79d4c3" d="M17 34h4v11h-4zm7 0h5v2h-5z"/>
+  <path fill="#243e59" d="M20 46h7v2h-7z"/>
+  <path fill="#d99e79" d="M8 36h4v10H9v-4H8z"/>
+  <!-- Brazo derecho extendido hacia la copa. -->
+  <path fill="#17283b" d="M30 32h5v-5h2v-6h5v6h-2v4h-3v8h-7z"/>
+  <path fill="#d99e79" d="M34 27h3v-5h4v6h-2v3h-3v7h-4v-6h2z"/>
+  <path fill="#f5d0aa" d="M38 23h2v3h-2z"/>
+  <path fill="#42a39c" d="M29 33h5v7h-5z"/>
+  <!-- Cabeza y cabello azul, en la paleta de Ari. -->
+  <path fill="#17283b" d="M15 11h3V8h12v2h3v4h2v15h-4v3H17v-3h-4V15h2z"/>
+  <path fill="#293f83" d="M16 13h2v-3h12v2h3v8h-3v-3h-4v-3h-10zM14 16h3v9h-3zm17 1h3v8h-3z"/>
+  <path fill="#405bb3" d="M18 10h8v2h-8zm-2 4h6v2h-6z"/>
+  <path fill="#d99e79" d="M17 19h14v9h-3v3h-8v-3h-3z"/>
+  <path fill="#f5d0aa" d="M19 20h10v6H19zm4 8h4v2h-4z"/>
+  <path fill="#17283b" d="M19 22h2v2h-2zm8 0h2v2h-2zm-5 4h5v1h-5z"/>
+</svg>

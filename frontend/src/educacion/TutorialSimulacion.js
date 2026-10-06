@@ -12,8 +12,12 @@ const PASOS = [
   ['.simulacion-accesos-titulo', 'Sonido y salida', 'Desde esta fila podés controlar el sonido, repetir el tutorial o volver a Edición.'],
 ];
 
-export function abrirTutorialSimulacion() {
-  const recorrido = new RecorridoInicial(() => {}, {
+export function abrirTutorialSimulacion(alFinalizar = () => {}) {
+  const recorrido = new RecorridoInicial(alFinalizar, {
+    interactivo: true,
+    pausable: true,
+    disparador: '#tutorialPantallaSimulacion',
+    evitarControles: '.simulacion-aplicacion button, .simulacion-aplicacion a[href], .simulacion-aplicacion summary, .simulacion-aplicacion input:not([type="hidden"]), .simulacion-aplicacion select',
     pasos: PASOS,
     tituloFinal: 'Pantalla lista',
     textoFinal: 'Ya conocés los controles de esta pantalla. Podés repetir el recorrido junto al botón de sonido.',
@@ -22,12 +26,12 @@ export function abrirTutorialSimulacion() {
   return recorrido;
 }
 
-export function presentarTutorialSimulacion({ idUsuario } = {}) {
+export function presentarTutorialSimulacion({ idUsuario, alFinalizar } = {}) {
   const clave = `metronet:tutorial-pantalla-simulacion:v2:${idUsuario ?? 'invitado'}`;
   try {
     if (localStorage.getItem(clave)) return null;
   } catch { /* El recorrido sigue disponible si el almacenamiento está bloqueado. */ }
-  const recorrido = abrirTutorialSimulacion();
+  const recorrido = abrirTutorialSimulacion(alFinalizar);
   try { localStorage.setItem(clave, 'presentado'); } catch { /* No afecta la simulación. */ }
   return recorrido;
 }

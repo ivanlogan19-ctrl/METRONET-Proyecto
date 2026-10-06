@@ -28,7 +28,7 @@ test('El fondo conserva su geometría vectorial preparada durante zoom y pan', a
   assert.equal(datos.indicesReutilizados, true); assert.equal(datos.geometriaEstable, true); assert.equal(datos.triangulosValidos, true);
 });
 
-test('Redibujar y reiniciar libera los marcos de etiquetas sin acumular texturas', async t => {
+test('Redibujar y reiniciar no acumula texturas con rótulos de mapa desactivados', async t => {
   const p = await abrir(t);
   const r = await p.evaluate(() => {
     const s = juegoPrueba.scene.getScene('MapaScene'), red = s.capaRedMetro;
@@ -42,7 +42,7 @@ test('Redibujar y reiniciar libera los marcos de etiquetas sin acumular texturas
     return { antes, despues, fondos, nombres, eliminadas: claves.every(clave => !s.textures.exists(clave)) };
   });
   assert.equal(r.antes, r.despues); assert.ok(r.fondos.every(t => t === 'Image'));
-  assert.deepEqual(r.nombres, ['CENTRO', 'PARQUE', 'ESTE']); assert.equal(r.eliminadas, true);
+  assert.deepEqual(r.nombres, []); assert.equal(r.eliminadas, true);
 });
 
 test('El motor reducido conserva render Canvas, controles de teclado, gráficos y etiquetas', async t => {
@@ -54,12 +54,18 @@ test('El motor reducido conserva render Canvas, controles de teclado, gráficos 
   });
   await p.reload();
   await p.waitForFunction(() => juegoPrueba?.scene?.getScene('MapaScene')?.editorRedMetro?.disenoActual);
+  await p.evaluate(() => new Promise(resolve => {
+    let cuadros = 2;
+    const juego = juegoPrueba;
+    const siguiente = () => { if (--cuadros === 0) { juego.events.off('postrender', siguiente); resolve(); } };
+    juego.events.on('postrender', siguiente);
+  }));
   const datos = await p.evaluate(() => {
     const s = juegoPrueba.scene.getScene('MapaScene');
     return { renderer: s.game.config.renderType, teclado: Boolean(s.input.keyboard),
       etiquetas: s.capaRedMetro.etiquetasEstaciones.length, barrios: s.capaBarrios.fondoMapa.length,
       colores: new Set(s.game.canvas.getContext('2d').getImageData(0, 0, s.scale.width, s.scale.height).data).size };
   });
-  assert.equal(datos.renderer, 1); assert.equal(datos.teclado, true); assert.equal(datos.etiquetas, 3);
+  assert.equal(datos.renderer, 1); assert.equal(datos.teclado, true); assert.equal(datos.etiquetas, 0);
   assert.ok(datos.barrios > 50); assert.ok(datos.colores > 10);
 });

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <path d="M19 3h26l16 16v26L45 61H19L3 45V19z" fill="#08131c"/>
+  <path d="M20 7h24l13 13v24L44 57H20L7 44V20z" fill="#f4e8d2"/>
+  <path d="M21 11h22l10 10v22L43 53H21L11 43V21z" fill="#c53c36"/>
+  <text x="32" y="37" text-anchor="middle" fill="#fff7e9" font-family="sans-serif" font-weight="900" font-size="14">PARE</text>
+</svg>

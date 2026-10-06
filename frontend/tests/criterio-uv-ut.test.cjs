@@ -32,14 +32,14 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   }});
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
   const p = vista.pagina;
-  await p.locator('#resumenCriterioUvUt:visible').waitFor();
+  await p.locator('#listaResultadosSimulacion').filter({ hasText: 'Ejecución V2' }).waitFor();
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '2');
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');
-  assert.match(await p.locator('#resumenCriterioUvUt').textContent(), /6\.5 UV.*Mejor UV.*5\.5/s);
+  assert.equal(await p.locator('#resumenCriterioUvUt').isVisible(), false);
   const historial = await p.locator('#listaResultadosSimulacion').textContent();
   assert.match(historial, /Duración: 2 UT.*5\.5 \/ 6\.5 UV/s);
-  assert.match(historial, /Objetivo UV\/UT cumplido/);
+  assert.match(historial, /Consigna de simulación cumplida/);
   assert.match(historial, /Duración simulada: 6 h/);
   if (process.env.METRONET_CAPTURAS_UVUT) await p.screenshot({path:`${process.env.METRONET_CAPTURAS_UVUT}/simulacion-v2-chrome.png`,fullPage:true});
 });

@@ -43,16 +43,14 @@ test('nombre duplicado se recalcula una vez; doble clic no duplica escrituras',a
  assert.equal(diseno.estaciones.filter(e=>e.nombre==='Estación 02').length,1);
 });
 
-test('transbordo exige bandera y dos líneas; se habilita en el intento en edición',async t=>{
+test('transbordo surge de dos líneas conectadas en una estación sin edición de propiedades',async t=>{
  const escenario={idEscenario:7,numero:7,nombre:'Transbordos',estado:'EN_DESARROLLO',progreso:0,desbloqueado:true,herramientasHabilitadas:{estaciones:true,lineas:true,metros:true,conexiones:true,simulacion:true}};
  const {pagina:p,solicitudes}=await abrir(t,{escenario,lineas:[{nombre:'Azul'},{nombre:'Rosa'}],tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Rosa',estacionA:'Centro',estacionB:'Este'}]});
- assert.equal(await p.evaluate(()=>editorPrueba.capaRedMetro.esTransbordo(editorPrueba.disenoActual.estaciones[0])),false);
- assert.equal(await p.locator('[data-elegir-herramienta=transbordos]').count(),0);
- await clic(p,580,470);await p.locator('[data-editar-estacion]').click();
- await p.getByLabel('Permite transbordo',{exact:true}).check();await p.getByRole('button',{name:'Guardar cambios',exact:true}).click();
- await p.waitForFunction(()=>editorPrueba.disenoActual.estaciones[0].transbordo);
+ assert.equal(await p.evaluate(()=>editorPrueba.disenoActual.estaciones[0].transbordo),false);
  assert.equal(await p.evaluate(()=>editorPrueba.capaRedMetro.esTransbordo(editorPrueba.disenoActual.estaciones[0])),true);
- assert.equal(solicitudes[0].metodo,'PATCH');
+ assert.equal(await p.evaluate(()=>editorPrueba.capaRedMetro.esTransbordo(editorPrueba.disenoActual.estaciones[1])),false);
+ assert.equal(await p.locator('[data-elegir-herramienta=transbordos]').count(),0);
+ assert.equal(solicitudes.length,0);
 });
 
 test('líneas superpuestas requieren elegir destino del metro',async t=>{
@@ -77,23 +75,24 @@ test('guardar avance incompleto valida, persiste y no confunde consigna con erro
  assert.equal(solicitudes.some(s=>s.ruta.endsWith('/evaluar')),false);
 });
 
-for(const numero of [1,2,3,4,5,6,7,8,9,10]) test(`nivel ${numero}: conserva disponibilidad e iconos y permite inspector de intento activo`,async t=>{
+for(const numero of [1,2,3,4,5,6,7,8,9,10]) test(`nivel ${numero}: conserva disponibilidad de herramientas sin edición general`,async t=>{
  const nivel=require('../src/educacion/niveles.json').find(n=>n.numero===numero);
  const {pagina:p}=await abrir(t,{escenario:{...nivel,idEscenario:numero,desbloqueado:true,estado:'EN_DESARROLLO'}});
  for(const clave of ['estaciones','lineas','conexiones','metros']) assert.equal(await p.locator(`[data-elegir-herramienta="${clave}"]`).isDisabled(),nivel.herramientasHabilitadas[clave]===false);
  assert.equal(await p.locator('[data-ir-simulacion]').isDisabled(),nivel.herramientasHabilitadas.simulacion===false);
- await clic(p,810,480);assert.equal(await p.locator('[data-editar-estacion]').isVisible(),true);
+ await clic(p,810,480);assert.equal(await p.locator('[data-editar-estacion]').count(),0);
 });
 
-test('pinza de dos dedos y controles del HUD no crean elementos con Estación activa',async t=>{
+test('pinza de dos dedos y búsqueda POI no crean elementos con Estación activa',async t=>{
  const {pagina:p,contexto,solicitudes}=await abrir(t);await herramienta(p,'estaciones');
  const a=await punto(p,700,460), cdp=await contexto.newCDPSession(p);
  const puntos=(delta)=>[{x:a.x-delta,y:a.y,id:0},{x:a.x+delta,y:a.y,id:1}];
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:puntos(10)});
  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:puntos(40)});
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
- await p.locator('.metronet-hud>summary').click();
- await p.locator('[data-hud-vista=controles]').click();
+ await p.locator('.metronet-poi>summary').click();
+ await p.getByRole('button',{name:'Buscar punto de interés'}).click();
+ await p.getByRole('searchbox').fill('Hospital');
  await p.waitForTimeout(100);assert.equal(solicitudes.length,0);
 });
 
@@ -125,12 +124,153 @@ test('Guardar espera una edición pendiente y conserva el error si la escritura 
 test('Simular revisa y guarda antes de navegar; la intención se consume una sola vez',async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').dblclick();await p.waitForURL('**/simulacion.html?**');
- await p.locator('#pausarSimulacion:not([hidden]):not(:disabled)').waitFor();
+ const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+ await tutorial.getByRole('button',{name:'Pausar recorrido'}).click();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+ await p.locator('#tutorialPantallaSimulacion').click();
+ for(let i=0;i<8;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+ const ejecucion=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/simulaciones/77/ejecutar');
+ await tutorial.getByRole('button',{name:'Comenzar',exact:true}).evaluate(b=>{b.click();b.click();});
+ await ejecucion;
+ await p.waitForFunction(()=>['En recorrido','Finalizada'].includes(document.querySelector('#estadoTiempoReal')?.textContent));
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
  assert.deepEqual(solicitudes.slice(0,2).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
  await p.reload();await p.locator('#panelSimulacion:not([hidden])').waitFor();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
  assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isVisible(),true);
+});
+
+async function completarTutorialSimulacion(p){
+ const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
+ for(let i=0;i<8;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
+ await tutorial.getByRole('button',{name:'Comenzar',exact:true}).click();
+ await tutorial.waitFor({state:'detached'});
+}
+
+async function demorarProgresoSimulacion(p,t){
+ let liberar=()=>{},aviso;
+ const solicitado=new Promise(resolve=>{aviso=resolve;});
+ await p.route('**/api/juego/progreso',async route=>{
+  await new Promise(resolve=>{liberar=resolve;aviso();});
+  await route.fallback();
+ });
+ t.after(()=>liberar());
+ return {solicitado,liberar:()=>liberar()};
+}
+
+for(const repetido of [false,true])test(`Progreso demorado: Play manual 503 ${repetido?'sin tutorial repetido':'antes del tutorial'} no duplica ejecución`,async t=>{
+ const {pagina:p}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ if(repetido)await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v2:7','presentado'));
+ const progreso=await demorarProgresoSimulacion(p,t);
+ let intentos=0;
+ await p.route('**/api/simulaciones/77/ejecutar',route=>{intentos++;return route.fulfill({status:503,json:{detail:'Error de prueba.'},headers:{'access-control-allow-origin':'*'}});});
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ await progreso.solicitado;
+ await p.locator('#panelSimulacion:not([hidden])').waitFor();
+ assert.equal(await p.locator('.metronet-recorrido').count(),0);
+ await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
+ await p.locator('#mensajeSimulacion.error').filter({hasText:'Error de prueba.'}).waitFor();
+ assert.equal(intentos,1);
+ const respuesta=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/juego/progreso');
+ progreso.liberar();await respuesta;
+ if(repetido){
+  await p.waitForTimeout(250);
+  assert.equal(await p.locator('.metronet-recorrido').count(),0);
+ }else{
+  await p.locator('.metronet-recorrido').waitFor();
+  await completarTutorialSimulacion(p);
+ }
+ assert.equal(intentos,1,'La intención consumida no reintenta el Play manual fallido');
+});
+
+for(const manual of [false,true])test(`Progreso demorado sin tutorial: ${manual?'Play manual no se repite':'intención ejecuta una vez'}`,async t=>{
+ const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v2:7','presentado'));
+ const progreso=await demorarProgresoSimulacion(p,t);
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');await progreso.solicitado;
+ assert.equal(await p.locator('.metronet-recorrido').count(),0);
+ if(manual){
+  await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
+  await p.locator('#pausarSimulacion:not([hidden]):not(:disabled)').waitFor();
+  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
+ }
+ const respuesta=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/juego/progreso');
+ progreso.liberar();await respuesta;
+ if(!manual)await p.locator('#pausarSimulacion:not([hidden]):not(:disabled)').waitFor();
+ else await p.waitForTimeout(250);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
+});
+
+test('Progreso demorado: salida preservada cancela la intención antes de mostrar tutorial',async t=>{
+ const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ const progreso=await demorarProgresoSimulacion(p,t);
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');await progreso.solicitado;
+ await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
+ progreso.liberar();await p.locator('.metronet-recorrido').waitFor();
+ await completarTutorialSimulacion(p);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+});
+
+for(const cierre of ['Omitir','Escape'])test(`Simular pendiente: ${cierre} no ejecuta y Play manual ejecuta una vez`,async t=>{
+ const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
+ if(cierre==='Omitir')await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
+ else {await tutorial.getByRole('button',{name:'Siguiente',exact:true}).focus();await p.keyboard.press('Escape');}
+ await tutorial.waitFor({state:'detached'});
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+ await p.locator('#tutorialPantallaSimulacion').click();
+ await completarTutorialSimulacion(p);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0,'Repetir el tutorial no ejecuta la intención descartada');
+ await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
+ await p.waitForFunction(()=>document.querySelector('#pausarSimulacion:not([hidden]):not(:disabled)'));
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
+});
+
+test('Play manual durante el tutorial consume la intención diferida',async t=>{
+ const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ await p.locator('.metronet-recorrido').waitFor();
+ await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
+ await p.waitForFunction(()=>document.querySelector('#pausarSimulacion:not([hidden]):not(:disabled)'));
+ await completarTutorialSimulacion(p);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
+});
+
+test('Cambiar de diseño durante tutorial descarta la intención anterior',async t=>{
+ const {pagina:p,solicitudes,diseno}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ await p.locator('.metronet-recorrido').waitFor();
+ await p.route('**/api/simulaciones/78',route=>route.fulfill({json:{...diseno,simulacion:{...diseno.simulacion,idDiseno:78}},headers:{'access-control-allow-origin':'*'}}));
+ await p.goto(`${process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5173'}/simulacion.html?idDiseno=78`);
+ await p.locator('#panelSimulacion:not([hidden])').waitFor();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+ assert.equal(await p.locator('.metronet-recorrido').count(),0);
+});
+
+test('Salir durante el tutorial y volver desde historial no ejecuta la intención anterior',async t=>{
+ const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ await p.locator('.metronet-recorrido').waitFor();
+ await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
+ await completarTutorialSimulacion(p);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+});
+
+test('Error al ejecutar después de completar tutorial no repite el intento',async t=>{
+ const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
+ let intentos=0;
+ await p.route('**/api/simulaciones/77/ejecutar',route=>{intentos++;return route.fulfill({status:503,json:{detail:'Servicio temporalmente indisponible.'},headers:{'access-control-allow-origin':'*'}});});
+ await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ await completarTutorialSimulacion(p);
+ await p.locator('#mensajeSimulacion.error').waitFor();
+ assert.match(await p.locator('#mensajeSimulacion').innerText(),/Servicio temporalmente indisponible/);
+ assert.equal(intentos,1);
+ await p.reload();await p.locator('#panelSimulacion:not([hidden])').waitFor();
+ assert.equal(intentos,1);
+ assert.equal(await p.locator('.metronet-recorrido').count(),0);
 });
 
 test('Simular rechaza una red no preparada y conserva el editor sin guardar ni navegar',async t=>{
@@ -141,15 +281,15 @@ test('Simular rechaza una red no preparada y conserva el editor sin guardar ni n
  assert.equal(solicitudes.some(s=>/guardar|ejecutar/.test(s.ruta)),false);assert.equal(new URL(p.url()).pathname,'/');
 });
 
-test('renombrar la línea activa no deja conexiones apuntando al nombre anterior',async t=>{
+test('seleccionar la línea conserva su identidad y las conexiones existentes sin editar nombres',async t=>{
  const {pagina:p,solicitudes}=await abrir(t);
  await p.evaluate(()=>editorPrueba.seleccionarLineaDesdeLista('Azul'));
- await p.locator('[data-editar-linea]').click();await p.getByLabel('Nombre de la línea',{exact:true}).fill('Nueva identidad');
- await p.getByRole('button',{name:'Guardar cambios',exact:true}).click();
- await p.waitForFunction(()=>!editorPrueba.creacionDirecta.pendiente && editorPrueba.disenoActual.lineas[0].nombre==='Nueva identidad');
- await herramienta(p,'conexiones');await clic(p,700,460);
- assert.equal(solicitudes.length,1);assert.equal(await p.locator('[data-linea-conexion]').inputValue(),'');
- assert.match(await p.locator('[data-estado-editor]').innerText(),/línea activa/);
+ assert.equal(await p.locator('[data-editar-linea]').count(),0);
+ assert.equal(await p.locator('[data-linea-gestion]').inputValue(),'Azul');
+ assert.equal(await p.locator('[data-linea-conexion]').inputValue(),'Azul');
+ assert.equal(await p.evaluate(()=>editorPrueba.disenoActual.lineas[0].nombre),'Azul');
+ assert.equal(await p.evaluate(()=>editorPrueba.disenoActual.tramos.some(t=>t.nombreLinea==='Azul')),true);
+ assert.equal(solicitudes.length,0);
 });
 
 for (const numero of [1,2,3,4,5,6,7,8,9,10]) test(`Guardar nivel ${numero} evalúa y actualiza progreso parcial sin Validar manual`,async t=>{

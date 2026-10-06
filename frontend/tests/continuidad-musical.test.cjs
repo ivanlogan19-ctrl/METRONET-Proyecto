@@ -25,7 +25,7 @@ test('Administración: tabs, clics repetidos y enlaces propios conservan documen
  await p.locator('[data-vista="disenos"]').click({clickCount:3});
  assert.equal(solicitudes.length,solicitudesAntes);
  await p.locator('.metronet-navegacion__enlaces a[href="/admin.html"]').click();
- await p.locator('.admin-marca').click();
+ await p.locator('[data-vista="usuarios"]').click();
  assert.equal(await p.locator('#vista-usuarios').evaluate(e=>e.classList.contains('activa')),true);
  assert.equal(await p.evaluate(()=>docPrueba),id);
  assert.equal(await p.evaluate(()=>audioPrueba===gestorPrueba.audio),true);

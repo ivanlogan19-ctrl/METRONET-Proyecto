@@ -6,7 +6,7 @@ async function abrirEditor(navegador, opciones = {}) {
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })));
   // Las suites de edición continúan la tarjeta para probar sus flujos previos;
   // la presentación educativa se valida en tarjetas-educativas.test.cjs.
-  await contexto.addInitScript(() => {
+  if (opciones.cerrarTarjetaAutomatica !== false) await contexto.addInitScript(() => {
     window.addEventListener('DOMContentLoaded', () => {
       const continuar = () => document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button')?.click();
       new MutationObserver(continuar).observe(document.body, { childList:true, subtree:true });

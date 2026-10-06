@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import com.metronet.backend.controller.SimulacionController;
 import com.metronet.backend.controller.AuthController;
+import com.metronet.backend.controller.EstadoSistemaController;
 import com.metronet.backend.service.SimulacionService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {JuegoEducativoController.class, SimulacionController.class, AuthController.class})
+@WebMvcTest(controllers = {JuegoEducativoController.class, SimulacionController.class, AuthController.class, EstadoSistemaController.class})
 @Import({ConfiguracionMantenimientoWeb.class, ControlMantenimientoInterceptor.class})
 class ConfiguracionMantenimientoWebTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -128,19 +129,30 @@ class ConfiguracionMantenimientoWebTest {
     }
 
     @Test
-    void mantenimientoNoImpideLeerAutenticarseOCerrarSesion() throws Exception {
+    void mantenimientoImpideLeerEIniciarSesionPeroPermiteCerrarSesion() throws Exception {
         when(configuracionService.estaModoMantenimientoActivo()).thenReturn(true);
         when(authService.obtenerUsuarioConSesion("Bearer jugador")).thenReturn(usuario(Rol.JUGADOR));
         clienteHttp.perform(get("/api/simulaciones/21").header("Authorization", "Bearer jugador"))
-            .andExpect(status().isOk());
+            .andExpect(status().isServiceUnavailable());
         clienteHttp.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"jugador@example.test\",\"password\":\"prueba\"}"))
-            .andExpect(status().isOk());
+            .andExpect(status().isServiceUnavailable());
         clienteHttp.perform(post("/auth/logout").header("Authorization", "Bearer jugador"))
             .andExpect(status().isNoContent());
-        verify(authService).iniciarSesion(any());
+        verify(authService, never()).iniciarSesion(any());
         verify(authService).cerrarSesionUsuario("Bearer jugador");
-        verify(simulacionService).obtenerSimulacion(7, 21);
+        verify(simulacionService, never()).obtenerSimulacion(7, 21);
+    }
+
+    @Test
+    void estadoPublicoPermiteConocerCuandoSeLevantaElMantenimiento() throws Exception {
+        when(configuracionService.estaModoMantenimientoActivo()).thenReturn(true, false);
+        clienteHttp.perform(get("/api/estado"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.mantenimiento").value(true));
+        clienteHttp.perform(get("/api/estado"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.mantenimiento").value(false));
     }
 
     private Usuario usuario(Rol rol) {

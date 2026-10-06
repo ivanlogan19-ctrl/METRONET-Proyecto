@@ -15,19 +15,11 @@
   <script type="module" blocking="render" src="/src/componentes/inicializarLogoMetronet.js"></script>
   <script type="module" blocking="render" src="/src/administracion/administracion.js"></script>
 </head>
-  <body class="metronet-pagina-navegable">
+  <body class="metronet-pagina-navegable metronet-pagina-administracion">
     <div data-navegacion-global></div>
     <main class="admin-aplicacion">
       <aside class="admin-menu" aria-label="Menú de administración">
-        <a
-          class="admin-marca"
-          href="/admin.html"
-          aria-label="Inicio de administración"
-        >
-          <span class="admin-marca__texto">Gestión de administración</span>
-        </a>
         <nav class="admin-navegacion" aria-label="Módulos de administración">
-          <p class="admin-navegacion__etiqueta">Módulos</p>
           <button
             class="admin-enlace activo"
             type="button"
@@ -55,9 +47,13 @@
 
       <section class="admin-contenido">
         <header class="admin-encabezado">
-          <div>
-            <p class="admin-etiqueta">Panel de control</p>
+          <div class="admin-titulo-con-icono">
             <h1 id="tituloVista">Gestión de usuarios</h1>
+            <img id="iconoUsuarios" src="/assets/usuario-busto-admin.svg" width="56" height="56" alt="" aria-hidden="true" />
+            <img id="iconoDisenos" src="/assets/pare-admin.svg" width="56" height="56" alt="" aria-hidden="true" hidden />
+            <img id="iconoConfiguracion" src="/assets/icono-mantenimiento-engranaje-v2.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
+            <img id="iconoActividad" src="/assets/icono-actividad-caja-herramientas-v3.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
+            <img id="iconoNiveles" src="/assets/icono-experiencia-tren-v2.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
           </div>
           <p id="nombreAdministrador" class="admin-usuario"></p>
         </header>
@@ -67,9 +63,7 @@
           class="admin-vista activa"
           aria-labelledby="tituloVista"
         >
-          <p class="admin-descripcion">
-            Consultá las cuentas registradas y asigná el rol correspondiente.
-          </p>
+          <h2>Administración de privilegios</h2>
           <p
             id="mensajeAdministracion"
             class="admin-mensaje"
@@ -107,37 +101,34 @@
 
         <section id="vista-disenos" class="admin-vista">
           <h2>Diseños de jugadores</h2>
-          <p>
-            Consultá los diseños creados por los jugadores. Al abrir uno podés
-            modificar o eliminar sus líneas de metro, estaciones y conexiones.
-          </p>
           <p id="mensajeDisenos" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div class="admin-filtros" aria-label="Filtro de diseños">
             <label>
-              Buscar diseño
-              <input id="filtroDisenos" type="search" placeholder="Diseño, jugador o correo electrónico" autocomplete="off" />
+              Buscar diseños por jugador
+              <input id="filtroDisenos" type="search" placeholder="Nombre o correo electrónico del jugador" autocomplete="off" />
             </label>
           </div>
           <div id="listaDisenos" class="admin-lista-disenos"></div>
           <div id="detalleDiseno" class="admin-detalle-diseno" hidden></div>
         </section>
         <section id="vista-configuracion" class="admin-vista">
-          <p class="admin-descripcion">Definí el ritmo inicial de reproducción y controlá las operaciones de la plataforma.</p>
           <p id="mensajeConfiguracion" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div id="listaConfiguracion" class="admin-lista-configuracion"></div>
         </section>
         <section id="vista-niveles" class="admin-vista">
-          <p class="admin-descripcion">Editá los diez niveles y sus seis tarjetas. Un borrador se publica solo después de validar una red de referencia y revisar sus fuentes.</p>
+          <h2>Elegí un nivel para editar su próxima publicación</h2>
           <p id="mensajeNivelesAdmin" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div id="listaNivelesAdmin" class="admin-niveles"></div>
         </section>
         <section id="vista-actividad" class="admin-vista">
-          <h2>Actividad reciente</h2>
-          <p>Consultá las últimas acciones realizadas por los administradores autorizados.</p>
+          <div class="admin-actividad-cabecera">
+            <h2>Registro de actividad de administradores</h2>
+            <button id="borrarTodasActividades" class="admin-eliminar" type="button" disabled>Borrar todo el registro</button>
+          </div>
           <p id="mensajeActividad" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div class="admin-tabla-contenedor">
             <table class="admin-tabla">
-              <thead><tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Detalle</th></tr></thead>
+              <thead><tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Detalle</th><th>Borrar</th></tr></thead>
               <tbody id="tablaActividad"></tbody>
             </table>
           </div>

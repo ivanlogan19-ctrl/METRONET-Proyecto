@@ -65,7 +65,7 @@ export default class PanelAyudaContextual {
     this.botonHistoria.addEventListener('click', () => {
       const numero = this.numeroEducativo;
       this.cerrar();
-      if (numero) abrirTarjetaEducativaDesdeAyuda(numero, this.acceso);
+      if (numero || this.modoLibre) abrirTarjetaEducativaDesdeAyuda(numero, this.botonHistoria);
     });
     if (controles) contenedor.insertBefore(this.botonHistoria, this.tutorial.elemento);
     else this.elemento.querySelector('.metronet-hud__opciones').append(this.botonHistoria);
@@ -111,6 +111,8 @@ export default class PanelAyudaContextual {
   actualizar(contexto) {
     if (this.eliminada) return;
     this.numeroEducativo = Number.isInteger(contexto.escenario?.numero) ? contexto.escenario.numero : null;
+    this.modoLibre = Boolean(contexto.diseno && !this.numeroEducativo
+      && (contexto.escenario?.modo === 'EDICION_LIBRE' || contexto.diseno.simulacion?.modo === 'EDICION_LIBRE'));
     const idIntento = obtenerContextoRuta().idIntento;
     if (this.numeroEducativo && idIntento && !contenidoPublicadoEnCache(this.numeroEducativo,idIntento)
       && this.cargaContenidoIntento !== idIntento) {
@@ -119,7 +121,7 @@ export default class PanelAyudaContextual {
         .then(() => { if (!this.eliminada) this.actualizar(contexto); })
         .catch(() => {});
     }
-    this.botonHistoria.hidden = !this.numeroEducativo;
+    this.botonHistoria.hidden = !this.numeroEducativo && !this.modoLibre;
     const tutorialActivo = this.tutorial.actualizar(contexto);
     contexto = { ...contexto, tutorialActivo };
     const instrucciones = contexto.escenario?.instrucciones ?? contexto.diseno?.simulacion?.instrucciones ?? '';

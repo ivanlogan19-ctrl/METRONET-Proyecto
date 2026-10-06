@@ -6,6 +6,7 @@ import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
 import { seleccionarTarjetaEducativa, tarjetaEducativaActual } from './TarjetasEducativasNivel.js';
 import { crearTarjetaEducativaNivel } from './TarjetaEducativaNivel.js';
+import { gestorMusica } from '../audio/GestorMusica.js';
 import './transicion-nivel.css';
 
 let transicionActiva = null;
@@ -80,6 +81,7 @@ export function crearPreparacionNivel(escenario) {
   let tarjetaAbierta = false, tarjetaCompletada = !hayTarjetas, viajeIniciado = false;
   let identificando = false, identificacionLista = false, temporizadorIdentificacion;
   let tarjetaVista = null;
+  let liberarMusicaTarjeta = () => {};
   dialogo.append(cuerpo);
 
   let cerrado = false, cancelada = false;
@@ -132,6 +134,7 @@ export function crearPreparacionNivel(escenario) {
     const tarjeta = seleccionarTarjetaEducativa(escenario.numero);
     if (!tarjeta) { tarjetaCompletada = true; resolver(true); return; }
     tarjetaVista = crearTarjetaEducativaNivel(tarjeta, escenario.numero, continuarTarjeta);
+    liberarMusicaTarjeta = gestorMusica.usarContextoTemporal('educativo');
     presentacion?.eliminar();
     tarjetaAbierta = true;
     cuerpo.hidden = true;
@@ -144,6 +147,8 @@ export function crearPreparacionNivel(escenario) {
     if (!tarjetaAbierta || cerrado) return;
     tarjetaAbierta = false;
     tarjetaCompletada = true;
+    liberarMusicaTarjeta();
+    liberarMusicaTarjeta = () => {};
     tarjetaVista.elemento.remove();
     resolver(true);
   }
@@ -151,6 +156,7 @@ export function crearPreparacionNivel(escenario) {
     if (cerrado) return;
     cerrado = true;
     cancelada = true;
+    liberarMusicaTarjeta();
     clearTimeout(temporizadorIdentificacion);
     animacion.destruir();
     presentacion?.eliminar();

@@ -12,6 +12,23 @@
 
 html, body { min-height: 100%; background: var(--bg-primary); color: var(--text-primary); }
 body { margin: 0; font-family: var(--font-ui); }
+/* Inicio comparte la fuente del título de nivel con el resto de sus textos y controles. */
+body.metronet-pagina-inicio {
+  --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-tecnica: var(--font-ui);
+}
+html:root body.metronet-pagina-navegable.metronet-pagina-inicio {
+  background-image: url('/assets/fondo-tunel-inicio.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+@media (min-width: 800px) {
+  html:root body.metronet-pagina-inicio .metronet-inicio {
+    min-height: calc(100svh - var(--navegacion-alto));
+    align-content: end;
+    padding-block: clamp(30px, 6vw, 72px) 60px;
+  }
+}
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 
@@ -331,14 +348,47 @@ button { cursor: pointer; }
 .metronet-inicio, .metronet-escenarios-pagina { width: min(100% - 32px, 1040px); margin: 0 auto; padding: clamp(30px, 6vw, 72px) 0; }
 .metronet-inicio__presentacion { width: 100%; max-width: none; }
 .metronet-inicio__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px clamp(16px, 3vw, 32px); }
-.metronet-inicio__cabecera::after { grid-column: 1 / -1; }
+html:root body.metronet-pagina-inicio .metronet-inicio__presentacion {
+  padding: clamp(16px, 2vw, 24px);
+  border: var(--border-width) solid var(--border-active);
+  border-top: var(--border-accent) solid var(--info-active);
+  background: rgba(8, 19, 35, .88);
+}
+html:root body.metronet-pagina-inicio .metronet-inicio__presentacion::after {
+  display: none;
+}
 .metronet-inicio__marca { flex: 0 0 auto; }
+html:root body.metronet-pagina-inicio .metronet-inicio__marca {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  padding-right: clamp(16px, 2vw, 24px);
+  border-right: var(--border-width) solid var(--border-active);
+}
 .metronet-inicio__marca .metronet-logo { width: clamp(170px, 19vw, 240px); aspect-ratio: 3 / 2; }
 .metronet-inicio__saludo { min-width: 0; }
+html:root body.metronet-pagina-inicio .metronet-inicio__saludo {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+html:root body.metronet-pagina-inicio .metronet-inicio__saludo h1 {
+  --titulo-marco: 0px;
+  --titulo-relleno: 0;
+  --titulo-fondo: transparent;
+  --titulo-sombra: none;
+  --titulo-animacion: none;
+}
+html:root body.metronet-pagina-inicio .metronet-inicio__saludo p { margin: 0; }
 .metronet-inicio__saludo > p:last-child { color: var(--text-secondary); line-height: 1.6; }
 @media (max-width: 620px) {
   .metronet-inicio__cabecera { grid-template-columns: minmax(0, 1fr); }
   .metronet-inicio__marca .metronet-logo { width: 180px; }
+  html:root body.metronet-pagina-inicio .metronet-inicio__marca {
+    padding: 0 0 12px;
+    border-right: 0;
+    border-bottom: var(--border-width) solid var(--border-active);
+  }
 }
 .metronet-inicio__etiqueta { margin: 0 0 9px; color: var(--info-active); font-family: var(--font-tecnica); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .metronet-inicio h1, .metronet-escenarios-pagina h1 { margin: 0; color: var(--text-primary); }
@@ -533,7 +583,7 @@ body.metronet-pagina-editor { overflow: hidden; }
 }
 .metronet-inicio__contenido,
 .metronet-escenarios-pagina__desafios,
-.metronet-escenarios-pagina__logros {
+.metronet-escenarios-pagina__reinicio {
   display: grid;
   gap: var(--space-lg);
 }
@@ -587,6 +637,8 @@ body.metronet-pagina-editor { overflow: hidden; }
   border-radius: var(--radius-md);
   background: var(--panel);
 }
+.metronet-inicio__tarjeta--continuar,
+.metronet-inicio__tarjeta--crear { grid-template-rows: minmax(0, 1fr) auto; }
 .metronet-inicio__tarjeta--continuar { grid-area: continuar; border-color: color-mix(in srgb, var(--info-active) 62%, var(--border)); }
 .metronet-inicio__tarjeta--crear { grid-area: crear; border-color: color-mix(in srgb, var(--success) 56%, var(--border)); }
 .metronet-inicio__tarjeta--progreso { grid-area: progreso; }
@@ -628,10 +680,9 @@ body.metronet-pagina-editor { overflow: hidden; }
   letter-spacing: .04em;
   text-transform: uppercase;
 }
-.metronet-inicio__estado--activo { border-color: color-mix(in srgb, var(--info-active) 66%, var(--border)); color: var(--info-active); }
-.metronet-inicio__estado--completado,
-.metronet-inicio__estado--disponible { border-color: color-mix(in srgb, var(--success) 66%, var(--border)); color: var(--success); }
-.metronet-inicio__estado--bloqueado,
+html:root body.metronet-pagina-inicio .metronet-inicio__estado--activo { border-color: var(--warning); color: var(--warning); }
+html:root body.metronet-pagina-inicio :is(.metronet-inicio__estado--completado, .metronet-inicio__estado--disponible) { border-color: var(--success); color: var(--success); }
+html:root body.metronet-pagina-inicio .metronet-inicio__estado--bloqueado { border-color: var(--danger); color: var(--danger); }
 .metronet-inicio__estado--neutral { color: var(--text-disabled); }
 .metronet-inicio__tarjeta-pie {
   display: flex;
@@ -646,6 +697,12 @@ body.metronet-pagina-editor { overflow: hidden; }
   font-size: 12px;
   letter-spacing: .03em;
   text-transform: uppercase;
+}
+html:root body.metronet-pagina-inicio #continuarNivelInicio {
+  --boton-fondo: var(--success);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--success);
+  --boton-hover: color-mix(in srgb, var(--success) 80%, var(--text-primary));
 }
 .metronet-inicio__enlace { color: var(--text-secondary); font-size: 13px; font-weight: 650; text-decoration: none; }
 .metronet-inicio__enlace:hover,
@@ -794,45 +851,19 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-escenarios-pagina__paso-progreso--actual,
 .metronet-escenarios-pagina__paso-progreso--disponible { border-color: color-mix(in srgb, var(--info-active) 66%, var(--border)); color: var(--text-primary); background: color-mix(in srgb, var(--info-active) 11%, var(--panel)); }
 .metronet-escenarios-pagina__paso-progreso--bloqueado { color: var(--text-disabled); }
-.metronet-escenarios-pagina__logros {
+.metronet-escenarios-pagina__reinicio {
   gap: var(--space-md);
   padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--panel);
 }
-.metronet-escenarios-pagina__lista-logros {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-sm);
+.metronet-escenarios-pagina__explicacion-reinicio {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
 }
-.metronet-escenarios-pagina__logro {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding: var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
-}
-.metronet-escenarios-pagina__logro > div { display: grid; gap: var(--space-2xs); }
-.metronet-escenarios-pagina__logro strong { color: var(--text-primary); font-size: 14px; }
-.metronet-escenarios-pagina__logro > div > span { color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
-.metronet-escenarios-pagina__logro-estado {
-  flex: 0 0 auto;
-  color: var(--text-disabled);
-  font-family: var(--font-tecnica);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-.metronet-escenarios-pagina__logro--positivo { border-color: color-mix(in srgb, var(--success) 58%, var(--border)); }
-.metronet-escenarios-pagina__logro--positivo .metronet-escenarios-pagina__logro-estado { color: var(--success); }
 .metronet-escenarios-pagina__reiniciar {
   justify-self: start;
   min-height: 38px;
@@ -883,9 +914,9 @@ body.metronet-pagina-editor { overflow: hidden; }
   text-transform: uppercase;
 }
 .metronet-escenarios-pagina__estado--completado { border-color: color-mix(in srgb, var(--success) 66%, var(--border)); color: var(--success); }
-.metronet-escenarios-pagina__estado--actual,
 .metronet-escenarios-pagina__estado--disponible { border-color: color-mix(in srgb, var(--info-active) 66%, var(--border)); color: var(--info-active); }
-.metronet-escenarios-pagina__estado--bloqueado { color: var(--text-disabled); }
+.metronet-escenarios-pagina__estado--actual { border-color: var(--warning); color: var(--warning); }
+.metronet-escenarios-pagina__estado--bloqueado { border-color: var(--danger); color: var(--danger); }
 .metronet-escenarios-pagina__tarjeta-contenido { display: grid; align-content: start; gap: var(--space-sm); }
 .metronet-escenarios-pagina__personaje { display: flex; align-items: center; gap: 8px; min-height: 64px; color: var(--text-primary); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; }
 .metronet-escenarios-pagina__personaje img { display: block; width: 64px; height: 64px; flex: 0 0 64px; image-rendering: pixelated; }
@@ -895,6 +926,10 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-escenarios-pagina__barra-progreso > span { display: block; width: var(--progreso-escenario, 0%); height: 100%; background: var(--success); }
 .metronet-escenarios-pagina__acciones { margin-top: auto; }
 .metronet-escenarios-pagina__tarjeta button { width: 100%; margin-top: 0; }
+html:root body .metronet-escenarios-pagina__tarjeta--bloqueado .metronet-escenarios-pagina__acciones button:disabled {
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+}
 .metronet-escenarios-pagina__tarjeta--actual { border-color: color-mix(in srgb, var(--info-active) 66%, var(--border)); }
 .metronet-escenarios-pagina__tarjeta--completado { border-color: color-mix(in srgb, var(--success) 56%, var(--border)); }
 .metronet-escenarios-pagina__tarjeta--bloqueado { border-style: dashed; }

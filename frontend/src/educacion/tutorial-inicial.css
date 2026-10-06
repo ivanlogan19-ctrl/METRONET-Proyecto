@@ -31,5 +31,5 @@ html:root body dialog.metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%
 html:root body .metronet-tutorial > summary.metronet-boton-icono { color:var(--tutorial-acento); border-color:var(--tutorial-acento); }
 html:root body .metronet-tutorial__panel.metronet-panel-superpuesto { background:var(--tutorial-superficie); border-color:var(--tutorial-acento); color:var(--tutorial-tinta); }
 
-/* Los pasos prácticos de simulación permiten operar el control destacado. */
-.metronet-recorrido:not(:modal) { z-index: 3000; }
+/* La tarjeta visual recibe sus eventos y puede apartarse de los controles. */
+.metronet-recorrido:not(:modal) { z-index: 3000; pointer-events: auto; }

@@ -9,7 +9,7 @@ const VALORES_PREDETERMINADOS = Object.freeze({
 const consultasPendientes = new Map();
 const ultimaConfiguracion = new Map();
 export const EVENTO_CONFIGURACION = 'metronet:configuracion-actualizada';
-export const MENSAJE_MANTENIMIENTO = 'METRONET se encuentra temporalmente en mantenimiento. Las funciones de edición y simulación están momentáneamente deshabilitadas.';
+export const MENSAJE_MANTENIMIENTO = 'METRONET está en mantenimiento. Disculpá las molestias. El acceso al juego se restablecerá cuando finalice.';
 
 export function estaMantenimientoActivo(sesion) {
   return sesion?.usuario?.rol === 'JUGADOR'

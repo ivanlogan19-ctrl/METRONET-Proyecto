@@ -13,21 +13,24 @@
   <link rel="stylesheet" href="/src/navegacion/disenos.css" />
   <script type="module" blocking="render" src="/src/navegacion/disenos.js"></script>
 </head>
-<body class="metronet-pagina-navegable">
+<body class="metronet-pagina-navegable metronet-pagina-disenos">
+  <img class="metronet-disenos__barrera metronet-disenos__barrera--izquierda" src="/assets/barrera-ferroviaria-disenos.svg" alt="" aria-hidden="true" width="800" height="760" />
+  <img class="metronet-disenos__barrera metronet-disenos__barrera--derecha" src="/assets/barrera-ferroviaria-disenos.svg" alt="" aria-hidden="true" width="800" height="760" />
   <div data-navegacion-global></div>
   <main class="metronet-disenos" aria-labelledby="tituloDisenos">
     <h1 id="tituloDisenos">Mis diseños</h1>
-    <p id="descripcionDisenos">Consultá tus redes y abrí una para continuar editando o simular.</p>
-    <form id="crearDiseno" class="metronet-disenos__crear" hidden>
-      <label>Nombre de la nueva red<input name="nombre" maxlength="100" required autocomplete="off" /></label>
-      <button type="submit" class="metronet-boton--primario">Crear diseño</button>
-    </form>
-    <p id="disenosCreacionEstado" role="status"></p>
-    <label class="metronet-disenos__busqueda">Buscar diseños<input id="buscarDisenos" type="search" placeholder="Nombre o estado" /></label>
-    <p id="mensajeDisenos" role="status" aria-live="polite">Cargando diseños…</p>
-    <a id="volverEscenariosDisenos" class="metronet-boton" href="/escenarios.html" hidden>Continuar los niveles</a>
-    <button id="reintentarDisenos" type="button" hidden>Volver a cargar</button>
-    <ul id="listaMisDisenos" class="metronet-disenos__lista" aria-label="Diseños guardados" aria-busy="true"></ul>
+    <section class="metronet-disenos__campana" aria-labelledby="tituloDisenosCampana">
+      <h2 id="tituloDisenosCampana">Diseños de los niveles de campaña</h2>
+      <p id="mensajeDisenos" role="status" aria-live="polite">Cargando diseños…</p>
+      <button id="reintentarDisenos" type="button" hidden>Volver a cargar</button>
+      <ul id="listaMisDisenos" class="metronet-disenos__lista" aria-label="Diseños guardados" aria-busy="true"></ul>
+    </section>
+    <section class="metronet-disenos__acceso-libre" aria-labelledby="tituloDisenoLibre">
+      <h2 id="tituloDisenoLibre">Modo Libre</h2>
+      <p id="explicacionDisenoLibre">Completá los 10 niveles de la campaña para desbloquear el Modo Libre.</p>
+      <button id="irDisenoLibre" class="metronet-boton--primario metronet-disenos__libre" type="button" aria-describedby="explicacionDisenoLibre" disabled>Ir a diseño libre</button>
+      <ul id="listaDisenosLibres" class="metronet-disenos__lista" aria-label="Diseños libres guardados" aria-busy="true"></ul>
+    </section>
   </main>
   <dialog id="confirmarEliminarDiseno" class="metronet-dialogo-eliminar" aria-labelledby="tituloEliminarDiseno">
     <form method="dialog" class="metronet-dialogo-eliminar__contenido">

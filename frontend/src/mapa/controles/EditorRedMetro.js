@@ -57,8 +57,7 @@ export default class EditorRedMetro {
     this.contenedor = document.createElement('section');
     this.contenedor.className = 'metronet-editor-red';
     this.contenedor.innerHTML = `
-      <h2 class="metronet-panel-titulo">Edición de red</h2>
-      <p class="metronet-diseno-activo" data-resumen-diseno aria-live="polite"></p>
+      <h2 class="metronet-panel-titulo">Herramientas</h2>
       <p data-editor-vacio>Elegí una red desde <a href="/disenos.html" data-navegacion>Mis diseños</a> para editarla.</p>
       <div data-editor-activo hidden>
         <section class="metronet-consigna" data-consigna-escenario hidden></section>
@@ -75,12 +74,6 @@ export default class EditorRedMetro {
           <p class="metronet-editor-etiqueta">Unidades</p>
           <div class="metronet-editor-fila" data-lineas-superpuestas hidden role="group" aria-label="Elegir línea del metro"></div>
         </div>
-        <div class="metronet-editor-grupo" data-herramienta="escenarios">
-          <label class="metronet-editor-etiqueta">Actividad propia</label>
-          <input data-nombre-escenario type="text" maxlength="100" placeholder="Nombre de la actividad" />
-          <div class="metronet-editor-fila"><select data-modo-escenario aria-label="Tipo de actividad"><option value="NIVEL">Nivel</option><option value="EDICION_LIBRE">Edición libre</option></select><select data-dificultad-escenario aria-label="Dificultad"><option value="Inicial">Inicial</option><option value="Intermedio">Intermedio</option><option value="Avanzado">Avanzado</option></select></div>
-          <div class="metronet-editor-acciones"><button data-crear-escenario type="button">Crear actividad</button><button data-actualizar-escenario type="button">Actualizar actividad</button></div>
-        </div>
         <div class="metronet-editor-acciones"><button data-guardar type="button">Guardar</button><button data-ir-simulacion type="button" disabled>Simular diseño</button></div>
         <article data-elemento-seleccionado class="metronet-editor-seleccionado" hidden></article>
       </div>`;
@@ -89,7 +82,10 @@ export default class EditorRedMetro {
     this.barraEstado = new BarraEstadoEditor(document.querySelector('[data-estado-editor]'));
     this.panelAyuda = this.barraEstado.panelAyuda;
     this.panelTutorial = this.panelAyuda.tutorial;
-    this.panelAyuda.elemento.querySelector('[data-hud-teclado]').append(this.accesoTeclado);
+    const bloqueTeclado = this.panelAyuda.elemento.querySelector('[data-hud-tecnico]');
+    bloqueTeclado.querySelector('[data-hud-controles]').hidden = true;
+    bloqueTeclado.querySelector('[data-hud-teclado]').append(this.accesoTeclado);
+    bloqueTeclado.hidden = false;
     this.contenedor.addEventListener('change', () => {
       if (this.errorAyuda) this.actualizarAyuda(true);
     });
@@ -135,15 +131,12 @@ export default class EditorRedMetro {
       .map((grupo) => [grupo.dataset.herramienta, grupo]));
     this.panelHerramientas = new PanelHerramientasEditor(
       herramientas, grupos, elementoSeleccionado, clave => this.creacionDirecta.activar(clave),
+      accion => this.accionEdicion(accion),
     );
     editorActivo.append(herramientas);
     this.agregarListaContextual('lineas', 'data-lista-lineas', 'Líneas existentes');
     this.agregarListaContextual('metros', 'data-lista-metros', 'Unidades de metro');
     this.obtener('[data-linea-gestion]')?.closest('.metronet-editor-fila')?.setAttribute('hidden', '');
-    const botonCrearEscenario = this.obtener('[data-crear-escenario]');
-    const botonActualizarEscenario = this.obtener('[data-actualizar-escenario]');
-    botonCrearEscenario?.classList.add('metronet-accion-neutra');
-    botonActualizarEscenario?.classList.add('metronet-accion-advertencia');
     const finalizacion = document.createElement('section');
     finalizacion.className = 'metronet-editor-finalizar';
     finalizacion.innerHTML = '<header class="metronet-editor-finalizar__cabecera"><h3>Acciones</h3></header>';
@@ -162,8 +155,7 @@ export default class EditorRedMetro {
     finalizacion.append(ayudaSimulacion);
     this.contenedorPieEditor = document.querySelector('[data-panel-editor-pie]');
     (this.contenedorPieEditor ?? editorActivo).append(finalizacion);
-    [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño'],
-      ['[data-crear-escenario]', 'escenarios', 'Crear actividad'], ['[data-actualizar-escenario]', 'guardar', 'Guardar actividad']]
+    [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
     const acceso = document.createElement('details');
@@ -189,8 +181,6 @@ export default class EditorRedMetro {
     if (boton.matches('[data-seleccionar-unidad]')) return this.seleccionarUnidadDesdeLista(boton.dataset.seleccionarUnidad);
     if (boton.matches('[data-seleccionar-linea]')) return this.seleccionarLinea();
     if (boton.matches('[data-linea-superpuesta]')) return this.creacionDirecta.metro(boton.dataset.lineaSuperpuesta);
-    if (boton.matches('[data-crear-escenario]')) return this.crearEscenario();
-    if (boton.matches('[data-actualizar-escenario]')) return this.actualizarEscenario();
     if (boton.matches('[data-guardar]')) return this.guardarDiseno();
     if (boton.matches('[data-ir-simulacion]')) return this.irASimulacion();
     if (boton.matches('[data-editar-estacion]')) return this.editarEstacion();
@@ -327,6 +317,7 @@ export default class EditorRedMetro {
     this.escena.capaTerritorial?.dibujar();
     const objetivos = this.disenoActual?.simulacion?.puntosInteresObjetivo;
     const capaPuntosInteres = this.escena.capaPuntosInteres;
+    if (capaPuntosInteres) capaPuntosInteres.mostrarTodosLosMarcadores = true;
     capaPuntosInteres?.establecerPuntosObjetivo(Array.isArray(objetivos) ? objetivos : []);
     capaPuntosInteres?.establecerEstacionesReferencia(this.disenoActual?.estaciones ?? []);
   }
@@ -403,24 +394,6 @@ export default class EditorRedMetro {
     }
   }
 
-  async crearEscenario() {
-    const nombre = this.obtener('[data-nombre-escenario]').value.trim();
-    if (!nombre) return this.mostrarMensaje('Ingresá un nombre para la actividad.', 'advertencia');
-    const datos = { nombre, modo: this.obtener('[data-modo-escenario]').value, dificultad: this.obtener('[data-dificultad-escenario]').value };
-    try {
-      const escenario = await this.clienteDisenos.solicitar(`/${this.idDiseno()}/escenarios`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
-      this.obtener('[data-nombre-escenario]').value = '';
-      await this.cargarDisenos(escenario.idDiseno);
-      this.mostrarMensaje('Actividad creada desde el diseño validado.', 'exito');
-    } catch (error) { this.mostrarError(error); }
-  }
-
-  async actualizarEscenario() {
-    const nombre = this.obtener('[data-nombre-escenario]').value.trim() || this.disenoActual.simulacion.nombre;
-    const datos = { nombre, dificultad: this.obtener('[data-dificultad-escenario]').value, objetivo: this.disenoActual.simulacion.objetivo, instrucciones: this.disenoActual.simulacion.instrucciones };
-    await this.ejecutarAccion(`/${this.idDiseno()}/escenario`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }, 'Actividad actualizada.');
-  }
-
   async irASimulacion() {
     if (this.finalizacionEnCurso || this.esEscenarioSinSimulacion()) return;
     this.finalizacionEnCurso = true;
@@ -476,32 +449,30 @@ export default class EditorRedMetro {
 
   renderizarElementoSeleccionado() {
     const panel = this.obtener('[data-elemento-seleccionado]');
-    if (!this.elementoSeleccionado) { panel.hidden = true; return; }
-    const { tipo, valor } = this.elementoSeleccionado;
-    const nombre = tipo === 'tramo' ? `${valor.estacionA} — ${valor.estacionB}` : tipo === 'unidad' ? `Metro #${valor.idTren}` : valor.nombre;
+    panel.hidden = true;
+    panel.replaceChildren();
+    if (!this.elementoSeleccionado) {
+      this.panelHerramientas?.actualizarAccionesSeleccion(false, false);
+      return;
+    }
+    const { tipo } = this.elementoSeleccionado;
     const esNivel = this.escenarioJuegoActual?.numero !== null && this.escenarioJuegoActual?.numero !== undefined;
     const herramienta = ({estacion:'estaciones',linea:'lineas',tramo:'conexiones',unidad:'metros'})[tipo];
     const bloqueado = esNivel && this.disenoActual?.simulacion.estado === 'COMPLETADO';
-    const acciones = bloqueado || this.escenarioJuegoActual?.herramientasHabilitadas?.[herramienta] === false ? '' : this.obtenerAccionesElemento(tipo);
-    const etiqueta = ({ estacion: 'Estación seleccionada', linea: 'Línea seleccionada', tramo: 'Conexión seleccionada', unidad: 'Metro seleccionado' })[tipo] ?? 'Elemento seleccionado';
+    const puedeModificar = !bloqueado && this.escenarioJuegoActual?.herramientasHabilitadas?.[herramienta] !== false;
     this.panelHerramientas?.seleccionar('seleccion', false);
     this.renderizarListaLineas(this.disenoActual?.lineas ?? []);
     this.renderizarListaUnidades(this.disenoActual?.unidadesMetro ?? []);
-    panel.hidden = false;
-    panel.innerHTML = `${acciones ? '<h3 class="metronet-editor-seleccionado__titulo">Editar elemento</h3>' : ''}<span class="metronet-editor-seleccionado__tipo">${etiqueta}</span><strong>${this.escapar(nombre)}</strong><span>${tipo === 'tramo' ? this.escapar(valor.nombreLinea) : ''}</span><div class="metronet-editor-seleccionado__acciones">${acciones}<button data-quitar-seleccion type="button">Quitar selección</button></div>`;
-    panel.querySelectorAll('button').forEach(boton => {
-      const clave = Object.keys(boton.dataset)[0];
-      configurarBotonIcono(boton, clave?.startsWith('eliminar') ? 'eliminar' : clave === 'reubicarEstacion' ? 'mover' : clave === 'quitarSeleccion' ? 'cancelar' : 'editar', boton.textContent + ' ' + etiqueta.toLowerCase());
-      if (clave?.startsWith('editar')) boton.classList.add('metronet-editor-seleccionado__editar');
-      if (clave?.startsWith('eliminar')) boton.classList.add('metronet-accion-peligrosa');
-    });
+    this.panelHerramientas?.actualizarAccionesSeleccion(puedeModificar && tipo === 'estacion', puedeModificar);
+    this.panelHerramientas?.actualizarOperacion(this.modo);
   }
 
-  obtenerAccionesElemento(tipo) {
-    if (tipo === 'estacion') return '<button data-editar-estacion type="button">Editar</button><button data-reubicar-estacion type="button">Reubicar</button><button data-eliminar-estacion type="button">Eliminar</button>';
-    if (tipo === 'linea') return '<button data-editar-linea type="button">Editar</button><button data-eliminar-linea type="button">Eliminar</button>';
-    if (tipo === 'tramo') return '<button data-editar-tramo type="button">Editar</button><button data-eliminar-tramo type="button">Eliminar</button>';
-    return '<button data-editar-unidad type="button">Editar</button><button data-eliminar-unidad type="button">Eliminar</button>';
+  accionEdicion(accion) {
+    if (!this.elementoSeleccionado) return;
+    if (accion === 'mover' && this.elementoSeleccionado.tipo === 'estacion') return this.reubicarEstacion();
+    if (accion !== 'eliminar') return;
+    return ({ estacion: () => this.eliminarEstacion(), linea: () => this.eliminarLinea(),
+      tramo: () => this.eliminarTramo(), unidad: () => this.eliminarUnidad() })[this.elementoSeleccionado.tipo]?.();
   }
 
   seleccionarLinea() {
@@ -690,20 +661,25 @@ export default class EditorRedMetro {
   actualizarEscenarioJuegoActual() {
     const idEscenario = this.disenoActual?.simulacion?.idEscenario;
     this.escenarioJuegoActual = this.escenariosJuego.find((escenario) => escenario.idEscenario === idEscenario) ?? null;
-    const nombre = this.obtener('[data-nombre-escenario]');
-    if (this.disenoActual?.simulacion) nombre.value = this.disenoActual.simulacion.nombre;
   }
 
   aplicarHerramientas() {
-    const herramientas = this.escenarioJuegoActual?.herramientasHabilitadas ?? { estaciones: true, lineas: true, conexiones: true, metros: true, escenarios: true };
+    const herramientas = this.escenarioJuegoActual?.herramientasHabilitadas ?? { estaciones: true, lineas: true, conexiones: true, metros: true };
     const esEscenarioProgresivo = this.esEscenarioProgresivo();
     const tituloEditor = document.querySelector('[data-titulo-editor]');
-    if (tituloEditor) tituloEditor.textContent = esEscenarioProgresivo ? 'Edición de nivel' : 'Edición de red';
+    if (tituloEditor) tituloEditor.textContent = 'Herramientas';
+    const tituloMapa = document.querySelector('[data-titulo-mapa]');
+    if (tituloMapa) {
+      tituloMapa.textContent = esEscenarioProgresivo
+        ? this.escenarioJuegoActual.nombre ?? `Nivel ${this.escenarioJuegoActual.numero}`
+        : 'Modo libre';
+      tituloMapa.hidden = false;
+    }
     const panelEditor = document.querySelector('#metronet-panel-controles');
-    panelEditor?.setAttribute('aria-label', tituloEditor?.textContent ?? 'Edición de red');
+    panelEditor?.setAttribute('aria-label', 'Herramientas');
     panelEditor?.classList.toggle('metronet-panel-nivel', esEscenarioProgresivo);
     const tituloAcciones = this.contenedorPieEditor?.querySelector('.metronet-editor-finalizar h3');
-    if (tituloAcciones) tituloAcciones.textContent = esEscenarioProgresivo ? 'Acciones de nivel' : 'Acciones';
+    if (tituloAcciones) tituloAcciones.textContent = 'Acciones de nivel';
     this.panelHerramientas?.actualizarDisponibilidad(herramientas, esEscenarioProgresivo);
     const consigna = this.obtenerContenedorConsigna();
     consigna.hidden = !this.escenarioJuegoActual;
@@ -817,23 +793,32 @@ export default class EditorRedMetro {
     resumen.className = 'metronet-consigna__resumen';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-consigna__titulo';
-    titulo.textContent = esNivel
-      ? `Nivel ${escenario.numero}`
-      : this.obtenerTituloConsigna(escenario);
+    titulo.textContent = esNivel ? 'Objetivos' : this.obtenerTituloConsigna(escenario);
     cabecera.prepend(titulo);
     const resumenActivo = document.createElement('div');
     resumenActivo.className = 'metronet-consigna__resumen-activo';
     if (condiciones.length) {
-      const pendientes = condiciones.filter(condicion => !condicion.completado);
-      const cuenta = document.createElement('strong');
-      cuenta.textContent = pendientes.length ? `${pendientes.length} requisito${pendientes.length === 1 ? '' : 's'} pendiente${pendientes.length === 1 ? '' : 's'}` : 'Todos los requisitos cumplidos';
-      resumenActivo.append(cuenta);
       const listaBreve = document.createElement('ul');
       listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';
       listaBreve.tabIndex = 0;
-      listaBreve.setAttribute('aria-label', 'Tareas del nivel');
+      listaBreve.setAttribute('aria-label', 'Objetivos del nivel');
       condiciones
         .forEach(condicion => listaBreve.append(this.crearElementoCondicionConsigna(condicion)));
+      resumenActivo.append(listaBreve);
+    } else if (esNivel && escenario.objetivo) {
+      const listaBreve = document.createElement('ul');
+      listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';
+      listaBreve.setAttribute('aria-label', 'Objetivos del nivel');
+      const objetivo = document.createElement('li');
+      objetivo.className = 'es-objetivo-general';
+      const indicador = document.createElement('span');
+      indicador.className = 'metronet-consigna__indicador-objetivo';
+      indicador.setAttribute('aria-hidden', 'true');
+      const texto = document.createElement('span');
+      texto.className = 'metronet-consigna__texto-objetivo';
+      texto.textContent = escenario.objetivo;
+      objetivo.append(indicador, texto);
+      listaBreve.append(objetivo);
       resumenActivo.append(listaBreve);
     } else {
       const objetivoBreve = document.createElement('p');
@@ -841,8 +826,8 @@ export default class EditorRedMetro {
       objetivoBreve.textContent = !esNivel
         ? String(escenario.objetivo || escenario.instrucciones || 'Sin objetivo definido para esta actividad.')
         : this.estadoConsigna === 'cargando'
-          ? 'Cargando requisitos del nivel…'
-          : 'Los requisitos del nivel no están disponibles por ahora.';
+          ? 'Cargando objetivos…'
+          : 'Todavía no hay objetivos definidos para este nivel.';
       resumenActivo.append(objetivoBreve);
     }
     resumen.append(resumenActivo);
@@ -952,8 +937,9 @@ export default class EditorRedMetro {
     item.setAttribute('aria-label', `${condicion.texto}: ${actual} de ${requerido}. ${condicion.completado ? 'Completado' : 'Pendiente'}.`);
     const indicador = document.createElement('span');
     indicador.className = 'metronet-consigna__indicador-objetivo';
+    indicador.classList.toggle('es-estrella', condicion.completado);
     indicador.setAttribute('aria-hidden', 'true');
-    indicador.textContent = condicion.completado ? '✓' : '○';
+    indicador.textContent = condicion.completado ? '★' : '';
     const texto = document.createElement('span');
     texto.className = 'metronet-consigna__texto-objetivo';
     texto.textContent = condicion.texto;
@@ -1100,6 +1086,8 @@ export default class EditorRedMetro {
     this.obtener('[data-editor-activo]').hidden = !mostrar;
     if (this.contenedorPieEditor) this.contenedorPieEditor.hidden = !mostrar;
     this.obtener('[data-editor-vacio]').hidden = mostrar;
+    const tituloMapa = document.querySelector('[data-titulo-mapa]');
+    if (tituloMapa && !mostrar) tituloMapa.hidden = true;
     this.actualizarResumenDiseno();
     if (!mostrar) {
       this.obtenerContenedorConsigna().hidden = true;

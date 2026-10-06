@@ -136,7 +136,7 @@ test('selección aleatoria agota las siete tarjetas antes de repetir y persiste 
   await page.reload();
   const next = await page.evaluate(async () => (await import('/src/educacion/TarjetasEducativasNivel.js')).seleccionarTarjetaEducativa(3).id);
   assert.ok(visitadas.includes(next));
-  assert.notEqual(next, visitadas[5]);
+  assert.notEqual(next, visitadas[6]);
   const nuevas = await page.evaluate(async () => {
     const { seleccionarTarjetaEducativa } = await import('/src/educacion/TarjetasEducativasNivel.js');
     return Array.from({length:6},()=>seleccionarTarjetaEducativa(3).id);
@@ -190,7 +190,7 @@ test('cancelar antes de mostrar no consume; siete visitas agotan el ciclo y reca
   await page.getByRole('button', { name:'Jugar' }).click();
   const siguiente = await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa');
   assert.ok(vistos.includes(siguiente));
-  assert.notEqual(siguiente,vistos[5]);
+  assert.notEqual(siguiente,vistos[6]);
   await page.evaluate(() => viaje.cerrar());
 });
 
@@ -209,6 +209,7 @@ test('música y preparación preceden la tarjeta; Continuar abre el nivel en el 
   assert.equal(await dialog.locator('.metronet-tarjeta-educativa').count(), 0);
   assert.equal(await dialog.getAttribute('aria-labelledby'), 'tituloPreparacionNivel');
   await dialog.getByRole('button', { name:'Jugar' }).click();
+  await dialog.locator('.metronet-tarjeta-educativa').waitFor({ state: 'visible' });
   assert.equal(await dialog.locator('.metronet-tarjeta-educativa').isVisible(), true);
   assert.equal(await dialog.locator('.metronet-viaje__contenido').isVisible(), false);
   assert.equal(await dialog.locator('[role="progressbar"]').getAttribute('aria-valuenow'), '100');
@@ -326,6 +327,7 @@ for (const width of [320, 375, 1440]) test(`tarjeta ${width}px: controles visibl
     viaje.marcarDatosListos();
   }, niveles[9]);
   await page.getByRole('button', { name:'Jugar' }).click();
+  await page.locator('.metronet-viaje .metronet-tarjeta-educativa').waitFor({ state: 'visible' });
   const measured = await page.locator('.metronet-viaje').evaluate(d => {
     const box = d.getBoundingClientRect(), img = d.querySelector('img'), action = d.querySelector('.metronet-tarjeta-educativa__acciones button').getBoundingClientRect();
     return { width:box.width, height:box.height, scrollWidth:d.scrollWidth, clientWidth:d.clientWidth,

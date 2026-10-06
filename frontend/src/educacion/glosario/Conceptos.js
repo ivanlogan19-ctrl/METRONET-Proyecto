@@ -19,7 +19,7 @@ export const CONCEPTOS = Object.freeze([
   concepto('unidades-mapa', 'Unidades del mapa', 'Medida usada para las posiciones y los radios de cobertura del mapa. Un radio indicado en estas unidades no está expresado en metros.', 'Geografía'),
   concepto('zona', 'Zona', 'Agrupación de barrios utilizada por METRONET para organizar sectores del mapa.', 'Geografía', ['zonas']),
   concepto('barrio', 'Barrio', 'Área delimitada en el mapa. Una estación pertenece a un barrio cuando está dentro de sus límites.', 'Geografía', ['barrios']),
-  concepto('transbordo', 'Transbordo', 'Estación compartida por al menos dos líneas y marcada como transbordo. Permite relacionar sus recorridos.', 'Red', ['transbordos']),
+  concepto('transbordo', 'Transbordo', 'Estación a la que llegan tramos de al menos dos líneas distintas. Permite relacionar sus recorridos.', 'Red', ['transbordos']),
   concepto('unidad', 'Unidad de metro', 'Metro asignado a una línea. Ajustás sus UV en Simular diseño con Aplicar velocidad.', 'Circulación', ['unidades de metro', 'unidad', 'unidades', 'metro', 'metros']),
   concepto('cantidad-unidades', 'Cantidad de unidades', 'Número de metros asignados a la red. Revisá la cantidad requerida por la consigna y su distribución entre líneas.', 'Circulación'),
   concepto('velocidad', 'UV — Unidad de Velocidad', 'Escala didáctica de METRONET para representar la velocidad de las unidades de metro. En el criterio UV/UT, 1 UV permite recorrer un tramo lógico por UT; no equivale a una velocidad física.', 'Circulación', ['UV', 'unidad de velocidad', 'velocidad', 'velocidades', 'velocidad promedio', 'velocidades promedio']),

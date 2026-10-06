@@ -38,10 +38,21 @@ async function aplicar(p, valor) {
     && !document.querySelector('[data-controles-circulacion]').disabled, valor);
 }
 
-test('Velocidad global e individual: persiste cada unidad, representa MIXTO y no altera UV al cambiar ritmo', async t => {
+test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t => {
+  const { pagina: p, red } = await abrir(t);
+  await p.locator('#unidadCirculacion').selectOption('1');
+  await aplicar(p, 2);
+  assert.equal(await p.locator('#unidadCirculacion').isVisible(), true);
+  assert.equal(await p.locator('#unidadCirculacion').inputValue(), '1');
+  assert.equal(await p.locator('#velocidadUnidad').isVisible(), true);
+  assert.equal(await p.locator('#velocidadUnidad').inputValue(), '2');
+  assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [2, 3]);
+});
+
+test('Velocidad global e individual: persiste cada unidad y representa MIXTO sin escrituras adicionales', async t => {
   const { pagina: p, red, solicitudes } = await abrir(t);
   assert.equal(await p.locator('#velocidadUnidad').count(), 1);
-  assert.equal(await p.locator('#unidadCirculacion option[value="todas"]').textContent(), 'Todas las unidades');
+  assert.equal(await p.locator('#unidadCirculacion option[value="todas"]').textContent(), 'Todos los metros');
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '3');
   await aplicar(p, 5);
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [5, 5]);
@@ -55,7 +66,8 @@ test('Velocidad global e individual: persiste cada unidad, representa MIXTO y no
   assert.equal(await p.locator('[data-velocidad-mixta]').isVisible(), true);
   assert.equal(await p.locator('#seccionMetricas').isVisible(), false);
   const antes = solicitudes.filter(s => s.method === 'PATCH').length;
-  for (const paso of [-1, 1, 1, 1, -1]) await p.locator(`[data-paso-ritmo="${paso}"]`).click();
+  assert.equal(await p.locator('[data-paso-ritmo="-1"]').isVisible(), false);
+  assert.equal(await p.locator('[data-paso-ritmo="1"]').isVisible(), false);
   assert.equal(solicitudes.filter(s => s.method === 'PATCH').length, antes);
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [2, 5]);
 });
@@ -79,32 +91,32 @@ test('Ejecución: validación automática, horas simuladas y selección sin perm
   await p.locator('#formularioEjecucion button').click();
   assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);
   await p.locator('#duracionSimulacion').fill('60');
-  await p.locator('[data-paso-ritmo="1"]').click();
+  assert.equal(await p.locator('[data-paso-ritmo="1"]').isVisible(), false);
   await p.locator('#formularioEjecucion button').click();
   await p.locator('#pausarSimulacion:not([hidden])').waitFor();
   assert.equal(await p.locator('#velocidadUnidad').isDisabled(), true);
   await p.locator('#unidadCirculacion').selectOption('1');
-  assert.equal(await p.locator('#seccionMetricas').isVisible(), true);
+  assert.equal(await p.locator('#unidadCirculacion').inputValue(), '1');
   await p.locator('#pausarSimulacion').click();
   assert.equal(await p.locator('#velocidadUnidad').isDisabled(), true);
   assert.equal(await p.locator('#unidadCirculacion').isEnabled(), true);
   await p.locator('#detenerSimulacion').click();
   assert.equal(await p.locator('#velocidadUnidad').isEnabled(), true);
-  assert.deepEqual(solicitudes.find(s => s.path.endsWith('/ejecutar')).body, { velocidad: 2, duracion: 60 });
+  assert.deepEqual(solicitudes.find(s => s.path.endsWith('/ejecutar')).body, { velocidad: 1, duracion: 60 });
   assert.ok(solicitudes.some(s => s.path.endsWith('/validacion') && s.method === 'POST'));
   assert.ok(solicitudes.some(s => s.path.endsWith('/guardar') && s.method === 'POST'));
   assert.equal(solicitudes.filter(s => s.method === 'PATCH').length, 0);
 });
 
 for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [768, 900], [390, 844], [320, 740]]) {
-  test(`Panel operacional ${width}×${height}: controles compactos, resultados plegados y sin duplicaciones`, async t => {
+  test(`Panel operacional ${width}×${height}: controles compactos y sin duplicaciones`, async t => {
     const { pagina: p } = await abrir(t, { viewport: { width, height } });
     assert.equal(await p.locator('#consignaSimulacion, #objetivoConsigna, #puntuacionSimulacion').count(), 0);
-    assert.equal(await p.locator('#seccionResultados').evaluate(e => e.open), false);
+    assert.equal(await p.locator('#seccionResultados').isVisible(), true);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     const mapa = await p.locator('#visorSimulacion').boundingBox();
     const panel = await p.locator('#instrumentosSimulacion').boundingBox();
-    if (width > 1050) { assert.ok(panel.x >= mapa.x + mapa.width); assert.ok(panel.width >= 280 && panel.width <= 322); }
+    if (width > 1050) { assert.ok(panel.x >= mapa.x + mapa.width); assert.ok(panel.width >= 220 && panel.width <= 232); }
     else assert.ok(panel.y > mapa.y + mapa.height);
     await p.locator('#unidadCirculacion').selectOption('2');
     await p.locator('#velocidadUnidad').focus();
@@ -123,14 +135,14 @@ test('Parámetros coherentes durante preflight y reinicio con nuevas horas', asy
   await p.locator('#formularioEjecucion').evaluate(f => f.requestSubmit());
   await p.locator('#pausarSimulacion:not([hidden])').waitFor();
   assert.equal(solicitudes.filter(s => s.path.endsWith('/ejecutar')).length, 1);
-  await p.locator('[data-paso-ritmo="1"]').click();
+  assert.equal(await p.locator('[data-paso-ritmo="1"]').isVisible(), false);
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '6');
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '3');
   await p.locator('#detenerSimulacion').click();
   await p.locator('#duracionSimulacion').fill('8');
   await p.locator('#reiniciarSimulacion').click();
   await p.locator('#pausarSimulacion:not([hidden])').waitFor();
-  assert.deepEqual(solicitudes.filter(s => s.path.endsWith('/ejecutar')).map(s => s.body), [{ velocidad: 1, duracion: 6 }, { velocidad: 2, duracion: 8 }]);
+  assert.deepEqual(solicitudes.filter(s => s.path.endsWith('/ejecutar')).map(s => s.body), [{ velocidad: 1, duracion: 6 }, { velocidad: 1, duracion: 8 }]);
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '8');
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '3');
 });

@@ -16,7 +16,8 @@ const escenarios = [
 const progreso = { escenarios, cantidadNiveles: 3, nivelesCompletados: 1, modoLibreDesbloqueado: false, campanaCompletada: false };
 
 async function abrir(t, ruta, opciones = {}) {
-  const vista = await abrirPantalla(navegador, ruta, { ...opciones, responder: async solicitud => {
+  const { navegadorPrueba = navegador, ...opcionesPantalla } = opciones;
+  const vista = await abrirPantalla(navegadorPrueba, ruta, { ...opcionesPantalla, responder: async solicitud => {
     if (new URL(solicitud.url()).pathname === '/api/juego/progreso') return { json: opciones.progreso ?? progreso };
     return opciones.responder?.(solicitud);
   } });
@@ -68,56 +69,81 @@ for (const width of [390, 1440]) {
     assert.equal(new Set(accesos.map(acceso => acceso.y)).size, 1);
     assert.ok(Math.max(...accesos.map(acceso => acceso.width)) - Math.min(...accesos.map(acceso => acceso.width)) < 1);
     assert.equal(new Set(accesos.map(acceso => acceso.height)).size, 1);
-    assert.equal(await pagina.locator('.metronet-inicio__accesos a').nth(1).getAttribute('aria-disabled'), 'true');
+    assert.equal(await pagina.locator('.metronet-inicio__accesos a').nth(1).getAttribute('aria-disabled'), null);
     assert.equal(await pagina.getByRole('button', { name: /Modo Libre/ }).count(), 0);
     assert.equal(await pagina.locator('.metronet-navegacion a[href="/admin.html"]').count(), 0);
     assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   });
 
   test(`Niveles compactos sin desplegable y bloqueo intacto / ${width}`, async t => {
-    const { pagina } = await abrir(t, '/escenarios.html', { viewport: { width, height: 844 } });
+    const { pagina } = await abrir(t, '/escenarios.html', { viewport: { width, height: 844 }, responder: solicitud =>
+      new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar'
+        ? { json: { idDiseno: 77, idEscenario: 1, idIntento: 123 } } : null });
     const equipo = pagina.locator('.metronet-escenarios-pagina__equipo');
-    assert.match(await pagina.locator('.metronet-escenarios-pagina__encabezado').innerText(), /Ari, Sol y Dani estudian Logística.*metro que acerque.*Montevideo/);
+    assert.match(await pagina.locator('.metronet-escenarios-pagina__encabezado').innerText(), /Ari, Sol y Dani estudian Logística.*red de metro hipotética para Montevideo/);
     const presentacion = await pagina.locator('.metronet-escenarios-pagina__presentacion').boundingBox();
     const encabezado = await pagina.locator('.metronet-escenarios-pagina__encabezado').boundingBox();
     assert.ok(Math.abs((presentacion.x + presentacion.width / 2) - (encabezado.x + encabezado.width / 2)) < 2);
     assert.deepEqual(await equipo.locator('strong').allTextContents(), ['Ari', 'Sol', 'Dani']);
-    assert.deepEqual(await equipo.locator('small').allTextContents(), ['Trazados', 'Cobertura', 'Operación']);
+    assert.deepEqual(await equipo.locator('small').allTextContents(), ['Diseño de red', 'Cobertura territorial', 'Simulación operativa']);
     assert.equal(await equipo.locator('img[alt=""]').count(), 3);
     const columnasEquipo = await equipo.evaluate(elemento => getComputedStyle(elemento).gridTemplateColumns.split(' ').length);
     assert.equal(columnasEquipo, 3);
     assert.equal(await pagina.locator('#progresoEscenarios').count(), 0);
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').count(), 4);
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__personaje img').count(), 3);
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().locator('h2').textContent(), '1 · Red inicial');
+    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().locator('h2').textContent(), 'Nivel 1 · Red inicial');
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').nth(1).getByRole('button', { name: 'Continuar' }).isEnabled(), true);
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').nth(2).getByRole('button', { name: 'Bloqueado' }).isDisabled(), true);
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' }).isEnabled(), true);
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta details').count(), 0);
     assert.equal(await pagina.getByText('Ver instrucciones y datos').count(), 0);
     assert.doesNotMatch(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Ubicá dos estaciones y conectalas|Intentos: 2/);
-    assert.match(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Ari despliega el mapa/);
+    assert.match(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Ari define una primera línea/);
     assert.doesNotMatch(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Creá una línea/);
-    const primeraAccion = await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' }).boundingBox();
-    assert.ok(primeraAccion && primeraAccion.y + primeraAccion.height <= 844, `La acción del primer capítulo debe verse sin desplazamiento (termina en ${primeraAccion?.y + primeraAccion?.height}px)`);
+    const primeraAccion = pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' });
+    assert.equal(await primeraAccion.isVisible(), true);
+    await primeraAccion.scrollIntoViewIfNeeded();
+    const cajaAccion = await primeraAccion.boundingBox();
+    assert.ok(cajaAccion && cajaAccion.y >= 0 && cajaAccion.y + cajaAccion.height <= 844);
+    const reinicio = pagina.waitForRequest(solicitud => new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar' && solicitud.method() === 'POST');
+    await primeraAccion.click();
+    await reinicio;
     assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   });
 }
 
 test('Inicio conserva tres accesos legibles a 320 px', async t => {
-  const { pagina } = await abrir(t, '/inicio.html', { viewport: { width: 320, height: 740 } });
+  const navegadorTactil = { newContext: opciones => navegador.newContext({ ...opciones, hasTouch: true }) };
+  const { pagina } = await abrir(t, '/inicio.html', { viewport: { width: 320, height: 740 }, navegadorPrueba: navegadorTactil });
   const accesos = await pagina.locator('.metronet-inicio__accesos a').evaluateAll(enlaces => enlaces.map(enlace => ({
-    ancho: enlace.clientWidth, contenido: enlace.scrollWidth, y: enlace.getBoundingClientRect().y,
+    texto: enlace.textContent.trim(), y: enlace.getBoundingClientRect().y,
+    visible: enlace.getBoundingClientRect().width > 0 && enlace.getBoundingClientRect().height > 0,
+    textoDentroDePantalla: (() => { const rango = document.createRange(); rango.selectNodeContents(enlace); return rango.getBoundingClientRect().right <= innerWidth; })(),
+    textoSinRecorte: (() => {
+      const rango = document.createRange(); rango.selectNodeContents(enlace);
+      const derecha = rango.getBoundingClientRect().right;
+      for (let nodo = enlace; nodo; nodo = nodo.parentElement) {
+        if (/hidden|clip/.test(getComputedStyle(nodo).overflowX) && derecha > nodo.getBoundingClientRect().right + 1) return false;
+      }
+      return true;
+    })(),
   })));
   assert.equal(accesos.length, 3);
   assert.equal(new Set(accesos.map(acceso => acceso.y)).size, 1);
-  assert.ok(accesos.every(acceso => acceso.contenido <= acceso.ancho), JSON.stringify(accesos));
+  assert.deepEqual(accesos.map(acceso => acceso.texto), ['Niveles', 'Mis diseños', 'Simulaciones']);
+  assert.ok(accesos.every(acceso => acceso.visible && acceso.textoDentroDePantalla && acceso.textoSinRecorte), JSON.stringify(accesos));
   assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await pagina.route('**/simulacion.html', ruta => ruta.fulfill({ contentType: 'text/html', body: '<h1>Simulaciones</h1>' }));
+  await pagina.getByRole('link', { name: 'Simulaciones' }).tap();
+  await pagina.waitForURL('**/simulacion.html');
 });
 
 for (const width of [320, 390, 1440]) {
   test(`Niveles justifica la introducción y preserva lectura a ${width} px`, async t => {
-    const { pagina } = await abrir(t, '/escenarios.html', { viewport: { width, height: width === 320 ? 740 : 844 } });
+    const { pagina } = await abrir(t, '/escenarios.html', { viewport: { width, height: width === 320 ? 740 : 844 }, responder: solicitud =>
+      new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar'
+        ? { json: { idDiseno: 77, idEscenario: 1, idIntento: 123 } } : null });
     const estilo = await pagina.evaluate(() => {
       const intro = document.querySelector('.metronet-escenarios-pagina__presentacion p');
       const relato = document.querySelector('.metronet-escenarios-pagina__relato');
@@ -135,8 +161,15 @@ for (const width of [320, 390, 1440]) {
     assert.ok(estilo.diferenciaCentros < 2);
     assert.equal(estilo.desborde, false);
     if (width === 390) {
-      const accion = await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' }).boundingBox();
-      assert.ok(accion && accion.y + accion.height <= 844);
+      const accion = pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' });
+      assert.equal(await accion.isEnabled(), true);
+      await accion.focus();
+      assert.equal(await accion.evaluate(elemento => elemento === document.activeElement), true);
+      const cajaAccion = await accion.boundingBox();
+      assert.ok(cajaAccion && cajaAccion.y >= 0 && cajaAccion.y + cajaAccion.height <= 844);
+      const reinicio = pagina.waitForRequest(solicitud => new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar' && solicitud.method() === 'POST');
+      await pagina.keyboard.press('Enter');
+      await reinicio;
     }
   });
 }
@@ -165,7 +198,7 @@ test('Los diez niveles cuentan capítulos distintos y dejan la misión técnica 
   assert.deepEqual(new Set(await imagenes.evaluateAll(nodos => nodos.map(nodo => new URL(nodo.src).pathname))),
     new Set(['/assets/personajes/ari.svg', '/assets/personajes/sol.svg', '/assets/personajes/dani.svg']));
   assert.equal(await imagenes.first().getAttribute('alt'), '');
-  assert.match(await tarjetas.first().locator('.metronet-escenarios-pagina__personaje').innerText(), /Ari · Trazados/);
+  assert.match(await tarjetas.first().locator('.metronet-escenarios-pagina__personaje').innerText(), /Ari · Diseño de red/);
   assert.match(await tarjetas.nth(1).locator('.metronet-escenarios-pagina__personaje').innerText(), /Sol · Cobertura/);
   assert.match(relatos[0], /Ari.*Sol.*Dani/);
   assert.match(relatos[9], /presentación final.*red hipotética/);
@@ -177,7 +210,7 @@ test('Los diez niveles cuentan capítulos distintos y dejan la misión técnica 
   assert.equal(await tarjetas.nth(1).getByRole('button', { name: 'Bloqueado' }).isDisabled(), true);
 });
 
-test('Administración agrupa solo parámetros existentes y guarda mediante API simulada', async t => {
+test('Administración muestra solo mantenimiento y lo guarda mediante API simulada', async t => {
   const valores = new Map([['capacidad_unidad', '300'], ['velocidad_simulacion', '1'], ['modo_mantenimiento', 'desactivado']]);
   const { pagina, solicitudes } = await abrir(t, '/admin.html', { responder: async solicitud => {
     const ruta = new URL(solicitud.url()).pathname;
@@ -189,16 +222,21 @@ test('Administración agrupa solo parámetros existentes y guarda mediante API s
     }
   } });
   await pagina.locator('[data-vista="configuracion"]').click();
-  await pagina.locator('.admin-configuracion-grupo > h2').first().waitFor();
-  assert.deepEqual(await pagina.locator('.admin-configuracion-grupo > h2').evaluateAll(elementos => elementos.map(elemento => elemento.textContent)), ['Experiencia del jugador', 'Operación']);
-  assert.equal(await pagina.locator('.admin-configuracion-item').count(), 2);
+  await pagina.locator('.admin-configuracion-item').first().waitFor();
+  assert.equal(await pagina.locator('#tituloVista').textContent(), 'Modo de mantenimiento');
+  assert.equal(await pagina.locator('.admin-configuracion-grupo > h2, .admin-configuracion-grupo > p').count(), 0);
+  assert.equal(await pagina.locator('.admin-configuracion-item').count(), 1);
+  assert.equal(await pagina.locator('.admin-configuracion-item--mantenimiento h3').count(), 0);
+  assert.equal(await pagina.locator('.admin-configuracion-item--mantenimiento p').evaluate(elemento => getComputedStyle(elemento).textAlign), 'justify');
+  assert.equal(await pagina.locator('#configuracion-modo_mantenimiento').evaluate(elemento => getComputedStyle(elemento).textAlignLast), 'center');
   assert.equal(await pagina.locator('#configuracion-capacidad_unidad, [data-guardar-configuracion="capacidad_unidad"]').count(), 0);
+  assert.equal(await pagina.locator('#configuracion-velocidad_simulacion, [data-guardar-configuracion="velocidad_simulacion"]').count(), 0);
   assert.equal(await pagina.locator('#vista-configuracion > h2').count(), 0);
-  assert.match(await pagina.locator('.admin-configuracion-grupo').first().innerText(), /jugador puede/);
-  await pagina.locator('#configuracion-velocidad_simulacion').selectOption('2');
-  await pagina.locator('[data-guardar-configuracion="velocidad_simulacion"]').click();
+  await pagina.locator('#configuracion-modo_mantenimiento').selectOption('activado');
+  await pagina.locator('[data-guardar-configuracion="modo_mantenimiento"]').click();
   await pagina.getByText('Configuración actualizada correctamente.').waitFor();
-  assert.equal(valores.get('velocidad_simulacion'), '2');
+  assert.equal(valores.get('modo_mantenimiento'), 'activado');
+  assert.equal(valores.get('velocidad_simulacion'), '1');
   assert.equal(valores.get('capacidad_unidad'), '300');
   assert.equal(solicitudes.filter(s => s.method === 'PATCH').length, 1);
   assert.equal(solicitudes.some(s => s.path.endsWith('/capacidad_unidad')), false);

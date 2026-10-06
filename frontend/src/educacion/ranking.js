@@ -25,17 +25,34 @@ async function cargar() {
     document.getElementById('resumenPuntaje').textContent = sesion.usuario.rol === 'ADMIN'
       ? 'Modo de pruebas: acceso completo a los niveles. Esta cuenta no participa en el ranking.'
       : `${progreso.campanaCompletada ? '¡Campaña completada! ' : ''}${progreso.nivelesCompletados} / ${progreso.cantidadNiveles} niveles en la campaña actual. Mejor puntaje acumulado: ${ranking.puntajeTotal} / ${ranking.puntajeMaximo}. Tu posición: ${ranking.tuPosicion ?? 'Sin clasificación'}.`;
-    document.getElementById('puntajesPorNivel').replaceChildren(...progreso.escenarios.filter(n => Number.isInteger(n.numero)).map(n => {
+    const niveles = progreso.escenarios.filter(n => Number.isInteger(n.numero) && n.mejorPuntaje != null);
+    const resumenNiveles = document.getElementById('resumenPuntosNivel');
+    resumenNiveles.hidden = niveles.length > 0;
+    resumenNiveles.textContent = niveles.length ? '' : 'Todavía no tenés niveles completados.';
+    document.getElementById('puntajesPorNivel').replaceChildren(...niveles.map(n => {
       const item = document.createElement('li');
-      item.append(texto('strong', `Nivel ${String(n.numero).padStart(2, '0')} · ${n.nombre}`), texto('span', `Mejor: ${n.mejorPuntaje ?? 0} / ${n.puntajeMaximo ?? 100}`), texto('small', `Mejor del último intento: ${n.ultimoPuntaje ?? 'Sin resultado'}`));
+      item.className = 'ranking-nivel';
+      const encabezado = document.createElement('div');
+      encabezado.className = 'ranking-nivel__encabezado';
+      const nombre = String(n.nombre ?? '').replace(new RegExp(`^Nivel\\s+${n.numero}(?!\\d)(?:\\s*[·:–-]\\s*)?`, 'i'), '').trim();
+      encabezado.append(texto('small', `Nivel ${String(n.numero).padStart(2, '0')}`), texto('strong', nombre || 'Sin título'));
+      const resultados = document.createElement('div');
+      resultados.className = 'ranking-nivel__resultados';
+      const mejor = document.createElement('div');
+      mejor.append(texto('small', 'Mejor resultado'), texto('strong', `${n.mejorPuntaje} / ${n.puntajeMaximo ?? 100}`));
+      const ultimo = document.createElement('div');
+      ultimo.append(texto('small', 'Último intento'), texto('span', n.ultimoPuntaje == null ? 'Sin resultado' : `${n.ultimoPuntaje} / ${n.puntajeMaximo ?? 100}`));
+      resultados.append(mejor, ultimo);
+      item.append(encabezado, resultados);
       return item;
     }));
     document.getElementById('clasificacionRanking').replaceChildren(...ranking.jugadores.map(j => {
       const item = document.createElement('tr'); item.classList.toggle('ranking-propio', Boolean(j.sosVos));
       item.classList.toggle('ranking-destacado', j.posicion <= 3);
+      item.classList.toggle('ranking-primero', j.posicion === 1);
       if (j.sosVos) item.setAttribute('aria-label', `Tu posición: ${j.posicion}`);
       const puntos = texto('td', formatoPuntos(j.puntajeTotal)); puntos.setAttribute('aria-label', `${j.puntajeTotal} puntos`);
-      item.append(texto('td', String(j.posicion).padStart(2, '0')), texto('td', `${j.jugador}${j.sosVos ? ' · Vos' : ''}`), puntos, texto('td', String(j.nivelesCompletados).padStart(2, '0')));
+      item.append(texto('td', String(j.posicion).padStart(2, '0')), texto('td', j.jugador), puntos, texto('td', String(j.nivelesCompletados).padStart(2, '0')));
       return item;
     }));
     estado.hidden = ranking.jugadores.length > 0;

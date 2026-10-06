@@ -9,7 +9,7 @@ after(async()=>{await navegador?.close();});
 async function simulador(t){
  const v=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{responder:r=>new URL(r.url()).pathname.endsWith('/desempeno')?{json:{puntajeMaximo:100,puntaje:0,unidades:[{idTren:1,tiempoMinutos:15,distanciaKm:10,velocidadKmh:40}]}}:null});t.after(()=>v.contexto.close());t.after(()=>assert.deepEqual(v.errores,[]));
  await v.pagina.route('**/src/simulacion/EscenaSimulacion.js*',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:(await r.text()).replace('resolver({ escena: this, destruir });','window.escenaEstabilidad=this; window.destruirVisorEstabilidad=destruir; resolver({ escena: this, destruir });')});});
- await v.pagina.reload();await v.pagina.waitForFunction(()=>window.escenaEstabilidad?.disenoActual?.metricasUnidades?.length);await v.pagina.waitForFunction(()=>document.querySelector('audio[data-musica-metronet]')?.getAttribute('src')==='/audio/extra-theme.mp3');return v;
+ await v.pagina.reload();await v.pagina.waitForFunction(()=>window.escenaEstabilidad?.disenoActual?.metricasUnidades?.length);await v.pagina.waitForFunction(()=>document.querySelector('audio[data-musica-metronet]')?.getAttribute('src')==='/audio/simulacion-theme.mp3');return v;
 }
 test('Editor: un aviso de posición sin cambio de tamaño conserva objetos y cámara',async t=>{
  const v=await abrirEditor(navegador);t.after(()=>v.contexto.close());
@@ -53,7 +53,7 @@ test('Historial conservado: simulador sobrevive a pagehide/pageshow y mantiene e
 
 test('Diseño libre propio: conserva instrucciones sin consultar una consigna de campaña inexistente',async t=>{
  const v=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{responder:r=>new URL(r.url()).pathname==='/api/simulaciones/77'?{json:{simulacion:{idDiseno:77,idEscenario:999,modo:'EDICION_LIBRE',nombre:'Libre propio',objetivo:'Planificar una red propia'},estaciones:[],lineas:[],tramos:[],unidadesMetro:[],resultados:[],territorio:{areas:[],errores:[]}}}:null});t.after(()=>v.contexto.close());
- await v.pagina.waitForFunction(()=>document.querySelector('audio[data-musica-metronet]')?.getAttribute('src')==='/audio/extra-theme.mp3');
+ await v.pagina.waitForFunction(()=>document.querySelector('audio[data-musica-metronet]')?.getAttribute('src')==='/audio/simulacion-theme.mp3');
  assert.equal(v.solicitudes.filter(r=>r.path.endsWith('/consigna')).length,0);assert.equal(await v.pagina.locator('#objetivoConsigna').count(),0);assert.deepEqual(v.errores,[]);
 });
 

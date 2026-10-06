@@ -320,6 +320,7 @@ html:root body.simulacion-pagina #tituloSimulacion { width: 100%; font-size: 28p
 }
 
 #continuarEscenarios { display: none !important; }
+.simulacion-pagina:has(#mensajeSimulacion.error) #continuarEscenarios:not([hidden]) { display: inline-flex !important; }
 @media (max-width: 1050px) {
   html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr) auto; }
   .simulacion-accesos-titulo { grid-column: 2; }

@@ -22,7 +22,7 @@ function abrirTarjeta(tarjeta, numero, posicion, total) {
   const figura = document.createElement('figure');
   const imagen = document.createElement('img');
   imagen.src = tarjeta.imagen;
-  imagen.alt = `Esquema original. ${tarjeta.descripcionImagen}`;
+  imagen.alt = tarjeta.descripcionImagen;
   imagen.width = 720;
   imagen.height = 246;
   const respaldo = nodo('p', tarjeta.descripcionImagen);
@@ -51,7 +51,8 @@ function abrirTarjeta(tarjeta, numero, posicion, total) {
 function renderizarNivel(nivel) {
   const seccion = nodo('section', '', `metronet-aprendizaje__nivel${nivel.desbloqueado ? '' : ' metronet-aprendizaje__nivel--bloqueado'}`);
   const cabecera = nodo('header', '', 'metronet-aprendizaje__nivel-cabecera');
-  const nombre = nivel.contenido?.desafio?.nombre;
+  const nombre = String(nivel.contenido?.desafio?.nombre ?? '').trim()
+    .replace(new RegExp(`^Nivel\\s+${nivel.numero}(?!\\d)(?:\\s*[·:–-]\\s*)?`, 'i'), '');
   cabecera.append(nodo('h2', `Nivel ${nivel.numero}${nombre ? ` · ${nombre}` : ''}`),
     nodo('span', nivel.desbloqueado ? 'Desbloqueado' : 'Bloqueado', 'metronet-aprendizaje__estado'));
   seccion.append(cabecera);

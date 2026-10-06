@@ -14,20 +14,17 @@ export default class PanelReferenciasTerritoriales {
     this.elemento = document.createElement('details');
     this.elemento.className = 'metronet-poi';
     const acceso = document.createElement('summary');
-    configurarBotonIcono(acceso, 'poi', 'Puntos de interés de Montevideo');
+    configurarBotonIcono(acceso, 'checkpoint', 'Puntos de interés de Montevideo');
     acceso.setAttribute('aria-expanded','false');
     this.panel = document.createElement('div'); this.panel.className = 'metronet-poi__panel';
     for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) this.panel.addEventListener(tipo, e => e.stopPropagation());
-    this.panel.innerHTML = '<header><h2>Referencias de Montevideo</h2><button type="button" data-cerrar-poi></button></header>';
-    const cerrar = this.panel.querySelector('[data-cerrar-poi]');
-    configurarBotonIcono(cerrar,'cancelar','Cerrar puntos de interés');
-    cerrar.addEventListener('click',()=>this.cerrar(true));
+    this.panel.innerHTML = '<header><h2>Referencias de Montevideo</h2></header>';
     const controles = document.createElement('div'); controles.className = 'metronet-poi__categorias';
     controles.setAttribute('role','group'); controles.setAttribute('aria-label','Capas geográficas');
     this.estado = document.createElement('div'); this.estado.className = 'metronet-capas-activas';
     this.estado.setAttribute('role','group'); this.estado.setAttribute('aria-label','Capas activas');
     this.geografico = document.createElement('section'); this.geografico.className='metronet-poi__geografia'; this.geografico.hidden=true;
-    this.geografico.innerHTML='<h3>Barrios / Zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
+    this.geografico.innerHTML='<h3>Barrios y/o zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
     this.seleccion = this.geografico.querySelector('[data-contenedor-selectores-mapa]');
     this.seleccion.addEventListener('click', evento => {
       const encabezado = evento.target.closest('.metronet-panel-encabezado');

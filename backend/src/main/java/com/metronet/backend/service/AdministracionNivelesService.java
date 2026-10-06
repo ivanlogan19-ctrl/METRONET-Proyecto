@@ -207,7 +207,7 @@ public class AdministracionNivelesService {
             JsonNode valor=edicion.reglasExito().path(clave);
             if (clave.startsWith("minimo") || clave.equals("maximoEstaciones")) {
                 if (!valor.isIntegralNumber() || valor.asInt()<=0) throw invalido("La regla " + clave + " requiere un entero positivo");
-            } else if (clave.startsWith("requiere")) {
+            } else if (clave.startsWith("requiere") || clave.equals("transbordosPorConexion")) {
                 if (!valor.isBoolean()) throw invalido("La regla " + clave + " debe estar activada o desactivada");
             } else if (clave.equals("aprendizajeSimulacion")) {
                 if (!valor.isObject()) throw invalido("Prácticas de simulación inválidas");
@@ -237,6 +237,11 @@ public class AdministracionNivelesService {
         if (edicion.reglasExito().has("maximoEstaciones") && edicion.reglasExito().has("minimoEstaciones")
             && edicion.reglasExito().path("maximoEstaciones").asInt()<edicion.reglasExito().path("minimoEstaciones").asInt())
             throw invalido("El máximo de estaciones debe permitir cumplir el mínimo");
+        if (edicion.reglasExito().path("transbordosPorConexion").asBoolean(false)
+            && (!edicion.reglasExito().has("minimoTransbordos")
+                || !edicion.herramientasHabilitadas().path("lineas").asBoolean(false)
+                || !edicion.herramientasHabilitadas().path("conexiones").asBoolean(false)))
+            throw invalido("Transbordos por conexión requiere un mínimo, líneas y conexiones habilitadas");
         edicion.herramientasHabilitadas().fieldNames().forEachRemaining(clave -> {
             if (!clavesHerramienta.contains(clave) || !edicion.herramientasHabilitadas().path(clave).isBoolean())
                 throw invalido("Herramienta no soportada: " + clave);

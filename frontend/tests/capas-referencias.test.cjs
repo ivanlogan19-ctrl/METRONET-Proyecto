@@ -186,7 +186,7 @@ test('Iconos e indicadores mantienen el color de su categoría y muestran ayuda 
   assert.equal(await p.getByRole('tooltip').isVisible(), true);
 });
 
-test('Mapa estrecho: vista general reduce densidad sin perder el catálogo ni el punto buscado', async t => {
+test('Mapa estrecho: Editor conserva POI visibles y la capa limita densidad fuera del modo completo', async t => {
   const { pagina: p } = await abrir(t, { viewport: { width: 320, height: 844 } });
   await p.evaluate(() => {
     editorPrueba.escena.cameras.main.setZoom(1);
@@ -197,15 +197,32 @@ test('Mapa estrecho: vista general reduce densidad sin perder el catálogo ni el
     const visibles = poi.representaciones.filter(r => r.contenedor.visible);
     return {
       catalogo: poi.puntos.length,
-      porCategoria: visibles.reduce((r, p) => {
-        const c = obtenerCategoriaReferencia(p.punto);
-        r[c] = (r[c] || 0) + 1;
-        return r;
-      }, {}),
+      visibles: visibles.length,
+      esperados: poi.puntos.filter(punto => poi.categoriasVisibles.has(obtenerCategoriaReferencia(punto))).length,
+      modoCompleto: poi.mostrarTodosLosMarcadores,
+      nivelDetalle: poi.nivelDetalleAnterior,
     };
   });
   assert.equal(estado.catalogo, 121);
-  assert.ok(Object.values(estado.porCategoria).every(cantidad => cantidad <= 3));
+  assert.equal(estado.modoCompleto, true);
+  assert.equal(estado.nivelDetalle, 'GENERAL');
+  assert.equal(estado.visibles, estado.esperados);
+  const densidad = await p.evaluate(async () => {
+    const { obtenerCategoriaReferencia } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
+    poi.mostrarTodosLosMarcadores = false;
+    poi.actualizarVisibilidad(1, { forzar: true });
+    const visibles = poi.representaciones.filter(r => r.contenedor.visible);
+    const porCategoria = visibles.reduce((resultado, representacion) => {
+      const categoria = obtenerCategoriaReferencia(representacion.punto);
+      resultado[categoria] = (resultado[categoria] || 0) + 1;
+      return resultado;
+    }, {});
+    poi.mostrarTodosLosMarcadores = true;
+    poi.actualizarVisibilidad(1, { forzar: true });
+    return { visibles: visibles.length, porCategoria };
+  });
+  assert.ok(densidad.visibles > 0 && densidad.visibles < estado.visibles);
+  assert.ok(Object.values(densidad.porCategoria).every(cantidad => cantidad <= 8), JSON.stringify(densidad));
   await panel(p);
   await p.getByRole('button', { name: 'Buscar punto de interés' }).click();
   await p.getByRole('searchbox').fill('Hospital de Clínicas');

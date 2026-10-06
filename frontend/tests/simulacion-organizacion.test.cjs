@@ -56,39 +56,32 @@ test('Seleccionar metro en mapa o selector sincroniza la ficha y conserva cámar
   await cuadros(p);
   assert.deepEqual(await geometria(p), antes);
 });
-for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominante, secciones por teclado y ampliación con simulación activa`, async t => {
+for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominante y panel estable con simulación activa`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, width);
   const inicial = await geometria(p);
   assert.ok(inicial.height >= 340);
   assert.ok(inicial.width / width > (width > 1050 ? .72 : .9));
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-  for (const id of ['seccionResultados']) {
-    const resumen = p.locator(`#${id} > summary`);
-    assert.equal(await p.locator(`#${id}`).evaluate(e => e.open), false);
-    await resumen.focus(); await p.keyboard.press('Enter');
-    assert.equal(await p.locator(`#${id}`).evaluate(e => e.open), true);
-    await resumen.focus(); await p.keyboard.press('Enter'); await cuadros(p);
-    assert.deepEqual(await geometria(p), inicial, `${id} no debe cambiar el mapa`);
-  }
+  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
+  assert.equal(await p.locator('#ampliarMapa').isVisible(), false);
+  assert.equal(await p.locator('#seccionResultados').isVisible(), true);
+  assert.deepEqual(await geometria(p), inicial);
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.waitForFunction(() => escenaOrganizacion.motorSimulacion.estado === 'EN_CURSO');
   await cuadros(p);
   const solicitudesPrevias = solicitudes.length;
   const unidadesAntes = await p.evaluate(() => [...escenaOrganizacion.capaRedMetro.unidadesSimulacion.values()].map(u => ({ x: u.x, y: u.y })));
-  await p.locator('#ampliarMapa').click(); await cuadros(p, 20);
-  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), false);
-  assert.equal(await p.locator('#ampliarMapa').getAttribute('aria-pressed'), 'true');
-  const ampliada = await geometria(p);
-  assert.ok(ampliada.width * ampliada.height > inicial.width * inicial.height * 1.15);
+  await cuadros(p, 20);
+  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
+  assert.deepEqual(await geometria(p), inicial);
   assert.equal(await p.evaluate(() => escenaOrganizacion.motorSimulacion.estado), 'EN_CURSO');
-  assert.notDeepEqual(await p.evaluate(() => [...escenaOrganizacion.capaRedMetro.unidadesSimulacion.values()].map(u => ({ x: u.x, y: u.y }))), unidadesAntes);
+  await p.waitForFunction(antes => JSON.stringify([...escenaOrganizacion.capaRedMetro.unidadesSimulacion.values()].map(u => ({ x: u.x, y: u.y }))) !== JSON.stringify(antes), unidadesAntes, { timeout: 8000 });
   await p.locator('#pausarSimulacion').click();
   assert.equal(await p.evaluate(() => document.activeElement.id), 'reanudarSimulacion');
   await p.keyboard.press('Enter');
   assert.equal(await p.evaluate(() => document.activeElement.id), 'pausarSimulacion');
   await p.keyboard.press('Enter');
-  await p.locator('#ampliarMapa').click(); await cuadros(p, 20);
-  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
+  await cuadros(p, 20);
   assert.equal(await p.evaluate(() => escenaOrganizacion.motorSimulacion.estado), 'PAUSADA');
   const restaurada = await geometria(p);
   assert.equal(restaurada.width, inicial.width); assert.equal(restaurada.height, inicial.height);
@@ -96,19 +89,17 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
   assert.equal(await p.locator('#objetivoConsigna, #consignaSimulacion').count(), 0);
   assert.equal(await p.locator('#duracionSimulacion').isVisible(), true);
 });
-test('Validación de horas con panel plegado: abre configuración y enfoca el campo sin ejecutar', async t => {
+test('Validación de horas con panel visible: enfoca el campo sin ejecutar', async t => {
   const { pagina: p, solicitudes } = await abrir(t, 390);
   await p.locator('#duracionSimulacion').evaluate(e => { e.value = '0'; });
-  await p.locator('#ampliarMapa').click();
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.locator('.metronet-notificacion--error').waitFor();
   assert.equal(await p.locator('#seccionConfiguracion').isVisible(), true);
   assert.equal(await p.locator('#duracionSimulacion').evaluate(e => e === document.activeElement), true);
   assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);
 });
-test('Los errores permanecen fuera del panel al ampliar y los resultados se abren bajo demanda', async t => {
+test('Los errores permanecen bajo los mandos y los resultados se abren bajo demanda', async t => {
   const { pagina: p } = await abrir(t, 1440, req => req.url().endsWith('/ejecutar') ? { status: 503, json: { detail: 'Servicio temporalmente no disponible.' } } : null);
-  await p.locator('#ampliarMapa').click();
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.locator('#mensajeSimulacion.error').waitFor();
   assert.match(await p.locator('#mensajeSimulacion').innerText(), /Servicio temporalmente/);
@@ -116,10 +107,9 @@ test('Los errores permanecen fuera del panel al ampliar y los resultados se abre
   const mandos = await p.locator('.simulacion-mandos').boundingBox();
   assert.ok(mensaje.y >= mandos.y + mandos.height, 'El aviso no debe tapar los controles');
   assert.ok(mensaje.y >= 0 && mensaje.y + mensaje.height <= 1000, 'El error debe quedar a la vista');
-  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), false);
-  await p.locator('#ampliarMapa').click();
-  await p.locator('#seccionResultados > summary').click();
-  assert.match(await p.locator('#listaResultadosSimulacion').innerText(), /Aún no se registraron/);
+  assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
+  assert.equal(await p.locator('#seccionResultados').isVisible(), true);
+  assert.equal(await p.locator('#verResultadosSimulacion').isVisible(), false);
 });
 test('Sin diseño en la URL, Mis diseños conserva la apertura sin duplicar el selector', async t => {
   const { pagina:p } = await abrir(t);

@@ -2,7 +2,7 @@ import { gestorMusica } from '../audio/GestorMusica.js';
 
 const CLAVE = Symbol.for('metronet:contenedor');
 const pantallas = new Set(['/', '/index.html', '/login.html', '/admin-login.html', '/registro.html',
-  '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/inicio.html',
+  '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/mantenimiento.html', '/inicio.html',
   '/escenarios.html', '/aprendizaje.html', '/ranking.html', '/disenos.html', '/perfil.html', '/privacidad.html', '/admin.html', '/simulacion.html']);
 const marco = document.querySelector('#pantalla-metronet');
 const error = document.querySelector('#error-pantalla');

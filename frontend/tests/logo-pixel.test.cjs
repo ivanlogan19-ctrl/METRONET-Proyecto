@@ -20,7 +20,7 @@ for (const width of [1440, 390]) test(`Inicio ${width}px: una sola marca grande 
   await p.locator('.metronet-inicio__tarjeta').first().waitFor();
   assert.equal(await p.locator('.metronet-navegacion__marca').count(), 0);
   assert.equal(await p.locator('.metronet-inicio__marca .metronet-logo__imagen').count(), 1);
-  assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 4);
+  assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 5);
   assert.equal(await p.locator('.metronet-inicio__tarjeta').count(), 3);
   assert.equal(await p.getByText('Consejo para tu próxima acción').count(), 0);
   const progreso = await p.locator('.metronet-inicio__tarjeta--progreso').boundingBox();
@@ -56,7 +56,7 @@ for (const width of [1440, 390, 320]) test(`Inicio ${width}px: resumen compacto 
   assert.equal(await p.locator('.metronet-inicio__paso').count(),0);
   assert.match(await p.locator('.metronet-inicio__avance-recorrido').innerText(),/0\/10/);
   assert.equal(await p.getByRole('link',{name:'Niveles',exact:true}).count()>0,true);
-  assert.equal(await p.locator('.metronet-inicio__tarjeta--crear').getByText('Modo Libre').count(),1);
+  assert.equal(await p.locator('.metronet-inicio__tarjeta--crear').getByText('Modo Libre', { exact: true }).count(),1);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
 });
 
@@ -94,9 +94,15 @@ test('PNG aprobado intacto: transparencia real, resolución y márgenes original
 });
 
 for (const [width,height] of resoluciones) for (const ruta of ['/login.html','/inicio.html','/simulacion.html?idDiseno=77','editor']) {
-  test(`Logo ${width}×${height}: ${ruta}, proporción, nitidez, favicon y red sin referencias antiguas`, async t => {
+  test(`Identidad ${width}×${height}: ${ruta}, marca y navegación aprobadas sin desbordes`, async t => {
     const v = ruta === 'editor' ? await abrirEditor(navegador,{viewport:{width,height}}) : await abrirPantalla(navegador,ruta,{viewport:{width,height}});
     cerrar(t,v); const p=v.pagina;
+    if (ruta === 'editor' || ruta.startsWith('/simulacion.html')) {
+      assert.equal(await p.locator('.metronet-logo__imagen').count(), 0);
+      assert.equal(await p.locator('.metronet-navegacion').count(), 1);
+      assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1), false);
+      return;
+    }
     await p.locator('.metronet-logo__imagen').evaluateAll(imgs=>Promise.all(imgs.map(i=>i.decode())));
     const estado=await p.evaluate(()=>{
       const img=document.querySelector('.metronet-logo__imagen'),r=img.getBoundingClientRect(),c=getComputedStyle(img);
@@ -144,8 +150,8 @@ for (const width of [1440,390]) for (const ruta of ['/ranking.html','/disenos.ht
     if(new URL(req.url()).pathname==='/api/juego/progreso')return{json:{modoLibreDesbloqueado:true,escenarios:[]}};
     if(new URL(req.url()).pathname==='/api/juego/ranking')return{json:{jugadores:[{posicion:1,jugador:'Ana',puntajeTotal:100,nivelesCompletados:1,sosVos:true}],puntajeTotal:100,puntajeMaximo:400,tuPosicion:1}};
   }});cerrar(t,v);const p=v.pagina;
-  await p.locator('.metronet-logo__imagen').evaluate(i=>i.decode());
-  assert.equal(await p.locator('.metronet-logo__imagen').getAttribute('src'),ASSET);
+  assert.equal(await p.locator('.metronet-logo__imagen').count(),0);
+  assert.equal(await p.locator('.metronet-navegacion').count(),1);
   if(ruta==='/ranking.html')await p.locator('#clasificacionRanking tr').waitFor();
   else await p.locator('#listaMisDisenos[aria-busy=false]').waitFor();
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);

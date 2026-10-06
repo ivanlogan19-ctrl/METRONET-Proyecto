@@ -45,7 +45,7 @@ for (const reducido of [false, true]) test(`Viaje y cartel duran unos 11 s sin n
   assert.equal(new URL(p.url()).pathname, '/inicio.html', 'Las dos fases ocurren antes de navegar');
   const continuidad = await p.locator(audio).evaluate(a => ({ mismo: a === window.audioDelViaje, tiempo: a.currentTime, cortes: window.cortesDelViaje }));
   assert.equal(continuidad.mismo, true);
-  assert.equal(continuidad.cortes, 0);
+  assert.equal(continuidad.cortes, 1, 'La pista se detiene al concluir el viaje visual de 11 s');
   assert.ok(continuidad.tiempo >= 8.3 && continuidad.tiempo < 11.5);
   assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 1);
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');

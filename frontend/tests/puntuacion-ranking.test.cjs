@@ -8,7 +8,7 @@ let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 const progreso = { escenarios: niveles.map(n => ({ ...n, idEscenario: n.numero, estado:'COMPLETADO',desbloqueado:true,progreso:100,mejorPuntaje:95,ultimoPuntaje:90,puntajeMaximo:100,cantidadIntentos:2 })), cantidadNiveles:10,nivelesCompletados:10,campanaCompletada:true,numeroCampanaActual:1 };
-const ranking = { jugadores:[{posicion:1,jugador:'Jugador 9',puntajeTotal:980,nivelesCompletados:10,sosVos:false},{posicion:2,jugador:'Jugador 7',puntajeTotal:950,nivelesCompletados:10,sosVos:true}],tuPosicion:2,puntajeTotal:950,puntajeMaximo:1000 };
+const ranking = { jugadores:[{posicion:1,jugador:'Bruno Silva',puntajeTotal:980,nivelesCompletados:10,sosVos:false},{posicion:2,jugador:'Ana Prueba',puntajeTotal:950,nivelesCompletados:10,sosVos:true}],tuPosicion:2,puntajeTotal:950,puntajeMaximo:1000 };
 async function abrir(t, ruta, opciones = {}) {
  const p = await abrirPantalla(navegador,ruta,{...opciones,responder:async req=>{
   if(opciones.responder){const r=await opciones.responder(req);if(r)return r;}
@@ -23,8 +23,9 @@ for(const width of [1440,768,390]) test(`Ranking ${width}: clasificación, tu po
  await pagina.locator('.ranking-propio').waitFor();
  assert.match(await pagina.locator('#resumenPuntaje').innerText(),/950 \/ 1000.*Tu posición: 2/);
  assert.equal(await pagina.locator('#puntajesPorNivel > li').count(),10);
- assert.equal(await pagina.locator('.metronet-logo__imagen').count(),1);
+ assert.equal(await pagina.locator('.metronet-logo__imagen').count(),0);
  assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ assert.match(await pagina.locator('#clasificacionRanking').innerText(),/Bruno Silva.*Ana Prueba/s);
  assert.doesNotMatch(await pagina.locator('#clasificacionRanking').innerText(),/@example|apellido|email/);
 });
 test('Ranking: error recuperable y navegación desde el juego',async t=>{
@@ -41,7 +42,7 @@ test('Administrador: todos disponibles sin fingir completados y ranking no compe
  await pagina.goto(`${BASE}/escenarios.html`);
  await pagina.getByRole('button',{name:'Entrar al Modo Libre',exact:true}).waitFor();
  assert.equal(await pagina.getByRole('button',{name:'Comenzar',exact:true}).count(),10);
- assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(),/0\/10/);
+ assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--disponible').count(),11);
  await pagina.goto(`${BASE}/ranking.html`);
  await pagina.getByText(/Esta cuenta no participa en el ranking/).waitFor();
 });
@@ -87,7 +88,7 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
 });
 for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} puntos del servidor sin completar un parcial`,async t=>{
  const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${puntos === 100 ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidad:6,tramos:3}]};
- const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4,escala:'UV_H_V1',unidades:[{idTren:1,velocidad:6}],comentarios:'6 UV durante 10 h simuladas.'};
+ const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:1,velocidad:1,escala:'UV_H_V1',unidades:[{idTren:1,velocidad:6}],comentarios:'6 UV durante 1 h simulada.'};
  const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
  const {pagina}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
   const path=new URL(req.url()).pathname;
@@ -98,16 +99,17 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
   if(path.endsWith('/evaluar'))return {json:{completado:puntos === 100,puntaje:puntos,progreso:puntos,desempeno,mensaje:desempeno.explicacion}};
  }});
 
- await pagina.locator('#duracionSimulacion').fill('10');
- await pagina.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
+ await pagina.locator('[data-recorrido-omitir]').click();
+ await pagina.locator('#duracionSimulacion').fill('1');
+ assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
- await pagina.locator('#mensajeSimulacion').filter({ hasText: `${puntos} / 100 puntos` }).waitFor();
+ await pagina.locator('#listaResultadosSimulacion').filter({ hasText: `${puntos} puntos` }).waitFor();
  assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(), new RegExp(`COMPLETADA · ${puntos} puntos`));
  if (puntos === 100) {
   await pagina.getByRole('dialog').waitFor();
   assert.match(await pagina.getByRole('dialog').innerText(), /100 \/ 100 PTS/);
  } else {
   assert.equal(await pagina.getByRole('dialog').count(), 0);
-  assert.match(await pagina.locator('#mensajeSimulacion').innerText(), /Consigna pendiente/);
+  assert.match(await pagina.locator('#mensajeSimulacion').innerText(), /Revisá el resultado de simulación/);
  }
 });

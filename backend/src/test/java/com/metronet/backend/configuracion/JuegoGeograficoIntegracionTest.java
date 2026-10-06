@@ -50,6 +50,9 @@ class JuegoGeograficoIntegracionTest {
         jdbc.execute("CREATE TABLE resultado_uv_ut(id_simulacion INT, version INT, huella_problema VARCHAR, huella_ejecucion VARCHAR, limite_ut INT, presupuesto_uv DECIMAL(8,2), ut_ejecutadas INT, suma_uv DECIMAL(8,2), completo BOOLEAN, unidades VARCHAR)");
         jdbc.update("INSERT INTO usuario VALUES (7,1,FALSE)");
         jdbc.execute("ALTER TABLE usuario ADD COLUMN rol VARCHAR DEFAULT 'JUGADOR'");
+        jdbc.execute("ALTER TABLE usuario ADD COLUMN nombre VARCHAR(100)");
+        jdbc.execute("ALTER TABLE usuario ADD COLUMN apellido VARCHAR(100)");
+        jdbc.update("UPDATE usuario SET nombre='Ana', apellido='Prueba' WHERE id_usuario=7");
         // Las consignas provienen del inicializador de producción, no de una copia en la prueba.
         JdbcTemplate catalogo = mock(JdbcTemplate.class);
         when(catalogo.update(anyString(), any(Object[].class))).thenAnswer(invocacion -> {
@@ -113,7 +116,6 @@ class JuegoGeograficoIntegracionTest {
             jdbc.update("INSERT INTO pasa VALUES (?,'Principal',?)", diseno, "E" + i);
             if (i > 0) jdbc.update("INSERT INTO tramo VALUES (?,'Principal',?,?)", diseno, "E" + (i - 1), "E" + i);
         }
-        int intercambios = reglas.path("minimoTransbordos").asInt();
         for (int i = 1; i < reglas.path("minimoLineas").asInt(); i++) {
             String linea = "Enlace" + i;
             String origen = "E" + (nivel == 10 ? i - 1 : 0);
@@ -122,10 +124,6 @@ class JuegoGeograficoIntegracionTest {
             jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,velocidad_promedio) VALUES (?,?,?)", diseno, linea, 4);
             jdbc.update("INSERT INTO pasa VALUES (?,?,?),(?,?,?)", diseno, linea, origen, diseno, linea, destino);
             jdbc.update("INSERT INTO tramo VALUES (?,?,?,?)", diseno, linea, origen, destino);
-        }
-        for (int i = 0; i < intercambios; i++) {
-            String nombre = "E" + (intercambios == 2 && i == 1 ? 2 : i);
-            jdbc.update("UPDATE estacion SET transbordo=TRUE WHERE id_diseno=? AND nombre=?", diseno, nombre);
         }
     }
 
@@ -277,12 +275,14 @@ class JuegoGeograficoIntegracionTest {
 
     @Test
     void rankingSumaMejoresSinLibreNiAdministradoresYDesempataEstablemente() {
-        jdbc.update("INSERT INTO usuario VALUES (8,1,FALSE,'JUGADOR'),(9,1,FALSE,'ADMIN')");
+        jdbc.update("INSERT INTO usuario (id_usuario, numero_campana_actual, campana_completada_historicamente, rol, nombre, apellido) VALUES (8,1,FALSE,'JUGADOR','Bruno','Silva'),(9,1,FALSE,'ADMIN','Admin',NULL)");
         jdbc.update("INSERT INTO escenario VALUES (11,NULL,'Libre','','','', 'EDICION_LIBRE',TRUE,'{}','{}')");
         jdbc.update("UPDATE intento SET estado='COMPLETADO',puntaje=80 WHERE id_intento=1");
         jdbc.update("INSERT INTO intento VALUES (12,7,1,12,1,'COMPLETADO',100,70,NULL),(13,7,11,13,1,'COMPLETADO',100,10000,NULL),(14,8,1,14,1,'COMPLETADO',100,80,NULL),(15,9,1,15,1,'COMPLETADO',100,9000,NULL)");
         var ranking = new PuntuacionService(jdbc, mapper).ranking(7);
         assertEquals(2, ranking.jugadores().size()); assertEquals(80, ranking.puntajeTotal());
+        assertEquals("Ana Prueba", ranking.jugadores().getFirst().jugador());
+        assertEquals("Bruno Silva", ranking.jugadores().get(1).jugador());
         assertEquals(1, ranking.tuPosicion()); assertEquals(1000, ranking.puntajeMaximo());
         jdbc.update("UPDATE intento SET puntaje=90 WHERE id_intento=12");
         assertEquals(90, new PuntuacionService(jdbc, mapper).ranking(7).puntajeTotal());
@@ -405,12 +405,13 @@ class JuegoGeograficoIntegracionTest {
         reglas("{\"areasObjetivo\":[{\"tipo\":\"barrio\",\"nombre\":\"AGUADA\"}],\"minimoTransbordos\":1}");
         assertTrue(consigna().condiciones().stream().filter(c -> c.clave().startsWith("areaObjetivo")).findFirst().orElseThrow().completado());
         assertFalse(juego.evaluarEscenario(7, 4).completado());
-        jdbc.update("UPDATE estacion SET transbordo=TRUE WHERE nombre='A'");
         assertFalse(juego.evaluarEscenario(7, 4).completado());
         jdbc.update("INSERT INTO linea VALUES (4,'Roja')");
         jdbc.update("INSERT INTO pasa VALUES (4,'Roja','A'),(4,'Roja','B')");
         assertFalse(juego.evaluarEscenario(7, 4).completado());
         jdbc.update("INSERT INTO tramo VALUES (4,'Roja','A','B')");
+        assertFalse(juego.evaluarEscenario(7, 4).completado(), "La consigna histórica conserva su marca explícita");
+        reglas("{\"areasObjetivo\":[{\"tipo\":\"barrio\",\"nombre\":\"AGUADA\"}],\"minimoTransbordos\":1,\"transbordosPorConexion\":true}");
         assertTrue(juego.evaluarEscenario(7, 4).completado());
         reglas("{\"areasObjetivo\":[{\"tipo\":\"barrio\",\"nombre\":\"Sin geometría\"}]}");
         assertFalse(juego.evaluarEscenario(7, 4).completado());

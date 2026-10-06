@@ -27,17 +27,17 @@ async function ingresar(p, rol) {
   await p.locator(rol === 'ADMIN' ? '#loginAdminButton' : '#loginButton').click();
 }
 
-for (const ruta of rutas) test(`Acceso sin sesión: Extra y control disponible en ${ruta}`, async t => {
+for (const ruta of rutas) test(`Acceso sin sesión: Portada y control disponible en ${ruta}`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, ruta);
   await reproduciendo(p);
   assert.equal(await p.locator(audio).count(), 1);
   const datos = await p.locator(audio).evaluate(a => ({ src: a.getAttribute('src'), loop: a.loop, duracion: a.duration }));
-  assert.equal(datos.src, '/audio/extra-theme.mp3');
+  assert.equal(datos.src, '/audio/portada-theme.mp3');
   assert.equal(datos.loop, true);
-  assert.ok(datos.duracion > 32 && datos.duracion < 32.2);
+  assert.ok(datos.duracion > 122.6 && datos.duracion < 122.8);
   assert.equal(await p.locator('[data-control-musica]').count(), 1);
   assert.equal(await p.evaluate(() => localStorage.getItem('sesionUsuario') || localStorage.getItem('sesionAdministrador')), null);
-  assert.deepEqual(solicitudes, [], 'La música no agrega llamadas a backend');
+  assert.deepEqual(solicitudes.filter(s => s.path !== '/api/estado'), [], 'La música no agrega llamadas a backend');
   assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('menu-theme'))), false);
 });
 
@@ -84,7 +84,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: error de login conserva m�
   await p.locator('.metronet-navegacion__usuario > summary').click();
   await p.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
   await p.waitForURL('**/login.html'); await reproduciendo(p);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/extra-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.mp3');
 });
 
 test('Volumen y silencio persisten; eventos de almacenamiento sin sesión no detienen el contexto auth', async t => {
@@ -128,7 +128,7 @@ test('Autoplay bloqueado ofrece activación accesible sin impedir escribir en el
 test('MP3 ausente no bloquea el login ni la bienvenida', async t => {
   const { pagina: p } = await abrir(t, '/login.html', { reducedMotion: 'reduce', responder: req => /\/auth\/login$/.test(req.url())
     ? { json: { token: 'sesion-local-de-prueba', usuario: { idUsuario: 7, nombre: 'Ana', rol: 'JUGADOR' } } } : null });
-  await p.route('**/audio/extra-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/portada-theme.mp3', route => route.fulfill({ status: 404 }));
   await p.reload();
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   await ingresar(p, 'JUGADOR');
@@ -145,7 +145,7 @@ test('Registro conserva su validación, solicitud y retorno a login con la misma
   await p.locator('#aceptaDatos').check();
   await p.locator('#registroButton').click();
   await p.waitForURL('**/login.html'); await reproduciendo(p);
-  assert.deepEqual(solicitudes.map(s => [s.path, s.method]), [['/auth/registro', 'POST']]);
+  assert.deepEqual(solicitudes.filter(s => s.path.startsWith('/auth/')).map(s => [s.path, s.method]), [['/auth/registro', 'POST']]);
 });
 
 test('Recuperación, código y cambio de contraseña mantienen música y contratos existentes', async t => {
@@ -167,11 +167,11 @@ test('Recuperación, código y cambio de contraseña mantienen música y contrat
   await p.locator('#confirmarContrasena').fill('Distinta1!');
   await p.locator('#botonCambiarContrasena').click();
   await p.locator('#mensaje.error').waitFor();
-  assert.equal(solicitudes.length, 2);
+  assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/')).length, 2);
   await p.locator('#confirmarContrasena').fill('Prueba1!');
   await p.locator('#botonCambiarContrasena').click();
   await p.waitForURL('**/login.html'); await reproduciendo(p);
-  assert.deepEqual(solicitudes.map(s => [s.path, s.method]), [
+  assert.deepEqual(solicitudes.filter(s => s.path.startsWith('/auth/')).map(s => [s.path, s.method]), [
     ['/auth/recuperar-contrasena', 'PATCH'],
     ['/auth/recuperar-contrasena/verificar-codigo', 'POST'],
     ['/auth/recuperar-contrasena/cambiar-contrasena', 'PATCH'],

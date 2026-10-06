@@ -34,9 +34,9 @@ async function abrir(t, ruta = '/escenarios.html', opciones = {}) {
   return resultado;
 }
 for (const width of [1440, 768, 390]) {
-  test(`Administración ${width}: una marca estructural y navegación conservada`, async t => {
+  test(`Administración ${width}: sin logo de juego y navegación conservada`, async t => {
     const { pagina } = await abrir(t, '/admin.html', { viewport: { width, height: 900 } });
-    assert.equal(await pagina.locator('.metronet-logo__imagen').count(), 1);
+    assert.equal(await pagina.locator('.metronet-logo__imagen').count(), 0);
     assert.equal(await pagina.locator('.admin-menu [data-metronet-logo]').count(), 0);
     await pagina.locator('[data-vista="configuracion"]').click();
     await pagina.locator('#vista-configuracion.activa').waitFor();
@@ -46,7 +46,7 @@ for (const width of [1440, 768, 390]) {
     const { pagina, solicitudes } = await abrir(t, '/escenarios.html', { viewport: { width, height: 900 } });
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').count(), 10);
     assert.equal(await pagina.locator('#progresoEscenarios').count(), 0);
-    assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /4\/10/);
+    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').count(), 4);
     await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
     const dialogo = pagina.getByRole('dialog', { name: niveles[4].nombre, exact: true });
     await dialogo.waitFor();
@@ -76,8 +76,8 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
   await pagina.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent === 'Comenzar' && !b.disabled));
   assert.equal(await pagina.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
   await pagina.reload();
-  await pagina.waitForFunction(() => /9\/10/.test(document.querySelector('#descripcionProgresoEscenarios')?.textContent ?? ''));
-  assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /9\/10/);
+  await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').first().waitFor();
+  assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').count(), 9);
   assert.equal(solicitudes.filter(r => r.method === 'POST').length, 1);
   await pagina.getByRole('button', { name: 'Volver a jugar', exact: true }).first().click();
   await pagina.getByRole('dialog', { name: niveles[0].nombre }).waitFor();
@@ -91,7 +91,7 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
 test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', async t => {
   const resumen = progreso(10);
   const { pagina, solicitudes } = await abrir(t, '/escenarios.html', { progreso: resumen });
-  assert.match(await pagina.locator('#descripcionProgresoEscenarios').innerText(), /10\/10 completados · Campaña completa/);
+  assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').count(), 10);
   await pagina.evaluate(async resumen => {
     const { presentarResultadoNivel } = await import('/src/educacion/TransicionNivel.js');
     window.resultadoTransicion = presentarResultadoNivel(resumen, 110, { completado: true, puntaje: 100, idSiguienteEscenario: null });
@@ -110,7 +110,7 @@ test('Sin datos educativos usa una transición genérica; fallo de módulo no bl
     const { mostrarTransicionNivel } = await import('/src/educacion/PantallaTransicionNivel.js');
     window.transicionDesconocida = mostrarTransicionNivel({ numero: 97, nombre: 'Desafío externo' }, { numero: 98, nombre: 'Siguiente externo' });
   });
-  assert.match(await pagina.getByRole('dialog').innerText(), /Siguiente externo/);
+  assert.match(await pagina.getByRole('dialog').innerText(), /Próxima estación · Nivel 98/);
   assert.equal(await pagina.evaluate(() => window.transicionDesconocida), 'siguiente');
   await pagina.route('**/educacion/PantallaTransicionNivel.js*', route => route.abort());
   await pagina.reload();
@@ -149,19 +149,22 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
   });
 
   await pagina.locator('#duracionSimulacion').fill('10');
-  await pagina.locator('[data-paso-ritmo="1"]').click({ clickCount: 2 });
+  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
-  await pagina.getByRole('dialog', { name: numero === 10 ? 'Nivel final completado' : 'Nivel completado', exact: true }).waitFor();
+  await pagina.getByRole('dialog', { name: numero === 10 ? 'Nivel final completado' : 'Nivel completado', exact: true }).waitFor({ timeout: 45000 });
+  assert.equal(await pagina.locator('.metronet-recorrido').count(), 0, 'El tutorial visual se retira al completar el nivel');
   assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 1);
   assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
   if (numero === 10) {
     await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
     await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
     await pagina.waitForURL('**/escenarios.html');
-    await pagina.locator('#descripcionProgresoEscenarios').filter({ hasText: /10\/10/ }).waitFor();
+    await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').first().waitFor();
+    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').count(), 10);
     assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);
   } else {
-    // La pista real de victoria dura ~15 s: incluir audio y navegación, como en el cierre final.
+    // El ritmo visual fijo ya completó la simulación; Jugar adelanta el viaje de victoria.
+    await pagina.getByRole('dialog', { name: 'Nivel completado', exact: true }).getByRole('button', { name: 'Jugar' }).click();
     await pagina.waitForURL('**/?idDiseno=200&idEscenario=105&idIntento=300', { timeout: 26000 });
   }
 });

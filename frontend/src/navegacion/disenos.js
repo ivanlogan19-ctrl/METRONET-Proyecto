@@ -2,9 +2,9 @@ import ClienteDisenos from '../red/ClienteDisenos.js';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { inicializarNavegacion, navegarConCambiosPendientes } from './NavegacionAplicacion.js';
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
-import { establecerIdDisenoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
+import { establecerContextoEnRuta, establecerIdDisenoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
-import { consultarAccesoMisDisenos, MENSAJE_DISENOS_BLOQUEADOS } from './AccesoMisDisenos.js';
+import { consultarAccesoMisDisenos } from './AccesoMisDisenos.js';
 
 const sesion = requerirSesion();
 if (sesion) iniciar();
@@ -15,17 +15,17 @@ function iniciar() {
   const cliente = new ClienteDisenos(sesion);
   const gestion = administrador ? new ClienteDisenos(sesion, { administracion: true }) : cliente;
   const lista = document.getElementById('listaMisDisenos');
+  const listaLibres = document.getElementById('listaDisenosLibres');
   const mensaje = document.getElementById('mensajeDisenos');
-  const formulario = document.getElementById('crearDiseno');
-  const buscar = document.getElementById('buscarDisenos');
+  const botonLibre = document.getElementById('irDisenoLibre');
   const reintentar = document.getElementById('reintentarDisenos');
   const dialogo = document.getElementById('confirmarEliminarDiseno');
-  let disenos = [], escenarios = [], catalogoDisponible = false;
+  let disenos = [], escenarios = [], catalogoDisponible = false, modoLibre = null;
   let cargando = false, operacion = false, recargaPendiente = false, versionListado = 0;
   const estados = { EN_DISENO: 'En diseño', EN_DESARROLLO: 'En desarrollo', GUARDADO: 'Guardado', VALIDADO: 'Validado', COMPLETADO: 'Completado', COMPLETADA: 'Completada' };
-  const normalizar = texto => String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const textoEstado = d => estados[d.estado] ?? d.estado ?? '';
   const protegido = d => !administrador && (!catalogoDisponible || escenarios.some(e => e.idEscenario === d.idEscenario && Number.isInteger(e.numero)));
+  const esDisenoLibre = d => d.modo === 'EDICION_LIBRE' || escenarios.some(e => e.idEscenario === d.idEscenario && e.numero === null);
   const propio = d => !administrador || d.idUsuario === sesion.usuario.idUsuario;
   const ruta = (d, destino) => {
     const anterior = obtenerContextoRuta();
@@ -33,21 +33,18 @@ function iniciar() {
   };
 
   if (administrador) {
-    document.getElementById('descripcionDisenos').textContent = 'Administrá tus diseños y los de otros jugadores. Cada red indica su propietario; podés abrir tus redes y eliminar cualquiera.';
     document.getElementById('alcanceEliminarDiseno').textContent = 'Esta acción no se puede deshacer. Se eliminarán el diseño, sus elementos, su intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar.';
-    buscar.placeholder = 'Nombre, propietario o estado';
   }
 
-  function renderizar() {
-    const visibles = disenos.filter(d => normalizar(`${d.nombre} ${d.propietario ?? ''} ${textoEstado(d)}`).includes(normalizar(buscar.value)));
-    lista.replaceChildren(...visibles.map(d => {
+  function crearFila(d) {
       const fila = document.createElement('li');
       fila.dataset.diseno = d.idDiseno;
       const identidad = document.createElement('div');
       const nombre = document.createElement('strong');
       nombre.textContent = d.nombre;
       const estado = document.createElement('small');
-      estado.textContent = `${textoEstado(d)}${protegido(d) && catalogoDisponible ? ' · Nivel educativo' : ''}`;
+      const numeroNivel = escenarios.find(e => e.idEscenario === d.idEscenario)?.numero;
+      estado.textContent = `${textoEstado(d)}${Number.isInteger(numeroNivel) ? ` · Nivel ${numeroNivel}` : ''}`;
       identidad.append(nombre, estado);
       if (administrador) {
         const propietario = document.createElement('small');
@@ -61,6 +58,7 @@ function iniciar() {
         const enlace = document.createElement('a');
         enlace.className = 'metronet-boton'; enlace.href = ruta(d, destino);
         configurarBotonIcono(enlace, icono, `${etiqueta}: ${d.nombre}`);
+        enlace.classList.add(icono === 'editar' ? 'metronet-disenos__accion--editar' : 'metronet-disenos__accion--simular');
         acciones.append(enlace);
       }
       const eliminar = document.createElement('button');
@@ -72,50 +70,50 @@ function iniciar() {
       acciones.append(eliminar);
       fila.append(identidad, acciones);
       return fila;
-    }));
-    mensaje.textContent = visibles.length ? `${visibles.length} ${visibles.length === 1 ? 'diseño disponible' : 'diseños disponibles'}.` : disenos.length ? 'No hay diseños que coincidan con la búsqueda.' : 'Todavía no hay diseños guardados.';
+  }
+
+  function renderizar() {
+    const deCampana = disenos.filter(d => !esDisenoLibre(d));
+    const libres = disenos.filter(esDisenoLibre);
+    lista.replaceChildren(...deCampana.map(crearFila));
+    listaLibres.replaceChildren(...libres.map(crearFila));
+    mensaje.hidden = deCampana.length > 0;
+    mensaje.textContent = deCampana.length ? '' : disenos.length
+      ? 'Todavía no hay diseños de campaña guardados.' : 'Todavía no hay diseños guardados.';
   }
 
   async function cargar() {
     if (cargando || operacion || dialogo.open) { recargaPendiente = true; return; }
     cargando = true; recargaPendiente = false;
     const version = versionListado;
-    lista.setAttribute('aria-busy', 'true'); reintentar.hidden = true;
+    lista.setAttribute('aria-busy', 'true'); listaLibres.setAttribute('aria-busy', 'true'); reintentar.hidden = true; botonLibre.disabled = true;
     try {
-      if (!administrador) {
-        formulario.hidden = true;
-        buscar.closest('label').hidden = true;
-        disenos = []; lista.replaceChildren();
-      }
-      const permitido = await consultarAccesoMisDisenos();
-      if (!permitido) {
-        mensaje.textContent = MENSAJE_DISENOS_BLOQUEADOS;
-        document.getElementById('disenosCreacionEstado').textContent = '';
-        document.getElementById('volverEscenariosDisenos').hidden = false;
-        return;
-      }
-      document.getElementById('volverEscenariosDisenos').hidden = true;
-      buscar.closest('label').hidden = false;
-      const [redes, juego] = await Promise.allSettled([gestion.listar(), administrador ? Promise.resolve([]) : consultarJuego('/escenarios')]);
+      const [redes, juego, acceso] = await Promise.allSettled([gestion.listar(), consultarJuego('/escenarios'), consultarAccesoMisDisenos()]);
       // Una respuesta iniciada antes de borrar no puede restaurar el registro eliminado.
       if (version !== versionListado) return;
       catalogoDisponible = juego.status === 'fulfilled' && Array.isArray(juego.value);
       escenarios = catalogoDisponible ? juego.value : [];
-      formulario.hidden = !administrador && !escenarios.some(e => e.numero === null && e.desbloqueado);
-      document.getElementById('disenosCreacionEstado').textContent = !catalogoDisponible ? 'No se pudo consultar la disponibilidad del Modo Libre. Podés abrir tus diseños; volvé a cargar para gestionar su creación o eliminación.' : formulario.hidden ? 'La creación de redes nuevas está disponible al desbloquear el Modo Libre.' : '';
+      modoLibre = acceso.status === 'fulfilled' && acceso.value
+        ? escenarios.find(e => e.numero === null && e.desbloqueado) ?? null : null;
+      botonLibre.disabled = !modoLibre;
+      document.getElementById('explicacionDisenoLibre').hidden = Boolean(modoLibre);
+      botonLibre.title = modoLibre ? '' : 'Completá los diez niveles para habilitar el diseño libre.';
       if (redes.status === 'fulfilled' && Array.isArray(redes.value)) {
         disenos = redes.value.map(d => ({ ...d, nombre: d.nombre || `Diseño #${d.idDiseno}` }));
         renderizar();
       } else {
-        disenos = []; lista.replaceChildren();
+        disenos = []; lista.replaceChildren(); listaLibres.replaceChildren();
+        mensaje.hidden = false;
         mensaje.textContent = redes.reason?.message || 'No fue posible cargar los diseños.';
       }
-      reintentar.hidden = redes.status === 'fulfilled' && Array.isArray(redes.value) && catalogoDisponible;
+      reintentar.hidden = redes.status === 'fulfilled' && Array.isArray(redes.value)
+        && catalogoDisponible && acceso.status === 'fulfilled';
     } catch (error) {
+      mensaje.hidden = false;
       mensaje.textContent = 'No se pudo verificar el acceso a Mis diseños. Volvé a intentarlo.';
       reintentar.hidden = false;
     } finally {
-      cargando = false; lista.setAttribute('aria-busy', 'false');
+      cargando = false; lista.setAttribute('aria-busy', 'false'); listaLibres.setAttribute('aria-busy', 'false');
       recargarSiPendiente();
     }
   }
@@ -143,29 +141,37 @@ function iniciar() {
           resultado = 'Este diseño ya no existe. Se actualizó la lista.';
         } else resultado = error.message;
       } finally {
-        operacion = false; renderizar(); mensaje.textContent = resultado;
-        buscar.focus(); recargarSiPendiente();
+        operacion = false; renderizar(); mensaje.hidden = false; mensaje.textContent = resultado;
+        recargarSiPendiente();
       }
     }, { once: true });
   }
 
-  formulario.addEventListener('submit', async evento => {
-    evento.preventDefault();
-    if (operacion || formulario.hidden || !formulario.reportValidity()) return;
-    const nombre = formulario.elements.nombre.value.trim();
-    if (!nombre) { mensaje.textContent = 'Ingresá un nombre para la nueva red.'; return; }
-    operacion = true; formulario.querySelector('button').disabled = true; renderizar();
+  botonLibre.addEventListener('click', async () => {
+    if (operacion || !modoLibre || botonLibre.disabled) return;
+    operacion = true; botonLibre.disabled = true; renderizar();
+    mensaje.hidden = false;
+    mensaje.textContent = 'Preparando diseño libre…';
+    let errorTexto = null;
     try {
-      const diseno = await cliente.solicitar('', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre }) });
-      await navegarConCambiosPendientes(ruta(diseno, '/'));
-    } catch (error) { mensaje.textContent = error.message; }
+      const respuesta = await fetch(`${window.location.protocol}//${window.location.hostname}:8080/api/juego/escenarios/${modoLibre.idEscenario}/iniciar`, {
+        method: 'POST', headers: { Authorization: `Bearer ${sesion.token}` },
+      });
+      if (!respuesta.ok) {
+        let detalle = 'No fue posible abrir el diseño libre.';
+        try { detalle = (await respuesta.json()).detail ?? detalle; } catch { /* Sin detalle legible. */ }
+        throw new Error(detalle);
+      }
+      const inicio = await respuesta.json();
+      if (!inicio?.idDiseno) throw new Error('No fue posible abrir el diseño libre.');
+      await navegarConCambiosPendientes(establecerContextoEnRuta('/', inicio));
+    } catch (error) { errorTexto = error.message; }
     finally {
-      operacion = false; formulario.querySelector('button').disabled = false;
-      lista.querySelectorAll('button').forEach(b => { b.disabled = protegido(disenos.find(d => String(d.idDiseno) === b.closest('li').dataset.diseno)); });
+      operacion = false; botonLibre.disabled = !modoLibre; renderizar();
+      if (errorTexto) { mensaje.hidden = false; mensaje.textContent = errorTexto; }
       recargarSiPendiente();
     }
   });
-  buscar.addEventListener('input', renderizar);
   reintentar.addEventListener('click', cargar);
   window.addEventListener('pageshow', evento => { if (evento.persisted) void cargar(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void cargar(); });

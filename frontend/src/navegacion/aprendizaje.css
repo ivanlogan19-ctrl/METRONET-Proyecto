@@ -1,4 +1,28 @@
+body.metronet-pagina-aprendizaje {
+  --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-tecnica: var(--font-ui);
+}
 .metronet-aprendizaje { width: min(100% - 32px, 1040px); margin: auto; padding: clamp(30px, 6vw, 72px) 0; }
+@media (min-width: 1100px) {
+  .metronet-aprendizaje {
+    --cruz-ferroviaria-ancho: clamp(140px, 12vw, 180px);
+    --margen-aprendizaje: max(176px, calc((100vw - 1040px) / 2));
+    position: relative;
+    width: min(100% - 352px, 1040px);
+  }
+  .metronet-aprendizaje::before,
+  .metronet-aprendizaje::after {
+    content: '';
+    position: fixed;
+    top: clamp(86px, 12vh, 120px);
+    width: var(--cruz-ferroviaria-ancho);
+    aspect-ratio: 200 / 260;
+    background: url('/assets/cruz-ferroviaria-aprendizaje.svg') center / contain no-repeat;
+    pointer-events: none;
+  }
+  .metronet-aprendizaje::before { left: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - 24px); }
+  .metronet-aprendizaje::after { right: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - 24px); }
+}
 .metronet-aprendizaje__cabecera { margin-bottom: 26px; }
 .metronet-aprendizaje__cabecera h1 { margin: 0; }
 .metronet-aprendizaje__cabecera > p:not(.metronet-inicio__etiqueta) { color: var(--text-secondary); line-height: 1.6; }
@@ -8,7 +32,7 @@
 .metronet-aprendizaje__nivel-cabecera { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
 .metronet-aprendizaje__nivel h2 { margin: 0; font-size: clamp(17px, 2vw, 22px); }
 .metronet-aprendizaje__estado { color: var(--success); font-size: 13px; }
-.metronet-aprendizaje__nivel--bloqueado .metronet-aprendizaje__estado { color: var(--text-secondary); }
+.metronet-aprendizaje__nivel--bloqueado .metronet-aprendizaje__estado { color: var(--danger); }
 .metronet-aprendizaje__nivel > p { margin: 9px 0 0; color: var(--text-secondary); }
 .metronet-aprendizaje__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 10px; margin-top: 16px; }
 .metronet-aprendizaje__tarjeta { min-height: 96px; padding: 12px; text-align: left; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
@@ -19,8 +43,9 @@
 .metronet-aprendizaje__lectura { display: grid; gap: 14px; padding: clamp(18px, 3vw, 30px); }
 .metronet-aprendizaje__lectura h2, .metronet-aprendizaje__lectura p, .metronet-aprendizaje__lectura figure { margin: 0; }
 .metronet-aprendizaje__lectura h2 { font-size: clamp(18px, 2.4vw, 27px); }
-.metronet-aprendizaje__lectura figure { border: 1px solid var(--border); background: var(--bg-secondary); }
-.metronet-aprendizaje__lectura img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 246; object-fit: contain; }
+/* El pie de los SVG (y=221/236) es una leyenda editorial, ajena a la ilustración. */
+.metronet-aprendizaje__lectura figure { aspect-ratio: 720 / 208; overflow: hidden; border: 1px solid var(--border); background: var(--bg-secondary); }
+.metronet-aprendizaje__lectura img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
 .metronet-aprendizaje__idea { padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--warning); background: var(--bg-secondary); }
 .metronet-aprendizaje__fuente { font-size: 12px; overflow-wrap: anywhere; }
 .metronet-aprendizaje__fuente a { color: var(--border-active); }

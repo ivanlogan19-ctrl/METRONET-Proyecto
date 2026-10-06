@@ -85,9 +85,10 @@ test('Contextos y preferencias: menú → juego → simulación, volumen y silen
   await v.evaluate(()=>location.assign('/?idDiseno=77')); await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
   await sonar(p,'extra'); await marcar(p);
   await v.evaluate(()=>location.assign('/simulacion.html?idDiseno=77')); await v.locator('#panelSimulacion:not([hidden])').waitFor();
-  await sonar(p,'extra'); await continuidad(p);
+  await sonar(p,'simulacion');
   await v.locator('#volverEdicion').click(); await v.waitForURL('**/?idDiseno=77*');
-  await sonar(p,'extra'); await continuidad(p);
+  await sonar(p,'extra');
+  assert.equal(await p.locator('audio').count(), 1);
   await v.evaluate(async()=>{const {gestorMusica:g}=await import('/src/audio/GestorMusica.js');g.establecerVolumen(.2);g.establecerSilencio(true);});
   await ir(v,p,'Inicio','inicio');
   assert.deepEqual(await p.evaluate(()=>{const g=window[Symbol.for('metronet:gestor-musica')];return[g.volumen,g.silenciado,g.audio.paused];}),[.2,true,true]);
@@ -102,12 +103,12 @@ for(const rol of ['ADMIN','JUGADOR']) test(`Login/logout ${rol}: pistas original
     if(ruta===`/auth/login${admin?'/admin':''}`)return{json:{token:'sesion-de-prueba',usuario:{idUsuario:7,nombre:'Prueba',rol}}};
     if(ruta.startsWith('/auth/logout'))return{status:204};
   }});
-  await sonar(p,'extra'); await v.locator(admin?'#usuario':'#email').fill(admin?'operador':'prueba@example.test');
+  await sonar(p,'portada'); await v.locator(admin?'#usuario':'#email').fill(admin?'operador':'prueba@example.test');
   await v.locator('#password').fill('Prueba1!'); await v.locator(admin?'#loginAdminButton':'#loginButton').click();
   await v.locator('.metronet-bienvenida').waitFor(); await sonar(p,'welcome');
   await v.locator('[data-continuar-bienvenida]').click(); await v.waitForURL(`**/${admin?'admin':'inicio'}.html`); await sonar(p);
   await v.locator('.metronet-navegacion__usuario>summary').click(); await v.getByRole('button',{name:'Cerrar sesión',exact:true}).click();
-  await v.waitForURL('**/login.html'); await sonar(p,'extra');
+  await v.waitForURL('**/login.html'); await sonar(p,'portada');
   assert.equal(await p.evaluate(()=>localStorage.getItem('sesionAdministrador')||localStorage.getItem('sesionUsuario')),null);
   await p.goBack(); await v.locator('#loginForm, #loginAdminForm').waitFor();
   assert.equal(await v.locator('#tablaUsuarios, .metronet-inicio__tarjeta').count(),0);
@@ -115,14 +116,14 @@ for(const rol of ['ADMIN','JUGADOR']) test(`Login/logout ${rol}: pistas original
 
 test('Credenciales inválidas: permanece login, sin bienvenida ni cambio de pista',async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/login.html',{responder:req=>new URL(req.url()).pathname==='/auth/login'?{status:401,json:{detail:'Credenciales incorrectas.'}}:null});
-  await sonar(p,'extra'); await marcar(p); await v.locator('#email').fill('incorrecto@example.test'); await v.locator('#password').fill('Prueba1!');await v.locator('#loginButton').click();
+  await sonar(p,'portada'); await marcar(p); await v.locator('#email').fill('incorrecto@example.test'); await v.locator('#password').fill('Prueba1!');await v.locator('#loginButton').click();
   await v.locator('#mensaje.error').waitFor();assert.equal(await v.locator('.metronet-bienvenida').count(),0); await continuidad(p);
 });
 
 test('Recarga explícita vuelve a login y conserva la sesión almacenada',async t=>{
   const {pagina:p}=await abrir(t); await sonar(p);
   await p.reload(); await p.locator('#pantalla-metronet').waitFor(); const v=await (await p.locator('#pantalla-metronet').elementHandle()).contentFrame();
-  await v.locator('#loginForm').waitFor(); await sonar(p,'extra');
+  await v.locator('#loginForm').waitFor(); await sonar(p,'portada');
   assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador'))?.token),'prueba-visual');
 });
 
@@ -198,7 +199,7 @@ test('Outro y siguiente nivel completan el viaje de 11 s y liberan su contexto a
   const {pagina:p,vista:v}=await abrir(t);await sonar(p);
   await v.evaluate(async()=>{const {mostrarTransicionNivel}=await import('/src/educacion/PantallaTransicionNivel.js');window.finPrueba=mostrarTransicionNivel({numero:1},{numero:2},{puntaje:100});});
   await sonar(p,'victory');await marcar(p);const inicio=Date.now();
-  await v.locator('.metronet-victoria .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
+  await v.locator('.metronet-victoria__recorrido').waitFor();await continuidad(p);
   assert.equal(await v.evaluate(()=>finPrueba),'siguiente');assert.ok(Date.now()-inicio>10500);
   await ir(v,p,'Niveles','escenarios');await sonar(p);assert.equal(await p.evaluate(()=>window[Symbol.for('metronet:gestor-musica')].temporales.size),0);
 });
@@ -207,7 +208,7 @@ test('Gesto de usuario dentro del iframe habilita audio y conserva acceso con au
   const b=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL,args:['--autoplay-policy=user-gesture-required']});t.after(()=>b.close());
   const {pagina:p,vista:v,contexto:c,errores}=await abrirPantalla(b,'/login.html',{contenedor:true});t.after(async()=>{await c.close();assert.deepEqual(errores,[]);});
   await p.waitForFunction(()=>window[Symbol.for('metronet:gestor-musica')].obtenerEstado().esperandoGesto);
-  assert.equal(await v.locator('#loginButton').isEnabled(),true);await v.locator('#email').click();await sonar(p,'extra');
+  assert.equal(await v.locator('#loginButton').isEnabled(),true);await v.locator('#email').click();await sonar(p,'portada');
 });
 
 test('Permisos de JUGADOR siguen bloqueando Administración dentro del contenedor',async t=>{

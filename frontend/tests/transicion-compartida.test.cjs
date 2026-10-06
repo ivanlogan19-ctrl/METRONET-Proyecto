@@ -55,9 +55,9 @@ for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin
         assert.ok(await p.locator('[data-mensaje-id] p').textContent());
       } else assert.deepEqual(dibujo, geometria, 'Reutiliza toda la geometría original de victoria');
       assert.equal(await escena.count(), 1);
-      await p.clock.runFor(13000);
+      await p.clock.runFor(9000);
       assert.equal(await p.evaluate(() => resultado), undefined, 'No continúa antes del límite');
-      await p.clock.runFor(2000);
+      await p.clock.runFor(3000);
       if (tipo === 'intro') {
         await p.locator('.metronet-tarjeta-educativa').waitFor();
         assert.equal(await p.evaluate(() => resultado), undefined, 'La tarjeta educativa requiere Continuar');
@@ -66,7 +66,7 @@ for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin
       const final = await p.evaluate(() => ({ resultado, continuaciones, transcurrido }));
       assert.equal(final.resultado, tipo === 'intro' ? true : 'siguiente');
       assert.equal(final.continuaciones, 1);
-      assert.ok(final.transcurrido >= 13000 && final.transcurrido <= 15000);
+      assert.ok(final.transcurrido >= 11000 && final.transcurrido <= 13000);
       if (tipo === 'intro') await p.evaluate(() => intro.cerrar());
       await p.clock.runFor(1000);
       assert.equal(await p.evaluate(() => continuaciones), 1);
@@ -118,7 +118,7 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: cancelación y repetición
   });
   for (const modo of ['escape', 'popstate', 'pagehide', 'desmontar', 'reemplazar']) {
     await comenzar(p, tipo);
-    await p.clock.runFor(13000); // Durante el cartel, antes de completar la presentación.
+    await p.clock.runFor(7000); // La cancelación debe ocurrir antes de los 11 s visibles.
     if (modo === 'escape') await p.keyboard.press('Escape');
     else await p.evaluate(({ modo, tipo }) => {
       if (modo === 'desmontar') document.querySelector('dialog').remove();
@@ -139,6 +139,7 @@ test('Jugar adelanta la entrada y el resumen final conserva la información', as
   await p.clock.runFor(200);
   await p.getByRole('button', { name: 'Jugar', exact: true }).press('Enter');
   assert.equal(await p.locator('[role="progressbar"]').getAttribute('aria-valuenow'), '100');
+  await p.clock.runFor(1200); // Identificación de 1 s con reloj artificial detenido.
   await p.locator('.metronet-tarjeta-educativa').waitFor();
   assert.equal(await p.evaluate(() => resultado), undefined);
   await p.getByRole('button', { name: 'Continuar →' }).click();

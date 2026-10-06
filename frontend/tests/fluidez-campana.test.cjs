@@ -7,7 +7,7 @@ let browser;
 before(async()=>{browser=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
 after(async()=>{await browser?.close();});
 const nivel={idEscenario:1,numero:1,nombre:'Primera red',estado:'EN_DESARROLLO',desbloqueado:true,herramientasHabilitadas:{},objetivo:'Conectá las estaciones.'};
-for(const primeraPasada of [true,false])test(`Campaña: primera pasada ${primeraPasada}, Pista independiente y recarga sin oferta`,async t=>{
+for(const primeraPasada of [true,false])test(`Campaña: primera pasada ${primeraPasada}, Aprender y recarga sin oferta`,async t=>{
  const v=await abrirEditor(browser,{escenario:nivel,estaciones:[],lineas:[],primeraPasada,ofrecerRecorrido:true});const p=v.pagina;
  t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});
  assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).isVisible(),primeraPasada);
@@ -19,8 +19,9 @@ for(const primeraPasada of [true,false])test(`Campaña: primera pasada ${primera
   await p.evaluate(()=>editorPrueba.abrirDiseno(77,{identificar:true}));
   assert.equal(await p.locator('.metronet-tutorial').evaluate(e=>e.open),false,'Reingresar en el mismo documento no repite la oferta');
  }
- await p.locator('.metronet-hud>summary').click();await p.locator('[data-hud-vista="pista"]').click();
- assert.equal(await p.locator('.metronet-assist').isVisible(),true);
+ assert.equal(await p.locator('[data-hud-vista="pista"]').count(),0);
+ assert.equal(await p.locator('.metronet-aprender-acceso').isVisible(),true);
+ await p.locator('.metronet-hud>summary').click();assert.equal(await p.locator('[data-hud-musica]').isVisible(),true);
  await p.reload();await p.locator('.metronet-identificacion').waitFor({state:'detached'});await p.locator('.metronet-tutorial>summary').waitFor();
  assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).isVisible(),false);
  assert.equal(await p.locator('.metronet-tutorial').evaluate(e=>e.open),false);

@@ -6,6 +6,7 @@ import { confirmarSistema } from '../componentes/DialogoSistema.js';
 const nombres = {
   minimoEstaciones:'Mínimo de estaciones', maximoEstaciones:'Máximo de estaciones', minimoLineas:'Mínimo de líneas',
   minimoTramos:'Mínimo de conexiones', minimoMetros:'Mínimo de unidades', minimoTransbordos:'Mínimo de transbordos',
+  transbordosPorConexion:'Contar estaciones compartidas por líneas',
   requiereRedValida:'Exigir red válida', requiereSimulacion:'Exigir simulación',
   requiereCoberturaPuntosInteres:'Cobertura de lugares objetivo', requiereObjetivosMismaLinea:'Lugares en una misma línea',
   requiereGeografiaValida:'Exigir geografía válida', puntosInteresObjetivo:'Lugares objetivo',
@@ -34,7 +35,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
 
   async function cargar() {
     anunciar('Cargando los diez niveles…');
-    try { lista=await pedir(''); pintarLista(); anunciar('Elegí un nivel para editar su próxima publicación.'); }
+    try { lista=await pedir(''); pintarLista(); anunciar(''); }
     catch(error){ anunciar(error.message,'error'); }
   }
 

@@ -110,23 +110,17 @@ class EscalaSimulacionPostgresTest {
         enviar(ruta + "/estaciones", "{\"nombre\":\"C\",\"posicionX\":680,\"posicionY\":460}", token);
         enviar(ruta + "/lineas", "{\"nombre\":\"Azul\",\"estaciones\":[\"A\",\"B\",\"C\"]}", token);
         enviar(ruta + "/unidades", "{\"nombreLinea\":\"Azul\",\"capacidad\":300,\"velocidadPromedio\":4}", token);
-        http.perform(patch(ruta + "/estaciones/A").header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
-            .content("{\"nombre\":\"A\",\"posicionX\":660,\"posicionY\":460,\"transbordo\":true}"))
-            .andExpect(status().isOk());
         enviar(ruta + "/validacion", "{}", token);
         var sinSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
         assertTrue(sinSegundaLinea.path("comentarios").asText().contains("0 punto(s) de transbordo"));
 
         enviar(ruta + "/estaciones", "{\"nombre\":\"D\",\"posicionX\":690,\"posicionY\":460}", token);
         enviar(ruta + "/lineas", "{\"nombre\":\"Rosa\",\"estaciones\":[\"A\",\"C\",\"D\"]}", token);
-        cambiarTransbordo(ruta, token, "A", 660, false);
-        assertEquals(0, transbordosDeConsigna(id));
-        cambiarTransbordo(ruta, token, "A", 660, true);
-        assertEquals(1, transbordosDeConsigna(id));
+        assertEquals(2, transbordosDeConsigna(id));
         enviar(ruta + "/validacion", "{}", token);
         var conSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(conSegundaLinea.path("comentarios").asText().contains("1 punto(s) de transbordo"));
-        assertEquals(1, transbordosDeConsigna(id));
+        assertTrue(conSegundaLinea.path("comentarios").asText().contains("2 punto(s) de transbordo"));
+        assertEquals(2, transbordosDeConsigna(id));
 
         http.perform(patch(ruta + "/tramos").header("Authorization", token)
             .param("lineaActual", "Rosa").param("estacionAActual", "A").param("estacionBActual", "C")
@@ -134,22 +128,20 @@ class EscalaSimulacionPostgresTest {
             .content("{\"nombreLinea\":\"Rosa\",\"estacionA\":\"B\",\"estacionB\":\"C\"}"))
             .andExpect(status().isOk());
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM pasa WHERE id_diseno=? AND nombre_linea='Rosa' AND nombre_estacion='A'", Integer.class, id));
-        assertEquals(0, transbordosDeConsigna(id));
+        assertEquals(2, transbordosDeConsigna(id));
         enviar(ruta + "/validacion", "{}", token);
         var sinConexionReal = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(sinConexionReal.path("comentarios").asText().contains("0 punto(s) de transbordo"));
+        assertTrue(sinConexionReal.path("comentarios").asText().contains("2 punto(s) de transbordo"));
 
-        cambiarTransbordo(ruta, token, "B", 670, true);
-        assertEquals(1, transbordosDeConsigna(id));
         http.perform(delete(ruta + "/tramos").header("Authorization", token)
             .param("linea", "Rosa").param("estacionA", "B").param("estacionB", "C"))
             .andExpect(status().isOk());
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM pasa WHERE id_diseno=? AND nombre_linea='Rosa' AND nombre_estacion='B'", Integer.class, id));
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM pasa WHERE id_diseno=? AND nombre_linea='Rosa' AND nombre_estacion='C'", Integer.class, id));
-        assertEquals(0, transbordosDeConsigna(id));
+        assertEquals(1, transbordosDeConsigna(id));
         enviar(ruta + "/validacion", "{}", token);
         var trasEliminar = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(trasEliminar.path("comentarios").asText().contains("0 punto(s) de transbordo"));
+        assertTrue(trasEliminar.path("comentarios").asText().contains("1 punto(s) de transbordo"));
     }
 
     private void cambiarTransbordo(String ruta, String token, String nombre, int x, boolean transbordo) throws Exception {
@@ -159,7 +151,7 @@ class EscalaSimulacionPostgresTest {
     }
 
     private int transbordosDeConsigna(int idDiseno) {
-        return condiciones.evaluar(idDiseno, Map.of("minimoTransbordos", 1), java.util.List.of()).stream()
+        return condiciones.evaluar(idDiseno, Map.of("minimoTransbordos", 1, "transbordosPorConexion", true), java.util.List.of()).stream()
             .filter(condicion -> condicion.clave().equals("minimoTransbordos"))
             .findFirst().orElseThrow().actual();
     }

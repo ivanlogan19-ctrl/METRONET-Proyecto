@@ -41,7 +41,7 @@ test('seleccionar, usar botones de zoom y cerrar conserva y después elimina nom
     await pagina.locator('.metronet-control-zoom-boton').nth(1).click();
   }
   assert.equal(await ficha.count(), 1);
-  assert.deepEqual(await pagina.evaluate(() => ({ seleccion: poi.puntoSeleccionado, etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).map(r => r.punto.id) })), { seleccion: 'id:1', etiquetas: [1] });
+  assert.deepEqual(await pagina.evaluate(() => ({ seleccion: poi.puntoSeleccionado, etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).map(r => r.punto.id) })), { seleccion: 'id:1', etiquetas: [] });
   assert.match(await ficha.innerText(), /Barrio según el mapa: AGUADA/);
   assert.match(await ficha.innerText(), /Zona: OESTE/);
   assert.match(await ficha.innerText(), /Coordenadas:/);
@@ -70,7 +70,7 @@ test('búsqueda localiza el POI y muestra nombre; sin resultados no selecciona o
 
 test('varios objetivos conservan etiquetas y radios, y se limpian al cambiar de escenario', async (t) => {
   const { pagina } = await preparar(t, { objetivos: [{ idPunto: 1, radioCobertura: 60 }, { idPunto: 26, radioCobertura: 60 }] });
-  assert.deepEqual((await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).map(r => r.punto.id))).sort((a,b)=>a-b), [1, 26]);
+  assert.deepEqual((await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).map(r => r.punto.id))).sort((a,b)=>a-b), []);
   assert.equal(await pagina.evaluate(() => poi.elementos.filter(e => e.name?.startsWith('cobertura-poi-')).length), 2);
   const escalas = await pagina.evaluate(() => [1, 2, 4].flatMap(zoom => {
     poi.escena.cameras.main.setZoom(zoom);
@@ -85,7 +85,7 @@ test('varios objetivos conservan etiquetas y radios, y se limpian al cambiar de 
   assert.match(texto, /Barrio según el mapa: PUNTA GORDA/);
   assert.match(texto, /Barrio del catálogo: CARRASCO/);
   await pagina.getByRole('button', { name: 'Cerrar', exact: true }).click();
-  assert.equal(await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).length), 2);
+  assert.equal(await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).length), 0);
   await pagina.evaluate(() => {
     poi.establecerPuntosObjetivo([]);
     poi.establecerPuntosObjetivo([{ idPunto: 1, radioCobertura: 60 }]);

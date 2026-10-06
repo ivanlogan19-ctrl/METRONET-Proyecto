@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const codigoEditor = fs.readFileSync(path.join(__dirname, '../src/mapa/controles/EditorRedMetro.js'), 'utf8');
-const metodoEditor = codigoEditor.slice(codigoEditor.indexOf('  async evaluarEscenarioGuardado('), codigoEditor.indexOf('  async crearEscenario('));
+const metodoEditor = codigoEditor.slice(codigoEditor.indexOf('  async evaluarEscenarioGuardado('), codigoEditor.indexOf('  async irASimulacion('));
 const codigoSimulacion = fs.readFileSync(path.join(__dirname, '../src/simulacion/simulacion.js'), 'utf8');
 const metodoSimulacion = codigoSimulacion.slice(codigoSimulacion.indexOf('async function finalizarEjecucionVisible()'), codigoSimulacion.indexOf('function actualizarMantenimiento()'));
 const evaluacion = { completado: true, mensaje: 'Nivel completado', trofeosNuevos: [
@@ -64,7 +64,7 @@ function prepararSimulacion({ destino = accion, pausarPremios = false } = {}) {
     window: ventana, AbortController, sesion: { token: 'ficticio' },
     ejecucionPendiente: { idDiseno: 55, resultado: { puntaje: 100, idSimulacion: 1 } },
     disenoActual: { simulacion: { idDiseno: 55, idEscenario: 1 }, resultados: [] },
-    resultadoEnCurso: false, estadoMotor: {}, actualizarControlesSimulacion() {},
+    resultadoEnCurso: false, estadoMotor: {}, tutorialSimulacion: null, actualizarControlesSimulacion() {},
     consultarEstadoAnterior: async () => ({}), evaluarEscenarioProgresivo: async () => evaluacion,
     actualizarPantalla() {}, cargarConsignaReal: async () => {}, actualizarDesempeno: async () => {},
     document: { getElementById(id) { if (!botones.has(id)) botones.set(id, { hidden: true }); return botones.get(id); } },

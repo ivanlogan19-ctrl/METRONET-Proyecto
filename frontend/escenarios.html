@@ -18,15 +18,15 @@
     <main class="metronet-escenarios-pagina" aria-labelledby="tituloEscenarios">
       <header class="metronet-escenarios-pagina__encabezado">
         <div>
-          <p class="metronet-inicio__etiqueta">Juego educativo</p>
+          <p class="metronet-inicio__etiqueta">Juego didáctico de simulación de red de metro</p>
           <h1 id="tituloEscenarios">Niveles</h1>
           <div class="metronet-escenarios-pagina__presentacion">
-            <p>Ari, Sol y Dani estudian Logística. Para su proyecto, diseñan una red de metro que acerque barrios, centros de estudio y lugares de encuentro de Montevideo.</p>
-            <p>Descubren que una línea prometedora en el mapa puede exigir nuevas decisiones al probarla. En cada capítulo revisan ideas, resuelven dificultades y aprenden a trabajar como equipo.</p>
+            <p>Ari, Sol y Dani estudian Logística y aprenden a diseñar una red de metro hipotética para Montevideo. Ari trabaja el trazado, Sol la cobertura y Dani la operación.</p>
+            <p>En cada etapa justifican qué lugares conectar, qué zonas atender y cómo responde la red al ponerla a prueba.</p>
             <ul class="metronet-escenarios-pagina__equipo" aria-label="Equipo del proyecto">
-              <li><img src="/assets/personajes/ari.svg" alt="" width="64" height="64" /><span><strong>Ari</strong><small>Trazados</small></span></li>
-              <li><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span><strong>Sol</strong><small>Cobertura</small></span></li>
-              <li><img src="/assets/personajes/dani.svg" alt="" width="64" height="64" /><span><strong>Dani</strong><small>Operación</small></span></li>
+              <li><img src="/assets/personajes/ari.svg" alt="" width="64" height="64" /><span><strong>Ari</strong><small>Diseño de red</small></span></li>
+              <li><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span><strong>Sol</strong><small>Cobertura territorial</small></span></li>
+              <li><img src="/assets/personajes/dani.svg" alt="" width="64" height="64" /><span><strong>Dani</strong><small>Simulación operativa</small></span></li>
             </ul>
           </div>
         </div>
@@ -34,20 +34,19 @@
       <section class="metronet-escenarios-pagina__desafios" aria-labelledby="tituloDesafios">
         <div class="metronet-escenarios-pagina__seccion-cabecera">
           <div>
-            <h2 id="tituloDesafios">Elegí un nivel</h2>
+            <h2 id="tituloDesafios">Empezá tu aventura</h2>
           </div>
-          <p id="descripcionProgresoEscenarios">Cargando el progreso de la campaña actual…</p>
+          <p>Elegí un nivel para seguir la historia de Ari, Sol y Dani.</p>
         </div>
         <p id="mensajeEscenarios" class="metronet-inicio__mensaje" role="status" aria-live="polite"></p>
         <p id="estadoCargaEscenarios" class="metronet-escenarios-pagina__estado-carga" role="status" aria-live="polite">Cargando niveles…</p>
         <section id="listaEscenarios" class="metronet-escenarios-pagina__lista" aria-live="polite" aria-busy="true"></section>
       </section>
-      <section class="metronet-escenarios-pagina__logros" aria-labelledby="tituloLogrosEscenarios">
+      <section class="metronet-escenarios-pagina__reinicio" aria-labelledby="tituloReinicioEscenarios">
         <div class="metronet-escenarios-pagina__seccion-cabecera">
-          <div><h2 id="tituloLogrosEscenarios">Desbloqueos</h2></div>
-          <p>Los logros registrados se mantienen al iniciar un nuevo recorrido.</p>
+          <div><h2 id="tituloReinicioEscenarios">Reiniciar recorrido</h2></div>
         </div>
-        <ul id="listaLogrosEscenarios" class="metronet-escenarios-pagina__lista-logros" aria-live="polite"></ul>
+        <p class="metronet-escenarios-pagina__explicacion-reinicio">Volvés a empezar desde el Nivel 1. Se conservan tus intentos, diseños, simulaciones y puntajes anteriores. Si ya completaste una campaña, el Modo Libre sigue desbloqueado.</p>
         <button id="botonReiniciarRecorrido" class="metronet-escenarios-pagina__reiniciar" type="button" hidden>Reiniciar recorrido</button>
       </section>
     </main>

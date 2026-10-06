@@ -16,7 +16,13 @@ test('los diez niveles solo piden elementos y prácticas con herramientas habili
       if (reglas[clave]) assert.equal(herramientas[herramienta], true, `Nivel ${nivel.numero}: ${clave} requiere ${herramienta}`);
     }
     if (reglas.maximoEstaciones) assert.ok(reglas.maximoEstaciones >= reglas.minimoEstaciones);
-    if (reglas.minimoTransbordos) assert.ok(reglas.minimoLineas >= 2);
+    if (reglas.minimoTransbordos) {
+      assert.ok(reglas.minimoLineas >= 2);
+      assert.equal(reglas.transbordosPorConexion, true);
+      assert.equal(herramientas.conexiones, true);
+      assert.match(nivel.instrucciones, /Conectá|Hacé que/);
+      assert.doesNotMatch(nivel.instrucciones, /Permite transbordo|marc[aá] como transbordo/i);
+    }
     if (reglas.requiereCoberturaPuntosInteres) assert.ok(reglas.puntosInteresObjetivo.length > 0);
     assert.ok(nivel.objetivo && nivel.instrucciones, `Nivel ${nivel.numero}: textos de consigna`);
   }
@@ -27,7 +33,7 @@ test('los desafíos de comparación indican la selección y el cambio que evalú
     const nivel = niveles[numero - 1];
     assert.equal(nivel.reglasExito.aprendizajeSimulacion.individual, true);
     assert.equal(nivel.reglasExito.aprendizajeSimulacion.global, true);
-    assert.match(nivel.instrucciones, /Todas las unidades/);
+    assert.match(nivel.instrucciones, /Todos los metros/);
     assert.match(nivel.instrucciones, /una misma UV nueva/);
     assert.match(nivel.instrucciones, /a todos los metros/);
     assert.match(nivel.instrucciones, /mismas horas/);

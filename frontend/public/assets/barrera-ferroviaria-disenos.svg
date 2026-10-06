@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 760" shape-rendering="crispEdges">
+  <defs>
+    <pattern id="franjas" width="44" height="22" patternUnits="userSpaceOnUse">
+      <path d="M0 0h44v22H0z" fill="#f1e8d9"/>
+      <path d="M0 0h22v22H0z" fill="#d85b60"/>
+    </pattern>
+    <pattern id="poste" width="59" height="48" patternUnits="userSpaceOnUse">
+      <path d="M0 0h59v48H0z" fill="#30465e"/>
+      <path d="M0 8h59v14H0z" fill="#d6ad52"/>
+    </pattern>
+  </defs>
+  <style>
+    .brazo { transform-origin: 55px 513px; transform: rotate(-56deg); animation: bajar 2.6s ease-in-out forwards; }
+    @keyframes bajar { to { transform: rotate(0deg); } }
+    @media (prefers-reduced-motion: reduce) { .brazo { animation: none; transform: rotate(0deg); } }
+  </style>
+  <path d="M11 746h87v14H11z" fill="#071326"/>
+  <path d="M25 568h59v178H25z" fill="url(#poste)" stroke="#071326" stroke-width="6"/>
+  <path d="M19 476h72v89H19z" fill="#152840" stroke="#071326" stroke-width="7"/>
+  <path d="M25 482h60v12H25z" fill="#d8b768"/>
+  <path d="M28 535h54v22H28z" fill="#1a344e" stroke="#071326" stroke-width="4"/>
+  <path d="M34 501h19v19H34z" fill="#f16b71" stroke="#5f2536" stroke-width="5"/>
+  <path d="M60 501h19v19H60z" fill="#f16b71" stroke="#5f2536" stroke-width="5"/>
+  <g class="brazo">
+    <path d="M50 502h750v22H50z" fill="url(#franjas)" stroke="#071326" stroke-width="6"/>
+  </g>
+  <path d="M43 502h24v24H43z" fill="#d5ad59" stroke="#071326" stroke-width="5"/>
+  <path d="M51 510h8v8h-8z" fill="#18243a"/>
+</svg>

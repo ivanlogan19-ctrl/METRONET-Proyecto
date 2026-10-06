@@ -18,7 +18,7 @@ html:root :is(.admin-aplicacion, .admin-contenido) { background: transparent; }
 /* Una familia de módulos: marco, carril azul superior y contenido legible. */
 html:root body :is(.metronet-modulo, .auth-card, .perfil-contenedor, .metronet-inicio__tarjeta,
   .metronet-escenarios-pagina__progreso,
-  .metronet-escenarios-pagina__logros, .admin-tabla-contenedor, .admin-detalle-diseno,
+  .metronet-escenarios-pagina__reinicio, .admin-tabla-contenedor, .admin-detalle-diseno,
   .admin-configuracion-item, .admin-lista-disenos article, .admin-tarjetas-resumen article,
   .simulacion-panel-lateral, .simulacion-consigna, .simulacion-panel-operacion,
   .simulacion-control-operacion, .simulacion-resultado, .metronet-ranking section) {
@@ -29,9 +29,25 @@ html:root body :is(.metronet-modulo, .auth-card, .perfil-contenedor, .metronet-i
   box-shadow: var(--shadow-panel);
 }
 html:root body :is(.auth-card, .metronet-inicio__tarjeta, .metronet-escenarios-pagina__progreso,
-  .metronet-escenarios-pagina__logros, .admin-configuracion-item, .simulacion-panel-lateral, .metronet-ranking section) {
+  .metronet-escenarios-pagina__reinicio, .admin-configuracion-item, .simulacion-panel-lateral, .metronet-ranking section) {
   background-image: linear-gradient(var(--scanline) 1px, transparent 1px);
   background-size: 100% 4px;
+}
+html:root body section.metronet-escenarios-pagina__reinicio {
+  border-color: color-mix(in srgb, var(--warning) 68%, var(--border));
+  border-top-color: var(--warning);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--warning) 15%, var(--panel)), var(--panel) 68%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning) 24%, transparent), var(--shadow-panel);
+}
+html:root body .metronet-escenarios-pagina__reinicio .metronet-escenarios-pagina__seccion-cabecera h2 {
+  border-left-color: var(--warning);
+  color: var(--warning);
+}
+html:root body #botonReiniciarRecorrido {
+  --boton-fondo: var(--warning);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--warning);
+  --boton-hover: color-mix(in srgb, var(--warning) 80%, var(--text-primary));
 }
 html:root body :is(.metronet-inicio__presentacion, .metronet-escenarios-pagina__encabezado,
   .admin-encabezado, .simulacion-encabezado, .metronet-ranking > header) {
@@ -44,7 +60,7 @@ html:root body :is(.metronet-inicio__presentacion, .metronet-escenarios-pagina__
 }
 html:root body .metronet-escenarios-pagina__encabezado { text-align: center; }
 html:root body .metronet-escenarios-pagina__encabezado > div { max-width: 800px; margin-inline: auto; }
-html:root body .metronet-escenarios-pagina__encabezado::after { margin-inline: auto; }
+html:root body header.metronet-escenarios-pagina__encabezado::after { display: none; }
 html:root body :is(.perfil-encabezado, .metronet-panel-editor-cabecera, .simulacion-visor-encabezado) {
   border-bottom: var(--border-width) solid var(--info-active); background: var(--panel-elevated); box-shadow: var(--shadow-header);
 }
@@ -76,9 +92,23 @@ html:root .metronet-escenarios-pagina__tarjeta > h2 { grid-column: 2; grid-row: 
 html:root .metronet-escenarios-pagina__tarjeta-contenido { grid-column: 2; grid-row: 2; }
 html:root .metronet-escenarios-pagina__acciones { grid-column: 3; grid-row: 1 / 3; align-self: center; margin: 0; }
 html:root .metronet-escenarios-pagina__tarjeta--completado { --estado-nivel: var(--success); }
-html:root .metronet-escenarios-pagina__tarjeta--bloqueado { --estado-nivel: var(--text-disabled); }
+html:root .metronet-escenarios-pagina__tarjeta--bloqueado { --estado-nivel: var(--danger); }
+html:root body .metronet-escenarios-pagina__tarjeta--actual .metronet-escenarios-pagina__estado--actual {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+html:root body .metronet-escenarios-pagina__tarjeta--bloqueado .metronet-escenarios-pagina__estado--bloqueado {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+html:root body #listaEscenarios .metronet-escenarios-pagina__tarjeta--actual .metronet-escenarios-pagina__acciones button {
+  --boton-fondo: var(--success);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--success);
+  --boton-hover: color-mix(in srgb, var(--success) 80%, var(--text-primary));
+}
 html:root .metronet-escenarios-pagina__tarjeta-cabecera > p { font-family: var(--font-arcade); font-size: 16px; color: var(--estado-nivel, var(--info-active)); line-height: 1.5; }
-html:root :is(.metronet-escenarios-pagina__paso-progreso, .metronet-inicio__paso, .metronet-escenarios-pagina__logro, .perfil-informacion > div) { border-radius: var(--radius-control); }
+html:root :is(.metronet-escenarios-pagina__paso-progreso, .metronet-inicio__paso, .perfil-informacion > div) { border-radius: var(--radius-control); }
 
 /* Instrumentos y displays: valores reales, sin datos decorativos inventados. */
 html:root body :is(.metronet-dato, .simulacion-datos-tiempo-real dd, .metronet-viaje__porcentaje,

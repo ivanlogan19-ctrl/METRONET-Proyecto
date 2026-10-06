@@ -99,31 +99,22 @@ test('Tap: abre, cierra y permite continuar; contenido largo sin desbordes', asy
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 
-test('Constructor: consigna, objetivos, parámetros y cambio de nivel sin términos anteriores', async t => {
+test('Constructor: objetivos visibles y cambio de nivel sin acciones ocultas', async t => {
   const nivel={...escenario(7),objetivo:'Conectá los POI mediante una estación de transbordo.',instrucciones:'Ubicá estaciones en barrios y zonas.'};
   const {contexto,pagina:p,errores,solicitudes}=await abrirEditor(navegador,{escenario:nivel});
   t.after(async()=>{await contexto.close();assert.deepEqual(errores,[]);});
   await p.waitForFunction(()=>editorPrueba.estadoConsigna==='disponible');
   const consigna=p.locator('[data-contenedor-consigna]');
-  if(await consigna.locator('[data-alternar-consigna]').getAttribute('aria-expanded')==='false') await consigna.locator('[data-alternar-consigna]').click();
-  assert.equal(await consigna.locator('.metronet-consigna__objetivo-principal').textContent(),nivel.objetivo);
-  const termino = consigna.locator('[data-concepto=transbordo]');
-  await termino.focus(); await p.keyboard.press('Enter');
-  assert.equal(await p.locator('.metronet-glosario-contextual button').evaluate(e=>e===document.activeElement),true);
+  if(await consigna.locator('[data-alternar-consigna]').isVisible() && await consigna.locator('[data-alternar-consigna]').getAttribute('aria-expanded')==='false') await consigna.locator('[data-alternar-consigna]').click();
+  assert.equal(await consigna.locator('.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo').textContent(),nivel.objetivo);
+  assert.equal(await p.locator('[data-elegir-herramienta=estaciones]').isVisible(),true);
+  assert.equal(await p.locator('[data-herramienta] [data-concepto=linea]').first().isVisible(),false);
   assert.equal(await p.locator('dialog[open]').count(),0);
-  assert.match(await p.locator('.metronet-glosario-contextual').textContent(),/al menos dos líneas/);
-  await captura(p,'constructor-transbordo'); await p.keyboard.press('Escape');
-  assert.equal(await termino.evaluate(e=>e===document.activeElement),true);
-  await termino.click();
   await p.locator('[data-elegir-herramienta=estaciones]').click();
   assert.equal(await p.locator('[data-elegir-herramienta=estaciones]').getAttribute('aria-pressed'),'true');
-  await p.locator('.metronet-glosario-contextual button').focus();
-  await p.keyboard.press('Tab');
-  assert.equal(await p.locator('.metronet-glosario-contextual').evaluate(e=>e.contains(document.activeElement)),false);
   await p.evaluate(()=>{editorPrueba.escenarioJuegoActual={numero:1,objeto:'',objetivo:'Creá estaciones y una línea. POI y simulación no pertenecen a este nivel.'}; editorPrueba.aplicarHerramientas();});
-  assert.equal(await consigna.locator('[data-concepto=poi]').count(),0);
-  assert.equal(await consigna.locator('[data-concepto=simulacion]').count(),0);
-  assert.equal(await consigna.locator('[data-concepto=estacion]').count(),1);
+  assert.equal(await consigna.locator('.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo').textContent(),'Creá estaciones y una línea. POI y simulación no pertenecen a este nivel.');
+  assert.equal(await p.locator('.metronet-glosario-contextual').count(),0);
   assert.equal(solicitudes.length,0);
 });
 
@@ -134,9 +125,7 @@ test('Simulación: consigna por ID real, unidades correctas y consulta sin ejecu
     return null;
   }});
   assert.equal(await p.locator('#consignaSimulacion').count(),0);
-  await p.locator('[data-concepto=ritmo]').first().click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/No cambia las UV/);
-  await captura(p,'simulacion-ritmo'); await p.keyboard.press('Escape');
+  assert.equal(await p.locator('.simulacion-ritmo').isVisible(), false);
 
   await p.locator('#seccionConfiguracion [data-concepto=duracion]').click();
   assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/horas/); await p.keyboard.press('Escape');
@@ -150,6 +139,6 @@ test('Simulación: consigna por ID real, unidades correctas y consulta sin ejecu
 test('Falla de contexto educativo: simulación y reproducción siguen disponibles', async t => {
   const {pagina:p}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:req=>req.url().endsWith('/progreso')?{status:503,json:{}}:null});
   assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isEnabled(),true);
-  await p.locator('[data-concepto=ritmo]').first().click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/Multiplicador/);
+  await p.locator('#seccionCirculacion [data-concepto=velocidad]').click();
+  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/UV/);
 });

@@ -58,7 +58,7 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: descarga demorada seis seg
   assert.ok(datos.primerSonido >= 5800, JSON.stringify(datos));
   assert.ok(datos.ms - datos.primerSonido < 6500, JSON.stringify(datos));
   assert.ok(datos.ms >= 10800 && datos.ms < 12500, JSON.stringify(datos));
-  assert.equal(datos.cortes, 0);
+  assert.equal(datos.cortes, tipo === 'intro' ? 1 : 0, 'El audio se detiene al concluir el viaje visual');
   await p.waitForFunction(() => document.querySelector('audio[src="/audio/victory-theme.mp3"]')?.paused !== false);
   assert.equal(datos.accion, tipo === 'intro' ? true : 'siguiente');
 });
@@ -71,11 +71,12 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: silencio conserva los 11 s
   await p.clock.runFor(2000);
   assert.equal(await v.evaluate(() => termino), false, 'No terminar al antiguo respaldo de 1,8 s');
   await p.clock.runFor(7000);
-  assert.equal(await v.locator('.metronet-cartel-transicion').isVisible(), true);
+  assert.equal(await v.locator('.metronet-cartel-transicion').isVisible(), false, 'La identificación todavía no empieza a los 9 s');
   assert.equal(await v.evaluate(() => termino), false);
   await p.clock.runFor(2000);
+  if (tipo === 'intro') await p.clock.runFor(1200);
   const datos = await v.evaluate(() => fin);
-  assert.ok(datos.ms >= 10900 && datos.ms <= 11100, JSON.stringify(datos));
+  assert.ok(datos.ms >= (tipo === 'intro' ? 12000 : 10900) && datos.ms <= (tipo === 'intro' ? 12300 : 11100), JSON.stringify(datos));
   assert.equal(datos.accion, tipo === 'intro' ? true : 'siguiente');
 });
 
@@ -109,6 +110,7 @@ test('El viaje de 11 s espera los datos reales antes de entrar al nivel', async 
   assert.equal(await v.getByRole('button', { name: 'Jugar', exact: true }).isDisabled(), true);
   assert.match(await v.locator('.metronet-viaje__estado').textContent(), /Esperando la respuesta del nivel/);
   await v.evaluate(() => intro.marcarDatosListos());
+  await p.clock.runFor(1200);
   assert.equal(await v.evaluate(() => termino), true);
   await v.evaluate(() => intro.cerrar());
 });
@@ -135,6 +137,7 @@ test('El reloj visible se pausa al ocultar la pestaña', async t => {
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await p.clock.runFor(8100);
+  await p.clock.runFor(1200);
   assert.equal(await v.evaluate(() => termino), true);
   await v.evaluate(() => intro.cerrar());
 });

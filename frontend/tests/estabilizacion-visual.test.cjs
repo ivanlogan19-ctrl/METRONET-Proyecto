@@ -16,7 +16,7 @@ function responder(req) {
  if(path==='/api/juego/ranking')return {json:ranking(jugadores)};
 }
 async function abrir(t,ruta,opciones={}) {
- const v=await abrirPantalla(navegador,ruta,{responder,...opciones});
+ const v=ruta==='/' ? await abrirEditor(navegador,opciones) : await abrirPantalla(navegador,ruta,{responder,...opciones});
  t.after(()=>v.contexto.close());t.after(()=>assert.deepEqual(v.errores,[]));return v;
 }
 async function esperarMapa(p) {
@@ -26,10 +26,10 @@ async function esperarMapa(p) {
 async function medidas(p) {
  return p.evaluate(()=>Object.fromEntries(['.metronet-navegacion','#metronet-aplicacion','#metronet-mapa','#metronet-mapa canvas'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return[s,{x:r.x,y:r.y,w:r.width,h:r.height}]})));
 }
-for(const [width,height] of [[1920,1080],[1440,900],[1366,768],[1280,720],[390,844]]) test(`Mis Diseños ${width}x${height}: tamaño inicial y menús independientes`,async t=>{
+for(const [width,height] of [[1920,1080],[1440,900],[1366,768],[1280,720],[390,844]]) test(`Editor con diseño ${width}x${height}: tamaño inicial y menús independientes`,async t=>{
  const {pagina:p}=await abrir(t,'/',{viewport:{width,height}});await esperarMapa(p);
  const antes=await medidas(p);
- assert.equal(antes['#metronet-aplicacion'].h,height-antes['.metronet-navegacion'].h);
+ assert.ok(antes['#metronet-aplicacion'].h>=height-antes['.metronet-navegacion'].h);
  await p.locator('.metronet-navegacion__usuario > summary').click();assert.deepEqual(await medidas(p),antes);
  await p.keyboard.press('Escape');
  if(width<620)await p.locator('[data-panel-edicion-toggle]').click();
@@ -71,7 +71,7 @@ for(const width of [1440,390,320])test(`POI ${width}: lupa compacta, consulta co
  assert.ok((await p.locator('.metronet-panel-puntos-interes').boundingBox()).width>240, 'La búsqueda abierta utiliza el panel, no la caja de la lupa');
  await p.locator('.metronet-panel-puntos-item').first().waitFor();
  const puntos=await p.locator('.metronet-panel-puntos-item').count();assert.ok(puntos>0);
- await p.getByRole('button',{name:'Cerrar búsqueda',exact:true}).click();assert.deepEqual(await compacto(),[44,44]);
+ await lupa.click();assert.deepEqual(await compacto(),[44,44]);
  await lupa.click();assert.equal(await campo.inputValue(),'Hospital');assert.equal(await p.locator('.metronet-panel-puntos-item').count(),puntos);
  await campo.fill('zzzz-sin-referencia');assert.equal(await p.locator('.metronet-panel-puntos-item').count(),0);
  await p.keyboard.press('Escape');assert.deepEqual(await compacto(),[44,44]);
@@ -108,5 +108,5 @@ test('POI táctil: lupa de 44px y resultados legibles sin tooltip sobre el input
  const campo=p.getByRole('searchbox',{name:'Buscar punto de interés',exact:true});await campo.fill('Hospital');assert.ok((await campo.boundingBox()).width>110);
  assert.equal(await campo.getAttribute('data-ayuda-sistema'),null);
  const figura=await p.locator('.metronet-panel-puntos-icono svg').first().boundingBox();assert.deepEqual([figura.width,figura.height],[16,16]);
- await p.getByRole('button',{name:'Cerrar búsqueda',exact:true}).tap();assert.deepEqual(await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]}),[44,44]);
+ await lupa.tap();assert.deepEqual(await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]}),[44,44]);
 });

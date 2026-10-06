@@ -10,6 +10,14 @@ import {
 } from "./ui.js";
 import { inicializarLogosMetronet } from "../componentes/LogoMetronet.js";
 import { guardarSesionUsuario, obtenerSesionUsuario } from "./sesion.js";
+import { consultarEstadoMantenimiento } from '../configuracion/ControlAccesoMantenimiento.js';
+
+try {
+  if (await consultarEstadoMantenimiento()) {
+    window.location.replace('/mantenimiento.html');
+    await new Promise(() => {});
+  }
+} catch { /* Si falla la consulta, el servidor conserva el bloqueo de acceso. */ }
 
 const formulario = document.getElementById("loginForm");
 const botonIngresar = document.getElementById("loginButton");
@@ -58,6 +66,12 @@ formulario.addEventListener("submit", async (evento) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(datos),
     });
+
+    if (respuesta.status === 503) {
+      navegando = true;
+      window.location.replace('/mantenimiento.html');
+      return;
+    }
 
     if (!respuesta.ok) {
       throw new Error(

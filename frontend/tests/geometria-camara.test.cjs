@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 const ruta = `${__dirname}/../src/mapa/controles/ControlZoom.js`;
 const codigo = fs.readFileSync(ruta, 'utf8')
-  .replace(/^import .*;\s*/m, '')
+  .replace(/^import .*;\s*/gm, '')
   .replace('export default class ControlZoom', 'class ControlZoom');
 const modulo = { exports: null };
 vm.runInNewContext(`${codigo}\nmodule.exports = ControlZoom;`, { module: modulo, document: {} });

@@ -5,6 +5,7 @@ import com.metronet.backend.entity.Usuario;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ActividadAdministrativaService {
@@ -38,5 +39,15 @@ public class ActividadAdministrativaService {
                 resultado.getString("detalle"),
                 resultado.getTimestamp("fecha").toLocalDateTime()
             ));
+    }
+
+    @Transactional
+    public boolean borrarActividad(int idActividad) {
+        return jdbcTemplate.update("DELETE FROM actividad_administrativa WHERE id_actividad = ?", idActividad) > 0;
+    }
+
+    @Transactional
+    public int borrarTodasLasActividades() {
+        return jdbcTemplate.update("DELETE FROM actividad_administrativa");
     }
 }

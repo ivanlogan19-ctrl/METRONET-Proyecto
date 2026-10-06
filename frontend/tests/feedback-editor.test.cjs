@@ -52,27 +52,26 @@ test('crear estaciones repetidas produce un solo éxito temporal sin cubrir mapa
   assert.deepEqual(errores, []);
 });
 
-test('las instrucciones cambian en contexto y una línea pendiente permite corregir sin modal', async t => {
+test('cambiar herramientas tras una conexión sin línea permite continuar sin modal', async t => {
   const { pagina, solicitudes } = await preparar(t);
   await pagina.locator('[data-elegir-herramienta=conexiones]').click();
   const p = await puntoMapa(pagina,700,460); await pagina.mouse.click(p.x,p.y);
-  assert.match(await pagina.locator('[data-estado-editor]').innerText(), /línea activa/);
-  assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /origen/);
+  assert.match(await pagina.locator('[data-estado-editor]').innerText(), /Tocá un tramo de la línea/);
+  assert.equal(await pagina.locator('[data-elegir-herramienta=conexiones]').getAttribute('aria-pressed'), 'true');
   await pagina.locator('[data-elegir-herramienta=estaciones]').click();
-  assert.match(await pagina.locator('.metronet-herramientas__ayuda').innerText(), /colocar estaciones/);
+  assert.equal(await pagina.locator('[data-elegir-herramienta=estaciones]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
   assert.equal(await pagina.locator('dialog[open]').count(), 0);
   assert.equal(solicitudes.length, 0);
 });
 
-test('controles solo bajo demanda en la misma asistencia; sin tooltip del canvas ni cambios en el zoom', async t => {
+test('música bajo demanda; canvas sin tooltip y mapa con zoom operativo', async t => {
   const { pagina } = await preparar(t);
   assert.doesNotMatch(await pagina.locator('[data-estado-editor]').innerText(), /Rueda|Mover mapa/);
-  assert.equal(await pagina.locator('.metronet-assist').count(), 1);
-  assert.equal(await pagina.locator('#metronet-panel-controles .metronet-assist').count(), 0);
-  const pista = await pagina.locator('[data-assist-mensaje]').innerText();
+  assert.equal(await pagina.locator('.metronet-hud').count(), 1);
+  assert.equal(await pagina.locator('#metronet-panel-controles .metronet-hud').count(), 0);
   await pagina.clock.install(); await pagina.clock.fastForward(4500);
   await pagina.locator('#metronet-mapa canvas').hover({ position: { x: 150, y: 150 } });
-  assert.equal(await pagina.locator('[data-assist-mensaje]').innerText(), pista);
   assert.equal(await pagina.locator('#metronet-mapa canvas').getAttribute('title'), null);
   assert.equal(await pagina.locator('#metronet-mapa canvas').getAttribute('data-ayuda-sistema'), null);
   await pagina.reload();
@@ -80,17 +79,14 @@ test('controles solo bajo demanda en la misma asistencia; sin tooltip del canvas
   assert.doesNotMatch(await pagina.locator('[data-estado-editor]').innerText(), /Rueda|Mover mapa/);
   const mapa = await pagina.locator('#metronet-mapa').boundingBox();
   if (!await pagina.locator('.metronet-hud').evaluate(e=>e.open)) await pagina.locator('.metronet-hud>summary').click();
-  await pagina.locator('[data-hud-vista=controles]').click();
-  assert.match(await pagina.locator('[data-hud-controles]').innerText(), /Arrastrá para mover.*rueda.*pinza.*acción de la herramienta/);
-  assert.equal(await pagina.locator('[data-hud-vista=controles]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await pagina.locator('.metronet-hud').getAttribute('data-vista'), 'musica');
+  assert.equal(await pagina.locator('[data-hud-vista]').count(), 0);
   assert.deepEqual(await pagina.locator('#metronet-mapa').boundingBox(), mapa);
   const zoom = await pagina.evaluate(() => juegoPrueba.scene.getScene('MapaScene').cameras.main.zoom);
   await pagina.locator('#metronet-mapa canvas').hover({ position: { x: 150, y: 150 } });
   await pagina.mouse.wheel(0, -150);
   await pagina.waitForFunction(zoom => juegoPrueba.scene.getScene('MapaScene').cameras.main.zoom > zoom, zoom);
-  if (!await pagina.locator('.metronet-hud').evaluate(e=>e.open)) await pagina.locator('.metronet-hud>summary').click();
-  await pagina.locator('[data-hud-vista=pista]').click();
-  assert.doesNotMatch(await pagina.locator('[data-assist-mensaje]').innerText(), /Rueda/);
+  assert.equal(await pagina.locator('.metronet-hud').getAttribute('data-vista'), 'musica');
   assert.equal(await pagina.locator('dialog[open], .metronet-notificacion').count(), 0);
 });
 
@@ -121,20 +117,16 @@ test('fallo al recargar después de crear no anuncia éxito ni pierde cambios pe
   assert.equal(await pagina.evaluate(() => editorPrueba.cambiosPendientes), true);
 });
 
-test('edición inline se cancela con Escape sin escribir y mantiene transbordo al guardar', async t => {
+test('la selección conserva el nombre de estación y solo ofrece mover o eliminar', async t => {
   const { pagina, solicitudes } = await preparar(t);
   await pagina.evaluate(() => editorPrueba.seleccionarElemento({ tipo: 'estacion', valor: editorPrueba.disenoActual.estaciones[0] }));
-  await pagina.locator('[data-editar-estacion]').click();
-  await pagina.getByLabel('Nombre de la estación', { exact: true }).fill('No guardar');
+  assert.equal(await pagina.getByRole('button', { name: 'Mover estación seleccionada' }).isEnabled(), true);
+  assert.equal(await pagina.getByRole('button', { name: 'Eliminar elemento seleccionado' }).isEnabled(), true);
+  assert.equal(await pagina.locator('[data-editar-estacion], [data-editar-elemento]').count(), 0);
+  assert.equal(await pagina.evaluate(() => editorPrueba.disenoActual.estaciones[0].nombre), 'Centro');
   await pagina.keyboard.press('Escape');
   assert.equal(solicitudes.length, 0);
-  assert.equal(await pagina.locator('[data-editar-elemento]').count(), 0);
-  assert.equal(await pagina.locator('[data-editar-estacion]').evaluate(e => e === document.activeElement), true);
-  await pagina.locator('[data-editar-estacion]').click();
-  await pagina.getByLabel('Nombre de la estación', { exact: true }).fill('Nuevo centro');
-  await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones[0].nombre === 'Nuevo centro');
-  assert.equal(solicitudes[0].datos.transbordo, false);
+  assert.equal(await pagina.evaluate(() => editorPrueba.disenoActual.estaciones[0].transbordo), false);
   assert.equal(await pagina.locator('dialog[open]').count(), 0);
 });
 
@@ -157,25 +149,29 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 
   });
 }
 
-test('editar conserva los datos ante error del servidor y evita envíos duplicados', async t => {
+test('eliminar una unidad conserva los datos ante error del servidor y permite reintentar', async t => {
   const { pagina, solicitudes } = await preparar(t);
   let envios = 0;
+  let rechazar = true;
   await pagina.route('**/api/simulaciones/77/unidades/1', async route => {
     envios++;
-    await new Promise(r => setTimeout(r, 250));
-    await route.fulfill({ status: 500, json: { detail: 'No se pudo actualizar la unidad.' } });
+    if (rechazar) await route.fulfill({ status: 500, json: { detail: 'No se pudo eliminar la unidad.' } });
+    else await route.fallback();
   });
   await pagina.evaluate(() => editorPrueba.seleccionarElemento({ tipo: 'unidad', valor: editorPrueba.disenoActual.unidadesMetro[0] }));
-  await pagina.locator('[data-editar-unidad]').click();
-  assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Capacidad', { exact: true }).count(), 0);
-  await pagina.locator('[data-editar-elemento]').getByLabel('Velocidad promedio (UV)', { exact: true }).fill('60');
-  await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).dblclick();
+  await pagina.getByRole('button', { name: 'Eliminar elemento seleccionado' }).click();
+  await pagina.locator('[data-confirmar-eliminar]').click();
   await pagina.waitForFunction(() => document.querySelector('[data-estado-editor]').dataset.tipo === 'error');
   assert.equal(envios, 1);
-  assert.equal(await pagina.locator('[data-editar-elemento]').getByLabel('Velocidad promedio (UV)', { exact: true }).inputValue(), '60');
-  assert.equal(await pagina.getByRole('button', { name: 'Guardar cambios', exact: true }).isEnabled(), true);
-  await pagina.getByRole('button', { name: 'Cancelar edición', exact: true }).click();
+  assert.equal(await pagina.evaluate(() => editorPrueba.disenoActual.unidadesMetro.length), 1);
+  assert.match(await pagina.locator('[data-estado-editor] [role=alert]').innerText(), /No se pudo eliminar/);
   assert.equal(solicitudes.length, 0);
+  rechazar = false;
+  await pagina.getByRole('button', { name: 'Eliminar elemento seleccionado' }).click();
+  await pagina.locator('[data-confirmar-eliminar]').click();
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.unidadesMetro.length === 0);
+  assert.equal(envios, 2);
+  assert.equal(solicitudes.filter(s => s.metodo === 'DELETE').length, 1);
 });
 
 test('avisos globales usan la barra durante la edición y recuperan su destino al salir', async t => {
@@ -208,7 +204,10 @@ for (const estado of [400, 409, 422]) {
       ? route.fulfill({ status: estado, json: { detail: 'La conexión no es válida. Revisá sus extremos.' } })
       : route.fallback());
     await pagina.locator('[data-elegir-herramienta=conexiones]').click();
-    await pagina.locator('[data-linea-conexion]').selectOption('Azul');
+    await pagina.evaluate(() => editorPrueba.seleccionarElemento({
+      tipo: 'tramo', valor: editorPrueba.disenoActual.tramos[0],
+    }));
+    assert.equal(await pagina.evaluate(() => editorPrueba.creacionDirecta.lineaActiva), 'Azul');
     for (const [x, y] of [[700, 460], [810, 480]]) {
       const punto = await puntoMapa(pagina, x, y);
       await pagina.mouse.click(punto.x, punto.y);

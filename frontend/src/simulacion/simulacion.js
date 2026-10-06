@@ -24,6 +24,7 @@ const sesion = obtenerSesionActiva();
 const idDisenoInicial = obtenerIdDisenoDeRuta();
 let cliente = null;
 let tutorialSimulacion = null;
+let inicioPendienteTutorial = null;
 let progresoSimulacion = null;
 let visor = null;
 let organizacion = null;
@@ -64,6 +65,10 @@ function ubicarPanelAyuda(selector) {
 }
 
 async function inicializar() {
+  // Registrar la intención antes de cualquier espera: Play manual puede usarse
+  // mientras la consulta educativa de progreso sigue pendiente.
+  const inicioSolicitado = idDisenoInicial && consumirInicioSimulacion(idDisenoInicial);
+  if (inicioSolicitado) inicioPendienteTutorial = idDisenoInicial;
   document.getElementById('volverEdicion').addEventListener('click', guardarVistaAlVolverEdicion);
   [['#formularioEjecucion button[type="submit"]','play','Iniciar simulación'],['#pausarSimulacion','pausa','Pausar simulación'],
     ['#reanudarSimulacion','play','Reanudar simulación'],['#detenerSimulacion','detener','Detener simulación'],['#reiniciarSimulacion','reiniciar','Reiniciar recorrido'],
@@ -111,6 +116,8 @@ async function inicializar() {
   });
   document.getElementById('verResultadosSimulacion').addEventListener('click', mostrarResultados);
   document.getElementById('tutorialPantallaSimulacion').addEventListener('click', () => {
+    if (tutorialSimulacion?.pausado) { tutorialSimulacion.reanudar(); return; }
+    if (tutorialSimulacion) inicioPendienteTutorial = null;
     tutorialSimulacion?.terminar(false);
     tutorialSimulacion = abrirTutorialSimulacion();
   });
@@ -126,8 +133,18 @@ async function inicializar() {
   else mostrarEstadoVacio();
   await consultaProgreso;
   if (!paginaActiva) return;
-  if (disenoActual) tutorialSimulacion = presentarTutorialSimulacion({ idUsuario: sesion.usuario?.idUsuario });
-  if (idDisenoInicial && consumirInicioSimulacion(idDisenoInicial) && !tutorialSimulacion) await ejecutarSimulacion({ preventDefault() {} });
+  if (inicioPendienteTutorial !== disenoActual?.simulacion?.idDiseno) inicioPendienteTutorial = null;
+  if (disenoActual) tutorialSimulacion = presentarTutorialSimulacion({
+    idUsuario: sesion.usuario?.idUsuario,
+    alFinalizar: completado => {
+      tutorialSimulacion = null;
+      const idPendiente = inicioPendienteTutorial;
+      inicioPendienteTutorial = null;
+      if (completado && paginaActiva && idPendiente === disenoActual?.simulacion?.idDiseno)
+        void ejecutarSimulacion({ preventDefault() {} });
+    },
+  });
+  if (inicioPendienteTutorial && !tutorialSimulacion) await ejecutarSimulacion({ preventDefault() {} });
 }
 
 function aplicarConfiguracionPredeterminada(configuracion) {
@@ -164,7 +181,7 @@ async function abrirDiseno(idDiseno) {
     if (version !== versionDiseno || !paginaActiva) return false;
     await actualizarDesempeno(idDiseno);
     if (version !== versionDiseno || !paginaActiva) return false;
-    gestorMusica.establecerContexto('gameplay');
+    gestorMusica.establecerContexto('simulacion');
     return true;
   } catch (error) {
     if (version === versionDiseno && paginaActiva) { mostrarMensaje(error.message, 'error'); mostrarEstadoVacio(); }
@@ -345,8 +362,9 @@ function renderizarResultados() {
       : actual ? `Duración simulada: ${formatearDuracion(resultado.duracion)}` : `Registro histórico · duración original: ${resultado.duracion} s (escala anterior)`;
     const unidades = v2 ? resultado.resultadoUvUt.unidades.map(u => `Metro ${u.idTren} (${u.linea}): ${u.tramos} tramos, ${u.uv} UV, llegada ${u.utLlegada} UT ${u.termino ? '✓' : 'pendiente'}`).join(' · ')
       : actual ? (resultado.unidades ?? []).map(u => `Metro ${u.idTren}: ${formatearVelocidad(u.velocidad)}`).join(' · ') : '';
-    const cumplimiento = v2 ? (resultado.resultadoUvUt.completo ? 'Consigna de simulación cumplida' : 'Consigna de simulación pendiente') : escapar(resultado.estado);
-    elemento.innerHTML = `<strong>${cumplimiento}</strong><span>${escapar(tiempo)}</span><span>${escapar(unidades)}</span>${v2 && resultado.resultadoUvUt.mejorUv != null ? `<span>Mejor UV: ${escapar(resultado.resultadoUvUt.mejorUv)}</span>` : ''}<p>${escapar(resultado.comentarios)}</p>`;
+    const estadoResultado = v2 ? (resultado.resultadoUvUt.completo ? 'Consigna de simulación cumplida' : 'Consigna de simulación pendiente') : resultado.estado;
+    const cumplimiento = `${estadoResultado}${Number.isFinite(resultado.puntajeEvaluado) ? ` · ${resultado.puntajeEvaluado} puntos` : ''}`;
+    elemento.innerHTML = `<strong>${escapar(cumplimiento)}</strong><span>${escapar(tiempo)}</span><span>${escapar(unidades)}</span>${v2 && resultado.resultadoUvUt.mejorUv != null ? `<span>Mejor UV: ${escapar(resultado.resultadoUvUt.mejorUv)}</span>` : ''}<p>${escapar(resultado.comentarios)}</p>`;
     return elemento;
   }));
   if (!resultados.length) contenedor.textContent = 'Sin registros';
@@ -363,6 +381,7 @@ function obtenerEstadoEjecucion() {
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
   if (!disenoActual || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return;
+  inicioPendienteTutorial = null;
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
   const duracion = Number(document.getElementById('duracionSimulacion').value);
   if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion <= 0) {
@@ -479,6 +498,7 @@ function detenerAnimacion() {
 }
 
 function limpiarVisor(evento) {
+  inicioPendienteTutorial = null;
   if (evento?.persisted) {
     reanudarAlVolver = visor?.escena.motorSimulacion?.estado === 'EN_CURSO';
     if (reanudarAlVolver) actualizarPanelTiempoReal(visor.escena.pausarAnimacion());
@@ -544,7 +564,10 @@ async function finalizarEjecucionVisible() {
       if (evaluacion.completado) disenoActual.simulacion.estado = 'COMPLETADO';
       if (evaluacion.desempeno) {
         const resultado = disenoActual.resultados?.find(r => r.idSimulacion === pendiente.resultado.idSimulacion);
-        if (resultado) resultado.puntaje = evaluacion.puntaje;
+        if (resultado) {
+          resultado.puntaje = evaluacion.puntaje;
+          resultado.puntajeEvaluado = evaluacion.puntaje;
+        }
       }
       actualizarPantalla();
     }
@@ -558,6 +581,9 @@ async function finalizarEjecucionVisible() {
         : 'Recorrido finalizado. Consigna de simulación pendiente.';
     mostrarMensaje(mensaje, cumpleSimulacion === false ? 'advertencia' : 'exito');
     if (evaluacion?.completado) {
+      // La tarjeta del siguiente nivel necesita abrir un diálogo propio.
+      tutorialSimulacion?.terminar(false);
+      tutorialSimulacion = null;
       // Consultar el progreso persistido también permite retomar desde Escenarios tras una recarga.
       try {
         const base = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
@@ -581,7 +607,7 @@ async function finalizarEjecucionVisible() {
             window.location.assign(establecerContextoEnRuta('/', inicio));
           }
         } else if (accion?.destino) window.location.assign(accion.destino);
-      } catch (error) { mostrarMensaje(`Resultado guardado. ${error.message}`, 'advertencia'); }
+      } catch (error) { mostrarMensaje(`Resultado guardado. ${error.message}`, 'error'); }
     }
   } catch (error) {
     if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
@@ -677,12 +703,12 @@ function obtenerMensajePreparacionSimulacion() {
 }
 
 function mostrarEstadoVacio() {
-  gestorMusica.establecerContexto('menu');
+  gestorMusica.establecerContexto('simulacion');
   disenoActual = null;
   actualizarAyuda();
   document.getElementById('estadoVacio').hidden = false;
   document.getElementById('panelSimulacion').hidden = true;
-  ubicarPanelAyuda('.simulacion-encabezado-acciones');
+  ubicarPanelAyuda('[data-hud-mapa]');
   organizacion.mostrarDiseno(null);
 }
 

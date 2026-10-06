@@ -1,4 +1,5 @@
 import { seleccionarTarjetaEducativa, tarjetaEducativaActual, tarjetasDisponibles } from './TarjetasEducativasNivel.js';
+import { gestorMusica } from '../audio/GestorMusica.js';
 import './tarjeta-educativa-nivel.css';
 
 let secuencia = 0;
@@ -69,24 +70,30 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
 
 // El HUD se cierra antes de llamar; si ya hay un diálogo modal, no se apila otro.
 export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
-  const tarjeta = tarjetaEducativaActual(numero);
-  const disponibles = tarjetasDisponibles(numero);
-  if (!tarjeta || !disponibles?.length || document.querySelector('dialog[open]')) return false;
+  const tarjetas = numero === null
+    ? Array.from({ length: 10 }, (_, indice) => indice + 1)
+      .flatMap(nivel => tarjetasDisponibles(nivel).map(tarjeta => ({ tarjeta, nivel })))
+    : tarjetasDisponibles(numero).map(tarjeta => ({ tarjeta, nivel: numero }));
+  if (!tarjetas.length || document.querySelector('dialog[open]')) return false;
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-dialogo-cambios metronet-preparacion metronet-preparacion--educativa';
   let cerrada = false;
+  let liberarMusica = () => {};
   function cerrar() {
     if (cerrada) return;
     cerrada = true;
+    liberarMusica();
     if (dialogo.open) dialogo.close();
     dialogo.remove();
     if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
   }
-  let indice = disponibles.indexOf(tarjeta);
+  const actual = numero === null ? null : tarjetaEducativaActual(numero);
+  let indice = Math.max(0, tarjetas.findIndex(entrada => entrada.tarjeta === actual));
   function mostrarTarjeta(enfocarSiguiente = false) {
-    const vista = crearTarjetaEducativaNivel(disponibles[indice], numero, cerrar, {
-      desdeAyuda: true, posicion: indice + 1, total: disponibles.length,
-      alSiguiente: () => { indice = (indice + 1) % disponibles.length; mostrarTarjeta(true); },
+    const entrada = tarjetas[indice];
+    const vista = crearTarjetaEducativaNivel(entrada.tarjeta, entrada.nivel, cerrar, {
+      desdeAyuda: true, posicion: indice + 1, total: tarjetas.length,
+      alSiguiente: () => { indice = (indice + 1) % tarjetas.length; mostrarTarjeta(true); },
     });
     dialogo.replaceChildren(vista.elemento);
     dialogo.setAttribute('aria-labelledby', vista.titulo.id);
@@ -100,6 +107,7 @@ export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
   try {
     document.body.append(dialogo);
     dialogo.showModal();
+    liberarMusica = gestorMusica.usarContextoTemporal('educativo');
     vista.titulo.focus({ preventScroll: true });
     return true;
   } catch { cerrar(); return false; }
@@ -116,9 +124,11 @@ export function presentarTarjetaEducativaTrasVictoria(numero) {
   dialogo.className = 'metronet-dialogo-cambios metronet-preparacion metronet-preparacion--educativa';
   return new Promise(resolve => {
     let cerrada = false;
+    let liberarMusica = () => {};
     function terminar(continuar) {
       if (cerrada) return;
       cerrada = true;
+      liberarMusica();
       window.removeEventListener('pagehide', cancelar);
       window.removeEventListener('popstate', cancelar);
       if (dialogo.open) dialogo.close();
@@ -135,6 +145,7 @@ export function presentarTarjetaEducativaTrasVictoria(numero) {
     try {
       document.body.append(dialogo);
       dialogo.showModal();
+      liberarMusica = gestorMusica.usarContextoTemporal('educativo');
       vista.titulo.focus({ preventScroll: true });
       window.addEventListener('pagehide', cancelar);
       window.addEventListener('popstate', cancelar);

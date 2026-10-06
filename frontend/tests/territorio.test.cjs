@@ -48,7 +48,7 @@ test('clic fuera del territorio no envía POST, incluso con zoom y pan; dentro c
 test('mover fuera no persiste ni pierde la estación seleccionada', async t => {
   const { pagina, solicitudes } = await preparar(t);
   await clic(pagina, 580, 470);
-  await pagina.locator('[data-reubicar-estacion]').click();
+  await pagina.getByRole('button', { name: 'Mover estación seleccionada' }).click();
   await clic(pagina, 600, 600, 3);
   assert.equal(solicitudes.length, 0);
   assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'reubicarEstacion');

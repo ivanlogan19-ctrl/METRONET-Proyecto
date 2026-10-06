@@ -31,13 +31,13 @@
   ] },
   { "numero": 7, "mensajes": [
     { "id": "intercambio", "categoria": "Planificación", "texto": "Reutilizá una misma estación donde se encuentran dos líneas en vez de superponer dos puntos." },
-    { "id": "brazo", "categoria": "Propiedades", "texto": "En la estación compartida activá Permite transbordo; un cruce visual no basta." },
+    { "id": "brazo", "categoria": "Conexiones", "texto": "Conectá dos líneas en la misma estación para crear un transbordo; un cruce visual no basta." },
     { "id": "marca", "categoria": "Simulación", "texto": "Elegí una unidad concreta antes de Aplicar velocidad para no modificar toda la flota." }
   ] },
   { "numero": 8, "mensajes": [
     { "id": "estadio", "categoria": "Planificación", "texto": "Si un recorrido se bifurca, separá el ramal en otra línea y conectalas mediante una estación compartida." },
     { "id": "lineas", "categoria": "Selección", "texto": "Consultá la lista de unidades para comprobar a qué línea pertenece cada metro." },
-    { "id": "unidades", "categoria": "Simulación", "texto": "Todas las unidades aplica el mismo cambio a la flota; verificá el selector antes de pulsar Aplicar velocidad." }
+    { "id": "unidades", "categoria": "Simulación", "texto": "Todos los metros aplica el mismo cambio a la flota; verificá el selector antes de pulsar Aplicar velocidad." }
   ] },
   { "numero": 9, "mensajes": [
     { "id": "radio", "categoria": "Mapa", "texto": "Acercá el mapa antes de colocar una estación cerca del borde de cobertura; una ubicación precisa puede evitar otra estación." },
@@ -47,6 +47,6 @@
   { "numero": 10, "mensajes": [
     { "id": "conjunto", "categoria": "Planificación", "texto": "Revisá por etapas: Referencias y límites territoriales primero, continuidad e intercambios después." },
     { "id": "territorio", "categoria": "Comprobación", "texto": "Atendé la primera condición pendiente que indique Guardar diseño antes de rehacer la red." },
-    { "id": "revision", "categoria": "Simulación", "texto": "Antes de Aplicar velocidad, comprobá si el selector indica una unidad o Todas las unidades." }
+    { "id": "revision", "categoria": "Simulación", "texto": "Antes de Aplicar velocidad, comprobá si el selector indica una unidad o Todos los metros." }
   ] }
 ]

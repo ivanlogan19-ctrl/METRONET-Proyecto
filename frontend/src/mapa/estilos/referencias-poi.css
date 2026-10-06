@@ -30,12 +30,11 @@ html:root body .metronet-poi [data-contenedor-selectores-mapa] .metronet-panel-e
 .metronet-poi :is(.metronet-selector-barrio-opcion,.metronet-selector-zona-opcion) span { min-width:0; overflow-wrap:anywhere; }
 .metronet-poi__zoom { display:flex; align-items:center; }
 html:root body .metronet-poi .metronet-panel-puntos-interes { position:static; display:grid; grid-template-columns:44px; gap:0; width:44px; min-height:0; max-width:100%; padding:0; margin:0; border:0; box-shadow:none; background:none; }
-html:root body .metronet-poi .metronet-panel-puntos-interes[data-abierto='true'] { width:100%; grid-template-columns:44px minmax(0,1fr) 44px; gap:6px; }
+html:root body .metronet-poi .metronet-panel-puntos-interes[data-abierto='true'] { width:100%; grid-template-columns:44px minmax(0,1fr); gap:6px; }
 .metronet-poi .metronet-panel-puntos-contenido:not([hidden]) { display:contents; }
 html:root body .metronet-poi .metronet-panel-puntos-cabecera { grid-column:1; grid-row:1; justify-content:flex-start; gap:0; min-height:0; padding:0; border:0; }
 .metronet-poi .metronet-panel-puntos-acciones { display:flex; gap:0; }
 .metronet-poi .metronet-panel-puntos-busqueda { grid-column:2; grid-row:1; width:100%; min-width:0; min-height:44px; margin:0; }
-.metronet-poi .metronet-panel-puntos-cerrar { grid-column:3; grid-row:1; }
 .metronet-poi .metronet-panel-puntos-estado-contexto, .metronet-poi .metronet-panel-puntos-lista { grid-column:1/-1; margin:0; }
 .metronet-poi .metronet-panel-puntos-lista:empty { display:none; }
 .metronet-poi .metronet-panel-puntos-busqueda, .metronet-poi .metronet-panel-puntos-lista { animation:metronet-entrada-busqueda 160ms linear both; }
@@ -73,9 +72,8 @@ html:root body .metronet-poi__zoom .metronet-control-zoom-boton { width:44px; mi
 
 /* La lupa es el décimo acceso; solo el campo abierto ocupa una fila adicional. */
 .metronet-poi__acceso-busqueda { justify-self:center; }
-html:root body .metronet-poi .metronet-panel-puntos-interes[data-acceso-integrado][data-abierto='true'] { grid-template-columns:minmax(0,1fr) 44px; }
+html:root body .metronet-poi .metronet-panel-puntos-interes[data-acceso-integrado][data-abierto='true'] { grid-template-columns:minmax(0,1fr); }
 .metronet-poi [data-acceso-integrado] .metronet-panel-puntos-busqueda { grid-column:1; }
-.metronet-poi [data-acceso-integrado] .metronet-panel-puntos-cerrar { grid-column:2; }
 .metronet-poi__panel,.metronet-hud__panel { max-height:min(360px,42dvh,var(--alto-panel-mapa,42dvh)); }
 .metronet-hud__contenido > :not([hidden]) { animation:metronet-entrada-busqueda 160ms linear both; }
 .metronet-hud [data-indicaciones-escenario] { margin-top:12px; }
@@ -85,3 +83,35 @@ html:root body .metronet-poi .metronet-panel-puntos-interes[data-acceso-integrad
   max-height:min(620px,calc(100dvh - 32px),var(--alto-panel-mapa,calc(100dvh - 32px)));
 }
 @media(prefers-reduced-motion:reduce) { .metronet-hud__contenido > :not([hidden]) { animation:none; } }
+
+/* La misma presentación geográfica acompaña Modo libre y los niveles. */
+#metronet-aplicacion .metronet-poi__geografia h3 {
+  color: var(--text-primary);
+  font: 400 14px/1.45 var(--font-arcade);
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+#metronet-aplicacion .metronet-poi__panel > header h2 {
+  position: relative;
+  padding-left: 12px;
+}
+#metronet-aplicacion .metronet-poi__panel > header h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(50% - 4px);
+  width: 4px;
+  height: 8px;
+  background: var(--info-active);
+}
+#metronet-aplicacion .metronet-poi .metronet-panel-puntos-busqueda {
+  text-align: center;
+}
+#metronet-aplicacion .metronet-poi .metronet-panel-puntos-estado-contexto {
+  display: none;
+}
+html:root body #metronet-aplicacion
+  .metronet-poi [data-contenedor-selectores-mapa] .metronet-panel-encabezado {
+  height: 40px;
+  min-height: 40px;
+}

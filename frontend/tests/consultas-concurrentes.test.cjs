@@ -16,7 +16,7 @@ test('Cabecera y simulador comparten la consulta simultánea de progreso', async
     },
   });
   t.after(() => v.contexto.close());
-  await v.pagina.waitForFunction(() => document.querySelector('audio[data-musica-metronet]')?.getAttribute('src') === '/audio/extra-theme.mp3');
+  await v.pagina.waitForFunction(() => document.querySelector('audio[data-musica-metronet]')?.getAttribute('src') === '/audio/simulacion-theme.mp3');
   assert.equal(v.solicitudes.filter(r => r.path === '/api/juego/progreso').length, 1);
   assert.deepEqual(v.errores, []);
 });

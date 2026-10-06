@@ -65,7 +65,7 @@ test('Login inválido no carga la pista de bienvenida', async t => {
   await p.locator('#email').fill('ana@example.test'); await p.locator('#password').fill('Prueba1!');
   await p.locator('#loginButton').click(); await p.locator('#mensaje.error').waitFor();
   assert.equal(await p.locator('.metronet-bienvenida').count(), 0);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/extra-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.mp3');
   assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('welcome-theme'))), false);
 });
 

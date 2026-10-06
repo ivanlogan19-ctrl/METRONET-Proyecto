@@ -45,14 +45,20 @@ public class CondicionesGeograficasService {
         if (reglas.containsKey("minimoTransbordos")) {
             JsonNode minimo = configuracion.path("minimoTransbordos");
             boolean valido = minimo.isIntegralNumber() && minimo.canConvertToInt() && minimo.intValue() > 0;
+            // Los intentos previos conservan el criterio explícito guardado en su snapshot.
+            boolean porConexion = Boolean.TRUE.equals(reglas.get("transbordosPorConexion"));
             Integer actual = valido ? jdbc.queryForObject("""
-                SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ? AND e.transbordo = TRUE
+                SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ?
+                  AND (? OR e.transbordo = TRUE)
                   AND (SELECT COUNT(DISTINCT t.nombre_linea) FROM tramo t
                        WHERE t.id_diseno = e.id_diseno
                          AND (t.nombre_estacion_a = e.nombre OR t.nombre_estacion_b = e.nombre)) >= 2
-                """, Integer.class, idDiseno) : 0;
+                """, Integer.class, idDiseno, porConexion) : 0;
             condiciones.add(new CondicionConsignaResponse("minimoTransbordos",
-                valido ? "Usar al menos " + minimo.intValue() + " transbordos entre líneas" : "Cantidad de transbordos inválida en la consigna",
+                valido ? (porConexion
+                    ? "Conectar al menos " + (minimo.intValue() == 1 ? "una estación compartida" : minimo.intValue() + " estaciones compartidas") + " por dos líneas"
+                    : "Usar al menos " + minimo.intValue() + " transbordos entre líneas")
+                    : "Cantidad de transbordos inválida en la consigna",
                 actual == null ? 0 : actual, valido ? minimo.intValue() : 1, valido && actual != null && actual >= minimo.intValue()));
         }
         boolean areas = reglas.containsKey("areasObjetivo");

@@ -27,18 +27,28 @@ export default class RecorridoInicial {
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';
     this.dialogo.setAttribute('aria-labelledby', 'recorrido-titulo');
-    this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><h2 id="recorrido-titulo"></h2><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
+    this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><h2 id="recorrido-titulo"></h2><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-pausar hidden>Pausar recorrido</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
     document.body.append(this.dialogo);
     this.dialogo.addEventListener('cancel', e => { e.preventDefault(); this.terminar(); });
     this.dialogo.querySelector('[data-recorrido-omitir]').addEventListener('click', () => this.terminar());
+    this.dialogo.querySelector('[data-recorrido-pausar]').hidden = !this.opciones.pausable;
+    this.dialogo.querySelector('[data-recorrido-pausar]').addEventListener('click', () => this.pausar());
     this.dialogo.querySelector('[data-recorrido-siguiente]').addEventListener('click', () => {
-      if (this.indice >= this.pasos.length) this.terminar();
+      if (this.indice >= this.pasos.length) this.terminar(true, true);
       else { this.indice++; this.mostrar(); }
     });
     this.reposicionar = () => this.posicionar();
     window.addEventListener('resize', this.reposicionar);
     window.addEventListener('scroll', this.reposicionar, true);
-    if (this.opciones.interactivo) this.dialogo.show();
+    if (this.opciones.interactivo) {
+      this.cerrarConEscape = evento => {
+        if (evento.key !== 'Escape') return;
+        evento.preventDefault();
+        this.terminar();
+      };
+      window.addEventListener('keydown', this.cerrarConEscape);
+      this.dialogo.show();
+    }
     else this.dialogo.showModal();
     this.mostrar();
   }
@@ -63,8 +73,29 @@ export default class RecorridoInicial {
   notificar(evento) {
     if (!this.dialogo || this.pasos[this.indice]?.[3] !== evento) return;
     this.indice++;
-    if (this.indice >= this.pasos.length && this.opciones.interactivo) this.terminar();
+    if (this.indice >= this.pasos.length && this.opciones.interactivo) this.terminar(true, true);
     else this.mostrar();
+  }
+  pausar() {
+    if (!this.opciones.pausable || !this.dialogo?.open) return;
+    this.dialogo.close();
+    this.pausado = true;
+    window.removeEventListener('resize', this.reposicionar);
+    window.removeEventListener('scroll', this.reposicionar, true);
+    if (this.cerrarConEscape) window.removeEventListener('keydown', this.cerrarConEscape);
+    const disparador = document.querySelector(this.opciones.disparador);
+    disparador?.setAttribute('aria-description', `Tutorial pausado en el paso ${this.indice + 1} de ${this.pasos.length}. Activá para continuar.`);
+    disparador?.focus({ preventScroll: true });
+  }
+  reanudar() {
+    if (!this.pausado || !this.dialogo) return;
+    this.pausado = false;
+    window.addEventListener('resize', this.reposicionar);
+    window.addEventListener('scroll', this.reposicionar, true);
+    if (this.cerrarConEscape) window.addEventListener('keydown', this.cerrarConEscape);
+    if (this.opciones.disparador) document.querySelector(this.opciones.disparador)?.removeAttribute('aria-description');
+    this.dialogo.show();
+    this.mostrar();
   }
   posicionar() {
     if (!this.dialogo?.open) return;
@@ -89,13 +120,7 @@ export default class RecorridoInicial {
       });
     }
     const limitar = (valor, tamano, limite) => Math.max(margen, Math.min(valor, Math.max(margen, limite - tamano - margen)));
-    if (r && !visible) {
-      this.dialogo.style.left = `${limitar(parseFloat(this.dialogo.style.left) || margen, w, innerWidth)}px`;
-      this.dialogo.style.top = `${limitar(parseFloat(this.dialogo.style.top) || margen, h, innerHeight)}px`;
-      evitarSuperposicion();
-      return;
-    }
-    const candidatos = r ? [
+    const candidatos = r && visible ? [
       { lado: 'izquierda', x: r.left - w - espacio, y: r.top },
       { lado: 'abajo', x: r.left, y: r.bottom + espacio },
       { lado: 'arriba', x: r.left, y: r.top - h - espacio },
@@ -110,19 +135,45 @@ export default class RecorridoInicial {
       ?? candidatos.find(cabe)
       ?? candidatos.reduce((mejor, c) => espacioLibre[c.lado] > espacioLibre[mejor.lado] ? c : mejor, candidatos[0]);
     if (elegido && !this.ladoPreferido) this.ladoPreferido = elegido.lado;
-    this.dialogo.style.left = `${limitar(elegido?.x ?? (innerWidth - w) / 2, w, innerWidth)}px`;
-    this.dialogo.style.top = `${limitar(elegido?.y ?? (innerHeight - h) / 2, h, innerHeight)}px`;
+    let x = limitar(r && !visible ? parseFloat(this.dialogo.style.left) || margen : elegido?.x ?? (innerWidth - w) / 2, w, innerWidth);
+    let y = limitar(r && !visible ? parseFloat(this.dialogo.style.top) || margen : elegido?.y ?? (innerHeight - h) / 2, h, innerHeight);
+    if (this.opciones.evitarControles) {
+      const controles = [...document.querySelectorAll(this.opciones.evitarControles)]
+        .filter(elemento => !this.dialogo.contains(elemento) && elemento.getClientRects().length)
+        .map(elemento => elemento.getBoundingClientRect())
+        .filter(c => c.width && c.height && c.right > 0 && c.bottom > 0 && c.left < innerWidth && c.top < innerHeight);
+      const maxX = Math.max(margen, innerWidth - w - margen);
+      const maxY = Math.max(margen, innerHeight - h - margen);
+      const valores = (inicio, fin) => [...new Set([inicio, fin, ...Array.from({ length: Math.ceil((fin - inicio) / 16) + 1 }, (_, i) => Math.min(fin, inicio + i * 16))])];
+      const solapamiento = (cx, cy) => controles.reduce((total, c) => {
+        const ancho = Math.max(0, Math.min(cx + w + 4, c.right) - Math.max(cx - 4, c.left));
+        const alto = Math.max(0, Math.min(cy + h + 4, c.bottom) - Math.max(cy - 4, c.top));
+        return total + ancho * alto;
+      }, 0);
+      let mejor = { x, y, area: solapamiento(x, y), distancia: 0 };
+      for (const cx of valores(margen, maxX)) for (const cy of valores(margen, maxY)) {
+        const area = solapamiento(cx, cy), distancia = Math.hypot(cx - x, cy - y);
+        if (area < mejor.area || (area === mejor.area && distancia < mejor.distancia)) mejor = { x: cx, y: cy, area, distancia };
+      }
+      ({ x, y } = mejor);
+      this.dialogo.dataset.controlesCubiertos = String(mejor.area > 0);
+    }
+    this.dialogo.style.left = `${x}px`;
+    this.dialogo.style.top = `${y}px`;
     evitarSuperposicion();
   }
-  terminar(notificar = true) {
+  terminar(notificar = true, completado = false) {
     if (!this.dialogo) return;
     window.removeEventListener('resize', this.reposicionar);
     window.removeEventListener('scroll', this.reposicionar, true);
-    this.dialogo.close(); this.dialogo.remove(); this.dialogo = null;
+    if (this.cerrarConEscape) window.removeEventListener('keydown', this.cerrarConEscape);
+    document.querySelector(this.opciones.disparador)?.removeAttribute('aria-description');
+    if (this.dialogo.open) this.dialogo.close();
+    this.dialogo.remove(); this.dialogo = null;
     if (this.panelCerrado && this.togglePanel?.isConnected && this.togglePanel.getAttribute('aria-expanded') === 'true') this.togglePanel.click();
     if (this.panel?.isConnected) this.panel.scrollTop = this.scrollPanel;
     window.scrollTo({ left:this.scrollAnterior[0], top:this.scrollAnterior[1], behavior:'instant' });
     if (this.focoAnterior?.isConnected) this.focoAnterior.focus({ preventScroll: true });
-    if (notificar) this.alFinalizar();
+    if (notificar) this.alFinalizar(completado);
   }
 }

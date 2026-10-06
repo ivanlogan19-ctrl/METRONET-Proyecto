@@ -65,7 +65,7 @@ test('Registro recupera la pista de acceso mientras su formulario todavía carga
       const audio = document.querySelector('audio');
       return audio && !audio.paused && audio.currentTime >= 3;
     }, null, ANTES_DEL_RENDER);
-    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/extra-theme.mp3');
+    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/portada-theme.mp3');
     assert.equal(await pagina.locator('[data-control-musica]').count(), 0);
   } finally { await liberar(); }
   assert.equal(await pagina.locator('audio').count(), 1);
@@ -86,15 +86,15 @@ test('Administración conserva la pista del menú sin esperar a cargar sus vista
   assert.equal(await pagina.locator('audio').count(), 1);
 });
 
-test('Simulación prepara gameplay en silencio y reutiliza ese reproductor al cargar el diseño', async t => {
+test('Simulación prepara su pista en silencio y reutiliza ese reproductor al cargar el diseño', async t => {
   const { pagina } = await abrir(t);
   await pagina.evaluate(async () => {
     const { gestorMusica } = await import('/src/audio/GestorMusica.js');
-    gestorMusica.establecerContexto('gameplay');
+    gestorMusica.establecerContexto('simulacion');
   });
   await pagina.waitForFunction(() => {
     const audio = document.querySelector('[data-musica-metronet]');
-    return audio?.getAttribute('src') === '/audio/extra-theme.mp3' && !audio.paused && audio.volume === .35;
+    return audio?.getAttribute('src') === '/audio/simulacion-theme.mp3' && !audio.paused && audio.volume === .35;
   });
   await pagina.locator('[data-musica-metronet]').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/simulacion/simulacion.js*');

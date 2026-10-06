@@ -296,6 +296,7 @@ class CampanaPostgresTest {
                 var puntos = new PuntuacionService(jdbc, mapper);
                 var ranking = puntos.ranking(7);
                 assertEquals(1, ranking.tuPosicion());
+                assertEquals("Ana Prueba", ranking.jugadores().getFirst().jugador());
                 assertEquals(10, ranking.jugadores().getFirst().nivelesCompletados());
                 assertEquals(1000, ranking.puntajeTotal());
                 int escenarioSeis = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=6", Integer.class);
@@ -434,6 +435,8 @@ class CampanaPostgresTest {
         jdbc.execute("CREATE TEMP TABLE resultado_uv_ut(id_simulacion INT, version INT, huella_problema TEXT, huella_ejecucion TEXT, limite_ut INT, presupuesto_uv NUMERIC(8,2), ut_ejecutadas INT, suma_uv NUMERIC(8,2), completo BOOLEAN, unidades JSONB) ON COMMIT DROP");
         jdbc.update("INSERT INTO usuario VALUES (7,1,FALSE)");
         jdbc.execute("ALTER TABLE usuario ADD COLUMN rol VARCHAR DEFAULT 'JUGADOR'");
+        jdbc.execute("ALTER TABLE usuario ADD COLUMN nombre VARCHAR(100), ADD COLUMN apellido VARCHAR(100)");
+        jdbc.update("UPDATE usuario SET nombre='Ana', apellido='Prueba' WHERE id_usuario=7");
     }
 
     private void verificarPuntajeSimulaciones(JdbcTemplate jdbc, JuegoEducativoService juego, ObjectMapper mapper,

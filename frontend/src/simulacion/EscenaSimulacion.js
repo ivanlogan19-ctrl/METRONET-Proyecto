@@ -200,7 +200,7 @@ class EscenaSimulacion extends Phaser.Scene {
   obtenerTextoSeleccion(elemento) {
     if (!elemento?.valor) return '';
     const valor = elemento.valor;
-    if (elemento.tipo === 'estacion') return `ESTACIÓN · ${valor.nombre}${valor.transbordo ? ' · TRANSBORDO' : ''}`;
+    if (elemento.tipo === 'estacion') return `ESTACIÓN · ${valor.nombre}${this.capaRedMetro?.esTransbordo(valor) ? ' · TRANSBORDO' : ''}`;
     if (elemento.tipo === 'linea') return `LÍNEA · ${valor.nombre}`;
     if (elemento.tipo === 'tramo') return `CONEXIÓN · ${valor.estacionA} — ${valor.estacionB}`;
     if (elemento.tipo === 'unidad') return `METRO · M-${valor.idTren ?? '—'} · ${valor.nombreLinea ?? 'SIN LÍNEA'}`;

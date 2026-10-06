@@ -41,10 +41,15 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     const actualCampo = await estilo(pagina.locator(entrada).first(), aspecto);
     primario ??= actual; campo ??= actualCampo;
     assert.deepEqual(actual, primario, `Acción primaria en ${ruta}`);
-    assert.deepEqual(actualCampo, campo, `Campo en ${ruta}`);
+    if (ruta === '/admin.html') {
+      const { fontFamily: fuenteAdmin, ...restoAdmin } = actualCampo;
+      const { fontFamily: _fuenteBase, ...restoBase } = campo;
+      assert.match(fuenteAdmin, /Silkscreen/);
+      assert.deepEqual(restoAdmin, restoBase, `Campo en ${ruta}`);
+    } else assert.deepEqual(actualCampo, campo, `Campo en ${ruta}`);
     assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}`);
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
-    assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
+    if (ruta !== '/admin.html') assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
     if (ruta.startsWith('/simulacion.html')) {
       assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración simulada en horas');
       assert.equal(await pagina.locator('[data-icono-duracion] svg').count(), 1);
@@ -55,7 +60,12 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
       return Object.fromEntries(['color', 'fontFamily', 'fontSize', 'fontWeight'].map(clave => [clave, css[clave]]));
     });
     etiqueta ??= actualEtiqueta;
-    assert.deepEqual(actualEtiqueta, etiqueta, `Etiqueta en ${ruta}`);
+    if (ruta === '/admin.html') {
+      const { fontFamily: fuenteAdmin, ...restoAdmin } = actualEtiqueta;
+      const { fontFamily: _fuenteBase, ...restoBase } = etiqueta;
+      assert.match(fuenteAdmin, /Silkscreen/);
+      assert.deepEqual(restoAdmin, restoBase, `Etiqueta en ${ruta}`);
+    } else assert.deepEqual(actualEtiqueta, etiqueta, `Etiqueta en ${ruta}`);
   }
 });
 
@@ -91,7 +101,7 @@ test('modales administrativos, educativos y de eliminación comparten marco y fo
   assert.match((await estilo(admin.locator('#editorUsuario h2'), ['fontFamily'])).fontFamily, /Silkscreen/);
   const editor = await abrir(t, 'constructor');
   await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
-  await editor.locator('[data-eliminar-estacion]').click();
+  await editor.getByRole('button', { name: 'Eliminar elemento seleccionado' }).click();
   assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar'), propiedades), marco);
   await editor.getByRole('button', { name: 'Cancelar', exact: true }).click();
   const niveles = await abrir(t, '/escenarios.html', {

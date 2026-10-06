@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es" data-contexto-musical="auth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>METRONET en mantenimiento</title>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+    <link rel="stylesheet" href="/src/configuracion/mantenimiento.css" />
+    <script type="module" blocking="render" src="/src/configuracion/PantallaMantenimiento.js"></script>
+  </head>
+  <body class="metronet-pagina-mantenimiento">
+    <main class="mantenimiento-pantalla">
+      <div class="mantenimiento-escena" aria-hidden="true">
+        <div class="mantenimiento-tunel"></div>
+        <div class="mantenimiento-via"></div>
+        <div class="mantenimiento-tren"><i></i><i></i><i></i><b></b></div>
+        <div class="mantenimiento-baliza"></div>
+      </div>
+      <section class="mantenimiento-mensaje" aria-labelledby="tituloMantenimiento">
+        <p class="mantenimiento-etiqueta">Servicio temporalmente detenido</p>
+        <h1 id="tituloMantenimiento">METRONET en mantenimiento</h1>
+        <p>Disculpá las molestias. El acceso al juego estará disponible cuando terminen las tareas de mantenimiento.</p>
+        <p id="estadoMantenimiento" class="mantenimiento-estado" role="status" aria-live="polite">Estamos comprobando cuándo vuelve el servicio.</p>
+      </section>
+    </main>
+  </body>
+</html>

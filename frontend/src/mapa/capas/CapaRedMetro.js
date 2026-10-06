@@ -158,7 +158,8 @@ export default class CapaRedMetro {
     if (!origen || !destino) return;
     const desde = this.convertirPosicion(origen.posicionX, origen.posicionY);
     const hasta = this.convertirPosicion(destino.posicionX, destino.posicionY);
-    const seleccionado = this.esTramoSeleccionado(tramo);
+    const seleccionado = this.esTramoSeleccionado(tramo) ||
+      (this.modo === 'crearTramo' && this.lineaActiva === tramo.nombreLinea);
     const color = this.colorLinea(tramo.nombreLinea);
     if (seleccionado) {
       this.grafico.lineStyle(16, COLORES_INTERFAZ_MAPA.ACTIVO, 0.22);
@@ -464,6 +465,12 @@ export default class CapaRedMetro {
     if (['crearLinea', 'crearTramo'].includes(this.modo)) {
       const estacion = this.obtenerEstacionCercana(convertido.punto);
       if (estacion) this.alSeleccionar({tipo:'estacion',valor:estacion});
+      else {
+        const tramo = this.obtenerTramoCercano(convertido.punto);
+        if (tramo) this.alSeleccionar(this.modo === 'crearLinea'
+          ? { tipo: 'linea', valor: { nombre: tramo.nombreLinea } }
+          : { tipo: 'tramo', valor: tramo });
+      }
       return;
     }
     if (this.modo === 'crearMetro') {
@@ -699,7 +706,7 @@ export default class CapaRedMetro {
   }
 
   esTransbordo(estacion) {
-    return Boolean(estacion.transbordo) && (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1;
+    return (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1;
   }
 
   esTramoSeleccionado(tramo) {

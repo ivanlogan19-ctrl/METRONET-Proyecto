@@ -8,6 +8,8 @@ const sesion = obtenerSesionAdministrador();
 const CAPACIDAD_COMPATIBILIDAD = 300;
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
+let actividadesDisponibles = [];
+let borrandoActividad = false;
 let administracionNiveles = null;
 
 if (!sesion) {
@@ -26,13 +28,6 @@ function inicializarAdministracion(sesionAdministrador) {
   });
   inicializarNavegacion({ actual: "administracion" });
   actualizarEtiquetaAdministrador(sesionAdministrador.usuario);
-  // Esta marca vuelve al panel inicial; no necesita recargar admin.html.
-  document.querySelector('.admin-marca').addEventListener('click', evento => {
-    if (evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
-    evento.preventDefault();
-    mostrarVista('usuarios');
-  });
-
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
     boton.addEventListener("click", () => {
       if (!boton.dataset.vista || boton.classList.contains('activo')) {
@@ -127,6 +122,13 @@ function inicializarAdministracion(sesionAdministrador) {
   document.getElementById("filtroUsuarios").addEventListener("input", filtrarUsuarios);
   document.getElementById("filtroRolUsuarios").addEventListener("change", filtrarUsuarios);
   document.getElementById("filtroDisenos").addEventListener("input", filtrarDisenos);
+  document.getElementById("tablaActividad").addEventListener("click", evento => {
+    const boton = evento.target.closest('[data-borrar-actividad]');
+    if (boton) void borrarActividad(Number(boton.dataset.borrarActividad), sesionAdministrador.token);
+  });
+  document.getElementById("borrarTodasActividades").addEventListener("click", () => {
+    void borrarActividad(null, sesionAdministrador.token);
+  });
 
   cargarUsuarios(sesionAdministrador.token);
 }
@@ -135,7 +137,7 @@ function mostrarVista(nombreVista) {
   const titulos = {
     usuarios: "Gestión de usuarios",
     disenos: "Supervisión de diseños",
-    configuracion: "Configuración general",
+    configuracion: "Modo de mantenimiento",
     niveles: 'Experiencia de juego',
     actividad: "Actividad reciente",
   };
@@ -149,6 +151,11 @@ function mostrarVista(nombreVista) {
   });
 
   document.getElementById("tituloVista").textContent = titulos[nombreVista];
+  document.getElementById('iconoUsuarios').hidden = nombreVista !== 'usuarios';
+  document.getElementById('iconoDisenos').hidden = nombreVista !== 'disenos';
+  document.getElementById('iconoConfiguracion').hidden = nombreVista !== 'configuracion';
+  document.getElementById('iconoActividad').hidden = nombreVista !== 'actividad';
+  document.getElementById('iconoNiveles').hidden = nombreVista !== 'niveles';
 }
 
 async function cargarUsuarios(token) {
@@ -247,7 +254,37 @@ function renderizarDisenos(disenos) {
 
   detalle.hidden = true;
   detalle.replaceChildren();
-  lista.replaceChildren(...(disenos.length ? disenos.map((diseno) => {
+  const grupos = new Map();
+  for (const diseno of disenos) {
+    const clave = Number.isInteger(diseno.idUsuario) ? `usuario:${diseno.idUsuario}`
+      : diseno.correoPropietario ? `correo:${normalizarTexto(diseno.correoPropietario)}`
+        : 'sin-usuario';
+    if (!grupos.has(clave)) grupos.set(clave, {
+      propietario: diseno.propietario || 'Sin usuario asignado',
+      correo: diseno.correoPropietario || 'Sin correo registrado',
+      disenos: [],
+    });
+    grupos.get(clave).disenos.push(diseno);
+  }
+  const gruposOrdenados = [...grupos.values()].sort((a, b) =>
+    a.propietario.localeCompare(b.propietario, 'es', { sensitivity: 'base' }));
+  lista.replaceChildren(...(gruposOrdenados.length ? gruposOrdenados.map(grupo => {
+    const seccion = document.createElement('section');
+    seccion.className = 'admin-jugador-disenos';
+    const cabecera = document.createElement('header');
+    cabecera.className = 'admin-jugador-disenos__cabecera';
+    const identidad = document.createElement('div');
+    const nombre = document.createElement('h3');
+    nombre.textContent = grupo.propietario;
+    const correo = document.createElement('p');
+    correo.textContent = grupo.correo;
+    identidad.append(nombre, correo);
+    const cantidad = document.createElement('span');
+    cantidad.textContent = `Número de diseños registrados: ${grupo.disenos.length}`;
+    cabecera.append(identidad, cantidad);
+    const tarjetas = document.createElement('div');
+    tarjetas.className = 'admin-jugador-disenos__tarjetas';
+    tarjetas.append(...grupo.disenos.map(diseno => {
       const tarjeta = document.createElement("article");
       const actividad = diseno.idEscenario
         ? `Actividad #${diseno.idEscenario} · ${formatearModoEscenario(diseno.modoEscenario)}`
@@ -255,8 +292,7 @@ function renderizarDisenos(disenos) {
 
       tarjeta.innerHTML = `
         <div>
-          <h3>Diseño #${diseno.idDiseno}</h3>
-          <p>${escaparHtml(diseno.propietario)} · ${escaparHtml(diseno.correoPropietario ?? "Sin correo")}</p>
+          <h4>Diseño #${diseno.idDiseno}</h4>
           <p>${escaparHtml(actividad)}</p>
         </div>
         <div class="admin-acciones-linea">
@@ -266,13 +302,16 @@ function renderizarDisenos(disenos) {
       `;
 
       return tarjeta;
-    }) : [crearEstadoVacio("No hay diseños que coincidan con el filtro.")]));
+    }));
+    seccion.append(cabecera, tarjetas);
+    return seccion;
+  }) : [crearEstadoVacio("No hay diseños que coincidan con el filtro.")]));
 }
 
 function filtrarDisenos() {
   const texto = normalizarTexto(document.getElementById("filtroDisenos").value);
   const disenosFiltrados = disenosDisponibles.filter((diseno) => {
-    const contenido = `${diseno.idDiseno} ${diseno.propietario ?? ""} ${diseno.correoPropietario ?? ""} ${diseno.modoEscenario ?? ""}`;
+    const contenido = `${diseno.propietario ?? ""} ${diseno.correoPropietario ?? ""}`;
     return !texto || normalizarTexto(contenido).includes(texto);
   });
 
@@ -294,7 +333,7 @@ function crearEstadoVacio(mensaje) {
 }
 
 function normalizarTexto(valor) {
-  return (valor ?? "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim();
+  return (valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
 async function eliminarDisenoAdministrador(idDiseno, token) {
@@ -571,11 +610,10 @@ async function cargarConfiguracion(token) {
 
 function renderizarConfiguracion(configuraciones) {
   const lista = document.getElementById("listaConfiguracion");
-  // El valor legado de capacidad se conserva en datos, pero no es un ajuste de juego.
-  const visibles = configuraciones.filter(configuracion => configuracion.clave !== 'capacidad_unidad');
+  // Estos valores se conservan para el juego, pero no se administran en esta pantalla.
+  const visibles = configuraciones.filter(configuracion => !['capacidad_unidad', 'velocidad_simulacion'].includes(configuracion.clave));
   const grupos = [
-    { titulo: 'Experiencia del jugador', descripcion: 'Ritmo inicial de reproducción. El jugador puede cambiarlo antes de simular.', claves: ['velocidad_simulacion'] },
-    { titulo: 'Operación', descripcion: 'Disponibilidad de las acciones de edición y simulación para jugadores.', claves: ['modo_mantenimiento'] },
+    { claves: ['modo_mantenimiento'] },
   ];
   const conocidas = new Set(grupos.flatMap(grupo => grupo.claves));
   if (visibles.some(configuracion => !conocidas.has(configuracion.clave))) {
@@ -584,35 +622,33 @@ function renderizarConfiguracion(configuraciones) {
   lista.replaceChildren(...grupos.filter(grupo => visibles.some(configuracion => grupo.claves.includes(configuracion.clave))).map(grupo => {
     const seccion = document.createElement('section');
     seccion.className = 'admin-configuracion-grupo';
-    const titulo = document.createElement('h2');
-    titulo.textContent = grupo.titulo;
-    const descripcion = document.createElement('p');
-    descripcion.textContent = grupo.descripcion;
-    seccion.append(titulo, descripcion, ...visibles.filter(configuracion => grupo.claves.includes(configuracion.clave)).map(crearCampoConfiguracion));
+    if (grupo.titulo) {
+      const titulo = document.createElement('h2');
+      titulo.textContent = grupo.titulo;
+      const descripcion = document.createElement('p');
+      descripcion.textContent = grupo.descripcion;
+      seccion.append(titulo, descripcion);
+    }
+    seccion.append(...visibles.filter(configuracion => grupo.claves.includes(configuracion.clave)).map(crearCampoConfiguracion));
     return seccion;
   }));
 }
 
 function crearCampoConfiguracion(configuracion) {
     const elemento = document.createElement("article");
-    const esRitmoReproduccion = configuracion.clave === "velocidad_simulacion";
     const esMantenimiento = configuracion.clave === "modo_mantenimiento";
     const modo = String(configuracion.valor).trim().toLowerCase();
-    const titulo = esRitmoReproduccion ? "Ritmo de reproducción (×)" : formatearClave(configuracion.clave);
-    const descripcion = esRitmoReproduccion
-      ? 'Ritmo inicial al abrir Simulaciones: 0.5×, 1×, 2× o 4×. El jugador puede cambiarlo; no modifica UV, horas ni puntos.'
-      : esMantenimiento
-        ? 'Al activarlo, impide a los jugadores crear, editar o simular. Las consultas siguen disponibles; las pantallas abiertas actualizan el aviso al recuperar el foco.'
-        : configuracion.descripcion;
+    const titulo = formatearClave(configuracion.clave);
+    const descripcion = esMantenimiento
+      ? 'Al activarlo, los jugadores no pueden iniciar sesión ni entrar al juego. Solo ven la pantalla de mantenimiento hasta que un administrador lo desactive.'
+      : configuracion.descripcion;
     const atributos = `class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" aria-label="Valor de ${escaparHtml(titulo)}"`;
     const campo = esMantenimiento
       ? `<select ${atributos}>${["activado", "desactivado"].includes(modo) ? "" : '<option value="" selected disabled>Seleccioná un estado</option>'}${["desactivado", "activado"].map(valor => `<option value="${valor}" ${modo === valor ? "selected" : ""}>${valor.toUpperCase()}</option>`).join("")}</select>`
-      : esRitmoReproduccion
-        ? `<select ${atributos}>${['0.5', '1', '2', '4'].map(valor => `<option value="${valor}" ${Number(configuracion.valor) === Number(valor) ? 'selected' : ''}>${valor}×</option>`).join('')}</select>`
       : `<input ${atributos} type="text" value="${escaparHtml(configuracion.valor)}" />`;
-    elemento.className = "admin-configuracion-item";
+    elemento.className = `admin-configuracion-item${esMantenimiento ? ' admin-configuracion-item--mantenimiento' : ''}`;
     elemento.innerHTML = `
-      <div><h3>${escaparHtml(titulo)}</h3><p>${escaparHtml(descripcion)}</p></div>
+      <div>${esMantenimiento ? '' : `<h3>${escaparHtml(titulo)}</h3>`}<p>${escaparHtml(descripcion)}</p></div>
       <div class="admin-campo-configuracion">${campo}</div>
       <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
     `;
@@ -655,7 +691,8 @@ async function cargarActividad(token) {
       throw new Error(await obtenerMensajeError(respuesta, "No fue posible cargar la actividad."));
     }
 
-    renderizarActividad(await respuesta.json());
+    actividadesDisponibles = await respuesta.json();
+    renderizarActividad(actividadesDisponibles);
   } catch (error) {
     mostrarMensajeActividad(error.message, "error");
   }
@@ -663,6 +700,7 @@ async function cargarActividad(token) {
 
 function renderizarActividad(actividades) {
   const tabla = document.getElementById("tablaActividad");
+  document.getElementById('borrarTodasActividades').disabled = borrandoActividad || actividades.length === 0;
   tabla.replaceChildren(...(actividades.length ? actividades.map((actividad) => {
     const fila = document.createElement("tr");
     fila.innerHTML = `
@@ -670,10 +708,39 @@ function renderizarActividad(actividades) {
       <td>${escaparHtml(actividad.administrador)}</td>
       <td>${escaparHtml(actividad.accion)}</td>
       <td>${escaparHtml(actividad.detalle)}</td>
+      <td><button class="admin-eliminar" type="button" data-borrar-actividad="${actividad.idActividad}" ${borrandoActividad ? 'disabled' : ''}>Borrar</button></td>
     `;
     return fila;
-  }) : [crearFilaVacia("Todavía no hay actividad registrada.", 4)]));
+  }) : [crearFilaVacia("Todavía no hay actividad registrada.", 5)]));
   mostrarMensajeActividad(actividades.length ? "" : "Todavía no hay actividad registrada.");
+}
+
+async function borrarActividad(idActividad, token) {
+  if (borrandoActividad || actividadesDisponibles.length === 0) return;
+  const una = Number.isInteger(idActividad) && idActividad > 0;
+  if (una && !actividadesDisponibles.some(actividad => actividad.idActividad === idActividad)) return;
+  const pregunta = una
+    ? '¿Borrar esta entrada del registro de actividad? Esta acción no se puede deshacer.'
+    : '¿Borrar todo el registro de actividad de administradores? Esta acción no se puede deshacer.';
+  if (!await confirmarSistema(pregunta)) return;
+  borrandoActividad = true;
+  document.getElementById('borrarTodasActividades').disabled = true;
+  document.querySelectorAll('[data-borrar-actividad]').forEach(boton => { boton.disabled = true; });
+  try {
+    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/actividades${una ? `/${idActividad}` : ''}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, 'No fue posible borrar el registro de actividad.'));
+    actividadesDisponibles = una ? actividadesDisponibles.filter(actividad => actividad.idActividad !== idActividad) : [];
+    renderizarActividad(actividadesDisponibles);
+    mostrarMensajeActividad(una ? 'Entrada de actividad borrada.' : 'Registro de actividad borrado.');
+  } catch (error) {
+    mostrarMensajeActividad(error.message, 'error');
+  } finally {
+    borrandoActividad = false;
+    document.getElementById('borrarTodasActividades').disabled = actividadesDisponibles.length === 0;
+    document.querySelectorAll('[data-borrar-actividad]').forEach(boton => { boton.disabled = false; });
+  }
 }
 
 function mostrarMensajeActividad(texto, tipo = "") {

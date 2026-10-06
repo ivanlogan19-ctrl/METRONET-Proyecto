@@ -186,10 +186,17 @@ public class PuntuacionService {
                 WHERE i.estado='COMPLETADO' AND i.puntaje IS NOT NULL AND e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero IS NOT NULL
                 GROUP BY i.id_usuario,i.id_escenario
             )
-            SELECT u.id_usuario, COALESCE(SUM(m.puntos),0) total, COUNT(m.id_escenario) completados
+            SELECT u.id_usuario, u.nombre, u.apellido, COALESCE(SUM(m.puntos),0) total, COUNT(m.id_escenario) completados
             FROM usuario u LEFT JOIN mejores m ON m.id_usuario=u.id_usuario WHERE u.rol='JUGADOR'
-            GROUP BY u.id_usuario ORDER BY total DESC, completados DESC, u.id_usuario ASC
-            """, (r, fila) -> new RankingResponse.Entrada(fila + 1, "Jugador " + r.getInt("id_usuario"), r.getInt("total"), r.getInt("completados"), r.getInt("id_usuario") == idUsuario));
+            GROUP BY u.id_usuario, u.nombre, u.apellido ORDER BY total DESC, completados DESC, u.id_usuario ASC
+            """, (r, fila) -> {
+                String nombre = r.getString("nombre");
+                String apellido = r.getString("apellido");
+                String nombreVisible = ((nombre == null ? "" : nombre.trim()) + " "
+                    + (apellido == null ? "" : apellido.trim())).trim();
+                return new RankingResponse.Entrada(fila + 1, nombreVisible.isEmpty() ? "Jugador " + r.getInt("id_usuario") : nombreVisible,
+                    r.getInt("total"), r.getInt("completados"), r.getInt("id_usuario") == idUsuario);
+            });
         var propio = filas.stream().filter(RankingResponse.Entrada::sosVos).findFirst();
         int maximo = jdbc.query("SELECT reglas_exito::text AS reglas_exito FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero IS NOT NULL",
             (r, fila) -> maximo(r.getString("reglas_exito"))).stream().mapToInt(Integer::intValue).sum();

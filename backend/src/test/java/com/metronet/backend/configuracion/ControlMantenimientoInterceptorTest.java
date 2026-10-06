@@ -39,7 +39,7 @@ class ControlMantenimientoInterceptorTest {
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, excepcion.getStatusCode());
         assertEquals(
-            "La plataforma está en mantenimiento. Por el momento no podés crear ni modificar diseños o simulaciones.",
+            "METRONET está en mantenimiento. Disculpá las molestias. Volvé cuando finalice.",
             excepcion.getReason()
         );
     }
@@ -70,14 +70,29 @@ class ControlMantenimientoInterceptorTest {
     }
 
     @Test
-    void noConsultaMantenimientoParaUnaLectura() throws Exception {
-        assertTrue(crearInterceptor().preHandle(
-            solicitud("GET", "Bearer jugador"),
-            new MockHttpServletResponse(),
-            new Object()
-        ));
+    void bloqueaTambienLasLecturasDelJugador() {
+        when(configuracionService.estaModoMantenimientoActivo()).thenReturn(true);
+        when(authService.obtenerUsuarioConSesion("Bearer jugador")).thenReturn(crearUsuario(Rol.JUGADOR));
+        ResponseStatusException excepcion = assertThrows(ResponseStatusException.class,
+            () -> crearInterceptor().preHandle(solicitud("GET", "Bearer jugador"), new MockHttpServletResponse(), new Object()));
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, excepcion.getStatusCode());
+    }
 
+    @Test
+    void permiteConsultarElEstadoPublicoDuranteElMantenimiento() throws Exception {
+        MockHttpServletRequest solicitud = new MockHttpServletRequest("GET", "/api/estado");
+        assertTrue(crearInterceptor().preHandle(solicitud, new MockHttpServletResponse(), new Object()));
         verifyNoInteractions(authService, configuracionService);
+    }
+
+    @Test
+    void bloqueaElAccesoDesdeElLoginDelJugador() {
+        when(configuracionService.estaModoMantenimientoActivo()).thenReturn(true);
+        MockHttpServletRequest solicitud = new MockHttpServletRequest("POST", "/auth/login");
+        ResponseStatusException excepcion = assertThrows(ResponseStatusException.class,
+            () -> crearInterceptor().preHandle(solicitud, new MockHttpServletResponse(), new Object()));
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, excepcion.getStatusCode());
+        verifyNoInteractions(authService);
     }
 
     private ControlMantenimientoInterceptor crearInterceptor() {

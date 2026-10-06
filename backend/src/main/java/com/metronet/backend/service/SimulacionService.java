@@ -366,7 +366,7 @@ public class SimulacionService {
         int lineas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", Integer.class, idDiseno);
         int estaciones = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
         int transbordos = jdbcTemplate.queryForObject("""
-            SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ? AND e.transbordo = TRUE
+            SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ?
               AND (SELECT COUNT(DISTINCT t.nombre_linea) FROM tramo t
                    WHERE t.id_diseno = e.id_diseno
                      AND (t.nombre_estacion_a = e.nombre OR t.nombre_estacion_b = e.nombre)) >= 2
