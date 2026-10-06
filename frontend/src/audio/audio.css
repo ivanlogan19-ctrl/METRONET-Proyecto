@@ -3,10 +3,6 @@
 .metronet-audio > summary { list-style: none; }
 .metronet-audio > summary::-webkit-details-marker { display: none; }
 .metronet-audio--autenticacion { position: relative; width: fit-content; margin: 0 0 4px auto; }
-.metronet-audio--login {
-  position: fixed; top: max(8px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right));
-  margin: 0; z-index: var(--layer-header);
-}
 /* Caja discreta de 30 px dentro del objetivo táctil de 44 px. */
 html:root body .metronet-audio--autenticacion > summary.metronet-boton-icono {
   padding: 5px; border: 7px solid transparent; background-clip: padding-box;

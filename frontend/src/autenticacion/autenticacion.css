@@ -25,11 +25,18 @@ body .auth-card {
   box-shadow: var(--shadow-floating);
 }
 
+/* Una sola familia para acceso, registro y recuperación, incluido el consentimiento. */
+body .auth-card:not(.privacy-card) {
+  --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-tecnica: var(--font-ui);
+  font-family: var(--font-ui);
+}
+
 body .auth-card.auth-card--amplia {
   width: min(100%, 700px);
 }
 
-body .auth-card > .auth-marca {
+body .auth-card .auth-marca {
   display: grid;
   place-items: center;
   margin-bottom: clamp(22px, 4vw, 30px);
@@ -37,11 +44,11 @@ body .auth-card > .auth-marca {
   border-bottom: var(--border-width) solid var(--border);
 }
 
-body .auth-card > .auth-marca .metronet-logo {
+body .auth-card .auth-marca .metronet-logo {
   width: min(100%, var(--metronet-logo-width-principal));
 }
 
-body .auth-card > .auth-marca .metronet-logo__imagen {
+body .auth-card .auth-marca .metronet-logo__imagen {
   display: block;
   width: 100%;
   height: auto;
@@ -343,6 +350,18 @@ body .auth-card .auth-reenvio .auth-ayuda {
   margin: 0;
 }
 
+body .auth-card .auth-reenvio .auth-link--reenvio {
+  color: var(--danger);
+}
+
+body .auth-card :is(#formularioVerificacion, #formularioRecuperacion) .field-group label {
+  margin-bottom: 12px;
+}
+
+body .auth-card :is(#formularioVerificacion, #formularioRecuperacion) .primary-button {
+  margin-top: -10px;
+}
+
 body .auth-card .privacy-content {
   display: grid;
   gap: 18px;
@@ -380,6 +399,165 @@ body .auth-card .auth-action {
   margin-top: 26px;
 }
 
+/* En escritorio, la presentación y el formulario comparten una fila. */
+@media (min-width: 800px) {
+  body .auth-page:has(.auth-card__presentacion) {
+    padding: clamp(16px, 3svh, 28px) clamp(16px, 3vw, 40px);
+  }
+
+  body .auth-card:not(.privacy-card) {
+    grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr);
+    align-items: center;
+    column-gap: clamp(24px, 4vw, 52px);
+    width: min(100%, 1100px);
+    padding: clamp(20px, 3vw, 34px);
+    position: relative;
+  }
+
+  body .auth-card__presentacion,
+  body .auth-card__contenido {
+    min-width: 0;
+  }
+
+  body .auth-card.privacy-card {
+    grid-template-columns: minmax(0, .42fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: clamp(24px, 3vw, 44px);
+    width: min(100%, 1380px);
+    padding: clamp(20px, 2vw, 30px);
+  }
+
+  body .auth-card.privacy-card .privacy-content {
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  body .auth-card.privacy-card .privacy-contexto {
+    padding-bottom: 10px;
+  }
+
+  body .auth-card.privacy-card .privacy-notice {
+    gap: 9px;
+    padding: 16px;
+  }
+
+  body .auth-card.privacy-card .auth-action {
+    margin-top: 14px;
+  }
+
+  body .auth-card.auth-card--verificacion {
+    width: min(100%, 1260px);
+  }
+
+  body .auth-card__presentacion {
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+  }
+
+  body .auth-card__presentacion .auth-marca {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  body .auth-card__presentacion .auth-marca .metronet-logo {
+    width: min(100%, 380px);
+  }
+
+  body .auth-card :is(.auth-subtitle--login, .auth-subtitle--recuperacion) {
+    max-width: none;
+  }
+
+  body .auth-card .auth-subtitle--recuperacion {
+    font-size: 13px;
+  }
+
+  body .auth-card .auth-subtitle--verificacion {
+    max-width: none;
+    font-size: 12px;
+  }
+
+  body .auth-card .auth-subtitle--admin,
+  body .auth-card .auth-subtitle--registro {
+    max-width: none;
+    font-size: 13px;
+  }
+
+  body .auth-card .auth-subtitle--registro {
+    font-size: 12px;
+  }
+
+  body .auth-card .auth-ayuda--recuperacion {
+    font-size: 12px;
+  }
+
+  body .auth-card .auth-card__contenido .auth-form {
+    margin-top: 16px;
+  }
+
+  body .auth-card .auth-card__contenido:has(#loginForm, #loginAdminForm) .auth-form {
+    margin-top: 28px;
+  }
+
+  body .auth-card__contenido > .mensaje:empty {
+    min-height: 0;
+    margin: 0;
+  }
+
+  body .auth-card:not(.privacy-card) > .metronet-audio--autenticacion {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    margin: 0;
+    z-index: 1;
+  }
+
+  body .auth-card:has(> .metronet-audio--autenticacion) .auth-card__presentacion {
+    padding-top: 36px;
+  }
+
+  body .auth-card #registroForm .auth-form-section + .auth-form-section {
+    margin-top: 28px;
+    padding-top: 0;
+  }
+
+  body #registroForm .auth-form-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body #registroForm .auth-form-section legend {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Los tres bloques de registro tienen la misma jerarquía y separación. */
+html:root body #registroForm :is(.auth-form-section legend, .auth-seccion-titulo) {
+  margin: 0 0 10px;
+  color: var(--info-active);
+  font: 400 16px/1.35 var(--font-arcade);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+body .auth-card #registroForm .auth-privacidad-seccion {
+  gap: 0;
+}
+
+@media (min-width: 1200px) {
+  body .auth-card :is(.auth-subtitle--login, .auth-subtitle--registro, .auth-subtitle--admin) {
+    white-space: nowrap;
+  }
+
+  body .auth-card .auth-ayuda--recuperacion {
+    white-space: nowrap;
+  }
+}
+
 @media (max-height: 760px) and (min-width: 561px) {
   body .auth-page {
     padding-block: 20px;
@@ -389,12 +567,12 @@ body .auth-card .auth-action {
     padding: 22px clamp(28px, 4vw, 36px);
   }
 
-  body .auth-card > .auth-marca {
+  body .auth-card .auth-marca {
     margin-bottom: 18px;
     padding-bottom: 16px;
   }
 
-  body .auth-card > .auth-marca .metronet-logo {
+  body .auth-card .auth-marca .metronet-logo {
     width: min(100%, var(--metronet-logo-width));
   }
 
@@ -436,12 +614,12 @@ body .auth-card .auth-action {
     border-radius: var(--radius-control);
   }
 
-  body .auth-card > .auth-marca {
+  body .auth-card .auth-marca {
     margin-bottom: 20px;
     padding-bottom: 18px;
   }
 
-  body .auth-card > .auth-marca .metronet-logo {
+  body .auth-card .auth-marca .metronet-logo {
     width: min(100%, var(--metronet-logo-width));
   }
 
