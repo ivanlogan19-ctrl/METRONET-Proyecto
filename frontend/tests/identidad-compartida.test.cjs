@@ -19,6 +19,7 @@ async function estilo(elemento, propiedades) {
   }, propiedades);
 }
 const aspecto = ['backgroundColor', 'color', 'borderTopColor', 'borderTopWidth', 'borderRadius', 'boxShadow', 'fontFamily'];
+function sinFuente({ fontFamily, ...resto }) { return resto; }
 function contraste(texto, fondo) {
   const luminancia = color => {
     const canales = color.match(/[\d.]+/g).slice(0, 3).map(n => Number(n) / 255).map(n => n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4);
@@ -41,15 +42,11 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     const actualCampo = await estilo(pagina.locator(entrada).first(), aspecto);
     primario ??= actual; campo ??= actualCampo;
     assert.deepEqual(actual, primario, `Acción primaria en ${ruta}`);
-    if (ruta === '/admin.html') {
-      const { fontFamily: fuenteAdmin, ...restoAdmin } = actualCampo;
-      const { fontFamily: _fuenteBase, ...restoBase } = campo;
-      assert.match(fuenteAdmin, /Silkscreen/);
-      assert.deepEqual(restoAdmin, restoBase, `Campo en ${ruta}`);
-    } else assert.deepEqual(actualCampo, campo, `Campo en ${ruta}`);
+    assert.deepEqual(sinFuente(actualCampo), sinFuente(campo), `Campo en ${ruta}`);
+    if (ruta === '/login.html' || ruta === '/admin.html') assert.match(actualCampo.fontFamily, /Silkscreen/);
+    else assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
     assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}`);
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
-    if (ruta !== '/admin.html') assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
     if (ruta.startsWith('/simulacion.html')) {
       assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración simulada en horas');
       assert.equal(await pagina.locator('[data-icono-duracion] svg').count(), 1);
@@ -60,12 +57,30 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
       return Object.fromEntries(['color', 'fontFamily', 'fontSize', 'fontWeight'].map(clave => [clave, css[clave]]));
     });
     etiqueta ??= actualEtiqueta;
-    if (ruta === '/admin.html') {
-      const { fontFamily: fuenteAdmin, ...restoAdmin } = actualEtiqueta;
-      const { fontFamily: _fuenteBase, ...restoBase } = etiqueta;
-      assert.match(fuenteAdmin, /Silkscreen/);
-      assert.deepEqual(restoAdmin, restoBase, `Etiqueta en ${ruta}`);
-    } else assert.deepEqual(actualEtiqueta, etiqueta, `Etiqueta en ${ruta}`);
+    assert.deepEqual(sinFuente(actualEtiqueta), sinFuente(etiqueta), `Etiqueta en ${ruta}`);
+    if (ruta === '/login.html' || ruta === '/admin.html') assert.match(actualEtiqueta.fontFamily, /Silkscreen/);
+    else assert.doesNotMatch(actualEtiqueta.fontFamily, /Silkscreen/);
+  }
+});
+
+test('los seis formularios de acceso usan Silkscreen en campos y etiquetas', async () => {
+  for (const ruta of ['/login.html', '/admin-login.html', '/registro.html',
+    '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html']) {
+    for (const width of [390, 1440]) {
+      const { pagina, contexto, errores } = await abrirPantalla(navegador, ruta, { viewport: { width, height: 900 } });
+      try {
+        const elementos = pagina.locator('.auth-card:not(.privacy-card) .field-group label, '
+          + '.auth-card:not(.privacy-card) .field-group input:not([type="checkbox"]):not([type="hidden"])');
+        assert.ok(await elementos.count() >= 2, `${ruta}: faltan campos o etiquetas`);
+        for (const elemento of await elementos.all()) {
+          assert.match(await elemento.evaluate(nodo => getComputedStyle(nodo).fontFamily), /Silkscreen/,
+            `${ruta} ${width}: tipografía de campo o etiqueta`);
+        }
+        assert.ok(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          `${ruta} ${width}: desborde horizontal`);
+        assert.deepEqual(errores, []);
+      } finally { await contexto.close(); }
+    }
   }
 });
 
