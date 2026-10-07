@@ -17,12 +17,12 @@ function mostrarDefinicion(id, origen) {
   cerrarDefinicion();
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-glosario-ventana';
+  dialogo.tabIndex = -1;
   dialogo.setAttribute('aria-labelledby', 'tituloConceptoMetronet');
   dialogo.setAttribute('aria-describedby', 'definicionConceptoMetronet');
   const titulo = texto('h2', tituloConcepto(entrada)); titulo.id = 'tituloConceptoMetronet';
   const definicion = texto('p', entrada.definicion); definicion.id = 'definicionConceptoMetronet';
-  const cerrar = texto('button', 'Cerrar explicación'); cerrar.type = 'button';
-  dialogo.append(texto('p', `GLOSARIO / ${entrada.categoria}`, 'metronet-glosario-categoria'), titulo, definicion, cerrar);
+  dialogo.append(texto('p', `GLOSARIO / ${entrada.categoria}`, 'metronet-glosario-categoria'), titulo, definicion);
   // Un diálogo anidado permanece sobre la introducción y Escape solo cierra la definición.
   const padre = origen.closest('dialog') ?? document.body;
   let observador;
@@ -34,16 +34,12 @@ function mostrarDefinicion(id, origen) {
     if (origen.isConnected) origen.focus({ preventScroll: true });
   };
   cerrarActual = limpiar;
-  cerrar.addEventListener('click', limpiar);
   dialogo.addEventListener('cancel', e => { e.preventDefault(); e.stopPropagation(); limpiar(); });
   dialogo.addEventListener('close', e => { e.stopPropagation(); limpiar(); });
-  dialogo.addEventListener('keydown', e => {
-    e.stopPropagation();
-    if (e.key === 'Tab') { e.preventDefault(); cerrar.focus(); }
-  });
+  dialogo.addEventListener('keydown', e => e.stopPropagation());
   dialogo.addEventListener('click', e => { if (e.target === dialogo && (e.clientX < dialogo.getBoundingClientRect().left || e.clientX > dialogo.getBoundingClientRect().right || e.clientY < dialogo.getBoundingClientRect().top || e.clientY > dialogo.getBoundingClientRect().bottom)) limpiar(); });
   try {
-    padre.append(dialogo); dialogo.showModal(); cerrar.focus();
+    padre.append(dialogo); dialogo.showModal(); dialogo.focus();
     observador = new MutationObserver(() => { if (!origen.isConnected || !dialogo.isConnected) limpiar(); });
     observador.observe(document.body, { childList: true, subtree: true });
     window.addEventListener('pagehide', limpiar);
@@ -58,17 +54,19 @@ function mostrarDefinicionContextual(id, origen, contenedor) {
   panel.className = 'metronet-glosario-contextual';
   panel.id = 'explicacionContextualMetronet';
   panel.setAttribute('aria-label', tituloConcepto(entrada));
-  const cerrar = texto('button', 'Cerrar explicación');
-  cerrar.type = 'button';
   const definicion = texto('p', entrada.definicion);
   // La definición puede estar en una región compacta con desplazamiento propio.
   definicion.tabIndex = 0;
-  panel.append(texto('strong', tituloConcepto(entrada)), definicion, cerrar);
+  panel.append(texto('strong', tituloConcepto(entrada)), definicion);
   origen.setAttribute('aria-expanded', 'true');
   origen.setAttribute('aria-controls', panel.id);
   let observador;
+  const alPulsarFuera = evento => {
+    if (!panel.contains(evento.target) && !origen.contains(evento.target)) limpiar();
+  };
   const limpiar = (devolverFoco = false) => {
     observador?.disconnect();
+    document.removeEventListener('pointerdown', alPulsarFuera, true);
     window.removeEventListener('pagehide', alSalir);
     panel.remove();
     origen.setAttribute('aria-expanded', 'false');
@@ -78,16 +76,16 @@ function mostrarDefinicionContextual(id, origen, contenedor) {
   };
   const alSalir = () => limpiar();
   cerrarActual = limpiar;
-  cerrar.addEventListener('click', () => limpiar(true));
   panel.addEventListener('keydown', evento => {
     if (evento.key === 'Escape') { evento.preventDefault(); evento.stopPropagation(); limpiar(true); }
   });
   if (contenedor.matches('p')) contenedor.after(panel);
   else contenedor.append(panel);
   panel.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  cerrar.focus({ preventScroll: true });
+  definicion.focus({ preventScroll: true });
   observador = new MutationObserver(() => { if (!origen.isConnected || !panel.isConnected || contenedor.closest('[hidden]')) limpiar(); });
   observador.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  document.addEventListener('pointerdown', alPulsarFuera, true);
   window.addEventListener('pagehide', alSalir);
 }
 

@@ -247,6 +247,7 @@ function configurarDialogoReinicio() {
         body: JSON.stringify({ numeroCampanaActual: progresoActual.numeroCampanaActual }),
       });
       dialogo.close();
+      accionEnCurso = false;
       renderizarPantalla(progresoActual);
       mostrarMensaje('El recorrido se reinició. Tus intentos, diseños y simulaciones anteriores se conservaron.');
     } catch (error) {

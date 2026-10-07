@@ -14,6 +14,9 @@ class GeografiaServiceTest {
         var palacio = geografia.resolverPunto(1, null);
         assertTrue(geografia.pertenece("barrio", "Aguada", geografia.posicionX(palacio), geografia.posicionY(palacio)));
         assertTrue(geografia.pertenece("zona", "ZONA OESTE", geografia.posicionX(palacio), geografia.posicionY(palacio)));
+        assertTrue(geografia.zonaIncluyeBarrio("ZONA OESTE", "Aguada"));
+        assertTrue(geografia.zonaIncluyeBarrio("ZONA ESTE", "Punta Gorda"));
+        assertFalse(geografia.zonaIncluyeBarrio("ZONA ESTE", "Aguada"));
         assertFalse(geografia.pertenece("zona", "ZONA ESTE", geografia.posicionX(palacio), geografia.posicionY(palacio)));
         var rambla = geografia.resolverPunto(26, null);
         assertTrue(geografia.pertenece("barrio", "Punta Gorda", geografia.posicionX(rambla), geografia.posicionY(rambla)));
@@ -57,6 +60,7 @@ class GeografiaServiceTest {
                          {"properties":{"BARRIO":"B"},"geometry":null}]}
             """), mapper.readTree("{\"ZONA PRUEBA\":[\"A\",\"B\"]}"));
         assertFalse(incompleta.tieneGeometria("zona", "ZONA PRUEBA"));
+        assertFalse(incompleta.zonaIncluyeBarrio("ZONA PRUEBA", "A"));
         assertFalse(incompleta.tieneGeometria("barrio", "B"));
     }
 }

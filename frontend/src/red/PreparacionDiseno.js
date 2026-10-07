@@ -7,7 +7,9 @@ export async function prepararDiseno(cliente, idDiseno, { guardar = false, paraS
   const validacion = await cliente.solicitar(`/${idDiseno}/validacion`, { method: protegido ? 'GET' : 'POST' });
   comprobar();
   if (paraSimular && (!validacion.valido || !validacion.preparadoParaSimular)) {
-    throw new Error([...(validacion.observaciones ?? []), ...(validacion.observacionesSimulacion ?? [])].join(' ') || 'La red todavía no está lista para simular.');
+    const error = new Error([...(validacion.observaciones ?? []), ...(validacion.observacionesSimulacion ?? [])].join(' ') || 'La red todavía no está lista para simular.');
+    error.codigo = 'RED_NO_PREPARADA';
+    throw error;
   }
   if (guardar && !protegido) await cliente.solicitar(`/${idDiseno}/guardar`, { method: 'POST' });
   comprobar();

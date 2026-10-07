@@ -97,16 +97,16 @@ html:root body .metronet-poi .metronet-panel-puntos-interes[data-acceso-integrad
 }
 #metronet-aplicacion .metronet-poi__panel > header h2 {
   position: relative;
-  padding-left: 12px;
+  padding-left: 0;
 }
 #metronet-aplicacion .metronet-poi__panel > header h2::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: calc(50% - 4px);
-  width: 4px;
-  height: 8px;
-  background: var(--info-active);
+  content: none;
+}
+html:root body #metronet-aplicacion .metronet-poi__geografia h3 {
+  padding-left: 0;
+}
+html:root body #metronet-aplicacion .metronet-poi__geografia h3::before {
+  content: none;
 }
 #metronet-aplicacion .metronet-poi .metronet-panel-puntos-busqueda {
   text-align: center;

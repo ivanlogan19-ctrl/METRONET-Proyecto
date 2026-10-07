@@ -25,8 +25,8 @@ html:root body.metronet-pagina-navegable.metronet-pagina-inicio {
 @media (min-width: 800px) {
   html:root body.metronet-pagina-inicio .metronet-inicio {
     min-height: calc(100svh - var(--navegacion-alto));
-    align-content: end;
-    padding-block: clamp(30px, 6vw, 72px) 60px;
+    align-content: start;
+    padding-block: clamp(12px, 1.8vw, 20px) 32px;
   }
 }
 button, input, select, textarea { font: inherit; }
@@ -102,7 +102,7 @@ button { cursor: pointer; }
 .perfil-pagina {
   display: grid;
   min-height: calc(100svh - var(--navegacion-alto));
-  padding: clamp(24px, 5vw, 58px) clamp(14px, 3vw, 30px);
+  padding: clamp(12px, 1.8vw, 20px) clamp(14px, 3vw, 30px) clamp(24px, 5vw, 58px);
 }
 .perfil-contenedor {
   width: min(100%, 820px);
@@ -345,7 +345,7 @@ button { cursor: pointer; }
 .metronet-notificacion--advertencia { border-left-color: var(--warning); }
 .metronet-notificacion--error { border-color: color-mix(in srgb, var(--danger) 58%, var(--border)); border-left-color: var(--danger); }
 
-.metronet-inicio, .metronet-escenarios-pagina { width: min(100% - 32px, 1040px); margin: 0 auto; padding: clamp(30px, 6vw, 72px) 0; }
+.metronet-inicio, .metronet-escenarios-pagina { width: min(100% - 32px, 1040px); margin: 0 auto; padding: clamp(12px, 1.8vw, 20px) 0 clamp(30px, 6vw, 72px); }
 .metronet-inicio__presentacion { width: 100%; max-width: none; }
 .metronet-inicio__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px clamp(16px, 3vw, 32px); }
 html:root body.metronet-pagina-inicio .metronet-inicio__presentacion {

@@ -5,11 +5,14 @@ import SelectorZonas from './SelectorZonas.js';
 
 // Composición compartida por editor y visor. Selección y visibilidad son estados distintos.
 export default class ReferenciasGeograficas {
-  constructor(escena, { contenedor, mapa, alSeleccionarGeografia = () => {}, alSeleccionarPunto } = {}) {
+  constructor(escena, { contenedor, mapa, alSeleccionarGeografia = () => {}, alSeleccionarPunto, alCambiarCategorias = () => {} } = {}) {
     this.escena = escena;
     this.panel = new PanelReferenciasTerritoriales({
       contenedor, mapa,
-      alCambiarCategorias: categorias => escena.capaPuntosInteres.establecerCategoriasVisibles(categorias),
+      alCambiarCategorias: categorias => {
+        escena.capaPuntosInteres.establecerCategoriasVisibles(categorias);
+        alCambiarCategorias(categorias);
+      },
       alCambiarGeografia: estado => escena.capaBarrios.establecerVisibilidad(estado),
     });
     this.panel.crear();

@@ -61,8 +61,7 @@ html:root body .metronet-assist--integrado h2 > span {
 html:root body .metronet-assist--integrado [data-assist-mensaje] > p { line-height: 1.4; }
 .metronet-assist--integrado .metronet-assist__acciones { grid-column: 3; grid-row: 1; flex-wrap: nowrap; gap: 6px; }
 html:root body .metronet-assist--integrado .metronet-assist__acciones button,
-html:root body .metronet-assist--integrado [data-assist-alternar],
-html:root body .metronet-assist--integrado .metronet-glosario-contextual > button {
+html:root body .metronet-assist--integrado [data-assist-alternar] {
   min-height: 28px; margin: 0; padding: 3px 5px;
   font-size: 13px; white-space: normal;
 }
@@ -76,7 +75,7 @@ html:root body .metronet-assist--integrado .metronet-glosario-contextual > butto
 /* El glosario reutiliza el lugar del texto; su definición larga sigue accesible. */
 .metronet-assist--integrado [data-assist-mensaje]:has(.metronet-glosario-contextual) > p { display: none; }
 html:root body .metronet-assist--integrado .metronet-glosario-contextual {
-  grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 8px;
+  grid-template-columns: minmax(0, 1fr); align-items: center; gap: 2px;
   margin: 0; padding: 0; border: 0; background: transparent;
 }
 html:root body .metronet-assist--integrado .metronet-glosario-contextual > strong {
@@ -88,7 +87,6 @@ html:root body .metronet-assist--integrado .metronet-glosario-contextual > p {
   grid-column: 1 / -1; grid-row: 2; max-height: 3.9em; overflow: auto; scrollbar-width: thin;
   font: 400 14px/1.3 var(--font-ui); text-shadow: none;
 }
-.metronet-assist--integrado .metronet-glosario-contextual > button { grid-column: 2; grid-row: 1; }
 html:root body .metronet-assist--integrado button.metronet-glosario-termino { min-height: 24px; padding: 0; line-height: inherit; }
 @media (max-width: 920px) {
   .metronet-assist--integrado { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }

@@ -254,6 +254,10 @@ class CampanaPostgresTest {
                         jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,TRUE)", nivel, "E" + indice++, geo.posicionX(poi), geo.posicionY(poi));
                     }
                     int cantidad = reglas.path("minimoEstaciones").asInt();
+                    if (nivel == 5 || nivel == 6 || nivel == 9) {
+                        var area = geo.resolverPunto(106, null);
+                        jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,TRUE)", nivel, "E" + indice++, geo.posicionX(area), geo.posicionY(area));
+                    }
                     while (indice < cantidad) { jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,TRUE)", nivel, "E" + indice, 660 + indice * 5, 460); indice++; }
                     jdbc.update("INSERT INTO linea VALUES (?,'Principal')", nivel);
                     for (int i = 0; i < cantidad; i++) {
@@ -267,7 +271,8 @@ class CampanaPostgresTest {
                         jdbc.update("INSERT INTO pasa VALUES (?,?,?),(?,?,'E2')", nivel, linea, origen, nivel, linea);
                         jdbc.update("INSERT INTO tramo VALUES (?,?,?,'E2')", nivel, linea, origen);
                     }
-                    for (int i = 0; i < reglas.path("minimoMetros").asInt(); i++) jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,velocidad_promedio) VALUES (?,?,?)", nivel, i == 0 ? "Principal" : "Enlace" + i, 4);
+                    int metrosFixture = nivel == 4 ? 1 : reglas.path("minimoMetros").asInt();
+                    for (int i = 0; i < metrosFixture; i++) jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,velocidad_promedio) VALUES (?,?,?)", nivel, i == 0 ? "Principal" : "Enlace" + i, 4);
                     if (reglas.path("requiereSimulacion").asBoolean()) {
                         ComparacionesSimulacionFixture.registrar(jdbc, juego, nivel, 6);
                         assertFalse(juego.evaluarEscenario(7, nivel).completado(), "Play no basta en nivel " + nivel);
@@ -363,6 +368,10 @@ class CampanaPostgresTest {
                         jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,TRUE)", nivel, "E" + indice++, geo.posicionX(poi), geo.posicionY(poi));
                     }
                     int cantidad = reglas.path("minimoEstaciones").asInt();
+                    if (nivel == 5 || nivel == 6 || nivel == 9) {
+                        var area = geo.resolverPunto(106, null);
+                        jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,TRUE)", nivel, "E" + indice++, geo.posicionX(area), geo.posicionY(area));
+                    }
                     while (indice < cantidad) { jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,TRUE)", nivel, "E" + indice, 660 + indice * 5, 460); indice++; }
                     jdbc.update("INSERT INTO linea VALUES (?,'Principal')", nivel);
                     for (int i = 0; i < cantidad; i++) {

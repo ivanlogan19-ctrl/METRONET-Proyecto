@@ -2,7 +2,7 @@ body.metronet-pagina-aprendizaje {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
 }
-.metronet-aprendizaje { width: min(100% - 32px, 1040px); margin: auto; padding: clamp(30px, 6vw, 72px) 0; }
+.metronet-aprendizaje { width: min(100% - 32px, 1040px); margin: auto; padding: clamp(12px, 1.8vw, 20px) 0 clamp(30px, 6vw, 72px); }
 @media (min-width: 1100px) {
   .metronet-aprendizaje {
     --cruz-ferroviaria-ancho: clamp(108px, 11vw, 170px);

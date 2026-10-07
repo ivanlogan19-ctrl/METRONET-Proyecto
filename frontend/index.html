@@ -38,7 +38,6 @@
         <section class="metronet-estado-editor" data-estado-editor aria-label="Asistencia y mensajes del editor"></section>
         <div id="metronet-aplicacion">
 
-        <section class="metronet-consigna-externa metronet-consigna" data-contenedor-consigna aria-label="Objetivos del nivel"></section>
         <div class="metronet-area-mapa">
             <h2 class="metronet-mapa-titulo" data-titulo-mapa hidden></h2>
             <section class="metronet-barra-geografica" aria-label="Opciones del mapa">
@@ -47,6 +46,12 @@
             </section>
             <main id="metronet-mapa" aria-label="Mapa de Montevideo"><p class="metronet-mapa-cargando" role="status">Preparando mapa…</p><div class="metronet-mandos-mapa" aria-label="Controles del mapa"></div></main>
         </div>
+
+        <div class="metronet-lateral-editor">
+        <section class="metronet-objetivos-panel" data-panel-objetivos aria-label="Objetivos del nivel" hidden>
+            <section class="metronet-consigna-externa metronet-consigna" data-contenedor-consigna aria-label="Objetivos"></section>
+            <section class="metronet-referencias-objetivo" data-referencias-objetivo aria-label="Objetivos de POI" hidden></section>
+        </section>
 
         <aside
             id="metronet-panel-controles"
@@ -63,6 +68,7 @@
             </div>
             <footer class="metronet-panel-editor-pie" data-panel-editor-pie></footer>
         </aside>
+        </div>
 
     </div>
     </div>

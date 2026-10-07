@@ -117,6 +117,23 @@ for (const n of [2,3,4,5,10]) test(`Nivel ${n}: acceso propio sin tour automáti
   } else assert.equal(await panel.getAttribute('data-paso'),n === 2 ? 'conexiones' : n === 4 ? 'simulacion' : 'manual');
 });
 
+test('Nivel 4 señala Simular en Edición y permite repetir la indicación', async t => {
+  const { pagina:p } = await abrir(t,4,{ primeraPasada:false });
+  const panel = p.locator('.metronet-tutorial');
+  assert.equal(await panel.getAttribute('data-paso'),'simulacion');
+  const guia = p.locator('.metronet-recorrido');
+  assert.equal(await guia.getAttribute('data-objetivo'),'[data-ir-simulacion]');
+  assert.equal(await p.locator('[data-ir-simulacion]').isVisible(),true);
+  await guia.locator('[data-recorrido-omitir]').click();
+  await panel.locator('>summary').click();
+  await panel.getByRole('button',{name:'Mostrar botón Simular'}).click();
+  assert.equal(await guia.getAttribute('data-objetivo'),'[data-ir-simulacion]');
+  await guia.locator('[data-recorrido-omitir]').click();
+  await p.reload();
+  await p.waitForFunction(() => document.querySelector('.metronet-tutorial')?.dataset.paso === 'simulacion');
+  assert.equal(await p.locator('.metronet-recorrido').count(),0);
+});
+
 test('Pista aporta razonamiento sin duplicar los controles del tutorial', async t => {
   const { pagina:p } = await abrir(t);
   const ayuda = await p.evaluate(async () => (await import('/src/educacion/AyudaContextual.js')).obtenerAyudaContextual({

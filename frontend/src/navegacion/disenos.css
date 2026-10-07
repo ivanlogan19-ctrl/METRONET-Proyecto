@@ -2,7 +2,7 @@ body.metronet-pagina-disenos {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
 }
-.metronet-disenos { position: relative; z-index: 1; max-width:1100px; margin:auto; padding:clamp(14px,3vw,32px); }
+.metronet-disenos { position: relative; z-index: 1; max-width:1100px; margin:auto; padding:clamp(12px,1.8vw,20px) clamp(14px,3vw,32px) clamp(14px,3vw,32px); }
 .metronet-disenos__barrera { position: fixed; z-index: 0; bottom: 0; width: 50vw; height: auto; opacity: .76; pointer-events: none; image-rendering: pixelated; }
 .metronet-disenos__barrera--izquierda { left: 0; }
 .metronet-disenos__barrera--derecha { right: 0; transform: scaleX(-1); }

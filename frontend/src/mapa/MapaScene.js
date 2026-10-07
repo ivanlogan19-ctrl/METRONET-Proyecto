@@ -7,6 +7,7 @@ import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
 import CapaZonas from './capas/CapaZonas.js';
 import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
+import { guardarCategoriasPoi } from './EstadoCategoriasPoi.mjs';
 import CapaIconosBarrios from './capas/CapaIconosBarrios.js';
 import CapaRedMetro from './capas/CapaRedMetro.js';
 import CapaTerritorial from './capas/CapaTerritorial.js';
@@ -225,6 +226,7 @@ export default class MapaScene extends Phaser.Scene {
       mapa: this.contenedorMapa,
       alSeleccionarGeografia: (tipo, nombres) => this.actualizarInformacionSeleccionGeografica(tipo, nombres),
       alSeleccionarPunto: punto => this.localizarReferencia(punto, { desdeBusqueda: true }),
+      alCambiarCategorias: categorias => guardarCategoriasPoi(this.editorRedMetro?.disenoActual?.simulacion?.idDiseno, categorias),
     });
     this.panelReferencias = this.referenciasGeograficas.panel;
     this.panelPuntosInteres = this.referenciasGeograficas.busqueda;

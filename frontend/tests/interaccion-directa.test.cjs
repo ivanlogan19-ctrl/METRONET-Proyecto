@@ -71,7 +71,7 @@ test('guardar avance incompleto valida, persiste y no confunde consigna con erro
  await p.route('**/api/simulaciones/77/validacion',route=>route.fulfill({json:{valido:false,preparadoParaSimular:false,observaciones:['Hay estaciones sin línea asociada.']},headers:{'access-control-allow-origin':'*'}}));
  await p.locator('[data-guardar]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
  assert.equal(solicitudes.some(s=>s.ruta.endsWith('/guardar')),true);
- assert.match(await p.locator('.metronet-editor-red').innerText()+await p.locator('body').innerText(),/Diseño guardado/);
+ assert.equal(await p.locator('[data-estado-editor] [role=status]').innerText(),'');
  assert.equal(solicitudes.some(s=>s.ruta.endsWith('/evaluar')),false);
 });
 
@@ -277,7 +277,11 @@ test('Simular rechaza una red no preparada y conserva el editor sin guardar ni n
  const {pagina:p,solicitudes}=await abrir(t);
  await p.route('**/api/simulaciones/77/validacion',route=>route.fulfill({json:{valido:true,preparadoParaSimular:false,observacionesSimulacion:['Falta asignar una unidad de metro.']},headers:{'access-control-allow-origin':'*'}}));
  await p.locator('[data-ir-simulacion]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
- assert.match(await p.locator('[data-estado-editor]').innerText(),/Falta asignar/);
+ const aviso=p.locator('.metronet-dialogo-simulacion');
+ assert.equal(await aviso.isVisible(),true);
+ assert.match(await aviso.innerText(),/Prepará la red para simular/);
+ assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(),/Falta asignar/);
+ await aviso.getByRole('button',{name:'Entendido'}).click();
  assert.equal(solicitudes.some(s=>/guardar|ejecutar/.test(s.ruta)),false);assert.equal(new URL(p.url()).pathname,'/');
 });
 

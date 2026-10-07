@@ -32,15 +32,13 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   }});
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
   const p = vista.pagina;
-  await p.locator('#listaResultadosSimulacion').filter({ hasText: 'Ejecución V2' }).waitFor();
+  await p.locator('#duracionSimulacion').waitFor();
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '2');
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');
   assert.equal(await p.locator('#resumenCriterioUvUt').isVisible(), false);
-  const historial = await p.locator('#listaResultadosSimulacion').textContent();
-  assert.match(historial, /Duración: 2 UT.*5\.5 \/ 6\.5 UV/s);
-  assert.match(historial, /Consigna de simulación cumplida/);
-  assert.match(historial, /Duración simulada: 6 h/);
+  assert.equal(await p.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
+  assert.equal(red.resultados.length, 2, 'El historial recibido permanece en los datos del diseño');
   if (process.env.METRONET_CAPTURAS_UVUT) await p.screenshot({path:`${process.env.METRONET_CAPTURAS_UVUT}/simulacion-v2-chrome.png`,fullPage:true});
 });
 

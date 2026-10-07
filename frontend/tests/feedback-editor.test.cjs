@@ -19,7 +19,7 @@ async function puntoMapa(pagina, x = 750, y = 500) {
   }, { x, y });
 }
 
-test('crear estaciones repetidas produce un solo éxito temporal sin cubrir mapa ni herramientas', async t => {
+test('crear estaciones repetidas no muestra avisos que reduzcan el mapa', async t => {
   const { pagina, solicitudes, errores } = await preparar(t);
   const mensajes = [];
   await pagina.exposeFunction('registrarMensaje', texto => mensajes.push(texto));
@@ -31,11 +31,11 @@ test('crear estaciones repetidas produce un solo éxito temporal sin cubrir mapa
     const p = await puntoMapa(pagina, 750 + i * 15, 500);
     await pagina.mouse.click(p.x, p.y);
     await pagina.waitForFunction(i => editorPrueba.disenoActual.estaciones.some(e => e.nombre === `Estación ${String(i+1).padStart(2,'0')}`), i);
-    assert.match(await pagina.locator('[data-estado-editor]').innerText(), /Estación guardada/);
+    assert.equal(await pagina.locator('[data-estado-editor]').innerText(), '');
     assert.equal(await pagina.locator('dialog[open], .metronet-notificacion').count(), 0);
   }
   assert.equal(solicitudes.length, 3);
-  assert.equal(mensajes.filter(m => /Estación guardada/.test(m)).length, 3);
+  assert.equal(mensajes.filter(m => /Estación guardada/.test(m)).length, 0);
   assert.equal(mensajes.some(m => /cargada|Hacé clic/.test(m)), false);
   const estado = await pagina.locator('[data-estado-editor]').boundingBox();
   for (const selector of ['#metronet-mapa', '#metronet-panel-controles']) {
@@ -46,7 +46,7 @@ test('crear estaciones repetidas produce un solo éxito temporal sin cubrir mapa
   await pagina.clock.fastForward(4500);
   assert.equal(await pagina.locator('[data-estado-editor] [role=status]').innerText(), '');
   const despues = await pagina.locator('#metronet-mapa').boundingBox();
-  assert.ok(despues.height > antes.height, 'Al expirar el aviso se recupera su espacio');
+  assert.equal(despues.height, antes.height, 'La creación no cambia la altura del mapa');
   assert.equal(despues.y + despues.height, antes.y + antes.height);
   assert.equal(await pagina.locator('.metronet-estado-editor__feedback').isVisible(), false);
   assert.deepEqual(errores, []);
@@ -56,7 +56,7 @@ test('cambiar herramientas tras una conexión sin línea permite continuar sin m
   const { pagina, solicitudes } = await preparar(t);
   await pagina.locator('[data-elegir-herramienta=conexiones]').click();
   const p = await puntoMapa(pagina,700,460); await pagina.mouse.click(p.x,p.y);
-  assert.match(await pagina.locator('[data-estado-editor]').innerText(), /Tocá un tramo de la línea/);
+  assert.equal(await pagina.locator('[data-estado-editor]').innerText(), '');
   assert.equal(await pagina.locator('[data-elegir-herramienta=conexiones]').getAttribute('aria-pressed'), 'true');
   await pagina.locator('[data-elegir-herramienta=estaciones]').click();
   assert.equal(await pagina.locator('[data-elegir-herramienta=estaciones]').getAttribute('aria-pressed'), 'true');
@@ -102,7 +102,7 @@ test('error backend sigue legible y consultable tras expirar o completar otra op
   await pagina.clock.fastForward(9500);
   assert.equal(await pagina.locator('[data-estado-editor] [role=alert]').innerText(), '');
   await pagina.evaluate(() => editorPrueba.mostrarMensaje('Operación completada.', 'exito'));
-  assert.match(await pagina.locator('[data-estado-editor] [role=status]').innerText(), /Operación completada/);
+  assert.equal(await pagina.locator('[data-estado-editor] [role=status]').innerText(), '');
   await pagina.locator('[data-revisar-error]').click();
   assert.match(await pagina.locator('[data-estado-editor] [role=alert]').innerText(), /No se pudo guardar/);
 });
@@ -220,6 +220,6 @@ for (const estado of [400, 409, 422]) {
     const destino = await puntoMapa(pagina,810,480); await pagina.mouse.click(destino.x,destino.y);
     await pagina.waitForFunction(() => editorPrueba.disenoActual.tramos.length === 2);
     assert.equal(solicitudes.length, 1);
-    assert.equal(await pagina.locator('[data-estado-editor]').getAttribute('data-tipo'), 'exito');
+    assert.equal(await pagina.locator('[data-estado-editor]').getAttribute('data-tipo'), null);
   });
 }

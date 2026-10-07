@@ -49,6 +49,33 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [2, 3]);
 });
 
+test('Menú de metros: opciones estiladas, teclado y selección sincronizada', async t => {
+  const { pagina: p } = await abrir(t);
+  const desplegable = p.locator('.simulacion-selector-metros');
+  const acceso = desplegable.locator('summary');
+  await acceso.click();
+  await p.waitForFunction(() => document.querySelector('.simulacion-selector-metros > summary').getAttribute('aria-expanded') === 'true');
+  assert.equal(await acceso.getAttribute('aria-expanded'), 'true');
+  const cajas = await p.evaluate(() => {
+    const panel = document.getElementById('instrumentosSimulacion').getBoundingClientRect();
+    const menu = document.querySelector('.simulacion-selector-metros__opciones').getBoundingClientRect();
+    return { dentro: menu.left >= panel.left && menu.right <= panel.right && menu.top >= panel.top && menu.bottom <= panel.bottom };
+  });
+  assert.equal(cajas.dentro, true);
+  await desplegable.getByRole('button', { name: 'Metro 1 · Azul' }).click();
+  assert.equal(await p.locator('#unidadCirculacion').inputValue(), '1');
+  assert.match(await acceso.innerText(), /Metro 1/);
+  await acceso.focus();
+  await p.keyboard.press('ArrowDown');
+  await p.keyboard.press('End');
+  await p.keyboard.press('Enter');
+  assert.equal(await p.locator('#unidadCirculacion').inputValue(), '2');
+  await acceso.click();
+  await p.keyboard.press('Escape');
+  assert.equal(await desplegable.evaluate(e => e.open), false);
+  assert.equal(await acceso.evaluate(e => e === document.activeElement), true);
+});
+
 test('Velocidad global e individual: persiste cada unidad y representa MIXTO sin escrituras adicionales', async t => {
   const { pagina: p, red, solicitudes } = await abrir(t);
   assert.equal(await p.locator('#velocidadUnidad').count(), 1);
@@ -112,8 +139,25 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
   test(`Panel operacional ${width}×${height}: controles compactos y sin duplicaciones`, async t => {
     const { pagina: p } = await abrir(t, { viewport: { width, height } });
     assert.equal(await p.locator('#consignaSimulacion, #objetivoConsigna, #puntuacionSimulacion').count(), 0);
-    assert.equal(await p.locator('#seccionResultados').isVisible(), true);
+    assert.equal(await p.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    const distribucion = await p.evaluate(() => {
+      const panel = document.getElementById('instrumentosSimulacion').getBoundingClientRect();
+      const bloques = ['.simulacion-acciones-panel', '.simulacion-grupo-metros', '.simulacion-grupo-velocidad', '#seccionConfiguracion']
+        .map(selector => document.querySelector(selector).getBoundingClientRect());
+      const titulo = document.querySelector('.simulacion-grupo-velocidad > .simulacion-seccion-titulo');
+      return {
+        dentro: bloques.every(rect => rect.left >= panel.left && rect.right <= panel.right)
+          && bloques[0].top >= panel.top && bloques.at(-1).bottom <= panel.bottom,
+        ordenados: bloques.every((rect, indice) => indice === 0 || rect.top >= bloques[indice - 1].bottom),
+        tituloEnLinea: titulo.scrollWidth <= titulo.clientWidth + 1,
+        espacios: bloques.slice(1).map((rect, indice) => rect.top - bloques[indice].bottom),
+      };
+    });
+    assert.equal(distribucion.dentro, true);
+    assert.equal(distribucion.ordenados, true);
+    assert.equal(distribucion.tituloEnLinea, true);
+    if (width > 1050) assert.ok(Math.max(...distribucion.espacios) - Math.min(...distribucion.espacios) <= 2);
     const mapa = await p.locator('#visorSimulacion').boundingBox();
     const panel = await p.locator('#instrumentosSimulacion').boundingBox();
     if (width > 1050) { assert.ok(panel.x >= mapa.x + mapa.width); assert.ok(panel.width >= 220 && panel.width <= 232); }

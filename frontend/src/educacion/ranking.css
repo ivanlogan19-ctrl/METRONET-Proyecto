@@ -2,7 +2,7 @@ body.metronet-pagina-ranking {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
 }
-.metronet-ranking { position: relative; max-width: 1080px; margin: auto; padding: clamp(14px,3vw,32px); }
+.metronet-ranking { position: relative; max-width: 1080px; margin: auto; padding: clamp(12px,1.8vw,20px) clamp(14px,3vw,32px) clamp(14px,3vw,32px); }
 .metronet-ranking h1, .metronet-ranking h2 { overflow-wrap: anywhere; }
 .ranking-cabecera { text-align: center; margin-bottom: 24px; }
 html:root body .metronet-ranking > .ranking-cabecera::after { display: none; }

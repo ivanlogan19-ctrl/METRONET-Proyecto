@@ -29,6 +29,10 @@ public class CondicionesGeograficasService {
         this.restricciones = restricciones;
     }
 
+    public boolean zonaIncluyeBarrio(String zona, String barrio) {
+        return geografia.zonaIncluyeBarrio(zona, barrio);
+    }
+
     public List<CondicionConsignaResponse> evaluar(Integer idDiseno, Map<String, Object> reglas,
                                                   List<PuntoInteresObjetivoResponse> objetivos) {
         List<CondicionConsignaResponse> condiciones = new ArrayList<>();

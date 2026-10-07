@@ -22,7 +22,7 @@ test('guardar borrador conserva avances, simular red inválida no guarda ni ejec
  const {prepararDiseno}=await cargar('../src/red/PreparacionDiseno.js');
  const c=cliente({valido:false,preparadoParaSimular:false,observaciones:['Red incompleta']});
  await prepararDiseno(c,7,{guardar:true});assert.deepEqual(c.llamadas.map(l=>l[0]),['/7/validacion','/7/guardar']);
- c.llamadas.length=0;await assert.rejects(prepararDiseno(c,7,{guardar:true,paraSimular:true}),/Red incompleta/);assert.equal(c.llamadas.length,1);
+ c.llamadas.length=0;await assert.rejects(prepararDiseno(c,7,{guardar:true,paraSimular:true}),error=>error.codigo==='RED_NO_PREPARADA'&&/Red incompleta/.test(error.message));assert.equal(c.llamadas.length,1);
 });
 test('completado consulta sin escribir; contexto obsoleto detiene la preparación',async()=>{
  const {prepararDiseno}=await cargar('../src/red/PreparacionDiseno.js');

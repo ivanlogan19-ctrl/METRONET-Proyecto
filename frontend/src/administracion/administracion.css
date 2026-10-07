@@ -2,6 +2,7 @@ body.metronet-pagina-administracion {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
   --admin-lateral-padding: var(--space-lg, 24px);
+  --admin-menu-width: 264px;
 }
 
 body.metronet-pagina-administracion .metronet-navegacion {
@@ -10,7 +11,7 @@ body.metronet-pagina-administracion .metronet-navegacion {
 
 .admin-aplicacion {
   display: grid;
-  grid-template-columns: minmax(224px, 264px) minmax(0, 1fr);
+  grid-template-columns: minmax(224px, var(--admin-menu-width)) minmax(0, 1fr);
   min-height: calc(100svh - var(--navegacion-alto));
   background: var(--bg-primary);
 }
@@ -19,7 +20,7 @@ body.metronet-pagina-administracion .metronet-navegacion {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: clamp(var(--space-lg, 24px), 4vw, var(--space-2xl, 48px)) var(--admin-lateral-padding);
+  padding: clamp(12px, 1.8vw, 20px) var(--admin-lateral-padding) var(--space-2xl, 48px);
   border-right: var(--border-width) solid var(--border);
   background: var(--bg-secondary);
 }
@@ -82,7 +83,7 @@ body.metronet-pagina-administracion .metronet-navegacion {
 
 .admin-contenido {
   min-width: 0;
-  padding: clamp(var(--space-lg, 24px), 4vw, var(--space-2xl, 48px));
+  padding: clamp(12px, 1.8vw, 20px) clamp(12px, 1.5vw, 20px) var(--space-2xl, 48px);
   background: var(--bg-primary);
 }
 
@@ -597,7 +598,7 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
   }
 
   .admin-menu {
-    padding: clamp(var(--space-lg, 24px), 4vw, var(--space-2xl, 48px)) var(--admin-lateral-padding);
+    padding-inline: var(--admin-lateral-padding);
   }
 
   .admin-configuracion-item {
@@ -632,7 +633,7 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
   }
 
   .admin-contenido {
-    padding: var(--space-lg, 24px) var(--space-md, 16px);
+    padding: var(--space-md, 16px) var(--space-md, 16px) var(--space-lg, 24px);
   }
 
   .admin-encabezado {

@@ -1,5 +1,6 @@
 import { registrarDestinoNotificaciones } from '../../componentes/NotificacionesMetronet.js';
 import PanelAyudaContextual from '../../educacion/PanelAyudaContextual.js';
+import { esAvisoRutinarioEditor } from './AvisosEditor.mjs';
 
 const DURACIONES = { info: 4200, exito: 4200, advertencia: 6200, error: 9000 };
 const ETIQUETAS = { info: 'Información', exito: 'Completado', advertencia: 'Advertencia', error: 'Error' };
@@ -25,6 +26,7 @@ export default class BarraEstadoEditor {
   mostrar(texto, tipo = 'info') {
     if (this.eliminada || !texto || !this.contenedor.isConnected) return;
     tipo = Object.hasOwn(DURACIONES, tipo) ? tipo : 'info';
+    if (esAvisoRutinarioEditor(texto, tipo)) return;
     window.clearTimeout(this.temporizador);
     this.tipo = tipo;
     if (tipo === 'error') {
@@ -40,6 +42,16 @@ export default class BarraEstadoEditor {
       this.tipo = null;
       delete this.contenedor.dataset.tipo;
     }, DURACIONES[tipo]);
+  }
+
+  limpiarMensaje() {
+    window.clearTimeout(this.temporizador);
+    this.estado.textContent = '';
+    this.error.textContent = '';
+    this.ultimoError = '';
+    this.botonError.hidden = true;
+    this.tipo = null;
+    delete this.contenedor.dataset.tipo;
   }
 
   eliminar() {

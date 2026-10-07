@@ -79,7 +79,9 @@ public class AdministracionUvUtService {
                 JsonNode actualHerramientas = mapper.readTree(herramientas);
                 return actual.equals(nivel.path("reglasExito")) && actualHerramientas.equals(nivel.path("herramientasHabilitadas"))
                     && actualHerramientas.path("metros").asBoolean() && actualHerramientas.path("simulacion").asBoolean()
-                    && actual.path("minimoMetros").asInt() == TRAMOS_FIJOS[numero].length;
+                    && (actual.path("minimoMetros").asInt() == TRAMOS_FIJOS[numero].length
+                        || (numero == 4 && actual.path("minimoMetros").isMissingNode()
+                            && actual.path("requiereSimulacion").asBoolean()));
             }
         } catch (Exception error) { throw new IllegalStateException("No fue posible leer el catálogo de niveles", error); }
         return false;

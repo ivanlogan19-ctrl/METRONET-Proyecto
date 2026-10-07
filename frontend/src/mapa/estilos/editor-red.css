@@ -174,34 +174,8 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-consigna__texto-objetivo { min-width: 0; }
 .metronet-consigna__avance-objetivo { color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; white-space: nowrap; }
 .metronet-consigna__lista-objetivos .es-completo .metronet-consigna__avance-objetivo { color: var(--success); }
-.metronet-consigna__lista-referencias { display: grid; gap: 5px; }
-.metronet-consigna__referencia {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  min-width: 0;
-  min-height: 36px;
-  gap: var(--space-xs);
-  padding: 5px 7px;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  background: var(--panel);
-  font-size: clamp(11px, 1.15vw, 12px);
-  text-align: left;
-}
-.metronet-consigna__referencia-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.metronet-consigna__referencia-detalle { display: flex; flex: 0 0 auto; align-items: center; gap: 5px; font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; white-space: nowrap; }
-.metronet-consigna__referencia-estado { color: var(--text-secondary); }
-.metronet-consigna__referencia-accion { color: var(--info-active); }
-.metronet-consigna__referencia.es-cubierta { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); }
-.metronet-consigna__referencia.es-cubierta .metronet-consigna__referencia-estado { color: var(--success); }
-.metronet-consigna__referencia.es-pendiente .metronet-consigna__referencia-estado { color: var(--warning); }
-.metronet-consigna__referencia:hover,
-.metronet-consigna__referencia:focus-visible { border-color: var(--info-active); background: color-mix(in srgb, var(--info-active) 9%, var(--panel)); }
-.metronet-consigna__referencias-adicionales { display: grid; gap: 5px; }
-.metronet-consigna__referencias-adicionales > summary { width: fit-content; min-height: 36px; color: var(--info-active); cursor: pointer; font-size: 11px; font-weight: 700; line-height: 36px; }
-.metronet-consigna__referencias-adicionales > summary:focus-visible { outline: 2px solid var(--info-active); outline-offset: 2px; }
+.metronet-consigna__lista-referencias { grid-auto-rows: max-content; gap: 5px; }
+.metronet-consigna__lista-referencias li { grid-template-columns: 14px minmax(0, 1fr); }
 .metronet-consigna__progreso { display: grid; gap: 5px; min-height: 31px; padding-top: 2px; }
 .metronet-consigna__progreso-encabezado { color: var(--text-secondary); font-size: 10px; }
 .metronet-consigna__progreso-encabezado strong { color: var(--text-primary); font-family: var(--font-tecnica); font-size: 10px; }
@@ -367,7 +341,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 .metronet-herramientas__opciones { min-width: 0; }
 .metronet-herramientas__opciones:has(> .metronet-editor-grupo:empty) { display: none; }
 #opciones-editor-lineas:has([data-lista-lineas]:empty),
-#opciones-editor-metros:has([data-lista-metros]:empty):has([data-lineas-superpuestas][hidden]) { display: none; }
+#opciones-editor-metros:has([data-lineas-superpuestas][hidden]) { display: none; }
 .metronet-herramientas .metronet-editor-grupo { display: grid; gap: 12px; }
 .metronet-herramientas .metronet-editor-fila,
 .metronet-herramientas .metronet-editor-acciones { flex-wrap: wrap; }
@@ -558,8 +532,6 @@ body.metronet-pagina-editor :is([data-elegir-herramienta], [data-elegir-estacion
   .metronet-consigna__estado { max-width: 100%; }
   .metronet-consigna__alternar { min-height: 36px; }
   .metronet-consigna__titulo { font-size: 15px; }
-  .metronet-consigna__referencia { min-height: 40px; padding: 6px 8px; }
-  .metronet-consigna__referencia span:last-child { font-size: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .metronet-consigna__contenido,
@@ -667,11 +639,13 @@ body .metronet-pantalla-editor #metronet-aplicacion {
   grid-template-areas: 'mapa objetivo' 'mapa herramientas';
 }
 .metronet-area-mapa { grid-area: mapa; }
-.metronet-consigna-externa { grid-area: objetivo; min-width: 0; }
+.metronet-objetivos-panel { grid-area: objetivo; min-width: 0; }
+.metronet-objetivos-panel[hidden] { display: none; }
+.metronet-referencias-objetivo[hidden] { display: none; }
 .metronet-consigna-externa:empty,
 .metronet-consigna-externa:has(> .metronet-consigna[hidden]) { display: none; }
 #metronet-panel-controles { grid-area: herramientas; min-height: 0; }
-.metronet-consigna-externa.metronet-consigna { max-height: min(44svh, 430px); overflow-y: auto; }
+.metronet-objetivos-panel { max-height: min(44svh, 430px); overflow: hidden; }
 .metronet-consigna__resumen-activo { display: grid; gap: 6px; }
 .metronet-consigna__resumen-activo[hidden] { display: none; }
 .metronet-consigna__objetivo-breve {
@@ -692,7 +666,7 @@ body .metronet-pantalla-editor #metronet-aplicacion {
     grid-template-rows: auto auto auto;
     grid-template-areas: 'objetivo' 'mapa' 'herramientas';
   }
-  .metronet-consigna-externa.metronet-consigna { max-height: min(38svh, 320px); }
+  .metronet-objetivos-panel { max-height: min(60svh, 540px); }
 }
 
 /* Las tareas permanecen a la vista; solo su lista se desplaza cuando crece. */
@@ -700,15 +674,44 @@ body .metronet-pantalla-editor #metronet-aplicacion {
   grid-template-columns: minmax(0, 1fr) clamp(330px, 26vw, 380px);
   grid-template-rows: auto minmax(0, 1fr);
 }
-body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden]) {
+body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden]) {
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: 'mapa herramientas';
 }
+.metronet-objetivos-panel {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  max-height: min(53svh, 450px);
+  overflow: hidden;
+  border: var(--border-width) solid var(--border);
+  border-left: var(--border-accent) solid var(--info-active);
+  border-radius: var(--radius-md);
+  background: var(--panel-elevated);
+}
+.metronet-objetivos-panel[hidden] { display: none; }
 .metronet-consigna-externa.metronet-consigna {
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
-  max-height: min(46svh, 460px);
+  max-height: none;
   overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.metronet-referencias-objetivo {
+  max-height: min(26svh, 260px);
+  overflow: visible;
+  border-top: var(--border-width) solid var(--border);
+}
+.metronet-referencias-objetivo .metronet-consigna__referencias { gap: 0; }
+.metronet-referencias-objetivo .metronet-consigna__lista-referencias {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 8px;
+  align-content: center;
+  min-height: 0;
+  margin: 0 12px 10px;
+  text-align: left;
 }
 .metronet-consigna__resumen {
   display: grid;
@@ -726,19 +729,22 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
   -webkit-line-clamp: unset;
 }
 .metronet-consigna__lista-breve {
+  gap: 0;
   grid-auto-rows: max-content;
   align-content: start;
   min-height: 0;
   max-height: none;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 4px;
-  scrollbar-color: var(--border-active) transparent;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 .metronet-consigna__lista-breve:focus-visible { outline: 2px solid var(--info-active); outline-offset: -2px; }
-.metronet-consigna__lista-breve li { align-items: start; min-height: 0; padding: 6px 0; line-height: 1.45; }
+.metronet-consigna__lista-breve li { align-items: start; min-height: 20px; padding: 1px 0; line-height: 1.45; }
 .metronet-consigna__lista-breve .metronet-consigna__texto-objetivo { overflow-wrap: anywhere; }
+.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo,
+.metronet-consigna__lista-referencias .metronet-consigna__texto-objetivo {
+  font-size: 11px;
+  line-height: 1.45;
+}
+.metronet-consigna__lista-referencias .metronet-consigna__texto-objetivo { font-size: 12px; }
 
 /* El pie de proyecto se mantiene visible mientras se consultan herramientas. */
 #metronet-panel-controles {
@@ -754,14 +760,14 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-ext
   scrollbar-width: thin;
 }
 #metronet-panel-controles .metronet-panel-editor-cabecera { padding: 8px 12px; }
-#metronet-panel-controles .metronet-panel-editor-cabecera,
-.metronet-consigna-externa.metronet-consigna { border-left: var(--border-accent) solid var(--info-active); }
+#metronet-panel-controles .metronet-panel-editor-cabecera { border-left: var(--border-accent) solid var(--info-active); }
 #metronet-panel-controles .metronet-panel-editor-cabecera,
 .metronet-consigna-externa.metronet-consigna,
 #metronet-panel-controles .metronet-panel-editor-pie { padding-left: 12px; padding-right: 12px; }
 #metronet-panel-controles .metronet-panel-editor-sobretitulo { margin-bottom: 2px; }
 #metronet-panel-controles .metronet-panel-titulo { font-size: 15px; line-height: 1.25; }
 html:root body .metronet-consigna-externa .metronet-consigna__titulo,
+html:root body .metronet-referencias-objetivo .metronet-consigna__titulo,
 html:root body #metronet-panel-controles .metronet-panel-titulo,
 html:root body #metronet-panel-controles .metronet-editor-finalizar h3 {
   --titulo-relleno: 0;
@@ -769,6 +775,8 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar h3 {
   --titulo-fondo: transparent;
   --titulo-sombra: none;
   --titulo-brillo: none;
+  --titulo-color: var(--text-primary);
+  --titulo-contorno: 0px;
   --titulo-animacion: none;
   margin: 0;
   padding: 0;
@@ -780,7 +788,7 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar h3 {
   text-shadow: none;
   animation: none;
 }
-#metronet-panel-controles .metronet-panel-editor-contenido { gap: 6px; padding: 8px 12px; }
+#metronet-panel-controles .metronet-panel-editor-contenido { gap: 4px; padding: 6px 12px; }
 #metronet-panel-controles .metronet-editor-red { border-top: 0; }
 #metronet-panel-controles .metronet-panel-editor-pie {
   padding: 0 12px 10px;
@@ -794,21 +802,19 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar h3 {
   border-top: 0;
 }
 #metronet-panel-controles .metronet-editor-finalizar h3 { font-size: 15px; line-height: 1.25; }
-html:root body #metronet-panel-controles .metronet-editor-finalizar h3::before { content: none; }
+html:root body :is(.metronet-referencias-objetivo .metronet-consigna__titulo,
+  #metronet-panel-controles .metronet-editor-finalizar h3)::before { content: none; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #metronet-panel-controles .metronet-editor-finalizar__ayuda { display: none; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones { justify-content: start; }
 @media (max-width: 920px) {
   body .metronet-pantalla-editor #metronet-aplicacion,
-  body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden]) {
+  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden]) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
     grid-template-areas: 'objetivo' 'mapa' 'herramientas';
   }
-  .metronet-consigna-externa.metronet-consigna {
-    height: min(40svh, 350px);
-    min-height: 220px;
-  }
+  .metronet-objetivos-panel { max-height: min(60svh, 540px); }
   #metronet-panel-controles { overflow: visible; }
   #metronet-panel-controles .metronet-panel-editor-contenido { max-height: 360px; }
 }
@@ -823,10 +829,7 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar h3::before {
   }
   #metronet-panel-controles { display: block; }
   #metronet-panel-controles .metronet-panel-editor-contenido { max-height: none; overflow: visible; }
-  .metronet-consigna-externa.metronet-consigna {
-    height: min(42svh, 340px);
-    min-height: 210px;
-  }
+  .metronet-objetivos-panel { max-height: min(60svh, 540px); }
   #metronet-panel-controles .metronet-panel-editor-pie { position: static; padding: 10px 12px; border-top: var(--border-width) solid var(--border); }
   #metronet-panel-controles .metronet-editor-finalizar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0; }
   #metronet-panel-controles .metronet-editor-finalizar h3 { display: block; }
@@ -843,6 +846,7 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar h3::before {
 /* Los tres bloques del nivel comparten el mismo encabezado completo. */
 .metronet-consigna-externa.metronet-consigna { gap: 0; padding: 0; }
 html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
+  .metronet-referencias-objetivo .metronet-consigna__cabecera,
   #metronet-panel-controles .metronet-panel-editor-cabecera,
   #metronet-panel-controles .metronet-editor-finalizar__cabecera) {
   box-sizing: border-box;
@@ -851,7 +855,7 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
   padding: 8px 12px;
   border: 0;
   border-bottom: var(--border-width) solid var(--info-active);
-  background: var(--panel-elevated);
+  background: color-mix(in srgb, var(--info-active) 19%, var(--panel-elevated));
   box-shadow: var(--shadow-header);
 }
 .metronet-consigna-externa .metronet-consigna__resumen,
@@ -876,31 +880,42 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
 
 @media (min-width: 921px) {
   body .metronet-pantalla-editor #metronet-aplicacion {
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
   }
-  .metronet-consigna-externa.metronet-consigna {
-    height: 100%;
-    max-height: none;
+  .metronet-objetivos-panel {
+    height: auto;
+    max-height: min(53svh, 450px);
   }
   #metronet-panel-controles {
     grid-template-rows: auto minmax(0, 1fr) auto;
     align-self: stretch;
   }
+  #metronet-panel-controles.metronet-panel-nivel {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-self: stretch;
+    gap: 0;
+  }
+  #metronet-panel-controles.metronet-panel-nivel .metronet-panel-editor-contenido {
+    align-content: start;
+  }
+  #metronet-panel-controles.metronet-panel-nivel .metronet-panel-editor-contenido {
+    padding-bottom: 0;
+  }
   #metronet-panel-controles .metronet-panel-editor-contenido {
     overflow: visible;
   }
   /* En Modo libre el panel acompaña al lienzo, debajo del título y la barra del mapa. */
-  body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden]) #metronet-panel-controles {
+  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden]) #metronet-panel-controles {
     margin-top: 126px;
   }
   /* El título de Modo libre cubre también la columna derecha. */
-  html:root body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden])
+  html:root body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden])
     .metronet-area-mapa > .metronet-mapa-titulo {
     width: calc(100% + clamp(8px, 1vw, 14px) + clamp(330px, 26vw, 380px));
     max-width: none;
   }
   /* En Modo libre, los accesos de ayuda ocupan el espacio sobre Herramientas. */
-  body .metronet-pantalla-editor #metronet-aplicacion:has(> .metronet-consigna-externa[hidden])
+  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden])
     .metronet-barra-geografica > [data-hud-mapa] {
     position: absolute;
     top: 8px;
@@ -914,6 +929,32 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
   }
 }
 
+.metronet-dialogo-simulacion {
+  width: min(92vw, 430px);
+  padding: 0;
+  border: var(--border-width) solid #ffdce7;
+  border-radius: var(--radius-control);
+  color: #fff;
+  background: #a51d41;
+  box-shadow: var(--shadow-floating);
+}
+.metronet-dialogo-simulacion::backdrop { background: rgb(0 0 0 / .66); }
+.metronet-dialogo-simulacion__contenido { display: grid; justify-items: center; gap: 14px; padding: 22px; text-align: center; }
+.metronet-dialogo-simulacion h2,
+.metronet-dialogo-simulacion p { margin: 0; }
+html:root body .metronet-dialogo-simulacion h2 {
+  --titulo-color: #fff;
+  --titulo-brillo: none;
+  --titulo-contorno: 0px;
+  --titulo-fondo: transparent;
+  --titulo-sombra: inset var(--border-accent) 0 0 #fff;
+  color: #fff;
+}
+.metronet-dialogo-simulacion p { color: #fff; line-height: 1.5; text-align: left; word-spacing: normal; }
+.metronet-dialogo-simulacion button { border-color: #fff; background: transparent; color: #fff; }
+.metronet-dialogo-simulacion button:hover,
+.metronet-dialogo-simulacion button:focus-visible { background: #831431; color: #fff; }
+
 #metronet-panel-controles .metronet-editor-finalizar__acciones {
   justify-content: center;
   gap: 18px;
@@ -925,9 +966,12 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
 #metronet-panel-controles .metronet-herramientas__barra {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px 8px;
+  gap: 6px 8px;
   align-items: start;
 }
+#metronet-panel-controles .metronet-herramientas { gap: 8px; }
+#metronet-panel-controles .metronet-herramientas__barra fieldset { padding: 2px 4px; }
+#metronet-panel-controles .metronet-herramientas__barra legend { margin-bottom: 2px; }
 #metronet-panel-controles .metronet-herramientas__barra fieldset:first-child {
   grid-column: 1;
   grid-row: 1;
@@ -961,4 +1005,59 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar__cabecera {
   width: calc(100% + 24px);
   margin-left: -12px;
   margin-right: -12px;
+}
+
+@media (max-width: 920px) {
+  .metronet-objetivos-panel { max-height: min(60svh, 540px); }
+}
+
+.metronet-lateral-editor { display: contents; }
+
+/* En pantallas de escritorio angostas el lateral crece con los objetivos reales. */
+@media (min-width: 921px) and (max-width: 1439px),
+       (min-width: 921px) and (max-height: 820px) {
+  body.metronet-pagina-editor { overflow-y: auto; }
+  body .metronet-pantalla-editor { height: auto; min-height: 100svh; grid-template-rows: auto auto auto; }
+  body .metronet-pantalla-editor #metronet-aplicacion,
+  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden]) {
+    --lateral-ancho: clamp(330px, 31.25vw, 400px);
+    grid-template-columns: minmax(0, 1fr) var(--lateral-ancho);
+    grid-template-areas: 'mapa lateral';
+    height: auto;
+    min-height: calc(100svh - 76px);
+    overflow: visible;
+    grid-template-rows: minmax(0, 1fr);
+    align-content: start;
+  }
+  .metronet-area-mapa { min-height: calc(100svh - 102px); align-self: stretch; }
+  .metronet-lateral-editor {
+    grid-area: lateral;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+    gap: 8px;
+    min-width: 0;
+  }
+  .metronet-objetivos-panel,
+  .metronet-referencias-objetivo { max-height: none; overflow: visible; }
+  .metronet-objetivos-panel { flex: none; }
+  .metronet-consigna-externa.metronet-consigna { overflow: visible; }
+  #metronet-panel-controles,
+  #metronet-panel-controles.metronet-panel-nivel {
+    display: block;
+    align-self: start;
+    width: 100%;
+    overflow: visible;
+  }
+  #metronet-panel-controles .metronet-panel-editor-contenido { overflow: visible; padding-top: 8px; }
+  #metronet-panel-controles .metronet-panel-editor-pie { padding-bottom: 4px; }
+  #metronet-panel-controles .metronet-editor-finalizar__cabecera { margin-bottom: 6px; }
+  html:root body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden])
+    .metronet-area-mapa > .metronet-mapa-titulo {
+    width: calc(100% + clamp(8px, 1vw, 14px) + var(--lateral-ancho));
+  }
+  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden])
+    .metronet-barra-geografica > [data-hud-mapa] {
+    width: var(--lateral-ancho);
+  }
 }

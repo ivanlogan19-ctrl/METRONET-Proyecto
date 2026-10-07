@@ -114,7 +114,6 @@ async function inicializar() {
     if (!input.reportValidity()) return;
     mostrarMensaje(`Se usarán ${input.value} UT en el próximo recorrido.`);
   });
-  document.getElementById('verResultadosSimulacion').addEventListener('click', mostrarResultados);
   document.getElementById('tutorialPantallaSimulacion').addEventListener('click', () => {
     if (tutorialSimulacion?.pausado) { tutorialSimulacion.reanudar(); return; }
     if (tutorialSimulacion) inicioPendienteTutorial = null;
@@ -199,7 +198,6 @@ function actualizarPantalla() {
   document.getElementById('volverEdicion').href = establecerIdDisenoEnRuta('/', resumen.idDiseno, obtenerContextoDiseno(resumen.idDiseno));
   actualizarConsignaSimulacion(resumen);
   document.getElementById('estadoEjecucion').textContent = obtenerEstadoEjecucion();
-  renderizarResultados();
   actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());
   actualizarDisponibilidadEjecucion();
 }
@@ -287,7 +285,6 @@ async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
     const ultimo = desempeno.resultadoUvUt;
     resumenCriterio.textContent = `Objetivo: completar todos los recorridos en hasta ${configuracionUvUt.limiteUt} UT con ${configuracionUvUt.presupuestoUv} UV como máximo. ${ultimo ? `Última ejecución: ${ultimo.sumaUv} UV, ${ultimo.completo ? 'recorridos completos' : 'objetivo pendiente'}.` : ''} ${ultimo?.mejorUv != null ? `Mejor UV para esta red: ${ultimo.mejorUv}.` : ''}`;
   }
-  renderizarResultados();
   actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
   if (actualizarMotor) visor?.escena.establecerDiseno(disenoActual);
@@ -349,32 +346,11 @@ async function guardarVelocidades(unidades, velocidadPromedio) {
   }
 }
 
-function renderizarResultados() {
-  const contenedor = document.getElementById('listaResultadosSimulacion');
-  const resultados = disenoActual.resultados ?? [];
-  contenedor.classList.toggle('metronet-vacio', !resultados.length);
-  contenedor.replaceChildren(...resultados.map((resultado) => {
-    const elemento = document.createElement('article');
-    elemento.className = 'simulacion-resultado';
-    const v2 = resultado.escala === 'UV_UT_V2' && resultado.resultadoUvUt;
-    const actual = resultado.escala === 'UV_H_V1';
-    const tiempo = v2 ? `Duración: ${resultado.duracion} UT · ${resultado.resultadoUvUt.sumaUv} / ${resultado.resultadoUvUt.presupuestoUv} UV`
-      : actual ? `Duración simulada: ${formatearDuracion(resultado.duracion)}` : `Registro histórico · duración original: ${resultado.duracion} s (escala anterior)`;
-    const unidades = v2 ? resultado.resultadoUvUt.unidades.map(u => `Metro ${u.idTren} (${u.linea}): ${u.tramos} tramos, ${u.uv} UV, llegada ${u.utLlegada} UT ${u.termino ? '✓' : 'pendiente'}`).join(' · ')
-      : actual ? (resultado.unidades ?? []).map(u => `Metro ${u.idTren}: ${formatearVelocidad(u.velocidad)}`).join(' · ') : '';
-    const estadoResultado = v2 ? (resultado.resultadoUvUt.completo ? 'Consigna de simulación cumplida' : 'Consigna de simulación pendiente') : resultado.estado;
-    const cumplimiento = `${estadoResultado}${Number.isFinite(resultado.puntajeEvaluado) ? ` · ${resultado.puntajeEvaluado} puntos` : ''}`;
-    elemento.innerHTML = `<strong>${escapar(cumplimiento)}</strong><span>${escapar(tiempo)}</span><span>${escapar(unidades)}</span>${v2 && resultado.resultadoUvUt.mejorUv != null ? `<span>Mejor UV: ${escapar(resultado.resultadoUvUt.mejorUv)}</span>` : ''}<p>${escapar(resultado.comentarios)}</p>`;
-    return elemento;
-  }));
-  if (!resultados.length) contenedor.textContent = 'Sin registros';
-}
-
 function obtenerEstadoEjecucion() {
   if (estaMantenimientoActivo(sesion)) return 'La red puede consultarse. La ejecución se habilitará al finalizar el mantenimiento.';
   if (!disenoActual) return '';
   if (!disenoActual.preparadoParaSimular) return obtenerMensajePreparacionSimulacion();
-  if (disenoActual.simulacion.estado === 'COMPLETADO') return 'Nivel completado. Resultados disponibles.';
+  if (disenoActual.simulacion.estado === 'COMPLETADO') return 'Nivel completado.';
   return 'Red lista.';
 }
 
@@ -406,7 +382,6 @@ async function ejecutarSimulacion(evento) {
     tutorialSimulacion?.notificar('inicio');
     crearFlujoNavegacion('resultados');
     document.getElementById('continuarEscenarios').hidden = true;
-    document.getElementById('verResultadosSimulacion').hidden = true;
     mostrarMensaje('Recorrido iniciado. Observá el metro antes de consultar el resultado.', 'exito');
   } catch (error) {
     mostrarMensaje(error.message, 'error');
@@ -458,7 +433,6 @@ async function reiniciarSimulacion() {
   }
   const estado = visor.escena.reiniciarAnimacion();
   actualizarPanelTiempoReal(estado);
-  document.getElementById('verResultadosSimulacion').hidden = true;
   mostrarMensaje('Simulación reiniciada con los últimos parámetros.');
 }
 
@@ -486,10 +460,6 @@ function restablecerSeguimientoMetro() {
   const boton = document.getElementById('seguirMetro');
   boton.setAttribute('aria-pressed', 'false');
   configurarBotonIcono(boton, 'metros', 'Seguir metro: desactivado');
-}
-
-function mostrarResultados() {
-  organizacion.abrirSeccion('seccionResultados');
 }
 
 function detenerAnimacion() {
@@ -531,7 +501,6 @@ function actualizarPanelTiempoReal(estado) {
   actualizarFichaUnidad();
   document.getElementById('estadoTiempoReal').textContent = formatearEstadoMotor(estado.estado);
   document.getElementById('estadoEjecucion').textContent = obtenerMensajeEstadoMotor(estado);
-  document.getElementById('verResultadosSimulacion').hidden = estado.estado !== 'FINALIZADA';
   actualizarControlesSimulacion(estado);
   if (estado.estado === 'FINALIZADA') finalizarEjecucionVisible();
 }
@@ -576,7 +545,7 @@ async function finalizarEjecucionVisible() {
     // El resultado se muestra sin reiniciar la animación que acaba de finalizar.
     document.getElementById('continuarEscenarios').hidden = false;
     const cumpleSimulacion = pendiente.resultado.resultadoUvUt?.completo;
-    const mensaje = cumpleSimulacion == null ? 'Recorrido finalizado. Revisá el resultado de simulación.'
+    const mensaje = cumpleSimulacion == null ? 'Recorrido finalizado. Revisá los objetivos en Edición.'
       : cumpleSimulacion ? 'Recorrido finalizado. Consigna de simulación cumplida.'
         : 'Recorrido finalizado. Consigna de simulación pendiente.';
     mostrarMensaje(mensaje, cumpleSimulacion === false ? 'advertencia' : 'exito');
@@ -741,8 +710,4 @@ function obtenerContextoDiseno(idDiseno) {
     idEscenario: idEscenario ?? null,
     idIntento: idEscenario === contextoActual.idEscenario ? contextoActual.idIntento : null,
   };
-}
-
-function escapar(valor) {
-  return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[caracter]);
 }

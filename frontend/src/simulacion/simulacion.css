@@ -9,7 +9,7 @@ html:root body.simulacion-pagina .simulacion-encabezado :is(h1,p) { margin: 0; }
 .simulacion-volver { display: block; padding: var(--space-sm); text-align: center; text-decoration: none; font-size: var(--font-size-small); }
 .simulacion-espacio-trabajo { display: grid; grid-template-columns: minmax(0, 1fr) var(--simulacion-panel-ancho); grid-template-areas: 'mapa instrumentos' 'avisos instrumentos'; gap: var(--space-xs) var(--space-sm); align-items: start; }
 .simulacion-editor, .simulacion-vacio { grid-area: mapa; min-width: 0; }
-.simulacion-instrumentos { grid-area: instrumentos; min-width: 0; border: var(--border-width) solid var(--border-active); border-top: var(--border-accent) solid var(--info-active); background: var(--panel); max-height: calc(100svh - 190px); overflow-y: auto; scrollbar-width: thin; }
+.simulacion-instrumentos { grid-area: instrumentos; min-width: 0; border: var(--border-width) solid var(--border-active); background: var(--panel); max-height: calc(100svh - 190px); overflow-y: auto; scrollbar-width: thin; }
 .simulacion-visor-mapa { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto var(--simulacion-mapa-alto); }
 html:root body.simulacion-pagina .simulacion-visor-encabezado { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); }
 .simulacion-visor-encabezado h3 { margin: 0; }
@@ -76,9 +76,6 @@ html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="su
 .simulacion-seguimiento { padding: 0 var(--space-sm) var(--space-sm); }
 .simulacion-seccion { border-top: var(--border-width) solid var(--border); }
 .simulacion-seccion > summary { min-height: 44px; padding: var(--space-sm); cursor: pointer; font-size: 13px; font-weight: 700; color: var(--info-active); }
-.simulacion-seccion-contenido, .simulacion-lista-elementos { display: grid; gap: var(--space-sm); padding: var(--space-xs); }
-.simulacion-resultado { display: grid; gap: 5px; padding: 8px; font-size: 12px; overflow-wrap: anywhere; }
-.simulacion-resultado p { margin: 0; }
 .simulacion-vacio { align-self: center; padding: var(--space-lg); }
 .simulacion-mapa-ampliado .simulacion-espacio-trabajo { grid-template-columns: minmax(0,1fr); grid-template-areas: 'mapa' 'avisos'; }
 .simulacion-mapa-ampliado { --simulacion-mapa-alto: max(520px, calc(100svh - 240px)); }
@@ -113,7 +110,7 @@ html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="su
 .simulacion-editor { align-self: stretch; }
 .simulacion-visor-mapa { height: 100%; grid-template-rows: auto minmax(var(--simulacion-mapa-alto), 1fr); }
 .simulacion-visor-encabezado { display: none !important; }
-.simulacion-instrumentos { display: flex; flex-direction: column; max-height: none; overflow: visible; }
+.simulacion-instrumentos { display: flex; flex-direction: column; justify-content: space-between; max-height: none; overflow: visible; }
 .simulacion-lienzo-contenedor { min-height: var(--simulacion-mapa-alto); }
 .simulacion-mandos-camara { position: absolute; right: 10px; bottom: 10px; z-index: 20; pointer-events: none; }
 .simulacion-mandos-camara .metronet-control-zoom__panel-mapa { position: static; pointer-events: auto; }
@@ -125,7 +122,7 @@ html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="su
 .simulacion-instrumentos #estadoEjecucion { display: none; }
 .simulacion-instrumentos .simulacion-mensaje:not(.error) { display: none; }
 .simulacion-instrumentos .simulacion-mensaje.error { margin: 0; }
-#verResultadosSimulacion, #resumenCriterioUvUt, .simulacion-ritmo, .simulacion-seguimiento, .simulacion-pagina .metronet-aprender-acceso { display: none !important; }
+#resumenCriterioUvUt, .simulacion-ritmo, .simulacion-seguimiento, .simulacion-pagina .metronet-aprender-acceso { display: none !important; }
 .simulacion-pagina { --simulacion-mapa-alto: clamp(400px, calc(100svh - 430px), 560px); }
 html:root body.simulacion-pagina .simulacion-panel-titulo,
 html:root body.simulacion-pagina .simulacion-seccion-titulo,
@@ -144,12 +141,10 @@ html:root body.simulacion-pagina .simulacion-seccion-titulo,
 html:root body.simulacion-pagina .simulacion-desempeno > .simulacion-seccion-titulo { margin: 4px -10px 0; }
 .simulacion-parametros { gap: 6px; padding: 8px 10px; }
 html:root body.simulacion-pagina .simulacion-parametros > .simulacion-seccion-titulo { margin: -8px -10px 2px; }
-#aplicarUnidadTiempo.metronet-boton-icono { width: 100%; min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px; }
+#aplicarUnidadTiempo.metronet-boton-icono { width: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 7px; }
 #aplicarUnidadTiempo.metronet-boton-icono::after { content: 'Aplicar UT'; font: 700 12px/1.2 var(--font-tecnica); }
 #aplicarUnidadTiempo.metronet-boton-icono .metronet-icono { width: 24px; height: 24px; }
-html:root body.simulacion-pagina #aplicarUnidadTiempo.metronet-boton-icono { width: 100%; max-width: none; }
-.simulacion-instrumentos #seccionResultados { margin-top: auto; }
-#listaResultadosSimulacion.metronet-vacio::before { display: none; }
+html:root body.simulacion-pagina #aplicarUnidadTiempo.metronet-boton-icono { width: auto; max-width: none; }
 .simulacion-pagina .metronet-barra-geografica { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 8px; }
 .simulacion-pagina .metronet-barra-geografica > [data-contenedor-referencias] { justify-self: center; }
 .simulacion-pagina .metronet-barra-geografica > [data-hud-mapa] { justify-self: end; }
@@ -221,9 +216,6 @@ html:root body.simulacion-pagina .simulacion-encabezado {
 .simulacion-pagina .simulacion-encabezado-acciones { grid-column: 3; }
 .simulacion-pagina { --simulacion-mapa-alto: max(430px, calc(100svh - 194px)); }
 .simulacion-visor-mapa { grid-template-rows: minmax(var(--simulacion-mapa-alto),1fr); }
-.simulacion-instrumentos #seccionResultados { flex: 1; margin-top: 0; display: flex; flex-direction: column; }
-.simulacion-instrumentos #seccionResultados .simulacion-seccion-contenido { flex: 1; }
-#listaResultadosSimulacion.metronet-vacio { align-content: center; text-align: center; }
 @media (max-width: 1050px) {
   html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr) auto; }
   .simulacion-accesos-titulo { grid-column: 2; }
@@ -290,19 +282,14 @@ html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns:
 .simulacion-instrumentos .simulacion-desempeno select { font-size: 10px; }
 html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-titulo,
 html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-titulo button { font-size: 10px; }
-.simulacion-instrumentos #seccionResultados { margin-top: 14px; }
-html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo,
-html:root body.simulacion-pagina .simulacion-instrumentos #tituloResultadosSimulacion { font: 700 13px/1.4 var(--font-tecnica); }
+html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo { font: 700 13px/1.4 var(--font-tecnica); }
 html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo { padding-inline: 6px; }
-html:root body.simulacion-pagina .simulacion-instrumentos #tituloResultadosSimulacion { padding: 8px 6px; }
 .simulacion-instrumentos .simulacion-parametro-titulo .metronet-icono,
 .simulacion-instrumentos [data-icono-duracion] { display: none; }
 .simulacion-instrumentos .simulacion-parametro-valor input { text-align: center; }
 html:root body.simulacion-pagina .simulacion-instrumentos h3::before {
   top: 50% !important; transform: translateY(-50%);
 }
-.simulacion-instrumentos #seccionResultados .simulacion-seccion-contenido { padding: 2px 4px 4px; }
-#listaResultadosSimulacion.metronet-vacio { padding: 8px; }
 
 /* La banda del diseño comparte el borde derecho con el mapa. */
 html:root body.simulacion-pagina .simulacion-encabezado {
@@ -332,3 +319,131 @@ html:root body.simulacion-pagina #tituloSimulacion { width: 100%; font-size: 28p
 
 /* Los tres accesos comparten el eje central de la columna derecha. */
 .simulacion-accesos-titulo { justify-self: stretch; justify-content: center; }
+
+/* Las secciones de Simulación usan las mismas bandas que el editor. */
+html:root body.simulacion-pagina .simulacion-instrumentos :is(
+  .simulacion-acciones-panel > .simulacion-seccion-titulo,
+  #seccionCirculacion > .simulacion-seccion-titulo,
+  .simulacion-desempeno > .simulacion-seccion-titulo,
+  .simulacion-grupo-metros > .simulacion-seccion-titulo,
+  .simulacion-grupo-velocidad > .simulacion-seccion-titulo,
+  .simulacion-parametros > .simulacion-seccion-titulo
+) {
+  box-sizing: border-box;
+  min-height: 38px;
+  margin: 0;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--info-active);
+  background: color-mix(in srgb, var(--info-active) 19%, var(--panel-elevated));
+  box-shadow: var(--shadow-header);
+  white-space: nowrap;
+}
+html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo::before {
+  content: none !important;
+  display: none !important;
+}
+html:root body.simulacion-pagina .simulacion-instrumentos :is(
+  .simulacion-desempeno, .simulacion-parametros
+) { padding: 0 0 8px; }
+html:root body.simulacion-pagina .simulacion-instrumentos :is(
+  .simulacion-parametros
+) > :not(.simulacion-seccion-titulo) { margin-inline: 10px; }
+
+/* El panel y el mapa comparten el borde inferior, sin un hueco bajo Aplicar UT. */
+.simulacion-pagina { --simulacion-mapa-alto: max(430px, calc(100svh - 176px)); }
+.simulacion-aplicacion { padding-bottom: 0; }
+.simulacion-instrumentos { min-height: var(--simulacion-mapa-alto); }
+
+/* Cuatro bloques visibles distribuidos entre el borde superior e inferior. */
+#seccionCirculacion:not([hidden]),
+.simulacion-instrumentos #desempenoNivel { display: contents; }
+.simulacion-grupo-metros,
+.simulacion-grupo-velocidad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  padding-bottom: 8px;
+  border-top: var(--border-width) solid var(--border);
+}
+.simulacion-grupo-metros > .simulacion-selector-metros,
+.simulacion-grupo-velocidad > .simulacion-parametro-velocidad { min-width: 0; margin-inline: 10px; }
+html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo {
+  padding-inline: 10px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* El selector conserva el valor nativo para la lógica y muestra opciones con la consola METRONET. */
+.simulacion-selector-metros { position: relative; min-width: 0; z-index: var(--layer-dropdown); }
+html:root body.simulacion-pagina .simulacion-selector-metros > summary {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 36px 7px 10px;
+  border: var(--border-width) solid var(--border-active);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  font: 700 11px/1.35 var(--font-arcade);
+  text-transform: uppercase;
+  box-shadow: var(--control-relieve);
+}
+.simulacion-selector-metros > summary > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.simulacion-selector-metros[open] > summary { border-color: var(--info-active); background: var(--surface-selected); }
+.simulacion-selector-metros > select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 40px;
+  opacity: 0;
+  pointer-events: none;
+}
+.simulacion-selector-metros__opciones {
+  position: absolute;
+  z-index: var(--layer-dropdown);
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 3px;
+  padding: 5px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: var(--border-width) solid var(--border-active);
+  background: var(--panel-elevated);
+  box-shadow: var(--shadow-floating);
+}
+.simulacion-selector-metros:not([open]) > .simulacion-selector-metros__opciones { display: none; }
+.simulacion-selector-metros--arriba > .simulacion-selector-metros__opciones {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: var(--border-width) solid transparent;
+  color: var(--text-primary);
+  background: var(--panel-elevated);
+  font: 700 11px/1.35 var(--font-arcade);
+  text-align: left;
+  overflow-wrap: anywhere;
+  box-shadow: none;
+}
+html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button:is(:hover, :focus-visible) {
+  border-color: var(--info-active);
+  background: var(--surface-selected);
+}
+html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button[aria-pressed='true'] {
+  border-color: var(--info-active);
+  background: var(--surface-selected);
+  box-shadow: inset 3px 0 var(--info-active);
+}
+
+@media (max-width: 1050px) {
+  .simulacion-instrumentos { min-height: 0; gap: 16px; }
+  .simulacion-selector-metros__opciones { position: static; max-height: min(240px, 45svh) !important; margin-top: 4px; }
+}

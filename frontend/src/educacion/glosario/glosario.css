@@ -5,7 +5,6 @@ html:root body .metronet-glosario-ventana {
   animation: metronet-concepto-entrada var(--motion-enter) var(--motion-easing);
 }
 html:root body .metronet-glosario-ventana > * + * { margin-top: var(--space-md); }
-html:root body .metronet-glosario-ventana button { min-height: var(--control-touch-height); width: 100%; padding: var(--space-xs); }
 html:root body .metronet-glosario-categoria { color: var(--info-active); font: 12px/1.5 var(--font-ui); letter-spacing: .05em; }
 @keyframes metronet-concepto-entrada { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { html:root body .metronet-glosario-ventana { animation: none; } }
@@ -16,4 +15,3 @@ html:root body .metronet-glosario-contextual {
   font-family: var(--font-ui); font-size: 14px; line-height: 1.5;
 }
 html:root body .metronet-glosario-contextual p { margin: 0; }
-html:root body .metronet-glosario-contextual button { min-height: 36px; }

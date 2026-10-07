@@ -4,6 +4,7 @@ import { observarTamanoMapa } from '../mapa/ObservarTamanoMapa.js';
 import CapaBarrios from '../mapa/capas/CapaBarrios.js';
 import CapaMapaBase from '../mapa/capas/CapaMapaBase.js';
 import CapaPuntosInteres from '../mapa/capas/CapaPuntosInteres.js';
+import { leerCategoriasPoi } from '../mapa/EstadoCategoriasPoi.mjs';
 import CapaRedMetro from '../mapa/capas/CapaRedMetro.js';
 import CapaTerritorial from '../mapa/capas/CapaTerritorial.js';
 import TerritorioMapa from '../mapa/utilidades/TerritorioMapa.js';
@@ -28,7 +29,6 @@ class EscenaSimulacion extends Phaser.Scene {
     this.controlZoom = null;
     this.disenoActual = null;
     this.motorSimulacion = null;
-    this.marcoVisor = null;
     this.indicadorActividad = null;
     this.etiquetaEstado = null;
     this.etiquetaRed = null;
@@ -55,6 +55,8 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaBarrios = new CapaBarrios(this, { datos: this.cache.json.get('barriosMontevideoSimulacion') });
     this.capaBarrios.dibujar();
     this.capaPuntosInteres = new CapaPuntosInteres(this, {
+      categoriasIniciales: [],
+      mostrarObjetivosSiempre: false,
       datos: this.cache.json.get('puntosInteresSimulacion'),
       onActualizarPuntos: resumen => this.referenciasGeograficas?.actualizar(resumen),
       capaBarrios: this.capaBarrios,
@@ -96,6 +98,7 @@ class EscenaSimulacion extends Phaser.Scene {
     const cambiaDiseno = !this.disenoActual || this.disenoActual.simulacion?.idDiseno !== diseno.simulacion?.idDiseno;
     if (cambiaDiseno) this.vistaGeograficaPendiente = null;
     this.disenoActual = diseno;
+    if (cambiaDiseno) this.capaPuntosInteres?.establecerCategoriasVisibles(leerCategoriasPoi(diseno.simulacion?.idDiseno));
     this.territorioMapa?.configurar(diseno.territorio);
     this.capaTerritorial?.dibujar();
     this.motorSimulacion = new MotorSimulacion(diseno);
@@ -287,7 +290,6 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaRedMetro?.actualizarTamano();
     this.controlZoom?.restaurarVistaTrasRedimension(vistaAnterior, this.obtenerLimitesRed());
     this.aplicarVistaGeograficaPendiente();
-    this.dibujarMarcoVisor();
     this.actualizarContextoVisual();
   }
 
@@ -329,7 +331,6 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   crearContextoVisual() {
-    this.marcoVisor = this.add.graphics().setDepth(PROFUNDIDAD_CONTEXTO).setScrollFactor(0);
     this.indicadorActividad = this.add.circle(0, 0, 4, COLORES_INTERFAZ_MAPA.ACTIVO)
       .setDepth(PROFUNDIDAD_CONTEXTO + 1)
       .setScrollFactor(0).setVisible(false);
@@ -354,32 +355,7 @@ class EscenaSimulacion extends Phaser.Scene {
       fontStyle: '700',
       letterSpacing: 0.45,
     }).setDepth(PROFUNDIDAD_CONTEXTO + 1).setScrollFactor(0).setOrigin(1, 1).setVisible(false);
-    this.dibujarMarcoVisor();
     this.actualizarContextoVisual();
-  }
-
-  dibujarMarcoVisor() {
-    if (!this.marcoVisor) return;
-    const ancho = this.scale.width;
-    const alto = this.scale.height;
-    const margen = 14;
-    const largoEsquina = Math.min(30, Math.max(18, ancho * 0.045));
-    this.marcoVisor.clear();
-    this.marcoVisor.lineStyle(1, COLORES_INTERFAZ_MAPA.BORDE, 0.8);
-    this.marcoVisor.beginPath();
-    this.marcoVisor.moveTo(margen, margen + largoEsquina);
-    this.marcoVisor.lineTo(margen, margen);
-    this.marcoVisor.lineTo(margen + largoEsquina, margen);
-    this.marcoVisor.moveTo(ancho - margen - largoEsquina, margen);
-    this.marcoVisor.lineTo(ancho - margen, margen);
-    this.marcoVisor.lineTo(ancho - margen, margen + largoEsquina);
-    this.marcoVisor.moveTo(margen, alto - margen - largoEsquina);
-    this.marcoVisor.lineTo(margen, alto - margen);
-    this.marcoVisor.lineTo(margen + largoEsquina, alto - margen);
-    this.marcoVisor.moveTo(ancho - margen - largoEsquina, alto - margen);
-    this.marcoVisor.lineTo(ancho - margen, alto - margen);
-    this.marcoVisor.lineTo(ancho - margen, alto - margen - largoEsquina);
-    this.marcoVisor.strokePath();
   }
 
   actualizarContextoVisual(colorActividad = COLORES_INTERFAZ_MAPA.ACTIVO) {
@@ -420,7 +396,6 @@ class EscenaSimulacion extends Phaser.Scene {
     this.liberarTamano?.();
     this.liberarTamano = null;
     this.detenerPulsoActividad();
-    this.marcoVisor?.destroy();
     this.indicadorActividad?.destroy();
     this.etiquetaEstado?.destroy();
     this.etiquetaRed?.destroy();

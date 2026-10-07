@@ -218,9 +218,8 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  if(caso==='modoLibre'||caso==='incompleto'){
   await pagina.waitForFunction(()=>document.querySelector('#estadoTiempoReal')?.textContent==='Finalizada');
-  await pagina.locator('#listaResultadosSimulacion .simulacion-resultado').waitFor();
-  assert.equal(await pagina.locator('#seccionResultados').isVisible(),true,'El resultado persistido debe verse en el panel operacional');
-  assert.match(await pagina.locator('#listaResultadosSimulacion').innerText(),/COMPLETADA.*Duración simulada/s);
+  await pagina.waitForFunction(()=>/Recorrido finalizado/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));
+  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(),0);
   assert.equal(await pagina.locator('.metronet-victoria').count(),0);
   assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);return;
  }

@@ -60,13 +60,13 @@
         <div class="simulacion-avisos" aria-label="Estado y avisos de la red">
           <p id="estadoEjecucion" class="simulacion-estado-ejecucion"></p>
           <p id="mensajeSimulacion" class="simulacion-mensaje" role="status" aria-live="polite"></p>
-          <button id="verResultadosSimulacion" type="button" hidden>Ver resultados</button>
+          <a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con niveles</a>
         </div>
 
-          <section id="seccionCirculacion" data-requiere-diseno hidden><h3 class="simulacion-seccion-titulo">Metros</h3><div id="desempenoNivel" class="simulacion-desempeno"></div><p id="resumenCriterioUvUt" class="simulacion-texto-secundario" hidden></p></section>
+          <section id="seccionCirculacion" data-requiere-diseno hidden><div id="desempenoNivel" class="simulacion-desempeno"></div><p id="resumenCriterioUvUt" class="simulacion-texto-secundario" hidden></p></section>
           <section id="seccionConfiguracion" class="simulacion-parametros" data-requiere-diseno hidden>
             <h3 class="simulacion-seccion-titulo">Unidad de tiempo · UT</h3>
-            <div class="simulacion-parametro-titulo" title="Duración simulada"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
+            <div class="simulacion-parametro-titulo"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
             <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en horas" type="number" min="1" step="1" value="6" required /><span id="unidadDuracionSimulacion">h</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button></div>
             <button id="aplicarUnidadTiempo" type="button">Aplicar UT</button>
             <div class="simulacion-ritmo"><span class="simulacion-etiqueta-control">Ritmo visual (×)</span><div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
@@ -75,10 +75,6 @@
           </section>
           <section id="seccionMetricas" class="simulacion-ficha-unidad" hidden aria-label="Unidad seleccionada"><strong id="metroSimulacion"></strong><span id="lineaSimulacion"></span><span id="proximaEstacionSimulacion"></span></section>
           <div class="simulacion-seguimiento" data-requiere-diseno hidden><button id="seguirMetro" type="button" aria-pressed="false" data-etiqueta-corta="Seguir metro" disabled>Seguir metro</button></div>
-          <section id="seccionResultados" class="simulacion-seccion" data-requiere-diseno hidden>
-            <h3 id="tituloResultadosSimulacion">Resultado de simulación</h3>
-            <div class="simulacion-seccion-contenido"><div id="listaResultadosSimulacion" class="simulacion-lista-elementos"></div><a id="continuarEscenarios" class="simulacion-volver" href="/escenarios.html" hidden>Continuar con niveles</a></div>
-          </section>
         </aside>
       </div>
     </main>

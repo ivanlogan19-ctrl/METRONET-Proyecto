@@ -150,5 +150,5 @@ test('Referencias conserva apertura nativa y el HUD de música no muestra contro
   await summary.focus(); await summary.press('Enter');
   assert.equal(await summary.evaluate(e => e.parentElement.open), true);
   const simulacion = (await abrir(t, '/simulacion.html?idDiseno=77')).pagina;
-  assert.equal(await simulacion.getByRole('heading', { name: 'Resultado de simulación' }).isVisible(), true);
+  assert.equal(await simulacion.getByRole('heading', { name: 'Resultado de simulación' }).count(), 0);
 });

@@ -71,7 +71,7 @@ export default class CreacionDirecta {
         alCompletar();
         e.capaRedMetro.establecerEstacionesSeleccionadas(e.estacionesSeleccionadas);
         e.actualizarOperacionAyuda();
-        e.mostrarMensaje(mensaje, 'exito');
+        e.barraEstado?.limpiarMensaje();
         return true;
       } catch (error) { if (vigente()) e.mostrarError(error); return false; }
       finally { e.contenedor?.removeAttribute('aria-busy'); }

@@ -72,6 +72,14 @@ public class GeografiaService {
         return !barriosDelArea(tipo, nombre).isEmpty();
     }
 
+    public boolean zonaIncluyeBarrio(String zona, String barrio) {
+        if (!tieneGeometria("zona", zona) || !tieneGeometria("barrio", barrio)) return false;
+        String nombreBarrio = normalizar(barrio);
+        for (JsonNode integrante : zonas.path(normalizar(zona)))
+            if (normalizar(integrante.asText()).equals(nombreBarrio)) return true;
+        return false;
+    }
+
     public List<JsonNode> geometriasMapa() {
         return barrios.stream().map(Barrio::geometria).toList();
     }

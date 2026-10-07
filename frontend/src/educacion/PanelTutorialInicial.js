@@ -3,6 +3,7 @@ import { anclarPanelDesplegable } from '../interfaz/PanelDesplegable.js';
 import { pasoPractico, leccionesDisponibles, herramientasIntroducidas } from './TutorialInicial.js';
 import RecorridoInicial from './RecorridoInicial.js';
 import { consumirInicioTutorial } from './InicioTutorial.js';
+import { obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { destacarConceptos, cerrarDefinicion } from './glosario/GlosarioContextual.js';
 import { conceptosDelNivel } from './glosario/ContextoConceptos.js';
 import './tutorial-inicial.css';
@@ -30,6 +31,10 @@ export default class PanelTutorialInicial {
     contenedor.append(this.elemento);
     this.liberar = anclarPanelDesplegable(this.elemento, this.elemento.querySelector('section'), { cerrarAlSalir:false });
     this.recorrido = new RecorridoInicial(() => this.comenzarPractica());
+    this.recorridoSimular = new RecorridoInicial(() => {}, {
+      pasos: [['[data-ir-simulacion]', 'Simular', 'Este botón abre la simulación cuando la red está preparada. Construí la red y asigná un metro antes de usarlo.']],
+      tituloFinal: 'Botón ubicado', textoFinal: 'Podés seguir construyendo la red en Edición.',
+    });
     this.cerrarOtros = evento => {
       if (evento.target.open && evento.target.matches?.('.metronet-hud, .metronet-poi')) this.elemento.open = false;
     };
@@ -45,7 +50,7 @@ export default class PanelTutorialInicial {
     this.contexto = contexto;
     const id = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario]);
     const nuevo = this.id !== id;
-    if (nuevo) { this.recorrido.terminar(false); this.elemento.open = false; this.id = id; }
+    if (nuevo) { this.recorrido.terminar(false); this.recorridoSimular.terminar(false); this.elemento.open = false; this.id = id; }
     const disponible = Boolean(contexto.diseno);
     this.elemento.hidden = !disponible;
     if (!disponible) return false;
@@ -59,13 +64,32 @@ export default class PanelTutorialInicial {
     this.elemento.dataset.fase = this.estado.fase;
     const identidad = JSON.stringify([id, this.estado.fase, this.leccion, contexto.error, leccionesDisponibles(contexto)]);
     if (identidad !== this.identidad) { this.identidad = identidad; this.renderizar(); }
-    if (nuevo && this.estado.primeraPasada && (this.estado.fase === 'oferta' || (this.leccion && herramientasIntroducidas(contexto.escenario, contexto.catalogo).length))) { this.estado.primeraPasada = false; this.elemento.open = true; }
+    const nuevas = herramientasIntroducidas(contexto.escenario, contexto.catalogo);
+    const claveNovedad = nuevas.includes(this.leccion?.clave)
+      ? `metronet:tutorial-nueva-herramienta:v1:${obtenerSesionActiva()?.usuario?.idUsuario}:${contexto.escenario.numero}` : null;
+    let novedadPendiente = false;
+    if (claveNovedad) {
+      try { novedadPendiente = localStorage.getItem(claveNovedad) !== 'presentada'; }
+      catch { novedadPendiente = true; }
+    }
+    if (nuevo && ((this.estado.primeraPasada && (this.estado.fase === 'oferta' || nuevas.length)) || novedadPendiente)) {
+      this.estado.primeraPasada = false;
+      if (this.leccion?.clave === 'simulacion') this.mostrarBotonSimular();
+      else this.elemento.open = true;
+      if (claveNovedad) try { localStorage.setItem(claveNovedad, 'presentada'); } catch { /* La guía sigue disponible. */ }
+    }
     return Boolean(this.leccion);
   }
 
   boton(texto, accion) {
     const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = texto;
     boton.addEventListener('click', accion); return boton;
+  }
+
+  mostrarBotonSimular() {
+    this.elemento.open = false;
+    this.recorridoSimular.terminar(false);
+    this.recorridoSimular.iniciar();
   }
 
   renderizar() {
@@ -80,6 +104,11 @@ export default class PanelTutorialInicial {
     } else if (this.leccion) {
       texto(this.leccion.titulo, 'strong');
       texto(this.leccion.texto);
+      if (this.leccion.clave === 'simulacion') {
+        const acciones = texto('', 'div');
+        acciones.className = 'metronet-tutorial__acciones';
+        acciones.append(this.boton('Mostrar botón Simular', () => this.mostrarBotonSimular()));
+      }
       const error = this.contexto.error;
       if (error) texto(typeof error === 'string' ? error : error.message ?? error.mensaje ?? 'La operación no pudo completarse. Revisá la ubicación o selección e intentá nuevamente.').className = 'metronet-tutorial__error';
     } else {
@@ -102,7 +131,7 @@ export default class PanelTutorialInicial {
   }
   registrarUso(herramienta) { this.estado?.aprendidas.add(herramienta); }
   eliminar() {
-    this.recorrido.terminar(false); this.liberar(); document.removeEventListener('toggle', this.cerrarOtros, true);
+    this.recorrido.terminar(false); this.recorridoSimular.terminar(false); this.liberar(); document.removeEventListener('toggle', this.cerrarOtros, true);
     this.elemento.remove(); this.intentos.clear();
   }
 }

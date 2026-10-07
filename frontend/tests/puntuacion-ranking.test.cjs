@@ -59,7 +59,7 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
  }});
 
  const campo=pagina.getByRole('spinbutton',{name:'Velocidad en UV',exact:true});await campo.waitFor();
- assert.equal(await pagina.locator('#desempenoNivel').evaluate(e=>getComputedStyle(e).display),'grid');
+ assert.equal(await pagina.locator('.simulacion-grupo-metros').isVisible(),true);
  assert.ok(await campo.evaluate(e=>e.getBoundingClientRect().height>=40));
  assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  assert.equal(await campo.isDisabled(),!resuelta);
@@ -103,13 +103,13 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
  await pagina.locator('#duracionSimulacion').fill('1');
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
- await pagina.locator('#listaResultadosSimulacion').filter({ hasText: `${puntos} puntos` }).waitFor();
- assert.match(await pagina.locator('#listaResultadosSimulacion').textContent(), new RegExp(`COMPLETADA · ${puntos} puntos`));
+ await pagina.waitForFunction(() => document.querySelector('#estadoTiempoReal')?.textContent === 'Finalizada');
+ assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
  if (puntos === 100) {
   await pagina.getByRole('dialog').waitFor();
   assert.match(await pagina.getByRole('dialog').innerText(), /100 \/ 100 PTS/);
  } else {
   assert.equal(await pagina.getByRole('dialog').count(), 0);
-  assert.match(await pagina.locator('#mensajeSimulacion').innerText(), /Revisá el resultado de simulación/);
+  assert.match(await pagina.locator('#mensajeSimulacion').textContent(), /Revisá los objetivos en Edición/);
  }
 });

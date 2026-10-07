@@ -5,7 +5,7 @@ const LECCIONES = {
   lineas: ['Línea', 'Elegí el icono de línea y dos estaciones distintas. Se crea la línea y su primer tramo; el nombre se asigna automáticamente.'],
   conexiones: ['Conexión', 'Elegí el icono de vía, una línea activa y dos estaciones. Cada destino agrega un tramo; después podés continuar desde esa estación.'],
   metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea. Seleccionala después para editar la velocidad.'],
-  simulacion: ['Simulación', 'El triángulo Simular comprueba y guarda la red antes de iniciar. Podés pausar, reanudar y observar los metros. El disquete Guarda tu avance y revisa la consigna.'],
+  simulacion: ['Simulación', 'El botón verde Simular está en Acciones de nivel. Comprueba y guarda la red antes de abrir la simulación; primero construí la red y asigná un metro.'],
 
 };
 

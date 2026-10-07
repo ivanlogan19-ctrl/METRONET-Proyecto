@@ -93,10 +93,32 @@ test('Tap: abre, cierra y permite continuar; contenido largo sin desbordes', asy
   const boton=p.locator('[data-concepto=transbordo]'); await boton.tap();
   await p.locator('.metronet-glosario-ventana').waitFor();
   await captura(p,'touch-360');
-  await p.getByRole('button',{name:'Cerrar explicación'}).tap();
+  assert.equal(await p.getByRole('button',{name:'Cerrar explicación'}).count(),0);
+  await p.mouse.click(5,5);
   assert.equal(await p.locator('.metronet-glosario-ventana').count(),0);
   assert.equal(await p.locator('#textoLargo [data-concepto]').count(),3);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+});
+
+test('La explicación contextual se cierra al pulsar fuera o con Escape', async t => {
+  const {pagina:p} = await abrir(t, '/login.html');
+  await p.evaluate(async modulo => {
+    const {destacarConceptos} = await import(modulo+'GlosarioContextual.js');
+    const contenedor = document.createElement('section');
+    contenedor.style.padding = '40px';
+    contenedor.textContent = 'Una unidad de metro circula por la línea.';
+    document.body.append(contenedor);
+    destacarConceptos(contenedor, ['unidad'], {contextual:true});
+  }, modulo);
+  const termino = p.locator('[data-concepto=unidad]');
+  await termino.click();
+  assert.equal(await p.locator('.metronet-glosario-contextual').count(), 1);
+  assert.equal(await p.getByRole('button',{name:'Cerrar explicación'}).count(), 0);
+  await p.mouse.click(5,5);
+  assert.equal(await p.locator('.metronet-glosario-contextual').count(), 0);
+  await termino.click();
+  await p.keyboard.press('Escape');
+  assert.equal(await p.locator('.metronet-glosario-contextual').count(), 0);
 });
 
 test('Constructor: objetivos visibles y cambio de nivel sin acciones ocultas', async t => {

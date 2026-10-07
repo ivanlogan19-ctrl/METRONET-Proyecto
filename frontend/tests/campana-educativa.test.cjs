@@ -88,6 +88,21 @@ test('Cancelación, recarga, repetición y reanudación no adelantan ni duplican
   await pagina.getByRole('dialog', { name: niveles[9].nombre }).waitFor();
   await pagina.waitForURL('**/?idDiseno=200&idEscenario=110&idIntento=300');
 });
+test('Reiniciar recorrido habilita el Nivel 1 sin cambiar de pestaña', async t => {
+  const reiniciado = { ...progreso(0), numeroCampanaActual: 2 };
+  const { pagina, solicitudes } = await abrir(t, '/escenarios.html', {
+    responder: req => new URL(req.url()).pathname === '/api/juego/recorrido/reiniciar'
+      ? { json: reiniciado }
+      : null,
+  });
+  await pagina.locator('#botonReiniciarRecorrido').click();
+  await pagina.locator('[data-confirmar-reinicio]').click();
+  const nivel1 = pagina.locator('.metronet-escenarios-pagina__tarjeta').first();
+  await nivel1.getByRole('button', { name: 'Comenzar', exact: true }).waitFor();
+  assert.equal(await nivel1.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
+  assert.equal(await pagina.locator('#dialogoReiniciarRecorrido').evaluate(dialogo => dialogo.open), false);
+  assert.equal(solicitudes.filter(req => req.path === '/api/juego/recorrido/reiniciar' && req.method === 'POST').length, 1);
+});
 test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', async t => {
   const resumen = progreso(10);
   const { pagina, solicitudes } = await abrir(t, '/escenarios.html', { progreso: resumen });

@@ -597,10 +597,15 @@ public class JuegoEducativoService {
         condiciones.addAll(circulacion);
         CondicionConsignaResponse llegada = criterioUvUt.condicion(intento.idIntento(), idDiseno);
         if (llegada != null) condiciones.add(llegada);
-        int progreso = PuntuacionService.normalizar(condiciones);
-        boolean completado = !condiciones.isEmpty() && condiciones.stream().allMatch(CondicionConsignaResponse::completado);
+        var objetivosVigentes = ObjetivosNivel4.reducir(intento.numero() == null ? 0 : intento.numero(),
+            configuracionUt != null, condiciones);
+        objetivosVigentes = ObjetivosAvanzados.reducir(intento.numero() == null ? 0 : intento.numero(),
+            configuracionUt != null, reglas, objetivosVigentes,
+            condicionesGeograficasService::zonaIncluyeBarrio);
+        int progreso = PuntuacionService.normalizar(objetivosVigentes);
+        boolean completado = !objetivosVigentes.isEmpty() && objetivosVigentes.stream().allMatch(CondicionConsignaResponse::completado);
         return new EvaluacionCondiciones(
-            condiciones,
+            objetivosVigentes,
             referenciasObjetivo,
             progreso,
             completado,

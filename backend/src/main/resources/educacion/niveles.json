@@ -129,17 +129,14 @@
   {
     "numero": 4,
     "nombre": "Nivel 4 · Simulación completa",
-    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido. Experimentá con la configuración de simulación.",
+    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco con una red consistente de al menos tres estaciones y dos conexiones. Simulá el recorrido y compará la configuración UV/UT.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos tres estaciones: una en la zona Oeste y otra en la Este, cada una a no más de 60 unidades del mapa de su punto de interés objetivo. Uní ambos objetivos mediante tramos continuos de una misma línea y asignale al menos un metro. Abrí Simular diseño e iniciá una ejecución; luego cambiá las UV con Aplicar velocidad, conservá las horas simuladas y ejecutá otra vez.",
+    "instrucciones": "Ubicá al menos tres estaciones y dos conexiones. Cubrí Palacio Legislativo y Rambla de Carrasco a no más de 60 unidades del mapa y unilos con un recorrido continuo de una misma línea. Guardá una red consistente y asignale un metro. Abrí Simular diseño e iniciá una ejecución; luego cambiá las UV con Aplicar velocidad, conservá las UT simuladas y ejecutá otra vez.",
     "reglasExito": {
       "minimoEstaciones": 3,
-      "minimoLineas": 1,
       "minimoTramos": 2,
-      "minimoMetros": 1,
       "requiereRedValida": true,
       "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
@@ -149,18 +146,6 @@
         {
           "idPunto": 26,
           "radioCobertura": 60
-        }
-      ],
-      "areasObjetivo": [
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA ESTE",
-          "minimoEstaciones": 1
         }
       ],
       "puntuacion": {
@@ -201,17 +186,12 @@
   {
     "numero": 5,
     "nombre": "Nivel 5 · Lugares y barrios",
-    "objetivo": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios. Experimentá con la configuración de simulación.",
+    "objetivo": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos cuatro estaciones, incluidas estaciones en Aguada, Tres Cruces y Punta Gorda. Cubrí cada punto de interés objetivo a no más de 40 unidades del mapa y conectalos por una misma línea con al menos tres tramos. Asigná un metro y abrí Simular diseño. Ejecutá dos veces: mantené las UV y cambiá solo las horas simuladas entre ambas ejecuciones.",
+    "instrucciones": "Ubicá al menos cuatro estaciones, incluida una en Punta Gorda. Cubrí Palacio Legislativo y Terminal Tres Cruces a no más de 40 unidades del mapa y conectalos por una misma línea continua. Guardá una red consistente dentro del territorio permitido. Simulá, cambiá solo las UT y repetí con las mismas UV.",
     "reglasExito": {
       "minimoEstaciones": 4,
-      "minimoLineas": 1,
-      "minimoTramos": 3,
-      "minimoMetros": 1,
       "requiereRedValida": true,
-      "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -222,36 +202,12 @@
         {
           "idPunto": 113,
           "radioCobertura": 40
-        },
-        {
-          "idPunto": 106,
-          "radioCobertura": 40
         }
       ],
       "areasObjetivo": [
         {
           "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "TRES CRUCES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
           "nombre": "PUNTA GORDA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA ESTE",
           "minimoEstaciones": 1
         }
       ],
@@ -265,7 +221,9 @@
       },
       "aprendizajeSimulacion": {
         "duracion": true
-      }
+      },
+      "minimoMetros": 1,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -277,7 +235,7 @@
     "preparacion": {
       "concepto": "POI y pertenencia barrial",
       "explicacion": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios. Experimentá con la configuración de simulación.",
+      "contexto": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT.",
       "consejo": "Compará dos ejecuciones: mantené las UV y cambiá las horas simuladas antes de volver a ejecutar."
     },
     "transicion": {
@@ -293,30 +251,17 @@
   {
     "numero": 6,
     "nombre": "Nivel 6 · Movilidad entre zonas",
-    "objetivo": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este. Experimentá con la configuración de simulación.",
+    "objetivo": "Conectá Palacio Legislativo y Mirador de la Intendencia en una red que llegue a la Zona Este. Compará UV y UT por separado.",
     "dificultad": "Avanzado",
-    "instrucciones": "Construí al menos cinco estaciones y cuatro conexiones, con una estación en cada barrio y zona indicados. Cubrí los cuatro puntos de interés a no más de 30 unidades del mapa y conectalos por una misma línea continua. Asigná un metro y abrí Simular diseño. Ejecutá, cambiá solo las UV con Aplicar velocidad y ejecutá con las mismas horas; después cambiá solo las horas y ejecutá con las mismas UV.",
+    "instrucciones": "Ubicá al menos cinco estaciones, incluida una en ZONA ESTE. Cubrí Palacio Legislativo y Mirador de la Intendencia a no más de 30 unidades del mapa y conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá; cambiá solo UV y repetí, después cambiá solo UT y repetí.",
     "reglasExito": {
       "minimoEstaciones": 5,
-      "minimoLineas": 1,
-      "minimoTramos": 4,
-      "minimoMetros": 1,
       "requiereRedValida": true,
-      "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
         {
           "idPunto": 1,
-          "radioCobertura": 30
-        },
-        {
-          "idPunto": 113,
-          "radioCobertura": 30
-        },
-        {
-          "idPunto": 106,
           "radioCobertura": 30
         },
         {
@@ -326,38 +271,8 @@
       ],
       "areasObjetivo": [
         {
-          "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "TRES CRUCES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PUNTA GORDA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
           "tipo": "zona",
           "nombre": "ZONA ESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA CENTRO",
           "minimoEstaciones": 1
         }
       ],
@@ -372,7 +287,9 @@
       "aprendizajeSimulacion": {
         "velocidad": true,
         "duracion": true
-      }
+      },
+      "minimoMetros": 1,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -384,7 +301,7 @@
     "preparacion": {
       "concepto": "Movilidad entre zonas",
       "explicacion": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este. Experimentá con la configuración de simulación.",
+      "contexto": "Conectá Palacio Legislativo y Mirador de la Intendencia en una red que llegue a la Zona Este. Compará UV y UT por separado.",
       "consejo": "Compará configuraciones cambiando un parámetro por vez: primero UV con las mismas horas y después horas con las mismas UV. Ejecutá después de cada cambio."
     },
     "transicion": {
@@ -400,30 +317,18 @@
   {
     "numero": 7,
     "nombre": "Nivel 7 · Nodos de intercambio",
-    "objetivo": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
+    "objetivo": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los cinco puntos de interés a no más de 25 unidades del mapa y atendé los cinco barrios y cuatro zonas indicados. Mantené un recorrido continuo común a los puntos de interés. Construí al menos seis estaciones, dos líneas, cinco conexiones y dos metros. Conectá las dos líneas mediante una misma estación para formar un transbordo. Abrí Simular diseño y ejecutá; seleccioná un metro, cambiá solo sus UV con Aplicar velocidad y ejecutá otra vez con las mismas horas.",
+    "instrucciones": "Ubicá al menos seis estaciones, incluida una en BRAZO ORIENTAL, y construí al menos dos líneas con una estación compartida por ambas. Cubrí Palacio Legislativo, Mirador de la Intendencia y Museo Casa de Luis Alberto de Herrera a no más de 25 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá, cambiá solo la UV de un metro y repetí con las mismas UT.",
     "reglasExito": {
       "minimoEstaciones": 6,
       "minimoLineas": 2,
-      "minimoTramos": 5,
-      "minimoMetros": 2,
       "requiereRedValida": true,
-      "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
         {
           "idPunto": 1,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 113,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 106,
           "radioCobertura": 25
         },
         {
@@ -438,47 +343,7 @@
       "areasObjetivo": [
         {
           "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "TRES CRUCES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PUNTA GORDA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
           "nombre": "BRAZO ORIENTAL",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA ESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA NORTE",
           "minimoEstaciones": 1
         }
       ],
@@ -494,7 +359,9 @@
       },
       "aprendizajeSimulacion": {
         "individual": true
-      }
+      },
+      "minimoMetros": 2,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -506,7 +373,7 @@
     "preparacion": {
       "concepto": "Transbordos y conectividad",
       "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.",
+      "contexto": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro.",
       "consejo": "Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades."
     },
     "transicion": {
@@ -522,34 +389,18 @@
   {
     "numero": 8,
     "nombre": "Nivel 8 · Red urbana",
-    "objetivo": "Integrá el Estadio Centenario a una red de al menos tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
+    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros.",
     "dificultad": "Avanzado",
-    "instrucciones": "Cubrí los seis puntos de interés a no más de 20 unidades del mapa y atendé los seis barrios y cuatro zonas indicados. Construí al menos ocho estaciones, tres líneas, siete conexiones y tres metros. Hacé que dos estaciones tengan conexiones de dos líneas distintas para formar dos transbordos. Conectá los puntos de interés por una misma línea continua. Abrí Simular diseño y ejecutá; cambiá solo las UV de un metro y ejecutá de nuevo. Luego seleccioná Todos los metros, aplicá una misma UV nueva a todos los metros y volvé a ejecutar. Mantené las mismas horas entre ejecuciones.",
+    "instrucciones": "Ubicá al menos ocho estaciones, incluida una en PARQUE BATLLE VILLA DOLORES, y construí al menos tres líneas con dos estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Museo Casa de Luis Alberto de Herrera y Estadio Centenario a no más de 20 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá, aplicá una misma UV nueva a todos los metros y repetí con las mismas UT.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
-      "minimoTramos": 7,
-      "minimoMetros": 3,
       "requiereRedValida": true,
-      "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
         {
           "idPunto": 1,
-          "radioCobertura": 20
-        },
-        {
-          "idPunto": 113,
-          "radioCobertura": 20
-        },
-        {
-          "idPunto": 106,
-          "radioCobertura": 20
-        },
-        {
-          "idPunto": 33,
           "radioCobertura": 20
         },
         {
@@ -564,52 +415,7 @@
       "areasObjetivo": [
         {
           "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "TRES CRUCES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PUNTA GORDA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "BRAZO ORIENTAL",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
           "nombre": "PARQUE BATLLE VILLA DOLORES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA ESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA NORTE",
           "minimoEstaciones": 1
         }
       ],
@@ -624,9 +430,10 @@
         "tramosReferencia": 7
       },
       "aprendizajeSimulacion": {
-        "individual": true,
         "global": true
-      }
+      },
+      "minimoMetros": 3,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -638,8 +445,8 @@
     "preparacion": {
       "concepto": "Relaciones en una red urbana",
       "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Integrá el Estadio Centenario a una red de al menos tres líneas con dos transbordos. Experimentá con la configuración de simulación.",
-      "consejo": "Ejecutá, cambiá solo las UV de un metro y ejecutá otra vez. Después seleccioná Todos los metros, aplicá una misma UV nueva a todos los metros y ejecutá con las mismas horas."
+      "contexto": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros.",
+      "consejo": "Simulá, seleccioná Todos los metros, aplicá una misma UV nueva y repetí con las mismas UT."
     },
     "transicion": {
       "aprendizaje": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
@@ -654,34 +461,18 @@
   {
     "numero": 9,
     "nombre": "Nivel 9 · Planificación precisa",
-    "objetivo": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.",
+    "objetivo": "Resolvé tres POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre ocho y nueve estaciones, al menos tres líneas, siete conexiones y tres metros. Conectá dos líneas distintas en cada una de dos estaciones para formar dos transbordos. Cubrí los seis puntos de interés a no más de 12 unidades del mapa, atendé los seis barrios y cuatro zonas indicados y conectá los objetivos por una misma línea continua. Abrí Simular diseño y ejecutá. Después cambiá solo las horas y ejecutá otra vez; por último cambiá UV y horas y volvé a ejecutar.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones, incluida una en ZONA ESTE, al menos tres líneas y dos estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Museo Casa de Luis Alberto de Herrera y Estadio Centenario a no más de 12 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá; cambiá UV y UT juntas y repetí.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
-      "minimoTramos": 7,
-      "minimoMetros": 3,
       "requiereRedValida": true,
-      "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
         {
           "idPunto": 1,
-          "radioCobertura": 12
-        },
-        {
-          "idPunto": 113,
-          "radioCobertura": 12
-        },
-        {
-          "idPunto": 106,
-          "radioCobertura": 12
-        },
-        {
-          "idPunto": 33,
           "radioCobertura": 12
         },
         {
@@ -695,53 +486,8 @@
       ],
       "areasObjetivo": [
         {
-          "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "TRES CRUCES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PUNTA GORDA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "BRAZO ORIENTAL",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PARQUE BATLLE VILLA DOLORES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
           "tipo": "zona",
           "nombre": "ZONA ESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA NORTE",
           "minimoEstaciones": 1
         }
       ],
@@ -757,9 +503,10 @@
         "tramosReferencia": 7
       },
       "aprendizajeSimulacion": {
-        "duracion": true,
         "combinacion": true
-      }
+      },
+      "minimoMetros": 3,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -771,12 +518,12 @@
     "preparacion": {
       "concepto": "Precisión y uso de recursos",
       "explicacion": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.",
-      "consejo": "Compará una ejecución cambiando solo las horas y otra combinando cambios de UV y horas. Ejecutá después de cada modificación."
+      "contexto": "Resolvé tres POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas.",
+      "consejo": "Compará dos ejecuciones: cambiá UV y UT juntas y volvé a simular."
     },
     "transicion": {
       "aprendizaje": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "ciudad": "El Rosedal del Prado y el Santuario del Cerrito agregan referencias en Prado Nueva Savona y Cerrito según las coordenadas y polígonos del proyecto."
+      "ciudad": "El Rosedal del Prado añade una referencia en Prado Nueva Savona para la etapa final del recorrido."
     },
     "historia": {
       "estado": "PENDIENTE_VALIDACION",
@@ -787,17 +534,13 @@
   {
     "numero": 10,
     "nombre": "Nivel 10 · Desafío integral",
-    "objetivo": "Integrá ocho puntos de interés, ocho barrios y cuatro zonas en una red de al menos tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
+    "objetivo": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre diez y once estaciones, con al menos tres líneas, nueve conexiones y tres metros. Conectá dos líneas distintas en cada una de tres estaciones para formar tres transbordos. Cubrí los ocho puntos de interés a no más de 10 unidades del mapa, atendé los ocho barrios y cuatro zonas indicados y conectá los objetivos por una misma línea continua. Abrí Simular diseño y ejecutá. Seleccioná un metro, cambiá solo sus UV con Aplicar velocidad y ejecutá con las mismas horas. Luego seleccioná Todos los metros, aplicá una misma UV nueva a todos los metros y ejecutá con las mismas horas. Por último cambiá UV y horas y ejecutá otra vez.",
+    "instrucciones": "Diseñá entre diez y once estaciones, incluida una en PRADO NUEVA SAVONA, al menos tres líneas y tres estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Estadio Centenario, Rosedal del Prado y Plaza Virgilio a no más de 10 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá; compará una UV global y luego una combinación nueva de UV y UT.",
     "reglasExito": {
       "minimoEstaciones": 10,
       "minimoLineas": 3,
-      "minimoTramos": 9,
-      "minimoMetros": 3,
       "requiereRedValida": true,
-      "requiereSimulacion": true,
-      "requiereCoberturaPuntosInteres": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -806,19 +549,7 @@
           "radioCobertura": 10
         },
         {
-          "idPunto": 113,
-          "radioCobertura": 10
-        },
-        {
           "idPunto": 106,
-          "radioCobertura": 10
-        },
-        {
-          "idPunto": 33,
-          "radioCobertura": 10
-        },
-        {
-          "idPunto": 18,
           "radioCobertura": 10
         },
         {
@@ -828,71 +559,12 @@
         {
           "idPunto": 100,
           "radioCobertura": 10
-        },
-        {
-          "idPunto": 36,
-          "radioCobertura": 10
         }
       ],
       "areasObjetivo": [
         {
           "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "TRES CRUCES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PUNTA GORDA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "BRAZO ORIENTAL",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "PARQUE BATLLE VILLA DOLORES",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
           "nombre": "PRADO NUEVA SAVONA",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "barrio",
-          "nombre": "CERRITO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA OESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA ESTE",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA CENTRO",
-          "minimoEstaciones": 1
-        },
-        {
-          "tipo": "zona",
-          "nombre": "ZONA NORTE",
           "minimoEstaciones": 1
         }
       ],
@@ -908,10 +580,11 @@
         "tramosReferencia": 9
       },
       "aprendizajeSimulacion": {
-        "individual": true,
         "global": true,
         "combinacion": true
-      }
+      },
+      "minimoMetros": 3,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -923,12 +596,12 @@
     "preparacion": {
       "concepto": "Integración territorial",
       "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Integrá ocho puntos de interés, ocho barrios y cuatro zonas en una red de al menos tres líneas con tres transbordos. Experimentá con la configuración de simulación.",
-      "consejo": "Ejecutá; compará un cambio de UV individual y luego aplicá una misma UV nueva a Todos los metros, conservando las horas. Por último cambiá UV y horas y ejecutá otra vez."
+      "contexto": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones.",
+      "consejo": "Compará una nueva UV global; después cambiá UV y UT juntas y volvé a simular."
     },
     "transicion": {
       "aprendizaje": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "ciudad": "Completaste un recorrido que combina lugares, barrios, zonas y conexiones. Podés revisar tus diseños y comparar cómo atienden el territorio en Modo Libre."
+      "ciudad": "Completaste un recorrido que combina lugares, territorio y conexiones. Podés revisar tus diseños y comparar alternativas en Modo Libre."
     },
     "historia": {
       "estado": "PENDIENTE_VALIDACION",

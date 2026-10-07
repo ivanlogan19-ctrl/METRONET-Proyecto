@@ -64,7 +64,7 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
   assert.equal(await p.locator('#ampliarMapa').isVisible(), false);
-  assert.equal(await p.locator('#seccionResultados').isVisible(), true);
+  assert.equal(await p.locator('#seccionResultados').count(), 0);
   assert.deepEqual(await geometria(p), inicial);
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.waitForFunction(() => escenaOrganizacion.motorSimulacion.estado === 'EN_CURSO');
@@ -98,7 +98,7 @@ test('Validación de horas con panel visible: enfoca el campo sin ejecutar', asy
   assert.equal(await p.locator('#duracionSimulacion').evaluate(e => e === document.activeElement), true);
   assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);
 });
-test('Los errores permanecen bajo los mandos y los resultados se abren bajo demanda', async t => {
+test('Los errores permanecen bajo los mandos sin mostrar el bloque de resultados', async t => {
   const { pagina: p } = await abrir(t, 1440, req => req.url().endsWith('/ejecutar') ? { status: 503, json: { detail: 'Servicio temporalmente no disponible.' } } : null);
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.locator('#mensajeSimulacion.error').waitFor();
@@ -108,8 +108,7 @@ test('Los errores permanecen bajo los mandos y los resultados se abren bajo dema
   assert.ok(mensaje.y >= mandos.y + mandos.height, 'El aviso no debe tapar los controles');
   assert.ok(mensaje.y >= 0 && mensaje.y + mensaje.height <= 1000, 'El error debe quedar a la vista');
   assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
-  assert.equal(await p.locator('#seccionResultados').isVisible(), true);
-  assert.equal(await p.locator('#verResultadosSimulacion').isVisible(), false);
+  assert.equal(await p.locator('#seccionResultados, #verResultadosSimulacion').count(), 0);
 });
 test('Sin diseño en la URL, Mis diseños conserva la apertura sin duplicar el selector', async t => {
   const { pagina:p } = await abrir(t);
