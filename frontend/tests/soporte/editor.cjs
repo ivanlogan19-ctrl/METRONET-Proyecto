@@ -4,6 +4,9 @@ async function abrirEditor(navegador, opciones = {}) {
   const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
   await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
   await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })));
+  if (opciones.novedadPresentada && Number.isInteger(opciones.escenario?.numero)) await contexto.addInitScript(numero => {
+    localStorage.setItem(`metronet:tutorial-nueva-herramienta:v1:7:${numero}`, 'presentada');
+  }, opciones.escenario.numero);
   // Las suites de edición continúan la tarjeta para probar sus flujos previos;
   // la presentación educativa se valida en tarjetas-educativas.test.cjs.
   if (opciones.cerrarTarjetaAutomatica !== false) await contexto.addInitScript(() => {
@@ -97,7 +100,6 @@ async function abrirEditor(navegador, opciones = {}) {
   await pagina.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   if (!opciones.ofrecerRecorrido && await pagina.getByRole('button', { name:'Comenzar directamente', exact:true }).isVisible()) {
     await pagina.getByRole('button', { name:'Comenzar directamente', exact:true }).click();
-    await pagina.getByRole('button', { name:'Cerrar tutorial', exact:true }).click();
   }
   return { contexto, pagina, solicitudes, diseno, errores };
 }

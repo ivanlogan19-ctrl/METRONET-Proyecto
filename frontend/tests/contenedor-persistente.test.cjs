@@ -192,7 +192,7 @@ for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 11 
   assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>8.3&&a.currentTime<11.5));
   await v.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
   assert.ok(Date.now()-inicio>=10800&&Date.now()-inicio<16000);await sonar(p,'extra');
-  await v.getByRole('button',{name:'Mostrar tutorial',exact:true}).waitFor();assert.equal(await v.locator('.metronet-identificacion').count(),0);
+  await v.locator('.metronet-tutorial > summary').waitFor();assert.equal(await v.locator('.metronet-identificacion').count(),0);
 });
 
 test('Outro y siguiente nivel completan el viaje de 11 s y liberan su contexto al navegar',async t=>{

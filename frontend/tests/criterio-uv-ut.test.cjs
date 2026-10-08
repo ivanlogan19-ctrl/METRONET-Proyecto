@@ -36,6 +36,12 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '2');
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');
+  await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
+  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /Metro 1 · Principal.*4,5 UV · 2 UT global/s);
+  await p.locator('#duracionSimulacion').fill('3');
+  await p.locator('#aplicarUnidadTiempo').click();
+  await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
+  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /4,5 UV · 3 UT global/);
   assert.equal(await p.locator('#resumenCriterioUvUt').isVisible(), false);
   assert.equal(await p.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
   assert.equal(red.resultados.length, 2, 'El historial recibido permanece en los datos del diseño');

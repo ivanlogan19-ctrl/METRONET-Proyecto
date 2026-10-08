@@ -8,14 +8,19 @@ html:root body .metronet-tutorial__panel, html:root body dialog.metronet-recorri
   font:14px/1.5 var(--font-ui); text-align:left;
 }
 .metronet-tutorial__panel { overflow:auto; }
-.metronet-tutorial__panel header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.metronet-tutorial__panel header { display:flex; align-items:center; gap:12px; }
 html:root body .metronet-tutorial__panel h2, html:root body dialog.metronet-recorrido h2 { margin:0; color:var(--tutorial-acento); font:16px/1.5 var(--font-arcade); }
+html:root body .metronet-tutorial__panel header h2 { border:0; padding:0; background:none; box-shadow:none; }
+html:root body .metronet-tutorial__panel header h2::before { display:none; }
 .metronet-tutorial p, .metronet-recorrido p { margin:8px 0; }
 .metronet-tutorial__acciones, .metronet-recorrido__acciones { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
 .metronet-tutorial__acciones button, .metronet-recorrido__acciones button { white-space:normal; min-height:40px; }
-.metronet-tutorial__repetir { margin-top:8px; }
+.metronet-tutorial__repetir { display:block; margin:12px auto 0; border:1px solid var(--tutorial-acento); background:var(--tutorial-superficie); color:var(--tutorial-tinta); }
 .metronet-tutorial__error { color:var(--warning-text, #ffe59b); border-left:2px solid currentColor; padding-left:8px; }
-.metronet-tutorial details + details { margin-top:6px; }
+.metronet-tutorial__herramientas { display:grid; gap:6px; margin:8px 0; }
+.metronet-tutorial__herramientas p { margin:0; padding:5px 0; border-bottom:1px solid var(--tutorial-acento); }
+.metronet-tutorial__herramientas strong { color:var(--tutorial-acento); font-weight:700; }
+.metronet-tutorial__herramientas span { font-weight:400; }
 .metronet-recorrido { position:fixed; inset:auto; margin:0; width:min(310px, calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow-y:auto; overscroll-behavior:contain; }
 .metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%); }
 .metronet-recorrido__marca { position:fixed; box-sizing:border-box; pointer-events:none; border:3px solid var(--tutorial-acento); box-shadow:0 0 0 2px var(--bg-primary), 4px 4px 0 var(--shadow-color); }

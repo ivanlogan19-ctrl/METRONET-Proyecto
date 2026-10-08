@@ -1,12 +1,12 @@
 body.metronet-pagina-administracion {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
-  --admin-lateral-padding: var(--space-lg, 24px);
-  --admin-menu-width: 264px;
+  --admin-lateral-padding: 8px;
+  --admin-menu-width: 232px;
 }
 
 body.metronet-pagina-administracion .metronet-navegacion {
-  padding-left: calc(var(--admin-lateral-padding) + 2px);
+  padding-left: var(--admin-lateral-padding);
 }
 
 .admin-aplicacion {
@@ -89,7 +89,7 @@ body.metronet-pagina-administracion .metronet-navegacion {
 
 .admin-encabezado,
 .admin-vista {
-  width: min(100%, 1240px);
+  width: 100%;
 }
 
 .admin-encabezado {

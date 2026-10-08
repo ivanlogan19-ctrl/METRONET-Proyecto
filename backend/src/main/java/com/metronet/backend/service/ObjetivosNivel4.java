@@ -8,9 +8,10 @@ import java.util.stream.Collectors;
 /** Ajusta solo los objetivos de la versión UV/UT del Nivel 4, sin alterar intentos personalizados. */
 final class ObjetivosNivel4 {
     private static final Set<String> ESENCIALES = Set.of(
-        "minimoEstaciones", "minimoTramos", "requiereRedValida",
+        "minimoEstaciones", "minimoTramos",
         "requiereObjetivosMismaLinea", "aprendizajeSimulacion:velocidad", "criterioUvUt"
     );
+    private static final String LIMITE_ESTACIONES = "maximoEstaciones";
     private static final Set<String> REDUNDANTES_ANTERIORES = Set.of(
         "minimoLineas", "minimoMetros", "requiereCoberturaPuntosInteres",
         "areaObjetivo:0", "areaObjetivo:1", "simulacionActual"
@@ -21,15 +22,23 @@ final class ObjetivosNivel4 {
     static List<CondicionConsignaResponse> reducir(int numero, boolean escalaUt,
                                                     List<CondicionConsignaResponse> condiciones) {
         if (numero != 4 || !escalaUt) return condiciones;
-        Set<String> claves = condiciones.stream().map(CondicionConsignaResponse::clave).collect(Collectors.toSet());
-        boolean anterior = condiciones.size() == ESENCIALES.size() + REDUNDANTES_ANTERIORES.size()
-            && claves.size() == condiciones.size()
+        List<CondicionConsignaResponse> vigentes = condiciones.stream().anyMatch(condicion -> condicion.clave().equals("requiereRedValida"))
+            ? condiciones.stream().filter(condicion -> !condicion.clave().equals("requiereRedValida")).toList()
+            : condiciones;
+        Set<String> claves = vigentes.stream().map(CondicionConsignaResponse::clave).collect(Collectors.toSet());
+        boolean anterior = vigentes.size() == ESENCIALES.size() + REDUNDANTES_ANTERIORES.size()
+            && claves.size() == vigentes.size()
             && claves.containsAll(ESENCIALES) && claves.containsAll(REDUNDANTES_ANTERIORES);
-        boolean nueva = condiciones.size() == ESENCIALES.size() + 1
-            && claves.size() == condiciones.size()
+        boolean anteriorReducida = vigentes.size() == ESENCIALES.size() + 1
+            && claves.size() == vigentes.size()
             && claves.containsAll(ESENCIALES) && claves.contains("simulacionActual");
-        if (!anterior && !nueva) return condiciones;
-        return condiciones.stream().filter(condicion -> ESENCIALES.contains(condicion.clave()))
+        boolean nueva = vigentes.size() == ESENCIALES.size() + 2
+            && claves.size() == vigentes.size()
+            && claves.containsAll(ESENCIALES) && claves.contains("simulacionActual")
+            && claves.contains(LIMITE_ESTACIONES);
+        if (!anterior && !anteriorReducida && !nueva) return vigentes;
+        return vigentes.stream().filter(condicion -> ESENCIALES.contains(condicion.clave())
+                || (nueva && condicion.clave().equals(LIMITE_ESTACIONES)))
             .map(ObjetivosNivel4::textoCompacto).toList();
     }
 

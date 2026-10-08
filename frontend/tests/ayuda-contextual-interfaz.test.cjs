@@ -18,6 +18,8 @@ async function abrir(t, opciones = {}) {
   t.after(() => vista.contexto.close());
   t.after(() => assert.deepEqual(vista.errores, []));
   await vista.pagina.waitForFunction(() => editorPrueba.estadoConsigna !== 'cargando');
+  const recorrido = vista.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
+  if (await recorrido.isVisible()) await recorrido.click();
   return vista;
 }
 async function estadoMotorAyuda(p, clave) {
@@ -87,7 +89,8 @@ for (const n of [2, 3, 4, 5, 6, 7, 8, 9, 10]) test(`Nivel ${n}: consigna pendien
   if (niveles[n - 1].reglasExito.maximoEstaciones) respuesta.condiciones.push({ ...condicion('maximoEstaciones', false), requerido: niveles[n - 1].reglasExito.maximoEstaciones });
   await p.evaluate(() => editorPrueba.abrirDiseno(77));
   await estadoMotorAyuda(p, n >= 4 ? 'explorar' : 'primera-estacion');
-  assert.match(await p.locator('.metronet-consigna__lista-breve li').first().getAttribute('aria-label'), /0 de 1\. Pendiente/);
+  assert.match(await p.locator('.metronet-consigna__lista-breve li').first().getAttribute('aria-label'),
+    n >= 9 ? /0 de 2\. Pendiente/ : /0 de 1\. Pendiente/);
   assert.equal(await p.locator('.metronet-aprender-acceso').isVisible(), true);
 });
 
@@ -209,7 +212,12 @@ for (const width of [1440, 768, 390, 320]) test(`Aprender se abre con teclado a 
   const aprender = p.locator('.metronet-aprender-acceso');
   assert.equal(await aprender.isVisible(),true);
   const acceso=await aprender.boundingBox();
-  assert.ok(acceso.x>=0&&acceso.x+acceso.width<=width&&acceso.y>=0&&acceso.y+acceso.height<=844);
+  assert.ok(acceso.x>=0&&acceso.x+acceso.width<=width&&acceso.y>=0&&acceso.y+acceso.height<=844,
+    JSON.stringify({ width, acceso, scrollY: await p.evaluate(() => scrollY),
+      altoPagina: await p.evaluate(() => document.documentElement.scrollHeight),
+      padres: await aprender.evaluate(e => { const a=[]; for(let p=e.parentElement;p&&a.length<5;p=p.parentElement) {
+        const r=p.getBoundingClientRect(); a.push({clase:p.className,y:r.y,h:r.height,estilo:getComputedStyle(p).transform}); }
+        return a; }) }));
   await aprender.focus();
   assert.equal(await aprender.evaluate(e=>e===document.activeElement),true);
   await p.keyboard.press('Enter');

@@ -38,6 +38,11 @@ test('Simulación: tocar un marcador lo selecciona y abre su ficha',async t=>{
       'window.escenaPoiPrueba = this; resolver({ escena: this, destruir });',
     )});
   });
+  await p.evaluate(async () => {
+    const { guardarCategoriasPoi } = await import('/src/mapa/EstadoCategoriasPoi.mjs');
+    const { CATEGORIAS_PUNTUALES } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
+    guardarCategoriasPoi(77, CATEGORIAS_PUNTUALES);
+  });
   await p.reload();
   await p.waitForFunction(()=>window.escenaPoiPrueba?.capaPuntosInteres?.representaciones?.some(representacion=>representacion.contenedor.visible));
   await p.waitForFunction(()=>{

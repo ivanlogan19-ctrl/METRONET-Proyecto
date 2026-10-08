@@ -18,7 +18,7 @@ let secuenciaAyuda = 0;
 
 // La ayuda sigue derivándose del escenario. Abrir/cerrar el HUD nunca altera ese estado.
 export default class PanelAyudaContextual {
-  constructor(contenedor, { controles = false } = {}) {
+  constructor(contenedor, { controles = false, incluirTutorial = true } = {}) {
     this.contenedor = contenedor;
     contenedor.classList.add('metronet-accesos-ayuda');
     this.integrado = controles;
@@ -38,7 +38,7 @@ export default class PanelAyudaContextual {
     configurarBotonIcono(cerrar, 'cancelar', controles ? 'Cerrar música' : 'Cerrar controles');
     cerrar.addEventListener('click', () => this.cerrar(true));
     this.opciones = new Map();
-    this.tutorial = new PanelTutorialInicial(contenedor);
+    this.tutorial = incluirTutorial ? new PanelTutorialInicial(contenedor) : null;
     this.indicaciones = document.createElement('details');
     this.indicaciones.dataset.indicacionesEscenario = '';
     this.indicaciones.innerHTML = '<summary>Indicaciones del nivel</summary><p></p><div data-estadisticas-nivel></div>';
@@ -67,7 +67,8 @@ export default class PanelAyudaContextual {
       this.cerrar();
       if (numero || this.modoLibre) abrirTarjetaEducativaDesdeAyuda(numero, this.botonHistoria);
     });
-    if (controles) contenedor.insertBefore(this.botonHistoria, this.tutorial.elemento);
+    if (controles && this.tutorial) contenedor.insertBefore(this.botonHistoria, this.tutorial.elemento);
+    else if (controles) contenedor.append(this.botonHistoria);
     else this.elemento.querySelector('.metronet-hud__opciones').append(this.botonHistoria);
     this.mensaje = this.elemento.querySelector('[data-assist-mensaje]');
     this.boton = this.elemento.querySelector('[data-assist-pista]');
@@ -123,7 +124,7 @@ export default class PanelAyudaContextual {
         .catch(() => {});
     }
     this.botonHistoria.hidden = !this.numeroEducativo && !this.modoLibre;
-    const tutorialActivo = this.tutorial.actualizar(contexto);
+    const tutorialActivo = this.tutorial?.actualizar(contexto) ?? false;
     contexto = { ...contexto, tutorialActivo };
     const instrucciones = contexto.escenario?.instrucciones ?? contexto.diseno?.simulacion?.instrucciones ?? '';
     const objetivo = contexto.escenario?.objetivo ?? contexto.diseno?.simulacion?.objetivo ?? '';
@@ -185,7 +186,7 @@ export default class PanelAyudaContextual {
     document.removeEventListener('pointerdown', this.alCerrarFuera);
     this.liberarPosicion();
     this.musica.eliminar();
-    this.tutorial.eliminar();
+    this.tutorial?.eliminar();
     this.botonHistoria.remove();
     this.elemento.remove();
   }

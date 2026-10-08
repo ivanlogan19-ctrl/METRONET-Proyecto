@@ -7,27 +7,27 @@ import { cargarContenidoPublicado } from '../educacion/ContenidoPublicadoNivel.j
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
 // Relato de selección: la misión comprobable sigue en la consigna del editor.
 const RELATOS_INICIALES_PUBLICADOS = Object.freeze({
-  1: 'Ari despliega el mapa sobre la mesa. Sol señala dos lugares que necesitan conectarse y Dani propone comenzar por un recorrido sencillo. El proyecto de metro hipotético empieza con una primera línea.',
-  2: 'La primera línea ya une dos lugares, pero Sol observa que deja fuera otro destino. Ari extiende el trazado y Dani revisa que el recorrido tenga continuidad. El equipo descubre que crecer exige conectar, no solo dibujar estaciones.',
-  3: 'Sobre el plano, todo parece listo. Dani les recuerda que una unidad de metro necesita una ruta sin cortes para circular. Ari y Sol revisan la red antes de poner en marcha el primer tren de su propuesta.',
+  1: 'Ari despliega el mapa sobre la mesa. Sol señala el Palacio Legislativo y la Torre de las Comunicaciones; Dani propone unirlos con la primera línea del metro hipotético.',
+  2: 'La primera línea ya une dos lugares, pero Sol propone extenderla hacia el Mirador de la Intendencia. Ari añade una conexión y Dani comprueba que las tres estaciones formen un recorrido continuo.',
+  3: 'Dani propone conectar el Palacio Legislativo con Terminal Tres Cruces antes de poner en marcha el primer tren. Ari y Sol revisan que la línea tenga un recorrido continuo.',
   4: 'El equipo mira dos extremos de Montevideo: Palacio Legislativo y Rambla de Carrasco. Sol plantea unirlos sin perder de vista los barrios; Dani pide probar en la simulación si la propuesta realmente funciona.',
   5: 'El mapa suma Terminal Tres Cruces y Plaza Virgilio. Ari busca un trazado que acerque esos destinos; Sol comprueba los barrios y Dani compara el recorrido en otra ejecución. Cada decisión cambia la lectura de la red.',
-  6: 'El Mirador de la Intendencia entra en la discusión. Para atender el Centro junto al Oeste y el Este, Sol revisa la cobertura, Ari ajusta las conexiones y Dani propone comparar resultados antes de dar el diseño por resuelto.',
+  6: 'El Mirador de la Intendencia y Plaza Virgilio entran en la discusión. Sol revisa la cobertura hacia el Este, Ari ajusta las conexiones y Dani compara por separado UV y UT.',
   7: 'El avance hacia Brazo Oriental complica la red. Ari plantea dos líneas y Sol encuentra un punto donde cambiar entre ellas. Dani quiere comprobar que ambas puedan operar: el primer transbordo se convierte en una decisión del equipo.',
-  8: 'La red llega al entorno del Estadio Centenario. Sol detecta nuevos destinos; Ari organiza más líneas y transbordos. Dani compara cómo responde cada unidad y después el conjunto, porque una red mayor pide coordinación.',
-  9: 'El equipo tiene poco margen para sumar estaciones. Sol exige acercarlas a los lugares clave, Ari simplifica el trazado y Dani prueba distintos supuestos. Descubren que una red más precisa puede ser más útil que una más extensa.',
+  8: 'La red llega al entorno del Estadio Centenario. Sol detecta nuevos destinos; Ari organiza más líneas y transbordos. Dani cambia la UV de todos los metros y compara el conjunto, porque una red mayor pide coordinación.',
+  9: 'El equipo tiene poco margen para sumar estaciones y debe cubrir también Terminal Tres Cruces. Sol exige precisión en cuatro destinos, Ari simplifica el trazado y Dani prueba una combinación nueva de UV y UT.',
   10: 'Llega la presentación final del proyecto. Ari defiende las conexiones, Sol explica la cobertura de barrios y zonas, y Dani muestra las comparaciones de operación. El equipo reúne lo aprendido en una red hipotética completa y revisable.',
 });
 const HISTORIA_NIVELES = Object.freeze({
-  1: 'Ari define una primera línea como base del proyecto. Sol revisa qué destinos quedarían conectados y Dani examina si el esquema permite pensar en un servicio. El equipo comienza con una red simple que podrá evaluar y ampliar.',
-  2: 'Sol detecta que la primera propuesta deja un destino fuera del recorrido. Ari extiende la línea y Dani revisa la continuidad entre estaciones. Antes de seguir sumando lugares, el equipo necesita comprobar que la red conserve una estructura coherente.',
-  3: 'Dani se concentra en la operación: una unidad de metro necesita un recorrido sin interrupciones. Ari y Sol revisan la conexión entre estaciones y el equipo incorpora el primer tren al modelo para estudiar cómo circularía.',
+  1: 'Ari define una primera línea entre Palacio Legislativo y Torre de las Comunicaciones. Sol revisa la cercanía de las estaciones a ambos destinos y Dani comprueba que el recorrido quede conectado.',
+  2: 'Sol propone extender la línea desde Palacio Legislativo hasta el Mirador de la Intendencia. Ari agrega una tercera estación y Dani revisa la continuidad de los dos tramos.',
+  3: 'Dani se concentra en la operación entre Palacio Legislativo y Terminal Tres Cruces. Ari y Sol revisan la línea continua y el equipo le asigna su primera unidad de metro.',
   4: 'Sol plantea estudiar la relación entre el Palacio Legislativo y la Rambla de Carrasco, con atención a las zonas Oeste y Este. Ari prepara el trazado y Dani lo somete a una primera simulación para contrastar la propuesta con su funcionamiento.',
   5: 'Ari estudia cómo incorporar Terminal Tres Cruces y Plaza Virgilio al trazado que parte del Palacio Legislativo. Sol revisa la cobertura de los barrios implicados y Dani compara qué cambia en el servicio al sumar esos destinos.',
-  6: 'Sol examina la movilidad entre Centro, Oeste y Este al incorporar el Mirador de la Intendencia. Ari ajusta las conexiones y Dani compara los resultados de la simulación. El equipo evalúa si la ampliación mejora la red en su conjunto.',
+  6: 'Sol incorpora Plaza Virgilio al recorrido que conecta Palacio Legislativo y Mirador de la Intendencia. Ari ajusta las conexiones y Dani compara UV y UT en ejecuciones distintas.',
   7: 'Ari propone organizar la ampliación hacia Brazo Oriental en dos líneas. Sol analiza dónde conviene realizar el intercambio entre ellas y Dani comprueba su funcionamiento. El transbordo pasa a ser una decisión central del diseño.',
   8: 'La incorporación del Estadio Centenario aumenta la complejidad del proyecto. Dani estudia cómo operan varias líneas y sus transbordos; Ari revisa la estructura de la red y Sol contrasta la cobertura obtenida con los destinos previstos.',
-  9: 'Sol revisa la distancia entre las estaciones y los puntos de interés bajo un límite de recursos. Ari depura el trazado y Dani compara alternativas. El equipo busca justificar una red precisa sin añadir estaciones innecesarias.',
+  9: 'Sol revisa la distancia a cuatro puntos de interés, incluido Terminal Tres Cruces, bajo un límite de estaciones. Ari depura el trazado y Dani compara UV y UT juntas.',
   10: 'En la presentación final del proyecto, Dani reúne las pruebas de operación, Ari fundamenta el trazado y Sol explica la cobertura territorial. Los tres integran lo aprendido en una propuesta de red hipotética que pueden defender con resultados.',
 });
 const PERSONAJES = Object.freeze({
@@ -52,7 +52,7 @@ async function cargarProgreso() {
   establecerEstadoCarga(true);
   try {
     progresoActual = await solicitar('/progreso');
-    const niveles = (progresoActual.escenarios ?? []).filter(e => Number.isInteger(e.numero));
+    const niveles = (progresoActual.escenarios ?? []).filter(e => Number.isInteger(e.numero) && e.desbloqueado);
     await Promise.allSettled(niveles.map(async escenario => {
       const enCurso = ESTADOS_EN_CURSO.has(escenario.estado);
       try {
@@ -214,6 +214,14 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
             body: JSON.stringify({ versionEsperada: escenario.contenidoPublicado.version }) } : {}),
       }));
     if (!inicio) { mostrarMensaje(''); return; }
+    if (volverAJugar) try {
+      const idUsuario = sesion?.usuario?.idUsuario;
+      if (idUsuario != null && Number.isInteger(escenario.numero)) {
+        localStorage.removeItem(`metronet:tutorial-nueva-herramienta:v1:${idUsuario}:${escenario.numero}`);
+        if (escenario.herramientasHabilitadas?.simulacion === true)
+          localStorage.removeItem(`metronet:tutorial-pantalla-simulacion:v2:${idUsuario}`);
+      }
+    } catch { /* El nuevo intento ya está creado aunque el navegador bloquee el almacenamiento. */ }
     window.location.assign(establecerContextoEnRuta('/', inicio));
     navegando = true;
   } catch (error) {
@@ -246,6 +254,15 @@ function configurarDialogoReinicio() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ numeroCampanaActual: progresoActual.numeroCampanaActual }),
       });
+      // Un nuevo recorrido vuelve a ofrecer las guías; los intentos permanecen en el servidor.
+      try {
+        const idUsuario = sesion?.usuario?.idUsuario;
+        if (idUsuario != null) {
+          for (let nivel = 1; nivel <= 10; nivel++)
+            localStorage.removeItem(`metronet:tutorial-nueva-herramienta:v1:${idUsuario}:${nivel}`);
+          localStorage.removeItem(`metronet:tutorial-pantalla-simulacion:v2:${idUsuario}`);
+        }
+      } catch { /* La campaña ya se reinició aunque el navegador bloquee el almacenamiento. */ }
       dialogo.close();
       accionEnCurso = false;
       renderizarPantalla(progresoActual);

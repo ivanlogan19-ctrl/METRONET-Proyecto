@@ -1,5 +1,7 @@
 /* Una barra mínima, paneles a demanda y una sola familia de controles. */
 .metronet-barra-geografica { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:8px; position:relative; z-index:var(--layer-dropdown,200); }
+body.metronet-pagina-editor .metronet-barra-geografica { gap:4px; padding:4px; }
+html:root body.metronet-pagina-editor .metronet-barra-geografica .metronet-boton-icono > .metronet-icono { width:28px; height:28px; flex-basis:28px; }
 .metronet-barra-geografica [data-contenedor-referencias] { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-width:0; }
 .metronet-poi,.metronet-hud { position:relative; margin:0; min-width:0; }
 .metronet-poi>summary,.metronet-hud>summary { list-style:none; cursor:pointer; }

@@ -81,7 +81,7 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  await pagina.getByRole('dialog').waitFor();
  await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).waitFor({timeout:26000});
  assert.match(await pagina.getByRole('dialog').innerText(),/950 \/ 1000 puntos.*Tu posición: 2/s);
- assert.match(await pagina.getByRole('dialog').innerText(),/90 \/ 100 PTS/);
+ assert.match(await pagina.getByRole('dialog').innerText(),/Su puntaje obtenido es de 90 puntos sobre 100\./);
  await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).click();
  assert.deepEqual(await pagina.evaluate(()=>window.cierre),{destino:'/ranking.html'});
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
@@ -104,12 +104,13 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.waitForFunction(() => document.querySelector('#estadoTiempoReal')?.textContent === 'Finalizada');
+ await pagina.waitForFunction(puntaje => document.querySelector('#mensajeSimulacion')?.textContent.includes(`COMPLETADA · ${puntaje} puntos`),puntos);
  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
  if (puntos === 100) {
   await pagina.getByRole('dialog').waitFor();
-  assert.match(await pagina.getByRole('dialog').innerText(), /100 \/ 100 PTS/);
+  assert.match(await pagina.getByRole('dialog').innerText(), /Su puntaje obtenido es de 100 puntos sobre 100\./);
  } else {
   assert.equal(await pagina.getByRole('dialog').count(), 0);
-  assert.match(await pagina.locator('#mensajeSimulacion').textContent(), /Revisá los objetivos en Edición/);
+  await pagina.waitForFunction(() => /Revisá los objetivos en Edición/.test(document.querySelector('#mensajeSimulacion')?.textContent ?? ''));
  }
 });

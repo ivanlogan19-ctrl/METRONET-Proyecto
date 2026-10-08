@@ -25,6 +25,8 @@ async function abrir(t, width = 1440, responder) {
   await vista.pagina.reload();
   await vista.pagina.waitForFunction(() => window.escenaOrganizacion?.disenoActual);
   await vista.pagina.locator('#desempenoNivel fieldset').waitFor({ state: 'attached' });
+  const recorrido = vista.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
+  if (await recorrido.isVisible()) await recorrido.click();
   await cuadros(vista.pagina);
   return vista;
 }
@@ -50,7 +52,8 @@ test('Seleccionar metro en mapa o selector sincroniza la ficha y conserva cámar
   assert.equal(await p.locator('#unidadCirculacion').inputValue(), '1');
   assert.match(await p.locator('#seccionMetricas').innerText(), /M-1.*Azul/s);
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '40');
-  await p.locator('#unidadCirculacion').selectOption('todas');
+  await p.locator('.simulacion-selector-metros > summary').click();
+  await p.locator('.simulacion-selector-metros__opciones').getByRole('button', { name: 'Todos los metros' }).click();
   assert.equal(await p.locator('#seccionMetricas').isVisible(), false);
   assert.equal(await p.evaluate(() => escenaOrganizacion.idUnidadSeleccionada), null);
   await cuadros(p);

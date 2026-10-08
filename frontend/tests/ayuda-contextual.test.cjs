@@ -18,14 +18,15 @@ for (const nivel of niveles) test(`Nivel ${nivel.numero}: inicio, primer element
   const c = contexto(nivel);
   const snapshot = JSON.stringify(nivel);
   if (nivel.reglasExito.requiereCoberturaPuntosInteres) c.consigna.condiciones.push(condicion('requiereCoberturaPuntosInteres', false));
+  if (nivel.reglasExito.areasObjetivo?.length) c.consigna.condiciones.push(condicion('areaObjetivo:0', false));
   if (nivel.reglasExito.requiereGeografiaValida) c.consigna.condiciones.push(condicion('requiereGeografiaValida', false));
   if (nivel.reglasExito.maximoEstaciones) c.consigna.condiciones.push({ ...condicion('maximoEstaciones', false), actual: 0, requerido: nivel.reglasExito.maximoEstaciones });
   const inicio = orientar(c);
-  assert.equal(inicio.clave, nivel.numero >= 4 ? 'explorar' : 'primera-estacion');
+  assert.equal(inicio.clave, nivel.reglasExito.areasObjetivo?.length ? 'explorar' : 'primera-estacion');
   c.diseno.estaciones.push({ nombre: 'A' });
   // Después de construir en territorio permitido, el servidor confirma estos límites.
   for (const condicion of c.consigna.condiciones) {
-    if (['requiereGeografiaValida', 'maximoEstaciones'].includes(condicion.clave)) condicion.completado = true;
+    if (['requiereGeografiaValida', 'maximoEstaciones', 'areaObjetivo:0'].includes(condicion.clave)) condicion.completado = true;
   }
   assert.equal(orientar(c).clave, 'primera-ubicada');
   c.diseno.estaciones.push({ nombre: 'B' });
@@ -33,8 +34,11 @@ for (const nivel of niveles) test(`Nivel ${nivel.numero}: inicio, primer element
   if (nivel.numero <= 2) assert.match(orientar(c).pista, /dos estaciones distintas/);
   else assert.doesNotMatch(orientar(c).pista, /pulsá|clic|ingresá/);
   c.diseno.lineas.push({ nombre: 'L' });
-  c.consigna.condiciones = [condicion('minimoEstaciones', true), condicion('minimoLineas', true), condicion('requiereRedValida', false)];
-  assert.equal(orientar(c).clave, 'requiereRedValida');
+  const clavePendiente = nivel.reglasExito.requiereSimulacion ? 'requiereSimulacion'
+    : nivel.reglasExito.minimoTramos ? 'minimoTramos' : 'minimoEstaciones';
+  c.consigna.condiciones = [condicion('minimoEstaciones', true), condicion('minimoLineas', true), condicion(clavePendiente, false)];
+  assert.equal(orientar(c).clave, clavePendiente === 'requiereSimulacion' ? 'simular'
+    : clavePendiente === 'minimoTramos' ? 'minimoTramos' : 'minimoEstaciones');
   assert.equal(orientar(c).etiqueta, 'POR REVISAR');
   c.consigna.condiciones.at(-1).completado = true;
   c.consigna.estadoGlobal = 'LISTO';

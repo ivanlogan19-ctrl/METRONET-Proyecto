@@ -13,7 +13,7 @@ async function abrir({ sesion = true } = {}) {
     try { localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'sesion-de-prueba',
       usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })); } catch { /* about:blank */ }
   });
-  await contexto.route(url => url.port === '8080', ruta => {
+  await contexto.route(url => /^\/(api|auth)\//.test(url.pathname), ruta => {
     const solicitud = ruta.request(), path = new URL(solicitud.url()).pathname;
     if (solicitud.method() === 'OPTIONS') return ruta.fulfill({ status: 204, headers: {
       'access-control-allow-origin': base, 'access-control-allow-headers': 'content-type, authorization',

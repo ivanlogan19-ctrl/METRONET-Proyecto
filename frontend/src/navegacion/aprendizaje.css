@@ -7,22 +7,21 @@ body.metronet-pagina-aprendizaje {
   .metronet-aprendizaje {
     --cruz-ferroviaria-ancho: clamp(108px, 11vw, 170px);
     --separacion-cruz: clamp(36px, 3vw, 54px);
-    --margen-aprendizaje: max(176px, calc((100vw - 1040px) / 2));
     position: relative;
-    width: min(100% - 352px, 1040px);
+    width: min(calc(100% - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz) - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz)), 1040px);
   }
   .metronet-aprendizaje::before,
   .metronet-aprendizaje::after {
     content: '';
-    position: fixed;
-    top: clamp(86px, 12vh, 120px);
+    position: absolute;
+    bottom: 0;
     width: var(--cruz-ferroviaria-ancho);
     aspect-ratio: 200 / 300;
     background: url('/assets/cruz-ferroviaria-aprendizaje.svg') center / contain no-repeat;
     pointer-events: none;
   }
-  .metronet-aprendizaje::before { left: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz)); }
-  .metronet-aprendizaje::after { right: calc(var(--margen-aprendizaje) - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz)); }
+  .metronet-aprendizaje::before { left: calc(-1 * (var(--cruz-ferroviaria-ancho) + var(--separacion-cruz))); }
+  .metronet-aprendizaje::after { right: calc(-1 * (var(--cruz-ferroviaria-ancho) + var(--separacion-cruz))); }
 }
 .metronet-aprendizaje__cabecera { margin-bottom: 26px; }
 .metronet-aprendizaje__cabecera h1 { margin: 0; }

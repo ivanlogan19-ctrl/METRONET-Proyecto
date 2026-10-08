@@ -262,7 +262,7 @@ test('FalsaCargaDeVictoria en preparación; victoria usa la misma pista puntual 
   });
   await reproduciendo(p, '/audio/victory-theme.mp3');
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
-  await p.getByRole('button', { name: 'Revisar mi red' }).click(); await reproduciendo(p);
+  await p.getByRole('button', { name: 'Seleccionar nivel' }).click(); await reproduciendo(p);
   await p.evaluate(async () => {
     const { gestorMusica: g } = await import('/src/audio/GestorMusica.js');
     const liberarA = g.usarContextoTemporal('loading');

@@ -222,6 +222,7 @@ button { cursor: pointer; }
   gap: 20px;
   height: var(--navegacion-alto);
   padding: 9px clamp(14px, 3vw, 34px);
+  padding-left: 8px;
   border-bottom: var(--border-width) solid var(--border);
   background: var(--bg-secondary);
   overflow: visible;
@@ -418,7 +419,7 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
 
 @media (max-width: 720px) {
   :root { --navegacion-alto: 60px; }
-  .metronet-navegacion { gap: 9px; padding: 7px 12px; }
+  .metronet-navegacion { gap: 9px; padding: 7px 12px 7px 8px; }
   .metronet-navegacion__marca .metronet-logo { width: calc(var(--metronet-logo-alto-header-mobile) * var(--metronet-logo-marco-proporcion)); height: var(--metronet-logo-alto-header-mobile); }
   .metronet-navegacion__enlaces { display: none; }
   .metronet-navegacion__usuario summary { min-width: 42px; padding: 7px; font-size: 0; }.metronet-navegacion__usuario summary::after { margin: 0; font-size: 15px; content: '☰'; }.metronet-navegacion__menu-usuario .metronet-navegacion__enlace { display: flex; }

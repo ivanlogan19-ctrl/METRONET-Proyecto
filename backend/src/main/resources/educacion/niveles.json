@@ -2,9 +2,9 @@
   {
     "numero": 1,
     "nombre": "Nivel 1 · Red inicial",
-    "objetivo": "Creá una línea con al menos dos estaciones sobre el mapa.",
+    "objetivo": "Conectá Palacio Legislativo y Torre de las Comunicaciones con una línea de al menos dos estaciones. Usá entre 2 y 3 estaciones.",
     "dificultad": "Inicial",
-    "instrucciones": "Ubicá al menos dos estaciones y unilas con la herramienta Línea. Usá Guardar diseño (disquete) para comprobar la consigna y completar el nivel.",
+    "instrucciones": "Ubicá al menos dos estaciones cerca de Palacio Legislativo y Torre de las Comunicaciones. Unilas con la herramienta Línea para conectar ambos POI por un recorrido continuo. Guardá el diseño para comprobar la consigna. No superes 3 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 2,
       "minimoLineas": 1,
@@ -15,7 +15,19 @@
         "pesoVelocidad": 0,
         "estacionesReferencia": 2,
         "tramosReferencia": 0
-      }
+      },
+      "requiereObjetivosMismaLinea": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 40
+        },
+        {
+          "idPunto": 3,
+          "radioCobertura": 40
+        }
+      ],
+      "maximoEstaciones": 3
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -27,12 +39,12 @@
     "preparacion": {
       "concepto": "Líneas y estaciones",
       "explicacion": "Las estaciones son los puntos de una red de metro. Una línea agrupa estaciones para organizar un recorrido.",
-      "contexto": "Creá una línea con al menos dos estaciones sobre el mapa.",
+      "contexto": "Conectá Palacio Legislativo y Torre de las Comunicaciones con una línea de al menos dos estaciones. Usá entre 2 y 3 estaciones.",
       "consejo": "Elegí el icono de estación y colocá las estaciones sobre el mapa. Sus nombres se generan automáticamente y podés editarlos después."
     },
     "transicion": {
       "aprendizaje": "Las estaciones son los puntos de una red de metro. Una línea agrupa estaciones para organizar un recorrido.",
-      "ciudad": "El mapa de METRONET permite explorar Montevideo mediante barrios, zonas y puntos de interés. Las primeras estaciones son referencias para construir recorridos."
+      "ciudad": "Palacio Legislativo y Torre de las Comunicaciones son los primeros destinos del proyecto. Ubicar estaciones cerca de ambos permite comprobar si una línea los conecta."
     },
     "historia": {
       "estado": "PENDIENTE_VALIDACION",
@@ -43,9 +55,9 @@
   {
     "numero": 2,
     "nombre": "Nivel 2 · Conexiones",
-    "objetivo": "Construí un recorrido con al menos tres estaciones y dos conexiones.",
+    "objetivo": "Extendé la línea hacia el Mirador de la Intendencia con tres estaciones y dos conexiones. Usá entre 3 y 4 estaciones.",
     "dificultad": "Inicial",
-    "instrucciones": "Ubicá al menos tres estaciones. Creá una línea entre dos de ellas y agregá al menos una conexión más con la herramienta Conexión, hasta tener dos tramos. Usá Guardar diseño para comprobar la consigna.",
+    "instrucciones": "Ubicá al menos tres estaciones cerca de Palacio Legislativo y Mirador de la Intendencia. Creá una línea y extendela con la herramienta Conexión hasta tener dos tramos continuos que conecten ambos POI. Guardá el diseño para comprobar la consigna. No superes 4 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 3,
       "minimoLineas": 1,
@@ -57,7 +69,19 @@
         "pesoVelocidad": 0,
         "estacionesReferencia": 3,
         "tramosReferencia": 2
-      }
+      },
+      "requiereObjetivosMismaLinea": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 40
+        },
+        {
+          "idPunto": 33,
+          "radioCobertura": 40
+        }
+      ],
+      "maximoEstaciones": 4
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -69,12 +93,12 @@
     "preparacion": {
       "concepto": "Conexiones y recorridos",
       "explicacion": "Una conexión, o tramo, une dos estaciones de una línea. Los tramos permiten construir el recorrido entre las estaciones de la red.",
-      "contexto": "Construí un recorrido con al menos tres estaciones y dos conexiones.",
+      "contexto": "Extendé la línea hacia el Mirador de la Intendencia con tres estaciones y dos conexiones. Usá entre 3 y 4 estaciones.",
       "consejo": "Seguí el recorrido de una estación a la siguiente para revisar cómo quedan conectadas."
     },
     "transicion": {
       "aprendizaje": "Una conexión, o tramo, une dos estaciones de una línea. Los tramos permiten construir el recorrido entre las estaciones de la red.",
-      "ciudad": "Los puntos de interés aportan destinos al diseño: conectar estaciones tiene sentido cuando relaciona lugares que se quieren atender."
+      "ciudad": "Palacio Legislativo y Mirador de la Intendencia amplían el primer recorrido. Dos conexiones permiten practicar la continuidad entre tres estaciones."
     },
     "historia": {
       "estado": "PENDIENTE_VALIDACION",
@@ -85,9 +109,9 @@
   {
     "numero": 3,
     "nombre": "Nivel 3 · Unidades de metro",
-    "objetivo": "Asigná una unidad de metro a una red con recorrido válido.",
+    "objetivo": "Conectá Palacio Legislativo y Terminal Tres Cruces y asigná el primer metro a esa línea. Usá entre 3 y 4 estaciones.",
     "dificultad": "Intermedio",
-    "instrucciones": "Construí al menos tres estaciones y unilas en un único recorrido sin estaciones aisladas: creá una línea con dos conexiones. Asigná al menos una unidad de metro a esa línea y usá Guardar diseño para comprobar la consigna.",
+    "instrucciones": "Ubicá al menos tres estaciones y conectá Palacio Legislativo y Terminal Tres Cruces por una misma línea continua de al menos dos tramos. Asigná un metro a la línea y guardá el diseño para comprobar la consigna. No superes 4 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 3,
       "minimoLineas": 1,
@@ -101,7 +125,18 @@
         "estacionesReferencia": 3,
         "tramosReferencia": 2
       },
-      "requiereRedValida": true
+      "requiereObjetivosMismaLinea": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 1,
+          "radioCobertura": 40
+        },
+        {
+          "idPunto": 113,
+          "radioCobertura": 40
+        }
+      ],
+      "maximoEstaciones": 4
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -113,12 +148,12 @@
     "preparacion": {
       "concepto": "Unidades de metro",
       "explicacion": "Una unidad de metro se asigna a una línea de la red. Podés configurar su velocidad promedio en UV.",
-      "contexto": "Asigná una unidad de metro a una red con recorrido válido.",
+      "contexto": "Conectá Palacio Legislativo y Terminal Tres Cruces y asigná el primer metro a esa línea. Usá entre 3 y 4 estaciones.",
       "consejo": "Revisá que todas las estaciones formen parte del mismo recorrido y elegí la línea a la que vas a asignar la unidad."
     },
     "transicion": {
       "aprendizaje": "Una unidad de metro se asigna a una línea de la red. Podés configurar su velocidad promedio en UV.",
-      "ciudad": "Una unidad de metro circula por la línea asignada. La cobertura de lugares depende de dónde se ubican las estaciones, además de la circulación."
+      "ciudad": "Palacio Legislativo y Terminal Tres Cruces se convierten en los destinos del primer recorrido con una unidad de metro."
     },
     "historia": {
       "estado": "PENDIENTE_VALIDACION",
@@ -129,13 +164,12 @@
   {
     "numero": 4,
     "nombre": "Nivel 4 · Simulación completa",
-    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco con una red consistente de al menos tres estaciones y dos conexiones. Simulá el recorrido y compará la configuración UV/UT.",
+    "objetivo": "Conectá Palacio Legislativo y Rambla de Carrasco por una misma línea de al menos tres estaciones y dos conexiones. Simulá el recorrido y compará la configuración UV/UT. Usá entre 3 y 4 estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos tres estaciones y dos conexiones. Cubrí Palacio Legislativo y Rambla de Carrasco a no más de 60 unidades del mapa y unilos con un recorrido continuo de una misma línea. Guardá una red consistente y asignale un metro. Abrí Simular diseño e iniciá una ejecución; luego cambiá las UV con Aplicar velocidad, conservá las UT simuladas y ejecutá otra vez.",
+    "instrucciones": "Ubicá al menos tres estaciones y dos conexiones. Cubrí Palacio Legislativo y Rambla de Carrasco a no más de 60 unidades del mapa y unilos con un recorrido continuo de una misma línea. Guardá el diseño y asignale un metro. Abrí Simular diseño e iniciá una ejecución; luego cambiá las UV con Aplicar velocidad, conservá las UT simuladas y ejecutá otra vez. No superes 4 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 3,
       "minimoTramos": 2,
-      "requiereRedValida": true,
       "requiereSimulacion": true,
       "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
@@ -158,7 +192,8 @@
       },
       "aprendizajeSimulacion": {
         "velocidad": true
-      }
+      },
+      "maximoEstaciones": 4
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -170,7 +205,7 @@
     "preparacion": {
       "concepto": "Cobertura y simulación",
       "explicacion": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido. Experimentá con la configuración de simulación.",
+      "contexto": "Conectá Palacio Legislativo y Rambla de Carrasco por una misma línea de al menos tres estaciones y dos conexiones. Simulá el recorrido y compará la configuración UV/UT. Usá entre 3 y 4 estaciones.",
       "consejo": "Ejecutá una primera simulación. Después cambiá las UV, conservá las horas simuladas y ejecutá nuevamente para observar la diferencia."
     },
     "transicion": {
@@ -186,12 +221,11 @@
   {
     "numero": 5,
     "nombre": "Nivel 5 · Lugares y barrios",
-    "objetivo": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT.",
+    "objetivo": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT. Usá entre 4 y 5 estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos cuatro estaciones, incluida una en Punta Gorda. Cubrí Palacio Legislativo y Terminal Tres Cruces a no más de 40 unidades del mapa y conectalos por una misma línea continua. Guardá una red consistente dentro del territorio permitido. Simulá, cambiá solo las UT y repetí con las mismas UV.",
+    "instrucciones": "Ubicá al menos cuatro estaciones, incluida una en Punta Gorda. Cubrí Palacio Legislativo y Terminal Tres Cruces a no más de 40 unidades del mapa y conectalos por una misma línea continua. Mantené estaciones y conexiones dentro del territorio permitido. Simulá, cambiá solo las UT y repetí con las mismas UV. No superes 5 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 4,
-      "requiereRedValida": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -223,7 +257,8 @@
         "duracion": true
       },
       "minimoMetros": 1,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "maximoEstaciones": 5
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -235,7 +270,7 @@
     "preparacion": {
       "concepto": "POI y pertenencia barrial",
       "explicacion": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT.",
+      "contexto": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT. Usá entre 4 y 5 estaciones.",
       "consejo": "Compará dos ejecuciones: mantené las UV y cambiá las horas simuladas antes de volver a ejecutar."
     },
     "transicion": {
@@ -251,12 +286,11 @@
   {
     "numero": 6,
     "nombre": "Nivel 6 · Movilidad entre zonas",
-    "objetivo": "Conectá Palacio Legislativo y Mirador de la Intendencia en una red que llegue a la Zona Este. Compará UV y UT por separado.",
+    "objetivo": "Conectá Palacio Legislativo, Mirador de la Intendencia y Plaza Virgilio en una red que llegue a la Zona Este. Compará UV y UT por separado. Usá entre 5 y 6 estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos cinco estaciones, incluida una en ZONA ESTE. Cubrí Palacio Legislativo y Mirador de la Intendencia a no más de 30 unidades del mapa y conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá; cambiá solo UV y repetí, después cambiá solo UT y repetí.",
+    "instrucciones": "Ubicá al menos cinco estaciones, incluida una en ZONA ESTE. Cubrí Palacio Legislativo, Mirador de la Intendencia y Plaza Virgilio a no más de 30 unidades del mapa y conectalos por una misma línea continua. Mantené estaciones y conexiones dentro del territorio permitido. Simulá; cambiá solo UV y repetí, después cambiá solo UT y repetí. No superes 6 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 5,
-      "requiereRedValida": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -266,6 +300,10 @@
         },
         {
           "idPunto": 33,
+          "radioCobertura": 30
+        },
+        {
+          "idPunto": 106,
           "radioCobertura": 30
         }
       ],
@@ -289,7 +327,8 @@
         "duracion": true
       },
       "minimoMetros": 1,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "maximoEstaciones": 6
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -301,7 +340,7 @@
     "preparacion": {
       "concepto": "Movilidad entre zonas",
       "explicacion": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Conectá Palacio Legislativo y Mirador de la Intendencia en una red que llegue a la Zona Este. Compará UV y UT por separado.",
+      "contexto": "Conectá Palacio Legislativo, Mirador de la Intendencia y Plaza Virgilio en una red que llegue a la Zona Este. Compará UV y UT por separado. Usá entre 5 y 6 estaciones.",
       "consejo": "Compará configuraciones cambiando un parámetro por vez: primero UV con las mismas horas y después horas con las mismas UV. Ejecutá después de cada cambio."
     },
     "transicion": {
@@ -317,13 +356,12 @@
   {
     "numero": 7,
     "nombre": "Nivel 7 · Nodos de intercambio",
-    "objetivo": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro.",
+    "objetivo": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro. Usá entre 6 y 7 estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos seis estaciones, incluida una en BRAZO ORIENTAL, y construí al menos dos líneas con una estación compartida por ambas. Cubrí Palacio Legislativo, Mirador de la Intendencia y Museo Casa de Luis Alberto de Herrera a no más de 25 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá, cambiá solo la UV de un metro y repetí con las mismas UT.",
+    "instrucciones": "Ubicá al menos seis estaciones, incluida una en BRAZO ORIENTAL, y construí al menos dos líneas con una estación compartida por ambas. Cubrí Palacio Legislativo, Mirador de la Intendencia y Museo Casa de Luis Alberto de Herrera a no más de 25 unidades del mapa; conectalos por una misma línea continua. Mantené estaciones y conexiones dentro del territorio permitido. Simulá, cambiá solo la UV de un metro y repetí con las mismas UT. No superes 7 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 6,
       "minimoLineas": 2,
-      "requiereRedValida": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -361,7 +399,8 @@
         "individual": true
       },
       "minimoMetros": 2,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "maximoEstaciones": 7
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -373,7 +412,7 @@
     "preparacion": {
       "concepto": "Transbordos y conectividad",
       "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro.",
+      "contexto": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro. Usá entre 6 y 7 estaciones.",
       "consejo": "Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades."
     },
     "transicion": {
@@ -389,13 +428,12 @@
   {
     "numero": 8,
     "nombre": "Nivel 8 · Red urbana",
-    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros.",
+    "objetivo": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros. Usá entre 8 y 9 estaciones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Ubicá al menos ocho estaciones, incluida una en PARQUE BATLLE VILLA DOLORES, y construí al menos tres líneas con dos estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Museo Casa de Luis Alberto de Herrera y Estadio Centenario a no más de 20 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá, aplicá una misma UV nueva a todos los metros y repetí con las mismas UT.",
+    "instrucciones": "Ubicá al menos ocho estaciones, incluida una en PARQUE BATLLE VILLA DOLORES, y construí al menos tres líneas con dos estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Museo Casa de Luis Alberto de Herrera y Estadio Centenario a no más de 20 unidades del mapa; conectalos por una misma línea continua. Mantené estaciones y conexiones dentro del territorio permitido. Simulá, aplicá una misma UV nueva a todos los metros y repetí con las mismas UT. No superes 9 estaciones.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
-      "requiereRedValida": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -433,7 +471,8 @@
         "global": true
       },
       "minimoMetros": 3,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "maximoEstaciones": 9
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -445,7 +484,7 @@
     "preparacion": {
       "concepto": "Relaciones en una red urbana",
       "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros.",
+      "contexto": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros. Usá entre 8 y 9 estaciones.",
       "consejo": "Simulá, seleccioná Todos los metros, aplicá una misma UV nueva y repetí con las mismas UT."
     },
     "transicion": {
@@ -461,13 +500,12 @@
   {
     "numero": 9,
     "nombre": "Nivel 9 · Planificación precisa",
-    "objetivo": "Resolvé tres POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas.",
+    "objetivo": "Resolvé cuatro POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas. Creá al menos 7 conexiones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre ocho y nueve estaciones, incluida una en ZONA ESTE, al menos tres líneas y dos estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Museo Casa de Luis Alberto de Herrera y Estadio Centenario a no más de 12 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá; cambiá UV y UT juntas y repetí.",
+    "instrucciones": "Diseñá entre ocho y nueve estaciones y al menos tres líneas con dos estaciones compartidas entre líneas, incluida una estación en ZONA ESTE. Cubrí Palacio Legislativo, Museo Casa de Luis Alberto de Herrera, Estadio Centenario y Terminal Tres Cruces a no más de 12 unidades del mapa; conectalos por una misma línea continua. Mantené estaciones y conexiones dentro del territorio permitido. Simulá una combinación nueva de UV y UT. Construí al menos 7 conexiones.",
     "reglasExito": {
       "minimoEstaciones": 8,
       "minimoLineas": 3,
-      "requiereRedValida": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -481,6 +519,10 @@
         },
         {
           "idPunto": 80,
+          "radioCobertura": 12
+        },
+        {
+          "idPunto": 113,
           "radioCobertura": 12
         }
       ],
@@ -506,7 +548,8 @@
         "combinacion": true
       },
       "minimoMetros": 3,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "minimoTramos": 7
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -518,7 +561,7 @@
     "preparacion": {
       "concepto": "Precisión y uso de recursos",
       "explicacion": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Resolvé tres POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas.",
+      "contexto": "Resolvé cuatro POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas. Creá al menos 7 conexiones.",
       "consejo": "Compará dos ejecuciones: cambiá UV y UT juntas y volvé a simular."
     },
     "transicion": {
@@ -534,13 +577,12 @@
   {
     "numero": 10,
     "nombre": "Nivel 10 · Desafío integral",
-    "objetivo": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones.",
+    "objetivo": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones. Creá al menos 9 conexiones.",
     "dificultad": "Avanzado",
-    "instrucciones": "Diseñá entre diez y once estaciones, incluida una en PRADO NUEVA SAVONA, al menos tres líneas y tres estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Estadio Centenario, Rosedal del Prado y Plaza Virgilio a no más de 10 unidades del mapa; conectalos por una misma línea continua. Conservá una red consistente dentro del territorio permitido. Simulá; compará una UV global y luego una combinación nueva de UV y UT.",
+    "instrucciones": "Diseñá entre diez y once estaciones, incluida una en PRADO NUEVA SAVONA, al menos tres líneas y tres estaciones compartidas entre líneas. Cubrí Palacio Legislativo, Estadio Centenario, Rosedal del Prado y Plaza Virgilio a no más de 10 unidades del mapa; conectalos por una misma línea continua. Mantené estaciones y conexiones dentro del territorio permitido. Simulá; compará una UV global y luego una combinación nueva de UV y UT. Construí al menos 9 conexiones.",
     "reglasExito": {
       "minimoEstaciones": 10,
       "minimoLineas": 3,
-      "requiereRedValida": true,
       "requiereObjetivosMismaLinea": true,
       "requiereGeografiaValida": true,
       "puntosInteresObjetivo": [
@@ -584,7 +626,8 @@
         "combinacion": true
       },
       "minimoMetros": 3,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "minimoTramos": 9
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -596,7 +639,7 @@
     "preparacion": {
       "concepto": "Integración territorial",
       "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
-      "contexto": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones.",
+      "contexto": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones. Creá al menos 9 conexiones.",
       "consejo": "Compará una nueva UV global; después cambiá UV y UT juntas y volvé a simular."
     },
     "transicion": {

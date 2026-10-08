@@ -21,6 +21,8 @@ async function preparar(t, width = 320, browser = navegador) {
   await vista.pagina.waitForFunction(() => editorPrueba.estadoConsigna === 'disponible');
   await vista.pagina.waitForFunction(() => !editorPrueba.identificacion && editorPrueba.disenoActual);
   await vista.pagina.waitForFunction(() => document.querySelector('[data-estado-editor] [role=status]').textContent === '');
+  const recorrido = vista.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
+  if (await recorrido.isVisible()) await recorrido.click();
   return vista;
 }
 async function capturar(p, nombre) {

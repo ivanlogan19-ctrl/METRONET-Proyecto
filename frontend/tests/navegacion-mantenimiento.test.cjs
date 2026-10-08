@@ -94,8 +94,9 @@ for (const width of [390, 1440]) test(`Referencias territoriales en el mapa, con
   assert.equal(await p.locator('[data-contenedor-selectores-mapa] .metronet-territorio').count(), 0);
   const controlPoi = panel.getByRole('button', { name: 'Zonas verdes', exact: true });
   await controlPoi.click();
-  assert.equal(await p.evaluate(() => editorPrueba.escena.capaPuntosInteres.categoriasVisibles.has('ESPACIOS_VERDES')), false);
+  assert.equal(await p.evaluate(() => editorPrueba.escena.capaPuntosInteres.categoriasVisibles.has('ESPACIOS_VERDES')), true);
   await controlPoi.click();
+  assert.equal(await p.evaluate(() => editorPrueba.escena.capaPuntosInteres.categoriasVisibles.has('ESPACIOS_VERDES')), false);
   assert.equal(await controlPoi.isVisible(), true);
   assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   for (const boton of await p.locator('.metronet-herramientas__barra button:visible').all()) {

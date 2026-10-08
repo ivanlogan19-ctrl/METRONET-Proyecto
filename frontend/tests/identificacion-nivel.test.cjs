@@ -24,7 +24,7 @@ for (const n of niveles) test(`NIVEL ${n.numero}: cartel antes del tutorial y ed
   assert.equal(await cartel.locator('button, input, progress, [data-concepto]').count(), 0);
   await cartel.waitFor({state:'detached'});
   assert.equal(await p.locator('#metronet-aplicacion').evaluate(e => e.inert), false);
-  if (n.numero === 1) await p.getByRole('button', {name:'Mostrar tutorial', exact:true}).waitFor();
+  if (n.numero === 1) await p.locator('.metronet-tutorial > summary').waitFor();
   else assert.equal(await p.getByRole('button', {name:'Mostrar tutorial', exact:true}).count(), 0);
   await p.evaluate(async () => { await editorPrueba.abrirDiseno(77); });
   assert.equal(await cartel.count(), 0);
@@ -73,7 +73,7 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   await p.clock.runFor(1100);
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
   assert.equal(await p.locator('.metronet-viaje').count(),0);
-  await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).waitFor();
+  await p.locator('.metronet-tutorial > summary').waitFor();
 });
 
 for (const administrador of [false, true]) test(`Modo Libre directo (${administrador?'ADMIN':'JUGADOR'}): sin celebración`, async t => {

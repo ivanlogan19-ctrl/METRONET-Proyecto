@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class ObjetivosNivel4Test {
     private static final List<String> ESENCIALES = List.of(
-        "minimoEstaciones", "minimoTramos", "requiereRedValida",
+        "minimoEstaciones", "minimoTramos",
         "requiereObjetivosMismaLinea", "aprendizajeSimulacion:velocidad", "criterioUvUt"
     );
     private static final List<String> ANTERIORES = List.of(
@@ -21,14 +21,15 @@ class ObjetivosNivel4Test {
     );
 
     @Test
-    void reduceDoceCondicionesDeIntentosAnterioresASeisObjetivosReales() {
+    void retiraConectividadGlobalYReduceCondicionesAnteriores() {
         List<CondicionConsignaResponse> condiciones = new ArrayList<>();
         ESENCIALES.forEach(clave -> condiciones.add(condicion(clave)));
         ANTERIORES.forEach(clave -> condiciones.add(condicion(clave)));
+        condiciones.add(condicion("requiereRedValida"));
 
         List<CondicionConsignaResponse> reducidas = ObjetivosNivel4.reducir(4, true, condiciones);
 
-        assertEquals(6, reducidas.size());
+        assertEquals(5, reducidas.size());
         assertEquals(Set.copyOf(ESENCIALES), reducidas.stream().map(CondicionConsignaResponse::clave).collect(Collectors.toSet()));
         assertEquals("Conectar ambos POI por una misma línea continua", reducidas.stream()
             .filter(c -> c.clave().equals("requiereObjetivosMismaLinea")).findFirst().orElseThrow().texto());
@@ -44,9 +45,22 @@ class ObjetivosNivel4Test {
             : condicion(clave)));
         condiciones.add(condicion("simulacionActual"));
         List<CondicionConsignaResponse> reducidas = ObjetivosNivel4.reducir(4, true, condiciones);
-        assertEquals(6, reducidas.size());
+        assertEquals(5, reducidas.size());
         assertEquals("Todos los recorridos en hasta 2 UT; máximo 2 UV asignadas", reducidas.stream()
             .filter(c -> c.clave().equals("criterioUvUt")).findFirst().orElseThrow().texto());
+    }
+
+    @Test
+    void limiteNuevoDeEstacionesSeMuestraSinDuplicarSimulacion() {
+        List<CondicionConsignaResponse> condiciones = new ArrayList<>();
+        ESENCIALES.forEach(clave -> condiciones.add(condicion(clave)));
+        condiciones.add(condicion("maximoEstaciones"));
+        condiciones.add(condicion("simulacionActual"));
+
+        var reducidas = ObjetivosNivel4.reducir(4, true, condiciones);
+        assertEquals(6, reducidas.size());
+        assertEquals(1, reducidas.stream().filter(c -> c.clave().equals("maximoEstaciones")).count());
+        assertEquals(0, reducidas.stream().filter(c -> c.clave().equals("simulacionActual")).count());
     }
 
     @Test

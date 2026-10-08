@@ -43,7 +43,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   const resultado = texto('p', '', 'metronet-victoria__resultado');
   if (Number.isFinite(puntaje)) {
     const maximo = desempeno?.puntajeMaximo ?? anterior.puntajeMaximo;
-    resultado.append(texto('strong', `${puntaje}${Number.isFinite(maximo) ? ` / ${maximo}` : ''} PTS`));
+    resultado.append(texto('strong', `Su puntaje obtenido es de ${puntaje} puntos${Number.isFinite(maximo) ? ` sobre ${maximo}` : ''}.`));
     if (Number.isFinite(mejorPuntajeAnterior) && puntaje > mejorPuntajeAnterior) {
       resultado.append(texto('span', 'Nuevo récord personal', 'metronet-victoria__record'));
     }
@@ -54,7 +54,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   progreso.setAttribute('aria-valuemin', '0'); progreso.setAttribute('aria-valuemax', '100');
   const porcentaje = texto('span', '');
   porcentaje.hidden = true; // El viaje visual no representa una carga del servidor.
-  progreso.append(texto('span', final ? 'RECORRIDO FINAL' : 'PREPARANDO SIGUIENTE ESTACIÓN'), porcentaje);
+  progreso.append(porcentaje);
   const destino = texto('div', '', 'metronet-victoria__destino');
   destino.append(texto('p', siguiente ? `Próxima estación · Nivel ${siguiente.numero}` : final ? 'Llegaste al final de la línea' : 'Elegí tu próximo recorrido'),
     texto('p', siguiente ? (siguiente.objetivo || obtenerContenidoNivel(siguiente.numero)?.objetivo || 'La consigna del próximo nivel estará disponible al entrar.') : 'Tu red forma parte del recorrido de METRONET.'));
@@ -71,13 +71,12 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   cierre.append(resumenTitulo, totales, posicion, clasificacion);
   const acciones = texto('footer', '', 'metronet-victoria__acciones');
   const seleccionar = texto('button', 'Seleccionar nivel'); seleccionar.type = 'button';
-  const revisar = texto('button', 'Revisar mi red'); revisar.type = 'button';
   const jugar = texto('button', puedeJugar ? MENSAJES_TRANSICION.accion : final ? 'Ver resumen' : 'Elegir nivel',
     puedeJugar ? 'metronet-boton--exito metronet-boton--destacado' : 'metronet-boton--primario');
   jugar.type = 'button';
   jugar.hidden = !puedeJugar && !final;
   seleccionar.classList.toggle('metronet-boton--primario', !puedeJugar && !final);
-  acciones.append(estado, seleccionar, revisar, jugar);
+  acciones.append(estado, seleccionar, jugar);
   cuerpo.append(cabecera, recorrido, resultado, progreso, destino, cierre, acciones);
   dialogo.append(cuerpo);
 
@@ -121,7 +120,6 @@ export function mostrarTransicionNivel(anterior, siguiente, {
     } else terminar(siguiente ? 'siguiente' : 'selector');
   }
   seleccionar.addEventListener('click', () => terminar('selector'));
-  revisar.addEventListener('click', cancelar);
   jugar.addEventListener('click', () => {
     if (cerrado || jugar.disabled) return;
     jugar.disabled = true;

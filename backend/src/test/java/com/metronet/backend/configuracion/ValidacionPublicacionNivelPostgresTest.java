@@ -42,6 +42,9 @@ class ValidacionPublicacionNivelPostgresTest {
                 var contenido=mapper.readTree(jdbc.queryForObject("""
                     SELECT contenido::text FROM nivel_publicacion WHERE id_escenario=? AND numero_version=1
                     """,String.class,escenario));
+                // La publicación V1 histórica conserva esta regla retirada; el ensayo
+                // de una nueva publicación usa las reglas que acepta el motor actual.
+                ((ObjectNode)contenido.path("reglasExito")).remove("requiereRedValida");
                 var tarjetas=mapper.readTree(jdbc.queryForObject("SELECT tarjetas::text FROM nivel_borrador WHERE id_escenario=?",String.class,escenario));
                 ObjectNode red=(ObjectNode)mapper.readTree("""
                     {"estaciones":[{"nombre":"A","x":660,"y":460},{"nombre":"B","x":665,"y":460}],
@@ -64,6 +67,8 @@ class ValidacionPublicacionNivelPostgresTest {
                 var contenido4=mapper.readTree(jdbc.queryForObject("""
                     SELECT contenido::text FROM nivel_publicacion WHERE id_escenario=? AND numero_version=1
                     """,String.class,escenario4));
+                ((ObjectNode)contenido4.path("reglasExito")).remove("requiereRedValida");
+                ((ObjectNode)contenido4.path("reglasExito")).remove("requiereCoberturaPuntosInteres");
                 var tarjetas4=mapper.readTree(jdbc.queryForObject("SELECT tarjetas::text FROM nivel_borrador WHERE id_escenario=?",String.class,escenario4));
                 var puntos=contenido4.path("reglasExito").path("puntosInteresObjetivo");
                 var puntoA=geo.resolverPunto(puntos.get(0).path("idPunto").asInt(),null);

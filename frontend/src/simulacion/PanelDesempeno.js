@@ -1,21 +1,27 @@
-import { destacarConceptos } from '../educacion/glosario/GlosarioContextual.js';
-import { CONCEPTOS_SIMULACION } from '../educacion/glosario/ContextoConceptos.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
+import { formatearVelocidad } from './EscalaSimulacion.js';
 
 // Un único editor de velocidad didáctica; el multiplicador visual vive fuera de él.
 export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opciones = {}) {
   contenedor.limpiarSelectorMetro?.();
   contenedor.innerHTML = `
     <section class="simulacion-grupo-metros">
-      <h3 class="simulacion-seccion-titulo">Metros</h3>
+      <h3 class="simulacion-seccion-titulo">Metro</h3>
       <details class="simulacion-selector-metros">
         <summary aria-expanded="false"><span data-seleccion-metro></span></summary>
         <select id="unidadCirculacion" aria-label="Metro" aria-hidden="true" tabindex="-1"></select>
         <div class="simulacion-selector-metros__opciones" role="group" aria-label="Elegir metro"></div>
       </details>
     </section>
+    <section class="simulacion-configuracion-metros" aria-labelledby="tituloConfiguracionMetros">
+      <h3 id="tituloConfiguracionMetros" class="simulacion-seccion-titulo">UT / UV por Metro</h3>
+      <details class="simulacion-configuracion-metros__desplegable">
+        <summary aria-label="Ver UT y UV por metro">Ver por metro</summary>
+        <ul class="simulacion-configuracion-metros__lista"></ul>
+      </details>
+    </section>
     <section class="simulacion-grupo-velocidad">
-    <h3 class="simulacion-seccion-titulo">Unidad de velocidad · UV</h3>
+    <h3 class="simulacion-seccion-titulo">Unidad de velocidad</h3>
     <form class="simulacion-parametro-velocidad">
       <fieldset data-controles-circulacion>
         <div class="simulacion-parametro-titulo">${iconoRetro('velocidad')}<span>Velocidad</span></div>
@@ -27,11 +33,34 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       </fieldset>
     </form>
     </section>`;
-  destacarConceptos(contenedor.querySelector('.simulacion-parametro-titulo span'), CONCEPTOS_SIMULACION);
   const unidades = diseno.unidadesMetro ?? [];
   const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
   const boton = contenedor.querySelector('button[type="submit"]'), campo = contenedor.querySelector('fieldset');
   const mixto = contenedor.querySelector('[data-velocidad-mixta]');
+  const resumen = contenedor.querySelector('.simulacion-configuracion-metros');
+  const desplegableResumen = resumen.querySelector('details');
+  const listaResumen = resumen.querySelector('ul');
+  resumen.hidden = unidades.length === 0;
+  resumen.classList.toggle('simulacion-configuracion-metros--pocos', unidades.length <= 3);
+  function actualizarTiempo(duracionGlobal, unidadTiempo = 'UT') {
+    const unidad = unidadTiempo === 'UT' ? 'UT' : 'h';
+    const tiempo = Number.isInteger(Number(duracionGlobal)) && Number(duracionGlobal) > 0
+      ? `${duracionGlobal} ${unidad} global` : `— ${unidad} global`;
+    listaResumen.replaceChildren(...unidades.map(metro => {
+      const fila = document.createElement('li');
+      fila.dataset.metro = String(metro.idTren);
+      const nombre = document.createElement('strong');
+      nombre.textContent = `Metro ${metro.idTren} · ${metro.nombreLinea}`;
+      const valores = document.createElement('span');
+      const velocidad = Number(metro.velocidadPromedio);
+      valores.textContent = `${Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'} · ${tiempo}`;
+      fila.append(nombre, valores);
+      return fila;
+    }));
+    listaResumen.querySelectorAll('li').forEach(fila => {
+      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && fila.dataset.metro === selector.value);
+    });
+  }
   selector.replaceChildren(new Option('Todos los metros', 'todas'), ...unidades.map(u => new Option(`Metro ${u.idTren} · ${u.nombreLinea}`, String(u.idTren))));
   const desplegable = contenedor.querySelector('.simulacion-selector-metros');
   const acceso = desplegable.querySelector('summary');
@@ -60,9 +89,10 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     const accesoRect = acceso.getBoundingClientRect();
     const debajo = panel.bottom - accesoRect.bottom - 8;
     const encima = accesoRect.top - panel.top - 8;
-    const abrirArriba = debajo < 150 && encima > debajo;
+    const altoCompleto = lista.scrollHeight + lista.offsetHeight - lista.clientHeight;
+    const abrirArriba = debajo < altoCompleto && encima > debajo;
     desplegable.classList.toggle('simulacion-selector-metros--arriba', abrirArriba);
-    lista.style.maxHeight = `${Math.max(40, Math.min(240, abrirArriba ? encima : debajo))}px`;
+    lista.style.maxHeight = `${Math.max(40, Math.min(altoCompleto, abrirArriba ? encima : debajo))}px`;
   }
   desplegable.addEventListener('toggle', () => {
     acceso.setAttribute('aria-expanded', String(desplegable.open));
@@ -88,7 +118,14 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   const escucha = new AbortController();
   document.addEventListener('pointerdown', evento => {
     if (!desplegable.contains(evento.target)) desplegable.open = false;
+    if (!desplegableResumen.contains(evento.target)) desplegableResumen.open = false;
   }, { signal: escucha.signal });
+  desplegableResumen.addEventListener('keydown', evento => {
+    if (evento.key !== 'Escape' || !desplegableResumen.open) return;
+    evento.preventDefault();
+    desplegableResumen.open = false;
+    desplegableResumen.querySelector('summary').focus({ preventScroll: true });
+  });
   window.addEventListener('resize', posicionarMenu, { signal: escucha.signal });
   contenedor.limpiarSelectorMetro = () => escucha.abort();
   const permitidas = unidades.length > 0 && (!Number.isFinite(desempeno?.puntajeMaximo) || desempeno.redResuelta);
@@ -99,12 +136,16 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   function seleccionar(id) {
     selector.value = unidades.some(u => String(u.idTren) === id) ? id : 'todas';
     actualizarMenu();
+    listaResumen.querySelectorAll('li').forEach(fila => {
+      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && fila.dataset.metro === selector.value);
+    });
     const velocidades = [...new Set(elegidas().map(u => Number(u.velocidadPromedio)))];
     const valorMixto = velocidades.length > 1;
     input.value = velocidades.length === 1 ? String(velocidades[0]) : '';
     input.placeholder = valorMixto ? 'Mixto' : '—';
     mixto.hidden = !valorMixto;
   }
+  actualizarTiempo(opciones.duracionGlobal, opciones.unidadTiempo);
   seleccionar(opciones.seleccion);
   contenedor.querySelectorAll('[data-paso-uv]').forEach(control => {
     control.disabled = !permitidas;
@@ -125,5 +166,5 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     try { await guardar(elegidas(), valor); }
     finally { guardando = false; if (campo.isConnected) campo.disabled = opciones.bloqueado === true; }
   });
-  return { seleccionar };
+  return { seleccionar, actualizarTiempo };
 }

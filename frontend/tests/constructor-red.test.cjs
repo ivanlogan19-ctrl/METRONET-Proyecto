@@ -12,6 +12,8 @@ after(async () => { await navegador?.close(); });
 async function preparar(t, opciones) {
   const resultado = await abrirEditor(navegador, opciones);
   t.after(() => resultado.contexto.close());
+  const recorrido = resultado.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
+  if (await recorrido.isVisible()) await recorrido.click();
   return resultado;
 }
 

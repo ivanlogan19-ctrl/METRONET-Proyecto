@@ -21,8 +21,12 @@ final class ObjetivosAvanzados {
         // El catálogo reducido conserva el requisito de simular para registrar el puntaje,
         // pero UV/UT ya verifica esa misma ejecución. Los intentos anteriores mantienen
         // sus condiciones originales y su distribución histórica de puntos.
+        // N9–10 vuelven a pedir conexiones; el límite de estaciones distingue
+        // esta versión del catálogo antiguo que también las pedía.
         boolean catalogoReducido = Boolean.TRUE.equals(reglas.get("requiereSimulacion"))
-            && !reglas.containsKey("minimoTramos") && !reglas.containsKey("requiereCoberturaPuntosInteres");
+            && !reglas.containsKey("requiereCoberturaPuntosInteres")
+            && (!reglas.containsKey("minimoTramos")
+                || (numero >= 9 && reglas.containsKey("maximoEstaciones")));
         boolean criterioUvUt = condiciones.stream().anyMatch(c -> c.clave().equals("criterioUvUt"));
         return condiciones.stream()
             .filter(c -> !(catalogoReducido && criterioUvUt && c.clave().equals("simulacionActual")))

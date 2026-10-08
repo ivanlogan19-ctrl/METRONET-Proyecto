@@ -16,8 +16,6 @@ import com.metronet.backend.enums.Rol;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.ArrayDeque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -547,15 +545,6 @@ public class JuegoEducativoService {
                 valido ? "Usar como máximo " + maximo + " estaciones" : "Límite de estaciones inválido en la consigna",
                 estaciones, maximo, valido && estaciones > 0 && estaciones <= maximo));
         }
-        boolean redEsValida = redValida(idDiseno);
-        agregarCondicion(
-            condiciones,
-            "requiereRedValida",
-            "Guardar una red consistente",
-            redEsValida ? 1 : 0,
-            1,
-            booleano(reglas, "requiereRedValida")
-        );
         boolean simulacionRealizada = tieneSimulacion(intento.idIntento());
         agregarCondicion(
             condiciones,
@@ -645,54 +634,6 @@ public class JuegoEducativoService {
         boolean aplica
     ) {
         if (aplica) condiciones.add(new CondicionConsignaResponse(clave, texto, actual, requerido, actual >= requerido));
-    }
-
-    private boolean redValida(Integer idDiseno) {
-        if (contar("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", idDiseno) < 2 || contar("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", idDiseno) < 1 || contar("SELECT COUNT(*) FROM tramo WHERE id_diseno = ?", idDiseno) < 1) return false;
-        Integer aisladas = jdbcTemplate.queryForObject("""
-            SELECT COUNT(*) FROM (
-                SELECT e.nombre FROM estacion e LEFT JOIN pasa p ON p.id_diseno = e.id_diseno AND p.nombre_estacion = e.nombre
-                WHERE e.id_diseno = ? GROUP BY e.nombre HAVING COUNT(p.nombre_estacion) = 0
-            ) AS estaciones_aisladas
-            """, Integer.class, idDiseno);
-        return (aisladas == null || aisladas == 0) && !tieneRamificaciones(idDiseno) && estacionesConectadas(idDiseno);
-    }
-
-    private boolean estacionesConectadas(Integer idDiseno) {
-        List<String> estaciones = jdbcTemplate.queryForList("SELECT nombre FROM estacion WHERE id_diseno = ?", String.class, idDiseno);
-        Map<String, Set<String>> adyacentes = new HashMap<>();
-        for (String estacion : estaciones) adyacentes.put(estacion, new HashSet<>());
-        List<String[]> tramos = jdbcTemplate.query("SELECT nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?",
-            (resultado, fila) -> new String[]{resultado.getString(1), resultado.getString(2)}, idDiseno);
-        for (String[] tramo : tramos) {
-            if (!adyacentes.containsKey(tramo[0]) || !adyacentes.containsKey(tramo[1])) return false;
-            adyacentes.get(tramo[0]).add(tramo[1]);
-            adyacentes.get(tramo[1]).add(tramo[0]);
-        }
-        if (estaciones.isEmpty()) return false;
-        Set<String> visitadas = new HashSet<>();
-        ArrayDeque<String> pendientes = new ArrayDeque<>();
-        pendientes.add(estaciones.getFirst());
-        while (!pendientes.isEmpty()) {
-            String actual = pendientes.removeFirst();
-            if (visitadas.add(actual)) pendientes.addAll(adyacentes.get(actual));
-        }
-        return visitadas.size() == estaciones.size();
-    }
-
-    private boolean tieneRamificaciones(Integer idDiseno) {
-        Integer cantidad = jdbcTemplate.queryForObject("""
-            SELECT COUNT(*) FROM (
-                SELECT nombre_linea, nombre_estacion FROM (
-                    SELECT nombre_linea, nombre_estacion_a AS nombre_estacion FROM tramo WHERE id_diseno = ?
-                    UNION ALL
-                    SELECT nombre_linea, nombre_estacion_b AS nombre_estacion FROM tramo WHERE id_diseno = ?
-                ) AS extremos
-                GROUP BY nombre_linea, nombre_estacion
-                HAVING COUNT(*) > 2
-            ) AS ramificaciones
-            """, Integer.class, idDiseno, idDiseno);
-        return cantidad != null && cantidad > 0;
     }
 
     private boolean tieneSimulacion(Integer idIntento) {

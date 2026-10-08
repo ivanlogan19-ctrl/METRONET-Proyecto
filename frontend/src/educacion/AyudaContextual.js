@@ -71,7 +71,6 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
     ['requiereObjetivosMismaLinea', 'conexiones', 'Las referencias necesitan un recorrido de la misma línea. Revisá dónde se interrumpe.', 'Cubrir lugares por separado y conectarlos entre sí son condiciones diferentes.', ['linea', 'cobertura', 'conexion']],
     ['minimoTransbordos', 'lineas', 'Faltan transbordos. Conectá dos líneas mediante una estación compartida.', 'Cada transbordo necesita tramos de dos líneas distintas que lleguen a la misma estación; un cruce dibujado no alcanza.', ['transbordo', 'linea', 'estacion']],
     ['minimoMetros', 'metros', 'Los recorridos necesitan unidades para circular. Revisá su distribución entre líneas.', 'Una unidad está asociada a una línea. La cantidad requerida se consulta en los objetivos.', ['unidad', 'linea']],
-    ['requiereRedValida', null, 'La red aún requiere revisión. Buscá recorridos aislados o ramificaciones.', 'Guardar comprueba la estructura; la consigna informa las condiciones que todavía faltan.', ['linea', 'conexion']],
   ];
   for (const [clave, herramienta, texto, pista, conceptos] of opciones) {
     const pendiente = clave === 'areas' ? pendientes.some(c => c.clave.startsWith('areaObjetivo:')) : falta(clave);

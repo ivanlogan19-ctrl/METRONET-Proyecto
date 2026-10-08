@@ -31,17 +31,14 @@ test('crear estaciones repetidas no muestra avisos que reduzcan el mapa', async 
     const p = await puntoMapa(pagina, 750 + i * 15, 500);
     await pagina.mouse.click(p.x, p.y);
     await pagina.waitForFunction(i => editorPrueba.disenoActual.estaciones.some(e => e.nombre === `Estación ${String(i+1).padStart(2,'0')}`), i);
-    assert.equal(await pagina.locator('[data-estado-editor]').innerText(), '');
+    assert.equal(await pagina.locator('[data-revisar-error]').isVisible(), false,
+      await pagina.evaluate(() => editorPrueba.barraEstado?.ultimoError));
     assert.equal(await pagina.locator('dialog[open], .metronet-notificacion').count(), 0);
   }
   assert.equal(solicitudes.length, 3);
   assert.equal(mensajes.filter(m => /Estación guardada/.test(m)).length, 0);
   assert.equal(mensajes.some(m => /cargada|Hacé clic/.test(m)), false);
-  const estado = await pagina.locator('[data-estado-editor]').boundingBox();
-  for (const selector of ['#metronet-mapa', '#metronet-panel-controles']) {
-    const r = await pagina.locator(selector).boundingBox();
-    assert.ok(estado.y + estado.height <= r.y);
-  }
+  assert.equal(await pagina.locator('.metronet-estado-editor__feedback').isVisible(), false);
   const antes = await pagina.locator('#metronet-mapa').boundingBox();
   await pagina.clock.fastForward(4500);
   assert.equal(await pagina.locator('[data-estado-editor] [role=status]').innerText(), '');
@@ -56,7 +53,8 @@ test('cambiar herramientas tras una conexión sin línea permite continuar sin m
   const { pagina, solicitudes } = await preparar(t);
   await pagina.locator('[data-elegir-herramienta=conexiones]').click();
   const p = await puntoMapa(pagina,700,460); await pagina.mouse.click(p.x,p.y);
-  assert.equal(await pagina.locator('[data-estado-editor]').innerText(), '');
+  assert.equal(await pagina.locator('[data-revisar-error]').isVisible(), false,
+    await pagina.evaluate(() => editorPrueba.barraEstado?.ultimoError));
   assert.equal(await pagina.locator('[data-elegir-herramienta=conexiones]').getAttribute('aria-pressed'), 'true');
   await pagina.locator('[data-elegir-herramienta=estaciones]').click();
   assert.equal(await pagina.locator('[data-elegir-herramienta=estaciones]').getAttribute('aria-pressed'), 'true');

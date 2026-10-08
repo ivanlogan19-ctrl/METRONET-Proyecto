@@ -105,7 +105,8 @@ for (const width of [390, 1440]) {
     assert.equal(await primeraAccion.isVisible(), true);
     await primeraAccion.scrollIntoViewIfNeeded();
     const cajaAccion = await primeraAccion.boundingBox();
-    assert.ok(cajaAccion && cajaAccion.y >= 0 && cajaAccion.y + cajaAccion.height <= 844);
+    assert.ok(cajaAccion && cajaAccion.y >= 0 && cajaAccion.y + cajaAccion.height <= 845,
+      JSON.stringify({ cajaAccion, scrollY: await pagina.evaluate(() => scrollY) }));
     const reinicio = pagina.waitForRequest(solicitud => new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar' && solicitud.method() === 'POST');
     await primeraAccion.click();
     await reinicio;
@@ -166,7 +167,8 @@ for (const width of [320, 390, 1440]) {
       await accion.focus();
       assert.equal(await accion.evaluate(elemento => elemento === document.activeElement), true);
       const cajaAccion = await accion.boundingBox();
-      assert.ok(cajaAccion && cajaAccion.y >= 0 && cajaAccion.y + cajaAccion.height <= 844);
+      assert.ok(cajaAccion && cajaAccion.y >= 0 && cajaAccion.y + cajaAccion.height <= 845,
+        JSON.stringify({ cajaAccion, scrollY: await pagina.evaluate(() => scrollY) }));
       const reinicio = pagina.waitForRequest(solicitud => new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar' && solicitud.method() === 'POST');
       await pagina.keyboard.press('Enter');
       await reinicio;

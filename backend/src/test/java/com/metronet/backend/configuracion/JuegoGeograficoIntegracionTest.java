@@ -79,10 +79,15 @@ class JuegoGeograficoIntegracionTest {
 
     private void red(int diseno) {
         var palacio = geografia.resolverPunto(1, null);
-        var rambla = geografia.resolverPunto(26, null);
+        var destino = geografia.resolverPunto(switch (diseno) {
+            case 1 -> 3; // Torre de las Comunicaciones
+            case 2 -> 33; // Mirador de la Intendencia
+            case 3 -> 113; // Terminal Tres Cruces
+            default -> 26; // Rambla de Carrasco
+        }, null);
         jdbc.update("INSERT INTO estacion VALUES (?,'A',?,?,FALSE)", diseno, geografia.posicionX(palacio), geografia.posicionY(palacio));
         jdbc.update("INSERT INTO estacion VALUES (?,'B',700,480,FALSE)", diseno);
-        jdbc.update("INSERT INTO estacion VALUES (?,'C',?,?,FALSE)", diseno, geografia.posicionX(rambla), geografia.posicionY(rambla));
+        jdbc.update("INSERT INTO estacion VALUES (?,'C',?,?,FALSE)", diseno, geografia.posicionX(destino), geografia.posicionY(destino));
         jdbc.update("INSERT INTO linea VALUES (?,'Azul')", diseno);
         jdbc.update("INSERT INTO tramo VALUES (?,'Azul','A','B'),(?,'Azul','B','C')", diseno, diseno);
         for (String nombre : new String[]{"A", "B", "C"}) jdbc.update("INSERT INTO pasa VALUES (?,'Azul',?)", diseno, nombre);
@@ -107,7 +112,12 @@ class JuegoGeograficoIntegracionTest {
                 RestriccionesGeograficasService.redondear(geografia.posicionY(poi)), false);
         }
         while (indice < cantidad) {
-            jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,FALSE)", diseno, "E" + indice, 660 + indice * 5, 460);
+            if ((nivel == 5 && indice == 2) || (nivel == 9 && indice == 4)) {
+                var plaza = geografia.resolverPunto(106, null);
+                jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,FALSE)", diseno, "E" + indice,
+                    RestriccionesGeograficasService.redondear(geografia.posicionX(plaza)),
+                    RestriccionesGeograficasService.redondear(geografia.posicionY(plaza)));
+            } else jdbc.update("INSERT INTO estacion VALUES (?,?,?,?,FALSE)", diseno, "E" + indice, 660 + indice * 5, 460);
             indice++;
         }
         jdbc.update("INSERT INTO linea VALUES (?,'Principal')", diseno);
@@ -180,7 +190,7 @@ class JuegoGeograficoIntegracionTest {
         simular(8);
         var condiciones = juego.obtenerConsigna(usuario, 8).condiciones();
         assertTrue(condiciones.stream().filter(c -> c.clave().endsWith(":global")).findFirst().orElseThrow().completado());
-        assertFalse(condiciones.stream().filter(c -> c.clave().endsWith(":individual")).findFirst().orElseThrow().completado());
+        assertFalse(condiciones.stream().anyMatch(c -> c.clave().endsWith(":individual")));
         jdbc.update("UPDATE metro SET velocidad_promedio=2 WHERE id_diseno=8 AND id_tren=(SELECT MIN(id_tren) FROM metro WHERE id_diseno=8)");
         simular(8);
         assertTrue(juego.evaluarEscenario(7, 8).completado());
@@ -207,26 +217,19 @@ class JuegoGeograficoIntegracionTest {
     }
 
     @Test
-    void nivelTresNoCompletaConEstacionesAisladasONucleosDesconectados() throws Exception {
+    void nivelTresPermiteEstacionAisladaPeroRespetaLimiteVisible() throws Exception {
         red(3);
         jdbc.update("INSERT INTO estacion VALUES (3,'D',720,470,FALSE)");
         var autenticacion = mock(AuthService.class);
         when(autenticacion.obtenerUsuarioConSesion("Bearer prueba")).thenReturn(usuario);
         var api = MockMvcBuilders.standaloneSetup(new JuegoEducativoController(autenticacion, juego)).build();
         api.perform(post("/api/juego/disenos/3/evaluar").header("Authorization", "Bearer prueba"))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.completado").value(false));
-        assertFalse(juego.evaluarEscenario(7, 3).completado());
-        assertFalse(juego.obtenerConsigna(usuario, 3).condiciones().stream()
-            .filter(c -> c.clave().equals("requiereRedValida")).findFirst().orElseThrow().completado());
-        jdbc.update("INSERT INTO linea VALUES (3,'Roja')");
+            .andExpect(status().isOk()).andExpect(jsonPath("$.completado").value(true));
+        assertTrue(juego.obtenerConsigna(usuario, 3).condiciones().stream()
+            .noneMatch(c -> c.clave().equals("requiereRedValida")));
         jdbc.update("INSERT INTO estacion VALUES (3,'E',730,470,FALSE)");
-        jdbc.update("INSERT INTO tramo VALUES (3,'Roja','D','E')");
-        jdbc.update("INSERT INTO pasa VALUES (3,'Roja','D'),(3,'Roja','E')");
-        assertFalse(juego.evaluarEscenario(7, 3).completado(), "Dos recorridos separados no son una red conectada");
-        assertNull(juego.evaluarEscenario(7, 3).idSiguienteEscenario());
-        jdbc.update("INSERT INTO tramo VALUES (3,'Azul','C','D')");
-        jdbc.update("INSERT INTO pasa VALUES (3,'Azul','D')");
-        assertTrue(juego.evaluarEscenario(7, 3).completado());
+        assertFalse(juego.obtenerConsigna(usuario, 3).condiciones().stream()
+            .filter(c -> c.clave().equals("maximoEstaciones")).findFirst().orElseThrow().completado());
     }
 
     @Test
@@ -352,7 +355,7 @@ class JuegoGeograficoIntegracionTest {
             assertFalse(juego.evaluarEscenario(7, nivel).completado());
             red(nivel);
             if (nivel < 4) {
-                assertTrue(juego.obtenerConsigna(usuario, nivel).referenciasObjetivo().isEmpty());
+                assertEquals(2, juego.obtenerConsigna(usuario, nivel).referenciasObjetivo().size());
                 var herramientas = mapper.readTree(jdbc.queryForObject("SELECT herramientas_habilitadas FROM escenario WHERE numero=?", String.class, nivel));
                 assertFalse(herramientas.path("simulacion").asBoolean());
                 assertEquals(nivel >= 2, herramientas.path("conexiones").asBoolean());

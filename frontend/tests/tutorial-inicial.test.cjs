@@ -12,7 +12,8 @@ const consigna = d => ({ condiciones:[
   { clave:'minimoLineas', requerido:1, actual:d.lineas.length, completado:d.lineas.length >= 1, texto:'Una línea' },
 ] });
 async function abrir(t, n = 1, opciones = {}) {
-  const v = await abrirEditor(navegador, { escenario:escenario(n), estaciones:[], lineas:[], tramos:[], consigna, ...opciones });
+  const v = await abrirEditor(navegador, { escenario:escenario(n), estaciones:[], lineas:[], tramos:[], consigna,
+    novedadPresentada: Boolean(opciones.ofrecerRecorrido), ...opciones });
   t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
   return v;
 }
@@ -37,12 +38,14 @@ test('Práctica: selección, error, creaciones confirmadas y guardado; cerrar y 
   await p.evaluate(() => editorPrueba.ubicarEstacion({ posicionX:-100, posicionY:-100 }, 'crearEstacion'));
   assert.equal(await panel.getAttribute('data-paso'), 'colocar-estacion');
   assert.equal(solicitudes.length, 0);
+  if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
+  await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
   assert.ok(await panel.locator('.metronet-tutorial__error').isVisible());
-  await p.getByRole('button', { name:'Cerrar tutorial', exact:true }).click();
+  await p.locator('body').click({ position:{ x:2, y:2 } });
   for (const posicionX of [750, 810]) await p.evaluate(x => editorPrueba.ubicarEstacion({ posicionX:x, posicionY:500 }, 'crearEstacion'), posicionX);
   assert.equal(await panel.getAttribute('data-paso'), 'elegir-linea');
   assert.equal(await panel.getAttribute('open'), null);
-  await panel.locator('>summary').click();
+  if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
   await p.locator('[data-elegir-herramienta="lineas"]').click();
   assert.equal(await panel.getAttribute('data-paso'), 'origen-linea');
   await p.evaluate(() => editorPrueba.seleccionarElemento({ tipo:'estacion', valor:editorPrueba.disenoActual.estaciones[0] }));
@@ -60,6 +63,68 @@ test('Práctica: selección, error, creaciones confirmadas y guardado; cerrar y 
   assert.equal(await panel.getByRole('button', { name:'Siguiente', exact:true }).count(),0);
   await p.evaluate(() => { editorPrueba.disenoActual.estaciones = []; editorPrueba.actualizarAyuda(); });
   assert.equal(await panel.getAttribute('data-paso'), 'elegir-estacion');
+});
+
+test('El panel muestra explicaciones directas y cierra fuera o con Escape', async t => {
+  const { pagina:p } = await abrir(t,2,{ novedadPresentada:true });
+  const panel = p.locator('.metronet-tutorial');
+  if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
+  await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
+  assert.equal(await panel.getByRole('heading',{name:'Tutorial'}).count(),1);
+  assert.equal(await panel.locator('[data-tutorial-cerrar]').count(),0);
+  assert.match(await panel.locator('.metronet-tutorial__herramientas').innerText(), /Conexión → Agregá tramos/);
+  assert.equal(await panel.locator('.metronet-tutorial__herramientas p strong').allTextContents().then(x => x.join(',')),'Nivel → ,Conexión → ');
+  assert.equal(await panel.locator('.metronet-tutorial__herramientas details').count(),0);
+  assert.equal(await panel.locator('.metronet-tutorial__herramientas a, .metronet-tutorial__herramientas button').count(),0);
+  assert.equal(await panel.getByRole('button',{name:'Recorrer la pantalla'}).isVisible(),true);
+  await panel.locator('.metronet-tutorial__herramientas p').first().click();
+  assert.equal(await panel.evaluate(e => e.open),true);
+  const estilos = await panel.evaluate(e => {
+    const titulo=e.querySelector('h2'), boton=e.querySelector('.metronet-tutorial__repetir'), caja=e.querySelector('.metronet-tutorial__panel');
+    const rb=boton.getBoundingClientRect(), rc=caja.getBoundingClientRect();
+    return { barra:getComputedStyle(titulo,'::before').display, borde:getComputedStyle(titulo).borderLeftWidth,
+      centro:Math.abs((rb.left+rb.right)/2-(rc.left+rc.right)/2), fondo:getComputedStyle(boton).backgroundColor };
+  });
+  assert.equal(estilos.barra,'none');
+  assert.equal(estilos.borde,'0px');
+  assert.ok(estilos.centro < 2,JSON.stringify(estilos));
+  await p.keyboard.press('Escape');
+  assert.equal(await panel.evaluate(e => e.open),false);
+  assert.equal(await p.evaluate(() => document.activeElement?.matches('.metronet-tutorial > summary')),true);
+  await panel.locator('>summary').click();
+  await p.locator('body').click({ position:{ x:2,y:2 } });
+  assert.equal(await panel.evaluate(e => e.open),false);
+});
+
+test('Nivel 1 presenta nivel, estación y línea con texto directo y separadores amarillos', async t => {
+  const { pagina:p } = await abrir(t,1,{ ofrecerRecorrido:true });
+  const panel = p.locator('.metronet-tutorial');
+  await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
+  assert.equal(await panel.locator('.metronet-tutorial__herramientas p strong').allTextContents().then(x => x.join(',')),
+    'Nivel → ,Estación → ,Línea → ');
+  assert.equal(await panel.getByText('¿Querés ver el tutorial de nuevo?').count(),1);
+  const separadores = await panel.locator('.metronet-tutorial__herramientas p').evaluateAll(items =>
+    items.map(item => ({ borde:getComputedStyle(item).borderBottomStyle, color:getComputedStyle(item).borderBottomColor,
+      titulo:getComputedStyle(item.querySelector('strong')).color,
+      pesoTitulo:getComputedStyle(item.querySelector('strong')).fontWeight,
+      pesoExplicacion:getComputedStyle(item.querySelector('span')).fontWeight })));
+  assert.ok(separadores.every(item => item.borde === 'solid' && item.color === item.titulo
+    && Number(item.pesoTitulo) > Number(item.pesoExplicacion)),JSON.stringify(separadores));
+});
+
+test('El cartel final permanece legible y cierra recorrido y panel automáticamente', async t => {
+  const { pagina:p } = await abrir(t,2,{ novedadPresentada:true });
+  const panel = p.locator('.metronet-tutorial');
+  if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
+  await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
+  await panel.getByRole('button',{name:'Recorrer la pantalla'}).click();
+  const guia = p.locator('.metronet-recorrido');
+  while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
+  assert.equal(await guia.getByText('RECORRIDO COMPLETADO').isVisible(),true);
+  await guia.waitFor({ state:'detached', timeout:5000 });
+  assert.equal(await panel.evaluate(e => e.open),false);
+  assert.equal(await panel.locator('.metronet-tutorial__panel:popover-open').count(),0);
+  assert.equal(await p.evaluate(() => document.activeElement?.matches('.metronet-tutorial > summary')),true);
 });
 
 for (const width of [1440,768,390,320]) test(`Recorrido opcional: ocho controles habilitados, teclado y burbujas a ${width}px`, async t => {
@@ -86,6 +151,7 @@ for (const width of [1440,768,390,320]) test(`Recorrido opcional: ocho controles
     await p.keyboard.press('Enter');
   }
   assert.deepEqual(titulos, ['Herramientas','Estación','Línea','Selección','Guardar','Referencias','Controles y pista','Objetivo']);
+  assert.equal(await dialogo.locator('h2').textContent(), '¡Listos para construir!');
   await dialogo.getByRole('button', { name:'Comenzar', exact:true }).click();
   assert.equal(await dialogo.count(),0);
   assert.equal(await p.locator('.metronet-tutorial').getAttribute('data-fase'),'practica');
@@ -98,23 +164,55 @@ test('Omitir con Escape, reabrir y cambiar de escenario limpian el recorrido y c
   await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).click();
   await p.keyboard.press('Escape');
   assert.equal(await p.locator('.metronet-recorrido').count(),0);
+  await p.locator('.metronet-tutorial > summary').click();
+  await p.locator('.metronet-tutorial__panel:popover-open').waitFor();
   await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
   await p.evaluate(n => { editorPrueba.escenarioJuegoActual=n; editorPrueba.actualizarAyuda(); },escenario(2));
-  assert.equal(await p.locator('.metronet-recorrido').count(),0);
+  assert.equal(await p.locator('.metronet-recorrido').count(),1);
+  assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'),'[data-elegir-herramienta="conexiones"]');
   assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).count(),0);
   assert.equal(await p.locator('.metronet-tutorial').getAttribute('data-paso'),'conexiones');
 });
 
-for (const n of [2,3,4,5,10]) test(`Nivel ${n}: acceso propio sin tour automático; introducción solo de novedades`, async t => {
+for (const n of [2,3,4,5,10]) test(`Nivel ${n}: recorrido físico solo para herramientas nuevas`, async t => {
   const { pagina:p } = await abrir(t,n);
   assert.equal(await p.locator('.metronet-tutorial>summary').isVisible(),true);
   assert.equal(await p.locator('[data-hud-vista="tutorial"]').count(),0);
   assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).count(),0);
   const panel = p.locator('.metronet-tutorial');
+  const objetivo = {2:'[data-elegir-herramienta="conexiones"]',3:'[data-elegir-herramienta="metros"]',4:'[data-ir-simulacion]'}[n];
+  assert.equal(await p.locator('.metronet-recorrido').count(), objetivo ? 1 : 0);
+  if (objetivo) assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'), objetivo);
   if (n === 3) {
     await p.evaluate(() => { editorPrueba.disenoActual.unidadesMetro=[]; editorPrueba.actualizarAyuda(); });
     assert.equal(await panel.getAttribute('data-paso'),'metros');
   } else assert.equal(await panel.getAttribute('data-paso'),n === 2 ? 'conexiones' : n === 4 ? 'simulacion' : 'manual');
+});
+
+test('Interrupción técnica reofrece la guía; Omitir la descarta hasta repetirla manualmente', async t => {
+  const { pagina:p } = await abrir(t,2,{primeraPasada:false});
+  const guia = p.locator('.metronet-recorrido');
+  const clave = 'metronet:tutorial-nueva-herramienta:v1:7:2';
+  await p.reload();
+  assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), null);
+  await guia.waitFor();
+  assert.equal(await guia.getAttribute('data-objetivo'),'[data-elegir-herramienta="conexiones"]');
+  await guia.locator('[data-recorrido-omitir]').click();
+  assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'omitida');
+  await p.reload();
+  await p.waitForFunction(() => document.querySelector('.metronet-tutorial')?.dataset.paso === 'conexiones');
+  assert.equal(await guia.count(),0);
+  await p.locator('.metronet-tutorial > summary').click();
+  await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
+  await guia.waitFor();
+  while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
+  assert.equal(await guia.locator('h2').textContent(),'¡Listos para construir!');
+  assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'omitida');
+  await guia.locator('[data-recorrido-siguiente]').click();
+  assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentada');
+  await p.reload();
+  await p.waitForFunction(() => document.querySelector('.metronet-tutorial')?.dataset.paso === 'conexiones');
+  assert.equal(await guia.count(),0);
 });
 
 test('Nivel 4 señala Simular en Edición y permite repetir la indicación', async t => {
@@ -124,9 +222,12 @@ test('Nivel 4 señala Simular en Edición y permite repetir la indicación', asy
   const guia = p.locator('.metronet-recorrido');
   assert.equal(await guia.getAttribute('data-objetivo'),'[data-ir-simulacion]');
   assert.equal(await p.locator('[data-ir-simulacion]').isVisible(),true);
-  await guia.locator('[data-recorrido-omitir]').click();
+  await guia.locator('[data-recorrido-siguiente]').click();
+  assert.equal(await guia.locator('h2').textContent(),'¡Listos para construir!');
+  assert.equal(await p.locator('[data-ir-simulacion]').isVisible(),true);
+  await guia.locator('[data-recorrido-siguiente]').click();
   await panel.locator('>summary').click();
-  await panel.getByRole('button',{name:'Mostrar botón Simular'}).click();
+  await panel.getByRole('button',{name:'Recorrer la pantalla'}).click();
   assert.equal(await guia.getAttribute('data-objetivo'),'[data-ir-simulacion]');
   await guia.locator('[data-recorrido-omitir]').click();
   await p.reload();

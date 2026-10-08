@@ -129,7 +129,8 @@ for (const width of [1440, 390]) test(`Mandos visibles y agrupados ${width}: map
   const { pagina } = await abrir(t, width);
   const mandos = await pagina.locator('.simulacion-mandos').boundingBox();
   const mapa = await pagina.locator('#visorSimulacion').boundingBox();
-  assert.ok(mandos.y >= 0 && mandos.y + mandos.height <= 1000, 'Los mandos deben verse sin desplazar la página');
+  assert.ok(mandos.y >= 0 && mandos.y + mandos.height <= 1000,
+    `Los mandos deben verse sin desplazar la página: ${JSON.stringify({ mandos, mapa })}`);
   assert.ok(mandos.x >= 0 && mandos.x + mandos.width <= width + 1, 'Los mandos deben caber en la pantalla');
   assert.ok(mapa.width > width / 2, 'El mapa conserva espacio útil');
   assert.equal(await pagina.getByRole('button', { name: 'Iniciar simulación' }).isEnabled(), true);

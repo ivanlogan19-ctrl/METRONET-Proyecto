@@ -15,7 +15,8 @@ for(const primeraPasada of [true,false])test(`Campaña: primera pasada ${primera
   await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).click();
   const colores=await p.evaluate(async()=>{const d=document.querySelector('.metronet-recorrido');await Promise.all(d.getAnimations().map(a=>a.finished));const s=getComputedStyle(d);return{fondo:s.backgroundColor,borde:s.borderTopColor,opacidad:s.opacity};});
   assert.equal(colores.fondo,'rgb(40, 37, 17)');assert.equal(colores.borde,'rgb(244, 237, 121)');assert.equal(colores.opacidad,'1');
-  await p.keyboard.press('Escape');await p.getByRole('button',{name:'Cerrar tutorial',exact:true}).click();
+  await p.keyboard.press('Escape');
+  assert.equal(await p.locator('.metronet-recorrido[open]').count(),0);
   await p.evaluate(()=>editorPrueba.abrirDiseno(77,{identificar:true}));
   assert.equal(await p.locator('.metronet-tutorial').evaluate(e=>e.open),false,'Reingresar en el mismo documento no repite la oferta');
  }

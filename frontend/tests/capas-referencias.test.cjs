@@ -118,7 +118,7 @@ for (const viewport of [{width:1440,height:900},{width:320,height:568},{width:84
   });
 }
 
-test('Objetivos visibles con capas apagadas y búsqueda persistente sin modificar selección territorial', async t=>{
+test('Búsqueda de objetivos con capas apagadas conserva la selección territorial', async t=>{
   const {pagina:p}=await abrir(t,{objetivos:[{idPunto:85,radioCobertura:60}]});
   await p.evaluate(()=>{poi.establecerCategoriasVisibles([]); editorPrueba.escena.selectorBarrios.seleccionarBarrio('AGUADA');});
   for(const id of [85,29,20,33,1]){
@@ -133,7 +133,7 @@ test('Objetivos visibles con capas apagadas y búsqueda persistente sin modifica
     await panel(p); await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).click(); await p.getByRole('searchbox').fill(''); await p.keyboard.press('Escape');
     assert.equal(await p.evaluate(()=>poi.puntoBuscado),null);
   }
-  assert.equal(await p.evaluate(()=>poi.representaciones.find(r=>r.punto.id===85).contenedor.visible),true);
+  assert.equal(await p.evaluate(()=>poi.representaciones.find(r=>r.punto.id===85).contenedor.visible),false);
 });
 
 for(const width of [1440,1024,768,390,320]) test(`POI y HUD a ${width}px: acceso compacto, alineación, teclado y sin overflow`,async t=>{
@@ -181,6 +181,7 @@ test('Iconos e indicadores mantienen el color de su categoría y muestran ayuda 
     assert.equal(indicador, esperado);
     assert.equal(borde, esperado);
   }
+  await p.locator('.metronet-poi__categorias [data-categoria="SALUD"]').click();
   await p.getByRole('img', { name: 'Salud', exact: true }).focus();
   await p.waitForFunction(() => document.querySelector('#metronet-ayuda-sistema')?.textContent === 'Salud');
   assert.equal(await p.getByRole('tooltip').isVisible(), true);
@@ -188,10 +189,11 @@ test('Iconos e indicadores mantienen el color de su categoría y muestran ayuda 
 
 test('Mapa estrecho: Editor conserva POI visibles y la capa limita densidad fuera del modo completo', async t => {
   const { pagina: p } = await abrir(t, { viewport: { width: 320, height: 844 } });
-  await p.evaluate(() => {
+  await p.evaluate(categorias => {
+    poi.establecerCategoriasVisibles(categorias);
     editorPrueba.escena.cameras.main.setZoom(1);
     poi.actualizarVisibilidad(1, { forzar: true });
-  });
+  }, CATEGORIAS);
   const estado = await p.evaluate(async () => {
     const { obtenerCategoriaReferencia } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
     const visibles = poi.representaciones.filter(r => r.contenedor.visible);

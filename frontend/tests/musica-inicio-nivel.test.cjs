@@ -51,7 +51,7 @@ for (const reducido of [false, true]) test(`Viaje y cartel duran unos 11 s sin n
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
   assert.equal(terminoAudio, false, 'La salida visual no acelera la reproducción');
   assert.ok(Date.now() - inicio >= 10800 && Date.now() - inicio < 16000);
-  await p.getByRole('button', { name: 'Mostrar tutorial', exact: true }).waitFor();
+  await p.locator('.metronet-tutorial > summary').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
   assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 0, 'No repetir canción en el editor');
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/extra-theme.mp3' && !a.paused; });
@@ -63,7 +63,7 @@ for (const fallo of ['archivo', 'silencio']) test(`FalsaCargaDeVictoria ${fallo}
   else await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
   await p.getByRole('button', { name: 'Jugar', exact: true }).click();
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123', { timeout: 20000 });
-  await p.getByRole('button', { name: 'Mostrar tutorial', exact: true }).waitFor();
+  await p.locator('.metronet-tutorial > summary').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
 });
 

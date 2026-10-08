@@ -10,6 +10,7 @@ const PASOS = [
 ];
 
 const visible = elemento => elemento && !elemento.disabled && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';
+const senalable = elemento => elemento && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';
 
 // Recorrido exclusivamente de presentación: no dispara acciones del dominio.
 export default class RecorridoInicial {
@@ -17,22 +18,22 @@ export default class RecorridoInicial {
   iniciar() {
     this.focoAnterior = document.activeElement;
     this.scrollAnterior = [scrollX, scrollY];
+    this.scrollBody = document.body.scrollTop;
     this.panel = document.querySelector('#metronet-panel-controles');
     this.scrollPanel = this.panel?.scrollTop;
     this.togglePanel = document.querySelector('[data-panel-edicion-toggle]');
     this.panelCerrado = this.togglePanel?.getAttribute('aria-expanded') === 'false';
     if (this.panelCerrado) this.togglePanel.click();
-    this.pasos = (this.opciones.pasos ?? PASOS).filter(([selector]) => visible(document.querySelector(selector)));
+    this.pasos = (this.opciones.pasos ?? PASOS).filter(([selector]) =>
+      (this.opciones.senalarDeshabilitados ? senalable : visible)(document.querySelector(selector)));
     this.indice = 0;
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';
     this.dialogo.setAttribute('aria-labelledby', 'recorrido-titulo');
-    this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><h2 id="recorrido-titulo"></h2><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-pausar hidden>Pausar recorrido</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
+    this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><h2 id="recorrido-titulo"></h2><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
     document.body.append(this.dialogo);
-    this.dialogo.addEventListener('cancel', e => { e.preventDefault(); this.terminar(); });
-    this.dialogo.querySelector('[data-recorrido-omitir]').addEventListener('click', () => this.terminar());
-    this.dialogo.querySelector('[data-recorrido-pausar]').hidden = !this.opciones.pausable;
-    this.dialogo.querySelector('[data-recorrido-pausar]').addEventListener('click', () => this.pausar());
+    this.dialogo.addEventListener('cancel', e => { e.preventDefault(); this.terminar(true, false, 'omitido'); });
+    this.dialogo.querySelector('[data-recorrido-omitir]').addEventListener('click', () => this.terminar(true, false, 'omitido'));
     this.dialogo.querySelector('[data-recorrido-siguiente]').addEventListener('click', () => {
       if (this.indice >= this.pasos.length) this.terminar(true, true);
       else { this.indice++; this.mostrar(); }
@@ -44,7 +45,7 @@ export default class RecorridoInicial {
       this.cerrarConEscape = evento => {
         if (evento.key !== 'Escape') return;
         evento.preventDefault();
-        this.terminar();
+        this.terminar(true, false, 'omitido');
       };
       window.addEventListener('keydown', this.cerrarConEscape);
       this.dialogo.show();
@@ -53,15 +54,17 @@ export default class RecorridoInicial {
     this.mostrar();
   }
   mostrar() {
+    clearTimeout(this.cierreFinal);
+    this.cierreFinal = null;
     const paso = this.pasos[this.indice];
     this.objetivo = paso ? document.querySelector(paso[0]) : null;
     this.ladoPreferido = null;
     // Los objetivos pueden ser reemplazados al refrescar la consigna.
-    if (paso && !visible(this.objetivo)) { this.indice++; this.mostrar(); return; }
+    if (paso && !senalable(this.objetivo)) { this.indice++; this.mostrar(); return; }
     this.dialogo.dataset.objetivo = paso?.[0] ?? 'fin';
     this.dialogo.querySelector('[data-recorrido-progreso]').textContent = paso ? `RECORRIDO // ${this.indice + 1} DE ${this.pasos.length}` : 'RECORRIDO COMPLETADO';
-    this.dialogo.querySelector('h2').textContent = paso?.[1] ?? this.opciones.tituloFinal ?? 'Ahora, tu primera red';
-    this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? this.opciones.textoFinal ?? 'Ya conocés la pantalla. Ahora vamos a construir tu primera red.';
+    this.dialogo.querySelector('h2').textContent = paso?.[1] ?? this.opciones.tituloFinal ?? '¡Listos para construir!';
+    this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? this.opciones.textoFinal ?? 'Ya conocés los controles. Podés comenzar a construir la red.';
     this.dialogo.querySelector('[data-recorrido-siguiente]').hidden = Boolean(paso?.[3]);
     this.dialogo.querySelector('[data-recorrido-siguiente]').textContent = paso ? 'Siguiente' : 'Comenzar';
     this.dialogo.querySelector('[data-recorrido-omitir]').hidden = !paso;
@@ -69,33 +72,13 @@ export default class RecorridoInicial {
     this.posicionar();
     if (!paso?.[3]) this.dialogo.querySelector('[data-recorrido-siguiente]').focus({ preventScroll: true });
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) this.dialogo.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 180 });
+    if (!paso) this.cierreFinal = setTimeout(() => this.terminar(true, true), 3500);
   }
   notificar(evento) {
     if (!this.dialogo || this.pasos[this.indice]?.[3] !== evento) return;
     this.indice++;
     if (this.indice >= this.pasos.length && this.opciones.interactivo) this.terminar(true, true);
     else this.mostrar();
-  }
-  pausar() {
-    if (!this.opciones.pausable || !this.dialogo?.open) return;
-    this.dialogo.close();
-    this.pausado = true;
-    window.removeEventListener('resize', this.reposicionar);
-    window.removeEventListener('scroll', this.reposicionar, true);
-    if (this.cerrarConEscape) window.removeEventListener('keydown', this.cerrarConEscape);
-    const disparador = document.querySelector(this.opciones.disparador);
-    disparador?.setAttribute('aria-description', `Tutorial pausado en el paso ${this.indice + 1} de ${this.pasos.length}. Activá para continuar.`);
-    disparador?.focus({ preventScroll: true });
-  }
-  reanudar() {
-    if (!this.pausado || !this.dialogo) return;
-    this.pausado = false;
-    window.addEventListener('resize', this.reposicionar);
-    window.addEventListener('scroll', this.reposicionar, true);
-    if (this.cerrarConEscape) window.addEventListener('keydown', this.cerrarConEscape);
-    if (this.opciones.disparador) document.querySelector(this.opciones.disparador)?.removeAttribute('aria-description');
-    this.dialogo.show();
-    this.mostrar();
   }
   posicionar() {
     if (!this.dialogo?.open) return;
@@ -162,8 +145,10 @@ export default class RecorridoInicial {
     this.dialogo.style.top = `${y}px`;
     evitarSuperposicion();
   }
-  terminar(notificar = true, completado = false) {
+  terminar(notificar = true, completado = false, motivo = 'interrumpido') {
     if (!this.dialogo) return;
+    clearTimeout(this.cierreFinal);
+    this.cierreFinal = null;
     window.removeEventListener('resize', this.reposicionar);
     window.removeEventListener('scroll', this.reposicionar, true);
     if (this.cerrarConEscape) window.removeEventListener('keydown', this.cerrarConEscape);
@@ -173,7 +158,8 @@ export default class RecorridoInicial {
     if (this.panelCerrado && this.togglePanel?.isConnected && this.togglePanel.getAttribute('aria-expanded') === 'true') this.togglePanel.click();
     if (this.panel?.isConnected) this.panel.scrollTop = this.scrollPanel;
     window.scrollTo({ left:this.scrollAnterior[0], top:this.scrollAnterior[1], behavior:'instant' });
+    document.body.scrollTop = this.scrollBody;
     if (this.focoAnterior?.isConnected) this.focoAnterior.focus({ preventScroll: true });
-    if (notificar) this.alFinalizar(completado);
+    if (notificar) this.alFinalizar(completado, completado ? 'completado' : motivo);
   }
 }

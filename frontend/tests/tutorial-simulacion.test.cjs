@@ -93,12 +93,12 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
     'Clic y rueda sobre la tarjeta no llegan a controles ni títulos detrás');
   await tutorial.getByRole('button',{name:'Siguiente',exact:true}).scrollIntoViewIfNeeded();
   await p.setViewportSize({ width, height: 900 });
-  for(let i=0;i<8;i++) {
+  for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++) {
     const caja = await tutorial.boundingBox();
     assert.ok(caja.x >= 0 && caja.x + caja.width <= width, 'Burbuja dentro del viewport');
     await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
   }
-  assert.match(await tutorial.innerText(),/Pantalla lista/i);
+  assert.match(await tutorial.innerText(),/¡Listo para simular!/i);
   await tutorial.getByRole('button',{name:'Comenzar',exact:true}).click();
   await tutorial.waitFor({state:'detached'});
   assert.deepEqual(await p.evaluate(() => ({
@@ -157,7 +157,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
     };
   });
   const urlInicial = p.url();
-  for (let paso = 0; paso < 8; paso++) {
+  for (let paso = 0; await tutorial.getAttribute('data-objetivo') !== 'fin' && paso < 25; paso++) {
     await tutorial.locator('h2').scrollIntoViewIfNeeded();
     await tutorial.locator('h2').click();
     const caja = await tutorial.boundingBox();
@@ -188,63 +188,45 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   await tutorial.waitFor({ state: 'detached' });
 });
 
-for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutorial ${width}×${height}: pausa y reanuda el mismo paso y libera controles`, async t => {
-  const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport: { width, height }, responder: req => {
-    if (new URL(req.url()).pathname.endsWith('/ejecutar')) return { json: { idSimulacion: 1, estado: 'COMPLETADA', escala: 'UV_H_V1', ...req.postDataJSON() } };
-  }});
+for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutorial ${width}×${height}: Omitir no deja pausa ni vuelve al recargar`, async t => {
+  const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport: { width, height } });
   t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
   const p = v.pagina, tutorial = p.locator('.metronet-recorrido');
   await tutorial.waitFor();
-  const acceso = p.locator('#tutorialPantallaSimulacion');
-  for (let paso = 0; paso < 8; paso++) {
-    assert.match(await tutorial.locator('[data-recorrido-progreso]').innerText(), new RegExp(`${paso + 1} DE 8`));
-    await tutorial.locator('[data-recorrido-pausar]').click();
-    assert.equal(await tutorial.evaluate(e => e.open), false);
-    assert.equal(await acceso.evaluate(e => document.activeElement === e), true, 'Pausar devuelve el foco al botón Tutorial');
-    assert.match(await acceso.getAttribute('aria-description'), new RegExp(`paso ${paso + 1} de 8`));
-    if (paso === 0) {
-      await p.keyboard.press('Escape');
-      assert.equal(await tutorial.evaluate(e => e.isConnected && !e.open), true, 'Escape en pausa no descarta el paso guardado');
-    }
-    await acceso.scrollIntoViewIfNeeded();
-    const controles = await p.evaluate(() => {
-      const selectores = ['#volverEdicion', '#tutorialPantallaSimulacion',
-        '[data-control-musica] summary', '.simulacion-mandos-camara button', '#formularioEjecucion button', '#aplicarUnidadTiempo'];
-      return selectores.flatMap(selector => [...document.querySelectorAll(selector)]).filter(e => !e.disabled).map(e => {
-        const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-        if (!r.width || !r.height || x < 0 || x >= innerWidth || y < 0 || y >= innerHeight) return null;
-        const frente = document.elementFromPoint(x, y);
-        return { control: e.getAttribute('aria-label') || e.id || selector, tapadoPorTutorial: Boolean(frente?.closest('.metronet-recorrido')) };
-      }).filter(Boolean);
-    });
-    assert.ok(controles.length >= 1);
-    assert.deepEqual(controles.filter(c => c.tapadoPorTutorial), [], `La tarjeta no intercepta controles al pausar en paso ${paso + 1}`);
-    if (paso === 0) {
-      await p.evaluate(() => {
-        window.__qaAccesosPausados = { volver: 0, musica: 0 };
-        for (const [selector, clave] of [['#volverEdicion', 'volver'], ['[data-hud-mapa] summary[aria-label="Música"]', 'musica']])
-          document.querySelector(selector)?.addEventListener('click', evento => {
-            window.__qaAccesosPausados[clave]++;
-            evento.preventDefault(); evento.stopImmediatePropagation();
-          }, { capture: true, once: true });
-      });
-      await p.locator('[data-hud-mapa] summary[aria-label="Música"]').click();
-      await p.locator('#volverEdicion').click();
-      assert.deepEqual(await p.evaluate(() => window.__qaAccesosPausados), { volver: 1, musica: 1 },
-        'Volver y Música reciben clic real tras pausar, sin navegar en esta prueba');
-    }
-    if (paso === 2 && width === 390 && height === 210) {
-      const ejecucion = p.waitForResponse(res => res.url().endsWith('/api/simulaciones/77/ejecutar') && res.request().method() === 'POST');
-      await p.getByRole('button', { name: 'Iniciar simulación', exact: true }).scrollIntoViewIfNeeded();
-      await p.getByRole('button', { name: 'Iniciar simulación', exact: true }).click();
-      assert.equal((await ejecucion).status(), 200, 'Play es real y accesible después de pausar en pantalla baja');
-    }
-    await acceso.click();
-    assert.equal(await tutorial.evaluate(e => e.open), true);
-    assert.equal(await acceso.getAttribute('aria-description'), null);
-    assert.match(await tutorial.locator('[data-recorrido-progreso]').innerText(), new RegExp(`${paso + 1} DE 8`), 'Retoma el mismo paso');
-    await tutorial.getByRole('button', { name: 'Siguiente', exact: true }).click();
-  }
-  await tutorial.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
+  await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
   await tutorial.waitFor({ state: 'detached' });
+  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v2:7')), 'omitido');
+  await p.reload();
+  await p.locator('#velocidadUnidad').waitFor();
+  assert.equal(await tutorial.count(), 0);
+  await p.locator('#tutorialPantallaSimulacion').click();
+  await tutorial.waitFor();
+  assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
+  await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
+});
+
+test('Reiniciar la campaña vuelve a ofrecer el recorrido de Simulación completado', async t => {
+  const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
+    if (new URL(req.url()).pathname === '/api/juego/recorrido/reiniciar') return { json: {
+      escenarios: [{ idEscenario: 41, numero: 1, nombre: 'Red inicial', estado: 'DISPONIBLE', desbloqueado: true, progreso: 0 }],
+      numeroCampanaActual: 2, nivelesCompletados: 0, modoLibreDesbloqueado: false,
+    } };
+  } });
+  t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
+  const p = v.pagina, guia = p.locator('.metronet-recorrido');
+  await guia.waitFor();
+  while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
+  assert.equal(await guia.locator('h2').textContent(), '¡Listo para simular!');
+  await guia.locator('[data-recorrido-siguiente]').click();
+  const clave = 'metronet:tutorial-pantalla-simulacion:v2:7';
+  assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
+  await p.goto(`${new URL(p.url()).origin}/escenarios.html`);
+  await p.locator('#botonReiniciarRecorrido:not([hidden])').click();
+  await p.locator('[data-confirmar-reinicio]').click();
+  await p.waitForFunction(() => document.getElementById('mensajeEscenarios')?.textContent.includes('reinició'));
+  assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), null);
+  await p.goto(`${new URL(p.url()).origin}/simulacion.html?idDiseno=77`);
+  await guia.waitFor();
+  assert.equal(await guia.getAttribute('data-objetivo'), '#visorSimulacion');
 });

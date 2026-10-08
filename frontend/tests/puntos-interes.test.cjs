@@ -147,6 +147,10 @@ test('selecciones repetidas destruyen etiquetas anteriores y el mapa sigue naveg
 
 test('clic en marcador objetivo y clic fuera seleccionan y deseleccionan sin bloquear Phaser', async (t) => {
   const { pagina } = await preparar(t, { objetivos: [{ idPunto: 1, radioCobertura: 60 }] });
+  await pagina.evaluate(async () => {
+    const { CATEGORIAS_PUNTUALES } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
+    poi.establecerCategoriasVisibles(CATEGORIAS_PUNTUALES);
+  });
   await pagina.evaluate(() => poi.enfocarPunto(1, 0));
   await pagina.waitForFunction(() => poi.representaciones.find(r => r.punto.id === 1)?.contenedor.visible);
   // Esperar un cuadro permite que Phaser aplique el enfoque de la cámara.

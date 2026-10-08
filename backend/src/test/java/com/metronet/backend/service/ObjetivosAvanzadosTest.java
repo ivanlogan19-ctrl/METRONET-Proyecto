@@ -19,7 +19,7 @@ class ObjetivosAvanzadosTest {
         List<Map<String, Object>> niveles = mapper.readValue(getClass().getResourceAsStream("/educacion/niveles.json"),
             new TypeReference<>() {});
         Map<Integer, Integer> generales = Map.of(5, 8, 6, 9, 7, 10, 8, 10, 9, 11, 10, 12);
-        Map<Integer, Integer> poi = Map.of(5, 2, 6, 2, 7, 3, 8, 3, 9, 3, 10, 4);
+        Map<Integer, Integer> poi = Map.of(5, 2, 6, 3, 7, 3, 8, 3, 9, 4, 10, 4);
         for (var nivel : niveles) {
             int numero = (Integer) nivel.get("numero");
             if (numero < 5 || numero > 10) continue;
@@ -27,7 +27,7 @@ class ObjetivosAvanzadosTest {
             Map<String, Object> reglas = (Map<String, Object>) nivel.get("reglasExito");
             List<CondicionConsignaResponse> condiciones = new ArrayList<>();
             for (String clave : List.of("minimoEstaciones", "minimoLineas", "minimoTramos", "minimoMetros",
-                    "maximoEstaciones", "requiereRedValida", "requiereCoberturaPuntosInteres",
+                    "maximoEstaciones", "requiereCoberturaPuntosInteres",
                     "requiereGeografiaValida", "minimoTransbordos", "requiereObjetivosMismaLinea"))
                 if (reglas.containsKey(clave)) condiciones.add(condicion(clave));
             @SuppressWarnings("unchecked")
@@ -48,10 +48,12 @@ class ObjetivosAvanzadosTest {
             assertEquals(poi.get(numero), ((List<?>) reglas.get("puntosInteresObjetivo")).size());
             assertTrue(mostradas.size() > poi.get(numero));
             assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("requiereGeografiaValida")));
-            assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("requiereRedValida")));
+            assertTrue(mostradas.stream().noneMatch(c -> c.clave().equals("requiereRedValida")));
             assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("requiereObjetivosMismaLinea")));
             if (numero >= 7) assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("minimoTransbordos")));
             if (numero >= 9) assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("maximoEstaciones")));
+            if (numero <= 8) assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("maximoEstaciones")));
+            if (numero >= 9) assertTrue(mostradas.stream().anyMatch(c -> c.clave().equals("minimoTramos")));
         }
     }
 
@@ -59,7 +61,7 @@ class ObjetivosAvanzadosTest {
     void intentosAnterioresNoPierdenCondicionesEvaluadas() {
         List<CondicionConsignaResponse> anteriores = new ArrayList<>();
         for (String clave : List.of("minimoEstaciones", "minimoLineas", "minimoTramos", "minimoMetros",
-                "requiereRedValida", "requiereCoberturaPuntosInteres", "requiereGeografiaValida",
+                "requiereCoberturaPuntosInteres", "requiereGeografiaValida",
                 "areaObjetivo:0", "areaObjetivo:1", "simulacionActual", "criterioUvUt"))
             anteriores.add(condicion(clave));
         var mostradas = ObjetivosAvanzados.reducir(7, true, Map.of(), anteriores);

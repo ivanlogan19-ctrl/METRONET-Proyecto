@@ -126,13 +126,14 @@ test('Simular revisa y guarda antes de navegar; la intención se consume una sol
  await p.locator('[data-ir-simulacion]').dblclick();await p.waitForURL('**/simulacion.html?**');
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
- await tutorial.getByRole('button',{name:'Pausar recorrido'}).click();
+ assert.equal(await tutorial.getByRole('button',{name:'Pausar recorrido'}).count(),0);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
- await p.locator('#tutorialPantallaSimulacion').click();
- for(let i=0;i<8;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
+ for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
+ await tutorial.getByRole('button',{name:'Comenzar',exact:true}).evaluate(b=>{b.click();b.click();});
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
  const ejecucion=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/simulaciones/77/ejecutar');
- await tutorial.getByRole('button',{name:'Comenzar',exact:true}).evaluate(b=>{b.click();b.click();});
+ await p.locator('#formularioEjecucion button[type=submit]').click();
  await ejecucion;
  await p.waitForFunction(()=>['En recorrido','Finalizada'].includes(document.querySelector('#estadoTiempoReal')?.textContent));
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
@@ -144,7 +145,7 @@ test('Simular revisa y guarda antes de navegar; la intención se consume una sol
 
 async function completarTutorialSimulacion(p){
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
- for(let i=0;i<8;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
+ for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
  await tutorial.getByRole('button',{name:'Comenzar',exact:true}).click();
  await tutorial.waitFor({state:'detached'});
 }
@@ -185,7 +186,7 @@ for(const repetido of [false,true])test(`Progreso demorado: Play manual 503 ${re
  assert.equal(intentos,1,'La intención consumida no reintenta el Play manual fallido');
 });
 
-for(const manual of [false,true])test(`Progreso demorado sin tutorial: ${manual?'Play manual no se repite':'intención ejecuta una vez'}`,async t=>{
+for(const manual of [false,true])test(`Progreso demorado sin tutorial: ${manual?'Play manual no se repite':'espera el Play manual'}`,async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v2:7','presentado'));
  const progreso=await demorarProgresoSimulacion(p,t);
@@ -198,7 +199,10 @@ for(const manual of [false,true])test(`Progreso demorado sin tutorial: ${manual?
  }
  const respuesta=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/juego/progreso');
  progreso.liberar();await respuesta;
- if(!manual)await p.locator('#pausarSimulacion:not([hidden]):not(:disabled)').waitFor();
+ if(!manual){
+  await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
+  await p.waitForFunction(()=>document.querySelector('#pausarSimulacion:not([hidden]):not(:disabled)'));
+ }
  else await p.waitForTimeout(250);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
 });
@@ -239,7 +243,7 @@ test('Play manual durante el tutorial consume la intención diferida',async t=>{
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
 });
 
-test('Cambiar de diseño durante tutorial descarta la intención anterior',async t=>{
+test('Cambiar de diseño durante tutorial descarta la intención anterior y reofrece la guía interrumpida',async t=>{
  const {pagina:p,solicitudes,diseno}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
  await p.locator('.metronet-recorrido').waitFor();
@@ -247,7 +251,8 @@ test('Cambiar de diseño durante tutorial descarta la intención anterior',async
  await p.goto(`${process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5173'}/simulacion.html?idDiseno=78`);
  await p.locator('#panelSimulacion:not([hidden])').waitFor();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
- assert.equal(await p.locator('.metronet-recorrido').count(),0);
+ await p.locator('.metronet-recorrido').waitFor();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
 });
 
 test('Salir durante el tutorial y volver desde historial no ejecuta la intención anterior',async t=>{
@@ -265,6 +270,7 @@ test('Error al ejecutar después de completar tutorial no repite el intento',asy
  await p.route('**/api/simulaciones/77/ejecutar',route=>{intentos++;return route.fulfill({status:503,json:{detail:'Servicio temporalmente indisponible.'},headers:{'access-control-allow-origin':'*'}});});
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
  await completarTutorialSimulacion(p);
+ await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
  await p.locator('#mensajeSimulacion.error').waitFor();
  assert.match(await p.locator('#mensajeSimulacion').innerText(),/Servicio temporalmente indisponible/);
  assert.equal(intentos,1);
@@ -279,7 +285,7 @@ test('Simular rechaza una red no preparada y conserva el editor sin guardar ni n
  await p.locator('[data-ir-simulacion]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
  const aviso=p.locator('.metronet-dialogo-simulacion');
  assert.equal(await aviso.isVisible(),true);
- assert.match(await aviso.innerText(),/Prepará la red para simular/);
+ assert.match(await aviso.innerText(),/Prepará la red para simular/i);
  assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(),/Falta asignar/);
  await aviso.getByRole('button',{name:'Entendido'}).click();
  assert.equal(solicitudes.some(s=>/guardar|ejecutar/.test(s.ruta)),false);assert.equal(new URL(p.url()).pathname,'/');
@@ -301,6 +307,7 @@ for (const numero of [1,2,3,4,5,6,7,8,9,10]) test(`Guardar nivel ${numero} eval�
  let evaluado=false, evaluaciones=0;
  const {pagina:p,solicitudes}=await abrir(t,{primeraPasada:false,escenario:{...nivel,idEscenario:numero,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:evaluado?60:0,condiciones:[{clave:'minimoEstaciones',texto:'Ubicar estaciones',actual:evaluado?3:0,requerido:5,completado:false}],referenciasObjetivo:[]})});
  await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluado=true;evaluaciones++;await route.fulfill({json:{completado:false,progreso:60,puntaje:60,mensaje:'Faltan estaciones para completar la consigna.'},headers:{'access-control-allow-origin':'*'}});});
+ if(await p.locator('.metronet-recorrido').count())await p.locator('[data-recorrido-omitir]').click();
  await p.locator('[data-guardar]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
  assert.equal(evaluaciones,1);assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.progreso),60);
  assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);

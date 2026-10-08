@@ -140,7 +140,7 @@ test('Constructor: objetivos visibles y cambio de nivel sin acciones ocultas', a
   assert.equal(solicitudes.length,0);
 });
 
-test('Simulación: consigna por ID real, unidades correctas y consulta sin ejecutar', async t => {
+test('Simulación: controles con unidades correctas y consulta sin ejecutar', async t => {
   const {pagina:p,solicitudes}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:req=>{
     if(req.url().endsWith('/progreso')) return {json:{escenarios:[{...escenario(7),idEscenario:42}]}};
     if(req.url().endsWith('/consigna')) return {json:{estadoGlobal:'PARCIAL',progreso:50,condiciones:[{texto:'Estaciones de transbordo',actual:1,requerido:2}],referenciasObjetivo:[]}};
@@ -149,18 +149,19 @@ test('Simulación: consigna por ID real, unidades correctas y consulta sin ejecu
   assert.equal(await p.locator('#consignaSimulacion').count(),0);
   assert.equal(await p.locator('.simulacion-ritmo').isVisible(), false);
 
-  await p.locator('#seccionConfiguracion [data-concepto=duracion]').click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/horas/); await p.keyboard.press('Escape');
-  await p.locator('#seccionCirculacion [data-concepto=velocidad]').click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/UV/); await p.keyboard.press('Escape');
+  await p.locator('#duracionSimulacion').focus();
+  assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'),'Duración simulada en horas');
+  assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(),'h');
+  await p.locator('#velocidadUnidad').focus();
+  assert.equal(await p.locator('#velocidadUnidad').getAttribute('aria-label'),'Velocidad en UV');
   assert.equal(solicitudes.some(s=>s.method==='POST'),false);
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('min'),'1');
   assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isEnabled(),true);
 });
 
-test('Falla de contexto educativo: simulación y reproducción siguen disponibles', async t => {
+test('Falla de contexto educativo: simulación y UV siguen disponibles', async t => {
   const {pagina:p}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:req=>req.url().endsWith('/progreso')?{status:503,json:{}}:null});
   assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isEnabled(),true);
-  await p.locator('#seccionCirculacion [data-concepto=velocidad]').click();
-  assert.match(await p.locator('.metronet-glosario-ventana').textContent(),/UV/);
+  await p.locator('#velocidadUnidad').focus();
+  assert.equal(await p.locator('#velocidadUnidad').getAttribute('aria-label'),'Velocidad en UV');
 });
