@@ -30,6 +30,8 @@ class RecorridoIntegralPostgresTest {
     @Autowired ContenidoPublicadoNivelService contenido;
     @Autowired CriterioUvUtService criterios;
     @MockitoBean ServicioCorreo correo;
+    @Autowired AdministracionNivelesService borradores;
+    @Autowired PublicacionNivelService publicador;
 
     @Test void publicaDiezReferenciasViablesSinReinterpretarIntentosNiCrearProgreso() throws Exception {
         int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('QA Recorrido','recorrido-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
@@ -40,6 +42,10 @@ class RecorridoIntegralPostgresTest {
         int ejecuciones=jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class);
         var publicaciones=recorrido.publicar(admin);
         assertEquals(10,publicaciones.size());
+        assertEquals("puntuacion-progreso-v1",
+            new com.fasterxml.jackson.databind.ObjectMapper().readTree(jdbc.queryForObject(
+                "SELECT reglas_exito::text FROM escenario WHERE progresivo AND numero=1",String.class))
+                .path("puntuacion").path("version").asText());
         for (var publicada:publicaciones) {
             assertNull(publicada.versionCriterioUvUt(),"El recorrido usa horas; los presupuestos UT históricos no se heredan");
             assertEquals(RecorridoIntegralService.VERSION,contenido.actual(publicada.numero()).desafio().path("recorrido").asText());
@@ -61,6 +67,33 @@ class RecorridoIntegralPostgresTest {
         assertEquals(0,reinicio.escenarios().stream().filter(n->Integer.valueOf(4).equals(n.numero())).findFirst().orElseThrow().cantidadIntentosCampana());
         assertTrue(juego.iniciarEscenario(admin,escenario4).mostrarTutorial(),"Una campaña nueva vuelve a ofrecer la introducción");
         assertEquals(historia,contenido.deIntento(anterior.idIntento(),admin),"Reiniciar no reescribe el contenido histórico");
+    }
+
+    @Test void adoptaSoloPuntuacionSobreElRecorridoExistenteYConservaElIntentoAnterior() throws Exception {
+        int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('QA Anterior','anterior-puntos@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
+        recorrido.publicar(admin);
+        var actual=borradores.versiones(1).getFirst();
+        var historico=borradores.prepararReversion(1,2,admin);
+        com.fasterxml.jackson.databind.node.ObjectNode reglas=actual.contenido().path("reglasExito").deepCopy();
+        reglas.set("puntuacion",historico.contenido().path("reglasExito").path("puntuacion"));
+        var c=actual.contenido();
+        var guardado=borradores.guardar(1,new com.metronet.backend.dto.EdicionNivelRequest(historico.versionBase(),historico.revision(),
+            c.path("desafio"),reglas,c.path("herramientasHabilitadas"),c.path("criterioUvUt"),
+            actual.redReferencia(),c.path("ayudas"),actual.tarjetas()),admin);
+        var vista=publicador.previsualizar(1,admin);
+        publicador.publicar(1,new com.metronet.backend.dto.PublicarNivelRequest(guardado.versionBase(),guardado.revision(),vista.diagnostico().huella(),true),admin);
+        int escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=1",Integer.class);
+        var intento=juego.iniciarEscenario(admin,escenario);
+        var contenidoAnterior=contenido.deIntento(intento.idIntento(),admin);
+        assertNull(juego.obtenerDesempeno(admin,intento.idDiseno()).desglosePuntuacion());
+        assertEquals(1,recorrido.publicar(admin).size());
+        assertEquals(contenidoAnterior,contenido.deIntento(intento.idIntento(),admin));
+        assertNull(juego.obtenerDesempeno(admin,intento.idDiseno()).desglosePuntuacion());
+        var nueva=borradores.versiones(1).getFirst();
+        assertEquals(actual.redReferencia(),nueva.redReferencia());
+        assertEquals(actual.tarjetas(),nueva.tarjetas());
+        assertEquals(c.path("desafio"),nueva.contenido().path("desafio"));
+        assertTrue(recorrido.publicar(admin).isEmpty());
     }
 
     @Test void noPublicaConUnaCuentaJugador() {

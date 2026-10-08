@@ -286,7 +286,9 @@ public class JuegoEducativoService {
         EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
         int progreso = evaluacion.progreso();
         DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
-        boolean completado = evaluacion.completado() && (desempeno == null || (desempeno.aprendizajeCumplido() && desempeno.simulacionActual()));
+        boolean minimoCumplido = desempeno.desglosePuntuacion() == null
+            || desempeno.puntaje() >= desempeno.desglosePuntuacion().puntajeMinimoAprobacion();
+        boolean completado = minimoCumplido && evaluacion.completado() && (desempeno == null || (desempeno.aprendizajeCumplido() && desempeno.simulacionActual()));
         List<TrofeosService.Trofeo> anteriores = completado ? trofeos.consultar(idUsuario) : List.of();
         if (!completado) progreso = Math.min(progreso, 99);
         Integer puntaje = desempeno.puntaje();
@@ -338,7 +340,15 @@ public class JuegoEducativoService {
         if (configuracion == null) return base;
         return new DesempenoNivelResponse(base.puntaje(), base.puntajeMaximo(), base.puntosResolucion(),
             base.puntosEficiencia(), base.puntosVelocidad(), base.redResuelta(), base.aprendizajeCumplido(),
-            base.simulacionActual(), base.etapa(), base.explicacion(), base.unidades(), resultado, configuracion);
+            base.simulacionActual(), base.etapa(), base.explicacion(), base.unidades(), resultado, configuracion, base.desglosePuntuacion());
+    }
+
+    /** Evalúa el estado real después de guardar la simulación y registra la decisión una sola vez. */
+    public void registrarPuntuacionSimulacion(Integer idUsuario, Integer idDiseno, Integer idSimulacion) {
+        IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
+        if (intento == null || MODO_EDICION_LIBRE.equals(intento.modo())) return;
+        puntuacion.registrarEjecucion(idDiseno, idSimulacion, intento.reglasExito(),
+            evaluarCondiciones(intento, idDiseno).condiciones());
     }
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }

@@ -347,6 +347,7 @@ public class SimulacionService {
 
     @Transactional
     public ResultadoSimulacionResponse ejecutarSimulacion(Integer idUsuario, Integer idDiseno, EjecutarSimulacionRequest solicitud) {
+        jdbcTemplate.queryForObject("SELECT id_usuario FROM usuario WHERE id_usuario=? FOR UPDATE", Integer.class, idUsuario);
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
         Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
         boolean uvUt = criterioUvUt.configuracionIntento(idIntento) != null;
@@ -382,6 +383,7 @@ public class SimulacionService {
             """, Integer.class, idIntento, solicitud.velocidad(), solicitud.duracion(), comentarios, puntaje);
         criterioUvUt.registrar(idIntento, idDiseno, idSimulacion, solicitud.duracion());
         if (progresivo) {
+            juegoEducativoService.registrarPuntuacionSimulacion(idUsuario, idDiseno, idSimulacion);
             var desempeno = juegoEducativoService.obtenerDesempeno(idUsuario, idDiseno);
             if (desempeno != null) puntaje = desempeno.puntaje();
             jdbcTemplate.update("UPDATE simulacion SET puntaje = ? WHERE id_simulacion = ?", puntaje, idSimulacion);
@@ -813,7 +815,7 @@ public class SimulacionService {
             resultado.getTimestamp("fecha_ejecucion").toLocalDateTime(),
             uvUt != null ? "UV_UT_V2" : registro == null ? "HISTORICA" : "UV_H_V1",
             registro == null ? List.of() : registro.unidades(),
-            uvUt
+            uvUt, registro == null ? null : registro.puntuacion()
         );
     }
 

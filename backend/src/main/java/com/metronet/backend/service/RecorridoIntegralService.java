@@ -42,7 +42,24 @@ public class RecorridoIntegralService {
             int numero=nivel.path("numero").asInt();
             var previo=borradores.borrador(numero);
             var vigente=borradores.versiones(numero).getFirst();
-            if (VERSION.equals(vigente.contenido().path("desafio").path("recorrido").asText())) continue;
+            boolean recorridoVigente = VERSION.equals(vigente.contenido().path("desafio").path("recorrido").asText());
+            var politica = PoliticaPuntuacion.configuracionNivel(numero);
+            if (recorridoVigente && politica.equals(vigente.contenido().path("reglasExito").path("puntuacion"))) continue;
+            if (recorridoVigente) {
+                // Adopta únicamente la puntuación; conserva la edición publicada y sus referencias.
+                // No descarta un borrador ajeno pendiente.
+                if (!previo.contenido().equals(vigente.contenido()) || !previo.redReferencia().equals(vigente.redReferencia())
+                    || !previo.tarjetas().equals(vigente.tarjetas()))
+                    throw new IllegalStateException("Nivel " + numero + ": hay un borrador pendiente; revisalo antes de adoptar la puntuación");
+                ObjectNode reglas = vigente.contenido().path("reglasExito").deepCopy();
+                reglas.set("puntuacion", politica);
+                var c = vigente.contenido();
+                var guardado = borradores.guardar(numero, new EdicionNivelRequest(previo.versionBase(), previo.revision(),
+                    c.path("desafio"), reglas, c.path("herramientasHabilitadas"), c.path("criterioUvUt"),
+                    vigente.redReferencia(), c.path("ayudas"), vigente.tarjetas()), idAdmin);
+                resultado.add(publicarValidado(numero, guardado, idAdmin));
+                continue;
+            }
             ObjectNode desafio=mapper.createObjectNode();
             for (String clave:List.of("nombre","objetivo","instrucciones","dificultad","preparacion","transicion"))
                 desafio.set(clave,nivel.path(clave));
@@ -51,18 +68,20 @@ public class RecorridoIntegralService {
             var ayudas=mapper.createArrayNode();
             ayudas.addObject().put("claveCondicion","simulacionActual").put("texto",nivel.path("preparacion").path("consejo").asText());
             ObjectNode reglas=nivel.path("reglasExito").deepCopy();
-            // Metadatos históricos de puntuación: el recorrido no cambia el scoring.
-            if (previo.contenido().path("reglasExito").has("puntuacion"))
-                reglas.set("puntuacion",previo.contenido().path("reglasExito").path("puntuacion"));
+            reglas.set("puntuacion", politica);
             var guardado=borradores.guardar(numero,new EdicionNivelRequest(previo.versionBase(),previo.revision(),
                 desafio,reglas,nivel.path("herramientasHabilitadas"),mapper.nullNode(),
                 referencia(nivel),ayudas,previo.tarjetas()),idAdmin);
-            var vista=publicador.previsualizar(numero,idAdmin);
-            if (!vista.diagnostico().viable()) throw new IllegalStateException("Nivel "+numero+": "+vista.diagnostico().mensaje());
-            resultado.add(publicador.publicar(numero,new PublicarNivelRequest(guardado.versionBase(),guardado.revision(),
-                vista.diagnostico().huella(),true),idAdmin));
+            resultado.add(publicarValidado(numero, guardado, idAdmin));
         }
         return resultado;
+    }
+
+    private PublicacionNivelService.Publicada publicarValidado(int numero, AdministracionNivelesService.Borrador guardado, int idAdmin) {
+        var vista = publicador.previsualizar(numero, idAdmin);
+        if (!vista.diagnostico().viable()) throw new IllegalStateException("Nivel " + numero + ": " + vista.diagnostico().mensaje());
+        return publicador.publicar(numero, new PublicarNivelRequest(guardado.versionBase(), guardado.revision(),
+            vista.diagnostico().huella(), true), idAdmin);
     }
 
     // Referencia privada para el ensayo de publicación. Nunca se entrega al jugador ni inicia su diseño.

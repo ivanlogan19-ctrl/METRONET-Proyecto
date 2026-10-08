@@ -96,8 +96,9 @@ public class AdministracionNivelesService {
             throw conflicto("El borrador o la publicación cambió. Recargá antes de guardar");
         validar(numero, edicion);
         if (!Objects.equals(edicion.reglasExito().path("puntuacion"),
-                previo.contenido().path("reglasExito").path("puntuacion")))
-            throw invalido("La puntuación histórica no es editable: el jugador recibe 100 puntos por las condiciones cumplidas");
+                previo.contenido().path("reglasExito").path("puntuacion"))
+            && !PoliticaPuntuacion.configuracionNivel(numero).equals(edicion.reglasExito().path("puntuacion")))
+            throw invalido("Solo se permite conservar la puntuación histórica o adoptar la política aprobada para este nivel");
         ObjectNode contenido = mapper.createObjectNode();
         contenido.set("desafio", edicion.desafio());
         contenido.set("reglasExito", edicion.reglasExito());
@@ -217,6 +218,11 @@ public class AdministracionNivelesService {
                         || !par.getValue().isBoolean()) throw invalido("Práctica de simulación no soportada: " + par.getKey());
                 });
             } else if (clave.equals("puntuacion")) {
+                if (valor.has("version")) {
+                    if (!PoliticaPuntuacion.configuracionNivel(numero).equals(valor))
+                        throw invalido("La puntuación debe coincidir con la política aprobada y sus prácticas por nivel");
+                    return;
+                }
                 if (!valor.isObject() || valor.size()!=6) throw invalido("Configuración de puntuación incompleta");
                 for (String campo : List.of("maximo","pesoResolucion","pesoEficiencia","pesoVelocidad","estacionesReferencia","tramosReferencia"))
                     if (!valor.path(campo).isNumber() || valor.path(campo).decimalValue().signum()<0)

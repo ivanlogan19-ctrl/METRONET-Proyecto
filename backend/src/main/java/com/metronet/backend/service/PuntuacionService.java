@@ -6,6 +6,7 @@ import com.metronet.backend.dto.DesempenoNivelResponse;
 import com.metronet.backend.dto.CondicionConsignaResponse;
 import com.metronet.backend.dto.DesempenoNivelResponse.MedicionUnidad;
 import com.metronet.backend.dto.RankingResponse;
+import com.metronet.backend.dto.DesglosePuntuacionResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
@@ -118,10 +119,64 @@ public class PuntuacionService {
             : satisfechas + " de " + condiciones.size() + " criterios satisfechos: " + puntos + "/100. Cada criterio obligatorio tiene el mismo peso."
                 + " El tutorial, los errores y el tiempo no descuentan puntos."
                 + (satisfechas < condiciones.size() ? " Aún quedan condiciones por cumplir antes de completar el nivel." : " Todos los criterios están satisfechos.");
+        var politica = PoliticaPuntuacion.leer(c);
+        if (politica != null) {
+            var desglose = desglose(politica, registros(idDiseno));
+            String detalle = desglose.puntosBase() + " puntos iniciales − " + desglose.totalDescontado()
+                + " de descuentos = " + desglose.total() + " puntos. "
+                + satisfechas + " de " + condiciones.size() + " condiciones satisfechas. "
+                + (satisfechas < condiciones.size() ? "Todavía debés cumplir toda la consigna. " : "Toda la consigna está cumplida. ")
+                + "El tutorial y las prácticas gratuitas no descuentan.";
+            return new DesempenoNivelResponse(desglose.total(), politica.puntosBase(), desglose.total(), 0, 0,
+                redResuelta, aprendizajeCumplido, simulacionActual, etapa, detalle, medirUnidades(idDiseno), null, null, desglose);
+        }
         // Se conserva el desglose de puntos; no hay bonos por valores de velocidad.
         return new DesempenoNivelResponse(puntos, 100, puntos, 0, 0,
             redResuelta, aprendizajeCumplido, simulacionActual,
             etapa, explicacion, c.isMissingNode() ? List.of() : medirUnidades(idDiseno));
+    }
+
+    private record RegistroGuardado(int idSimulacion, String comentarios, RegistroSimulacionDidactica registro) {}
+
+    private List<RegistroGuardado> registros(int idDiseno) {
+        return jdbc.query("""
+            SELECT s.id_simulacion,s.comentarios FROM simulacion s JOIN intento i USING(id_intento)
+            WHERE i.id_diseno=? ORDER BY s.id_simulacion
+            """, (r, fila) -> new RegistroGuardado(r.getInt(1), r.getString(2),
+                RegistroSimulacionDidactica.leer(r.getString(2))), idDiseno);
+    }
+
+    private DesglosePuntuacionResponse desglose(PoliticaPuntuacion politica, List<RegistroGuardado> registros) {
+        var descuentos = registros.stream().filter(r -> r.registro() != null && r.registro().puntuacion() != null)
+            .filter(r -> politica.version().equals(r.registro().puntuacion().version()) && r.registro().puntuacion().descuento() > 0)
+            .map(r -> new DesglosePuntuacionResponse.Descuento(r.idSimulacion(), r.registro().puntuacion().numeroEjecucion(),
+                r.registro().puntuacion().descuento(), r.registro().puntuacion().condicionesPendientes())).toList();
+        int total = Math.min(politica.descuentoMaximo(), descuentos.stream().mapToInt(DesglosePuntuacionResponse.Descuento::puntos).sum());
+        return new DesglosePuntuacionResponse(politica.version(), politica.puntosBase(), politica.practicasGratuitas(),
+            politica.descuentoPorEjecucionSinAvance(), politica.descuentoMaximo(), politica.puntajeMinimoAprobacion(),
+            total, politica.puntosBase() - total, descuentos);
+    }
+
+    /** Se llama dentro de la transacción de ejecución, con el usuario bloqueado. Nunca desde una consulta. */
+    public void registrarEjecucion(int idDiseno, int idSimulacion, String reglas, List<CondicionConsignaResponse> condiciones) {
+        var politica = PoliticaPuntuacion.leer(configuracion(reglas));
+        if (politica == null) return;
+        var registros = registros(idDiseno);
+        var actual = registros.stream().filter(r -> r.idSimulacion() == idSimulacion).findFirst()
+            .orElseThrow(() -> new IllegalStateException("Falta la ejecución que se desea evaluar"));
+        if (actual.registro() == null) throw new IllegalStateException("Falta la instantánea de la ejecución");
+        if (actual.registro().puntuacion() != null) return;
+        var anteriores = registros.stream().filter(r -> r.idSimulacion() < idSimulacion && r.registro() != null)
+            .map(r -> r.registro().puntuacion()).filter(Objects::nonNull)
+            .filter(r -> politica.version().equals(r.version())).toList();
+        int numero = (int) registros.stream().filter(r -> r.idSimulacion() <= idSimulacion).count();
+        var evaluacion = politica.evaluar(condiciones, anteriores, numero);
+        var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion);
+        // Conserva exactamente la huella evaluada, al final, como esperan los lectores existentes.
+        String huella = actual.comentarios().substring(actual.comentarios().lastIndexOf(MARCA));
+        jdbc.update("UPDATE simulacion SET comentarios=?,puntaje=? WHERE id_simulacion=?",
+            comentarioVisible(actual.comentarios()) + instantanea.codificar() + huella,
+            politica.puntosBase() - evaluacion.totalDescontado(), idSimulacion);
     }
 
     public List<MedicionUnidad> medirUnidades(int idDiseno) {
@@ -173,7 +228,8 @@ public class PuntuacionService {
 
     public static String comentarioVisible(String comentario) {
         if (comentario == null) return "";
-        int indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA);
+        int indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA_V2);
+        if (indice < 0) indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA);
         if (indice < 0) indice = comentario.lastIndexOf(MARCA);
         return indice < 0 ? comentario : comentario.substring(0, indice);
     }

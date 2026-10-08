@@ -28,6 +28,8 @@ class RestriccionesGeograficasIntegrationTest {
     void preparar() {
         fuente = new SingleConnectionDataSource("jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE", "sa", "", true);
         jdbc = new JdbcTemplate(fuente);
+        jdbc.execute("CREATE TABLE usuario(id_usuario INT PRIMARY KEY)");
+        jdbc.update("INSERT INTO usuario VALUES (7)");
         jdbc.execute("CREATE TABLE diseno(id_diseno INT PRIMARY KEY)");
         jdbc.execute("CREATE TABLE escenario(id_escenario INT, nombre VARCHAR, modo VARCHAR, dificultad VARCHAR, objetivo VARCHAR, instrucciones VARCHAR, id_diseno_base INT, progresivo BOOLEAN, reglas_exito VARCHAR)");
         jdbc.execute("CREATE TABLE intento(id_intento INT, id_diseno INT, id_escenario INT, id_usuario INT, estado VARCHAR)");
