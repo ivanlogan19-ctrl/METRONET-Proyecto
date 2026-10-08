@@ -59,10 +59,14 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       fila.dataset.metro = String(metro.idTren);
       const nombre = document.createElement('strong');
       nombre.textContent = nombreMetro(metro);
+      const linea = document.createElement('p');
+      linea.dataset.lineaMetro = '';
+      const nombreLinea = metro.nombreLinea?.trim();
+      linea.textContent = !nombreLinea ? 'Sin línea'
+        : /^l[ií]nea(?:\s|$)/i.test(nombreLinea) ? nombreLinea : `Línea ${nombreLinea}`;
       const valores = document.createElement('dl');
       const velocidad = Number(metro.velocidadPromedio);
       for (const [etiqueta, valor] of [
-        ['Línea', metro.nombreLinea || 'Sin línea'],
         ['UV actual', Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'],
         ['UT actual', tiempo],
       ]) {
@@ -73,7 +77,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
         if (etiqueta === 'UT actual') dato.title = 'Duración aplicada a todas las unidades de esta red';
         valores.append(termino, dato);
       }
-      fila.append(nombre, valores);
+      fila.append(nombre, linea, valores);
       return fila;
     }));
     listaResumen.querySelectorAll('li').forEach(fila => {

@@ -364,7 +364,8 @@ export default class EditorRedMetro {
       if (evaluacion.completado) this.cambiosPendientes = false;
       await this.cargarJuego();
       await this.abrirDiseno(idDiseno);
-      this.mostrarMensaje(evaluacion.mensaje, evaluacion.completado ? 'exito' : 'advertencia', { orientarError: false });
+      // El guardado ya tiene confirmación propia y el panel conserva los objetivos.
+      // El desglose de puntuación corresponde a la ventana de finalización.
       if (evaluacion.completado) {
         this.panelTutorial?.cerrarRecorridos(true);
         const progreso = await this.solicitarJuego('/progreso');

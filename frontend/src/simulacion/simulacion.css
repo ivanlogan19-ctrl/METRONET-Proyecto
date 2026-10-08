@@ -454,7 +454,8 @@ html:root body.simulacion-pagina .simulacion-configuracion-metros__desplegable >
   list-style: none;
 }
 .simulacion-configuracion-metros__desplegable:not([open]) > .simulacion-configuracion-metros__lista { display: none; }
-.simulacion-configuracion-metros__lista > p { margin: 0; padding: 3px 0 6px; color: var(--info-active); font: 700 12px/1.4 var(--font-tecnica); }
+.simulacion-configuracion-metros__lista > p { margin: 0; padding: 3px 0 6px; color: var(--info-active); font: 700 12px/1.4 var(--font-tecnica); text-align: center; }
+.simulacion-configuracion-metros__lista [data-linea-metro] { margin: 0; font: inherit; color: var(--text-secondary); overflow-wrap: anywhere; }
 .simulacion-configuracion-metros__lista > ul { margin: 0; padding: 0; list-style: none; }
 .simulacion-configuracion-metros__lista li {
   display: grid;

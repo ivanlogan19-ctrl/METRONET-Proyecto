@@ -6,12 +6,12 @@ let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 
-async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2], nivel = false, viewport = { width: 1440, height: 900 } } = {}) {
+async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2], nivel = false, nombreLinea = 'Azul', viewport = { width: 1440, height: 900 } } = {}) {
   const red = {
     simulacion: { idDiseno: 77, nombre: 'Red operacional', modo: nivel ? 'NIVEL' : 'LIBRE', estado: 'VALIDADO', ...(nivel ? { idEscenario: 42 } : {}) },
     estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 }],
-    lineas: [{ nombre: 'Azul' }], tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B' }],
-    unidadesMetro: ids.map(idTren => ({ idTren, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 3 })),
+    lineas: [{ nombre: nombreLinea }], tramos: [{ nombreLinea, estacionA: 'A', estacionB: 'B' }],
+    unidadesMetro: ids.map(idTren => ({ idTren, nombreLinea, capacidad: 300, velocidadPromedio: 3 })),
     preparadoParaSimular: true, territorio: { areas: [], errores: [] }, resultados: [],
   };
   const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport, responder: async req => {
@@ -55,7 +55,7 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   await configuracion.locator('summary').click();
   assert.equal(await configuracion.locator('li').first().isVisible(), true);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1LíneaAzulUV actual3 UVUT actual6 h', 'Metro 2LíneaAzulUV actual3 UVUT actual6 h',
+    'Metro 1Línea AzulUV actual3 UVUT actual6 h', 'Metro 2Línea AzulUV actual3 UVUT actual6 h',
   ]);
   await configuracion.locator('summary').press('Escape');
   assert.equal(await configuracion.locator('li').first().isVisible(), false);
@@ -68,12 +68,12 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '2');
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [2, 3]);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1LíneaAzulUV actual2 UVUT actual6 h', 'Metro 2LíneaAzulUV actual3 UVUT actual6 h',
+    'Metro 1Línea AzulUV actual2 UVUT actual6 h', 'Metro 2Línea AzulUV actual3 UVUT actual6 h',
   ]);
   await p.locator('#duracionSimulacion').fill('4');
   await p.locator('#aplicarUnidadTiempo').click();
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1LíneaAzulUV actual2 UVUT actual4 h', 'Metro 2LíneaAzulUV actual3 UVUT actual4 h',
+    'Metro 1Línea AzulUV actual2 UVUT actual4 h', 'Metro 2Línea AzulUV actual3 UVUT actual4 h',
   ]);
 });
 
@@ -229,7 +229,7 @@ test('Numeración local y ficha clara por nivel sin usar el ID persistido como n
   await menu.locator('summary').click();
   assert.equal(await menu.locator('[data-nivel-configuracion]').innerText(), 'Nivel 2');
   assert.deepEqual(await menu.locator('li').allTextContents(), [
-    'Metro 1LíneaAzulUV actual3 UVUT actual6 UT', 'Metro 2LíneaAzulUV actual3 UVUT actual6 UT',
+    'Metro 1Línea AzulUV actual3 UVUT actual6 UT', 'Metro 2Línea AzulUV actual3 UVUT actual6 UT',
   ]);
   await menu.locator('summary').press('Escape');
   await p.locator('.simulacion-selector-metros > summary').click();
@@ -239,7 +239,7 @@ test('Numeración local y ficha clara por nivel sin usar el ID persistido como n
   assert.deepEqual(red.unidadesMetro.map(u => [u.idTren,u.velocidadPromedio]), [[206,4],[211,3]]);
   assert.ok(solicitudes.some(s => s.method === 'PATCH' && s.path.endsWith('/unidades/206')));
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1LíneaAzulUV actual4 UVUT actual6 UT', 'Metro 2LíneaAzulUV actual3 UVUT actual6 UT',
+    'Metro 1Línea AzulUV actual4 UVUT actual6 UT', 'Metro 2Línea AzulUV actual3 UVUT actual6 UT',
   ]);
 });
 
@@ -299,4 +299,19 @@ test('Separación uniforme, números centrados sin spinner y acciones con colore
   await p.locator('#detenerSimulacion').click();
   assert.equal(await p.locator('#detenerSimulacion').isDisabled(), true);
   await color('#formularioEjecucion button', '--success');
+});
+
+for (const width of [1440, 390]) test(`Ficha por Metro a ${width}px: nivel centrado y línea sin etiqueta duplicada`, async t => {
+  const { pagina: p } = await abrir(t, { nivel: true, nombreLinea: 'Línea 01', viewport: { width, height: 900 } });
+  const menu = p.locator('.simulacion-configuracion-metros__desplegable');
+  await menu.locator('summary').click();
+  assert.equal(await menu.locator('[data-nivel-configuracion]').innerText(), 'Nivel 2');
+  assert.equal(await menu.locator('[data-nivel-configuracion]').evaluate(e => getComputedStyle(e).textAlign), 'center');
+  assert.deepEqual(await menu.locator('[data-linea-metro]').allTextContents(), ['Línea 01', 'Línea 01']);
+  assert.deepEqual(await menu.locator('li').first().locator('dt').allTextContents(), ['UV actual', 'UT actual']);
+  assert.equal((await menu.locator('li').first().innerText()).match(/Línea/g).length, 1);
+  assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  const caja = await menu.locator('.simulacion-configuracion-metros__lista').boundingBox();
+  assert.ok(caja.x >= 0 && caja.x + caja.width <= width);
+  if (process.env.METRONET_CAPTURAS_FICHA) await p.screenshot({ path: `${process.env.METRONET_CAPTURAS_FICHA}/metronet-ficha-${width}.png` });
 });

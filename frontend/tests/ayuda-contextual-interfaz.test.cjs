@@ -176,7 +176,8 @@ test('evaluación parcial conserva progreso y una consigna fallida limpia el mot
   const { pagina: p } = await abrir(t, { escenario: escenario(2), consigna: () => consigna([condicion('minimoEstaciones', true), condicion('minimoTramos', false)]) });
   await p.route('**/api/juego/disenos/77/evaluar', route => route.fulfill({ json: { completado: false, mensaje: 'El objetivo aún tiene condiciones pendientes.' }, headers: { 'access-control-allow-origin': '*' } }));
   await p.locator('[data-guardar]').click();
-  await p.waitForFunction(() => document.querySelector('[data-estado-editor]').textContent.includes('El objetivo aún tiene condiciones pendientes.'));
+  await p.waitForFunction(() => !editorPrueba.finalizacionEnCurso);
+  assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(), /El objetivo aún tiene condiciones pendientes/);
   assert.equal(await p.locator('.metronet-assist').getAttribute('data-estado'), 'minimoTramos');
   await p.route('**/api/juego/disenos/77/consigna', route => route.fulfill({ status: 503, json: { detail: 'Consigna no disponible.' }, headers: { 'access-control-allow-origin': '*' } }));
   await p.evaluate(() => editorPrueba.actualizarConsigna()); await estadoMotorAyuda(p, 'sin-consigna');

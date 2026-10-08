@@ -314,10 +314,12 @@ for (const numero of [1,2,3,4,5,6,7,8,9,10]) test(`Guardar nivel ${numero} eval�
  const nivel=require('../src/educacion/niveles.json').find(n=>n.numero===numero);
  let evaluado=false, evaluaciones=0;
  const {pagina:p,solicitudes}=await abrir(t,{primeraPasada:false,escenario:{...nivel,idEscenario:numero,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:evaluado?60:0,condiciones:[{clave:'minimoEstaciones',texto:'Ubicar estaciones',actual:evaluado?3:0,requerido:5,completado:false}],referenciasObjetivo:[]})});
- await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluado=true;evaluaciones++;await route.fulfill({json:{completado:false,progreso:60,puntaje:60,mensaje:'Faltan estaciones para completar la consigna.'},headers:{'access-control-allow-origin':'*'}});});
+ const mensajePuntuacion='100 puntos iniciales − 0 de descuentos = 100 puntos. 4 de 5 condiciones satisfechas. Todavía debés cumplir toda la consigna. El tutorial y las prácticas gratuitas no descuentan.';
+ await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluado=true;evaluaciones++;await route.fulfill({json:{completado:false,progreso:60,puntaje:100,mensaje:mensajePuntuacion},headers:{'access-control-allow-origin':'*'}});});
  if(await p.locator('.metronet-recorrido').count())await p.locator('[data-recorrido-omitir]').click();
  await p.locator('[data-guardar]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
  assert.equal(evaluaciones,1);assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.progreso),60);
+ assert.doesNotMatch(await p.locator('body').innerText(), /100 puntos iniciales|prácticas gratuitas no descuentan|de descuentos =/);
  assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
  assert.equal(await p.locator('[data-validar]').count(),0);assert.equal(await p.locator('.metronet-victoria').count(),0);
 });
