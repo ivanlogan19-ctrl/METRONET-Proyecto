@@ -144,7 +144,13 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await presentaciones();
    assert.equal(await f().locator('#unidadDuracionSimulacion').innerText(),'h');
    let resultado=await ejecutar();
-   if(nivel.numero===2){assert.equal(resultado.completado,false);await aplicarUv(5);resultado=await ejecutar();}
+   if(nivel.numero===2){
+    assert.equal(resultado.completado,false);
+    resultado=await ejecutar(); assert.equal(resultado.puntaje,100,'La segunda práctica es gratuita');
+    resultado=await ejecutar(); assert.equal(resultado.puntaje,90,'La tercera ejecución sin avance descuenta diez');
+    assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,1);
+    await aplicarUv(5);resultado=await ejecutar();
+   }
    if(nivel.numero===3){assert.equal(resultado.completado,false);await horas(8);resultado=await ejecutar();}
    if([4,10].includes(nivel.numero)){
     assert.equal(resultado.completado,false);await aplicarUv(5);resultado=await ejecutar();
@@ -152,13 +158,15 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    }
    if(nivel.numero===8){assert.equal(resultado.completado,false);await aplicarUv(3,true);resultado=await ejecutar();}
    if([9,10].includes(nivel.numero)){assert.equal(resultado.completado,false);await aplicarUv(6);await horas(8);resultado=await ejecutar();}
-   assert.equal(resultado.completado,true);assert.equal(resultado.puntaje,100);
+   const esperado=nivel.numero===2?90:100;
+   assert.equal(resultado.completado,true);assert.equal(resultado.puntaje,esperado);
    assert.equal(resultado.modoLibreDesbloqueado,nivel.numero===10);
    console.log(JSON.stringify({nivel:nivel.numero,editor:'PASS',guardar:'PASS',simular:'PASS',reglas:'PASS',puntaje:resultado.puntaje}));
    {
     const puntos=f().locator('.metronet-resultado-nivel[open]');
     await puntos.waitFor();
-    assert.match(await puntos.innerText(), /Ganaste 100 puntos/);
+    assert.match(await puntos.innerText(), new RegExp(`Ganaste\\s+${esperado}\\s+puntos`));
+    if(nivel.numero===2) assert.match(await puntos.innerText(), /Ejecución 3: sin nuevos avances/);
     assert.equal(await f().locator('.metronet-victoria').count(),0);
     await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
     await f().waitForFunction(()=>document.querySelector('.metronet-premio[open] button') || [...document.querySelectorAll('button')].some(b=>b.textContent==='Jugar'));

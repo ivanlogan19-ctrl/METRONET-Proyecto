@@ -20,7 +20,8 @@ for (const width of [1440, 390]) test(`Inicio ${width}px: una sola marca grande 
   await p.locator('.metronet-inicio__tarjeta').first().waitFor();
   assert.equal(await p.locator('.metronet-navegacion__marca').count(), 0);
   assert.equal(await p.locator('.metronet-inicio__marca .metronet-logo__imagen').count(), 1);
-  assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 5);
+  assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 6);
+  assert.equal(await p.locator('.metronet-navegacion__enlaces a[href="/reglas.html"]').count(), 1);
   assert.equal(await p.locator('.metronet-inicio__tarjeta').count(), 3);
   assert.equal(await p.getByText('Consejo para tu próxima acción').count(), 0);
   const progreso = await p.locator('.metronet-inicio__tarjeta--progreso').boundingBox();

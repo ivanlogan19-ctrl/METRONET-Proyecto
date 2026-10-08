@@ -235,7 +235,7 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
   assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);return;
  }
  const puntos=pagina.locator('.metronet-resultado-nivel');await puntos.waitFor();
- assert.match(await puntos.innerText(),/Ganaste 100 puntos.*Nuevo récord personal/is);
+ assert.match(await puntos.innerText(),/Ganaste\s+100\s+puntos.*Nuevo récord personal/is);
  await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
  await pagina.locator('.metronet-victoria').waitFor();assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,1);
  if(caso==='errorInicio'){

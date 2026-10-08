@@ -79,7 +79,7 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
   window.cierre = presentarResultadoNivel(progreso,10,{completado:true,puntaje:90,idSiguienteEscenario:null,desempeno:{puntajeMaximo:100,explicacion:'Red correcta. Existe margen para optimizar la velocidad.'}});
  },{progreso});
  await pagina.locator('.metronet-resultado-nivel').waitFor();
- assert.match(await pagina.locator('.metronet-resultado-nivel').innerText(),/Ganaste 90 puntos/);
+ assert.match(await pagina.locator('.metronet-resultado-nivel').innerText(),/Ganaste\s+90\s+puntos/);
  await pagina.locator('.metronet-resultado-nivel').getByRole('button',{name:'Continuar',exact:true}).click();
  await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).waitFor({timeout:26000});
  assert.match(await pagina.getByRole('dialog').innerText(),/950 \/ 1000 puntos.*Tu posición: 2/s);
@@ -88,8 +88,8 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  assert.deepEqual(await pagina.evaluate(()=>window.cierre),{destino:'/ranking.html'});
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
 });
-for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} puntos del servidor sin completar un parcial`,async t=>{
- const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${puntos === 100 ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidad:6,tramos:3}]};
+for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) test(`Simulación finalizada: ${puntos} puntos, consigna ${completado ? 'completa' : 'pendiente'}`,async t=>{
+ const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${completado ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidad:6,tramos:3}]};
  const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:1,velocidad:1,escala:'UV_H_V1',unidades:[{idTren:1,velocidad:6}],comentarios:'6 UV durante 1 h simulada.'};
  const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
  const {pagina}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
@@ -98,7 +98,7 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
   if(path==='/api/simulaciones/77')return {json:red};
   if(path.endsWith('/desempeno'))return {json:desempeno};
   if(path.endsWith('/ejecutar')){red.resultados=[resultado];return {json:resultado};}
-  if(path.endsWith('/evaluar'))return {json:{completado:puntos === 100,puntaje:puntos,progreso:puntos,desempeno,mensaje:desempeno.explicacion}};
+  if(path.endsWith('/evaluar'))return {json:{completado,puntaje:puntos,progreso:completado ? 100 : 75,desempeno,mensaje:desempeno.explicacion}};
  }});
 
  assert.equal(await pagina.locator('.metronet-recorrido').count(),0,'Nivel 6 reutiliza herramientas, sin repetir el tutorial completo');
@@ -106,11 +106,11 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.waitForFunction(() => document.querySelector('#estadoTiempoReal')?.textContent === 'Finalizada');
- await pagina.waitForFunction(puntaje => document.querySelector('#mensajeSimulacion')?.textContent.includes(`COMPLETADA · ${puntaje} puntos`),puntos);
+ await pagina.waitForFunction(({puntos, completado}) => document.querySelector('#mensajeSimulacion')?.textContent.includes(completado ? `Nivel aprobado · ${puntos} puntos` : `Puntaje posible: ${puntos} puntos · Consigna pendiente`), {puntos, completado});
  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
- if (puntos === 100) {
+ if (completado) {
   await pagina.getByRole('dialog').waitFor();
-  assert.match(await pagina.getByRole('dialog').innerText(), /Ganaste 100 puntos/);
+  assert.match(await pagina.getByRole('dialog').innerText(), /Ganaste\s+100\s+puntos/);
  } else {
   assert.equal(await pagina.getByRole('dialog').count(), 0);
   await pagina.waitForFunction(() => /Revisá los objetivos en Edición/.test(document.querySelector('#mensajeSimulacion')?.textContent ?? ''));

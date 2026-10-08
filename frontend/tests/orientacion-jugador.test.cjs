@@ -203,7 +203,7 @@ test('Los diez niveles cuentan capítulos distintos y dejan la misión técnica 
   assert.match(await tarjetas.first().locator('.metronet-escenarios-pagina__personaje').innerText(), /Ari · Diseño de red/);
   assert.match(await tarjetas.nth(1).locator('.metronet-escenarios-pagina__personaje').innerText(), /Sol · Cobertura/);
   assert.match(relatos[0], /Ari.*Sol.*Dani/);
-  assert.match(relatos[9], /presentación final.*red hipotética/);
+  assert.match(relatos[9], /presentación final.*red de tres líneas.*propuesta hipotética/);
   for (const [indice, relato] of relatos.entries()) {
     assert.notEqual(relato, niveles[indice].objetivo);
     assert.notEqual(relato, niveles[indice].instrucciones);

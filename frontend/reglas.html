@@ -16,36 +16,43 @@
 <body class="metronet-pagina-navegable">
   <div data-navegacion-global></div>
   <main class="metronet-reglas" aria-labelledby="tituloReglas">
-    <header><h1 id="tituloReglas">Reglas de puntuación</h1><p>Reglas vigentes del recorrido educativo. Cada nivel tiene un máximo de <strong>100 puntos</strong>.</p></header>
+    <header><h1 id="tituloReglas">Reglas de puntuación</h1><p>Cada intento nuevo de la versión con descuentos empieza con <strong>100 puntos</strong>. El progreso de la consigna se mide por separado.</p></header>
     <section aria-labelledby="reglaCalculo">
       <h2 id="reglaCalculo">Cómo se calculan</h2>
-      <p class="metronet-reglas__formula">100 × criterios cumplidos ÷ criterios totales</p>
-      <p>Se redondea el resultado al entero más cercano. Cada condición obligatoria tiene el mismo peso y cuenta cuando está completamente satisfecha.</p>
-      <p>Por ejemplo, «crear tres estaciones» es una sola condición: colocar una estación no suma un tercio de sus puntos. Una red sin criterios de evaluación recibe 0 puntos.</p>
+      <p class="metronet-reglas__formula">100 − descuentos registrados</p>
+      <p>Después de las prácticas gratuitas, una simulación aceptada por el sistema descuenta <strong>10 puntos</strong> si todavía tiene objetivos pendientes y no cumple ninguna condición nueva respecto a las ejecuciones anteriores de ese intento.</p>
+      <p>Hay un solo descuento por ejecución, aunque falten varias condiciones. Perder y recuperar una condición ya alcanzada no cuenta como un avance nuevo. Una ejecución que completa toda la consigna no descuenta.</p>
       <table id="ejemplosPuntos">
-        <caption>Ejemplo de un nivel con cuatro criterios</caption>
-        <thead><tr><th scope="col">Cumplidos</th><th scope="col">Puntos</th><th scope="col">Resultado</th></tr></thead>
-        <tbody>
-          <tr><td>0 de 4</td><td>0</td><td>Pendiente</td></tr>
-          <tr><td>1 de 4</td><td>25</td><td>Pendiente</td></tr>
-          <tr><td>2 de 4</td><td>50</td><td>Pendiente</td></tr>
-          <tr><td>3 de 4</td><td>75</td><td>Pendiente</td></tr>
-          <tr><td>4 de 4</td><td>100</td><td>Completado</td></tr>
-        </tbody>
+        <caption>Escala de puntos · requiere completar toda la consigna</caption>
+        <thead><tr><th scope="col">Descuentos</th><th scope="col">Puntos</th><th scope="col">Resultado</th></tr></thead>
+        <tbody></tbody>
       </table>
-      <p>Con tres criterios: 1 cumplido da 33 puntos; 2 dan 67; los 3 dan 100. La cantidad de criterios depende de la consigna.</p>
+      <p>El tope acumulado es <strong>40 puntos de descuento</strong>. Al alcanzarlo conservás 60 puntos y podés seguir practicando hasta completar la consigna.</p>
     </section>
     <section id="reglaAprobacion" aria-labelledby="tituloAprobacion">
       <h2 id="tituloAprobacion">Cuándo aprobás</h2>
-      <p>Debés cumplir <strong>todas las condiciones obligatorias</strong>: construir la red solicitada y completar las prácticas y simulaciones que exija ese nivel. Al cumplirlas todas obtenés 100 puntos.</p>
-      <p>Un puntaje parcial todavía no aprueba. El sistema comprueba las condiciones, no solo el número redondeado. Guardar revisa el diseño; Simular comprueba la ejecución y sus parámetros.</p>
-      <p>Si la consigna pide comparar configuraciones, abrir un control no alcanza: hay que aplicar el cambio y ejecutar nuevamente. Si modificás la red o sus UV, la simulación anterior puede dejar de representar tu configuración actual.</p>
+      <p>Debés cumplir <strong>todas las condiciones obligatorias</strong> y conservar al menos <strong>60 puntos</strong>. Tener 60, 90 o 100 puntos con objetivos pendientes no alcanza para aprobar.</p>
+      <p>Guardar revisa el diseño. Simular comprueba la ejecución y sus parámetros. Si la consigna pide comparar configuraciones, abrir un control no alcanza: hay que aplicar el cambio y ejecutar nuevamente.</p>
+      <p>La ejecución se evalúa cuando el servidor la acepta y registra. Pausar o detener su reproducción visual no genera otro descuento ni anula el resultado evaluado.</p>
+    </section>
+    <section id="reglaPracticas" aria-labelledby="tituloPracticas">
+      <h2 id="tituloPracticas">Prácticas gratuitas por nivel</h2>
+      <p>Las primeras ejecuciones de cada intento no descuentan, para permitir aprender y realizar las comparaciones iniciales.</p>
+      <table id="practicasPuntos">
+        <thead><tr><th scope="col">Nivel</th><th scope="col">Ejecuciones gratuitas</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </section>
     <section id="reglaDescuentos" aria-labelledby="tituloDescuentos">
-      <h2 id="tituloDescuentos">Por qué ves menos de 100</h2>
-      <p>Faltan criterios por satisfacer. Actualmente <strong>no hay penalizaciones adicionales</strong>: consultar el tutorial, los errores y el tiempo no descuentan puntos.</p>
-      <p>Los ajustes de UV y UT deben respetar la consigna. Cuando corresponda, todos los metros deben terminar sus recorridos dentro del límite de UT y la suma de sus UV no debe superar el presupuesto indicado.</p>
-      <p>Elegir más velocidad no da puntos extra. El ritmo visual × no cambia el puntaje. Si una condición deja de cumplirse, la evaluación actual puede bajar; el mejor puntaje de un intento ya completado se conserva.</p>
+      <h2 id="tituloDescuentos">Qué no descuenta</h2>
+      <p>El tutorial, guardar, el tiempo real, mover el mapa, pausar y los fallos técnicos <strong>no descuentan puntos</strong>. Cambiar parámetros sin ejecutar tampoco descuenta.</p>
+      <p>Las ejecuciones que cumplen alguna condición nueva no descuentan. Una solicitud rechazada no consume una práctica gratuita. Elegir más UV o acelerar el ritmo visual × no da puntos extra.</p>
+      <p>Al completar el nivel, una ventana muestra los puntos iniciales, cada ejecución penalizada, los objetivos que estaban pendientes y el total. Después comienza la animación de victoria.</p>
+    </section>
+    <section aria-labelledby="reglaHistorial">
+      <h2 id="reglaHistorial">Intentos anteriores</h2>
+      <p>Los intentos iniciados antes de adoptar esta política conservan la regla anterior: porcentaje de condiciones cumplidas, sin descuentos, y aprobación con toda la consigna cumplida. No se convierten ni recalculan sus resultados.</p>
+      <p>Cada intento conserva la política de la versión del nivel con la que comenzó. Un intento nuevo bajo la nueva versión empieza con 100 puntos y sus prácticas gratuitas disponibles.</p>
     </section>
     <section aria-labelledby="reglaRanking">
       <h2 id="reglaRanking">Qué suma al ranking</h2>

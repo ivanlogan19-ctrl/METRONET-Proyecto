@@ -14,10 +14,10 @@ for (const administrador of [false, true]) for (const width of [1440, 390]) {
     await p.getByRole('link', { name: 'Reglas', exact: true }).click();
     await p.waitForLoadState('domcontentloaded');
     await p.getByRole('heading', { name: 'Reglas de puntuación', exact: true }).waitFor();
-    assert.match(await p.locator('main').innerText(), /100 × criterios cumplidos ÷ criterios totales/);
+    assert.match(await p.locator('main').innerText(), /100 − descuentos registrados/);
     assert.match(await p.locator('#reglaAprobacion').innerText(), /todas las condiciones obligatorias/);
     assert.match(await p.locator('#reglaDescuentos').innerText(), /no descuentan puntos/);
-    assert.deepEqual(await p.locator('#ejemplosPuntos tbody tr td:nth-child(2)').allTextContents(), ['0', '25', '50', '75', '100']);
+    assert.deepEqual(await p.locator('#ejemplosPuntos tbody tr td:nth-child(2)').allTextContents(), ['100', '90', '80', '70', '60']);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.equal(v.solicitudes.filter(s => s.method !== 'GET').length, 0);
   });

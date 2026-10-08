@@ -123,7 +123,7 @@ test('La explicación contextual se cierra al pulsar fuera o con Escape', async 
 
 test('Constructor: objetivos visibles y cambio de nivel sin acciones ocultas', async t => {
   const nivel={...escenario(7),objetivo:'Conectá los POI mediante una estación de transbordo.',instrucciones:'Ubicá estaciones en barrios y zonas.'};
-  const {contexto,pagina:p,errores,solicitudes}=await abrirEditor(navegador,{escenario:nivel});
+  const {contexto,pagina:p,errores,solicitudes}=await abrirEditor(navegador,{escenario:nivel,primeraPasada:false});
   t.after(async()=>{await contexto.close();assert.deepEqual(errores,[]);});
   await p.waitForFunction(()=>editorPrueba.estadoConsigna==='disponible');
   const consigna=p.locator('[data-contenedor-consigna]');

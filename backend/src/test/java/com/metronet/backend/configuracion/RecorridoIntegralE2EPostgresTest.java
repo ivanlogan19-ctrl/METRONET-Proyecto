@@ -53,7 +53,9 @@ class RecorridoIntegralE2EPostgresTest {
         assertTrue(termino,"Tiempo máximo de campaña excedido");
         System.out.println(java.nio.file.Files.readString(Path.of("/tmp/metronet-recorrido-browser.log")));
         assertEquals(0,ejecucion.exitValue(),"Falló un recorrido real de navegador");
-        assertEquals(10,jdbc.queryForObject("SELECT COUNT(*) FROM intento WHERE id_usuario=? AND estado='COMPLETADO' AND progreso=100 AND puntaje=100",Integer.class,jugador));
+        assertEquals(10,jdbc.queryForObject("SELECT COUNT(*) FROM intento WHERE id_usuario=? AND estado='COMPLETADO' AND progreso=100",Integer.class,jugador));
+        assertEquals(990,jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=? AND estado='COMPLETADO'",Integer.class,jugador));
+        assertEquals(90,jdbc.queryForObject("SELECT i.puntaje FROM intento i JOIN escenario e USING(id_escenario) WHERE i.id_usuario=? AND e.numero=2",Integer.class,jugador));
         assertTrue(jdbc.queryForObject("SELECT campana_completada_historicamente FROM usuario WHERE id_usuario=?",Boolean.class,jugador));
         assertTrue(jdbc.queryForObject("SELECT COUNT(*) FROM simulacion s JOIN intento i USING(id_intento) WHERE i.id_usuario=?",Integer.class,jugador)>=19);
     }

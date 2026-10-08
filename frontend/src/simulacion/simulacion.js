@@ -565,7 +565,8 @@ async function finalizarEjecucionVisible() {
         : 'Recorrido finalizado. Consigna de simulación pendiente.';
     const puntaje = Number(evaluacion?.puntaje);
     const resultadoVisible = evaluacion?.puntaje != null && Number.isFinite(puntaje)
-      ? `${mensaje} COMPLETADA · ${puntaje} puntos.` : mensaje;
+      ? `${mensaje} ${evaluacion.completado ? `Nivel aprobado · ${puntaje} puntos.`
+        : `Puntaje posible: ${puntaje} puntos · Consigna pendiente.`}` : mensaje;
     mostrarMensaje(resultadoVisible, cumpleSimulacion === false ? 'advertencia' : 'exito');
     if (evaluacion?.completado) {
       // La tarjeta del siguiente nivel necesita abrir un diálogo propio.

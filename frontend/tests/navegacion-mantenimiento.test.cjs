@@ -19,7 +19,8 @@ for (const administrador of [false, true]) for (const width of [390, 820, 1440])
     await p.locator('.metronet-navegacion__usuario summary').click();
     const menu = p.locator('.metronet-navegacion__menu-usuario');
     assert.equal(await principal.isVisible(), width > 1024);
-    assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : administrador ? 7 : 6);
+    assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : administrador ? 8 : 7);
+    assert.equal(await menu.getByRole('link', { name: 'Reglas', exact: true }).isVisible(), width <= 1024);
     assert.equal(await menu.getByRole('link', { name: 'Mi perfil' }).isVisible(), true);
     if (width <= 1024) assert.equal(await menu.getByRole('link', { name: 'Niveles' }).isVisible(), true);
     await menu.getByRole('link', { name: 'Mi perfil' }).click();

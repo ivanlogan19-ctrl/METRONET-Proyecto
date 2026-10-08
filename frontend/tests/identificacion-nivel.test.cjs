@@ -108,6 +108,7 @@ test('Último nivel recién completado: victoria → celebración → Modo Libre
   });
   await p.clock.install();
   await p.evaluate(() => { window.resultadoEntrada = editorPrueba.evaluarEscenarioGuardado(77); });
+  await p.locator('.metronet-resultado-nivel').getByRole('button', { name: 'Continuar', exact: true }).click();
   await p.locator('.metronet-victoria').waitFor();
   const duracion = await p.evaluate(async () => (await import('/src/educacion/ConfiguracionTransicion.js')).CONFIGURACION_TRANSICION.duracionVisibleMs);
   await p.clock.runFor(duracion + 50);
@@ -167,6 +168,7 @@ test('Simulación del último nivel → nuevo documento del editor: celebración
 
   await p.locator('#duracionSimulacion').fill('1');
   await p.locator('#formularioEjecucion button[type="submit"]').click();
+  await p.locator('.metronet-resultado-nivel').getByRole('button', { name: 'Continuar', exact: true }).click();
   await p.locator('.metronet-victoria').waitFor();
   await p.waitForURL('**/?idDiseno=200&idEscenario=111&idIntento=900');
   await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
