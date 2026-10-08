@@ -1,0 +1,11 @@
+.metronet-reglas { width:min(1040px, calc(100% - 32px)); margin:auto; padding:20px 0 40px; display:grid; gap:16px; line-height:1.65; }
+.metronet-reglas header p { color:var(--text-secondary); }
+.metronet-reglas section { min-width:0; padding:clamp(12px, 2vw, 24px); border:var(--border-width) solid var(--border); background:var(--panel); }
+.metronet-reglas h2 { margin-top:0; }
+.metronet-reglas__formula { color:var(--success); font-weight:700; font-size:clamp(16px, 2vw, 22px); }
+.metronet-reglas table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.metronet-reglas caption { padding:12px 0; text-align:left; color:var(--text-secondary); }
+.metronet-reglas :is(th, td) { padding:8px; text-align:left; border:1px solid var(--border); }
+.metronet-reglas th { background:var(--bg-secondary); }
+.metronet-reglas td:nth-child(2) { text-align:center; font-weight:700; }
+.metronet-reglas__acciones { display:flex; flex-wrap:wrap; gap:12px; }

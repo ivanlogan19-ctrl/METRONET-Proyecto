@@ -111,6 +111,7 @@ test('Resultado del nivel 10 muestra final válido y no solicita un nivel 11', a
     const { presentarResultadoNivel } = await import('/src/educacion/TransicionNivel.js');
     window.resultadoTransicion = presentarResultadoNivel(resumen, 110, { completado: true, puntaje: 100, idSiguienteEscenario: null });
   }, resumen);
+  await pagina.locator('.metronet-resultado-nivel').getByRole('button', { name: 'Continuar', exact: true }).click();
   await pagina.getByRole('dialog', { name: 'Nivel final completado', exact: true }).waitFor();
   assert.equal(await pagina.getByText('Continuar con Nivel 11').count(), 0);
   // El resumen se revela al terminar el recorrido visible (~11 s), sin crear un nivel 11.
@@ -166,6 +167,7 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
   await pagina.locator('#duracionSimulacion').fill('10');
   assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
+  await pagina.locator('.metronet-resultado-nivel').getByRole('button', { name: 'Continuar', exact: true }).click({ timeout: 45000 });
   await pagina.getByRole('dialog', { name: numero === 10 ? 'Nivel final completado' : 'Nivel completado', exact: true }).waitFor({ timeout: 45000 });
   assert.equal(await pagina.locator('.metronet-recorrido').count(), 0, 'El tutorial visual se retira al completar el nivel');
   assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 1);

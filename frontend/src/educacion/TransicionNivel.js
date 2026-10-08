@@ -29,11 +29,13 @@ export async function presentarResultadoNivel(progreso, idEscenario, evaluacion,
   const final = !evaluacion.idSiguienteEscenario && anterior.numero === Math.max(...progreso.escenarios.filter(e => Number.isInteger(e.numero)).map(e => e.numero));
   const modoLibre = final ? obtenerModoLibreTrasRecorrido(opciones.progresoAnterior, progreso, idEscenario) : null;
   try {
+    const { mostrarResultadoNivel } = await import('./PantallaResultadoNivel.js');
+    if (!await mostrarResultadoNivel(anterior, evaluacion, opciones) || opciones.signal?.aborted) return null;
     const { mostrarTransicionNivel } = await import('./PantallaTransicionNivel.js');
     // La consulta de ranking no retrasa ni bloquea la celebración.
     const ranking = final ? consultarJuego('/ranking').catch(() => null) : null;
     const accion = await mostrarTransicionNivel(anterior, siguiente, {
-      ...opciones, puntaje: evaluacion.puntaje, desempeno: evaluacion.desempeno, resumen: progreso, ranking, final, modoLibre,
+      ...opciones, resumen: progreso, ranking, final, modoLibre,
     });
     if (accion === 'siguiente') return { siguiente };
     if (accion === 'modoLibre') return { siguiente: modoLibre, celebrarRecorrido: true };

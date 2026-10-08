@@ -78,10 +78,12 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
   const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');
   window.cierre = presentarResultadoNivel(progreso,10,{completado:true,puntaje:90,idSiguienteEscenario:null,desempeno:{puntajeMaximo:100,explicacion:'Red correcta. Existe margen para optimizar la velocidad.'}});
  },{progreso});
- await pagina.getByRole('dialog').waitFor();
+ await pagina.locator('.metronet-resultado-nivel').waitFor();
+ assert.match(await pagina.locator('.metronet-resultado-nivel').innerText(),/Ganaste 90 puntos/);
+ await pagina.locator('.metronet-resultado-nivel').getByRole('button',{name:'Continuar',exact:true}).click();
  await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).waitFor({timeout:26000});
  assert.match(await pagina.getByRole('dialog').innerText(),/950 \/ 1000 puntos.*Tu posición: 2/s);
- assert.match(await pagina.getByRole('dialog').innerText(),/Su puntaje obtenido es de 90 puntos sobre 100\./);
+ assert.equal(await pagina.locator('.metronet-victoria__resultado').count(),0);
  await pagina.getByRole('button',{name:'Ver desempeño y ranking',exact:true}).click();
  assert.deepEqual(await pagina.evaluate(()=>window.cierre),{destino:'/ranking.html'});
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
@@ -99,7 +101,7 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
   if(path.endsWith('/evaluar'))return {json:{completado:puntos === 100,puntaje:puntos,progreso:puntos,desempeno,mensaje:desempeno.explicacion}};
  }});
 
- await pagina.locator('[data-recorrido-omitir]').click();
+ assert.equal(await pagina.locator('.metronet-recorrido').count(),0,'Nivel 6 reutiliza herramientas, sin repetir el tutorial completo');
  await pagina.locator('#duracionSimulacion').fill('1');
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
@@ -108,7 +110,7 @@ for (const puntos of [100, 75]) test(`Simulación finalizada presenta ${puntos} 
  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
  if (puntos === 100) {
   await pagina.getByRole('dialog').waitFor();
-  assert.match(await pagina.getByRole('dialog').innerText(), /Su puntaje obtenido es de 100 puntos sobre 100\./);
+  assert.match(await pagina.getByRole('dialog').innerText(), /Ganaste 100 puntos/);
  } else {
   assert.equal(await pagina.getByRole('dialog').count(), 0);
   await pagina.waitForFunction(() => /Revisá los objetivos en Edición/.test(document.querySelector('#mensajeSimulacion')?.textContent ?? ''));

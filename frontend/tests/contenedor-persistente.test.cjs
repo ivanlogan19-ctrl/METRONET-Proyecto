@@ -35,9 +35,9 @@ async function ir(v,p,nombre,ruta) {
   await v.waitForURL(`**/${ruta}.html`); await v.locator('.metronet-navegacion').waitFor(); await p.waitForURL(`**/${ruta}.html`);
 }
 
-test('Doce cambios de menú, Atrás/Adelante: mismo Audio, sin pause/play/seek ni acumulación',async t=>{
+test('Quince cambios de menú, incluida Reglas, Atrás/Adelante: mismo Audio, sin pause/play/seek ni acumulación',async t=>{
   const {pagina:p,vista:v}=await abrir(t); await sonar(p); await marcar(p);
-  for(let i=0;i<3;i++) for(const [n,r] of [['Niveles','escenarios'],['Ranking','ranking'],['Administración','admin'],['Inicio','inicio']]) await ir(v,p,n,r);
+  for(let i=0;i<3;i++) for(const [n,r] of [['Niveles','escenarios'],['Reglas','reglas'],['Ranking','ranking'],['Administración','admin'],['Inicio','inicio']]) await ir(v,p,n,r);
   await continuidad(p);
   await p.goBack(); await v.waitForURL('**/admin.html'); await p.waitForURL('**/admin.html');
   await p.goBack(); await v.waitForURL('**/ranking.html'); await p.waitForURL('**/ranking.html');

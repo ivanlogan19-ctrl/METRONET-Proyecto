@@ -5,9 +5,6 @@
 .metronet-victoria h2 { margin: 0; }
 html:root body .metronet-victoria .metronet-victoria__felicitacion { color: var(--success); font-family: var(--font-arcade); font-size: 15px; }
 .metronet-victoria__estaciones { display: flex; justify-content: space-between; gap: 12px; padding: 8px 16px; color: var(--text-secondary); font-size: 12px; }
-.metronet-victoria__resultado { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
-.metronet-victoria__resultado strong { font-family: var(--font-arcade); font-size: 24px; color: var(--info-active); }
-.metronet-victoria__record { color: var(--success); font-size: 14px; border-bottom: 2px solid currentColor; }
 .metronet-victoria__progreso { font-variant-numeric: tabular-nums; }
 .metronet-victoria__destino { display: grid; gap: 4px; opacity: 0; transition: opacity 200ms ease-out; }
 .metronet-victoria--destino .metronet-victoria__destino { opacity: 1; }
@@ -25,7 +22,6 @@ html:root body .metronet-victoria button { min-height: 44px; font-size: 13px; }
 }
 @media (max-width: 600px) {
   .metronet-victoria__contenido { gap: 10px; padding: 14px; }
-  .metronet-victoria__resultado strong { font-size: 20px; }
   .metronet-victoria__estaciones { padding: 8px; font-size: 11px; }
   .metronet-victoria__acciones button { flex: 1; }
 }

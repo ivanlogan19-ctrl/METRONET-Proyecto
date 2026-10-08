@@ -116,7 +116,7 @@ public class PuntuacionService {
         String etapa = !redResuelta ? "RED" : !aprendizajeCumplido ? "EXPERIMENTAR" : !simulacionActual ? "SIMULACION" : "LISTO";
         String explicacion = condiciones.isEmpty() ? "Este diseño no tiene criterios de evaluación: no se asignan puntos."
             : satisfechas + " de " + condiciones.size() + " criterios satisfechos: " + puntos + "/100. Cada criterio obligatorio tiene el mismo peso."
-                + " Las pistas, el tutorial, los errores y el tiempo no descuentan puntos."
+                + " El tutorial, los errores y el tiempo no descuentan puntos."
                 + (satisfechas < condiciones.size() ? " Aún quedan condiciones por cumplir antes de completar el nivel." : " Todos los criterios están satisfechos.");
         // Se conserva el desglose de puntos; no hay bonos por valores de velocidad.
         return new DesempenoNivelResponse(puntos, 100, puntos, 0, 0,

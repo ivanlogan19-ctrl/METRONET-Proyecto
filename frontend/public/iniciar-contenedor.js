@@ -7,7 +7,7 @@
   // última URL del juego o conserve una sesión local. La navegación entre vistas
   // ocurre dentro del contenedor y no vuelve a pasar por este punto de entrada.
   const rutasProtegidas = new Set(['/', '/index.html', '/inicio.html', '/escenarios.html',
-    '/aprendizaje.html', '/ranking.html', '/disenos.html', '/perfil.html', '/admin.html', '/simulacion.html']);
+    '/aprendizaje.html', '/reglas.html', '/ranking.html', '/disenos.html', '/perfil.html', '/admin.html', '/simulacion.html']);
   const tipo = performance.getEntriesByType('navigation')[0]?.type || 'navigate';
   // El respaldo HTML solo continúa una salida explícita de esta misma pestaña.
   // El marcador se consume y una URL abierta, restaurada o recargada inicia login.

@@ -3,7 +3,7 @@ import { gestorMusica } from '../audio/GestorMusica.js';
 const CLAVE = Symbol.for('metronet:contenedor');
 const pantallas = new Set(['/', '/index.html', '/login.html', '/admin-login.html', '/registro.html',
   '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/mantenimiento.html', '/inicio.html',
-  '/escenarios.html', '/aprendizaje.html', '/ranking.html', '/disenos.html', '/perfil.html', '/privacidad.html', '/admin.html', '/simulacion.html']);
+  '/escenarios.html', '/aprendizaje.html', '/reglas.html', '/ranking.html', '/disenos.html', '/perfil.html', '/privacidad.html', '/admin.html', '/simulacion.html']);
 const marco = document.querySelector('#pantalla-metronet');
 const error = document.querySelector('#error-pantalla');
 
@@ -19,7 +19,7 @@ const solicitada = rutaPermitida(parametros.get('destino'));
 // Abrir directamente el contenedor con una URL guardada también es un arranque.
 // Los cambios de pantalla dentro del iframe no vuelven a crear el contenedor.
 const inicial = solicitada && !new Set(['/', '/index.html', '/inicio.html', '/escenarios.html',
-  '/aprendizaje.html', '/ranking.html', '/disenos.html', '/perfil.html', '/admin.html', '/simulacion.html']).has(solicitada.pathname)
+  '/aprendizaje.html', '/reglas.html', '/ranking.html', '/disenos.html', '/perfil.html', '/admin.html', '/simulacion.html']).has(solicitada.pathname)
   ? solicitada : new URL('/login.html', location.origin);
 let primeraVista = true;
 function recibirEntrada(vista) {

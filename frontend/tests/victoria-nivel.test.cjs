@@ -29,10 +29,10 @@ async function victoria(pagina,opciones={}) {
   },opciones);return pagina.locator('.metronet-victoria');
 }
 for(const [width,height] of [[1366,768],[1440,900],[1920,1080],[768,1024],[390,844],[375,667],[320,568]]) {
- test(`Victoria ${width}×${height}: composición, puntos, sincronización y avance automático`,async t=>{
+ test(`Victoria ${width}×${height}: composición sin puntos, sincronización y avance automático`,async t=>{
   const {pagina}=await abrir(t,{viewport:{width,height}});const d=await victoria(pagina);
   assert.equal(await pagina.evaluate(()=>document.activeElement.id),'tituloVictoriaNivel');
-  assert.match(await d.innerText(),/Su puntaje obtenido es de 95 puntos sobre 100\..*Nuevo récord personal/is);
+  assert.equal(await d.locator('.metronet-victoria__resultado').count(),0);
   assert.equal(await d.getByRole('button', { name: 'Revisar mi red' }).count(), 0);
   assert.equal(await d.locator('[data-concepto], [aria-haspopup], [role=tooltip], [popover], a').count(),0);
   assert.equal(await d.getByRole('progressbar').getAttribute('aria-valuenow'),'0');
@@ -80,6 +80,7 @@ test('Destino persistido admite repetir, respeta bloqueados y excluye Modo Libre
  for(const estado of ['COMPLETADO','DISPONIBLE','BLOQUEADO']){
   const progreso=resumen(6);progreso.escenarios[6].estado=estado;progreso.escenarios[6].desbloqueado=estado!=='BLOQUEADO';
   await pagina.evaluate(async progreso=>{const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');window.accion=presentarResultadoNivel(progreso,6,{completado:true,puntaje:95,idSiguienteEscenario:7});},progreso);
+  await pagina.locator('.metronet-resultado-nivel').getByRole('button',{name:'Continuar',exact:true}).click();
   await pagina.locator('.metronet-victoria').waitFor();await pagina.clock.runFor(15000);const accion=await pagina.evaluate(()=>window.accion);
   if(estado==='BLOQUEADO')assert.deepEqual(accion,{destino:'/escenarios.html'});else assert.equal(accion.siguiente.estado,estado);
  }
@@ -91,6 +92,7 @@ test('Ranking fallido no bloquea la victoria final de un administrador',async t=
  const {pagina}=await abrir(t,{responder:async req=>new URL(req.url()).pathname.endsWith('/ranking')?{status:503,json:{}}:null});
  const progreso=resumen(0);progreso.escenarios[9].estado='COMPLETADO';progreso.escenarios.forEach(e=>e.desbloqueado=true);
  await pagina.evaluate(async progreso=>{const {presentarResultadoNivel}=await import('/src/educacion/TransicionNivel.js');window.accion=presentarResultadoNivel(progreso,10,{completado:true,puntaje:100,idSiguienteEscenario:null});},progreso);
+ await pagina.locator('.metronet-resultado-nivel').getByRole('button',{name:'Continuar',exact:true}).click();
  const d=pagina.locator('.metronet-victoria');await d.waitFor();await pagina.clock.runFor(15000);assert.match(await d.innerText(),/Resumen del recorrido/i);assert.doesNotMatch(await d.innerText(),/Campaña completada/i);
  await d.getByRole('button',{name:'Seleccionar nivel'}).click();assert.deepEqual(await pagina.evaluate(()=>window.accion),{destino:'/escenarios.html'});
 });
@@ -186,7 +188,9 @@ test('Constructor real: evaluación única, victoria y siguiente nivel sin segun
  });
  await pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
  await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.evaluarEscenarioGuardado(77),editorPrueba.evaluarEscenarioGuardado(77)]);});
- const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.match(await d.innerText(),/Nuevo récord personal/i);assert.equal(evaluaciones,1);assert.equal(inicios,0);
+ const puntos=pagina.locator('.metronet-resultado-nivel');await puntos.waitFor();assert.match(await puntos.innerText(),/Nuevo récord personal/i);
+ await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
+ const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.equal(evaluaciones,1);assert.equal(inicios,0);
   await pagina.clock.runFor(21000);
   await pagina.clock.runFor(5000);
   await pagina.waitForFunction(() => !editorPrueba.evaluacionEnCurso);
@@ -230,8 +234,10 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
   assert.equal(await pagina.locator('.metronet-victoria').count(),0);
   assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);return;
  }
+ const puntos=pagina.locator('.metronet-resultado-nivel');await puntos.waitFor();
+ assert.match(await puntos.innerText(),/Ganaste 100 puntos.*Nuevo récord personal/is);
+ await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
  await pagina.locator('.metronet-victoria').waitFor();assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,1);
- assert.match(await pagina.locator('.metronet-victoria').innerText(),/Su puntaje obtenido es de 100 puntos sobre 100\..*Nuevo récord personal/is);
  if(caso==='errorInicio'){
   const aviso=pagina.locator('#mensajeSimulacion');
   await pagina.waitForFunction(()=>/Resultado guardado.*No fue posible iniciar/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));

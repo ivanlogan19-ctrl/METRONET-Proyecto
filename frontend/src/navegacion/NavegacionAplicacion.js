@@ -166,6 +166,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
     crearEnlace('Niveles', '/escenarios.html', actual === 'escenarios'),
     crearEnlace('Aprendizaje', '/aprendizaje.html', actual === 'aprendizaje'),
+    crearEnlace('Reglas', '/reglas.html', actual === 'reglas'),
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );
@@ -181,6 +182,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     crearEnlace('Inicio', '/inicio.html', actual === 'inicio'),
     crearEnlace('Niveles', '/escenarios.html', actual === 'escenarios'),
     crearEnlace('Aprendizaje', '/aprendizaje.html', actual === 'aprendizaje'),
+    crearEnlace('Reglas', '/reglas.html', actual === 'reglas'),
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );

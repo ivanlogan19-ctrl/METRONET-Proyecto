@@ -7,6 +7,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PuntuacionServiceTest {
+    @Test void explicacionMencionaSoloElTutorialVigenteSinAlterarPuntos() {
+        var servicio = new PuntuacionService(null, new com.fasterxml.jackson.databind.ObjectMapper());
+        var resultado = servicio.calcular(1, "{}", criterios(4, 4));
+        assertEquals(100, resultado.puntaje());
+        assertTrue(resultado.explicacion().contains("tutorial"));
+        assertFalse(resultado.explicacion().toLowerCase(java.util.Locale.ROOT).contains("pistas"));
+    }
+
     private List<CondicionConsignaResponse> criterios(int total, int satisfechos) {
         return IntStream.range(0, total).mapToObj(i -> new CondicionConsignaResponse(
             "criterio" + i, "Condición obligatoria", i < satisfechos ? 1 : 0, 1, i < satisfechos)).toList();

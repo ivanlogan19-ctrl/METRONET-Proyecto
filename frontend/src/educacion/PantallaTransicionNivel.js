@@ -16,7 +16,7 @@ function texto(etiqueta, valor, clase = '') {
 
 // Presenta datos ya evaluados por el servidor; no registra puntos ni desbloqueos.
 export function mostrarTransicionNivel(anterior, siguiente, {
-  puntaje, mejorPuntajeAnterior, final = false, desempeno = null, resumen = null,
+  final = false, resumen = null,
   ranking = null, signal, modoLibre = null,
 } = {}) {
   victoriaActiva?.();
@@ -40,14 +40,6 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   const estaciones = texto('div', '', 'metronet-victoria__estaciones');
   estaciones.append(texto('span', `SALIDA · NIVEL ${anterior.numero}`), texto('span', final ? 'FIN DEL RECORRIDO' : siguiente ? `DESTINO · NIVEL ${siguiente.numero}` : 'RED COMPLETADA'));
   recorrido.append(estaciones);
-  const resultado = texto('p', '', 'metronet-victoria__resultado');
-  if (Number.isFinite(puntaje)) {
-    const maximo = desempeno?.puntajeMaximo ?? anterior.puntajeMaximo;
-    resultado.append(texto('strong', `Su puntaje obtenido es de ${puntaje} puntos${Number.isFinite(maximo) ? ` sobre ${maximo}` : ''}.`));
-    if (Number.isFinite(mejorPuntajeAnterior) && puntaje > mejorPuntajeAnterior) {
-      resultado.append(texto('span', 'Nuevo récord personal', 'metronet-victoria__record'));
-    }
-  } else resultado.textContent = 'Tu resultado quedó registrado.';
   const progreso = texto('div', '', 'metronet-victoria__progreso');
   progreso.setAttribute('role', 'progressbar');
   progreso.setAttribute('aria-label', 'Progreso del viaje de victoria');
@@ -77,7 +69,7 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   jugar.hidden = !puedeJugar && !final;
   seleccionar.classList.toggle('metronet-boton--primario', !puedeJugar && !final);
   acciones.append(estado, seleccionar, jugar);
-  cuerpo.append(cabecera, recorrido, resultado, progreso, destino, cierre, acciones);
+  cuerpo.append(cabecera, recorrido, progreso, destino, cierre, acciones);
   dialogo.append(cuerpo);
 
   let cerrado = false, resolver;

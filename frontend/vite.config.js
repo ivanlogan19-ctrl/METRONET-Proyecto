@@ -60,6 +60,7 @@ module.exports = defineConfig({
         inicio: path.resolve(__dirname, 'inicio.html'),
         escenarios: path.resolve(__dirname, 'escenarios.html'),
         aprendizaje: path.resolve(__dirname, 'aprendizaje.html'),
+        reglas: path.resolve(__dirname, 'reglas.html'),
         ranking: path.resolve(__dirname, 'ranking.html'),
         disenos: path.resolve(__dirname, 'disenos.html'),
         mapa: path.resolve(__dirname, 'index.html'),

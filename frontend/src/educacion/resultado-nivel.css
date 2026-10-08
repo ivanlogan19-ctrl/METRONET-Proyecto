@@ -1,0 +1,9 @@
+html:root body dialog.metronet-resultado-nivel { width:min(560px, calc(100vw - 24px)); max-height:calc(100svh - 24px); padding:clamp(16px, 3vw, 28px); overflow:auto; text-align:left; line-height:1.6; }
+.metronet-resultado-nivel h2 { margin-top:0; }
+html:root body .metronet-resultado-nivel__puntos { color:var(--success); font:clamp(18px, 3vw, 24px)/1.5 var(--font-arcade); }
+.metronet-resultado-nivel dl { border:1px solid var(--border); background:var(--bg-secondary); }
+.metronet-resultado-nivel dl > div { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:8px 12px; }
+.metronet-resultado-nivel dl > div:last-child { border-top:1px solid var(--border); font-weight:700; color:var(--success); }
+.metronet-resultado-nivel dd { margin:0; font-variant-numeric:tabular-nums; }
+.metronet-resultado-nivel__record { color:var(--success); }
+.metronet-resultado-nivel > button { display:block; margin:20px 0 0 auto; }
