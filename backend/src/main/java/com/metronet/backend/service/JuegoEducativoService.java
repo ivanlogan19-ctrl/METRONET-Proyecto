@@ -90,6 +90,7 @@ public class JuegoEducativoService {
         ProgresoUsuario progresoUsuario = obtenerProgresoUsuario(idUsuario);
         List<EscenarioBase> escenarios = listarEscenariosProgresivos();
         List<EscenarioJuegoResponse> respuesta = new ArrayList<>();
+        boolean publicaciones = tieneEsquemaPublicaciones();
         for (EscenarioBase escenario : escenarios) {
             IntentoJuego intento = obtenerIntentoActual(idUsuario, escenario.idEscenario(), progresoUsuario.numeroCampanaActual());
             boolean completadoEnCampanaActual = escenario.numero() != null
@@ -97,21 +98,22 @@ public class JuegoEducativoService {
             boolean desbloqueado = esDesbloqueado(idUsuario, escenario, progresoUsuario);
             String estado = intento == null ? (desbloqueado ? "DISPONIBLE" : ESTADO_BLOQUEADO) : intento.estado();
             Integer progreso = intento == null ? 0 : intento.progreso();
-            EstadisticasIntento estadisticas = obtenerEstadisticas(idUsuario, escenario.idEscenario());
+            EstadisticasIntento estadisticas = obtenerEstadisticas(idUsuario, escenario.idEscenario(), progresoUsuario.numeroCampanaActual());
             var presentacion = criterioUvUt.presentacion(intento == null ? null : intento.idIntento(),
                 escenario.idEscenario(), escenario.objetivo(), escenario.instrucciones(), escenario.herramientas());
-            String[] presentacionEditorial = intento != null && intento.idNivelPublicacion()!=null
-                ? jdbcTemplate.query("""
-                    SELECT contenido->'desafio'->>'nombre',contenido->'desafio'->>'dificultad'
-                    FROM nivel_publicacion WHERE id_nivel_publicacion=?
-                    """,(r,f)->new String[]{r.getString(1),r.getString(2)},intento.idNivelPublicacion())
-                    .stream().findFirst().orElse(new String[]{escenario.nombre(),escenario.dificultad()})
-                : new String[]{escenario.nombre(),escenario.dificultad()};
+            String[] presentacionEditorial = publicaciones ? jdbcTemplate.query("""
+                SELECT contenido->'desafio'->>'nombre',contenido->'desafio'->>'dificultad',contenido->'desafio'->>'relato',contenido->'desafio'->>'recorrido'
+                FROM nivel_publicacion WHERE id_nivel_publicacion=COALESCE(?,
+                  (SELECT id_nivel_publicacion FROM nivel_publicacion WHERE id_escenario=? ORDER BY numero_version DESC LIMIT 1))
+                """,(r,f)->new String[]{r.getString(1),r.getString(2),r.getString(3),r.getString(4)},
+                intento==null?null:intento.idNivelPublicacion(),escenario.idEscenario())
+                .stream().findFirst().orElse(new String[]{escenario.nombre(),escenario.dificultad(),null,null})
+                : new String[]{escenario.nombre(),escenario.dificultad(),null,null};
             respuesta.add(new EscenarioJuegoResponse(
                 escenario.idEscenario(), escenario.numero(), presentacionEditorial[0], presentacion.objetivo(), presentacionEditorial[1],
                 presentacion.instrucciones(), estado, progreso, desbloqueado, leerHerramientas(presentacion.herramientas()),
                 completadoEnCampanaActual, estadisticas.cantidadIntentos(), estadisticas.mejorPuntaje(), estadisticas.ultimoPuntaje(), escenario.numero() == null ? null : puntuacion.maximo(escenario.reglasExito()),
-                intento==null?null:intento.idIntento()
+                intento==null?null:intento.idIntento(), presentacionEditorial[2], estadisticas.cantidadIntentosCampana(), presentacionEditorial[3]
             ));
         }
         int cantidadNiveles = (int) escenarios.stream().filter(escenario -> escenario.numero() != null).count();
@@ -467,7 +469,7 @@ public class JuegoEducativoService {
             .filter(e -> nivelCompletado(idUsuario, e.numero(), numeroCampana)).count();
     }
 
-    private EstadisticasIntento obtenerEstadisticas(Integer idUsuario, Integer idEscenario) {
+    private EstadisticasIntento obtenerEstadisticas(Integer idUsuario, Integer idEscenario, int campana) {
         return jdbcTemplate.query("""
             SELECT COUNT(*) AS cantidad_intentos, MAX(CASE WHEN i.estado='COMPLETADO' THEN i.puntaje ELSE NULL END) AS mejor_puntaje,
                    (
@@ -475,15 +477,15 @@ public class JuegoEducativoService {
                        FROM intento reciente
                        WHERE reciente.id_usuario = ? AND reciente.id_escenario = ?
                        ORDER BY reciente.id_intento DESC LIMIT 1
-                   ) AS ultimo_puntaje
+                   ) AS ultimo_puntaje, COUNT(CASE WHEN i.numero_campana = ? THEN 1 END) AS cantidad_campana
             FROM intento i
             WHERE i.id_usuario = ? AND i.id_escenario = ?
             """, (resultado, fila) -> new EstadisticasIntento(
                 resultado.getInt("cantidad_intentos"),
                 resultado.getObject("mejor_puntaje", Integer.class),
-                resultado.getObject("ultimo_puntaje", Integer.class)
-            ), idUsuario, idEscenario, idUsuario, idEscenario).stream().findFirst().orElse(
-                new EstadisticasIntento(0, null, null)
+                resultado.getObject("ultimo_puntaje", Integer.class), resultado.getInt("cantidad_campana")
+            ), idUsuario, idEscenario, campana, idUsuario, idEscenario).stream().findFirst().orElse(
+                new EstadisticasIntento(0, null, null, 0)
             );
     }
 
@@ -546,6 +548,14 @@ public class JuegoEducativoService {
                 estaciones, maximo, valido && estaciones > 0 && estaciones <= maximo));
         }
         boolean simulacionRealizada = tieneSimulacion(intento.idIntento());
+        if (booleano(reglas, "requiereMetroPorLinea")) {
+            int atendidas = contar("""
+                SELECT COUNT(*) FROM linea l WHERE l.id_diseno=? AND EXISTS
+                  (SELECT 1 FROM metro m WHERE m.id_diseno=l.id_diseno AND m.nombre_linea=l.nombre)
+                """, idDiseno);
+            condiciones.add(new CondicionConsignaResponse("requiereMetroPorLinea",
+                "Asignar al menos un Metro a cada línea", atendidas, lineas, lineas > 0 && atendidas == lineas));
+        }
         agregarCondicion(
             condiciones,
             "requiereSimulacion",
@@ -685,6 +695,6 @@ public class JuegoEducativoService {
         boolean requiereCoberturaPuntosInteres,
         boolean coberturaPuntosInteres
     ) {}
-    private record EstadisticasIntento(int cantidadIntentos, Integer mejorPuntaje, Integer ultimoPuntaje) {}
+    private record EstadisticasIntento(int cantidadIntentos, Integer mejorPuntaje, Integer ultimoPuntaje, int cantidadIntentosCampana) {}
     private record CoordenadaEstacion(BigDecimal posicionX, BigDecimal posicionY) {}
 }

@@ -43,6 +43,10 @@ public class CriterioUvUtService {
     }
 
     public void iniciarIntento(int idIntento, int idEscenario) {
+        if (tienePublicaciones() && Boolean.TRUE.equals(jdbc.queryForObject("""
+            SELECT EXISTS (SELECT 1 FROM intento i JOIN nivel_publicacion p ON p.id_nivel_publicacion=i.id_nivel_publicacion
+              WHERE i.id_intento=? AND p.version_criterio_uv_ut IS NULL)
+            """,Boolean.class,idIntento))) return;
         jdbc.update("""
             INSERT INTO intento_uv_ut(id_intento,version,limite_ut,presupuesto_uv,reglas_exito,herramientas_habilitadas,objetivo,instrucciones)
             SELECT ?,c.version,c.limite_ut,c.presupuesto_uv,e.reglas_exito,e.herramientas_habilitadas,
@@ -62,11 +66,24 @@ public class CriterioUvUtService {
                 (r, fila) -> new Presentacion(r.getString(1), r.getString(2), r.getString(3)), idIntento);
             return anterior.isEmpty() ? new Presentacion(objetivo, instrucciones, herramientas) : anterior.getFirst();
         }
+        if (tienePublicaciones() && Boolean.TRUE.equals(jdbc.queryForObject("""
+            SELECT EXISTS (SELECT 1 FROM nivel_publicacion p WHERE p.id_escenario=? AND p.version_criterio_uv_ut IS NULL
+              AND p.numero_version=(SELECT MAX(numero_version) FROM nivel_publicacion WHERE id_escenario=p.id_escenario))
+            """,Boolean.class,idEscenario))) return new Presentacion(objetivo,instrucciones,herramientas);
         var nueva = jdbc.query("SELECT limite_ut,presupuesto_uv FROM criterio_uv_ut WHERE id_escenario=?",
             (r, fila) -> new Configuracion(1, r.getInt(1), r.getBigDecimal(2)), idEscenario);
         if (nueva.isEmpty()) return new Presentacion(objetivo, instrucciones, herramientas);
         var c = nueva.getFirst();
         return new Presentacion(objetivo, instruccionesV2(instrucciones, c), herramientas);
+    }
+
+    private boolean tienePublicaciones() {
+        if (!Boolean.TRUE.equals(jdbc.execute((org.springframework.jdbc.core.ConnectionCallback<Boolean>)
+            conexion -> "PostgreSQL".equals(conexion.getMetaData().getDatabaseProductName())))) return false;
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+            SELECT to_regclass('intento')=to_regclass('public.intento')
+              AND to_regclass('nivel_publicacion') IS NOT NULL
+            """,Boolean.class));
     }
 
     private String instruccionesV2(String texto, Configuracion c) {

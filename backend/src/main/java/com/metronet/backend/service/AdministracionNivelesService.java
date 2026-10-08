@@ -46,6 +46,7 @@ public class AdministracionNivelesService {
                 n.path("reglasExito").fieldNames().forEachRemaining(reglasConocidas::add);
                 n.path("herramientasHabilitadas").fieldNames().forEachRemaining(herramientasConocidas::add);
             });
+            reglasConocidas.add("requiereMetroPorLinea");
             clavesRegla = Set.copyOf(reglasConocidas);
             clavesHerramienta = Set.copyOf(herramientasConocidas);
         } catch (Exception error) {
@@ -248,7 +249,7 @@ public class AdministracionNivelesService {
         });
         JsonNode criterio = edicion.criterioUvUt();
         if (numero <= 3 && criterio != null && !criterio.isNull()) throw invalido("UV/UT solo aplica a niveles 4–10");
-        if (numero >= 4 && (criterio == null || !criterio.isObject()
+        if (criterio != null && !criterio.isNull() && (!criterio.isObject()
             || !criterio.path("limiteUt").isIntegralNumber() || criterio.path("limiteUt").asInt() < 1
             || !criterio.path("presupuestoUv").isNumber() || criterio.path("presupuestoUv").decimalValue().signum() <= 0))
             throw invalido("UV/UT requiere límite y presupuesto positivos");

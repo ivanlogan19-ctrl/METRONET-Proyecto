@@ -79,7 +79,7 @@
             <resource>
                 <directory>${project.basedir}/../frontend/src/educacion</directory>
                 <targetPath>educacion</targetPath>
-                <includes><include>niveles.json</include></includes>
+                <includes><include>niveles.json</include><include>recorrido-integral.json</include></includes>
             </resource>
         </resources>
         <testResources>

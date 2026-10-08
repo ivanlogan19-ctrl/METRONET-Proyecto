@@ -97,7 +97,7 @@ public class PublicacionNivelService {
         if (!tarjetas.isArray() || tarjetas.size()!=7) throw invalido("Cada nivel requiere siete tarjetas");
         Integer versionCriterio=null;
         JsonNode criterio=contenido.path("criterioUvUt");
-        if (numero>=4) {
+        if (criterio.isObject()) {
             if (!criterio.isObject() || !criterio.path("limiteUt").isIntegralNumber()
                 || !criterio.path("presupuestoUv").isNumber()) throw invalido("Criterio UV/UT inválido");
             versionCriterio=jdbc.queryForObject("SELECT version+1 FROM criterio_uv_ut WHERE id_escenario=? FOR UPDATE",Integer.class,id);

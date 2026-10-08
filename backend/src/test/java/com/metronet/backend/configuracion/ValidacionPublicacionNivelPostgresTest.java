@@ -51,6 +51,12 @@ class ValidacionPublicacionNivelPostgresTest {
                      "lineas":[{"nombre":"Principal"}],"tramos":[{"linea":"Principal","a":"A","b":"B"}],
                      "unidades":[],"ejecuciones":[]}
                     """);
+                // La referencia debe cubrir los POI reales de esta publicación.
+                int posicion=0;
+                for (var objetivo:contenido.path("reglasExito").path("puntosInteresObjetivo")) {
+                    var punto=geo.resolverPunto(objetivo.path("idPunto").asInt(),null);
+                    ((ObjectNode)red.path("estaciones").get(posicion++)).put("x",geo.posicionX(punto)).put("y",geo.posicionY(punto));
+                }
                 int intentos=jdbc.queryForObject("SELECT COUNT(*) FROM intento",Integer.class);
                 int disenos=jdbc.queryForObject("SELECT COUNT(*) FROM diseno",Integer.class);
                 int simulacionesPrevias=jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class);
