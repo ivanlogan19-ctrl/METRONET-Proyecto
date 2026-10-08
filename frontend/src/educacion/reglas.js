@@ -13,6 +13,6 @@ function fila(tabla, valores) {
   document.querySelector(`${tabla} tbody`)?.append(tr);
 }
 for (let descuento = 0; descuento <= politica.descuentoMaximo; descuento += politica.descuentoPorEjecucionSinAvance) {
-  fila('#ejemplosPuntos', [descuento, politica.puntosBase - descuento, 'Aprueba con toda la consigna']);
+  fila('#ejemplosPuntos', [descuento === 0 ? 'Sin descuentos' : `−${descuento}`, politica.puntosBase - descuento]);
 }
 politica.practicasGratuitasPorNivel.forEach((cantidad, i) => fila('#practicasPuntos', [i + 1, cantidad]));

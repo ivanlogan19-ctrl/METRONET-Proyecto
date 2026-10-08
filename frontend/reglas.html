@@ -16,48 +16,72 @@
 <body class="metronet-pagina-navegable">
   <div data-navegacion-global></div>
   <main class="metronet-reglas" aria-labelledby="tituloReglas">
-    <header><h1 id="tituloReglas">Reglas de puntuación</h1><p>Cada intento nuevo de la versión con descuentos empieza con <strong>100 puntos</strong>. El progreso de la consigna se mide por separado.</p></header>
+    <div class="metronet-reglas__titulo-fijo">
+      <div class="metronet-reglas__hoja" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <h1 id="tituloReglas">Reglas de puntuación</h1>
+      <div class="metronet-reglas__hoja metronet-reglas__hoja--derecha" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    </div>
+    <header class="metronet-reglas__cabecera">
+      <p>Completá los objetivos de cada nivel y conseguí el mejor puntaje posible.</p>
+      <dl class="metronet-reglas__resumen">
+        <div><dt>Puntos al comenzar</dt><dd>100</dd></div>
+        <div><dt>Por simulación sin avances*</dt><dd>−10</dd></div>
+        <div><dt>Mínimo para aprobar</dt><dd>60</dd></div>
+      </dl>
+      <p class="metronet-reglas__nota">* Después de las prácticas sin descuento, si todavía quedan objetivos pendientes.</p>
+    </header>
+    <section id="reglaAprobacion" class="metronet-reglas__ancho" aria-labelledby="tituloAprobacion">
+      <h2 id="tituloAprobacion">Cómo aprobás un nivel</h2>
+      <p>Completá <strong>toda la consigna</strong> y conservá al menos <strong>60 puntos</strong>. Si quedan objetivos pendientes, el nivel todavía no está aprobado.</p>
+      <p>Cuando la consigna pida probar cambios de velocidad o duración, aplicalos y volvé a simular para cumplir ese objetivo.</p>
+    </section>
+    <section aria-labelledby="tituloDescuento">
+      <h2 id="tituloDescuento">Cuándo perdés puntos</h2>
+      <p>Una vez usadas las prácticas sin descuento, perdés <strong>10 puntos</strong> al simular si se cumplen estas dos condiciones:</p>
+      <ul>
+        <li>Todavía quedan objetivos por completar.</li>
+        <li>La simulación no cumple ningún objetivo que no hayas alcanzado antes en ese intento.</li>
+      </ul>
+      <p>Se descuenta una sola vez por simulación, aunque falten varios objetivos. Volver a cumplir un objetivo ya alcanzado no cuenta como un avance nuevo.</p>
+      <p>Podés perder hasta <strong>40 puntos por intento</strong>. Al llegar a 60, podés seguir practicando sin más descuentos hasta completar el nivel.</p>
+    </section>
     <section aria-labelledby="reglaCalculo">
-      <h2 id="reglaCalculo">Cómo se calculan</h2>
-      <p class="metronet-reglas__formula">100 − descuentos registrados</p>
-      <p>Después de las prácticas gratuitas, una simulación aceptada por el sistema descuenta <strong>10 puntos</strong> si todavía tiene objetivos pendientes y no cumple ninguna condición nueva respecto a las ejecuciones anteriores de ese intento.</p>
-      <p>Hay un solo descuento por ejecución, aunque falten varias condiciones. Perder y recuperar una condición ya alcanzada no cuenta como un avance nuevo. Una ejecución que completa toda la consigna no descuenta.</p>
+      <h2 id="reglaCalculo">Cuántos puntos ganás</h2>
+      <p>Completá el nivel sin descuentos para ganar <strong>100 puntos</strong>.</p>
       <table id="ejemplosPuntos">
-        <caption>Escala de puntos · requiere completar toda la consigna</caption>
-        <thead><tr><th scope="col">Descuentos</th><th scope="col">Puntos</th><th scope="col">Resultado</th></tr></thead>
+        <caption>Puntaje al completar toda la consigna</caption>
+        <thead><tr><th scope="col">Puntos descontados</th><th scope="col">Puntaje final</th></tr></thead>
         <tbody></tbody>
       </table>
-      <p>El tope acumulado es <strong>40 puntos de descuento</strong>. Al alcanzarlo conservás 60 puntos y podés seguir practicando hasta completar la consigna.</p>
-    </section>
-    <section id="reglaAprobacion" aria-labelledby="tituloAprobacion">
-      <h2 id="tituloAprobacion">Cuándo aprobás</h2>
-      <p>Debés cumplir <strong>todas las condiciones obligatorias</strong> y conservar al menos <strong>60 puntos</strong>. Tener 60, 90 o 100 puntos con objetivos pendientes no alcanza para aprobar.</p>
-      <p>Guardar revisa el diseño. Simular comprueba la ejecución y sus parámetros. Si la consigna pide comparar configuraciones, abrir un control no alcanza: hay que aplicar el cambio y ejecutar nuevamente.</p>
-      <p>La ejecución se evalúa cuando el servidor la acepta y registra. Pausar o detener su reproducción visual no genera otro descuento ni anula el resultado evaluado.</p>
+      <p>Al terminar, vas a ver tu puntaje y el detalle de cada descuento antes de continuar.</p>
     </section>
     <section id="reglaPracticas" aria-labelledby="tituloPracticas">
-      <h2 id="tituloPracticas">Prácticas gratuitas por nivel</h2>
-      <p>Las primeras ejecuciones de cada intento no descuentan, para permitir aprender y realizar las comparaciones iniciales.</p>
+      <h2 id="tituloPracticas">Prácticas sin descuento</h2>
+      <p>Cada intento incluye estas primeras simulaciones para probar tu red sin perder puntos:</p>
       <table id="practicasPuntos">
-        <thead><tr><th scope="col">Nivel</th><th scope="col">Ejecuciones gratuitas</th></tr></thead>
+        <thead><tr><th scope="col">Nivel</th><th scope="col">Simulaciones sin descuento</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
     <section id="reglaDescuentos" aria-labelledby="tituloDescuentos">
-      <h2 id="tituloDescuentos">Qué no descuenta</h2>
-      <p>El tutorial, guardar, el tiempo real, mover el mapa, pausar y los fallos técnicos <strong>no descuentan puntos</strong>. Cambiar parámetros sin ejecutar tampoco descuenta.</p>
-      <p>Las ejecuciones que cumplen alguna condición nueva no descuentan. Una solicitud rechazada no consume una práctica gratuita. Elegir más UV o acelerar el ritmo visual × no da puntos extra.</p>
-      <p>Al completar el nivel, una ventana muestra los puntos iniciales, cada ejecución penalizada, los objetivos que estaban pendientes y el total. Después comienza la animación de victoria.</p>
+      <h2 id="tituloDescuentos">Qué no te quita puntos</h2>
+      <p>Estas acciones <strong>no descuentan puntos</strong>:</p>
+      <ul>
+        <li>Consultar el tutorial y tomarte tiempo para resolver.</li>
+        <li>Guardar el diseño o mover el mapa.</li>
+        <li>Cambiar velocidad, duración o ritmo sin iniciar otra simulación.</li>
+        <li>Simular y cumplir un objetivo nuevo.</li>
+        <li>Completar toda la consigna.</li>
+        <li>Pausar o detener la animación.</li>
+      </ul>
+      <p>Pausar o detener no revierte un descuento de la simulación que ya iniciaste.</p>
+      <p>Los fallos técnicos no te quitan puntos. Si la simulación no puede iniciarse, tampoco consume una práctica.</p>
     </section>
-    <section aria-labelledby="reglaHistorial">
-      <h2 id="reglaHistorial">Intentos anteriores</h2>
-      <p>Los intentos iniciados antes de adoptar esta política conservan la regla anterior: porcentaje de condiciones cumplidas, sin descuentos, y aprobación con toda la consigna cumplida. No se convierten ni recalculan sus resultados.</p>
-      <p>Cada intento conserva la política de la versión del nivel con la que comenzó. Un intento nuevo bajo la nueva versión empieza con 100 puntos y sus prácticas gratuitas disponibles.</p>
-    </section>
-    <section aria-labelledby="reglaRanking">
-      <h2 id="reglaRanking">Qué suma al ranking</h2>
-      <p>Se suma tu <strong>mejor puntaje de cada nivel completado</strong>. Los intentos incompletos no suman al ranking. Repetir un nivel no acumula copias de sus puntos.</p>
-      <p>Con diez niveles de 100 puntos, el máximo es 1000. Reiniciar el recorrido conserva los resultados históricos. ADMIN puede probar los niveles, pero no participa en la clasificación de jugadores.</p>
+    <section class="metronet-reglas__ancho" aria-labelledby="reglaRanking">
+      <h2 id="reglaRanking">Tu lugar en el ranking</h2>
+      <p>El ranking suma tu <strong>mejor puntaje de cada nivel completado</strong>: hasta <strong>1000 puntos</strong> en los diez niveles.</p>
+      <p>Podés repetir un nivel para mejorar tu marca. Se conserva el mejor resultado; los puntos de las repeticiones no se suman entre sí. Los niveles sin completar no aportan puntos.</p>
+      <p>Reiniciar el recorrido conserva tus marcas. La clasificación incluye solamente jugadores.</p>
       <div class="metronet-reglas__acciones"><a class="metronet-boton" href="/escenarios.html">Ver niveles</a><a class="metronet-boton" href="/ranking.html">Ver ranking</a></div>
     </section>
   </main>
