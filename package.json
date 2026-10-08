@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently -k -n BACKEND,FRONTEND \"cd backend && ./mvnw spring-boot:run\" \"cd frontend && npm run dev\"",
+    "start": "concurrently -k -n BACKEND,FRONTEND \"bash backend/scripts/iniciar-local.sh\" \"npm --prefix frontend run dev -- --host 127.0.0.1 --port 5173 --strictPort\"",
+    "dev": "npm start",
     "stop": "bash -c 'for port in 8080 5173; do pid=$(lsof -tiTCP:$port -sTCP:LISTEN); if [ -n \"$pid\" ]; then parent=$(ps -o ppid= -p \"$pid\" | tr -d \" \"); kill $parent $pid 2>/dev/null || true; fi; done'"
   },
   "devDependencies": {
