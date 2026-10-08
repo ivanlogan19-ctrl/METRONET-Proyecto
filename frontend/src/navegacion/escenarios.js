@@ -26,9 +26,9 @@ const HISTORIA_NIVELES = Object.freeze({
   5: 'Ari estudia cómo incorporar Terminal Tres Cruces y Plaza Virgilio al trazado que parte del Palacio Legislativo. Sol revisa la cobertura de los barrios implicados y Dani compara qué cambia en el servicio al sumar esos destinos.',
   6: 'Sol incorpora Plaza Virgilio al recorrido que conecta Palacio Legislativo y Mirador de la Intendencia. Ari ajusta las conexiones y Dani compara UV y UT en ejecuciones distintas.',
   7: 'Ari propone organizar la ampliación hacia Brazo Oriental en dos líneas. Sol analiza dónde conviene realizar el intercambio entre ellas y Dani comprueba su funcionamiento. El transbordo pasa a ser una decisión central del diseño.',
-  8: 'La incorporación del Estadio Centenario aumenta la complejidad del proyecto. Dani estudia cómo operan varias líneas y sus transbordos; Ari revisa la estructura de la red y Sol contrasta la cobertura obtenida con los destinos previstos.',
-  9: 'Sol revisa la distancia a cuatro puntos de interés, incluido Terminal Tres Cruces, bajo un límite de estaciones. Ari depura el trazado y Dani compara UV y UT juntas.',
-  10: 'En la presentación final del proyecto, Dani reúne las pruebas de operación, Ari fundamenta el trazado y Sol explica la cobertura territorial. Los tres integran lo aprendido en una propuesta de red hipotética que pueden defender con resultados.',
+  8: 'La incorporación del Estadio Centenario aumenta la complejidad del proyecto. Dani estudia cómo operan varias líneas y sus transbordos; Ari revisa la estructura de la red y Sol contrasta la cobertura obtenida con los destinos previstos. Dani compara después un cambio de UV aplicado a todos los metros.',
+  9: 'Sol revisa la cercanía a cuatro puntos de interés, incluido Terminal Tres Cruces. Ari organiza al menos siete conexiones entre ocho y nueve estaciones; Dani compara UV y UT juntas para evaluar la red precisa que construyeron.',
+  10: 'En la presentación final, Ari fundamenta una red de tres líneas y al menos nueve conexiones; Sol explica su cobertura territorial y Dani reúne las pruebas de operación. Los tres integran lo aprendido en una propuesta hipotética con transbordos que pueden defender con resultados.',
 });
 const PERSONAJES = Object.freeze({
   Ari: { imagen: '/assets/personajes/ari.svg', rol: 'Diseño de red' },
