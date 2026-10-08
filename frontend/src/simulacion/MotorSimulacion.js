@@ -1,4 +1,5 @@
 import { RITMOS as VELOCIDADES_ADMITIDAS, HORAS_INICIALES, duracionVisual, avanceEnTramos, normalizarHoras } from './EscalaSimulacion.js';
+import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 
 export default class MotorSimulacion {
   constructor(diseno) {
@@ -84,7 +85,7 @@ export default class MotorSimulacion {
   }
 
   obtenerEstado() {
-    const unidades = this.rutas.map((ruta, indice) => this.crearEstadoUnidad(ruta, indice));
+    const unidades = this.rutas.map(ruta => this.crearEstadoUnidad(ruta));
     const metroActivo = unidades.find((unidad) => unidad.transitable) ?? null;
     return {
       estado: this.estado,
@@ -103,13 +104,14 @@ export default class MotorSimulacion {
     const estacionesPorNombre = new Map(this.obtenerEstaciones().map((estacion) => [estacion.nombre, estacion]));
     return this.obtenerUnidadesMetro().map((unidad) => ({
       idTren: unidad.idTren,
+      identificador: `M-${numeroMetroEnRed(unidad.idTren, this.obtenerUnidadesMetro()) ?? '—'}`,
       nombreLinea: unidad.nombreLinea,
       velocidadUV: Number(unidad.velocidadPromedio) || 0,
       ruta: construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea),
     }));
   }
 
-  crearEstadoUnidad(unidad, indice) {
+  crearEstadoUnidad(unidad) {
     const nombresEstaciones = unidad.ruta.map((estacion) => estacion.nombre);
     const cantidadTramos = Math.max(0, nombresEstaciones.length - 1);
     const progresoRuta = cantidadTramos
@@ -123,7 +125,7 @@ export default class MotorSimulacion {
     const proximaEstacion = esFinal ? null : (nombresEstaciones[indiceTramo + 1] ?? null);
     return {
       idTren: unidad.idTren,
-      identificador: formatearIdentificadorMetro(unidad.idTren, indice),
+      identificador: unidad.identificador,
       nombreLinea: unidad.nombreLinea,
       velocidadUV: unidad.velocidadUV,
       progresoRuta,
@@ -174,11 +176,6 @@ function agregarAdyacencia(adyacencias, origen, destino) {
 function normalizarVelocidad(velocidad) {
   const velocidadNumerica = Number(velocidad);
   return VELOCIDADES_ADMITIDAS.includes(velocidadNumerica) ? velocidadNumerica : 1;
-}
-
-function formatearIdentificadorMetro(idTren, indice) {
-  const identificador = String(idTren ?? '').trim();
-  return identificador ? `M-${identificador}` : `M-${String(indice + 1).padStart(2, '0')}`;
 }
 
 export { VELOCIDADES_ADMITIDAS };

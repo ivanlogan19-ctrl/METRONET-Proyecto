@@ -1,5 +1,6 @@
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { formatearVelocidad } from './EscalaSimulacion.js';
+import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 
 // Un único editor de velocidad didáctica; el multiplicador visual vive fuera de él.
 export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opciones = {}) {
@@ -17,7 +18,10 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       <h3 id="tituloConfiguracionMetros" class="simulacion-seccion-titulo">UT / UV por Metro</h3>
       <details class="simulacion-configuracion-metros__desplegable">
         <summary aria-label="Ver UT y UV por metro">Ver por metro</summary>
-        <ul class="simulacion-configuracion-metros__lista"></ul>
+        <div class="simulacion-configuracion-metros__lista">
+          <p data-nivel-configuracion></p>
+          <ul></ul>
+        </div>
       </details>
     </section>
     <section class="simulacion-grupo-velocidad">
@@ -40,20 +44,35 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   const resumen = contenedor.querySelector('.simulacion-configuracion-metros');
   const desplegableResumen = resumen.querySelector('details');
   const listaResumen = resumen.querySelector('ul');
+  const nombreMetro = metro => `Metro ${numeroMetroEnRed(metro.idTren, unidades) ?? '—'}`;
+  function actualizarNivel(nivel) {
+    resumen.querySelector('[data-nivel-configuracion]').textContent = nivel || 'Red actual';
+  }
+  actualizarNivel(opciones.nivel);
   resumen.hidden = unidades.length === 0;
-  resumen.classList.toggle('simulacion-configuracion-metros--pocos', unidades.length <= 3);
   function actualizarTiempo(duracionGlobal, unidadTiempo = 'UT') {
     const unidad = unidadTiempo === 'UT' ? 'UT' : 'h';
     const tiempo = Number.isInteger(Number(duracionGlobal)) && Number(duracionGlobal) > 0
-      ? `${duracionGlobal} ${unidad} global` : `— ${unidad} global`;
+      ? `${duracionGlobal} ${unidad}` : `— ${unidad}`;
     listaResumen.replaceChildren(...unidades.map(metro => {
       const fila = document.createElement('li');
       fila.dataset.metro = String(metro.idTren);
       const nombre = document.createElement('strong');
-      nombre.textContent = `Metro ${metro.idTren} · ${metro.nombreLinea}`;
-      const valores = document.createElement('span');
+      nombre.textContent = nombreMetro(metro);
+      const valores = document.createElement('dl');
       const velocidad = Number(metro.velocidadPromedio);
-      valores.textContent = `${Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'} · ${tiempo}`;
+      for (const [etiqueta, valor] of [
+        ['Línea', metro.nombreLinea || 'Sin línea'],
+        ['UV actual', Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'],
+        ['UT actual', tiempo],
+      ]) {
+        const termino = document.createElement('dt');
+        const dato = document.createElement('dd');
+        termino.textContent = etiqueta;
+        dato.textContent = valor;
+        if (etiqueta === 'UT actual') dato.title = 'Duración aplicada a todas las unidades de esta red';
+        valores.append(termino, dato);
+      }
       fila.append(nombre, valores);
       return fila;
     }));
@@ -61,7 +80,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && fila.dataset.metro === selector.value);
     });
   }
-  selector.replaceChildren(new Option('Todos los metros', 'todas'), ...unidades.map(u => new Option(`Metro ${u.idTren} · ${u.nombreLinea}`, String(u.idTren))));
+  selector.replaceChildren(new Option('Todos los metros', 'todas'), ...unidades.map(u => new Option(`${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
   const desplegable = contenedor.querySelector('.simulacion-selector-metros');
   const acceso = desplegable.querySelector('summary');
   const lista = desplegable.querySelector('.simulacion-selector-metros__opciones');
@@ -166,5 +185,5 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     try { await guardar(elegidas(), valor); }
     finally { guardando = false; if (campo.isConnected) campo.disabled = opciones.bloqueado === true; }
   });
-  return { seleccionar, actualizarTiempo };
+  return { seleccionar, actualizarTiempo, actualizarNivel };
 }

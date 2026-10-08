@@ -1,13 +1,20 @@
-const PASOS = [
+const PASOS_INTEGRAL = [
+  ['#metronet-mapa', 'Mapa de la red', 'Acá construís tu red. Arrastrá para desplazarte y usá los controles de vista para acercar o alejar.'],
   ['.metronet-herramientas__barra', 'Herramientas', 'Estos símbolos permiten construir y editar la red. Solo aparecen disponibles los que corresponden al nivel.'],
   ['[data-elegir-herramienta="estaciones"]', 'Estación', 'Este símbolo permite colocar estaciones sobre el mapa.'],
   ['[data-elegir-herramienta="lineas"]', 'Línea', 'Esta herramienta une dos estaciones y crea una línea con su primer tramo.'],
   ['[data-elegir-herramienta="seleccion"]', 'Selección', 'Seleccioná elementos existentes para consultar o editar sus propiedades.'],
   ['[data-guardar]', 'Guardar', 'El disquete guarda el diseño y revisa las condiciones del nivel.'],
-  ['.metronet-poi > summary', 'Referencias', 'La estrella permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
+  ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Elegí una vía y dos estaciones para extender una línea.'],
+  ['[data-elegir-herramienta="metros"]', 'Metro', 'Tocá una vía con esta herramienta para asignarle una unidad.'],
+  ['[data-ir-simulacion]', 'Simular', 'En Acciones de nivel podés pasar a Simulación después de guardar y comprobar la red.'],
   ['.metronet-hud > summary', 'Controles y pista', 'Acá podés consultar los controles técnicos o pedir una pista sobre la consigna. El libro abre este tutorial.'],
   ['.metronet-consigna__cabecera', 'Objetivo', 'Este panel resume el objetivo y su progreso. Podés desplegar los detalles cuando los necesites.'],
 ];
+
+const PASOS = [...PASOS_INTEGRAL.slice(1,6),
+  ['.metronet-poi > summary', 'Referencias', 'La estrella permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
+  ...PASOS_INTEGRAL.slice(-2)];
 
 const visible = elemento => elemento && !elemento.disabled && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';
 const senalable = elemento => elemento && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';
@@ -24,8 +31,8 @@ export default class RecorridoInicial {
     this.togglePanel = document.querySelector('[data-panel-edicion-toggle]');
     this.panelCerrado = this.togglePanel?.getAttribute('aria-expanded') === 'false';
     if (this.panelCerrado) this.togglePanel.click();
-    this.pasos = (this.opciones.pasos ?? PASOS).filter(([selector]) =>
-      (this.opciones.senalarDeshabilitados ? senalable : visible)(document.querySelector(selector)));
+    this.pasos = (this.opciones.pasos ?? (this.opciones.integral ? PASOS_INTEGRAL : PASOS)).filter(([selector]) =>
+      this.opciones.pasosDinamicos || (this.opciones.senalarDeshabilitados ? senalable : visible)(document.querySelector(selector)));
     this.indice = 0;
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';
@@ -41,6 +48,11 @@ export default class RecorridoInicial {
     this.reposicionar = () => this.posicionar();
     window.addEventListener('resize', this.reposicionar);
     window.addEventListener('scroll', this.reposicionar, true);
+    this.alAlternar = () => {
+      cancelAnimationFrame(this.reposicionPendiente);
+      this.reposicionPendiente = requestAnimationFrame(this.reposicionar);
+    };
+    document.addEventListener('toggle', this.alAlternar, true);
     if (this.opciones.interactivo) {
       this.cerrarConEscape = evento => {
         if (evento.key !== 'Escape') return;
@@ -60,13 +72,13 @@ export default class RecorridoInicial {
     this.objetivo = paso ? document.querySelector(paso[0]) : null;
     this.ladoPreferido = null;
     // Los objetivos pueden ser reemplazados al refrescar la consigna.
-    if (paso && !senalable(this.objetivo)) { this.indice++; this.mostrar(); return; }
+    if (paso && !this.opciones.pasosDinamicos && !senalable(this.objetivo)) { this.indice++; this.mostrar(); return; }
     this.dialogo.dataset.objetivo = paso?.[0] ?? 'fin';
     this.dialogo.querySelector('[data-recorrido-progreso]').textContent = paso ? `RECORRIDO // ${this.indice + 1} DE ${this.pasos.length}` : 'RECORRIDO COMPLETADO';
     this.dialogo.querySelector('h2').textContent = paso?.[1] ?? this.opciones.tituloFinal ?? '¡Listos para construir!';
     this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? this.opciones.textoFinal ?? 'Ya conocés los controles. Podés comenzar a construir la red.';
-    this.dialogo.querySelector('[data-recorrido-siguiente]').hidden = Boolean(paso?.[3]);
-    this.dialogo.querySelector('[data-recorrido-siguiente]').textContent = paso ? 'Siguiente' : 'Comenzar';
+    this.dialogo.querySelector('[data-recorrido-siguiente]').hidden = !paso || Boolean(paso[3]);
+    this.dialogo.querySelector('[data-recorrido-siguiente]').textContent = 'Siguiente';
     this.dialogo.querySelector('[data-recorrido-omitir]').hidden = !paso;
     this.objetivo?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
     this.posicionar();
@@ -82,6 +94,8 @@ export default class RecorridoInicial {
   }
   posicionar() {
     if (!this.dialogo?.open) return;
+    const selector = this.pasos[this.indice]?.[0];
+    this.objetivo = selector ? document.querySelector(selector) : null;
     const margen = 12, espacio = 12;
     const r = this.objetivo?.getBoundingClientRect();
     const w = this.dialogo.offsetWidth, h = this.dialogo.offsetHeight;
@@ -151,6 +165,8 @@ export default class RecorridoInicial {
     this.cierreFinal = null;
     window.removeEventListener('resize', this.reposicionar);
     window.removeEventListener('scroll', this.reposicionar, true);
+    document.removeEventListener('toggle', this.alAlternar, true);
+    cancelAnimationFrame(this.reposicionPendiente);
     if (this.cerrarConEscape) window.removeEventListener('keydown', this.cerrarConEscape);
     document.querySelector(this.opciones.disparador)?.removeAttribute('aria-description');
     if (this.dialogo.open) this.dialogo.close();

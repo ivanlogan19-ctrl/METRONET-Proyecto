@@ -10,9 +10,8 @@ const nivel={idEscenario:1,numero:1,nombre:'Primera red',estado:'EN_DESARROLLO',
 for(const primeraPasada of [true,false])test(`Campaña: primera pasada ${primeraPasada}, Aprender y recarga sin oferta`,async t=>{
  const v=await abrirEditor(browser,{escenario:nivel,estaciones:[],lineas:[],primeraPasada,ofrecerRecorrido:true});const p=v.pagina;
  t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});
- assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).isVisible(),primeraPasada);
+ assert.equal(await p.locator('.metronet-recorrido[open]').count(),primeraPasada ? 1 : 0);
  if(primeraPasada){
-  await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).click();
   const colores=await p.evaluate(async()=>{const d=document.querySelector('.metronet-recorrido');await Promise.all(d.getAnimations().map(a=>a.finished));const s=getComputedStyle(d);return{fondo:s.backgroundColor,borde:s.borderTopColor,opacidad:s.opacity};});
   assert.equal(colores.fondo,'rgb(40, 37, 17)');assert.equal(colores.borde,'rgb(244, 237, 121)');assert.equal(colores.opacidad,'1');
   await p.keyboard.press('Escape');

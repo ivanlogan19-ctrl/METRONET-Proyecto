@@ -55,6 +55,8 @@
   /* Marco de marca estable: reserva el espacio de la interfaz, no recorta el asset. */
   --metronet-logo-marco-proporcion: 1.22;
   --font-ui: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* Los campos conservan una fuente legible aunque un panel use texto arcade. */
+  --font-campos: var(--font-ui);
   --font-tecnica: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-arcade: 'Silkscreen', var(--font-tecnica);
   --retro-primario: var(--primary);

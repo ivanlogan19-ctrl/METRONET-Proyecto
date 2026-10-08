@@ -190,7 +190,7 @@ function nombreSinNumero(escenario) {
 }
 
 function obtenerRelatoSeleccion(escenario) {
-  const publicado = escenario.contenidoPublicado?.desafio?.relato?.trim();
+  const publicado = escenario.contenidoPublicado?.desafio?.relato?.trim() ?? escenario.relato?.trim();
   // La publicación inicial conserva el relato anterior. Una edición posterior del administrador prevalece.
   if (publicado && publicado !== RELATOS_INICIALES_PUBLICADOS[escenario.numero]) return publicado;
   return HISTORIA_NIVELES[escenario.numero] ?? publicado ?? escenario.objetivo ?? 'Sin descripción disponible.';

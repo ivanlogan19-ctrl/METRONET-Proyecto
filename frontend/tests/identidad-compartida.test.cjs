@@ -20,6 +20,7 @@ async function estilo(elemento, propiedades) {
 }
 const aspecto = ['backgroundColor', 'color', 'borderTopColor', 'borderTopWidth', 'borderRadius', 'boxShadow', 'fontFamily'];
 function sinFuente({ fontFamily, ...resto }) { return resto; }
+function sinColores({ backgroundColor, color, borderTopColor, ...resto }) { return resto; }
 function contraste(texto, fondo) {
   const luminancia = color => {
     const canales = color.match(/[\d.]+/g).slice(0, 3).map(n => Number(n) / 255).map(n => n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4);
@@ -41,10 +42,11 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     const actual = await estilo(pagina.locator(boton).first(), aspecto);
     const actualCampo = await estilo(pagina.locator(entrada).first(), aspecto);
     primario ??= actual; campo ??= actualCampo;
-    assert.deepEqual(actual, primario, `Acción primaria en ${ruta}`);
+    // Iniciar simulación usa verde semántico; conserva geometría, relieve y tipografía comunes.
+    if (ruta.startsWith('/simulacion.html')) assert.deepEqual(sinColores(actual), sinColores(primario), `Acción primaria en ${ruta}`);
+    else assert.deepEqual(actual, primario, `Acción primaria en ${ruta}`);
     assert.deepEqual(sinFuente(actualCampo), sinFuente(campo), `Campo en ${ruta}`);
-    if (ruta === '/login.html' || ruta === '/admin.html') assert.match(actualCampo.fontFamily, /Silkscreen/);
-    else assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
+    assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
     assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}`);
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
     if (ruta.startsWith('/simulacion.html')) {
@@ -63,7 +65,7 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
   }
 });
 
-test('los seis formularios de acceso usan Silkscreen en campos y etiquetas', async () => {
+test('los seis formularios de acceso conservan etiquetas retro y campos que distinguen mayúsculas', async () => {
   for (const ruta of ['/login.html', '/admin-login.html', '/registro.html',
     '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html']) {
     for (const width of [390, 1440]) {
@@ -73,8 +75,13 @@ test('los seis formularios de acceso usan Silkscreen en campos y etiquetas', asy
           + '.auth-card:not(.privacy-card) .field-group input:not([type="checkbox"]):not([type="hidden"])');
         assert.ok(await elementos.count() >= 2, `${ruta}: faltan campos o etiquetas`);
         for (const elemento of await elementos.all()) {
-          assert.match(await elemento.evaluate(nodo => getComputedStyle(nodo).fontFamily), /Silkscreen/,
-            `${ruta} ${width}: tipografía de campo o etiqueta`);
+          const actual = await elemento.evaluate(nodo => ({ etiqueta: nodo.tagName === 'LABEL',
+            fuente: getComputedStyle(nodo).fontFamily, transformacion: getComputedStyle(nodo).textTransform }));
+          if (actual.etiqueta) assert.match(actual.fuente, /Silkscreen/);
+          else {
+            assert.doesNotMatch(actual.fuente, /Silkscreen/, `${ruta} ${width}: el campo debe distinguir la caja del texto`);
+            assert.equal(actual.transformacion, 'none');
+          }
         }
         assert.ok(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           `${ruta} ${width}: desborde horizontal`);
@@ -82,6 +89,28 @@ test('los seis formularios de acceso usan Silkscreen en campos y etiquetas', asy
       } finally { await contexto.close(); }
     }
   }
+});
+
+test('ADMIN permite escribir, mostrar y enviar mayúsculas y minúsculas sin alterar la clave', async () => {
+  const { pagina, contexto, solicitudes, errores } = await abrirPantalla(navegador, '/admin-login.html');
+  try {
+    await pagina.locator('#usuario').pressSequentially('LoGaN');
+    await pagina.locator('#password').pressSequentially('ClaveMiXta1!');
+    const mostrar = pagina.getByRole('button', { name: 'Mostrar', exact: true });
+    await mostrar.click();
+    assert.equal(await pagina.locator('#password').getAttribute('type'), 'text');
+    assert.equal(await pagina.locator('#password').inputValue(), 'ClaveMiXta1!');
+    const visible = await estilo(pagina.locator('#password'), ['fontFamily', 'textTransform']);
+    assert.doesNotMatch(visible.fontFamily, /Silkscreen/);
+    assert.equal(visible.textTransform, 'none');
+    await pagina.getByRole('button', { name: 'Ocultar', exact: true }).click();
+    assert.equal(await pagina.locator('#password').getAttribute('type'), 'password');
+    await pagina.locator('#loginAdminButton').click();
+    await pagina.locator('#mensaje.error').waitFor();
+    const solicitud = solicitudes.find(item => item.path === '/auth/login/admin');
+    assert.deepEqual(solicitud.body, { usuario: 'LoGaN', password: 'ClaveMiXta1!' });
+    assert.deepEqual(errores, []);
+  } finally { await contexto.close(); }
 });
 
 test('hover, foco y pulsación son distinguibles; controles deshabilitados conservan legibilidad', async t => {

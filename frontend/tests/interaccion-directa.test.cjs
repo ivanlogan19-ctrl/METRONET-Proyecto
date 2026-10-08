@@ -124,13 +124,14 @@ test('Guardar espera una edición pendiente y conserva el error si la escritura 
 test('Simular revisa y guarda antes de navegar; la intención se consume una sola vez',async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').dblclick();await p.waitForURL('**/simulacion.html?**');
+ await abrirTutorialManual(p);
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
  assert.equal(await tutorial.getByRole('button',{name:'Pausar recorrido'}).count(),0);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
  for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
- await tutorial.getByRole('button',{name:'Comenzar',exact:true}).evaluate(b=>{b.click();b.click();});
+ await tutorial.waitFor({state:'detached',timeout:5000});
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
  const ejecucion=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/simulaciones/77/ejecutar');
  await p.locator('#formularioEjecucion button[type=submit]').click();
@@ -143,11 +144,17 @@ test('Simular revisa y guarda antes de navegar; la intención se consume una sol
  assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isVisible(),true);
 });
 
+async function abrirTutorialManual(p){
+ if(await p.locator('.metronet-recorrido').count()) return;
+ if(!await p.locator('.metronet-tutorial-simulacion:popover-open').count()) await p.locator('#tutorialPantallaSimulacion').click();
+ await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla'}).click();
+}
+
 async function completarTutorialSimulacion(p){
+ if(!await p.locator('.metronet-recorrido').count()) await abrirTutorialManual(p);
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
  for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
- await tutorial.getByRole('button',{name:'Comenzar',exact:true}).click();
- await tutorial.waitFor({state:'detached'});
+ await tutorial.waitFor({state:'detached',timeout:5000});
 }
 
 async function demorarProgresoSimulacion(p,t){
@@ -180,7 +187,7 @@ for(const repetido of [false,true])test(`Progreso demorado: Play manual 503 ${re
   await p.waitForTimeout(250);
   assert.equal(await p.locator('.metronet-recorrido').count(),0);
  }else{
-  await p.locator('.metronet-recorrido').waitFor();
+  assert.equal(await p.locator('.metronet-recorrido').count(),0,'Modo Libre no ofrece tutorial de campaña');
   await completarTutorialSimulacion(p);
  }
  assert.equal(intentos,1,'La intención consumida no reintenta el Play manual fallido');
@@ -212,7 +219,7 @@ test('Progreso demorado: salida preservada cancela la intención antes de mostra
  const progreso=await demorarProgresoSimulacion(p,t);
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');await progreso.solicitado;
  await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
- progreso.liberar();await p.locator('.metronet-recorrido').waitFor();
+ progreso.liberar();await p.locator('#tutorialPantallaSimulacion').waitFor();
  await completarTutorialSimulacion(p);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
 });
@@ -220,6 +227,7 @@ test('Progreso demorado: salida preservada cancela la intención antes de mostra
 for(const cierre of ['Omitir','Escape'])test(`Simular pendiente: ${cierre} no ejecuta y Play manual ejecuta una vez`,async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
+ await abrirTutorialManual(p);
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
  if(cierre==='Omitir')await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
  else {await tutorial.getByRole('button',{name:'Siguiente',exact:true}).focus();await p.keyboard.press('Escape');}
@@ -236,29 +244,29 @@ for(const cierre of ['Omitir','Escape'])test(`Simular pendiente: ${cierre} no ej
 test('Play manual durante el tutorial consume la intención diferida',async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
- await p.locator('.metronet-recorrido').waitFor();
+ await abrirTutorialManual(p);await p.locator('.metronet-recorrido').waitFor();
  await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
  await p.waitForFunction(()=>document.querySelector('#pausarSimulacion:not([hidden]):not(:disabled)'));
  await completarTutorialSimulacion(p);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
 });
 
-test('Cambiar de diseño durante tutorial descarta la intención anterior y reofrece la guía interrumpida',async t=>{
+test('Cambiar de diseño durante tutorial descarta la intención anterior y conserva disponible la guía manual',async t=>{
  const {pagina:p,solicitudes,diseno}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
- await p.locator('.metronet-recorrido').waitFor();
+ await abrirTutorialManual(p);await p.locator('.metronet-recorrido').waitFor();
  await p.route('**/api/simulaciones/78',route=>route.fulfill({json:{...diseno,simulacion:{...diseno.simulacion,idDiseno:78}},headers:{'access-control-allow-origin':'*'}}));
  await p.goto(`${process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5173'}/simulacion.html?idDiseno=78`);
  await p.locator('#panelSimulacion:not([hidden])').waitFor();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
- await p.locator('.metronet-recorrido').waitFor();
+ await abrirTutorialManual(p);await p.locator('.metronet-recorrido').waitFor();
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
 });
 
 test('Salir durante el tutorial y volver desde historial no ejecuta la intención anterior',async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
- await p.locator('.metronet-recorrido').waitFor();
+ await abrirTutorialManual(p);await p.locator('.metronet-recorrido').waitFor();
  await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
  await completarTutorialSimulacion(p);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);

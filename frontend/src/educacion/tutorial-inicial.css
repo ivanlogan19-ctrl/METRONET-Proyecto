@@ -10,12 +10,28 @@ html:root body .metronet-tutorial__panel, html:root body dialog.metronet-recorri
 .metronet-tutorial__panel { overflow:auto; }
 .metronet-tutorial__panel header { display:flex; align-items:center; gap:12px; }
 html:root body .metronet-tutorial__panel h2, html:root body dialog.metronet-recorrido h2 { margin:0; color:var(--tutorial-acento); font:16px/1.5 var(--font-arcade); }
-html:root body .metronet-tutorial__panel header h2 { border:0; padding:0; background:none; box-shadow:none; }
-html:root body .metronet-tutorial__panel header h2::before { display:none; }
+/* El tutorial tiene su propia cabecera amarilla, sin el filete azul global. */
+html:root body :is(.metronet-tutorial__panel, dialog.metronet-recorrido) :is(h2, h3, h4) {
+  border:0; padding:0; background:none; box-shadow:none;
+  color:var(--tutorial-acento); -webkit-text-stroke:0; text-shadow:none;
+}
+html:root body :is(.metronet-tutorial__panel, dialog.metronet-recorrido) :is(h2, h3, h4)::before,
+html:root body :is(.metronet-tutorial__panel, dialog.metronet-recorrido) :is(h2, h3, h4)::after { display:none; }
 .metronet-tutorial p, .metronet-recorrido p { margin:8px 0; }
 .metronet-tutorial__acciones, .metronet-recorrido__acciones { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
 .metronet-tutorial__acciones button, .metronet-recorrido__acciones button { white-space:normal; min-height:40px; }
-.metronet-tutorial__repetir { display:block; margin:12px auto 0; border:1px solid var(--tutorial-acento); background:var(--tutorial-superficie); color:var(--tutorial-tinta); }
+html:root body :is(.metronet-tutorial__panel, dialog.metronet-recorrido) button {
+  --tutorial-accion: var(--tutorial-acento);
+  --boton-fondo: var(--tutorial-accion);
+  --boton-hover: color-mix(in srgb, var(--tutorial-accion) 80%, var(--text-primary));
+  --boton-borde: var(--tutorial-accion);
+  --boton-texto: var(--primary-ink);
+}
+html:root body dialog.metronet-recorrido button[data-recorrido-omitir] { --tutorial-accion:var(--danger); }
+html:root body dialog.metronet-recorrido button[data-recorrido-siguiente] { --tutorial-accion:var(--success); }
+html:root body .metronet-tutorial__repetir {
+  display:block; margin:12px auto 0; min-height:40px;
+}
 .metronet-tutorial__error { color:var(--warning-text, #ffe59b); border-left:2px solid currentColor; padding-left:8px; }
 .metronet-tutorial__herramientas { display:grid; gap:6px; margin:8px 0; }
 .metronet-tutorial__herramientas p { margin:0; padding:5px 0; border-bottom:1px solid var(--tutorial-acento); }
@@ -33,6 +49,7 @@ html:root body dialog.metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%
 /* El libro comparte el acento educativo sin cambiar el rojo de acciones destructivas. */
 html:root body .metronet-tutorial > summary.metronet-boton-icono { color:var(--tutorial-acento); border-color:var(--tutorial-acento); }
 html:root body .metronet-tutorial__panel.metronet-panel-superpuesto { background:var(--tutorial-superficie); border-color:var(--tutorial-acento); color:var(--tutorial-tinta); }
+html:root body .metronet-tutorial-simulacion:popover-open { position:fixed; inset:auto; z-index:var(--layer-dropdown); width:min(360px,calc(100vw - 24px)); max-height:min(70dvh,520px); overflow:auto; background:var(--tutorial-superficie); border:2px solid var(--tutorial-acento); color:var(--tutorial-tinta); box-shadow:var(--shadow-floating); padding:14px; font:14px/1.5 var(--font-ui); }
 
 /* La tarjeta visual recibe sus eventos y puede apartarse de los controles. */
 .metronet-recorrido:not(:modal) { z-index: 3000; pointer-events: auto; }

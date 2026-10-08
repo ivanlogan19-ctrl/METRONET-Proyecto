@@ -4,11 +4,22 @@ const fs = require('node:fs');
 const path = require('node:path');
 const fuente = nombre => fs.readFileSync(path.join(__dirname, '../src/simulacion/', nombre), 'utf8');
 const url = fuente => 'data:text/javascript;base64,' + Buffer.from(fuente).toString('base64');
-const cargar = async () => (await import(url(fuente('MotorSimulacion.js').replace('./EscalaSimulacion.js', url(fuente('EscalaSimulacion.js')))))).default;
+const cargar = async () => (await import(url(fuente('MotorSimulacion.js')
+  .replace('./EscalaSimulacion.js', url(fuente('EscalaSimulacion.js')))
+  .replace('../mapa/controles/NombresRed.js', url(fuente('../mapa/controles/NombresRed.js')))))).default;
 const red = (uv = [4, 6]) => ({
   estaciones: Array.from({ length: 31 }, (_, i) => ({ nombre: `E${i}` })),
   tramos: Array.from({ length: 30 }, (_, i) => ({ nombreLinea: 'Línea', estacionA: `E${i}`, estacionB: `E${i+1}` })),
   unidadesMetro: uv.map((velocidadPromedio, i) => ({ idTren: i + 1, nombreLinea: 'Línea', velocidadPromedio })),
+});
+test('La numeración visible pertenece a la red; los IDs persistidos se conservan', async () => {
+  const Motor = await cargar(), datos = red();
+  datos.unidadesMetro[0].idTren = 206;
+  datos.unidadesMetro[1].idTren = 211;
+  const motor = new Motor(datos);
+  assert.deepEqual(motor.obtenerEstado().unidades.map(u => [u.idTren, u.identificador]), [[206, 'M-1'], [211, 'M-2']]);
+  const nueva = red([4]); nueva.unidadesMetro[0].idTren = 900;
+  assert.equal(new Motor(nueva).obtenerEstado().unidades[0].identificador, 'M-1');
 });
 test('UV, horas y ritmo son independientes, sin tiempos físicos derivados', async () => {
   const Motor = await cargar(), motor = new Motor(red());

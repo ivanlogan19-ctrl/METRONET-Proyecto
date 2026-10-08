@@ -8,6 +8,17 @@ test('nombres únicos con huecos, nombres manuales, reservas y más de 99 elemen
  assert.equal(siguienteNombre('Estación',[{nombre:'Estación 01'},{nombre:'Terminal'},{nombre:'Estación 03'}],['Estación 02']),'Estación 04');
  assert.equal(siguienteNombre('Línea',Array.from({length:110},(_,i)=>({nombre:`Línea ${String(i+1).padStart(2,'0')}`}))),'Línea 111');
 });
+test('una red nueva reinicia la numeración visible sin reiniciar IDs ni renombrar líneas guardadas',async()=>{
+ const {numeroMetroEnRed,siguienteNombre}=await cargar('../src/mapa/controles/NombresRed.js');
+ const anteriores=[{idTren:206},{idTren:211}];
+ assert.equal(numeroMetroEnRed(206,anteriores),1);
+ assert.equal(numeroMetroEnRed('211',[...anteriores].reverse()),2);
+ assert.equal(numeroMetroEnRed(900,[{idTren:900}]),1);
+ assert.equal(numeroMetroEnRed(900,[]),null);
+ assert.equal(siguienteNombre('Línea',[]),'Línea 01');
+ assert.equal(siguienteNombre('Línea',[{nombre:'Línea 01'}]),'Línea 02');
+ assert.deepEqual(anteriores,[{idTren:206},{idTren:211}]);
+});
 test('paletas ferroviarias independientes y líneas adyacentes distintas sin perder determinismo',async()=>{
  const {PALETA_RED:p,coloresDeLineas}=await cargar('../src/mapa/configuracion/PaletaRed.js');
  const colores=[...p.lineas,...Object.values(p.estaciones),...p.metros,p.transbordo];

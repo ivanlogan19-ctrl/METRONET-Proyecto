@@ -14,6 +14,40 @@ async function preparar(t, opciones) {
   return resultado;
 }
 
+test('radio POI: dibujo y coordenadas de estación comparten centro y límite inclusive', async t => {
+  const { pagina } = await preparar(t);
+  const radios = await pagina.evaluate(() => {
+    const dibujo = [], crear = poi.escena.add.graphics;
+    poi.escena.add.graphics = function (...args) {
+      const g = crear.apply(this,args), original=g.strokeEllipse;
+      g.strokeEllipse = function (x,y,ancho,alto,...resto) {
+        if(this.name.startsWith('cobertura-poi-')) dibujo.push({id:Number(this.name.slice(14)),x,y,ancho,alto});
+        return original.call(this,x,y,ancho,alto,...resto);
+      };
+      return g;
+    };
+    try { poi.establecerPuntosObjetivo([{idPunto:1,radioCobertura:25},{idPunto:3,radioCobertura:25}]); }
+    finally { poi.escena.add.graphics=crear; }
+    const red=editorPrueba.capaRedMetro;
+    return dibujo.map(d=>{
+      const p=poi.representaciones.find(r=>r.punto.id===d.id).posicion;
+      const escala=poi.capaBarrios.calcularEscalaMapa();
+      const centro={x:(p.x-escala.offsetX)/escala.anchoMapa*1000,y:(p.y-escala.offsetY)/escala.altoMapa*620};
+      return {...d,centroVisual:p,casos:[24.99,25,25.01].map(distancia=>{
+        const punto=red.convertirPosicion(centro.x+distancia,centro.y);
+        return {distancia,radioNormalizado:Math.hypot((punto.x-d.x)/(d.ancho/2),(punto.y-d.y)/(d.alto/2))};
+      })};
+    });
+  });
+  assert.equal(radios.length,2);
+  for(const r of radios) {
+    assert.equal(r.x,r.centroVisual.x);assert.equal(r.y,r.centroVisual.y);
+    assert.ok(r.casos[0].radioNormalizado<1);
+    assert.ok(Math.abs(r.casos[1].radioNormalizado-1)<1e-8,'El borde visual corresponde exactamente a 25 unidades');
+    assert.ok(r.casos[2].radioNormalizado>1);
+  }
+});
+
 test('el zoom no crea etiquetas normales ni deja objetos huérfanos', async (t) => {
   const { pagina } = await preparar(t);
   const resultado = await pagina.evaluate(() => {

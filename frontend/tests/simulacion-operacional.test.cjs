@@ -6,18 +6,19 @@ let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 
-async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, viewport = { width: 1440, height: 900 } } = {}) {
+async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2], nivel = false, viewport = { width: 1440, height: 900 } } = {}) {
   const red = {
-    simulacion: { idDiseno: 77, nombre: 'Red operacional', modo: 'LIBRE', estado: 'VALIDADO' },
+    simulacion: { idDiseno: 77, nombre: 'Red operacional', modo: nivel ? 'NIVEL' : 'LIBRE', estado: 'VALIDADO', ...(nivel ? { idEscenario: 42 } : {}) },
     estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 }],
     lineas: [{ nombre: 'Azul' }], tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B' }],
-    unidadesMetro: [1, 2].map(idTren => ({ idTren, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 3 })),
+    unidadesMetro: ids.map(idTren => ({ idTren, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 3 })),
     preparadoParaSimular: true, territorio: { areas: [], errores: [] }, resultados: [],
   };
   const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport, responder: async req => {
     const path = new URL(req.url()).pathname;
     if (path === '/api/simulaciones/77') return { json: red };
-    if (path.endsWith('/desempeno')) return { json: { puntajeMaximo: 100, redResuelta: true, unidades: [] } };
+    if (path.endsWith('/desempeno')) return { json: { puntajeMaximo: 100, redResuelta: true, unidades: [],
+      ...(nivel ? { configuracionUvUt: { limiteUt: 6, presupuestoUv: 8 } } : {}) } };
     if (/\/unidades\/\d+$/.test(path)) {
       const id = Number(path.split('/').pop());
       if (fallaSegunda && id === 2) return { status: 503, json: { detail: 'No se pudo guardar la segunda unidad.' } };
@@ -54,7 +55,7 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   await configuracion.locator('summary').click();
   assert.equal(await configuracion.locator('li').first().isVisible(), true);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1 · Azul3 UV · 6 h global', 'Metro 2 · Azul3 UV · 6 h global',
+    'Metro 1LíneaAzulUV actual3 UVUT actual6 h', 'Metro 2LíneaAzulUV actual3 UVUT actual6 h',
   ]);
   await configuracion.locator('summary').press('Escape');
   assert.equal(await configuracion.locator('li').first().isVisible(), false);
@@ -67,12 +68,12 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '2');
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [2, 3]);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1 · Azul2 UV · 6 h global', 'Metro 2 · Azul3 UV · 6 h global',
+    'Metro 1LíneaAzulUV actual2 UVUT actual6 h', 'Metro 2LíneaAzulUV actual3 UVUT actual6 h',
   ]);
   await p.locator('#duracionSimulacion').fill('4');
   await p.locator('#aplicarUnidadTiempo').click();
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1 · Azul2 UV · 4 h global', 'Metro 2 · Azul3 UV · 4 h global',
+    'Metro 1LíneaAzulUV actual2 UVUT actual4 h', 'Metro 2LíneaAzulUV actual3 UVUT actual4 h',
   ]);
 });
 
@@ -219,4 +220,83 @@ test('Parámetros coherentes durante preflight y reinicio con nuevas horas', asy
   assert.deepEqual(solicitudes.filter(s => s.path.endsWith('/ejecutar')).map(s => s.body), [{ velocidad: 1, duracion: 6 }, { velocidad: 1, duracion: 8 }]);
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '8');
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '3');
+});
+
+
+test('Numeración local y ficha clara por nivel sin usar el ID persistido como nombre', async t => {
+  const { pagina: p, solicitudes, red } = await abrir(t, { ids: [206, 211], nivel: true });
+  const menu = p.locator('.simulacion-configuracion-metros__desplegable');
+  await menu.locator('summary').click();
+  assert.equal(await menu.locator('[data-nivel-configuracion]').innerText(), 'Nivel 2');
+  assert.deepEqual(await menu.locator('li').allTextContents(), [
+    'Metro 1LíneaAzulUV actual3 UVUT actual6 UT', 'Metro 2LíneaAzulUV actual3 UVUT actual6 UT',
+  ]);
+  await menu.locator('summary').press('Escape');
+  await p.locator('.simulacion-selector-metros > summary').click();
+  await p.getByRole('button', { name: 'Metro 1 · Azul', exact: true }).click();
+  assert.equal(await p.locator('#unidadCirculacion').inputValue(), '206');
+  await aplicar(p, 4);
+  assert.deepEqual(red.unidadesMetro.map(u => [u.idTren,u.velocidadPromedio]), [[206,4],[211,3]]);
+  assert.ok(solicitudes.some(s => s.method === 'PATCH' && s.path.endsWith('/unidades/206')));
+  assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
+    'Metro 1LíneaAzulUV actual4 UVUT actual6 UT', 'Metro 2LíneaAzulUV actual3 UVUT actual6 UT',
+  ]);
+});
+
+test('Separación uniforme, números centrados sin spinner y acciones con colores semánticos', async t => {
+  const { pagina: p } = await abrir(t);
+  const medidas = await p.evaluate(() => {
+    const separacion = selector => {
+      const bloque = document.querySelector(selector);
+      return bloque.querySelector('summary').getBoundingClientRect().top - bloque.querySelector('h3').getBoundingClientRect().bottom;
+    };
+    return { metros: separacion('.simulacion-grupo-metros'), ficha: separacion('.simulacion-configuracion-metros'),
+      campos: [...document.querySelectorAll('#velocidadUnidad, #duracionSimulacion')].map(e => {
+        const css = getComputedStyle(e);
+        return { alineacion: css.textAlign, izquierda: css.paddingLeft, derecha: css.paddingRight, apariencia: css.appearance };
+      }) };
+  });
+  assert.ok(medidas.ficha >= 4);
+  assert.equal(medidas.ficha, medidas.metros);
+  for (const campo of medidas.campos) {
+    assert.equal(campo.alineacion, 'center');
+    assert.equal(campo.izquierda, campo.derecha);
+    assert.equal(campo.apariencia, 'textfield');
+  }
+  const velocidad = Number(await p.locator('#velocidadUnidad').inputValue());
+  await p.getByRole('button', { name: 'Aumentar velocidad', exact: true }).click();
+  assert.equal(Number(await p.locator('#velocidadUnidad').inputValue()), velocidad + 1);
+  await p.getByRole('button', { name: 'Reducir velocidad', exact: true }).click();
+  assert.equal(Number(await p.locator('#velocidadUnidad').inputValue()), velocidad);
+  const duracion = Number(await p.locator('#duracionSimulacion').inputValue());
+  await p.getByRole('button', { name: 'Aumentar duración', exact: true }).click();
+  assert.equal(Number(await p.locator('#duracionSimulacion').inputValue()), duracion + 1);
+  await p.getByRole('button', { name: 'Reducir duración', exact: true }).click();
+  assert.equal(Number(await p.locator('#duracionSimulacion').inputValue()), duracion);
+  async function color(selector, token) {
+    await p.mouse.move(1, 1);
+    await p.waitForFunction(({ selector, token }) => {
+      const boton = document.querySelector(selector), muestra = document.createElement('span');
+      muestra.style.backgroundColor = `var(${token})`; boton.parentElement.append(muestra);
+      const coincide = getComputedStyle(boton).backgroundColor === getComputedStyle(muestra).backgroundColor;
+      muestra.remove(); return coincide;
+    }, { selector, token });
+    const colores = await p.locator(selector).evaluate((boton, variable) => {
+      const muestra = document.createElement('span');
+      muestra.style.backgroundColor = `var(${variable})`;
+      boton.parentElement.append(muestra);
+      const valor = { actual: getComputedStyle(boton).backgroundColor, esperado: getComputedStyle(muestra).backgroundColor };
+      muestra.remove(); return valor;
+    }, token);
+    assert.equal(colores.actual, colores.esperado);
+  }
+  await color('#formularioEjecucion button', '--success');
+  await p.locator('#duracionSimulacion').fill('60');
+  await p.locator('#formularioEjecucion button').click();
+  await p.locator('#pausarSimulacion:not([hidden])').waitFor();
+  await color('#detenerSimulacion', '--danger');
+  await color('#reiniciarSimulacion', '--warning');
+  await p.locator('#detenerSimulacion').click();
+  assert.equal(await p.locator('#detenerSimulacion').isDisabled(), true);
+  await color('#formularioEjecucion button', '--success');
 });

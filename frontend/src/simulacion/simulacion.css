@@ -278,6 +278,16 @@ html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-mandos b
   width: 44px; max-width: 44px; min-width: 44px; height: 44px; padding: 8px; justify-content: center;
 }
 .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono::after { display: none; }
+/* Las acciones reutilizan estados, foco y relieve del botón común. */
+html:root body.simulacion-pagina .simulacion-mandos :is(.simulacion-primario, #reanudarSimulacion, #detenerSimulacion, #reiniciarSimulacion) {
+  --boton-fondo: var(--accion-simulacion-color);
+  --boton-borde: var(--accion-simulacion-color);
+  --boton-texto: var(--primary-ink);
+  --boton-hover: color-mix(in srgb, var(--accion-simulacion-color) 80%, var(--text-primary));
+}
+.simulacion-mandos :is(.simulacion-primario, #reanudarSimulacion) { --accion-simulacion-color: var(--success); }
+.simulacion-mandos #detenerSimulacion { --accion-simulacion-color: var(--danger); }
+.simulacion-mandos #reiniciarSimulacion { --accion-simulacion-color: var(--warning); }
 html:root body.simulacion-pagina .simulacion-encabezado { grid-template-columns: minmax(0,1fr) auto var(--simulacion-panel-ancho); }
 .simulacion-instrumentos .simulacion-desempeno select { font-size: 10px; }
 html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-titulo,
@@ -286,7 +296,17 @@ html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-
 html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo { padding-inline: 6px; }
 .simulacion-instrumentos .simulacion-parametro-titulo .metronet-icono,
 .simulacion-instrumentos [data-icono-duracion] { display: none; }
-.simulacion-instrumentos .simulacion-parametro-valor input { text-align: center; }
+html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-valor input {
+  text-align: center;
+  padding-inline: 7px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.simulacion-parametro-valor input::-webkit-inner-spin-button,
+.simulacion-parametro-valor input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 html:root body.simulacion-pagina .simulacion-instrumentos h3::before {
   top: 50% !important; transform: translateY(-50%);
 }
@@ -382,6 +402,7 @@ html:root body.simulacion-pagina .simulacion-instrumentos :is(
 .simulacion-configuracion-metros {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
   min-width: 0;
   margin-top: 8px;
   border-top: var(--border-width) solid var(--border);
@@ -420,7 +441,7 @@ html:root body.simulacion-pagina .simulacion-configuracion-metros__desplegable >
   top: calc(100% + 4px);
   right: 0;
   left: 0;
-  max-height: min(220px, 32svh);
+  max-height: min(320px, 45svh);
   min-width: 0;
   margin: 0;
   padding: 6px 10px;
@@ -433,22 +454,24 @@ html:root body.simulacion-pagina .simulacion-configuracion-metros__desplegable >
   list-style: none;
 }
 .simulacion-configuracion-metros__desplegable:not([open]) > .simulacion-configuracion-metros__lista { display: none; }
-.simulacion-configuracion-metros--pocos .simulacion-configuracion-metros__lista {
-  max-height: none;
-}
+.simulacion-configuracion-metros__lista > p { margin: 0; padding: 3px 0 6px; color: var(--info-active); font: 700 12px/1.4 var(--font-tecnica); }
+.simulacion-configuracion-metros__lista > ul { margin: 0; padding: 0; list-style: none; }
 .simulacion-configuracion-metros__lista li {
   display: grid;
-  gap: 1px;
+  gap: 4px;
   min-width: 0;
-  padding: 2px 0;
+  padding: 8px 0;
   border-bottom: var(--border-width) solid var(--border);
-  font: 10px/1.3 var(--font-arcade);
+  font: 12px/1.4 var(--font-ui);
 }
 .simulacion-configuracion-metros__lista li:last-child { border-bottom: 0; }
 .simulacion-configuracion-metros__lista li.es-seleccionado { color: var(--info-active); }
 .simulacion-configuracion-metros__lista strong,
 .simulacion-configuracion-metros__lista span { min-width: 0; overflow-wrap: anywhere; }
 .simulacion-configuracion-metros__lista span { color: var(--text-secondary); }
+.simulacion-configuracion-metros__lista dl { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 4px 8px; margin: 0; }
+.simulacion-configuracion-metros__lista dt { color: var(--text-secondary); }
+.simulacion-configuracion-metros__lista dd { margin: 0; min-width: 0; overflow-wrap: anywhere; color: var(--text-primary); }
 .simulacion-grupo-metros > .simulacion-selector-metros,
 .simulacion-grupo-velocidad > .simulacion-parametro-velocidad { min-width: 0; margin-inline: 10px; }
 html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo {
@@ -545,6 +568,7 @@ html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button[
     top: 0;
     bottom: auto;
   }
+  .simulacion-configuracion-metros__lista { width: 260px; }
 }
 
 /* Conserva los cinco bloques y los controles completos a partir de 1280 × 720. */
@@ -555,6 +579,7 @@ html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button[
   .simulacion-instrumentos #seccionConfiguracion { margin-top: 4px !important; }
   .simulacion-grupo-metros,
   .simulacion-grupo-velocidad { gap: 4px; padding-bottom: 4px; }
+  .simulacion-configuracion-metros { gap: 4px; }
   .simulacion-configuracion-metros__desplegable { margin-bottom: 4px; }
   html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-desempeno, .simulacion-parametros) { padding-bottom: 4px; }
   html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-selector-metros > summary, .simulacion-configuracion-metros__desplegable > summary) {

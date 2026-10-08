@@ -1,5 +1,6 @@
 import { PALETA_RED, coloresDeLineas, colorMetro } from '../configuracion/PaletaRed.js';
 import GestosRed from '../controles/GestosRed.js';
+import { numeroMetroEnRed } from '../controles/NombresRed.js';
 import Phaser from 'phaser';
 
 import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
@@ -9,11 +10,16 @@ const PROFUNDIDAD_ESTACIONES = 10;
 const PROFUNDIDAD_ETIQUETAS = 12;
 const PROFUNDIDAD_METROS = 16;
 const RADIO_NODO_FUNCIONAL = 4;
+const RADIO_NODO_VISIBLE = RADIO_NODO_FUNCIONAL + 2;
+const ANCHO_VIA = 5;
+const ANCHO_VIA_SELECCIONADA = 6;
 const DESPLAZAMIENTO_MARCADOR_ESTACION = 17;
 const ANCHO_MARCADOR_ESTACION = 18;
 const ALTO_MARCADOR_ESTACION = 16;
 const ALCANCE_MARCADOR_ESTACION = DESPLAZAMIENTO_MARCADOR_ESTACION + ALTO_MARCADOR_ESTACION / 2;
 const ESCALA_MINIMA_MARCADOR = 0.125;
+// Píxeles de pantalla: el zoom no cambia la precisión exigida al jugador.
+const TOLERANCIA_SELECCION = Object.freeze({ estacion: 18, marcador: 4, tramo: 11, ambiguedad: 2 });
 const FUENTE_ETIQUETA = FUENTES_INTERFAZ_MAPA.SISTEMA;
 const COLOR_TEXTO = convertirColorAHex(COLORES_INTERFAZ_MAPA.TEXTO);
 const COLOR_FONDO = convertirColorAHex(COLORES_INTERFAZ_MAPA.FONDO);
@@ -167,7 +173,7 @@ export default class CapaRedMetro {
     }
     this.grafico.lineStyle(seleccionado ? 12 : 10, COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 0.92);
     this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
-    this.grafico.lineStyle(seleccionado ? 6 : 5, color, 1);
+    this.grafico.lineStyle(seleccionado ? ANCHO_VIA_SELECCIONADA : ANCHO_VIA, color, 1);
     this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
     this.grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.TEXTO, seleccionado ? 0.62 : 0.24);
     this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
@@ -197,7 +203,7 @@ export default class CapaRedMetro {
       this.grafico.strokeCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 7);
     }
     this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 1);
-    this.grafico.fillCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 2);
+    this.grafico.fillCircle(punto.x, punto.y, RADIO_NODO_VISIBLE);
     this.grafico.lineStyle(2, colorNodo, 1);
     this.grafico.strokeCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 1);
     this.grafico.fillStyle(colorNodo, 1);
@@ -406,7 +412,7 @@ export default class CapaRedMetro {
     // El número permanece disponible en los controles, no sobre el mapa.
     if (!this.mostrarTextoEnMapa) return null;
     if (idTren === null || idTren === undefined) return null;
-    return this.escena.add.text(-13, -4, String(idTren), {
+    return this.escena.add.text(-13, -4, String(numeroMetroEnRed(idTren, this.obtenerUnidadesMetro()) ?? '—'), {
       color: COLOR_FONDO,
       fontFamily: FUENTE_ETIQUETA,
       fontSize: '8px',
@@ -493,10 +499,21 @@ export default class CapaRedMetro {
   }
 
   obtenerEstacionCercana(punto) {
-    return this.obtenerEstaciones().find((estacion) => {
+    const zoom = this.escena.cameras.main.zoom;
+    const escala = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), ESCALA_MINIMA_MARCADOR, 1);
+    return this.obtenerEstaciones().map(estacion => {
       const posicion = this.convertirPosicion(estacion.posicionX, estacion.posicionY);
-      return Phaser.Math.Distance.Between(punto.x, punto.y, posicion.x, posicion.y) <= 18 / this.escena.cameras.main.zoom;
-    }) ?? null;
+      const dx = punto.x - posicion.x, dy = punto.y - posicion.y;
+      const distancia = Math.hypot(dx, dy) * zoom;
+      // El marcador se dibuja por encima del nodo: su caja visible también es seleccionable.
+      const alMarcador = Math.hypot(
+        Math.max(0, Math.abs(dx) - ANCHO_MARCADOR_ESTACION * escala / 2),
+        Math.max(0, Math.abs(dy + DESPLAZAMIENTO_MARCADOR_ESTACION * escala) - ALTO_MARCADOR_ESTACION * escala / 2),
+      ) * zoom;
+      const radioSeleccion = Math.max(TOLERANCIA_SELECCION.estacion, RADIO_NODO_VISIBLE * zoom);
+      return { estacion, distancia, seleccionable: distancia <= radioSeleccion || alMarcador <= TOLERANCIA_SELECCION.marcador };
+    }).filter(candidato => candidato.seleccionable)
+      .sort((a, b) => a.distancia - b.distancia || a.estacion.nombre.localeCompare(b.estacion.nombre))[0]?.estacion ?? null;
   }
 
   obtenerUnidadCercana(punto) {
@@ -522,14 +539,21 @@ export default class CapaRedMetro {
 
   obtenerTramosCercanos(punto) {
     const estaciones = new Map(this.obtenerEstaciones().map((estacion) => [estacion.nombre, estacion]));
-    return this.obtenerTramos().filter((tramo) => {
+    const candidatos = this.obtenerTramos().flatMap((tramo) => {
       const origen = estaciones.get(tramo.estacionA);
       const destino = estaciones.get(tramo.estacionB);
-      if (!origen || !destino) return false;
+      if (!origen || !destino) return [];
       const desde = this.convertirPosicion(origen.posicionX, origen.posicionY);
       const hasta = this.convertirPosicion(destino.posicionX, destino.posicionY);
-      return this.distanciaPuntoTramo(punto, desde, hasta) <= 11 / this.escena.cameras.main.zoom;
-    });
+      const distancia = this.distanciaPuntoTramo(punto, desde, hasta) * this.escena.cameras.main.zoom;
+      const seleccionada = this.esTramoSeleccionado(tramo) || (this.modo === 'crearTramo' && this.lineaActiva === tramo.nombreLinea);
+      const ancho = seleccionada ? ANCHO_VIA_SELECCIONADA : ANCHO_VIA;
+      const tolerancia = Math.max(TOLERANCIA_SELECCION.tramo, ancho * this.escena.cameras.main.zoom / 2);
+      return distancia <= tolerancia ? [{ tramo, distancia }] : [];
+    }).sort((a, b) => a.distancia - b.distancia || a.tramo.nombreLinea.localeCompare(b.tramo.nombreLinea));
+    const distanciaMinima = candidatos[0]?.distancia;
+    return candidatos.filter(c => c.distancia <= distanciaMinima + TOLERANCIA_SELECCION.ambiguedad)
+      .map(c => c.tramo);
   }
 
   obtenerRuta(nombreLinea) {

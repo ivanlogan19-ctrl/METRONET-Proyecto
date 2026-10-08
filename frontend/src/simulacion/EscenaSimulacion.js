@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 import { observarTamanoMapa } from '../mapa/ObservarTamanoMapa.js';
 
 import CapaBarrios from '../mapa/capas/CapaBarrios.js';
@@ -206,7 +207,7 @@ class EscenaSimulacion extends Phaser.Scene {
     if (elemento.tipo === 'estacion') return `ESTACIÓN · ${valor.nombre}${this.capaRedMetro?.esTransbordo(valor) ? ' · TRANSBORDO' : ''}`;
     if (elemento.tipo === 'linea') return `LÍNEA · ${valor.nombre}`;
     if (elemento.tipo === 'tramo') return `CONEXIÓN · ${valor.estacionA} — ${valor.estacionB}`;
-    if (elemento.tipo === 'unidad') return `METRO · M-${valor.idTren ?? '—'} · ${valor.nombreLinea ?? 'SIN LÍNEA'}`;
+    if (elemento.tipo === 'unidad') return `METRO · M-${numeroMetroEnRed(valor.idTren, this.disenoActual?.unidadesMetro) ?? '—'} · ${valor.nombreLinea ?? 'SIN LÍNEA'}`;
     return '';
   }
 

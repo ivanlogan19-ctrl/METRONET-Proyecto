@@ -152,7 +152,8 @@ html:root body :is(input:not([type='checkbox']):not([type='radio']):not([type='r
   border-radius: var(--radius-control);
   color: var(--text-primary);
   background-color: var(--bg-secondary);
-  font-family: var(--font-ui);
+  font-family: var(--font-campos);
+  text-transform: none;
   box-shadow: var(--shadow-input);
 }
 html:root body :is(.field-group label, .admin-filtros label, .admin-formulario-editor label,

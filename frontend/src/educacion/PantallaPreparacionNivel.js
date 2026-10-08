@@ -21,9 +21,11 @@ function texto(etiqueta, valor, clase = '') {
 // La promesa solo representa el viaje visual. El llamador espera además los datos reales.
 export function crearPreparacionNivel(escenario) {
   transicionActiva?.cerrar();
-  const contenido = obtenerContenidoNivel(escenario.numero);
+  const contenido = escenario.contenidoPublicado?.desafio ?? obtenerContenidoNivel(escenario.numero);
   const hayTarjetas = Boolean(tarjetaEducativaActual(escenario.numero));
-  const mensaje = seleccionarMensajeTransicion(escenario.numero);
+  const mensaje = contenido?.recorrido === 'integral-2026-10'
+    ? { id:`recorrido-${escenario.numero}`, categoria:'Tu misión', texto:contenido.relato }
+    : seleccionarMensajeTransicion(escenario.numero);
   const movimientoReducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const focoAnterior = document.activeElement;
   const dialogo = document.createElement('dialog');
