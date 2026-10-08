@@ -1,6 +1,10 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const niveles=require('../src/educacion/recorrido-integral.json');
+const politica=require('../src/educacion/puntuacion-progreso.json');
+// Las variantes completas de cada nivel se prueban también en PostgreSQL.
+// Este recorrido comprueba los cinco puntajes en la interfaz y su transición al siguiente nivel.
+const puntosEsperados=[100,90,80,70,100,100,100,60,90,60];
 const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
 const BASE=process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5198';
 const API=process.env.METRONET_API_PRUEBAS;
@@ -50,6 +54,13 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
  }
  async function editor() {
   for (let i=0;i<8;i++) {
+   // La navegación persistente reemplaza el iframe: esperar el documento
+   // entrante antes de obtener su Frame, sin asumir que ya existe tras Jugar.
+   await pagina.waitForFunction(()=>{
+    const vista=document.querySelector('#pantalla-metronet')?.contentWindow;
+    return vista?.document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button')
+     || vista?.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual;
+   });
    await f().waitForFunction(()=>document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button') || window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual);
    const continuar=f().locator('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button');
    if(await continuar.count()) await continuar.first().click(); else break;
@@ -135,7 +146,13 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     await mapa(...(dos&&i===1?medio(posiciones.at(-2),posiciones.at(-1)):medio(posiciones[0],posiciones[1])));
     await cuenta('unidadesMetro',i+1);
    }
+   const guardado=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok());
    await f().locator('[data-guardar]').click();
+   const evaluacionGuardado=await (await guardado).json();
+   assert.equal(evaluacionGuardado.puntaje,100,'Cada nivel empieza con cien puntos');
+   assert.equal(evaluacionGuardado.completado,false,'Guardar no reemplaza la simulación pendiente');
+   assert.equal(evaluacionGuardado.desempeno.desglosePuntuacion.totalDescontado,0);
+   assert.equal(evaluacionGuardado.desempeno.desglosePuntuacion.practicasGratuitas,politica.practicasGratuitasPorNivel[nivel.numero-1]);
    await f().waitForFunction(()=>!juegoPrueba.scene.getScene('MapaScene').editorRedMetro.finalizacionEnCurso);
    await presentaciones();
    await f().locator('[data-ir-simulacion]').click();
@@ -144,11 +161,21 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await presentaciones();
    assert.equal(await f().locator('#unidadDuracionSimulacion').innerText(),'h');
    let resultado=await ejecutar();
+   const esperado=puntosEsperados[nivel.numero-1];
+   if(esperado<100){
+    assert.equal(resultado.completado,false);
+    const gratuitas=politica.practicasGratuitasPorNivel[nivel.numero-1];
+    const cantidadDescuentos=(100-esperado)/10;
+    for(let ejecucion=2;ejecucion<=gratuitas+cantidadDescuentos;ejecucion++){
+     resultado=await ejecutar();
+     assert.equal(resultado.completado,false,'Los puntos no aprueban objetivos pendientes');
+     assert.equal(resultado.puntaje,100-10*Math.max(0,ejecucion-gratuitas));
+    }
+    assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,cantidadDescuentos);
+    if(esperado===60){resultado=await ejecutar();assert.equal(resultado.puntaje,60,'El tope permite seguir jugando');}
+   }
    if(nivel.numero===2){
     assert.equal(resultado.completado,false);
-    resultado=await ejecutar(); assert.equal(resultado.puntaje,100,'La segunda práctica es gratuita');
-    resultado=await ejecutar(); assert.equal(resultado.puntaje,90,'La tercera ejecución sin avance descuenta diez');
-    assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,1);
     await aplicarUv(5);resultado=await ejecutar();
    }
    if(nivel.numero===3){assert.equal(resultado.completado,false);await horas(8);resultado=await ejecutar();}
@@ -158,7 +185,6 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    }
    if(nivel.numero===8){assert.equal(resultado.completado,false);await aplicarUv(3,true);resultado=await ejecutar();}
    if([9,10].includes(nivel.numero)){assert.equal(resultado.completado,false);await aplicarUv(6);await horas(8);resultado=await ejecutar();}
-   const esperado=nivel.numero===2?90:100;
    assert.equal(resultado.completado,true);assert.equal(resultado.puntaje,esperado);
    assert.equal(resultado.modoLibreDesbloqueado,nivel.numero===10);
    console.log(JSON.stringify({nivel:nivel.numero,editor:'PASS',guardar:'PASS',simular:'PASS',reglas:'PASS',puntaje:resultado.puntaje}));
@@ -166,7 +192,11 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     const puntos=f().locator('.metronet-resultado-nivel[open]');
     await puntos.waitFor();
     assert.match(await puntos.innerText(), new RegExp(`Ganaste\\s+${esperado}\\s+puntos`));
-    if(nivel.numero===2) assert.match(await puntos.innerText(), /Ejecución 3: sin nuevos avances/);
+    if(esperado<100){
+     const descuentos=puntos.locator('details');
+     assert.equal(await descuentos.count(),(100-esperado)/10);
+     assert.match(await puntos.innerText(),new RegExp(`Ejecución ${politica.practicasGratuitasPorNivel[nivel.numero-1]+1}\\s+Sin nuevos avances`));
+    }
     assert.equal(await f().locator('.metronet-victoria').count(),0);
     await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
     await f().waitForFunction(()=>document.querySelector('.metronet-premio[open] button') || [...document.querySelectorAll('button')].some(b=>b.textContent==='Jugar'));
@@ -183,7 +213,15 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     console.log('MODO LIBRE: acceso real desde la victoria final PASS');
    }
    assert.deepEqual(errores,[]);assert.deepEqual(fallos,[]);
-  }catch(e){bloqueo=true;console.log('ERRORES',errores,fallos,await f().evaluate(()=>window.leerEstadoPrueba?.()));console.log('ESTADO UI', (await f().locator('body').innerText()).slice(-9000));await pagina.screenshot({path:`/tmp/metronet-campana-nivel-${nivel.numero}.png`});throw e;}
+  }catch(e){
+   bloqueo=true; console.log('FALLO ORIGINAL',e,'ERRORES',errores,fallos);
+   try {
+    const frame=f();
+    if(frame) console.log('ESTADO UI',await frame.evaluate(()=>window.leerEstadoPrueba?.()),(await frame.locator('body').innerText()).slice(-9000));
+    await pagina.screenshot({path:`/tmp/metronet-campana-nivel-${nivel.numero}.png`});
+   } catch(diagnostico) {console.log('DIAGNOSTICO NO DISPONIBLE',diagnostico.message);}
+   throw e;
+  }
  }); }
  assert.equal(bloqueo,false,'La campaña no puede continuar después de un nivel bloqueado');
  assert.deepEqual(errores,[]);assert.deepEqual(fallos,[]);

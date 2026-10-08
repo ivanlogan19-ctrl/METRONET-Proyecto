@@ -19,6 +19,9 @@ async function abrir(t, width = 1440) {
       desempeno: { puntajeMaximo: 100, explicacion: '4 de 4 criterios satisfechos: 100/100. Todos los criterios están satisfechos.' } },
     { signal: window.controlResultado.signal, mejorPuntajeAnterior: 75 });
   });
+  // La importación de la transición es asíncrona: esperar su diálogo antes de
+  // cancelarlo y abrir el siguiente evita que el montaje anterior llegue tarde.
+  await v.pagina.locator('.metronet-resultado-nivel[open]').waitFor();
   return v;
 }
 for (const width of [1440, 390]) test(`Resultado ${width}: puntos antes de la animación y sin descuentos inventados`, async t => {
@@ -54,6 +57,7 @@ for (const width of [1440, 390]) test(`Descuentos ${width}: muestra motivos del 
   const { pagina: p } = await abrir(t, width);
   await p.evaluate(async () => {
     window.controlResultado.abort();
+    await window.resultado;
     const { mostrarResultadoNivel } = await import('/src/educacion/PantallaResultadoNivel.js');
     window.resultadoDescuentos = mostrarResultadoNivel({ nombre: 'Conectar lugares', puntajeMaximo: 100 }, {
       puntaje: 80, desempeno: { puntajeMaximo: 100, explicacion: 'Toda la consigna está cumplida.',
@@ -85,6 +89,7 @@ test('Tope de descuentos en pantalla pequeña: cuenta completa, desplazamiento y
   await p.setViewportSize({ width: 320, height: 568 });
   await p.evaluate(async () => {
     window.controlResultado.abort();
+    await window.resultado;
     const { mostrarResultadoNivel } = await import('/src/educacion/PantallaResultadoNivel.js');
     window.resultadoDescuentos = mostrarResultadoNivel({ numero: 10, nombre: 'Una red para Montevideo', puntajeMaximo: 100 }, {
       puntaje: 60, desempeno: { puntajeMaximo: 100, desglosePuntuacion: {
