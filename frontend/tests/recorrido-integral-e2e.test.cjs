@@ -52,16 +52,21 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    else break;
   }
  }
- async function editor() {
+ async function editor(numeroEsperado) {
   for (let i=0;i<8;i++) {
    // La navegación persistente reemplaza el iframe: esperar el documento
    // entrante antes de obtener su Frame, sin asumir que ya existe tras Jugar.
-   await pagina.waitForFunction(()=>{
+   await pagina.waitForFunction(numero=>{
     const vista=document.querySelector('#pantalla-metronet')?.contentWindow;
+    const editor=vista?.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro;
     return vista?.document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button')
-     || vista?.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual;
-   });
-   await f().waitForFunction(()=>document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button') || window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual);
+     || (editor?.disenoActual && (numero===undefined || editor.escenarioJuegoActual?.numero===numero));
+   },numeroEsperado);
+   await f().waitForFunction(numero=>{
+    const editor=window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro;
+    return document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button')
+     || (editor?.disenoActual && (numero===undefined || editor.escenarioJuegoActual?.numero===numero));
+   },numeroEsperado);
    const continuar=f().locator('dialog[open] .metronet-tarjeta-educativa__acciones button, .metronet-premio[open] button');
    if(await continuar.count()) await continuar.first().click(); else break;
   }
@@ -99,14 +104,27 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
   await f().waitForFunction(()=>!document.querySelector('#velocidadUnidad')?.disabled);
  }
  async function horas(valor){await f().locator('#duracionSimulacion').fill(String(valor));await f().locator('#aplicarUnidadTiempo').click();}
+ async function leerAvance(){
+  return f().evaluate(async()=>{
+   const {consultarJuego}=await import('/src/educacion/ClientePuntuacion.js');
+   const id=Number(new URLSearchParams(location.search).get('idDiseno'));
+   const [consigna,desempeno,progreso]=await Promise.all([
+    consultarJuego(`/disenos/${id}/consigna`),consultarJuego(`/disenos/${id}/desempeno`),consultarJuego('/progreso')]);
+   return {listo:consigna.estadoGlobal==='LISTO',puntaje:desempeno.puntaje,desempeno,progreso};
+  });
+ }
  async function ejecutar(){
   await presentaciones();
-  const resultado=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok(),{timeout:45000});
+  const previas=evaluaciones.length;
+  const resultado=pagina.waitForResponse(r=>r.url().endsWith('/ejecutar')&&r.request().method()==='POST'&&r.ok(),{timeout:45000});
   await f().getByRole('button',{name:'Iniciar simulación',exact:true}).click();
-  const e=await (await resultado).json();
-  await f().waitForFunction(()=>window.leerEstadoPrueba?.().estado==='FINALIZADA');
-  console.log('EJECUCIÓN',e.completado,await f().evaluate(()=>window.leerEstadoPrueba()));
-  if (!e.completado) await presentaciones();return e;
+  await resultado;
+  await f().waitForFunction(()=>window.leerEstadoPrueba?.().estado==='FINALIZADA'&&!window.leerEstadoPrueba().resultadoEnCurso);
+  assert.equal(evaluaciones.length,previas,'Simular no solicita aprobación');
+  assert.equal(await f().locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
+  const e=await leerAvance();
+  console.log('EJECUCIÓN',JSON.stringify({lista:e.listo,puntaje:e.puntaje}));
+  await presentaciones();return e;
  }
  const geo=JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/mapa/datos/barrios_wgs84.geojson'),'utf8'));
  const coords=[];function recolectar(c){if(typeof c[0]==='number')coords.push(c);else c.forEach(recolectar);}
@@ -115,9 +133,9 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
  const puntos=Object.values(require('../src/mapa/datos/puntos-interes.json').barrios).flatMap(b=>b.puntos);
  const poi=id=>{const p=puntos.find(p=>p.id===id);return [(p.longitud-minX)/(maxX-minX)*1000,(maxY-p.latitud)/(maxY-minY)*620];};
  let bloqueo=false;
- for(const nivel of niveles) { if(bloqueo) break; await t.test(`Nivel ${nivel.numero}: construir, guardar, simular, 100% y siguiente`,async()=>{
+ for(const nivel of niveles) { if(bloqueo) break; await t.test(`Nivel ${nivel.numero}: construir, guardar, simular, finalizar explícitamente y siguiente`,async()=>{
   try {
-   await editor();
+   await editor(nivel.numero);
    assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones.length),0);
    const posiciones=Array.from({length:nivel.reglasExito.minimoEstaciones},(_,i)=>[580+i*45,460]);
    const objetivos=nivel.reglasExito.puntosInteresObjetivo||[];
@@ -146,14 +164,16 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     await mapa(...(dos&&i===1?medio(posiciones.at(-2),posiciones.at(-1)):medio(posiciones[0],posiciones[1])));
     await cuenta('unidadesMetro',i+1);
    }
-   const guardado=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok());
-   await f().locator('[data-guardar]').click();
-   const evaluacionGuardado=await (await guardado).json();
-   assert.equal(evaluacionGuardado.puntaje,100,'Cada nivel empieza con cien puntos');
-   assert.equal(evaluacionGuardado.completado,false,'Guardar no reemplaza la simulación pendiente');
-   assert.equal(evaluacionGuardado.desempeno.desglosePuntuacion.totalDescontado,0);
-   assert.equal(evaluacionGuardado.desempeno.desglosePuntuacion.practicasGratuitas,politica.practicasGratuitasPorNivel[nivel.numero-1]);
+   const evaluacionesAntes=evaluaciones.length;
+   const guardado=pagina.waitForResponse(r=>r.url().endsWith('/guardar')&&r.request().method()==='POST'&&r.ok());
+   await f().locator('[data-guardar]').click();await guardado;
    await f().waitForFunction(()=>!juegoPrueba.scene.getScene('MapaScene').editorRedMetro.finalizacionEnCurso);
+   const avanceGuardado=await leerAvance();
+   assert.equal(evaluaciones.length,evaluacionesAntes,'Guardar no solicita aprobación');
+   assert.equal(avanceGuardado.puntaje,100,'Cada nivel empieza con cien puntos');
+   assert.equal(avanceGuardado.listo,false,'Guardar no reemplaza la simulación pendiente');
+   assert.equal(avanceGuardado.desempeno.desglosePuntuacion.totalDescontado,0);
+   assert.equal(avanceGuardado.desempeno.desglosePuntuacion.practicasGratuitas,politica.practicasGratuitasPorNivel[nivel.numero-1]);
    await presentaciones();
    await f().locator('[data-ir-simulacion]').click();
    await f().locator('#formularioEjecucion').waitFor();
@@ -163,31 +183,58 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    let resultado=await ejecutar();
    const esperado=puntosEsperados[nivel.numero-1];
    if(esperado<100){
-    assert.equal(resultado.completado,false);
+    assert.equal(resultado.listo,false);
     const gratuitas=politica.practicasGratuitasPorNivel[nivel.numero-1];
     const cantidadDescuentos=(100-esperado)/10;
     for(let ejecucion=2;ejecucion<=gratuitas+cantidadDescuentos;ejecucion++){
      resultado=await ejecutar();
-     assert.equal(resultado.completado,false,'Los puntos no aprueban objetivos pendientes');
+     assert.equal(resultado.listo,false,'Los puntos no aprueban objetivos pendientes');
      assert.equal(resultado.puntaje,100-10*Math.max(0,ejecucion-gratuitas));
     }
     assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,cantidadDescuentos);
     if(esperado===60){resultado=await ejecutar();assert.equal(resultado.puntaje,60,'El tope permite seguir jugando');}
    }
    if(nivel.numero===2){
-    assert.equal(resultado.completado,false);
+    assert.equal(resultado.listo,false);
     await aplicarUv(5);resultado=await ejecutar();
    }
-   if(nivel.numero===3){assert.equal(resultado.completado,false);await horas(8);resultado=await ejecutar();}
+   if(nivel.numero===3){assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();}
    if([4,10].includes(nivel.numero)){
-    assert.equal(resultado.completado,false);await aplicarUv(5);resultado=await ejecutar();
-    assert.equal(resultado.completado,false);await aplicarUv(3,true);resultado=await ejecutar();
+    assert.equal(resultado.listo,false);await aplicarUv(5);resultado=await ejecutar();
+    assert.equal(resultado.listo,false);await aplicarUv(3,true);resultado=await ejecutar();
    }
-   if(nivel.numero===8){assert.equal(resultado.completado,false);await aplicarUv(3,true);resultado=await ejecutar();}
-   if([9,10].includes(nivel.numero)){assert.equal(resultado.completado,false);await aplicarUv(6);await horas(8);resultado=await ejecutar();}
-   assert.equal(resultado.completado,true);assert.equal(resultado.puntaje,esperado);
-   assert.equal(resultado.modoLibreDesbloqueado,nivel.numero===10);
-   console.log(JSON.stringify({nivel:nivel.numero,editor:'PASS',guardar:'PASS',simular:'PASS',reglas:'PASS',puntaje:resultado.puntaje}));
+   if(nivel.numero===8){assert.equal(resultado.listo,false);await aplicarUv(3,true);resultado=await ejecutar();}
+   if([9,10].includes(nivel.numero)){assert.equal(resultado.listo,false);await aplicarUv(6);await horas(8);resultado=await ejecutar();}
+   assert.equal(resultado.listo,true);assert.equal(resultado.puntaje,esperado);
+   assert.equal(resultado.progreso.nivelesCompletados,nivel.numero-1,'Ni Guardar ni Simular aprueban');
+   assert.equal(resultado.progreso.modoLibreDesbloqueado,false);
+   if(nivel.numero<10) assert.equal(resultado.progreso.escenarios.find(e=>e.numero===nivel.numero+1).desbloqueado,false);
+   await f().locator('#volverEdicion').click();await editor();
+   if(nivel.numero===1){
+    // El contenedor vigente lleva toda recarga completa al login; retomar no debe aprobar ni crear otro intento.
+    const idAntes=await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.idDiseno());
+    await pagina.reload();
+    await pagina.waitForFunction(()=>document.querySelector('#pantalla-metronet')?.contentWindow?.document.querySelector('#loginButton'));
+    await f().locator('#email').fill(process.env.METRONET_E2E_EMAIL);
+    await f().locator('#password').fill(process.env.METRONET_E2E_CLAVE);
+    await f().locator('#loginButton').click();
+    await f().getByRole('link',{name:'Niveles',exact:true}).first().click({timeout:30000});
+    await f().getByRole('button',{name:'Continuar',exact:true}).click();
+    await f().getByRole('button',{name:'Jugar',exact:true}).click();
+    await editor();
+    assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.idDiseno()),idAntes);
+    assert.equal((await leerAvance()).progreso.nivelesCompletados,0,'Recargar y retomar no aprueba');
+   }
+   await f().locator('[data-guardar]').click();
+   await f().waitForFunction(()=>!juegoPrueba.scene.getScene('MapaScene').editorRedMetro.finalizacionEnCurso);
+   assert.equal((await leerAvance()).progreso.nivelesCompletados,nivel.numero-1,'Guardar una red lista tampoco aprueba');
+   const cierre=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok());
+   await f().getByRole('button',{name:'Finalizar red',exact:true}).click();
+   const aprobado=await(await cierre).json();
+   assert.equal(aprobado.completado,true);assert.equal(aprobado.puntaje,esperado);
+   assert.equal(aprobado.modoLibreDesbloqueado,nivel.numero===10);
+   assert.deepEqual(aprobado.desempeno.desglosePuntuacion,resultado.desempeno.desglosePuntuacion,'Finalizar no descuenta');
+   console.log(JSON.stringify({nivel:nivel.numero,editor:'PASS',guardar:'PASS',simular:'PASS',finalizar:'PASS',reglas:'PASS',puntaje:resultado.puntaje}));
    {
     const puntos=f().locator('.metronet-resultado-nivel[open]');
     await puntos.waitFor();
@@ -207,7 +254,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     await f().getByRole('button',{name:'Jugar',exact:true}).click();
    }
    if(nivel.numero===10) {
-    await editor();
+    await editor(null);
     assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.simulacion.modo),'EDICION_LIBRE');
     assert.equal(await f().locator('.metronet-recorrido').count(),0,'Modo Libre no repite el tutorial de campaña');
     console.log('MODO LIBRE: acceso real desde la victoria final PASS');

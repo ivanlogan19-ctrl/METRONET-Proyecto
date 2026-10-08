@@ -236,8 +236,9 @@ for(const cierre of ['Omitir','Escape'])test(`Simular pendiente: ${cierre} no ej
  await p.locator('#tutorialPantallaSimulacion').click();
  await completarTutorialSimulacion(p);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0,'Repetir el tutorial no ejecuta la intención descartada');
+ const ejecutada=p.waitForResponse(r=>r.url().endsWith('/ejecutar')&&r.request().method()==='POST'&&r.ok());
  await p.getByRole('button',{name:'Iniciar simulación',exact:true}).click();
- await p.waitForFunction(()=>document.querySelector('#pausarSimulacion:not([hidden]):not(:disabled)'));
+ await ejecutada;
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,1);
 });
 
@@ -310,16 +311,68 @@ test('seleccionar la línea conserva su identidad y las conexiones existentes si
  assert.equal(solicitudes.length,0);
 });
 
-for (const numero of [1,2,3,4,5,6,7,8,9,10]) test(`Guardar nivel ${numero} evalúa y actualiza progreso parcial sin Validar manual`,async t=>{
+for (const numero of [1,2,3,4,5,6,7,8,9,10]) test(`Guardar nivel ${numero} conserva progreso parcial sin aprobar ni exigir Validar manual`,async t=>{
  const nivel=require('../src/educacion/niveles.json').find(n=>n.numero===numero);
- let evaluado=false, evaluaciones=0;
- const {pagina:p,solicitudes}=await abrir(t,{primeraPasada:false,escenario:{...nivel,idEscenario:numero,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:evaluado?60:0,condiciones:[{clave:'minimoEstaciones',texto:'Ubicar estaciones',actual:evaluado?3:0,requerido:5,completado:false}],referenciasObjetivo:[]})});
+ let guardado=false, evaluaciones=0;
+ const {pagina:p,solicitudes}=await abrir(t,{primeraPasada:false,escenario:{...nivel,idEscenario:numero,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:guardado?60:0,condiciones:[{clave:'minimoEstaciones',texto:'Ubicar estaciones',actual:guardado?3:0,requerido:5,completado:false}],referenciasObjetivo:[]})});
  const mensajePuntuacion='100 puntos iniciales − 0 de descuentos = 100 puntos. 4 de 5 condiciones satisfechas. Todavía debés cumplir toda la consigna. El tutorial y las prácticas gratuitas no descuentan.';
- await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluado=true;evaluaciones++;await route.fulfill({json:{completado:false,progreso:60,puntaje:100,mensaje:mensajePuntuacion},headers:{'access-control-allow-origin':'*'}});});
+ await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluaciones++;await route.fulfill({json:{completado:false,progreso:60,puntaje:100,mensaje:mensajePuntuacion},headers:{'access-control-allow-origin':'*'}});});
+ await p.route('**/api/simulaciones/77/guardar', async route=>{guardado=true; await route.fallback();});
  if(await p.locator('.metronet-recorrido').count())await p.locator('[data-recorrido-omitir]').click();
  await p.locator('[data-guardar]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
- assert.equal(evaluaciones,1);assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.progreso),60);
+ assert.equal(evaluaciones,0);assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.progreso),60);
  assert.doesNotMatch(await p.locator('body').innerText(), /100 puntos iniciales|prácticas gratuitas no descuentan|de descuentos =/);
  assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
  assert.equal(await p.locator('[data-validar]').count(),0);assert.equal(await p.locator('.metronet-victoria').count(),0);
+});
+
+for (const width of [1440, 390, 320]) test(`Finalizar red ${width}px: botón visible, guarda y evalúa una vez, conserva objetivos pendientes`, async t=>{
+ const nivel=require('../src/educacion/niveles.json')[0];
+ const {pagina:p,solicitudes}=await abrir(t,{viewport:{width,height:1000},primeraPasada:false,escenario:{...nivel,idEscenario:1,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:80,condiciones:[{clave:'requiereSimulacion',texto:'Simular la red actual',completado:false}],referenciasObjetivo:[]})});
+ let evaluaciones=0;
+ await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluaciones++;await route.fulfill({json:{completado:false,puntaje:100,progreso:80},headers:{'access-control-allow-origin':'*'}});});
+ const b=p.getByRole('button',{name:'Finalizar red',exact:true});
+ assert.equal(await b.isVisible(),true);
+ assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await b.click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ assert.equal(evaluaciones,1);
+ assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
+ assert.match(await p.locator('[data-estado-editor]').innerText(),/Simular la red actual/);
+ assert.equal(await p.locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
+ assert.equal(await b.isEnabled(),true);
+});
+
+test('Finalizar red: falla de guardado no evalúa y permite reintentar',async t=>{
+ const {pagina:p}=await abrir(t,{primeraPasada:false,escenario:{...require('../src/educacion/niveles.json')[0],idEscenario:1,estado:'EN_DESARROLLO',desbloqueado:true}});
+ let evaluaciones=0;
+ await p.route('**/api/juego/disenos/77/evaluar',route=>{evaluaciones++;return route.fulfill({json:{completado:false}});});
+ await p.route('**/api/simulaciones/77/guardar',route=>route.fulfill({status:503,json:{detail:'Guardado no confirmado'},headers:{'access-control-allow-origin':'*'}}));
+ await p.locator('[data-finalizar-red]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ assert.equal(evaluaciones,0);assert.match(await p.locator('[data-estado-editor]').innerText(),/Guardado no confirmado/);
+ assert.equal(await p.locator('[data-finalizar-red]').isEnabled(),true);
+});
+
+test('Modo Libre conserva Guardar y Simular sin Finalizar red',async t=>{
+ const {pagina:p}=await abrir(t);
+ assert.equal(await p.locator('[data-finalizar-red]').isVisible(),false);
+ assert.doesNotMatch(await p.locator('[data-ir-simulacion]').getAttribute('data-ayuda-sistema'),/Finalizar red/);
+ assert.equal(await p.locator('[data-guardar]').isVisible(),true);
+ assert.equal(await p.locator('[data-ir-simulacion]').isVisible(),true);
+});
+
+test('Nivel a Modo Libre: cambiar de diseño no consulta contenido del nivel anterior con el intento nuevo',async t=>{
+ const nivel={...require('../src/educacion/niveles.json')[9],idEscenario:10,estado:'EN_DESARROLLO',desbloqueado:true};
+ const {pagina:p,diseno}=await abrir(t,{primeraPasada:false,escenario:nivel});
+ const libre={...diseno,simulacion:{...diseno.simulacion,idDiseno:78,idEscenario:45,modo:'EDICION_LIBRE'}};
+ const consultas=[];
+ await p.route('**/api/simulaciones/78',route=>route.fulfill({json:libre,headers:{'access-control-allow-origin':'*'}}));
+ p.on('request',req=>{if(req.url().endsWith('/intentos/124/contenido'))consultas.push(req.url());});
+ await p.evaluate(async()=>{
+  editorPrueba.escenariosJuego.push({idEscenario:45,numero:null,modo:'EDICION_LIBRE',nombre:'Modo Libre',desbloqueado:true});
+  history.replaceState({},'','/?idDiseno=78&idEscenario=45&idIntento=124');
+  await editorPrueba.abrirDiseno(78);
+ });
+ assert.deepEqual(consultas,[],'El modo libre no tiene contenido de un nivel publicado');
+ assert.equal(await p.evaluate(()=>editorPrueba.panelAyuda.numeroEducativo),null);
+ assert.equal(await p.locator('[data-finalizar-red]').isVisible(),false);
 });

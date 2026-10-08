@@ -52,38 +52,23 @@ function prepararEditor({ destino = accion, pausarPremios = false } = {}) {
     continuar: finPremios.resolver, evaluaciones: () => evaluarLlamadas };
 }
 
-function prepararSimulacion({ destino = accion, pausarPremios = false } = {}) {
+function prepararSimulacion() {
   const ventana = new EventTarget();
-  const navegaciones = [];
-  ventana.location = { protocol: 'http:', hostname: '127.0.0.1', assign: ruta => navegaciones.push(ruta) };
-  const inicioPremios = diferida();
-  const finPremios = diferida();
-  const botones = new Map();
-  let inicios = 0;
+  const consulta = diferida();
+  const mensajes = [], navegaciones = [];
   const contexto = {
-    window: ventana, AbortController, sesion: { token: 'ficticio' },
-    ejecucionPendiente: { idDiseno: 55, resultado: { puntaje: 100, idSimulacion: 1 } },
-    disenoActual: { simulacion: { idDiseno: 55, idEscenario: 1 }, resultados: [] },
-    resultadoEnCurso: false, estadoMotor: {}, tutorialSimulacion: null, actualizarControlesSimulacion() {},
-    consultarEstadoAnterior: async () => ({}), evaluarEscenarioProgresivo: async () => evaluacion,
-    actualizarPantalla() {}, cargarConsignaReal: async () => {}, actualizarDesempeno: async () => {},
-    document: { getElementById(id) { if (!botones.has(id)) botones.set(id, { hidden: true }); return botones.get(id); } },
-    mostrarMensaje() {}, fetch: async () => ({ ok: true, json: async () => ({ escenarios: [] }) }),
-    presentarResultadoNivel: async () => destino,
-    celebrarTrofeosNuevos: (premios, { signal }) => {
-      if (!premios.length) return Promise.resolve();
-      assert.equal(premios.length, 3);
-      inicioPremios.resolver(signal);
-      return pausarPremios ? Promise.race([finPremios.promesa,
-        new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }))]) : Promise.resolve();
-    },
-    iniciarNivelConTransicion: async () => { inicios++; return { idDiseno: 56 }; },
-    registrarEntradaRecorrido() {}, establecerContextoEnRuta: () => '/siguiente',
+    window: ventana, AbortController, paginaActiva: true,
+    ejecucionPendiente: {idDiseno:55, resultado:{idSimulacion:1}},
+    disenoActual: {simulacion:{idDiseno:55,idEscenario:1}},
+    escenariosGlosario: [{idEscenario:1,numero:1}], consignaActual:{estadoGlobal:'LISTO'},
+    resultadoEnCurso:false, estadoMotor:{}, tutorialSimulacion:null,
+    actualizarControlesSimulacion() {}, cargarConsignaReal:()=>consulta.promesa,
+    actualizarDesempeno:async()=>{}, document:{getElementById:()=>({hidden:true})},
+    mostrarMensaje:mensaje=>mensajes.push(mensaje),
+    presentarResultadoNivel:()=>navegaciones.push('victoria'),
   };
-  const finalizar = vm.runInNewContext(`${metodoSimulacion}; finalizarEjecucionVisible`, contexto);
-  return { finalizar, ventana, navegaciones, inicioPremios: inicioPremios.promesa,
-    continuar: finPremios.resolver,
-    cambiarDiseno: id => { contexto.disenoActual.simulacion.idDiseno = id; }, inicios: () => inicios };
+  const finalizar=vm.runInNewContext(`${metodoSimulacion}; finalizarEjecucionVisible`,contexto);
+  return {finalizar,ventana,contexto,mensajes,navegaciones,continuar:consulta.resolver};
 }
 
 test('Editor: Atrás durante el trofeo no inicia el siguiente nivel', async () => {
@@ -116,38 +101,18 @@ test('Editor: varios premios continúan una sola vez y doble clic no reevalúa',
   assert.equal(caso.navegaciones.length, 1);
 });
 
-test('Simulación: Atrás durante el trofeo no inicia ni navega', async () => {
-  const caso = prepararSimulacion({ pausarPremios: true });
-  const terminado = caso.finalizar();
-  await caso.inicioPremios;
-  caso.ventana.dispatchEvent(new Event('popstate'));
-  await terminado;
-  assert.equal(caso.inicios(), 0);
-  assert.deepEqual(caso.navegaciones, []);
+test('Simulación: Atrás durante la consulta no muestra resultado ni navega',async()=>{
+ const c=prepararSimulacion(), fin=c.finalizar();
+ c.ventana.dispatchEvent(new Event('popstate'));c.continuar();await fin;
+ assert.deepEqual(c.mensajes,[]);assert.deepEqual(c.navegaciones,[]);
+ assert.equal(c.contexto.resultadoEnCurso,false);
 });
-
-test('Simulación: cambiar de diseño durante el trofeo no pisa la navegación nueva', async () => {
-  const caso = prepararSimulacion();
-  const terminado = caso.finalizar();
-  await caso.inicioPremios;
-  caso.cambiarDiseno(99);
-  await terminado;
-  assert.equal(caso.inicios(), 0);
-  assert.deepEqual(caso.navegaciones, []);
+test('Simulación: cambiar de diseño descarta la respuesta tardía',async()=>{
+ const c=prepararSimulacion(), fin=c.finalizar();c.contexto.disenoActual.simulacion.idDiseno=99;
+ c.continuar();await fin;assert.deepEqual(c.mensajes,[]);
 });
-
-test('Simulación: varios premios permiten continuar una sola vez', async () => {
-  const caso = prepararSimulacion();
-  await caso.finalizar();
-  assert.equal(caso.inicios(), 1);
-  assert.deepEqual(caso.navegaciones, ['/siguiente']);
-});
-
-test('Simulación: cancelar un premio también impide destino alternativo', async () => {
-  const caso = prepararSimulacion({ destino: { destino: '/escenarios.html' }, pausarPremios: true });
-  const terminado = caso.finalizar();
-  await caso.inicioPremios;
-  caso.ventana.dispatchEvent(new Event('popstate'));
-  await terminado;
-  assert.deepEqual(caso.navegaciones, []);
+test('Simulación: consulta resultados una vez y pide Finalizar red sin victoria automática',async()=>{
+ const c=prepararSimulacion(),fin=c.finalizar();await c.finalizar();c.continuar();await fin;
+ assert.equal(c.mensajes.length,1);assert.match(c.mensajes[0],/Finalizar red/);
+ assert.deepEqual(c.navegaciones,[]);assert.equal(c.contexto.disenoActual.simulacion.estado,undefined);
 });

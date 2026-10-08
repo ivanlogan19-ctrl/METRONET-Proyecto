@@ -1169,3 +1169,16 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar__cabecera {
   .metronet-consigna-externa .metronet-consigna__resumen { padding-block: 7px; }
   #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) #metronet-panel-controles.metronet-panel-nivel { min-height: 265px; }
 }
+
+/* La entrega del nivel es una acción explícita, separada de guardar y probar. */
+#metronet-panel-controles .metronet-editor-finalizar__acciones > [data-finalizar-red] {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: normal;
+}
+#metronet-panel-controles [data-finalizar-red][hidden] { display: none; }

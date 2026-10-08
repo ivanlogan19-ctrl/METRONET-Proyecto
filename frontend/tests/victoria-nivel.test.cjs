@@ -176,7 +176,7 @@ test('Victoria: el cartel del siguiente nivel precede a la tarjeta y a una sola 
  await pagina.evaluate(()=>resolverInicio({idDiseno:77,idEscenario:2}));
  assert.deepEqual(await pagina.evaluate(()=>siguiente),{idDiseno:77,idEscenario:2});
 });
-test('Constructor real: evaluación única, victoria y siguiente nivel sin segunda carga',async t=>{
+test('Constructor real: Finalizar red guarda, evalúa una vez y abre victoria y siguiente nivel',async t=>{
  const progreso=resumen(0);progreso.escenarios[0].estado='EN_DESARROLLO';progreso.escenarios[1].desbloqueado=true;
  const vista=await abrirEditor(navegador,{escenario:progreso.escenarios[0]});const {pagina}=vista;
  t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[]);});let evaluaciones=0,inicios=0;
@@ -187,7 +187,7 @@ test('Constructor real: evaluación única, victoria y siguiente nivel sin segun
   if(ruta.endsWith('/progreso'))return route.fulfill({json:progreso});if(ruta.endsWith('/escenarios'))return route.fulfill({json:progreso.escenarios});return route.fallback();
  });
  await pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
- await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.evaluarEscenarioGuardado(77),editorPrueba.evaluarEscenarioGuardado(77)]);});
+ await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.finalizarRed(),editorPrueba.finalizarRed()]);});
  const puntos=pagina.locator('.metronet-resultado-nivel');await puntos.waitFor();assert.match(await puntos.innerText(),/Nuevo récord personal/i);
  await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
  const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.equal(evaluaciones,1);assert.equal(inicios,0);
@@ -200,12 +200,12 @@ test('Constructor real: evaluación única, victoria y siguiente nivel sin segun
   assert.equal(await pagina.evaluate(() => editorPrueba.panelTutorial?.id), '[77,2]');
  assert.equal(new URL(pagina.url()).searchParams.get('idEscenario'),'2');
 });
-for (const caso of ['repetido','administrador','errorInicio','modoLibre','incompleto']) test(`Simulación integrada: ${caso}`,async t=>{
+for (const caso of ['repetido','administrador','listo','modoLibre','incompleto']) test(`Simulación integrada: ${caso}`,async t=>{
  const numero=caso==='modoLibre'?null:4;
  const progreso=resumen(caso==='repetido'?10:4);
  if(caso==='administrador'){progreso.campanaCompletada=false;progreso.escenarios.forEach(e=>e.desbloqueado=true);}
  if(!numero)progreso.escenarios.push({numero:null,idEscenario:11,estado:'DISPONIBLE',desbloqueado:true});
- const red={simulacion:{idDiseno:77,idEscenario:numero??11,nombre:'Red de prueba',modo:numero?'NIVEL':'EDICION_LIBRE',estado:'VALIDADO'},
+ const red={simulacion:{idDiseno:77,idEscenario:numero??11,nombre:'Red de prueba',modo:numero?'NIVEL':'EDICION_LIBRE',estado:caso==='repetido'?'COMPLETADO':'VALIDADO'},
   estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],
   unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:40}],preparadoParaSimular:true,resultados:[],territorio:{areas:[],errores:[]}};
  const vista=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{administrador:caso==='administrador',responder:async req=>{
@@ -218,6 +218,7 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
    red.resultados.unshift(resultado);
    return {json:resultado};
   }
+  if(ruta.endsWith('/consigna'))return {json:{estadoGlobal:caso==='repetido'?'COMPLETADO':caso==='incompleto'?'PARCIAL':'LISTO',progreso:caso==='incompleto'?80:100,condiciones:[],referenciasObjetivo:[]}};
   if(ruta.endsWith('/evaluar'))return {json:{completado:caso!=='incompleto',puntaje:100,idSiguienteEscenario:numero?5:null,mensaje:'Resultado registrado',desempeno:{puntajeMaximo:100}}};
   if(/escenarios\/5\/(iniciar|volver-a-jugar)$/.test(ruta))return caso==='errorInicio'?{status:503,json:{}}:{json:{idDiseno:200,idEscenario:5,idIntento:300}};
  }});
@@ -227,36 +228,16 @@ for (const caso of ['repetido','administrador','errorInicio','modoLibre','incomp
  await pagina.route('**/?idDiseno=200*',route=>route.fulfill({contentType:'text/html',body:'<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Consigna del nivel 5</h1>'}));
  await pagina.locator('#duracionSimulacion').fill('10');assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(),false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
- if(caso==='modoLibre'||caso==='incompleto'){
-  await pagina.waitForFunction(()=>document.querySelector('#estadoTiempoReal')?.textContent==='Finalizada');
-  await pagina.waitForFunction(()=>/Recorrido finalizado/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));
-  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(),0);
-  assert.equal(await pagina.locator('.metronet-victoria').count(),0);
-  assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);return;
- }
- const puntos=pagina.locator('.metronet-resultado-nivel');await puntos.waitFor();
- assert.match(await puntos.innerText(),/Ganaste\s+100\s+puntos.*Nuevo récord personal/is);
- await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
- await pagina.locator('.metronet-victoria').waitFor();assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,1);
- if(caso==='errorInicio'){
-  const aviso=pagina.locator('#mensajeSimulacion');
-  await pagina.waitForFunction(()=>/Resultado guardado.*No fue posible iniciar/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));
-  assert.equal(await aviso.isVisible(),true,'El fallo al iniciar el siguiente nivel debe ser visible');
-  assert.equal(await aviso.getAttribute('role'),'status');
-  assert.equal(await aviso.getAttribute('aria-live'),'polite');
-  assert.equal(await aviso.evaluate(e=>e.classList.contains('error')),true);
-  assert.equal(new URL(pagina.url()).pathname,'/simulacion.html');
-  assert.equal(await pagina.locator('#continuarEscenarios').isVisible(),true);
-  await pagina.locator('#continuarEscenarios').click();
-  await pagina.waitForURL('**/escenarios.html');
-  assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,1);
- }else {
-  await pagina.waitForURL('**/?idDiseno=200&idEscenario=5&idIntento=300');
-  assert.equal(await pagina.locator('#mensajeSimulacion.error').count(),0);
- }
- const inicios=solicitudes.filter(s=>/escenarios\/5\//.test(s.path));assert.equal(inicios.length,1);
- assert.equal(inicios[0].path,`/api/juego/escenarios/5/${caso==='repetido'?'volver-a-jugar':'iniciar'}`);
- assert.equal(await pagina.locator('.metronet-viaje').count(),0);
+ await pagina.waitForFunction(()=>document.querySelector('#estadoTiempoReal')?.textContent==='Finalizada');
+ await pagina.waitForFunction(()=>/Simulación terminada/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));
+ assert.equal(await pagina.locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
+ assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,0);
+ assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);
+ assert.equal(new URL(pagina.url()).pathname,'/simulacion.html');
+ assert.equal(await pagina.locator('#volverEdicion').isVisible(),true);
+ if(caso==='repetido') assert.match(await pagina.locator('#mensajeSimulacion').innerText(), /ya está aprobado/);
+ if(caso==='modoLibre') assert.doesNotMatch(await pagina.locator('#mensajeSimulacion').innerText(), /aproba|Finalizar red/);
+
 });
 
 

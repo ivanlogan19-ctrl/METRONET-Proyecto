@@ -266,6 +266,7 @@ public class SimulacionService {
 
     @Transactional
     public SimulacionResumenResponse guardarDiseno(Integer idUsuario, Integer idDiseno) {
+        jdbcTemplate.queryForObject("SELECT id_usuario FROM usuario WHERE id_usuario=? FOR UPDATE", Integer.class, idUsuario);
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         restriccionesGeograficas.validarDiseno(idDiseno);
         jdbcTemplate.update("""
@@ -273,6 +274,7 @@ public class SimulacionService {
             WHERE id_usuario = ? AND id_diseno = ?
               AND estado NOT IN ('VALIDADO', 'COMPLETADA', 'COMPLETADO')
             """, idUsuario, idDiseno);
+        juegoEducativoService.actualizarProgreso(idUsuario, idDiseno);
         return obtenerResumen(idUsuario, idDiseno);
     }
 
@@ -394,6 +396,7 @@ public class SimulacionService {
                 puntaje = CASE WHEN estado = 'COMPLETADO' THEN GREATEST(COALESCE(puntaje, 0), ?) ELSE ? END
             WHERE id_usuario = ? AND id_diseno = ?
             """, estadoIntento, puntaje, puntaje, idUsuario, idDiseno);
+        juegoEducativoService.actualizarProgreso(idUsuario, idDiseno);
         return obtenerResultado(idSimulacion);
     }
 

@@ -17,6 +17,8 @@ for (const administrador of [false, true]) for (const width of [1440, 390, 320])
     assert.doesNotMatch(await p.locator('main').innerText(), /versi[oó]n|pol[ií]tica|servidor|Intentos anteriores|regla anterior/i);
     assert.match(await p.locator('#reglaAprobacion').innerText(), /toda la consigna/);
     assert.match(await p.locator('#reglaAprobacion').innerText(), /60 puntos/);
+    assert.match(await p.locator('#reglaAprobacion').innerText(), /Finalizar red/);
+    assert.match(await p.locator('main').innerText(), /Guardar y Simular no terminan el nivel/);
     assert.match(await p.locator('#reglaDescuentos').innerText(), /no descuentan puntos/);
     assert.deepEqual(await p.locator('#ejemplosPuntos tbody tr td:nth-child(2)').allTextContents(), ['100', '90', '80', '70', '60']);
     assert.deepEqual(await p.locator('#practicasPuntos tbody tr td:nth-child(2)').allTextContents(), ['1', '2', '2', '3', '1', '1', '1', '2', '2', '4']);

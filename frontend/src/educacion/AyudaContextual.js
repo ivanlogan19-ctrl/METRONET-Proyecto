@@ -94,6 +94,6 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
   if (soloCirculacion && (falta('requiereSimulacion') || falta('simulacionActual')) && permite('simulacion')) return aviso('simular',
     pantalla === 'simulacion' ? 'El diseño cumple las condiciones consultadas. Observá qué ocurre al simular.' : 'Falta observar la red en circulación. Simular comprueba automáticamente si está preparada.',
     'Si cambian el diseño o la velocidad, la simulación anterior puede quedar desactualizada.', ['simulacion', 'unidad', 'velocidad'], 'POR REVISAR');
-  if (!pendientes.length) return aviso('listo', 'Las condiciones están satisfechas. La evaluación del nivel confirma el resultado.', pantalla === 'editor' && !permite('simulacion') ? 'El disquete Guardar también solicita la evaluación del intento en este nivel.' : 'La evaluación al finalizar la simulación confirma el resultado del intento.', ['objetivo', 'simulacion'], 'POR CONFIRMAR');
+  if (!pendientes.length) return aviso('listo', 'Las condiciones están satisfechas. La evaluación del nivel confirma el resultado.', pantalla === 'editor' ? 'Elegí Finalizar red para guardar el estado actual y comprobar la aprobación.' : 'Volvé a Edición y elegí Finalizar red para comprobar la aprobación.', ['objetivo', 'simulacion'], 'POR CONFIRMAR');
   return aviso('otra-condicion', 'Queda una condición pendiente. Compará su descripción con el estado actual de tu red.', 'Si falta una herramienta o el criterio no es claro, conservá el diseño y revisá el aviso.', ['objetivo']);
 }

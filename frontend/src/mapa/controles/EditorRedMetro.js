@@ -1,5 +1,5 @@
 import CreacionDirecta from './CreacionDirecta.js';
-import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
+import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
 import { prepararDiseno, solicitarInicioSimulacion } from '../../red/PreparacionDiseno.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../../red/ClienteDisenos.js';
 import { gestorMusica } from '../../audio/GestorMusica.js';
@@ -77,7 +77,7 @@ export default class EditorRedMetro {
         <div class="metronet-editor-grupo" data-herramienta="metros">
           <div class="metronet-editor-fila" data-lineas-superpuestas hidden role="group" aria-label="Elegir línea del metro"></div>
         </div>
-        <div class="metronet-editor-acciones"><button data-guardar type="button">Guardar</button><button data-ir-simulacion type="button" disabled>Simular diseño</button></div>
+        <div class="metronet-editor-acciones"><button data-guardar type="button">Guardar</button><button data-ir-simulacion type="button" disabled>Simular diseño</button><button data-finalizar-red type="button" class="metronet-boton--exito metronet-boton--destacado" hidden>Finalizar red</button></div>
         <article data-elemento-seleccionado class="metronet-editor-seleccionado" hidden></article>
       </div>`;
     this.contenedorPadre.append(this.contenedor);
@@ -103,7 +103,7 @@ export default class EditorRedMetro {
     if (!this.sesion) return this.mostrarMensaje('Iniciá sesión para editar una red.', 'error');
     this.liberarControlCambios = registrarControlCambios({
       hayCambios: () => this.cambiosPendientes,
-      guardar: () => this.guardarDiseno({ evaluar: false }),
+      guardar: () => this.guardarDiseno(),
     });
     if (obtenerIdDisenoDeRuta()) this.identificacion = crearIdentificacionNivel(document.querySelector('#metronet-aplicacion'));
     this.cargarJuego().then(() => this.cargarDisenos(obtenerIdDisenoDeRuta()));
@@ -149,12 +149,15 @@ export default class EditorRedMetro {
     const ayudaSimulacion = document.createElement('p');
     ayudaSimulacion.className = 'metronet-editor-finalizar__ayuda';
     ayudaSimulacion.dataset.ayudaSimulacion = '';
-    ayudaSimulacion.textContent = 'Guardar y Simular comprueban la red automáticamente.';
+    ayudaSimulacion.textContent = 'Guardá tu avance, probá con Simular y aprobá con Finalizar red.';
     finalizacion.append(ayudaSimulacion);
     this.contenedorPieEditor = document.querySelector('[data-panel-editor-pie]');
     (this.contenedorPieEditor ?? editorActivo).append(finalizacion);
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
+    const finalizar = this.obtener('[data-finalizar-red]');
+    finalizar.innerHTML = `${iconoRetro('checkpoint')}<span>Finalizar red</span>`;
+    finalizar.title = 'Guardar y comprobar toda la consigna para aprobar el nivel';
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
 
   }
@@ -169,6 +172,7 @@ export default class EditorRedMetro {
     if (boton.matches('[data-seleccionar-linea-directa]')) return this.seleccionarLineaDesdeLista(boton.dataset.seleccionarLineaDirecta);
     if (boton.matches('[data-seleccionar-linea]')) return this.seleccionarLinea();
     if (boton.matches('[data-linea-superpuesta]')) return this.creacionDirecta.metro(boton.dataset.lineaSuperpuesta);
+    if (boton.matches('[data-finalizar-red]')) return this.finalizarRed();
     if (boton.matches('[data-guardar]')) return this.guardarDiseno();
     if (boton.matches('[data-ir-simulacion]')) return this.irASimulacion();
     if (boton.matches('[data-editar-estacion]')) return this.editarEstacion();
@@ -259,6 +263,11 @@ export default class EditorRedMetro {
       const diseno = await this.clienteDisenos.obtener(idDiseno);
       if (apertura !== this.versionApertura || !this.activo) return false;
       this.disenoActual = diseno;
+      // Los callbacks de selección/POI consultan la ayuda: deben recibir el
+      // escenario y la ruta del diseño nuevo, nunca los del nivel anterior.
+      actualizarRutaEdicion(idDiseno, this.obtenerContextoDiseno(idDiseno));
+      this.actualizarEscenarioJuegoActual();
+      this.prepararConsigna();
       if (cambioDeDiseno) this.escena.capaPuntosInteres?.establecerCategoriasVisibles(leerCategoriasPoi(idDiseno));
       this.errorAyuda = null;
       if (cambioDeDiseno) {
@@ -268,9 +277,6 @@ export default class EditorRedMetro {
         this.restablecerModo();
         this.panelHerramientas?.seleccionar('seleccion', false);
       }
-      actualizarRutaEdicion(idDiseno, this.obtenerContextoDiseno(idDiseno));
-      this.actualizarEscenarioJuegoActual();
-      this.prepararConsigna();
       this.aplicarHerramientas();
       this.capaRedMetro.establecerDiseno(this.disenoActual);
       this.actualizarOpcionesLineas();
@@ -315,30 +321,36 @@ export default class EditorRedMetro {
   crearLinea() { this.panelHerramientas.seleccionar('lineas'); }
   crearTramo() { this.panelHerramientas.seleccionar('conexiones'); }
 
-  async guardarDiseno({ evaluar = true } = {}) {
-    if (this.finalizacionEnCurso) return false;
+  guardarDiseno() { return this.prepararAccionDiseno(false); }
+
+  finalizarRed() { return this.prepararAccionDiseno(true); }
+
+  async prepararAccionDiseno(finalizar) {
+    if (this.finalizacionEnCurso || !this.disenoActual) return false;
+    if (finalizar && (!this.esEscenarioProgresivo() || this.disenoActual.simulacion.estado === 'COMPLETADO')) return false;
     this.finalizacionEnCurso = true;
+    this.actualizarAccesoSimulacion();
     this.ocultarAvisoGuardado();
     const id = this.idDiseno(), contexto = this.versionContexto;
     const vigente = () => this.activo && contexto === this.versionContexto && this.disenoActual?.simulacion.idDiseno === id;
     try {
       if (this.creacionDirecta.pendiente && !await this.creacionDirecta.pendiente) return false;
       const { validacion, protegido } = await prepararDiseno(this.clienteDisenos, id, { guardar:true, vigente });
-      if (!await this.abrirDiseno(id)) return false;
+      if (!vigente() || !await this.abrirDiseno(id) || !vigente()) return false;
       this.cambiosPendientes = false;
       if (validacion.valido) this.panelTutorial?.registrarUso('guardar');
       this.actualizarAyuda(true);
-      if (!protegido) this.mostrarAvisoGuardado();
-      if (evaluar && !protegido && validacion.valido && this.esEscenarioProgresivo()) await this.evaluarEscenarioGuardado(id);
+      if (!protegido && !finalizar) this.mostrarAvisoGuardado();
+      if (finalizar && !protegido && validacion.valido) await this.evaluarEscenarioGuardado(id);
       else {
         const pendientes = (this.consignaActual?.condiciones ?? []).filter(c => !c.completado).map(c => c.texto);
         const detalle = !validacion.valido ? ` La red todavía está en construcción: ${(validacion.observaciones ?? []).join(' ')}`
           : pendientes.length ? ` Todavía falta cumplir: ${pendientes.join(' ')}` : '';
-        if (protegido || detalle) this.mostrarMensaje(`${protegido ? 'Logro conservado.' : ''}${detalle}`.trim(), detalle ? 'info' : 'exito', { orientarError:false });
+        if (protegido || detalle) this.mostrarMensaje(`${protegido ? 'Logro conservado.' : ''}${detalle}`.trim(), detalle ? (finalizar ? 'advertencia' : 'info') : 'exito', { orientarError:false });
       }
       return true;
     } catch (error) { if (vigente()) this.mostrarError(error); return false; }
-    finally { this.finalizacionEnCurso = false; }
+    finally { this.finalizacionEnCurso = false; if (this.activo) this.actualizarAccesoSimulacion(); }
   }
 
   async evaluarEscenarioGuardado(idDiseno) {
@@ -358,14 +370,18 @@ export default class EditorRedMetro {
       const idEscenario = this.disenoActual?.simulacion?.idEscenario;
       const estadoAnterior = await consultarEstadoAnterior(idEscenario);
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
-      const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST' });
+      const evaluacion = await this.solicitarJuego(`/disenos/${idDiseno}/evaluar`, { method: 'POST', signal: controlador.signal });
       premiosPendientes = evaluacion.completado ? evaluacion.trofeosNuevos ?? [] : [];
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
       if (evaluacion.completado) this.cambiosPendientes = false;
       await this.cargarJuego();
       await this.abrirDiseno(idDiseno);
-      // El guardado ya tiene confirmación propia y el panel conserva los objetivos.
-      // El desglose de puntuación corresponde a la ventana de finalización.
+      if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
+      if (!evaluacion.completado) {
+        const pendientes = (this.consignaActual?.condiciones ?? []).filter(c => !c.completado).map(c => c.texto);
+        const detalle = pendientes.length ? pendientes.join(' ') : 'Revisá los objetivos y ejecutá nuevamente la red con su configuración actual.';
+        this.mostrarMensaje(`Red guardada. Todavía falta: ${detalle}`, 'advertencia', { orientarError: false });
+      }
       if (evaluacion.completado) {
         this.panelTutorial?.cerrarRecorridos(true);
         const progreso = await this.solicitarJuego('/progreso');
@@ -943,8 +959,16 @@ export default class EditorRedMetro {
 
   actualizarAccesoSimulacion() {
     const boton = this.obtener('[data-ir-simulacion]');
-    boton.disabled = !this.disenoActual || this.esEscenarioSinSimulacion();
-    const mensaje = this.esEscenarioSinSimulacion() ? 'Este nivel se completa con Guardar.' : 'Simular comprueba y guarda la red antes de iniciar.';
+    boton.disabled = this.finalizacionEnCurso || !this.disenoActual || this.esEscenarioSinSimulacion();
+    this.obtener('[data-guardar]').disabled = this.finalizacionEnCurso;
+    const finalizar = this.obtener('[data-finalizar-red]');
+    finalizar.hidden = !this.esEscenarioProgresivo() || this.disenoActual?.simulacion.estado === 'COMPLETADO';
+    finalizar.disabled = this.finalizacionEnCurso;
+    finalizar.setAttribute('aria-busy', String(this.finalizacionEnCurso));
+    const mensaje = !this.esEscenarioProgresivo() || this.disenoActual?.simulacion.estado === 'COMPLETADO'
+      ? 'Simular comprueba y guarda la red antes de iniciar.'
+      : this.esEscenarioSinSimulacion() ? 'Usá Finalizar red para comprobar la consigna y aprobar.'
+        : 'Simular guarda y prueba el avance. Finalizar red comprueba la aprobación.';
     boton.title = mensaje;
     this.obtener('[data-ayuda-simulacion]')?.replaceChildren(document.createTextNode(mensaje));
   }
@@ -953,7 +977,7 @@ export default class EditorRedMetro {
     const estado = this.disenoActual?.simulacion?.estado;
     const redValidada = ['VALIDADO', 'COMPLETADA', 'COMPLETADO'].includes(estado);
     if (redValidada && this.esEscenarioSinSimulacion()) {
-      return 'La red es consistente. La consigna se completa al guardar.';
+      return 'La red es consistente. Usá Finalizar red para comprobar la consigna.';
     }
     if (observaciones?.length) return observaciones.join(' ');
     return 'Asigná un metro a un recorrido continuo. Simular comprobará la red automáticamente.';

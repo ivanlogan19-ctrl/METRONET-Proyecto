@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.web.server.ResponseStatusException;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +100,8 @@ class MatrizPuntuacionRecorridoPostgresTest {
             List<UnidadMetroSimulacionResponse> unidades = construirReferencia(jugador, diseno, referencia);
             simulaciones.guardarDiseno(jugador, diseno);
             assertTrue(simulaciones.validarDiseno(jugador, diseno).preparadoParaSimular(), caso);
+            assertTrue(jdbc.queryForObject("SELECT progreso FROM intento WHERE id_intento=?", Integer.class, inicio.idIntento()) > 0,
+                caso + ": Guardar conserva progreso sin finalizar");
             assertFalse(juego.evaluarEscenario(jugador, diseno).completado(), "Guardar no reemplaza la simulación pendiente");
             for (JsonNode paso : referencia.path("ejecuciones")) {
                 for (int i=0; i<unidades.size(); i++) {
@@ -110,7 +114,16 @@ class MatrizPuntuacionRecorridoPostgresTest {
                 assertEquals(0, resultado.registroPuntuacion().descuento(), caso + ": avanzar no penaliza");
                 assertEquals(esperado, resultado.puntaje(), caso);
             }
+            simulaciones.guardarDiseno(jugador, diseno);
+            assertNotEquals("COMPLETADO", simulaciones.obtenerSimulacion(jugador, diseno).simulacion().estado(), caso);
+            assertNull(jdbc.queryForObject("SELECT fecha_finalizacion FROM intento WHERE id_intento=?", java.sql.Timestamp.class, inicio.idIntento()));
+            assertEquals(nivel-1, juego.obtenerResumenProgreso(jugador).nivelesCompletados(), "Solo Finalizar red aprueba");
+            assertFalse(juego.obtenerResumenProgreso(jugador).modoLibreDesbloqueado());
+            if (nivel < 10) assertFalse(juego.obtenerProgreso(jugador).stream()
+                .filter(e -> Integer.valueOf(nivel+1).equals(e.numero())).findFirst().orElseThrow().desbloqueado());
+            var antesDeFinalizar = juego.obtenerDesempeno(jugador, diseno).desglosePuntuacion();
             var finalizada = juego.evaluarEscenario(jugador, diseno);
+            assertEquals(antesDeFinalizar, juego.obtenerDesempeno(jugador, diseno).desglosePuntuacion(), "Finalizar no descuenta");
             assertTrue(finalizada.completado(), caso);
             assertEquals(100, finalizada.progreso(), caso);
             assertEquals(esperado, finalizada.puntaje(), caso);
@@ -121,6 +134,39 @@ class MatrizPuntuacionRecorridoPostgresTest {
         }
         assertEquals(10, juego.obtenerResumenProgreso(jugador).nivelesCompletados());
         assertEquals(100+9*objetivo, jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=? AND estado='COMPLETADO'", Integer.class, jugador));
+    }
+
+    @Test
+    void finalizarExigeSimulacionActualYPropietarioSinCobrarOtraVez() throws Exception {
+        int admin = usuario("Publicador cierre", "ADMIN");
+        recorrido.publicar(admin);
+        int jugador = usuario("Jugador cierre", "JUGADOR");
+        int otro = usuario("Otro jugador", "JUGADOR");
+        int escenario = juego.obtenerProgreso(jugador).stream().filter(e -> Integer.valueOf(1).equals(e.numero()))
+            .findFirst().orElseThrow().idEscenario();
+        var inicio = juego.iniciarEscenario(jugador, escenario);
+        int diseno = inicio.idDiseno();
+        var unidades = construirReferencia(jugador, diseno, niveles.versiones(1).getFirst().redReferencia());
+        simulaciones.guardarDiseno(jugador, diseno);
+        assertFalse(juego.evaluarEscenario(jugador, diseno).completado(), "No reemplaza la ejecución pendiente");
+        simulaciones.validarDiseno(jugador, diseno);
+        ejecutar(jugador, diseno, 6);
+        var unidad = unidades.getFirst();
+        simulaciones.actualizarUnidadMetro(jugador, diseno, unidad.idTren(), new ActualizarUnidadMetroRequest(
+            unidad.nombreLinea(), unidad.capacidad(), BigDecimal.valueOf(5)));
+        simulaciones.guardarDiseno(jugador, diseno);
+        assertFalse(juego.evaluarEscenario(jugador, diseno).completado(), "La ejecución anterior no valida UV nuevas");
+        assertEquals(100, juego.obtenerDesempeno(jugador, diseno).puntaje());
+        assertThrows(ResponseStatusException.class, () -> juego.evaluarEscenario(otro, diseno));
+        simulaciones.validarDiseno(jugador, diseno);
+        ejecutar(jugador, diseno, 6);
+        assertNotEquals("COMPLETADO", simulaciones.obtenerSimulacion(jugador, diseno).simulacion().estado());
+        assertTrue(juego.evaluarEscenario(jugador, diseno).completado());
+        var cierre = jdbc.queryForObject("SELECT fecha_finalizacion FROM intento WHERE id_intento=?", java.sql.Timestamp.class, inicio.idIntento());
+        assertTrue(juego.evaluarEscenario(jugador, diseno).completado());
+        assertEquals(cierre, jdbc.queryForObject("SELECT fecha_finalizacion FROM intento WHERE id_intento=?", java.sql.Timestamp.class, inicio.idIntento()));
+        assertEquals(2, simulaciones.listarResultados(jugador, diseno).size());
+        assertEquals(100, juego.obtenerDesempeno(jugador, diseno).puntaje());
     }
 
     private int usuario(String nombre, String rol) {

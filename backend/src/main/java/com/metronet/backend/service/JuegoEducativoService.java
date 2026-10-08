@@ -326,6 +326,20 @@ public class JuegoEducativoService {
         return new EvaluacionEscenarioResponse(completado, completado ? 100 : Math.min(progreso, 99), puntaje, mensaje, siguiente, modoLibre, desempeno, nuevos);
     }
 
+    /** Conserva avance y puntuación sin aprobar, premiar ni desbloquear el siguiente nivel. */
+    @Transactional
+    public void actualizarProgreso(Integer idUsuario, Integer idDiseno) {
+        jdbcTemplate.queryForObject("SELECT id_usuario FROM usuario WHERE id_usuario=? FOR UPDATE", Integer.class, idUsuario);
+        IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
+        if (intento == null || MODO_EDICION_LIBRE.equals(intento.modo()) || "COMPLETADO".equals(intento.estado())) return;
+        EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
+        DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
+        jdbcTemplate.update("""
+            UPDATE intento SET progreso = GREATEST(progreso, ?), puntaje = ?
+            WHERE id_intento = ?
+            """, Math.min(evaluacion.progreso(), 99), desempeno.puntaje(), intento.idIntento());
+    }
+
     @Transactional(readOnly = true)
     public DesempenoNivelResponse obtenerDesempeno(Integer idUsuario, Integer idDiseno) {
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);

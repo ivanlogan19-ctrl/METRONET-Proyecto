@@ -8,12 +8,8 @@ import { gestorMusica } from '../audio/GestorMusica.js';
 import { consultarJuego } from '../educacion/ClientePuntuacion.js';
 import { renderizarDesempeno } from './PanelDesempeno.js';
 import { inicializarOrganizacionSimulacion } from './OrganizacionSimulacion.js';
-import { consultarEstadoAnterior, presentarResultadoNivel } from '../educacion/TransicionNivel.js';
-import { celebrarTrofeosNuevos } from '../educacion/CelebracionTrofeos.js';
-import { registrarEntradaRecorrido } from '../educacion/IdentificacionNivel.js';
-import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../red/ClienteDisenos.js';
-import { establecerIdDisenoEnRuta, establecerContextoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
+import { establecerIdDisenoEnRuta, obtenerContextoRuta, obtenerIdDisenoDeRuta } from '../red/ContextoDiseno.js';
 import { crearVisorSimulacion } from './EscenaSimulacion.js';
 import { crearFlujoNavegacion, inicializarNavegacion } from '../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion, estaMantenimientoActivo, EVENTO_CONFIGURACION, MENSAJE_MANTENIMIENTO } from '../configuracion/ConfiguracionAplicacion.js';
@@ -400,23 +396,6 @@ async function ejecutarSimulacion(evento) {
   } finally { preparacionEnCurso = false; actualizarControlesSimulacion(estadoMotor); }
 }
 
-async function evaluarEscenarioProgresivo(idDiseno) {
-  const respuesta = await fetch(`${window.location.protocol}//${window.location.hostname}:8080/api/juego/disenos/${idDiseno}/evaluar`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${sesion.token}` },
-  });
-  // Los diseños no progresivos no se evalúan mediante esta ruta.
-  if (respuesta.status === 404) return null;
-  if (respuesta.ok) return respuesta.json();
-  let mensaje = 'La simulación se registró, pero no fue posible evaluar el nivel.';
-  try {
-    mensaje = (await respuesta.json()).detail ?? mensaje;
-  } catch {
-    // La respuesta no incluyó un detalle legible.
-  }
-  throw new Error(mensaje);
-}
-
 function pausarSimulacion() {
   const estado = visor?.escena.pausarAnimacion();
   actualizarPanelTiempoReal(estado);
@@ -527,84 +506,32 @@ async function finalizarEjecucionVisible() {
   actualizarControlesSimulacion(estadoMotor);
   const controlador = new AbortController();
   const cancelar = () => controlador.abort();
-  let premiosPendientes = [];
-  const celebrar = async () => {
-    const premios = premiosPendientes;
-    premiosPendientes = [];
-    await celebrarTrofeosNuevos(premios, { signal: controlador.signal });
-  };
+  const vigente = () => !controlador.signal.aborted && paginaActiva && disenoActual?.simulacion?.idDiseno === pendiente.idDiseno;
   window.addEventListener('pagehide', cancelar);
   window.addEventListener('popstate', cancelar);
   try {
-    const idEscenario = disenoActual?.simulacion?.idEscenario;
-    const estadoAnterior = await consultarEstadoAnterior(idEscenario);
-    if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
-    const evaluacion = await evaluarEscenarioProgresivo(pendiente.idDiseno);
-    tutorialSimulacion?.notificar('ejecucion');
-    premiosPendientes = evaluacion?.completado ? evaluacion.trofeosNuevos ?? [] : [];
-    const correspondeAlDisenoActual = disenoActual?.simulacion?.idDiseno === pendiente.idDiseno;
-    if (!correspondeAlDisenoActual || controlador.signal.aborted) return;
-    if (evaluacion) {
-      if (evaluacion.completado) disenoActual.simulacion.estado = 'COMPLETADO';
-      if (evaluacion.desempeno) {
-        const resultado = disenoActual.resultados?.find(r => r.idSimulacion === pendiente.resultado.idSimulacion);
-        if (resultado) {
-          resultado.puntaje = evaluacion.puntaje;
-          resultado.puntajeEvaluado = evaluacion.puntaje;
-        }
-      }
-      actualizarPantalla();
-    }
+    // La ejecución ya registró sus objetivos y descuentos en el servidor.
+    // Consultar resultados no aprueba el nivel: esa decisión pertenece a Finalizar red.
     await cargarConsignaReal(pendiente.idDiseno);
+    if (!vigente()) return;
     await actualizarDesempeno(pendiente.idDiseno, false);
-    // El resultado se muestra sin reiniciar la animación que acaba de finalizar.
+    if (!vigente()) return;
+    tutorialSimulacion?.notificar('ejecucion');
     document.getElementById('continuarEscenarios').hidden = false;
-    const cumpleSimulacion = pendiente.resultado.resultadoUvUt?.completo;
-    const mensaje = cumpleSimulacion == null ? 'Recorrido finalizado. Revisá los objetivos en Edición.'
-      : cumpleSimulacion ? 'Recorrido finalizado. Consigna de simulación cumplida.'
-        : 'Recorrido finalizado. Consigna de simulación pendiente.';
-    const puntaje = Number(evaluacion?.puntaje);
-    const resultadoVisible = evaluacion?.puntaje != null && Number.isFinite(puntaje)
-      ? `${mensaje} ${evaluacion.completado ? `Nivel aprobado · ${puntaje} puntos.`
-        : `Puntaje posible: ${puntaje} puntos · Consigna pendiente.`}` : mensaje;
-    mostrarMensaje(resultadoVisible, cumpleSimulacion === false ? 'advertencia' : 'exito');
-    if (evaluacion?.completado) {
-      // La tarjeta del siguiente nivel necesita abrir un diálogo propio.
-      tutorialSimulacion?.terminar(false);
-      tutorialSimulacion = null;
-      // Consultar el progreso persistido también permite retomar desde Escenarios tras una recarga.
-      try {
-        const base = `${window.location.protocol}//${window.location.hostname}:8080/api/juego`;
-        const headers = { Authorization: `Bearer ${sesion.token}` };
-        const respuesta = await fetch(`${base}/progreso`, { headers });
-        if (!respuesta.ok) return;
-        const progreso = await respuesta.json();
-        if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
-        const accion = await presentarResultadoNivel(progreso, idEscenario, evaluacion, { ...estadoAnterior, signal: controlador.signal });
-        await celebrar();
-        if (controlador.signal.aborted || disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
-        if (accion?.siguiente) {
-          const inicio = await iniciarNivelConTransicion(accion.siguiente, async signal => {
-            const operacion = accion.siguiente.estado === 'COMPLETADO' ? 'volver-a-jugar' : 'iniciar';
-            const respuestaInicio = await fetch(`${base}/escenarios/${accion.siguiente.idEscenario}/${operacion}`, { method: 'POST', headers, signal });
-            if (!respuestaInicio.ok) throw new Error('No fue posible iniciar el siguiente nivel. Continuá desde Niveles.');
-            return respuestaInicio.json();
-          }, { preparado: true });
-          if (inicio && !controlador.signal.aborted && disenoActual?.simulacion?.idDiseno === pendiente.idDiseno) {
-            if (accion.celebrarRecorrido) registrarEntradaRecorrido(inicio);
-            window.location.assign(establecerContextoEnRuta('/', inicio));
-          }
-        } else if (accion?.destino) window.location.assign(accion.destino);
-      } catch (error) { mostrarMensaje(`Resultado guardado. ${error.message}`, 'error'); }
-    }
+    const esNivel = Number.isInteger(escenariosGlosario.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.numero);
+    const lista = consignaActual?.estadoGlobal === 'LISTO';
+    const aprobada = disenoActual.simulacion.estado === 'COMPLETADO' || consignaActual?.estadoGlobal === 'COMPLETADO';
+    let mensaje = 'Simulación terminada. Podés ajustar la red y volver a probar.';
+    if (esNivel) mensaje = aprobada
+      ? 'Simulación terminada. Este nivel ya está aprobado; podés volver a Niveles para repetirlo.'
+      : lista ? 'Simulación terminada. Volvé a Edición y elegí Finalizar red para comprobar la aprobación.'
+        : 'Simulación terminada. Revisá los objetivos pendientes; podés ajustar la red y volver a probar.';
+    mostrarMensaje(mensaje, 'exito');
   } catch (error) {
-    if (disenoActual?.simulacion?.idDiseno !== pendiente.idDiseno) return;
-    document.getElementById('continuarEscenarios').hidden = false;
-    mostrarMensaje(`El recorrido terminó, pero no se pudo evaluar el nivel: ${error.message}`, 'error');
+    if (vigente()) mostrarMensaje(`Simulación guardada. No se pudo actualizar el resultado: ${error.message}`, 'error');
   } finally {
-    await celebrar();
     resultadoEnCurso = false;
-    actualizarControlesSimulacion(estadoMotor);
+    if (vigente()) actualizarControlesSimulacion(estadoMotor);
     window.removeEventListener('pagehide', cancelar);
     window.removeEventListener('popstate', cancelar);
   }

@@ -83,9 +83,11 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   });
   await tutorial.evaluate(e => { e.scrollTop = 0; });
   const ventanaAntesRueda = await p.evaluate(() => scrollY);
-  const tarjetaCorta = await tutorial.boundingBox();
-  const cursor = { x: tarjetaCorta.x + tarjetaCorta.width / 2, y: tarjetaCorta.y + tarjetaCorta.height / 2 };
-  await p.mouse.move(cursor.x, cursor.y);
+  // El ResizeObserver reposiciona el coach mark: esperar actionability evita usar
+  // el centro anterior mientras todavía se acomoda al viewport nuevo.
+  await tutorial.locator('h2').hover();
+  const encabezado = await tutorial.locator('h2').boundingBox();
+  const cursor = { x: encabezado.x + encabezado.width / 2, y: encabezado.y + encabezado.height / 2 };
   const estadoRueda = await p.evaluate(({ x, y }) => {
     const tarjeta = document.querySelector('.metronet-recorrido');
     const elemento = document.elementFromPoint(x, y);

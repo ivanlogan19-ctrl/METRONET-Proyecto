@@ -64,8 +64,8 @@ export function pasoPractico(contexto, estado) {
     }
     if (!Number.isFinite(minimo) || !Number.isFinite(lineas)) return null;
     const completa = consigna?.condiciones?.length && consigna.condiciones.every(c => c.completado);
-    if (estado.aprendidas.has('guardar') && completa) return paso('terminado', 'Práctica completada', 'Guardaste tu red y cumpliste las condiciones. Podés seguir explorando las herramientas.');
-    return paso('guardar', 'Guardar', 'Usá el disquete para guardar. METRONET revisará la consigna e indicará si queda algo pendiente.');
+    if (estado.aprendidas.has('guardar') && completa) return paso('terminado', 'Práctica completada', 'Guardaste tu avance. Cuando cumplas la consigna, elegí Finalizar red para comprobar la aprobación.');
+    return paso('guardar', 'Guardar', 'Usá el disquete para conservar tu avance, aunque esté incompleto. Finalizar red comprueba si aprobaste.');
   }
   for (const clave of nuevas) {
     const completada = clave === 'conexiones'
@@ -92,7 +92,7 @@ export function pasosPracticosEditor(numero) {
   if (numero === 1) return [...comunes,
     ['[data-elegir-herramienta="metros"]', 'Elegí Metro', 'Seleccioná Metro y después tocá la vía de tu línea.', 'metro-elegido'],
     [mapa, 'Asigná el Metro', 'Tocá la vía. La unidad queda asignada cuando se confirme su creación.', 'metro-creado'],
-    ['[data-guardar]', 'Guardá la red', 'Pulsá el disquete. Guardar comprueba la red sin completar por vos la simulación.', 'guardado'],
+    ['[data-guardar]', 'Guardá la red', 'Pulsá el disquete para conservar el avance. Guardar no termina el nivel.', 'guardado'],
     ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones de nivel y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
   ];
   if (numero === 5) return [
