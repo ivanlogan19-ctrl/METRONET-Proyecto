@@ -76,7 +76,7 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     assert.equal(r.status(),estado,await r.text());
     await frame().getByRole('button',{name:'Guardar cambios del nivel',exact:true}).waitFor();return r.json();
   }
-  async function preview(n,estado=200){const espera=page.waitForResponse(r=>r.url().endsWith(`/niveles/${n}/previsualizar`));await frame().getByRole('button',{name:'Previsualizar y validar',exact:true}).click();const r=await espera;assert.equal(r.status(),estado,await r.text());return r.json();}
+  async function preview(n,estado=200){const espera=page.waitForResponse(r=>r.url().endsWith(`/niveles/${n}/previsualizar`));await frame().getByRole('button',{name:'Previsualizar',exact:true}).click();const r=await espera;assert.equal(r.status(),estado,await r.text());return r.json();}
   for(let n=1;n<=10;n++)await t.test(`Nivel ${n}: edición, tarjetas, guardado y reapertura reales`,async()=>{
     const antes=await get(`/${n}/borrador`);await abrir(n);
     const relato=`Comprobación aislada del nivel ${n}.`;

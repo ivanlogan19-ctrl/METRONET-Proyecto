@@ -92,6 +92,37 @@ async function abrirEditor(t,viewport={width:1440,height:900},numero=10,responde
   return {...v,borrador};
 }
 
+test('Guardar y Publicar permanecen juntos y publican solamente el borrador validado',async t=>{
+  let vista;
+  const {pagina:p,borrador,solicitudes}=await abrirEditor(t,{width:1440,height:900},1,req=>{
+    if(req.url().endsWith('/previsualizar'))return {json:vista};
+    if(req.url().endsWith('/publicar'))return {json:{version:3}};
+  });
+  const cabecera=p.locator('.admin-niveles__cabecera');
+  const guardar=cabecera.getByRole('button',{name:'Guardar cambios del nivel',exact:true});
+  const publicar=cabecera.getByRole('button',{name:'Publicar versión',exact:true});
+  assert.equal(await publicar.count(),1,'Publicar está disponible en la cabecera global');
+  assert.equal(await publicar.isDisabled(),true,'No se publica sin validar');
+  assert.notEqual(await publicar.locator('path').getAttribute('d'),await guardar.locator('path').getAttribute('d'),'Guardar y Publicar se distinguen visualmente');
+  const cajaGuardar=await guardar.boundingBox(),cajaPublicar=await publicar.boundingBox();
+  assert(Math.abs(cajaGuardar.y-cajaPublicar.y)<1&&cajaPublicar.x>cajaGuardar.x,'Guardar está junto a Publicar');
+  await p.getByLabel('Nombre',{exact:true}).filter({visible:true}).fill('Nivel listo para publicar');
+  await guardar.click();await p.getByText(/Borrador del nivel 1 guardado, revisión 2/).waitFor();
+  assert.equal(solicitudes.filter(s=>s.path.endsWith('/publicar')).length,0,'Guardar no publica');
+  vista={...borrador(),versionPublicada:2,revisionBorrador:2,diagnostico:{viable:true,mensaje:'Referencia viable',condiciones:[],huella:'revision-2'}};
+  await p.getByRole('button',{name:'Previsualizar'}).click();
+  await p.getByText('Referencia viable').waitFor();
+  await p.getByRole('tab',{name:'Tarjetas',exact:true}).click();
+  if(process.env.METRONET_CAPTURAS_ADMIN)
+    await p.screenshot({path:`${process.env.METRONET_CAPTURAS_ADMIN}/admin-guardar-publicar.png`});
+  await publicar.click();
+  assert.equal(solicitudes.filter(s=>s.path.endsWith('/publicar')).length,0,'La revisión editorial sigue siendo obligatoria');
+  await p.locator('[data-confirmacion-editorial]').check();
+  await publicar.click();await p.getByText(/Nivel 1 publicado como versión 3/).waitFor();
+  assert.deepEqual(solicitudes.find(s=>s.path.endsWith('/publicar')).body,
+    {versionEsperada:2,revisionEsperada:2,huellaPreview:'revision-2',confirmacionEditorial:true});
+});
+
 // Una respuesta lenta no debe marcar como guardados cambios que no se enviaron.
 test('Editar durante el guardado conserva los cambios nuevos como pendientes',async t=>{
   let resolver,avisar;
@@ -124,9 +155,9 @@ test('Editar durante la validación invalida su respuesta tardía',async t=>{
     if(req.url().endsWith('/previsualizar'))return new Promise(r=>{resolver=()=>r({json:vista});avisar()});
   });
   vista={...borrador(),versionPublicada:2,revisionBorrador:1,diagnostico:{viable:true,mensaje:'Referencia viable',condiciones:[],huella:'qa'}};
-  await p.getByRole('button',{name:'Previsualizar y validar'}).click();await recibido;
+  await p.getByRole('button',{name:'Previsualizar'}).click();await recibido;
   await p.getByLabel('Nombre',{exact:true}).filter({visible:true}).fill('Cambio posterior al análisis');
-  resolver();await p.getByRole('button',{name:'Previsualizar y validar'}).click();
+  resolver();await p.getByRole('button',{name:'Previsualizar'}).click();
   await p.locator('.admin-mensaje').filter({hasText:/Guardá/}).waitFor();
   assert.equal(await p.getByRole('button',{name:'Publicar versión'}).isDisabled(),true);
   assert.equal(solicitudes.filter(s=>s.path.endsWith('/publicar')).length,0);
@@ -139,7 +170,7 @@ test('Consultar el historial conserva la validación y la revisión editorial',a
     if(req.url().endsWith('/versiones'))return {json:Array.from({length:6},(_,i)=>({version:6-i,publicadoEn:'2026-10-01'}))};
   });
   vista={...borrador(),versionPublicada:2,revisionBorrador:1,diagnostico:{viable:true,mensaje:'Referencia viable',condiciones:[],huella:'qa'}};
-  await p.getByRole('button',{name:'Previsualizar y validar'}).click();
+  await p.getByRole('button',{name:'Previsualizar'}).click();
   await p.getByText('Referencia viable').waitFor();await p.locator('[data-confirmacion-editorial]').check();
   await p.getByRole('tab',{name:'Historial',exact:true}).click();
   await p.getByRole('button',{name:'Siguiente',exact:true}).click();

@@ -94,7 +94,7 @@ test('Admin guarda UV/UT en borrador y publica la versión completa tras validar
   const publicar = p.getByRole('button',{name:'Publicar versión'});
   assert.equal(await publicar.isDisabled(),true);
   await p.getByRole('button',{name:'Guardar cambios del nivel'}).click();
-  await p.getByRole('button',{name:'Previsualizar y validar'}).click();
+  await p.getByRole('button',{name:'Previsualizar'}).click();
   await p.getByText('Referencia viable').waitFor();
   assert.equal(await publicar.isEnabled(),true);
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/publicar')).length,0);

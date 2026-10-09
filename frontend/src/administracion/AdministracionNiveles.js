@@ -192,29 +192,39 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     cabecera.append(crear('h2',`Nivel ${numero} · ${nombreCorto(numero,datos.desafio.nombre)}`),
       crear('p',`Versión base ${borrador.versionBase} · Revisión ${borrador.revision}`));
     const utilidades=crear('div','','admin-niveles__utilidades');
+    const avisoPublicacion=crear('p','Publicá para aplicar','admin-niveles__alcance-publicacion');
+    avisoPublicacion.append(crear('br'),document.createTextNode('todos los cambios.'));
+    utilidades.append(avisoPublicacion);
+    const cambios=crear('div','','admin-niveles__cambios');
+    cambios.setAttribute('role','group');cambios.setAttribute('aria-label','Cambios del nivel');
     const estado=crear('button','','admin-secundario admin-niveles__estado');estado.type='button';
     estado.dataset.estadoBorrador='';
     configurarBotonIcono(estado,'guardar','Guardar cambios del nivel');
     const textoEstado=crear('span','','admin-niveles__estado-texto');textoEstado.setAttribute('role','status');
     estado.append(textoEstado);actualizarEstadoBorrador(estado);
     estado.addEventListener('click',guardarBorrador);
-    utilidades.append(estado);
+    const publicar=crear('button','','admin-secundario admin-niveles__publicar');publicar.type='button';publicar.dataset.publicarNivel='';
+    configurarBotonIcono(publicar,'publicar','Publicar versión');
+    publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
+    publicar.addEventListener('click',publicarNivel);
+    const previsualizar=crear('button','','admin-secundario');previsualizar.type='button';
+    configurarBotonIcono(previsualizar,'previsualizar','Previsualizar');
+    previsualizar.addEventListener('click',previsualizarNivel);
+    cambios.append(estado,previsualizar,publicar);
+    utilidades.append(cambios);
     const salir=crear('button','','admin-secundario admin-niveles__salir');salir.type='button';
     configurarBotonIcono(salir,'puertaSalida','Volver a los niveles para editar');
-    salir.addEventListener('click',volverALosNiveles);utilidades.append(salir);cabecera.append(utilidades);
+    salir.addEventListener('click',volverALosNiveles);
+    const salida=crear('div','','admin-niveles__accion-salida');salida.append(salir);
+    utilidades.append(salida);cabecera.append(utilidades);
     editor.append(cabecera);
 
     const acciones=crear('div','','admin-niveles__acciones');
-    const previsualizar=crear('button','Previsualizar y validar','admin-secundario');previsualizar.type='button';
-    previsualizar.addEventListener('click',previsualizarNivel);
     const confirmar=crear('label','Revisé las afirmaciones, fuentes e imágenes de las siete tarjetas.');
     const casilla=crear('input');casilla.type='checkbox';casilla.dataset.confirmacionEditorial='';confirmar.prepend(casilla);
     casilla.checked=actual.confirmacionEditorial;
     casilla.addEventListener('change',()=>{actual.confirmacionEditorial=casilla.checked});
-    const publicar=crear('button','Publicar versión','admin-guardar');publicar.type='button';publicar.dataset.publicarNivel='';
-    publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
-    publicar.addEventListener('click',publicarNivel);
-    acciones.append(previsualizar,publicar,confirmar);editor.append(acciones);
+    acciones.append(confirmar);editor.append(acciones);
 
     const pestanas=crear('div','','admin-niveles__pestanas');
     pestanas.setAttribute('role','tablist');pestanas.setAttribute('aria-label','Secciones del nivel');
@@ -358,7 +368,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     educacion.append(tarjetas);mostrarTarjeta();
 
     const vista=panel('vista','Vista previa');vista.classList.add('admin-niveles__vista');vista.dataset.vistaPrevia='';
-    pintarEsperaVista(vista,'Guardá el borrador y usá «Previsualizar y validar» para revisar el resultado.');
+    pintarEsperaVista(vista,'Guardá el borrador y usá «Previsualizar» para revisar el resultado.');
     const historial=panel('historial','Historial');
     const limpieza=crear('div','','admin-niveles__limpieza');
     const borrar=crear('button','','metronet-boton--peligro');borrar.type='button';
