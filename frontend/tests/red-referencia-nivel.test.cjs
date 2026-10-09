@@ -31,6 +31,19 @@ test('mapa Admin crea y conecta estaciones; flechas conservan foco y posición',
     await pagina.locator('[data-estacion="E1"] circle').click();
     await pagina.locator('[data-estacion="E2"] circle').click();
     assert.deepEqual(await pagina.evaluate(()=>redQa.tramos),[{linea:'Principal',a:'E1',b:'E2'}]);
+    await pagina.getByLabel('Acción del mapa de referencia').selectOption('mover');
+    await pagina.locator('[data-estacion="E1"] circle').click();
+    const antes=await pagina.evaluate(()=>({...redQa.estaciones[0]}));
+    await mapa.click({position:{x:caja.width*.3,y:caja.height*.4}});
+    const despues=await pagina.evaluate(()=>redQa.estaciones[0]);
+    assert(despues.x<antes.x&&despues.y<antes.y,'Mover modifica las coordenadas sin crear otra estación');
+    assert.equal(await pagina.evaluate(()=>redQa.estaciones.length),2);
+    await pagina.evaluate(()=>{redQa.lineas.push({nombre:'Secundaria'});mapaQa.actualizar()});
+    await pagina.getByLabel('Línea de referencia activa').selectOption('Secundaria');
+    await pagina.getByLabel('Acción del mapa de referencia').selectOption('tramo');
+    await pagina.locator('[data-estacion="E1"] circle').click();
+    await pagina.locator('[data-estacion="E2"] circle').click();
+    assert.equal(await pagina.evaluate(()=>redQa.tramos[1].linea),'Secundaria');
     assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     assert.deepEqual(errores,[]);
   } finally { await navegador.close(); }

@@ -261,7 +261,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    }
    assert.deepEqual(errores,[]);assert.deepEqual(fallos,[]);
   }catch(e){
-   bloqueo=true; console.log('FALLO ORIGINAL',e,'ERRORES',errores,fallos);
+   bloqueo=true; console.log('FALLO ORIGINAL',e,'ERRORES',errores,fallos,'PÁGINAS',pagina.frames().map(frame=>frame.url()));
    try {
     const frame=f();
     if(frame) console.log('ESTADO UI',await frame.evaluate(()=>window.leerEstadoPrueba?.()),(await frame.locator('body').innerText()).slice(-9000));
