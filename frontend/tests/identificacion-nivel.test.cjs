@@ -143,7 +143,7 @@ for (const motivo of ['escape','pagehide','popstate','desmontar','reemplazar']) 
   assert.equal(await p.locator('main').evaluate(e => e.inert), false);
 });
 
-test('Simulación del último nivel → nuevo documento del editor: celebración de un solo uso', async t => {
+test('Simular y finalizar el último nivel desde Edición: celebración de un solo uso', async t => {
   const ultimo = niveles.at(-1).numero;
   let completado = false;
   const red = { simulacion:{idDiseno:77,idEscenario:ultimo,nombre:'Red integral',modo:'NIVEL',estado:'VALIDADO'},
@@ -159,6 +159,7 @@ test('Simulación del último nivel → nuevo documento del editor: celebración
     if (ruta === '/api/simulaciones') return {json:[red.simulacion,libreDiseno.simulacion]};
     if (ruta === '/api/simulaciones/77') return {json:red};
     if (ruta === '/api/simulaciones/200') return {json:libreDiseno};
+    if (ruta === '/api/simulaciones/77/guardar') return {json:red.simulacion};
     if (ruta.endsWith('/ejecutar')) return {json:{idSimulacion:1,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4}};
     if (ruta.endsWith('/evaluar')) { completado = true; return {json:{completado:true,puntaje:100,idSiguienteEscenario:null,mensaje:'Nivel completado'}}; }
     if (ruta.endsWith('/111/iniciar')) return {json:{idDiseno:200,idEscenario:111,idIntento:900}};
@@ -168,6 +169,12 @@ test('Simulación del último nivel → nuevo documento del editor: celebración
 
   await p.locator('#duracionSimulacion').fill('1');
   await p.locator('#formularioEjecucion button[type="submit"]').click();
+  await p.waitForFunction(() => document.querySelector('#mensajeSimulacion')?.textContent.includes('Simulación terminada.'), null, {timeout:45000});
+  assert.equal(v.solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 0);
+  assert.equal(await p.locator('.metronet-resultado-nivel').count(), 0);
+  await p.locator('#volverEdicion').click();
+  await p.locator('.metronet-identificacion').waitFor({state:'detached'});
+  await p.locator('[data-finalizar-red]').click();
   await p.locator('.metronet-resultado-nivel').getByRole('button', { name: 'Continuar', exact: true }).click();
   await p.locator('.metronet-victoria').waitFor();
   await p.waitForURL('**/?idDiseno=200&idEscenario=111&idIntento=900');

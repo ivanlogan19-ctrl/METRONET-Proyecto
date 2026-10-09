@@ -208,7 +208,6 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   document.addEventListener('click', cerrarMenuAlHacerClicFuera);
   document.addEventListener('keydown', cerrarMenuConEscape);
   limpiarEventosUsuario = () => {
-    window.removeEventListener('focus', actualizarAcceso);
     document.removeEventListener('click', cerrarMenuAlHacerClicFuera);
     document.removeEventListener('keydown', cerrarMenuConEscape);
   };

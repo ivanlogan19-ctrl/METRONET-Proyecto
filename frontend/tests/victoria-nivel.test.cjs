@@ -189,8 +189,10 @@ test('Constructor real: Finalizar red guarda, evalúa una vez y abre victoria y 
  await pagina.evaluate(async()=>{(await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true);});
  await pagina.clock.install();await pagina.evaluate(()=>{window.evaluaciones=Promise.all([editorPrueba.finalizarRed(),editorPrueba.finalizarRed()]);});
  const puntos=pagina.locator('.metronet-resultado-nivel');await puntos.waitFor();assert.match(await puntos.innerText(),/Nuevo récord personal/i);
+ assert.equal(await pagina.locator('.metronet-consigna__continuar').count(),0,'El panel no duplica la continuación de la ventana de puntos');
  await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
  const d=pagina.locator('.metronet-victoria');await d.waitFor();assert.equal(evaluaciones,1);assert.equal(inicios,0);
+ assert.equal(await pagina.locator('.metronet-consigna__continuar').count(),0,'La transición es la única continuación activa');
   await pagina.clock.runFor(21000);
   await pagina.clock.runFor(5000);
   await pagina.waitForFunction(() => !editorPrueba.evaluacionEnCurso);

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { liberarJuegoPhaser } from '../mapa/LiberarJuegoPhaser.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 import { observarTamanoMapa } from '../mapa/ObservarTamanoMapa.js';
 
@@ -415,9 +416,9 @@ class EscenaSimulacion extends Phaser.Scene {
 export function crearVisorSimulacion(contenedor, opciones = {}) {
   return new Promise((resolver) => {
     let juego = null;
-    const destruir = () => {
+    const destruir = (sinSiguienteFrame = false) => {
       if (!juego) return;
-      juego.destroy(true);
+      liberarJuegoPhaser(juego, { sinSiguienteFrame });
       juego = null;
     };
     class EscenaLista extends EscenaSimulacion {

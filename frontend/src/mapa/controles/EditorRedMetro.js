@@ -7,6 +7,7 @@ import { actualizarRutaEdicion, establecerContextoEnRuta, establecerIdDisenoEnRu
 import { navegarConCambiosPendientes, registrarControlCambios } from '../../navegacion/NavegacionAplicacion.js';
 import { obtenerConfiguracionAplicacion } from '../../configuracion/ConfiguracionAplicacion.js';
 import BarraEstadoEditor from './BarraEstadoEditor.js';
+import { esAvisoRutinarioEditor, resumirAdvertenciaEditor } from './AvisosEditor.mjs';
 import { mostrarFormularioElemento } from './FormularioElemento.js';
 import { iniciarNivelConTransicion } from '../../educacion/PreparacionNivel.js';
 import { consultarEstadoAnterior, presentarResultadoNivel } from '../../educacion/TransicionNivel.js';
@@ -41,7 +42,8 @@ export default class EditorRedMetro {
     this.liberarControlCambios = null;
     this.capacidadUnidadPredeterminada = 300;
     this.dialogoEliminar = null;
-    this.dialogoSimulacion = null;
+    this.dialogoAdvertencia = null;
+    this.focoAvisoAdvertencia = null;
     this.avisoGuardado = null;
     this.temporizadorAvisoGuardado = null;
     this.panelHerramientas = null;
@@ -156,7 +158,7 @@ export default class EditorRedMetro {
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
     const finalizar = this.obtener('[data-finalizar-red]');
-    finalizar.innerHTML = `${iconoRetro('checkpoint')}<span>Finalizar red</span>`;
+    finalizar.innerHTML = `${iconoRetro('finalizarRed')}<span>Finalizar red</span>`;
     finalizar.title = 'Guardar y comprobar toda la consigna para aprobar el nivel';
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
 
@@ -239,6 +241,7 @@ export default class EditorRedMetro {
 
   async cargarDisenos(idParaAbrir, opciones = {}) {
     if (idParaAbrir) return this.abrirDiseno(idParaAbrir, opciones);
+    this.ocultarAvisoAdvertencia();
     this.identificacion?.cancelar();
     this.identificacion = null;
     this.disenoActual = null;
@@ -257,7 +260,10 @@ export default class EditorRedMetro {
     const entrada = presentarEntrada ? crearIdentificacionNivel(document.querySelector('#metronet-aplicacion')) : null;
     this.identificacion = entrada;
     if (entrada) this.panelTutorial?.actualizar({});
-    if (this.disenoActual?.simulacion?.idDiseno !== idDiseno) this.versionContexto += 1;
+    if (this.disenoActual?.simulacion?.idDiseno !== idDiseno) {
+      this.versionContexto += 1;
+      this.ocultarAvisoAdvertencia();
+    }
     try {
       const cambioDeDiseno = this.disenoActual?.simulacion?.idDiseno !== idDiseno;
       const diseno = await this.clienteDisenos.obtener(idDiseno);
@@ -342,6 +348,7 @@ export default class EditorRedMetro {
       this.actualizarAyuda(true);
       if (!protegido && !finalizar) this.mostrarAvisoGuardado();
       if (finalizar && !protegido && validacion.valido) await this.evaluarEscenarioGuardado(id);
+      else if (finalizar && !protegido && !validacion.valido) this.mostrarAvisoFinalizacion();
       else {
         const pendientes = (this.consignaActual?.condiciones ?? []).filter(c => !c.completado).map(c => c.texto);
         const detalle = !validacion.valido ? ` La red todavía está en construcción: ${(validacion.observaciones ?? []).join(' ')}`
@@ -377,11 +384,7 @@ export default class EditorRedMetro {
       await this.cargarJuego();
       await this.abrirDiseno(idDiseno);
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
-      if (!evaluacion.completado) {
-        const pendientes = (this.consignaActual?.condiciones ?? []).filter(c => !c.completado).map(c => c.texto);
-        const detalle = pendientes.length ? pendientes.join(' ') : 'Revisá los objetivos y ejecutá nuevamente la red con su configuración actual.';
-        this.mostrarMensaje(`Red guardada. Todavía falta: ${detalle}`, 'advertencia', { orientarError: false });
-      }
+      if (!evaluacion.completado) this.mostrarAvisoFinalizacion();
       if (evaluacion.completado) {
         this.panelTutorial?.cerrarRecorridos(true);
         const progreso = await this.solicitarJuego('/progreso');
@@ -399,6 +402,7 @@ export default class EditorRedMetro {
     } finally {
       await celebrar();
       this.evaluacionEnCurso = false;
+      if (this.activo) this.renderizarConsigna();
       window.removeEventListener('pagehide', cancelar);
       window.removeEventListener('popstate', cancelar);
     }
@@ -431,17 +435,69 @@ export default class EditorRedMetro {
   }
 
   mostrarAvisoSimulacion() {
-    if (!this.dialogoSimulacion?.isConnected) {
-      const dialogo = document.createElement('dialog');
-      dialogo.className = 'metronet-dialogo-simulacion';
-      dialogo.innerHTML = '<form method="dialog" class="metronet-dialogo-simulacion__contenido"><h2>Prepará la red para simular</h2><p data-aviso-simulacion></p><button type="submit">Entendido</button></form>';
-      document.body.append(dialogo);
-      this.dialogoSimulacion = dialogo;
-    }
-    this.dialogoSimulacion.querySelector('[data-aviso-simulacion]').textContent = this.esEscenarioProgresivo()
+    const mensaje = this.esEscenarioProgresivo()
       ? 'Revisá los objetivos del nivel, completá la red y asigná un metro para continuar.'
       : 'Completá la red y asigná un metro para continuar.';
-    if (!this.dialogoSimulacion.open) this.dialogoSimulacion.showModal();
+    this.mostrarAvisoAdvertencia('Prepará la red para simular', mensaje,
+      this.obtener('[data-ir-simulacion]'), 'simulacion');
+  }
+
+  mostrarAvisoFinalizacion() {
+    if (!this.activo) return;
+    this.mostrarAvisoAdvertencia('Completá la consigna para finalizar',
+      'Revisá los objetivos del nivel y continuá construyendo tu red.', this.obtener('[data-finalizar-red]'));
+  }
+
+  mostrarAvisoAdvertencia(titulo, mensaje, focoAlCerrar = document.activeElement, variante = 'advertencia') {
+    if (!this.activo) return;
+    this.barraEstado?.limpiarMensaje();
+    if (!this.dialogoAdvertencia?.isConnected) {
+      const dialogo = document.createElement('dialog');
+      dialogo.className = 'metronet-dialogo-editor metronet-dialogo-advertencia';
+      dialogo.tabIndex = -1;
+      dialogo.setAttribute('aria-labelledby', 'metronet-advertencia-titulo');
+      dialogo.setAttribute('aria-describedby', 'metronet-advertencia-mensaje');
+      dialogo.innerHTML = '<h2 id="metronet-advertencia-titulo"></h2><p id="metronet-advertencia-mensaje" data-mensaje-advertencia></p>';
+      // El gesto de cierre queda en el modal y no llega a las herramientas del mapa.
+      for (const tipo of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend']) {
+        dialogo.addEventListener(tipo, evento => evento.stopPropagation());
+      }
+      dialogo.addEventListener('keydown', evento => {
+        evento.stopPropagation();
+        if (evento.key === 'Tab') evento.preventDefault();
+      });
+      dialogo.addEventListener('click', evento => {
+        evento.stopPropagation();
+        if (evento.target !== dialogo) return;
+        const limites = dialogo.getBoundingClientRect();
+        if (evento.clientX < limites.left || evento.clientX > limites.right || evento.clientY < limites.top || evento.clientY > limites.bottom) {
+          evento.preventDefault();
+          dialogo.close();
+        }
+      });
+      dialogo.addEventListener('close', () => {
+        if (this.dialogoAdvertencia !== dialogo) return;
+        const foco = this.focoAvisoAdvertencia;
+        this.focoAvisoAdvertencia = null;
+        if (this.activo && foco?.isConnected && !foco.disabled) foco.focus({ preventScroll: true });
+      });
+      document.body.append(dialogo);
+      this.dialogoAdvertencia = dialogo;
+    }
+    this.dialogoAdvertencia.dataset.variante = variante;
+    this.dialogoAdvertencia.querySelector('h2').textContent = titulo;
+    this.dialogoAdvertencia.querySelector('[data-mensaje-advertencia]').textContent = mensaje;
+    if (!this.dialogoAdvertencia.open) {
+      this.focoAvisoAdvertencia = focoAlCerrar;
+      this.dialogoAdvertencia.showModal();
+      this.dialogoAdvertencia.focus({ preventScroll: true });
+    }
+  }
+
+  ocultarAvisoAdvertencia() {
+    this.focoAvisoAdvertencia = null;
+    this.dialogoAdvertencia?.remove();
+    this.dialogoAdvertencia = null;
   }
 
   mostrarAvisoGuardado() {
@@ -467,7 +523,8 @@ export default class EditorRedMetro {
   obtenerDialogoEliminar() {
     if (this.dialogoEliminar?.isConnected) return this.dialogoEliminar;
     const dialogo = document.createElement('dialog');
-    dialogo.className = 'metronet-dialogo-eliminar';
+    dialogo.className = 'metronet-dialogo-editor metronet-dialogo-eliminar';
+    dialogo.dataset.variante = 'eliminacion';
     dialogo.innerHTML = '<form method="dialog" class="metronet-dialogo-eliminar__contenido"><p class="metronet-dialogo-eliminar__etiqueta">Zona de peligro</p><h2 data-titulo-eliminar></h2><p data-mensaje-eliminar></p><p data-detalle-eliminar></p><div class="metronet-dialogo-eliminar__acciones"><button value="cancelar" type="submit">Cancelar</button><button value="eliminar" type="submit" data-confirmar-eliminar>Eliminar</button></div></form>';
     document.body.append(dialogo);
     this.dialogoEliminar = dialogo;
@@ -862,7 +919,7 @@ export default class EditorRedMetro {
       contenedorReferencias.append(bloqueReferencias);
     }
 
-    const siguienteEscenario = escenario.estado === 'COMPLETADO'
+    const siguienteEscenario = !this.evaluacionEnCurso && escenario.estado === 'COMPLETADO'
       ? this.obtenerSiguienteEscenarioDesbloqueado(escenario)
       : null;
     const accionContinuar = siguienteEscenario ? this.crearAccionContinuarEscenario(siguienteEscenario) : null;
@@ -1089,12 +1146,33 @@ export default class EditorRedMetro {
     this.actualizarResumenDiseno();
   }
   mostrarMensaje(texto, tipo = 'info', { orientarError = true } = {}) {
-    this.barraEstado?.mostrar(texto, tipo || 'info');
+    if (texto && tipo === 'advertencia' && !esAvisoRutinarioEditor(texto, tipo)) {
+      const { titulo, mensaje } = resumirAdvertenciaEditor(texto);
+      this.mostrarAvisoAdvertencia(titulo, mensaje);
+    } else this.barraEstado?.mostrar(texto, tipo || 'info');
     if (orientarError && ['advertencia', 'error'].includes(tipo)) this.errorAyuda = texto;
     else if (tipo === 'exito' || !orientarError) this.errorAyuda = null;
     this.actualizarAyuda();
   }
-  eliminar() { this.activo = false; this.versionApertura += 1; this.identificacion?.cancelar(); this.creacionDirecta.cancelar(); document.removeEventListener('keydown', this.manejadorCancelarHerramienta); this.contenedorPieEditor?.removeEventListener('click', this.manejadorAccionesPie); this.contenedorPieEditor?.replaceChildren(); this.liberarControlCambios?.(); this.capaRedMetro.detenerAnimacion(false); this.dialogoEliminar?.remove(); this.dialogoSimulacion?.remove(); this.ocultarAvisoGuardado(); this.barraEstado?.eliminar(); this.contenedor?.remove(); this.contenedor = null; }
+  eliminar() {
+    // La salida del documento puede cerrar una escena cuyo editor ya se liberó.
+    if (!this.activo) return;
+    this.activo = false;
+    this.versionApertura += 1;
+    this.identificacion?.cancelar();
+    this.creacionDirecta.cancelar();
+    document.removeEventListener('keydown', this.manejadorCancelarHerramienta);
+    this.contenedorPieEditor?.removeEventListener('click', this.manejadorAccionesPie);
+    this.contenedorPieEditor?.replaceChildren();
+    this.liberarControlCambios?.();
+    this.capaRedMetro.detenerAnimacion(false);
+    this.dialogoEliminar?.remove();
+    this.ocultarAvisoAdvertencia();
+    this.ocultarAvisoGuardado();
+    this.barraEstado?.eliminar();
+    this.contenedor?.remove();
+    this.contenedor = null;
+  }
 }
 
 function establecerRutaSimulacion(idDiseno, contexto) { return establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto); }

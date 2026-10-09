@@ -210,10 +210,15 @@ for (const estado of [400, 409, 422]) {
       const punto = await puntoMapa(pagina, x, y);
       await pagina.mouse.click(punto.x, punto.y);
     }
-    await pagina.waitForFunction(() => document.querySelector('[data-estado-editor]').dataset.tipo === 'advertencia');
-    assert.match(await pagina.locator('[data-estado-editor] [role=status]').innerText(), /conexión no es válida/);
+    const aviso = pagina.getByRole('dialog', { name: 'Revisá esta acción', exact: true });
+    await aviso.waitFor({ state: 'visible', timeout: 5000 });
+    assert.match(await aviso.innerText(), /conexión no es válida/);
+    assert.equal(await aviso.getByRole('button').count(), 0);
+    assert.equal(await pagina.locator('[data-estado-editor] [role=status]').innerText(), '');
     assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), ['Parque']);
-    assert.equal(await pagina.locator('dialog[open]').count(), 0);
+    await pagina.keyboard.press('Escape');
+    await aviso.waitFor({ state: 'hidden' });
+    assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), ['Parque']);
     rechazar = false;
     const destino = await puntoMapa(pagina,810,480); await pagina.mouse.click(destino.x,destino.y);
     await pagina.waitForFunction(() => editorPrueba.disenoActual.tramos.length === 2);
@@ -221,3 +226,27 @@ for (const estado of [400, 409, 422]) {
     assert.equal(await pagina.locator('[data-estado-editor]').getAttribute('data-tipo'), null);
   });
 }
+
+test('toque exterior cierra el aviso sin alcanzar el canvas ni desactivar la herramienta', async t => {
+  const { pagina, solicitudes, errores } = await preparar(t, { viewport: { width: 390, height: 844 }, hasTouch: true });
+  await pagina.evaluate(() => {
+    editorPrueba.panelHerramientas.seleccionar('estaciones');
+    window.pulsacionesCanvas = 0;
+    editorPrueba.escena.game.canvas.addEventListener('pointerdown', () => window.pulsacionesCanvas++);
+    editorPrueba.mostrarMensaje('La conexión sale del territorio válido del mapa. Elegí otras estaciones o agregá una estación intermedia dentro del territorio.', 'advertencia');
+  });
+  const aviso = pagina.getByRole('dialog', { name: 'Conexión fuera del mapa', exact: true });
+  await aviso.waitFor({ state: 'visible' });
+  await pagina.keyboard.press('Tab');
+  assert.equal(await aviso.evaluate(d => document.activeElement === d), true);
+  const canvas = await pagina.locator('canvas').boundingBox();
+  const modal = await aviso.boundingBox();
+  const punto = { x: canvas.x + 16, y: canvas.y + 16 };
+  assert.ok(punto.y < modal.y, 'El toque cae en el mapa, fuera del aviso');
+  await pagina.touchscreen.tap(punto.x, punto.y);
+  await aviso.waitFor({ state: 'hidden' });
+  assert.equal(await pagina.evaluate(() => window.pulsacionesCanvas), 0);
+  assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
+  assert.equal(solicitudes.length, 0);
+  assert.deepEqual(errores, []);
+});

@@ -104,6 +104,10 @@ test('POI, error de conexión y respuesta obsoleta no dejan estados anteriores e
   assert.equal(await p.locator('dialog[open]').count(), 0);
   await p.evaluate(() => editorPrueba.mostrarError({ message: 'Las estaciones no pertenecen a la línea.', estadoHttp: 400 }));
   await estadoMotorAyuda(p, 'error-recorrido');
+  const aviso = p.getByRole('dialog', { name: 'Revisá esta acción', exact: true });
+  assert.equal(await aviso.isVisible(), true);
+  await p.keyboard.press('Escape');
+  await aviso.waitFor({ state: 'hidden' });
   await p.locator('[data-elegir-herramienta=lineas]').click();
   await estadoMotorAyuda(p, 'referencia-elegida');
   await p.route('**/api/juego/disenos/77/consigna', async route => {
@@ -163,10 +167,12 @@ test('conexión rechazada y reintento actualizan el motor sin bloquear el Editor
   }));
   assert.equal(await p.evaluate(() => editorPrueba.creacionDirecta.lineaActiva), 'Azul');
   await p.evaluate(() => editorPrueba.disenoActual.estaciones.slice(1).forEach(valor => editorPrueba.seleccionarElemento({ tipo: 'estacion', valor })));
-  await p.waitForFunction(() => document.querySelector('[data-estado-editor]').textContent.includes('no admite ramificaciones'));
-  assert.match(await p.locator('[data-estado-editor]').innerText(), /no admite ramificaciones/);
+  const aviso = p.getByRole('dialog', { name: 'Revisá esta acción', exact: true });
+  await aviso.waitFor({ state: 'visible' });
+  assert.match(await aviso.innerText(), /no admite ramificaciones/);
   await estadoMotorAyuda(p, 'error-recorrido');
-  assert.equal(await p.locator('dialog[open]').count(), 0);
+  await p.keyboard.press('Escape');
+  await aviso.waitFor({ state: 'hidden' });
   await p.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
   await p.evaluate(() => editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[2]})); await estadoMotorAyuda(p, 'listo');
   assert.equal(diseno.tramos.length, 2);

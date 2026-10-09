@@ -89,6 +89,11 @@ export default class CapaRedMetro {
   }
 
   establecerElementoSeleccionado(elemento) {
+    // Sin cambio de selección no hay cambio visual. El panel de unidades puede
+    // confirmar la selección actual al recibir datos, sin reconstruir la red.
+    if (this.elementoSeleccionado === elemento
+      || (this.elementoSeleccionado?.tipo === elemento?.tipo
+        && this.elementoSeleccionado?.valor === elemento?.valor)) return;
     this.elementoSeleccionado = elemento;
     this.dibujar();
     if (this.estadoUnidadesSimulacion.length) {

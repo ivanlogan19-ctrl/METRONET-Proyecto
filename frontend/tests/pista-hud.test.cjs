@@ -32,6 +32,9 @@ async function capturar(p, nombre) {
 }
 async function abrirHud(p) {
   if (!await p.locator('.metronet-hud').evaluate(e=>e.open)) await p.locator('.metronet-hud>summary').click();
+  // El evento nativo toggle se despacha después del clic. Medir la ventana
+  // cuando su ajuste al viewport ya se aplicó, igual que con el panel de POI.
+  await p.waitForFunction(()=>document.querySelector('.metronet-hud__panel')?.style.getPropertyValue('--alto-panel-mapa'));
 }
 
 for(const width of [1440,768,390,320]) test(`Controles ${width}px: música, Aprender y POI sin peticiones ni acciones detrás`, async t=>{

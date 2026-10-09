@@ -2,13 +2,15 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const catalogoRecorrido = require('../src/educacion/recorrido-integral.json');
 let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 
-async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2], nivel = false, nombreLinea = 'Azul', viewport = { width: 1440, height: 900 } } = {}) {
+async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2], nivel = false, numeroNivel = 2, nombreLinea = 'Azul', viewport = { width: 1440, height: 900 } } = {}) {
+  const idEscenario = 40 + numeroNivel;
   const red = {
-    simulacion: { idDiseno: 77, nombre: 'Red operacional', modo: nivel ? 'NIVEL' : 'LIBRE', estado: 'VALIDADO', ...(nivel ? { idEscenario: 42 } : {}) },
+    simulacion: { idDiseno: 77, nombre: 'Red operacional', modo: nivel ? 'NIVEL' : 'LIBRE', estado: 'VALIDADO', ...(nivel ? { idEscenario } : {}) },
     estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 }],
     lineas: [{ nombre: nombreLinea }], tramos: [{ nombreLinea, estacionA: 'A', estacionB: 'B' }],
     unidadesMetro: ids.map(idTren => ({ idTren, nombreLinea, capacidad: 300, velocidadPromedio: 3 })),
@@ -16,6 +18,10 @@ async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2
   };
   const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport, responder: async req => {
     const path = new URL(req.url()).pathname;
+    if (nivel && path === '/api/juego/progreso') return { json: {
+      numeroCampanaActual: 1, escenarios: catalogoRecorrido.map(n => ({ ...n, idEscenario: 40 + n.numero,
+        estado: 'EN_DESARROLLO', desbloqueado: true, cantidadIntentosCampana: 2 })),
+    } };
     if (path === '/api/simulaciones/77') return { json: red };
     if (path.endsWith('/desempeno')) return { json: { puntajeMaximo: 100, redResuelta: true, unidades: [],
       ...(nivel ? { configuracionUvUt: { limiteUt: 6, presupuestoUv: 8 } } : {}) } };
@@ -46,6 +52,31 @@ async function seleccionarMetro(p, id) {
   await desplegable.getByRole('button', { name: id === 'todas' ? 'Todos los metros' : `Metro ${id} · Azul` }).click();
 }
 
+// Complementa el recorrido E2E con PostgreSQL: comprueba el ciclo de controles
+// de cada nivel sin modificar partidas ni puntajes de usuarios reales.
+for (const n of catalogoRecorrido) test(`Nivel ${n.numero}: aplicar UV/UT permite Play, detener y volver a ejecutar`, async t => {
+  const { pagina: p, solicitudes, red } = await abrir(t, { nivel: true, numeroNivel: n.numero });
+  await aplicar(p, 4);
+  await p.locator('#duracionSimulacion').fill('8');
+  await p.locator('#aplicarUnidadTiempo').click();
+  const play = p.locator('#formularioEjecucion button[type=submit]');
+  for (let i = 0; i < 2; i++) {
+    assert.equal(await play.isEnabled(), true);
+    await play.click();
+    await p.locator('#progresoEjecucion[data-estado=EN_CURSO]').waitFor({ state: 'attached' });
+    await p.locator('#detenerSimulacion').click();
+    await p.locator('#progresoEjecucion[data-estado=DETENIDA]').waitFor({ state: 'attached' });
+    assert.equal(await play.getAttribute('aria-busy'), 'false');
+    assert.equal(await p.locator('#velocidadUnidad').isEnabled(), true);
+    assert.equal(await p.locator('#duracionSimulacion').isEnabled(), true);
+  }
+  assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [4, 4]);
+  assert.equal(await p.locator('#duracionSimulacion').inputValue(), '8');
+  assert.deepEqual(solicitudes.filter(s => s.path.endsWith('/ejecutar')).map(s => s.body), [
+    { velocidad: 1, duracion: 8 }, { velocidad: 1, duracion: 8 },
+  ]);
+});
+
 test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t => {
   const { pagina: p, red } = await abrir(t);
   assert.equal(await p.locator('#tituloConfiguracionMetros').textContent(), 'UT / UV por Metro');
@@ -75,6 +106,56 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
     'Metro 1Línea AzulUV actual2 UVUT actual4 h', 'Metro 2Línea AzulUV actual3 UVUT actual4 h',
   ]);
+});
+
+test('Aplicar UT confirma con el mismo gesto breve que UV, sin carteles ni texto nuevo', async t => {
+  const { pagina: p, red, solicitudes } = await abrir(t, { nivel: true });
+  const boton = p.locator('#aplicarUnidadTiempo');
+  const nombre = await boton.getAttribute('aria-label');
+  const mensaje = await p.locator('#mensajeSimulacion').textContent();
+  await p.locator('#duracionSimulacion').fill('4');
+  await boton.click();
+  const gesto = await boton.evaluate(e => {
+    const animaciones = e.getAnimations().filter(a => a.id === 'aplicar-parametro');
+    return { cantidad: animaciones.length, duracion: animaciones[0]?.effect.getTiming().duration,
+      transform: getComputedStyle(e).transform };
+  });
+  assert.equal(gesto.cantidad, 1);
+  assert.ok(gesto.duracion > 0 && gesto.duracion <= 300);
+  assert.equal(gesto.transform, 'none');
+  assert.equal(await boton.getAttribute('aria-label'), nombre);
+  assert.equal(await p.locator('#mensajeSimulacion').textContent(), mensaje);
+  assert.equal(await p.locator('dialog[open]').count(), 0);
+  await boton.evaluate(e => { e.click(); e.click(); });
+  assert.equal(await boton.evaluate(e => e.getAnimations().filter(a => a.id === 'aplicar-parametro').length), 1);
+  await boton.evaluate(e => Promise.all(e.getAnimations().filter(a => a.id === 'aplicar-parametro').map(a => a.finished)));
+  assert.equal(await boton.evaluate(e => e.getAnimations().filter(a => a.id === 'aplicar-parametro').length), 0);
+  assert.match(await p.locator('.simulacion-configuracion-metros__lista').textContent(), /4 UT/);
+  assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [3, 3]);
+  assert.equal(solicitudes.some(s => ['POST', 'PATCH', 'PUT'].includes(s.method)), false);
+  await p.locator('#duracionSimulacion').fill('0');
+  await boton.click();
+  assert.equal(await boton.evaluate(e => e.getAnimations().filter(a => a.id === 'aplicar-parametro').length), 0);
+  await p.emulateMedia({ reducedMotion: 'reduce' });
+  await p.locator('#duracionSimulacion').fill('5');
+  await boton.focus();
+  await p.keyboard.press('Enter');
+  assert.equal(await boton.evaluate(e => getComputedStyle(e).transform), 'none');
+  assert.match(await p.locator('.simulacion-configuracion-metros__lista').textContent(), /5 UT/);
+});
+
+test('Metro y línea comparten tinta clara y las opciones del selector quedan centradas', async t => {
+  const { pagina: p } = await abrir(t, { nombreLinea: 'Línea 01' });
+  await p.locator('.simulacion-selector-metros > summary').click();
+  const opciones = await p.locator('.simulacion-selector-metros__opciones button').evaluateAll(es => es.map(e => getComputedStyle(e).textAlign));
+  assert.ok(opciones.every(a => a === 'center'));
+  await p.locator('.simulacion-selector-metros__opciones button').last().click();
+  await p.locator('.simulacion-configuracion-metros summary').click();
+  const colores = await p.locator('.simulacion-configuracion-metros__lista li').evaluateAll(es => es.map(e => ({
+    metro: getComputedStyle(e.querySelector('strong')).color,
+    linea: getComputedStyle(e.querySelector('[data-linea-metro]')).color,
+  })));
+  for (const c of colores) { assert.equal(c.metro, c.linea); assert.equal(c.metro, 'rgb(255, 251, 214)'); }
 });
 
 test('Menú de metros: opciones estiladas, teclado y selección sincronizada', async t => {
@@ -178,6 +259,7 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
           && bloques[0].top >= panel.top && bloques.at(-1).bottom <= panel.bottom,
         ordenados: bloques.every((rect, indice) => indice === 0 || rect.top >= bloques[indice - 1].bottom),
         tituloEnLinea: titulo.scrollWidth <= titulo.clientWidth + 1,
+        sobrante: panel.bottom - bloques.at(-1).bottom,
         espacios: bloques.slice(1).map((rect, indice) => rect.top - bloques[indice].bottom),
       };
     });
@@ -185,6 +267,7 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
     assert.equal(distribucion.ordenados, true);
     assert.equal(distribucion.tituloEnLinea, true);
     if (width > 1050) {
+      assert.ok(distribucion.sobrante <= 2, `Espacio libre al pie: ${distribucion.sobrante}`);
       assert.ok(distribucion.espacios[0] <= 10);
       assert.ok(distribucion.espacios[2] <= 10);
       assert.ok(distribucion.espacios[1] >= distribucion.espacios[0]);

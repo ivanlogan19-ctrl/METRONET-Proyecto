@@ -47,6 +47,7 @@ let guardandoVelocidad = false;
 let catalogoProgresoDisponible = false;
 let configuracionUvUt = null;
 let duracionAplicada = null;
+let gestoAplicacion = null;
 const VELOCIDADES_SIMULACION = new Set(RITMOS);
 
 if (!sesion) {
@@ -60,6 +61,18 @@ function ubicarPanelAyuda(selector) {
   const destino = document.querySelector(selector);
   // Reinsertar el mismo nodo durante pointerdown/pointerup cancela el clic.
   if (panelAyuda.contenedor.parentElement !== destino) destino.append(panelAyuda.contenedor);
+}
+
+function confirmarAplicacion(boton) {
+  gestoAplicacion?.cancel();
+  if (!boton?.animate) return;
+  // Mismo relieve de pulsación en UV y UT, sin mover el control ni bloquearlo.
+  gestoAplicacion = boton.animate([
+    { boxShadow: 'var(--control-presionado)', opacity: 0.65 },
+    { boxShadow: 'var(--control-presionado)', opacity: 0.65, offset: 0.65 },
+    { boxShadow: 'var(--control-relieve)', opacity: 1 },
+  ], { duration: 220, id: 'aplicar-parametro' });
+  gestoAplicacion.onfinish = () => { gestoAplicacion = null; };
 }
 
 async function inicializar() {
@@ -84,7 +97,8 @@ async function inicializar() {
   destacarConceptos(document.querySelector('.simulacion-etiqueta-control'), CONCEPTOS_SIMULACION);
   document.querySelector('[data-icono-duracion]').innerHTML = iconoRetro('reloj');
   organizacion = inicializarOrganizacionSimulacion();
-  aplicarConfiguracionPredeterminada(await obtenerConfiguracionAplicacion(sesion));
+  // La configuración y los assets del mapa no dependen entre sí.
+  const configuracionLista = obtenerConfiguracionAplicacion(sesion).then(aplicarConfiguracionPredeterminada);
   cliente = new ClienteDisenos(sesion);
   document.getElementById('formularioEjecucion').addEventListener('submit', ejecutarSimulacion);
   document.getElementById('pausarSimulacion').addEventListener('click', pausarSimulacion);
@@ -106,7 +120,7 @@ async function inicializar() {
     duracionAplicada = Number(input.value);
     if (modificada) tutorialSimulacion?.notificar('duracion');
     controlUnidades?.actualizarTiempo(duracionAplicada, configuracionUvUt ? 'UT' : 'h');
-    mostrarMensaje(`Se usarán ${input.value} ${configuracionUvUt ? 'UT' : 'h'} en el próximo recorrido.`);
+    confirmarAplicacion(document.getElementById('aplicarUnidadTiempo'));
   });
   panelTutorialSimulacion = crearPanelTutorialSimulacion(document.getElementById('tutorialPantallaSimulacion'), () => {
     tutorialSimulacion?.terminar(false);
@@ -121,6 +135,9 @@ async function inicializar() {
   });
   window.addEventListener(EVENTO_CONFIGURACION, actualizarMantenimiento);
   visor = await crearVisorSimulacion(document.getElementById('visorSimulacion'), { alActualizarEstado: actualizarPanelTiempoReal, alSeleccionarUnidad: id => seleccionarUnidad(String(id)) });
+  if (!paginaActiva) { visor.destruir(true); visor = null; return; }
+  await configuracionLista;
+  if (!paginaActiva) return;
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
   else mostrarEstadoVacio();
   await consultaProgreso;
@@ -166,9 +183,9 @@ async function abrirDiseno(idDiseno) {
     const vista = consumirVistaParaNavegacion(idDiseno, sesion, 'simulacion');
     actualizarPantalla();
     if (vista) visor.escena.solicitarVistaGeografica(vista);
-    await cargarConsignaReal(idDiseno);
-    if (version !== versionDiseno || !paginaActiva) return false;
-    await actualizarDesempeno(idDiseno);
+    // Ambas lecturas usan el mismo diseño y ninguna necesita la respuesta de
+    // la otra. Una consigna lenta no debe retrasar los controles de UV/UT.
+    await Promise.all([cargarConsignaReal(idDiseno), actualizarDesempeno(idDiseno)]);
     if (version !== versionDiseno || !paginaActiva) return false;
     gestorMusica.establecerContexto('simulacion');
     return true;
@@ -256,7 +273,7 @@ function actualizarProgresoEjecucion(estado) {
   document.getElementById('valorProgresoEjecucion').textContent = `${porcentaje}%`;
 }
 
-async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
+async function actualizarDesempeno(idDiseno) {
   const version = versionDiseno;
   let desempeno = null;
   try { desempeno = await consultarJuego(`/disenos/${idDiseno}/desempeno`); } catch { /* Mantener disponible la simulación habitual. */ }
@@ -279,7 +296,8 @@ async function actualizarDesempeno(idDiseno, actualizarMotor = true) {
   }
   actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
-  if (actualizarMotor) visor?.escena.establecerDiseno(disenoActual);
+  // Las métricas pertenecen al panel. El motor usa estaciones, tramos y UV,
+  // ya cargados por abrirDiseno: no recrear la red ni reiniciar su estado aquí.
   if (!disenoActual.unidadesMetro?.some(u => String(u.idTren) === unidadSeleccionada)) unidadSeleccionada = 'todas';
   controlUnidades = renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, guardarVelocidades, {
     seleccion: unidadSeleccionada, alSeleccionar: seleccionarUnidad,
@@ -340,8 +358,11 @@ async function guardarVelocidades(unidades, velocidadPromedio) {
       // Las operaciones existentes son individuales. Ante un fallo parcial se
       // vuelve a leer lo realmente persistido, sin fingir una escritura atómica.
       const recargado = await abrirDiseno(id);
-      if (recargado && paginaActiva && disenoActual?.simulacion.idDiseno === id) mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}`
-        : `Velocidad guardada: ${formatearVelocidad(velocidadPromedio)} en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
+      if (recargado && paginaActiva && disenoActual?.simulacion.idDiseno === id) {
+        mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}`
+          : `Velocidad guardada: ${formatearVelocidad(velocidadPromedio)} en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
+        if (!fallo) confirmarAplicacion(document.querySelector('.simulacion-parametro-velocidad button[type="submit"]'));
+      }
     }
     guardandoVelocidad = false;
     if (!fallo && cambioReal && actualizadas) {
@@ -459,6 +480,8 @@ function detenerAnimacion() {
 }
 
 function limpiarVisor(evento) {
+  gestoAplicacion?.cancel();
+  gestoAplicacion = null;
   panelTutorialSimulacion?.cerrar();
   if (evento?.persisted) {
     reanudarAlVolver = visor?.escena.motorSimulacion?.estado === 'EN_CURSO';
@@ -472,7 +495,7 @@ function limpiarVisor(evento) {
   paginaActiva = false;
   versionDiseno += 1;
   panelAyuda?.eliminar();
-  visor?.destruir();
+  visor?.destruir(true);
   visor = null;
 }
 
@@ -514,7 +537,7 @@ async function finalizarEjecucionVisible() {
     // Consultar resultados no aprueba el nivel: esa decisión pertenece a Finalizar red.
     await cargarConsignaReal(pendiente.idDiseno);
     if (!vigente()) return;
-    await actualizarDesempeno(pendiente.idDiseno, false);
+    await actualizarDesempeno(pendiente.idDiseno);
     if (!vigente()) return;
     tutorialSimulacion?.notificar('ejecucion');
     document.getElementById('continuarEscenarios').hidden = false;

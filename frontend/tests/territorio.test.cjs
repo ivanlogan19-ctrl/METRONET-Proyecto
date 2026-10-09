@@ -29,6 +29,16 @@ async function activarCreacion(pagina, nombre = 'Nueva') {
 
 }
 
+async function comprobarAviso(pagina, titulo, detalle) {
+  const aviso = pagina.getByRole('dialog', { name: titulo, exact: true });
+  await aviso.waitFor({ state: 'visible' });
+  assert.match(await aviso.innerText(), detalle);
+  assert.equal(await aviso.getByRole('button').count(), 0);
+  assert.equal(await pagina.locator('[data-estado-editor] [role=status]').innerText(), '');
+  await pagina.keyboard.press('Escape');
+  await aviso.waitFor({ state: 'hidden' });
+}
+
 test('clic fuera del territorio no envía POST, incluso con zoom y pan; dentro crea', async t => {
   const { pagina, solicitudes } = await preparar(t);
   await activarCreacion(pagina);
@@ -36,7 +46,8 @@ test('clic fuera del territorio no envía POST, incluso con zoom y pan; dentro c
     await clic(pagina, 600, 600, zoom);
     assert.equal(solicitudes.length, 0);
     assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
-    assert.match(await pagina.locator('body').innerText(), /debe quedar dentro del territorio/);
+    await comprobarAviso(pagina, 'Estación fuera del mapa', /dentro del territorio de Montevideo/);
+    assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
   }
   await clic(pagina, 750, 500);
   await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some(e => e.nombre === 'Estación 01'));
@@ -53,6 +64,7 @@ test('mover fuera no persiste ni pierde la estación seleccionada', async t => {
   assert.equal(solicitudes.length, 0);
   assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'reubicarEstacion');
   assert.equal(await pagina.evaluate(() => editorPrueba.disenoActual.estaciones.find(e => e.nombre === 'Centro').posicionX), 580);
+  await comprobarAviso(pagina, 'Estación fuera del mapa', /dentro del territorio de Montevideo/);
   await clic(pagina, 590, 470);
   await pagina.waitForFunction(() => editorPrueba.modo === 'normal');
   assert.equal(solicitudes[0].metodo, 'PATCH');
@@ -65,7 +77,7 @@ test('tramo y movimiento rechazan cruces exteriores aunque los extremos sean vá
   });
   await pagina.evaluate(() => (editorPrueba.panelHerramientas.seleccionar('conexiones'), editorPrueba.creacionDirecta.elegirLinea('Azul'), editorPrueba.estacionesSeleccionadas = ['A','B'], editorPrueba.creacionDirecta.conectar()));
   assert.equal(solicitudes.length, 0);
-  assert.match(await pagina.locator('body').innerText(), /conexión sale del territorio/);
+  await comprobarAviso(pagina, 'Conexión fuera del mapa', /Elegí otras estaciones o agregá una estación intermedia/);
   const error = await pagina.evaluate(() => editorPrueba.escena.territorioMapa.errorMovimiento({ posicionX: 264, posicionY: 84 }, 'C', editorPrueba.disenoActual));
   assert.match(error, /conexión sale del territorio/);
 });
@@ -82,7 +94,7 @@ test('referencias territoriales permiten construir y las áreas restringidas exp
   await activarCreacion(pagina, 'Prohibida');
   await clic(pagina, 595.82, 492.99, 3);
   assert.equal(solicitudes.length, 1);
-  assert.match(await pagina.locator('body').innerText(), /No se permiten estaciones en AGUADA/);
+  await comprobarAviso(pagina, 'Ubicación restringida', /no permite estaciones en AGUADA/);
   assert.match(await pagina.getByRole('list', { name: 'Áreas territoriales del nivel', includeHidden:true }).textContent(), /AGUADA: sin estaciones/);
   await pagina.locator('.metronet-poi>summary').click();
   await pagina.getByRole('button', { name: 'Zonas verdes', exact: true }).click();
@@ -97,8 +109,8 @@ test('restricción de tramos no prohíbe estaciones y no se evita cambiando zoom
   for (const zoom of [1, 4]) {
     await pagina.evaluate(zoom => { editorPrueba.escena.cameras.main.setZoom(zoom); return (editorPrueba.panelHerramientas.seleccionar('conexiones'), editorPrueba.creacionDirecta.elegirLinea('Azul'), editorPrueba.estacionesSeleccionadas = ['A','B'], editorPrueba.creacionDirecta.conectar()); }, zoom);
     assert.equal(solicitudes.length, 0);
+    await comprobarAviso(pagina, 'Conexión restringida', /no permite tramos en AGUADA/);
   }
-  assert.match(await pagina.locator('body').innerText(), /atraviesa AGUADA/);
   await activarCreacion(pagina, 'Permitida');
   await clic(pagina, 595.82, 492.99);
   await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.length === 3 && !editorPrueba.creacionDirecta.pendiente);
@@ -110,6 +122,7 @@ test('cambiar de diseño limpia restricciones anteriores; configuración inváli
   await activarCreacion(pagina);
   await clic(pagina, 750, 500);
   assert.equal(solicitudes.length, 0);
+  await comprobarAviso(pagina, 'Referencia no disponible', /No se puede comprobar el territorio de Prueba/);
   diseno.territorio = { areas: [], errores: [] };
   await pagina.evaluate(() => editorPrueba.abrirDiseno(77));
   await activarCreacion(pagina);

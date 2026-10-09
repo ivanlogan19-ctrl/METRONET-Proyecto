@@ -145,7 +145,7 @@ test('Un progreso mal formado produce estado recuperable sin errores de JavaScri
   await pagina.getByText('Niveles no disponibles', { exact: true }).waitFor();
   assert.deepEqual(errores, []);
 });
-for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel ${numero} abre la transición y conserva su destino`, async t => {
+for (const numero of [4, 10]) test(`Simulación real en Phaser: nivel ${numero} conserva el resultado sin aprobar ni avanzar`, async t => {
   const red = {
     simulacion: { idDiseno: 77, idEscenario: 100 + numero, nombre: niveles[numero - 1].nombre, modo: 'NIVEL', estado: 'VALIDADO', objetivo: niveles[numero - 1].objetivo },
     estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 }],
@@ -154,7 +154,7 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
     preparadoParaSimular: true, observacionesSimulacion: [], resultados: [], territorio: { areas: [], errores: [] },
   };
   const { pagina, solicitudes } = await abrir(t, '/simulacion.html?idDiseno=77', {
-    progreso: progreso(numero),
+    progreso: progreso(numero - 1),
     responder: async req => {
       const path = new URL(req.url()).pathname;
       if (path === '/api/simulaciones') return { json: [red.simulacion] };
@@ -167,21 +167,11 @@ for (const numero of [4, 10]) test(`Simulación real en Phaser: completar nivel 
   await pagina.locator('#duracionSimulacion').fill('10');
   assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
-  await pagina.locator('.metronet-resultado-nivel').getByRole('button', { name: 'Continuar', exact: true }).click({ timeout: 45000 });
-  await pagina.getByRole('dialog', { name: numero === 10 ? 'Nivel final completado' : 'Nivel completado', exact: true }).waitFor({ timeout: 45000 });
-  assert.equal(await pagina.locator('.metronet-recorrido').count(), 0, 'El tutorial visual se retira al completar el nivel');
-  assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 1);
-  assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
-  if (numero === 10) {
-    await pagina.getByRole('button', { name: 'Ver desempeño y ranking' }).waitFor({ timeout: 26000 });
-    await pagina.getByRole('button', { name: 'Seleccionar nivel' }).click();
-    await pagina.waitForURL('**/escenarios.html');
-    await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').first().waitFor();
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--completado').count(), 10);
-    assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);
-  } else {
-    // El ritmo visual fijo ya completó la simulación; Jugar adelanta el viaje de victoria.
-    await pagina.getByRole('dialog', { name: 'Nivel completado', exact: true }).getByRole('button', { name: 'Jugar' }).click();
-    await pagina.waitForURL('**/?idDiseno=200&idEscenario=105&idIntento=300', { timeout: 26000 });
-  }
+  await pagina.waitForFunction(() => document.getElementById('mensajeSimulacion').textContent.startsWith('Simulación terminada.'), null, { timeout: 45000 });
+  assert.equal(solicitudes.filter(s => s.path.endsWith('/ejecutar') && s.method === 'POST').length, 1);
+  assert.equal(solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 0, 'Simular no solicita aprobación');
+  assert.equal(await pagina.locator('.metronet-resultado-nivel, .metronet-victoria, .metronet-viaje').count(), 0);
+  assert.match(pagina.url(), /simulacion\.html\?idDiseno=77/);
+  assert.equal(await pagina.locator('#reiniciarSimulacion').isEnabled(), true);
+  assert.equal(solicitudes.filter(s => /escenarios\/\d+\/iniciar/.test(s.path)).length, 0);
 });

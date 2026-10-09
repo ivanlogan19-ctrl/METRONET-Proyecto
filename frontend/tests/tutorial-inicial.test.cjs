@@ -43,6 +43,8 @@ test('Práctica: selección, error, creaciones confirmadas y guardado; cerrar y 
   await p.evaluate(() => editorPrueba.ubicarEstacion({ posicionX:-100, posicionY:-100 }, 'crearEstacion'));
   assert.equal(await panel.getAttribute('data-paso'), 'colocar-estacion');
   assert.equal(solicitudes.length, 0);
+  await p.locator('.metronet-dialogo-advertencia[open]').waitFor();
+  await p.keyboard.press('Escape');
   if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
   await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
   assert.ok(await panel.locator('.metronet-tutorial__error').isVisible());
@@ -59,6 +61,7 @@ test('Práctica: selección, error, creaciones confirmadas y guardado; cerrar y 
   await p.route('**/api/simulaciones/77/lineas', route => route.fulfill({status:400,json:{message:'No se pudo crear la línea.'}}));
   await p.evaluate(() => editorPrueba.creacionDirecta.conectar(editorPrueba.disenoActual.estaciones[1]));
   assert.notEqual(await panel.getAttribute('data-paso'), 'guardar');
+  await p.keyboard.press('Escape');
   await p.unroute('**/api/simulaciones/77/lineas');
   await p.evaluate(() => editorPrueba.seleccionarElemento({ tipo:'estacion', valor:editorPrueba.disenoActual.estaciones[1] }));
   await p.waitForFunction(() => editorPrueba.disenoActual.lineas.length === 1);

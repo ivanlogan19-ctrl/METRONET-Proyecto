@@ -47,3 +47,13 @@ test('intención de inicio se consume una vez y no se reutiliza en otra red',asy
  solicitarInicioSimulacion(7);assert.equal(consumirInicioSimulacion(7),true);assert.equal(consumirInicioSimulacion(7),false);
  solicitarInicioSimulacion(7);assert.equal(consumirInicioSimulacion(8),false);assert.equal(consumirInicioSimulacion(7),false);delete global.sessionStorage;
 });
+
+test('una red operable puede guardarse y abrir simulación aunque tenga una consigna pendiente por exceso',async()=>{
+ const {prepararDiseno}=await cargar('../src/red/PreparacionDiseno.js');
+ const c=cliente({valido:true,preparadoParaSimular:true,observaciones:[]});
+ c.obtener=async()=>({simulacion:{estado:'EN_DISENO'},consigna:{completado:false,
+  condiciones:[{clave:'maximoEstaciones',actual:4,requerido:3,completado:false}]}});
+ const preparada=await prepararDiseno(c,7,{guardar:true,paraSimular:true});
+ assert.equal(preparada.validacion.preparadoParaSimular,true);
+ assert.deepEqual(c.llamadas,[['/7/validacion','POST'],['/7/guardar','POST']]);
+});

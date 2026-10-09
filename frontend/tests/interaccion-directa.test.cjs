@@ -73,6 +73,7 @@ test('guardar avance incompleto valida, persiste y no confunde consigna con erro
  assert.equal(solicitudes.some(s=>s.ruta.endsWith('/guardar')),true);
  assert.equal(await p.locator('[data-estado-editor] [role=status]').innerText(),'');
  assert.equal(solicitudes.some(s=>s.ruta.endsWith('/evaluar')),false);
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),0);
 });
 
 for(const numero of [1,2,3,4,5,6,7,8,9,10]) test(`nivel ${numero}: conserva disponibilidad de herramientas sin edición general`,async t=>{
@@ -118,7 +119,9 @@ test('Guardar espera una edición pendiente y conserva el error si la escritura 
  await p.locator('[data-guardar]').click();await p.evaluate(()=>window.liberarEscritura=true);
  await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso && !editorPrueba.creacionDirecta.pendiente);
  assert.equal(solicitudes.some(s=>/guardar|validacion/.test(s.ruta)),false);
- assert.match(await p.locator('[data-estado-editor]').innerText(),/Posición no permitida/);
+ const aviso=p.getByRole('dialog',{name:'Revisá esta acción',exact:true});
+ assert.match(await aviso.innerText(),/Posición no permitida/);
+ assert.equal(await p.locator('[data-estado-editor] [role=status]').innerText(),'');
 });
 
 test('Simular revisa y guarda antes de navegar; la intención se consume una sola vez',async t=>{
@@ -292,11 +295,22 @@ test('Simular rechaza una red no preparada y conserva el editor sin guardar ni n
  const {pagina:p,solicitudes}=await abrir(t);
  await p.route('**/api/simulaciones/77/validacion',route=>route.fulfill({json:{valido:true,preparadoParaSimular:false,observacionesSimulacion:['Falta asignar una unidad de metro.']},headers:{'access-control-allow-origin':'*'}}));
  await p.locator('[data-ir-simulacion]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
- const aviso=p.locator('.metronet-dialogo-simulacion');
+ const aviso=p.getByRole('dialog',{name:'Prepará la red para simular',exact:true});
  assert.equal(await aviso.isVisible(),true);
  assert.match(await aviso.innerText(),/Prepará la red para simular/i);
+ assert.equal(await aviso.getByRole('button').count(),0);
+ assert.doesNotMatch(await aviso.innerText(),/Entendido|Clic fuera|Escape/);
+ assert.equal(await aviso.evaluate(d=>getComputedStyle(d).backgroundColor),'rgb(165, 29, 65)');
  assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(),/Falta asignar/);
- await aviso.getByRole('button',{name:'Entendido'}).click();
+ await p.mouse.click(4,4);await aviso.waitFor({state:'hidden'});
+ await p.waitForFunction(()=>document.activeElement===document.querySelector('[data-ir-simulacion]'));
+ await p.locator('[data-ir-simulacion]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ assert.equal(await aviso.isVisible(),true);
+ await p.keyboard.press('Escape');await aviso.waitFor({state:'hidden'});
+ await p.evaluate(()=>editorPrueba.mostrarAvisoFinalizacion());
+ const finalizacion=p.getByRole('dialog',{name:'Completá la consigna para finalizar',exact:true});
+ assert.equal(await finalizacion.evaluate(d=>getComputedStyle(d).backgroundColor),'rgb(255, 208, 120)');
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),1);
  assert.equal(solicitudes.some(s=>/guardar|ejecutar/.test(s.ruta)),false);assert.equal(new URL(p.url()).pathname,'/');
 });
 
@@ -330,16 +344,84 @@ for (const width of [1440, 390, 320]) test(`Finalizar red ${width}px: botón vis
  const nivel=require('../src/educacion/niveles.json')[0];
  const {pagina:p,solicitudes}=await abrir(t,{viewport:{width,height:1000},primeraPasada:false,escenario:{...nivel,idEscenario:1,estado:'EN_DESARROLLO',desbloqueado:true},consigna:()=>({estadoGlobal:'PARCIAL',progreso:80,condiciones:[{clave:'requiereSimulacion',texto:'Simular la red actual',completado:false}],referenciasObjetivo:[]})});
  let evaluaciones=0;
- await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluaciones++;await route.fulfill({json:{completado:false,puntaje:100,progreso:80},headers:{'access-control-allow-origin':'*'}});});
+ await p.route('**/api/juego/disenos/77/evaluar',async route=>{evaluaciones++;await route.fulfill({json:{completado:false,puntaje:100,progreso:80,mensaje:'100 puntos iniciales − 0 de descuentos = 100 puntos.'},headers:{'access-control-allow-origin':'*'}});});
  const b=p.getByRole('button',{name:'Finalizar red',exact:true});
  assert.equal(await b.isVisible(),true);
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await b.click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
  assert.equal(evaluaciones,1);
  assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
- assert.match(await p.locator('[data-estado-editor]').innerText(),/Simular la red actual/);
+ const aviso=p.getByRole('dialog',{name:'Completá la consigna para finalizar',exact:true});
+ assert.equal(await aviso.isVisible(),true);
+ assert.equal(await aviso.locator('[data-mensaje-advertencia]').innerText(),'Revisá los objetivos del nivel y continuá construyendo tu red.');
+ assert.doesNotMatch(await aviso.innerText(),/Clic fuera|continuar · Esc|Volver a la red/);
+ assert.equal(await aviso.getByRole('button').count(),0);
+ assert.doesNotMatch(await aviso.innerText(),/Simular la red actual|100 puntos|descuentos/);
+ assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(),/Red guardada\. Todavía falta/);
+ assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.condiciones[0].completado),false);
+ const accesibilidad=await aviso.evaluate(d=>({titulo:document.getElementById(d.getAttribute('aria-labelledby'))?.textContent,descripcion:d.getAttribute('aria-describedby')?.split(' ').map(id=>document.getElementById(id)?.textContent).join(' '),enfocado:document.activeElement===d}));
+ assert.equal(accesibilidad.titulo,'Completá la consigna para finalizar');
+ assert.match(accesibilidad.descripcion,/Revisá los objetivos del nivel/);
+ assert.equal(accesibilidad.enfocado,true);
+ const limites=await aviso.boundingBox();
+ assert.ok(limites.x>=0 && limites.x+limites.width<=width && limites.y>=0 && limites.y+limites.height<=1000);
+ assert.equal(await aviso.evaluate(d=>d.scrollWidth>d.clientWidth),false);
+ await aviso.locator('h2').click();
+ assert.equal(await aviso.isVisible(),true);
+ await p.keyboard.press('Escape');await aviso.waitFor({state:'hidden'});
+ await p.waitForFunction(()=>document.activeElement===document.querySelector('[data-finalizar-red]'));
  assert.equal(await p.locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
  assert.equal(await b.isEnabled(),true);
+});
+
+test('Finalizar red vacía: guarda sin evaluar, admite reintento y cierra fuera sin crear estaciones',async t=>{
+ const nivel={...require('../src/educacion/niveles.json')[0],idEscenario:1,estado:'EN_DESARROLLO',desbloqueado:true};
+ const {pagina:p,diseno,solicitudes}=await abrir(t,{primeraPasada:false,escenario:nivel,estaciones:[],lineas:[],tramos:[]});
+ diseno.unidadesMetro=[];
+ await p.evaluate(()=>editorPrueba.abrirDiseno(77));
+ let validaciones=0,evaluaciones=0;
+ await p.route('**/api/simulaciones/77/validacion',route=>{validaciones++;return route.fulfill({json:{valido:false,preparadoParaSimular:false,observaciones:['Debe existir al menos una estación.','Debe existir al menos una línea.']},headers:{'access-control-allow-origin':'*'}});});
+ await p.route('**/api/juego/disenos/77/evaluar',route=>{evaluaciones++;return route.fulfill({json:{completado:false},headers:{'access-control-allow-origin':'*'}});});
+ await herramienta(p,'estaciones');
+ const b=p.getByRole('button',{name:'Finalizar red',exact:true});
+ await b.evaluate(boton=>{boton.click();boton.click();});
+ await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ const aviso=p.getByRole('dialog',{name:'Completá la consigna para finalizar',exact:true});
+ assert.equal(await aviso.isVisible(),true);
+ assert.equal(validaciones,1);assert.equal(evaluaciones,0);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/guardar')).length,1);
+ assert.doesNotMatch(await aviso.innerText(),/Debe existir|estación\.|línea\.|puntos/);
+ assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(),/La red todavía está en construcción/);
+ await p.evaluate(()=>{editorPrueba.mostrarAvisoFinalizacion();editorPrueba.mostrarAvisoFinalizacion();});
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),1);
+ await p.keyboard.press('Escape');await aviso.waitFor({state:'hidden'});
+ await p.waitForFunction(()=>document.activeElement===document.querySelector('[data-finalizar-red]'));
+ assert.equal(await p.evaluate(()=>editorPrueba.modo),'crearEstacion');
+ await b.click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ assert.equal(await aviso.isVisible(),true);
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),1);
+ const mapa=await p.locator('canvas').boundingBox(), modal=await aviso.boundingBox();
+ const fuera={x:mapa.x+mapa.width-16,y:mapa.y+16};
+ assert.ok(fuera.x>modal.x+modal.width || fuera.y<modal.y);
+ await p.mouse.click(fuera.x,fuera.y);await aviso.waitFor({state:'hidden'});
+ await p.waitForFunction(()=>document.activeElement===document.querySelector('[data-finalizar-red]'));
+ assert.equal(validaciones,2);assert.equal(evaluaciones,0);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/guardar')).length,2);
+ assert.equal(solicitudes.some(s=>s.ruta.endsWith('/estaciones')),false);
+ assert.equal(await p.evaluate(()=>editorPrueba.disenoActual.estaciones.length),0);
+});
+
+for(const accion of ['cambiar diseño','cerrar editor']) test(`Finalizar red: limpia el aviso al ${accion}`,async t=>{
+ const nivel={...require('../src/educacion/niveles.json')[0],idEscenario:1,estado:'EN_DESARROLLO',desbloqueado:true};
+ const {pagina:p,diseno}=await abrir(t,{primeraPasada:false,escenario:nivel});
+ await p.route('**/api/juego/disenos/77/evaluar',route=>route.fulfill({json:{completado:false},headers:{'access-control-allow-origin':'*'}}));
+ await p.locator('[data-finalizar-red]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').isVisible(),true);
+ if(accion==='cambiar diseño') {
+   await p.route('**/api/simulaciones/78',route=>route.fulfill({json:{...diseno,simulacion:{...diseno.simulacion,idDiseno:78}},headers:{'access-control-allow-origin':'*'}}));
+   await p.evaluate(()=>editorPrueba.abrirDiseno(78));
+ } else await p.evaluate(()=>{editorPrueba.eliminar();editorPrueba.eliminar();});
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),0);
 });
 
 test('Finalizar red: falla de guardado no evalúa y permite reintentar',async t=>{
@@ -375,4 +457,22 @@ test('Nivel a Modo Libre: cambiar de diseño no consulta contenido del nivel ant
  assert.deepEqual(consultas,[],'El modo libre no tiene contenido de un nivel publicado');
  assert.equal(await p.evaluate(()=>editorPrueba.panelAyuda.numeroEducativo),null);
  assert.equal(await p.locator('[data-finalizar-red]').isVisible(),false);
+});
+
+test('una consigna excedida no bloquea el botón Simular de una red operable',async t=>{
+ const nivel=require('../src/educacion/recorrido-integral.json')[0];
+ const {pagina:p,solicitudes}=await abrir(t,{primeraPasada:false,
+  escenario:{...nivel,idEscenario:1,estado:'EN_DESARROLLO',desbloqueado:true},
+  tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}],
+  consigna:()=>({estadoGlobal:'PARCIAL',progreso:80,referenciasObjetivo:[],condiciones:[
+   {clave:'maximoEstaciones',texto:'Usar como máximo 2 estaciones',actual:3,requerido:2,completado:false},
+  ]})});
+ assert.equal(await p.locator('[data-ir-simulacion]').isDisabled(),false);
+ assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.condiciones[0].completado),false);
+ await p.locator('[data-ir-simulacion]').click();
+ await p.waitForURL('**/simulacion.html?**');
+ await p.locator('#formularioEjecucion').waitFor();
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/guardar')).length,1);
+ assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/evaluar')).length,0);
+ assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),0);
 });

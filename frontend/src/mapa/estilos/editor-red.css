@@ -939,31 +939,69 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
   }
 }
 
-html:root body dialog.metronet-dialogo-simulacion {
-  width: min(92vw, 430px);
-  padding: 0;
-  border: var(--border-width) solid #ffdce7;
-  border-radius: var(--radius-control);
-  color: #fff;
-  background: #a51d41;
-  box-shadow: var(--shadow-floating);
+html:root body dialog.metronet-dialogo-editor {
+  --aviso-fondo: var(--warning);
+  --aviso-tinta: var(--primary-ink);
+  --aviso-borde: var(--warning);
+  box-sizing: border-box;
+  width: min(92vw, 480px);
+  max-height: 90svh;
+  overflow: auto;
+  padding: 22px;
+  border-color: var(--aviso-borde);
+  color: var(--aviso-tinta);
+  background: var(--aviso-fondo);
+  text-align: center;
 }
-.metronet-dialogo-simulacion::backdrop { background: rgb(0 0 0 / .66); }
-.metronet-dialogo-simulacion__contenido { display: grid; justify-items: center; gap: 14px; padding: 22px; text-align: center; }
-.metronet-dialogo-simulacion h2,
-.metronet-dialogo-simulacion p { margin: 0; }
-html:root body .metronet-dialogo-simulacion h2 {
-  --titulo-color: #fff;
+html:root body dialog.metronet-dialogo-editor[data-variante="simulacion"] {
+  --aviso-fondo: #a51d41;
+  --aviso-tinta: #fff;
+  --aviso-borde: #ffdce7;
+}
+html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] {
+  --aviso-fondo: #a51d41;
+  --aviso-tinta: #fff;
+  --aviso-borde: #ffdce7;
+  border: var(--border-width) solid var(--aviso-borde);
+  border-radius: 0;
+  outline: 2px solid var(--aviso-borde);
+  outline-offset: -8px;
+}
+html:root body .metronet-dialogo-editor[data-variante="eliminacion"] .metronet-dialogo-eliminar__contenido p {
+  color: var(--aviso-tinta);
+}
+html:root body .metronet-dialogo-editor[data-variante="eliminacion"] .metronet-dialogo-eliminar__etiqueta {
+  color: var(--aviso-tinta) !important;
+}
+html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] button {
+  --boton-fondo: transparent;
+  --boton-texto: var(--aviso-tinta);
+  --boton-borde: var(--aviso-borde);
+  --boton-hover: #831431;
+  --control-foco: #fff;
+  --focus-offset: 3px;
+  color: var(--boton-texto);
+  border-color: var(--boton-borde);
+  background: var(--boton-fondo);
+}
+html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] [data-confirmar-eliminar] {
+  --boton-fondo: #fff;
+  --boton-texto: #831431;
+  --boton-hover: #ffdce7;
+}
+html:root body .metronet-dialogo-editor h2 {
+  --titulo-color: var(--aviso-tinta);
   --titulo-brillo: none;
   --titulo-contorno: 0px;
-  --titulo-fondo: transparent;
-  --titulo-sombra: inset var(--border-accent) 0 0 #fff;
-  color: #fff;
+  --titulo-relleno: 0;
+  --titulo-sombra: none;
+  margin: 0;
+  color: var(--aviso-tinta);
 }
-.metronet-dialogo-simulacion p { color: #fff; line-height: 1.5; text-align: left; word-spacing: normal; }
-.metronet-dialogo-simulacion button { border-color: #fff; background: transparent; color: #fff; }
-.metronet-dialogo-simulacion button:hover,
-.metronet-dialogo-simulacion button:focus-visible { background: #831431; color: #fff; }
+.metronet-dialogo-editor p { margin: 16px 0 0; color: var(--aviso-tinta); line-height: 1.5; overflow-wrap: anywhere; }
+.metronet-dialogo-editor .metronet-dialogo-eliminar__contenido { min-width: 0; padding: 0; }
+.metronet-dialogo-editor .metronet-dialogo-eliminar__contenido p { margin: 0; color: var(--text-secondary); }
+html:root body dialog.metronet-dialogo-editor:focus-visible { outline: 2px solid var(--aviso-tinta); outline-offset: -8px; }
 
 html:root body .metronet-aviso-guardado {
   position: fixed;

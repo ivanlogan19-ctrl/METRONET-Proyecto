@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { liberarJuegoPhaser } from './mapa/LiberarJuegoPhaser.js';
 import { COLORES_INTERFAZ_MAPA } from './mapa/configuracion/ColoresMapa.js';
 
 import MapaScene from './mapa/MapaScene.js';
@@ -30,7 +31,7 @@ if (sesion) {
   let juego = new Phaser.Game(config);
   window.addEventListener('pagehide', (evento) => {
     if (evento.persisted || !juego) return;
-    juego.destroy(true);
+    liberarJuegoPhaser(juego, { sinSiguienteFrame: true });
     juego = null;
   });
 }
