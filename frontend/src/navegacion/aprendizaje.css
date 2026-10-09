@@ -99,11 +99,19 @@ html:root body button.metronet-aprendizaje__tarjeta:focus-visible { border-color
 .metronet-aprendizaje__lectura { display: grid; gap: 14px; padding: clamp(18px, 3vw, 30px); }
 .metronet-aprendizaje__lectura h2, .metronet-aprendizaje__lectura p, .metronet-aprendizaje__lectura figure { margin: 0; }
 .metronet-aprendizaje__lectura h2 { font-size: clamp(18px, 2.4vw, 27px); }
-/* El pie de los SVG (y=221/236) es una leyenda editorial, ajena a la ilustración. */
-.metronet-aprendizaje__lectura figure { aspect-ratio: 720 / 208; overflow: hidden; border: 1px solid var(--border); background: var(--bg-secondary); }
-.metronet-aprendizaje__lectura img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.metronet-aprendizaje__lectura figure { width: 100%; justify-self: center; border: 1px solid var(--border); background: var(--bg-secondary); }
+.metronet-aprendizaje__lectura img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 246; object-fit: contain; }
 .metronet-aprendizaje__idea { padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--warning); background: var(--bg-secondary); }
 .metronet-aprendizaje__fuente { font-size: 12px; overflow-wrap: anywhere; }
 .metronet-aprendizaje__fuente a { color: var(--border-active); }
 .metronet-aprendizaje__acciones { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 15px; border-top: 1px solid var(--border); }
 .metronet-aprendizaje__acciones button { min-height: 44px; }
+@media (min-width: 900px) {
+  .metronet-aprendizaje__dialogo { width: min(94vw, 1080px); }
+  .metronet-aprendizaje__lectura {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px 24px;
+    gap: 10px;
+    align-items: start;
+  }
+}

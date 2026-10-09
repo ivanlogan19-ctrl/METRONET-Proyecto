@@ -61,11 +61,11 @@ test('MP3 real en modo libre: una instancia, 35 %, loop y final sin detenerse', 
   assert.equal(await p.locator(audio).count(), 1);
 });
 
-test('Administración reproduce Menus de 13 segundos en bucle y conserva volumen y silencio', async t => {
+test('Administración reproduce Guts de 224 segundos en bucle y conserva volumen y silencio', async t => {
   const { pagina: p } = await abrir(t, '/admin.html');
   await reproduciendo(p, '/audio/menu-theme.mp3');
   const datos = await p.locator(audio).evaluate(a => ({ duracion: a.duration, loop: a.loop }));
-  assert.ok(datos.duracion > 13.1 && datos.duracion < 13.2);
+  assert.ok(datos.duracion > 223.8 && datos.duracion < 224);
   assert.equal(datos.loop, true);
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .4; });
   await p.waitForFunction(() => { const a = document.querySelector('audio'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
@@ -98,7 +98,7 @@ test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin s
   });
   await reproduciendo(p, '/audio/menu-theme.mp3');
   const datos = await p.locator(audio).evaluate(a => ({ duracion: a.duration, loop: a.loop }));
-  assert.ok(datos.duracion > 13.1 && datos.duracion < 13.2);
+  assert.ok(datos.duracion > 223.8 && datos.duracion < 224);
   assert.equal(datos.loop, true);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   for (const ruta of ['escenarios', 'ranking', 'perfil', 'admin', 'inicio']) {

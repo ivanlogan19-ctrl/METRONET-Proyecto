@@ -1,5 +1,6 @@
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
+import { ajustarIlustracionTarjeta } from '../educacion/AjustarIlustracionTarjeta.js';
 
 const sesion = requerirSesion('/aprendizaje.html');
 const contenedor = document.getElementById('nivelesAprendizaje');
@@ -20,6 +21,7 @@ function abrirTarjeta(tarjeta, numero, posicion, total) {
   titulo.id = 'tituloTarjetaAprendizaje';
   titulo.tabIndex = -1;
   const figura = document.createElement('figure');
+  figura.className = 'metronet-ilustracion-ampliable';
   const imagen = document.createElement('img');
   imagen.src = tarjeta.imagen;
   imagen.alt = tarjeta.descripcionImagen;
@@ -42,9 +44,10 @@ function abrirTarjeta(tarjeta, numero, posicion, total) {
   cerrar.type = 'button';
   cerrar.addEventListener('click', () => dialogo.close());
   acciones.append(posicionTexto, cerrar);
-  lectura.append(titulo, figura, nodo('p', tarjeta.texto), idea, fuente, acciones);
+  lectura.append(titulo, figura, nodo('p', tarjeta.texto, 'metronet-aprendizaje__texto'), idea, fuente, acciones);
   dialogo.replaceChildren(lectura);
   dialogo.showModal();
+  ajustarIlustracionTarjeta();
   titulo.focus({ preventScroll: true });
 }
 

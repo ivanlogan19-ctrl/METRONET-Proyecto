@@ -19,7 +19,7 @@ async function estilo(elemento) {
     return Object.fromEntries(['backgroundColor', 'color', 'borderTopColor', 'borderTopWidth', 'borderRadius', 'boxShadow', 'fontFamily'].map(k => [k, s[k]]));
   });
 }
-test('Eliminar y cerrar sesión comparten rojo sólido; cancelar comparte rojo secundario en todas las ventanas', async t => {
+test('Acciones destructivas comparten familia roja y la confirmación del mapa conserva contraste sobre rojo', async t => {
   const admin = (await abrir(t, '/admin.html')).pagina;
   const peligro = await estilo(admin.locator('[data-eliminar-usuario]').first());
   await admin.locator('.metronet-navegacion__usuario > summary').click();
@@ -37,8 +37,16 @@ test('Eliminar y cerrar sesión comparten rojo sólido; cancelar comparte rojo s
   const editor = (await abrir(t, 'constructor')).pagina;
   await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
   await editor.getByRole('button', { name: 'Eliminar elemento seleccionado' }).click();
-  assert.deepEqual(await estilo(editor.locator('[data-confirmar-eliminar]')), peligro);
-  assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar [value=cancelar]')), cancelar);
+  // El diálogo rojo compacto tiene la variante aprobada de confirmación blanca.
+  // Cancelar conserva la familia secundaria global; ambas acciones se distinguen.
+  const confirmarMapa = await estilo(editor.locator('[data-confirmar-eliminar]'));
+  const cancelarMapa = await estilo(editor.locator('.metronet-dialogo-eliminar [value=cancelar]'));
+  assert.equal(confirmarMapa.backgroundColor, 'rgb(255, 255, 255)');
+  assert.equal(confirmarMapa.color, 'rgb(131, 20, 49)');
+  assert.deepEqual(cancelarMapa, cancelar);
+  assert.notEqual(confirmarMapa.backgroundColor, cancelarMapa.backgroundColor);
+  assert.equal(confirmarMapa.borderTopWidth, cancelarMapa.borderTopWidth);
+  assert.equal(confirmarMapa.borderRadius, peligro.borderRadius);
   await editor.keyboard.press('Escape');
   await editor.locator('[data-elegir-herramienta=estaciones]').click();
   await editor.mouse.move(0, 0);
@@ -80,6 +88,36 @@ test('Selectores de administración y editor comparten estilo; disabled y foco p
   await p.locator('#filtroUsuarios').focus(); await p.keyboard.press('Tab');
   assert.equal(await p.locator('#filtroRolUsuarios').evaluate(e => e === document.activeElement), true);
   assert.equal(await p.locator('#filtroRolUsuarios').evaluate(e => getComputedStyle(e).outlineStyle), 'solid');
+});
+
+for (const width of [1440, 390]) test(`Desplegables ${width}: roles y mantenimiento usan ventana retro sin desplazar contenido`, async t => {
+  const p = (await abrir(t, '/admin.html', { viewport: { width, height: 900 }, responder: req =>
+    new URL(req.url()).pathname === '/api/admin/configuracion'
+      ? { json: [{ clave: 'modo_mantenimiento', valor: 'desactivado', descripcion: '' }] } : null })).pagina;
+  for (const selector of ['#rol-7', '#filtroRolUsuarios', '#configuracion-modo_mantenimiento']) {
+    if (selector.includes('configuracion')) await p.locator('[data-vista=configuracion]').click();
+    const control = p.locator(selector);
+    await control.scrollIntoViewIfNeeded();
+    const antes = await control.boundingBox();
+    await control.click();
+    assert.equal(await control.evaluate(e => e.matches(':open')), true);
+    assert.deepEqual(await control.boundingBox(), antes);
+    const ventana = await control.evaluate(e => {
+      const s = getComputedStyle(e, '::picker(select)');
+      return { fondo: s.backgroundColor, fuente: s.fontFamily, radio: s.borderRadius,
+        opciones: [...e.options].map(o => o.getBoundingClientRect().toJSON()) };
+    });
+    assert.equal(ventana.fondo, 'rgb(19, 38, 65)');
+    assert.match(ventana.fuente, /Silkscreen/);
+    assert.equal(ventana.radio, '0px');
+    assert.ok(ventana.opciones.every(r => r.width > 0 && r.x >= 0 && r.right <= width && r.bottom <= 900));
+    await p.keyboard.press('Escape');
+    assert.equal(await control.evaluate(e => e.matches(':open')), false);
+    assert.equal(await control.evaluate(e => e === document.activeElement), true);
+  }
+  await p.locator('#configuracion-modo_mantenimiento').click();
+  await p.locator('#configuracion-modo_mantenimiento option[value=activado]').click();
+  assert.equal(await p.locator('#configuracion-modo_mantenimiento').inputValue(), 'activado');
 });
 
 for (const width of [1440, 390, 320]) test(`Escenarios ${width}: diez filas, selección por foco y estados reales sin desbordes`, async t => {

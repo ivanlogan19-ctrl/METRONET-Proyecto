@@ -1,5 +1,6 @@
 import { seleccionarTarjetaEducativa, tarjetaEducativaActual, tarjetasDisponibles } from './TarjetasEducativasNivel.js';
 import { gestorMusica } from '../audio/GestorMusica.js';
+import { ajustarIlustracionTarjeta } from './AjustarIlustracionTarjeta.js';
 import './tarjeta-educativa-nivel.css';
 
 let secuencia = 0;
@@ -25,7 +26,7 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
   cabecera.append(identidad);
 
   const figura = document.createElement('figure');
-  figura.className = 'metronet-tarjeta-educativa__figura';
+  figura.className = 'metronet-tarjeta-educativa__figura metronet-ilustracion-ampliable';
   const imagen = document.createElement('img');
   imagen.src = tarjeta.imagen;
   imagen.alt = `Esquema original. ${tarjeta.descripcionImagen}`;
@@ -65,6 +66,7 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
   tarjetaVista.append(cabecera, elemento('p', 'Una idea sobre transporte y planificación de redes.', 'metronet-tarjeta-educativa__subtitulo'), figura,
     elemento('p', tarjeta.texto, 'metronet-tarjeta-educativa__texto'), aprendizaje);
   tarjetaVista.append(fuente, pie);
+  ajustarIlustracionTarjeta();
   return { elemento: tarjetaVista, titulo, continuar };
 }
 

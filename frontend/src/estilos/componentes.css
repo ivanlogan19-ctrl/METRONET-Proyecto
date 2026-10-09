@@ -261,7 +261,7 @@ html:root body .metronet-boton--exito.metronet-boton--destacado {
   --boton-fondo: var(--success); --boton-texto: var(--primary-ink);
   --boton-hover: color-mix(in srgb, var(--success) 80%, var(--text-primary));
 }
-/* Select nativo: teclado, touch y popup del sistema conservados. */
+/* Select nativo: conserva valor, eventos, teclado y touch. */
 html:root body select {
   appearance: none; min-height: var(--control-height); max-width: 100%; min-width: 0;
   color: var(--text-primary); background-color: var(--bg-secondary);
@@ -281,6 +281,49 @@ html:root body select:focus { box-shadow: var(--control-presionado); }
 html:root body select option { color: var(--text-primary); background: var(--panel); }
 html:root body select option:checked { color: var(--primary-ink); background: var(--primary); }
 html:root body select:disabled { cursor: not-allowed; }
+/* El menú abierto comparte la ventana retro de los demás desplegables.
+   Sin soporte, el navegador conserva su selector nativo funcional. */
+@supports (appearance: base-select) {
+  html:root body select:not([multiple]):not([size]),
+  html:root body select:not([multiple]):not([size])::picker(select) { appearance: base-select; }
+  html:root body select:not([multiple]):not([size]) { justify-content: center; }
+  html:root body select::picker-icon { display: none; }
+  html:root body select::picker(select) {
+    min-inline-size: anchor-size(width);
+    max-inline-size: calc(100vw - 24px);
+    max-block-size: min(320px, 60dvh);
+    margin-block: 4px;
+    padding: 5px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: var(--border-width) solid var(--border-active);
+    border-radius: 0;
+    color: var(--text-primary);
+    background: var(--panel-elevated);
+    box-shadow: var(--shadow-floating);
+    font: 400 var(--font-size-control)/1.45 var(--control-fuente);
+  }
+  html:root body select option {
+    min-height: 40px;
+    padding: 8px 10px;
+    gap: 10px;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    border: var(--border-width) solid transparent;
+    color: var(--text-primary);
+    background: var(--panel-elevated);
+  }
+  html:root body select option:is(:hover, :focus-visible, :checked) {
+    border-color: var(--info-active);
+    color: var(--text-primary);
+    background: var(--surface-selected);
+  }
+  html:root body select option:checked { box-shadow: var(--shadow-selection); }
+  html:root body select option::checkmark { content: none; }
+  html:root body select option:disabled { color: var(--text-disabled); }
+}
 html:root body .admin-rol { min-width: 190px; }
 html:root body :is(input[type='checkbox'], input[type='radio']) {
   appearance: none; display: inline-grid; place-content: center;

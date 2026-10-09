@@ -25,8 +25,8 @@ html:root body.metronet-pagina-navegable.metronet-pagina-inicio {
 @media (min-width: 800px) {
   html:root body.metronet-pagina-inicio .metronet-inicio {
     min-height: calc(100svh - var(--navegacion-alto));
-    align-content: start;
-    padding-block: clamp(12px, 1.8vw, 20px) 32px;
+    align-content: center;
+    padding-block: 12px 16px;
   }
 }
 button, input, select, textarea { font: inherit; }
@@ -350,7 +350,7 @@ button { cursor: pointer; }
 .metronet-inicio__presentacion { width: 100%; max-width: none; }
 .metronet-inicio__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px clamp(16px, 3vw, 32px); }
 html:root body.metronet-pagina-inicio .metronet-inicio__presentacion {
-  padding: clamp(16px, 2vw, 24px);
+  padding: 12px 16px;
   border: var(--border-width) solid var(--border-active);
   border-top: var(--border-accent) solid var(--info-active);
   background: rgba(8, 19, 35, .88);
@@ -366,7 +366,7 @@ html:root body.metronet-pagina-inicio .metronet-inicio__marca {
   padding-right: clamp(16px, 2vw, 24px);
   border-right: var(--border-width) solid var(--border-active);
 }
-.metronet-inicio__marca .metronet-logo { width: clamp(170px, 19vw, 240px); aspect-ratio: 3 / 2; }
+.metronet-inicio__marca .metronet-logo { width: clamp(170px, 16vw, 200px); aspect-ratio: 3 / 2; }
 .metronet-inicio__saludo { min-width: 0; }
 html:root body.metronet-pagina-inicio .metronet-inicio__saludo {
   display: grid;
@@ -381,7 +381,7 @@ html:root body.metronet-pagina-inicio .metronet-inicio__saludo h1 {
   --titulo-animacion: none;
 }
 html:root body.metronet-pagina-inicio .metronet-inicio__saludo p { margin: 0; }
-.metronet-inicio__saludo > p:last-child { color: var(--text-secondary); line-height: 1.6; }
+.metronet-inicio__saludo > p:last-child { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 @media (max-width: 620px) {
   .metronet-inicio__cabecera { grid-template-columns: minmax(0, 1fr); }
   .metronet-inicio__marca .metronet-logo { width: 180px; }
@@ -617,14 +617,14 @@ body.metronet-pagina-editor { overflow: hidden; }
   text-wrap: pretty;
 }
 
-.metronet-inicio { gap: var(--space-xl); }
+.metronet-inicio { gap: var(--space-md); }
 .metronet-inicio__contenido { gap: var(--space-md); }
 .metronet-inicio__tablero {
   display: grid;
   grid-template-areas:
     'continuar crear'
     'progreso progreso';
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
 }
 .metronet-inicio__tarjeta {
@@ -633,7 +633,7 @@ body.metronet-pagina-editor { overflow: hidden; }
   align-content: start;
   gap: var(--space-md);
   min-width: 0;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--panel);
@@ -667,7 +667,7 @@ body.metronet-pagina-editor { overflow: hidden; }
 .metronet-inicio__tarjeta--continuar .metronet-inicio__tarjeta-etiqueta { color: var(--info-active); }
 .metronet-inicio__tarjeta--crear .metronet-inicio__tarjeta-etiqueta { color: var(--success); }
 .metronet-inicio__tarjeta--bloqueada .metronet-inicio__tarjeta-etiqueta { color: var(--text-disabled); }
-.metronet-inicio__descripcion { color: var(--text-secondary); line-height: 1.55; }
+.metronet-inicio__descripcion { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 .metronet-inicio__meta { color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
 .metronet-inicio__estado {
   width: fit-content;
@@ -998,3 +998,6 @@ html:root body .metronet-escenarios-pagina__tarjeta--bloqueado .metronet-escenar
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+/* Viñeta común: mismo joystick pixelado del control de ayuda.
+   Las listas de tarjetas/menús con list-style:none conservan su presentación. */
+:where(ul) { list-style-image: url('/assets/vineta-control-retro.svg'); }

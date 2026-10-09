@@ -29,7 +29,7 @@ html:root body .metronet-tarjeta-educativa h2 {
   overflow-wrap: anywhere;
 }
 html:root body .metronet-tarjeta-educativa__subtitulo { margin: 0; color: var(--text-secondary); font-size: 13px; }
-.metronet-tarjeta-educativa__figura { margin: 0; border: 1px solid var(--border); background: var(--bg-secondary); }
+.metronet-tarjeta-educativa__figura { margin: 0; width: 100%; justify-self: center; border: 1px solid var(--border); background: var(--bg-secondary); }
 .metronet-tarjeta-educativa__figura img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 246; object-fit: contain; }
 .metronet-tarjeta-educativa__respaldo { min-height: 130px; padding: 20px; }
 html:root body .metronet-tarjeta-educativa__texto { margin: 0; color: var(--text-primary); font: 400 15px/1.6 var(--font-ui); }
@@ -47,6 +47,16 @@ html:root body .metronet-tarjeta-educativa__fuente { margin: 0; color: var(--tex
 .metronet-tarjeta-educativa__pie small { max-width: 300px; color: var(--text-secondary); font: 400 11px/1.5 var(--font-ui); }
 .metronet-tarjeta-educativa__acciones { display: flex; gap: 9px; flex: none; }
 html:root body .metronet-tarjeta-educativa__acciones button { min-height: 44px; }
+@media (min-width: 900px) {
+  .metronet-preparacion.metronet-preparacion--educativa,
+  .metronet-preparacion.metronet-viaje--educativo { width: min(94vw, 1080px); }
+  .metronet-tarjeta-educativa {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px 24px;
+    gap: 10px;
+    align-items: start;
+  }
+}
 @media (max-width: 620px) {
   .metronet-tarjeta-educativa { gap: 11px; padding: 16px; }
   .metronet-tarjeta-educativa__etiqueta { font-size: 10px; }

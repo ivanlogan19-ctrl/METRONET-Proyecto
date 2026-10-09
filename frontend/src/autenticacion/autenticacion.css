@@ -572,10 +572,6 @@ body .auth-card #registroForm .auth-privacidad-seccion {
     padding-bottom: 16px;
   }
 
-  body .auth-card .auth-marca .metronet-logo {
-    width: min(100%, var(--metronet-logo-width));
-  }
-
   body .auth-card .auth-subtitle {
     margin-top: 8px;
   }
@@ -600,6 +596,13 @@ body .auth-card #registroForm .auth-privacidad-seccion {
   body .auth-card .auth-acceso-secundario {
     margin-top: 16px;
     padding-top: 14px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 561px) and (max-width: 799px) {
+  /* Compactar solo el diseño vertical; la columna de marca conserva su espacio. */
+  body .auth-card .auth-marca .metronet-logo {
+    width: min(100%, var(--metronet-logo-width));
   }
 }
 

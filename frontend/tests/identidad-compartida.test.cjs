@@ -39,6 +39,9 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     ['/simulacion.html?idDiseno=77', '.simulacion-primario', '#duracionSimulacion'],
   ]) {
     const pagina = await abrir(t, ruta);
+    // Medir el estado disponible, no el color intermedio de disabled → habilitado.
+    await pagina.waitForFunction(selector => !document.querySelector(selector).disabled, boton);
+    await pagina.locator(boton).first().evaluate(e => Promise.allSettled(e.getAnimations().map(a => a.finished)));
     const actual = await estilo(pagina.locator(boton).first(), aspecto);
     const actualCampo = await estilo(pagina.locator(entrada).first(), aspecto);
     primario ??= actual; campo ??= actualCampo;
@@ -47,7 +50,7 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     else assert.deepEqual(actual, primario, `Acción primaria en ${ruta}`);
     assert.deepEqual(sinFuente(actualCampo), sinFuente(campo), `Campo en ${ruta}`);
     assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
-    assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}`);
+    assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}: ${actual.color} sobre ${actual.backgroundColor}`);
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
     if (ruta.startsWith('/simulacion.html')) {
       assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración simulada en horas');
@@ -137,7 +140,7 @@ test('hover, foco y pulsación son distinguibles; controles deshabilitados conse
   assert.notEqual((await estilo(velocidad, aspecto)).borderTopColor, inactivo.borderTopColor);
 });
 
-test('modales administrativos, educativos y de eliminación comparten marco y fondo', async t => {
+test('modales comparten geometría y eliminación conserva su variante roja compacta', async t => {
   const admin = await abrir(t, '/admin.html');
   await admin.locator('[data-editar-usuario]').first().click();
   const propiedades = ['backgroundColor', 'color', 'borderRadius', 'borderTopWidth', 'boxShadow'];
@@ -146,7 +149,13 @@ test('modales administrativos, educativos y de eliminación comparten marco y fo
   const editor = await abrir(t, 'constructor');
   await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
   await editor.getByRole('button', { name: 'Eliminar elemento seleccionado' }).click();
-  assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar'), propiedades), marco);
+  const eliminacion = await estilo(editor.locator('.metronet-dialogo-eliminar'), propiedades);
+  for (const propiedad of ['borderRadius', 'boxShadow']) assert.equal(eliminacion[propiedad], marco[propiedad]);
+  assert.equal(eliminacion.borderTopWidth, '1px');
+  assert.deepEqual(await estilo(editor.locator('.metronet-dialogo-eliminar'), ['outlineWidth', 'outlineOffset']),
+    { outlineWidth: '2px', outlineOffset: '-8px' });
+  assert.equal(eliminacion.backgroundColor, 'rgb(165, 29, 65)');
+  assert.equal(eliminacion.color, 'rgb(255, 255, 255)');
   await editor.getByRole('button', { name: 'Cancelar', exact: true }).click();
   const niveles = await abrir(t, '/escenarios.html', {
     responder: request => new URL(request.url()).pathname.endsWith('/iniciar')

@@ -289,3 +289,21 @@ test('Administración oculta capacidad de unidades y conserva el dato interno al
   const creacion = solicitudes.find(s => s.path === '/api/admin/disenos/77/unidades' && s.method === 'POST');
   assert.deepEqual(creacion.body, { nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 80 });
 });
+
+for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720]]) {
+  test(`Inicio completo sin scroll vertical en escritorio ${width}×${height}`, async t => {
+    const actual = { ...progreso, modoLibreDesbloqueado: true, escenarios: escenarios.map(e =>
+      e.numero === 2 ? { ...e, objetivo: 'Construí dos estaciones y una línea que las una con un tramo. Asignale un Metro. Guardá, entrá a Simulación e iniciá Play. El nivel termina al completar el recorrido.' }
+        : e.numero === null ? { ...e, desbloqueado: true, estado: 'DISPONIBLE' } : e) };
+    const { pagina } = await abrir(t, '/inicio.html', { administrador: true, progreso: actual, viewport: { width, height } });
+    const medidas = await pagina.evaluate(() => ({
+      alto: document.documentElement.scrollHeight, ancho: document.documentElement.scrollWidth,
+      contenido: document.querySelector('#accionesInicio').getBoundingClientRect().bottom,
+    }));
+    assert.ok(medidas.alto <= height, JSON.stringify(medidas));
+    assert.ok(medidas.ancho <= width);
+    assert.ok(medidas.contenido <= height);
+    assert.equal(await pagina.getByRole('button', { name: 'Jugar en Modo Libre', exact: true }).isVisible(), true);
+    assert.equal(await pagina.getByRole('button', { name: 'Continuar', exact: true }).isVisible(), true);
+  });
+}
