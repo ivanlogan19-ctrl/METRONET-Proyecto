@@ -1,12 +1,14 @@
 // Una pista por contexto. Los contextos sin pista quedan disponibles para futuros assets.
+const PISTA_EDICION_SIMULACION = '/audio/simulacion-theme.mp3';
+
 export const PISTAS_MUSICA = Object.freeze({
-  gameplay: '/audio/extra-theme.mp3',
+  gameplay: PISTA_EDICION_SIMULACION,
   inicioNivel: '/audio/victory-theme.mp3',
   loading: null,
-  transition: '/audio/extra-theme.mp3',
+  transition: PISTA_EDICION_SIMULACION,
   auth: '/audio/portada-theme.mp3',
   educativo: '/audio/educativo-theme.mp3',
-  simulacion: '/audio/simulacion-theme.mp3',
+  simulacion: PISTA_EDICION_SIMULACION,
   welcome: '/audio/welcome-theme.mp3',
   victory: '/audio/victory-theme.mp3',
   menu: '/audio/menu-theme.mp3',

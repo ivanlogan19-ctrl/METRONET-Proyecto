@@ -200,7 +200,7 @@ for (const width of [1920,1440,1366,1280,768,390,320]) test(`Cartel ${width}px: 
   const medidas = await p.locator('.metronet-identificacion__cartel').evaluate(e => ({r:e.getBoundingClientRect().toJSON(), animacion:getComputedStyle(e).animationName}));
   assert.equal(medidas.animacion,'none'); assert.ok(medidas.r.x>=0 && medidas.r.right<=width);
   assert.equal(await p.evaluate(() => document.querySelector('audio[data-musica-metronet]') === audioPrevio), true);
-  assert.equal(await p.evaluate(() => audioPrevio?.getAttribute('src')), '/audio/extra-theme.mp3');
+  assert.equal(await p.evaluate(() => audioPrevio?.getAttribute('src')), '/audio/simulacion-theme.mp3');
   assert.ok(await p.evaluate(() => !audioPrevio || audioPrevio.currentTime >= .5));
   await p.clock.runFor(1100); assert.equal(await p.evaluate(() => fin),true);
   await p.evaluate(async () => {

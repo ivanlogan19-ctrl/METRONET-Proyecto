@@ -27,14 +27,14 @@ async function ingresar(p, rol) {
   await p.locator(rol === 'ADMIN' ? '#loginAdminButton' : '#loginButton').click();
 }
 
-for (const ruta of rutas) test(`Acceso sin sesión: Portada y control disponible en ${ruta}`, async t => {
+for (const ruta of rutas) test(`Acceso sin sesión: Zodd y control disponible en ${ruta}`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, ruta);
   await reproduciendo(p);
   assert.equal(await p.locator(audio).count(), 1);
   const datos = await p.locator(audio).evaluate(a => ({ src: a.getAttribute('src'), loop: a.loop, duracion: a.duration }));
   assert.equal(datos.src, '/audio/portada-theme.mp3');
   assert.equal(datos.loop, true);
-  assert.ok(datos.duracion > 122.6 && datos.duracion < 122.8);
+  assert.ok(datos.duracion > 189 && datos.duracion < 189.2);
   assert.equal(await p.locator('[data-control-musica]').count(), 1);
   assert.equal(await p.evaluate(() => localStorage.getItem('sesionUsuario') || localStorage.getItem('sesionAdministrador')), null);
   assert.deepEqual(solicitudes.filter(s => s.path !== '/api/estado'), [], 'La música no agrega llamadas a backend');

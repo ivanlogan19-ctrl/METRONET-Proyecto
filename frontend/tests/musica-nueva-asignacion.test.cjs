@@ -34,7 +34,7 @@ async function paginaDeTarjetas(t) {
   }));
   await pagina.goto(`${BASE}/__musica_tarjetas`);
   await pagina.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerContexto('gameplay'));
-  await esperarPista(pagina, '/audio/extra-theme.mp3');
+  await esperarPista(pagina, '/audio/simulacion-theme.mp3');
   return pagina;
 }
 
@@ -73,7 +73,7 @@ test('Ayuda y posvictoria usan Educativo mientras la tarjeta está visible y res
       await esperarPista(p, '/audio/educativo-theme.mp3');
     }
     await p.getByRole('button', { name: 'Volver' }).click();
-    await esperarPista(p, '/audio/extra-theme.mp3');
+    await esperarPista(p, '/audio/simulacion-theme.mp3');
     assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
     assert.equal(await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.temporales.size), 0);
   }
@@ -84,7 +84,7 @@ test('Ayuda y posvictoria usan Educativo mientras la tarjeta está visible y res
   await esperarPista(p, '/audio/educativo-theme.mp3');
   await p.getByRole('button', { name: 'Continuar →' }).click();
   assert.equal(await p.evaluate(() => tarjetaTrasVictoria), true);
-  await esperarPista(p, '/audio/extra-theme.mp3');
+  await esperarPista(p, '/audio/simulacion-theme.mp3');
   assert.equal(await p.locator(audio).count(), 1);
   assert.equal(await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.temporales.size), 0);
 });
@@ -114,7 +114,7 @@ test('Simulación con red, Editor y panel administrador mantienen sus pistas', a
   assert.equal(await simulacion.pagina.locator('#panelSimulacion').isVisible(), true);
   const editor = await abrirEditor(navegador);
   t.after(async () => { await editor.contexto.close(); assert.deepEqual(editor.errores, []); });
-  await esperarPista(editor.pagina, '/audio/extra-theme.mp3');
+  await esperarPista(editor.pagina, '/audio/simulacion-theme.mp3');
   const administracion = await abrirPantalla(navegador, '/admin.html', { administrador: true });
   t.after(async () => { await administracion.contexto.close(); assert.deepEqual(administracion.errores, []); });
   await esperarPista(administracion.pagina, '/audio/menu-theme.mp3');

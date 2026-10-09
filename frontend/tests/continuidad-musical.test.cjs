@@ -52,7 +52,7 @@ test('Cambio de pista mezcla durante 180ms y respeta 40% maestro',async t=>{
  assert.ok(mezcla.every(a=>!a.pausado&&a.volumen>0&&a.volumen<.4),JSON.stringify(mezcla));
  assert.ok(Math.abs(mezcla.reduce((s,a)=>s+a.volumen,0)-.4)<.025);
  await p.waitForFunction(()=>!gestorPrueba.obtenerEstado().mezclando);
- const final=await medir(p);assert.equal(final.length,1);assert.equal(final[0].pista,'/audio/extra-theme.mp3');assert.equal(final[0].volumen,.4);
+ const final=await medir(p);assert.equal(final.length,1);assert.equal(final[0].pista,'/audio/simulacion-theme.mp3');assert.equal(final[0].volumen,.4);
  assert.equal(await p.evaluate(()=>gestorPrueba.temporizadorMezcla),null);
 });
 
@@ -82,7 +82,7 @@ test('Mute durante una mezcla detiene todas las pistas y se conserva al navegar'
 
 test('Pista de destino fallida no deja mezcla ni promesas sin capturar',async t=>{
  const {pagina:p}=await abrir(t);
- await p.route('**/audio/extra-theme.mp3',r=>r.fulfill({status:404}));
+ await p.route('**/audio/simulacion-theme.mp3',r=>r.fulfill({status:404}));
  await p.evaluate(()=>gestorPrueba.establecerContexto('gameplay'));
  await p.waitForFunction(()=>gestorPrueba.obtenerEstado().error&&!gestorPrueba.obtenerEstado().mezclando);
  assert.ok((await medir(p)).every(a=>a.pausado));

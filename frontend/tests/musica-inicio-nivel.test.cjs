@@ -54,7 +54,7 @@ for (const reducido of [false, true]) test(`Viaje y cartel duran unos 11 s sin n
   await p.locator('.metronet-tutorial > summary').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
   assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 0, 'No repetir canción en el editor');
-  await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/extra-theme.mp3' && !a.paused; });
+  await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/simulacion-theme.mp3' && !a.paused; });
 });
 
 for (const fallo of ['archivo', 'silencio']) test(`FalsaCargaDeVictoria ${fallo}: conserva el viaje y permite entrar al nivel`, async t => {

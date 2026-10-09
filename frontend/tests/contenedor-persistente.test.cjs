@@ -63,7 +63,7 @@ test('Menú, juego y Administración alternan sus pistas; las subsecciones ADMIN
   for (let i = 0; i < 3; i++) {
     await v.evaluate(() => location.assign('/?idDiseno=77'));
     await v.locator('[data-editor-activo]:not([hidden])').waitFor({ state: 'attached' });
-    await sonar(p, 'extra');
+    await sonar(p, 'simulacion');
     await ir(v, p, 'Administración', 'admin'); await sonar(p, 'menu'); await marcar(p);
     for (const vista of ['disenos', 'configuracion', 'actividad', 'usuarios']) {
       await v.locator(`[data-vista="${vista}"]`).click();
@@ -80,14 +80,14 @@ test('Menú, juego y Administración alternan sus pistas; las subsecciones ADMIN
   }
 });
 
-test('Contextos y preferencias: menú → juego → simulación, volumen y silencio compartidos',async t=>{
+test('Editor y Simulación conservan la misma pista, posición y reproductor; volumen y silencio compartidos',async t=>{
   const {pagina:p,vista:v}=await abrir(t); await sonar(p);
   await v.evaluate(()=>location.assign('/?idDiseno=77')); await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
-  await sonar(p,'extra'); await marcar(p);
+  await sonar(p,'simulacion'); await marcar(p);
   await v.evaluate(()=>location.assign('/simulacion.html?idDiseno=77')); await v.locator('#panelSimulacion:not([hidden])').waitFor();
-  await sonar(p,'simulacion');
+  await sonar(p,'simulacion'); await continuidad(p);
   await v.locator('#volverEdicion').click(); await v.waitForURL('**/?idDiseno=77*');
-  await sonar(p,'extra');
+  await sonar(p,'simulacion'); await continuidad(p);
   assert.equal(await p.locator('audio').count(), 1);
   await v.evaluate(async()=>{const {gestorMusica:g}=await import('/src/audio/GestorMusica.js');g.establecerVolumen(.2);g.establecerSilencio(true);});
   await ir(v,p,'Inicio','inicio');
@@ -157,7 +157,7 @@ test('El respaldo de HTML independiente continúa disponible si falla el contene
 
 test('Salir del editor conserva confirmación, cancelar conserva mapa y música',async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/inicio.html');
-  await v.evaluate(()=>location.assign('/?idDiseno=77'));await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});await sonar(p,'extra');
+  await v.evaluate(()=>location.assign('/?idDiseno=77'));await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});await sonar(p,'simulacion');
   await v.evaluate(async()=>{window.limpiarPrueba=(await import('/src/navegacion/NavegacionAplicacion.js')).registrarControlCambios({hayCambios:()=>true,guardar:()=>false});});
   await marcar(p);await v.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Inicio',exact:true}).click();await v.locator('[data-dialogo-cambios]').waitFor();
   await v.getByRole('button',{name:'Cancelar',exact:true}).click();assert.equal(new URL(v.url()).pathname,'/');await continuidad(p);
@@ -191,7 +191,7 @@ for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 11 
   await v.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
   assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>8.3&&a.currentTime<11.5));
   await v.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
-  assert.ok(Date.now()-inicio>=10800&&Date.now()-inicio<16000);await sonar(p,'extra');
+  assert.ok(Date.now()-inicio>=10800&&Date.now()-inicio<16000);await sonar(p,'simulacion');
   await v.locator('.metronet-tutorial > summary').waitFor();assert.equal(await v.locator('.metronet-identificacion').count(),0);
 });
 

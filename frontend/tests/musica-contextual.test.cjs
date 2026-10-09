@@ -20,7 +20,7 @@ async function abrirMusica(p) {
     if (await p.locator('[data-hud-vista=musica]').count()) await p.locator('[data-hud-vista=musica]').click();
   } else await p.locator('.metronet-audio summary').click();
 }
-async function reproduciendo(p, pista = '/audio/extra-theme.mp3') {
+async function reproduciendo(p, pista = '/audio/simulacion-theme.mp3') {
   await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume === 0.35; }, pista);
 }
 async function gestor(p, accion, valor) {
@@ -52,9 +52,9 @@ test('MP3 real en modo libre: una instancia, 35 %, loop y final sin detenerse', 
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   const inicial = await p.locator(audio).evaluate(a => ({ duration: a.duration, loop: a.loop, volumen: a.volume, src: a.getAttribute('src') }));
-  assert.ok(inicial.duration > 32 && inicial.duration < 32.2);
+  assert.ok(inicial.duration > 164 && inicial.duration < 164.2);
   assert.equal(inicial.loop, true); assert.equal(inicial.volumen, .35);
-  assert.equal(inicial.src, '/audio/extra-theme.mp3');
+  assert.equal(inicial.src, '/audio/simulacion-theme.mp3');
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .4; });
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
   for (let i = 0; i < 5; i++) await gestor(p, 'establecerContexto', 'gameplay');
@@ -294,7 +294,7 @@ test('Autoplay rechazado no bloquea; el siguiente gesto lo recupera', async t =>
 
 test('Archivo ausente y almacenamiento bloqueado no bloquean gameplay', async t => {
   const { pagina: p } = await abrir(t, '/inicio.html');
-  await p.route('**/audio/extra-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/simulacion-theme.mp3', route => route.fulfill({ status: 404 }));
   await p.evaluate(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {

@@ -50,7 +50,7 @@ test('Finales 1 → 2 → 3: viaje de 11 s y nuevo nivel sin repetir la pista al
   assert.ok(e.ms>=10800&&e.ms<14000);assert.ok(e.duracion>13.7&&e.duracion<13.9);
   assert.equal(e.cartel,null,'La victoria con siguiente nivel usa el destino integrado, sin cartel adicional');
   assert.ok(e.demoraRepeticion<200);
-  assert.equal(e.pistaSiguiente,'/audio/extra-theme.mp3');
+  assert.equal(e.pistaSiguiente,'/audio/simulacion-theme.mp3');
  }
 });
 for(const fallo of ['silencio','archivo','autoplay'])test(`Sin sonido (${fallo}) conserva los 11 s visibles sin bloquear la finalización`,async t=>{
@@ -70,7 +70,7 @@ test('Menú → gameplay mezcla pistas distintas una vez; repetir contexto no re
  const p=await abrir(t);
  await p.waitForFunction(()=>document.querySelector('audio')?.volume===.35);
  await p.evaluate(async()=>{window.g=(await import('/src/audio/GestorMusica.js')).gestorMusica;g.establecerContexto('gameplay');});
- await p.waitForFunction(()=>g.pista==='/audio/extra-theme.mp3'&&!g.obtenerEstado().mezclando&&g.audio.currentTime>.2);
+ await p.waitForFunction(()=>g.pista==='/audio/simulacion-theme.mp3'&&!g.obtenerEstado().mezclando&&g.audio.currentTime>.2);
  const estado=await p.evaluate(()=>{const original=g.audio;const posicion=original.currentTime;const liberar=g.usarContextoTemporal('transition');liberar();g.establecerContexto('gameplay');return {mismo:g.audio===original,posicion,despues:g.audio.currentTime,...g.obtenerEstado()};});
  assert.equal(estado.mismo,true);assert.equal(estado.instancias,1);assert.equal(estado.mezclando,false);assert.ok(estado.despues>=estado.posicion);
 });
