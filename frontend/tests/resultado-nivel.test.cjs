@@ -114,3 +114,32 @@ test('Tope de descuentos en pantalla pequeña: cuenta completa, desplazamiento y
   await p.keyboard.press('Enter');
   assert.equal(await p.evaluate(() => window.resultadoDescuentos), true);
 });
+
+for (const width of [1440, 390, 320]) test(`Exceso ${width}: muestra los límites de esa ejecución sin duplicar descuentos`, async t => {
+  const { pagina: p } = await abrir(t, width);
+  await p.evaluate(async () => {
+    window.controlResultado.abort();
+    await window.resultado;
+    const { mostrarResultadoNivel } = await import('/src/educacion/PantallaResultadoNivel.js');
+    window.resultadoDescuentos = mostrarResultadoNivel({ numero: 4, nombre: 'Red completada', puntajeMaximo: 100 }, {
+      puntaje: 90, desempeno: { desglosePuntuacion: {
+        version: 'puntuacion-progreso-v2', puntosBase: 100, practicasGratuitas: 0,
+        descuentoMaximo: 40, puntajeMinimoAprobacion: 60, totalDescontado: 10, total: 90,
+        descuentos: [{ numeroEjecucion: 1, puntos: 10,
+          motivos: ['Usar como máximo 3 estaciones', 'Cambiar UV y ejecutar'],
+          excesos: ['4 estaciones; máximo 3', '8 UV asignadas; máximo 6'] }],
+      } },
+    });
+  });
+  const dialogo = p.locator('.metronet-resultado-nivel');
+  assert.match(await dialogo.innerText(), /Ganaste\s+90\s+puntos/);
+  assert.match(await dialogo.innerText(), /Ejecución 1\s+Exceso sobre la consigna/);
+  await dialogo.locator('summary').click();
+  assert.match(await dialogo.innerText(), /4 estaciones; máximo 3/);
+  assert.match(await dialogo.innerText(), /8 UV asignadas; máximo 6/);
+  assert.doesNotMatch(await dialogo.innerText(), /Sin nuevos avances|Cambiar UV y ejecutar|prácticas gratuitas/);
+  assert.deepEqual(await dialogo.locator('dd').allTextContents(), ['100', '−10', '90']);
+  assert.equal(await dialogo.evaluate(e => e.scrollWidth > e.clientWidth), false);
+  await dialogo.getByRole('button', { name: 'Continuar', exact: true }).click();
+  assert.equal(await p.evaluate(() => window.resultadoDescuentos), true);
+});

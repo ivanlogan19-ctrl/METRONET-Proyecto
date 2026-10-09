@@ -88,15 +88,16 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
  assert.deepEqual(await pagina.evaluate(()=>window.cierre),{destino:'/ranking.html'});
  assert.equal(solicitudes.filter(s=>s.method==='POST').length,0);
 });
-for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) test(`Simulación finalizada: ${puntos} puntos, consigna ${completado ? 'completa' : 'pendiente'}`,async t=>{
+for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) test(`Simulación finalizada: ${puntos} puntos, consigna ${completado ? 'completa' : 'pendiente'}, aprobación reservada a Finalizar red`,async t=>{
  const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${completado ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidad:6,tramos:3}]};
  const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:1,velocidad:1,escala:'UV_H_V1',unidades:[{idTren:1,velocidad:6}],comentarios:'6 UV durante 1 h simulada.'};
  const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
- const {pagina}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
+ const {pagina,solicitudes}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
   const path=new URL(req.url()).pathname;
   if(path==='/api/simulaciones')return {json:[red.simulacion]};
   if(path==='/api/simulaciones/77')return {json:red};
   if(path.endsWith('/desempeno'))return {json:desempeno};
+  if(path.endsWith('/consigna'))return {json:{estadoGlobal:completado?'LISTO':'PARCIAL',condiciones:[],referenciasObjetivo:[]}};
   if(path.endsWith('/ejecutar')){red.resultados=[resultado];return {json:resultado};}
   if(path.endsWith('/evaluar'))return {json:{completado,puntaje:puntos,progreso:completado ? 100 : 75,desempeno,mensaje:desempeno.explicacion}};
  }});
@@ -106,13 +107,10 @@ for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) tes
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.waitForFunction(() => document.querySelector('#estadoTiempoReal')?.textContent === 'Finalizada');
- await pagina.waitForFunction(({puntos, completado}) => document.querySelector('#mensajeSimulacion')?.textContent.includes(completado ? `Nivel aprobado · ${puntos} puntos` : `Puntaje posible: ${puntos} puntos · Consigna pendiente`), {puntos, completado});
+ await pagina.waitForFunction(completado => document.querySelector('#mensajeSimulacion')?.textContent.includes(completado ? 'Finalizar red' : 'objetivos pendientes'), completado);
  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
- if (completado) {
-  await pagina.getByRole('dialog').waitFor();
-  assert.match(await pagina.getByRole('dialog').innerText(), /Ganaste\s+100\s+puntos/);
- } else {
-  assert.equal(await pagina.getByRole('dialog').count(), 0);
-  await pagina.waitForFunction(() => /Revisá los objetivos en Edición/.test(document.querySelector('#mensajeSimulacion')?.textContent ?? ''));
- }
+ assert.equal(await pagina.getByRole('dialog').count(), 0);
+ assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,0);
+ assert.equal(solicitudes.filter(s=>s.path.endsWith('/ejecutar')).length,1);
+ assert.doesNotMatch(await pagina.locator('#mensajeSimulacion').textContent(),/Nivel aprobado|Ganaste|Puntaje posible/);
 });

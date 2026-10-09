@@ -85,6 +85,12 @@
 .metronet-reglas p:last-child { margin-bottom: 0; }
 .metronet-reglas ul { padding-left: 20px; }
 .metronet-reglas li + li { margin-top: 8px; }
+.metronet-reglas #reglaDescuentos ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 32px;
+}
+.metronet-reglas #reglaDescuentos li { margin-top: 0; }
 .metronet-reglas table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .metronet-reglas caption { padding: 0 0 12px; text-align: left; color: var(--text-secondary); }
 .metronet-reglas :is(th, td) { padding: 8px 12px; text-align: left; border: 1px solid var(--border); }
@@ -94,8 +100,10 @@
 .metronet-reglas__acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 @media (max-width: 760px) {
   .metronet-reglas { grid-template-columns: minmax(0, 1fr); }
+  .metronet-reglas #reglaDescuentos ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 480px) {
+  .metronet-reglas #reglaDescuentos ul { grid-template-columns: minmax(0, 1fr); }
   .metronet-reglas__hoja { width: 28px; height: 40px; padding: 7px 4px; box-shadow: 2px 2px 0 var(--border); }
   .metronet-reglas__hoja span { height: 2px; }
   html:root body .metronet-reglas__titulo-fijo h1 { --titulo-tamano: 17px; }

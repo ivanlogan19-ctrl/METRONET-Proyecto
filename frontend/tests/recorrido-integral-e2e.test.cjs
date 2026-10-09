@@ -184,12 +184,12 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    const esperado=puntosEsperados[nivel.numero-1];
    if(esperado<100){
     assert.equal(resultado.listo,false);
-    const gratuitas=politica.practicasGratuitasPorNivel[nivel.numero-1];
+    // La primera ejecución cumple objetivos; repetirla sin cambios ya no tiene exenciones.
     const cantidadDescuentos=(100-esperado)/10;
-    for(let ejecucion=2;ejecucion<=gratuitas+cantidadDescuentos;ejecucion++){
+    for(let ejecucion=2;ejecucion<=1+cantidadDescuentos;ejecucion++){
      resultado=await ejecutar();
      assert.equal(resultado.listo,false,'Los puntos no aprueban objetivos pendientes');
-     assert.equal(resultado.puntaje,100-10*Math.max(0,ejecucion-gratuitas));
+     assert.equal(resultado.puntaje,100-10*Math.max(0,ejecucion-1));
     }
     assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,cantidadDescuentos);
     if(esperado===60){resultado=await ejecutar();assert.equal(resultado.puntaje,60,'El tope permite seguir jugando');}
@@ -242,7 +242,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     if(esperado<100){
      const descuentos=puntos.locator('details');
      assert.equal(await descuentos.count(),(100-esperado)/10);
-     assert.match(await puntos.innerText(),new RegExp(`Ejecución ${politica.practicasGratuitasPorNivel[nivel.numero-1]+1}\\s+Sin nuevos avances`));
+     assert.match(await puntos.innerText(),new RegExp(`Ejecución 2\\s+Sin nuevos avances`));
     }
     assert.equal(await f().locator('.metronet-victoria').count(),0);
     await puntos.getByRole('button',{name:'Continuar',exact:true}).click();

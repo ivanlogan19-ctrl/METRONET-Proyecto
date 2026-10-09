@@ -48,7 +48,7 @@ class MatrizPuntuacionRecorridoPostgresTest {
         int admin = usuario("Publicador matriz", "ADMIN");
         recorrido.publicar(admin);
         int jugador = usuario("Jugador matriz", "JUGADOR");
-        int[] gratuitas = {1,2,2,3,1,1,1,2,2,4};
+
         for (int numero=1; numero<=10; numero++) {
             final int nivel = numero;
             String caso = "Nivel " + nivel + ", puntaje " + objetivo;
@@ -59,7 +59,7 @@ class MatrizPuntuacionRecorridoPostgresTest {
             int diseno = inicio.idDiseno();
             var inicial = juego.obtenerDesempeno(jugador, diseno);
             assertEquals(100, inicial.puntaje(), caso + ": no arrastra descuentos");
-            assertEquals(gratuitas[nivel-1], inicial.desglosePuntuacion().practicasGratuitas());
+            assertEquals(0, inicial.desglosePuntuacion().practicasGratuitas());
             assertTrue(inicial.desglosePuntuacion().descuentos().isEmpty());
             assertTrue(simulaciones.listarResultados(jugador, diseno).isEmpty());
             assertFalse(juego.evaluarEscenario(jugador, diseno).completado());
@@ -71,9 +71,10 @@ class MatrizPuntuacionRecorridoPostgresTest {
                 construirParcial(jugador, diseno);
                 assertTrue(simulaciones.validarDiseno(jugador, diseno).preparadoParaSimular());
                 int descuentos = (100-esperado)/10;
-                for (int i=1; i<=gratuitas[nivel-1]+descuentos; i++) {
+                // La primera ejecución alcanza objetivos nuevos; las siguientes repiten sin avanzar.
+                for (int i=1; i<=1+descuentos; i++) {
                     var resultado = ejecutar(jugador, diseno, 6);
-                    assertEquals(100-10*Math.max(0,i-gratuitas[nivel-1]), resultado.puntaje(), caso);
+                    assertEquals(100-10*Math.max(0,i-1), resultado.puntaje(), caso);
                     var evaluacion = juego.evaluarEscenario(jugador, diseno);
                     assertFalse(evaluacion.completado(), caso + ": faltan objetivos");
                     assertFalse(juego.obtenerResumenProgreso(jugador).modoLibreDesbloqueado());

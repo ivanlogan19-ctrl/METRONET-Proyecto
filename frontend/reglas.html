@@ -25,15 +25,16 @@
       <p>Completá los objetivos de cada nivel y conseguí el mejor puntaje posible.</p>
       <dl class="metronet-reglas__resumen">
         <div><dt>Puntos al comenzar</dt><dd>100</dd></div>
-        <div><dt>Por simulación sin avances*</dt><dd>−10</dd></div>
+        <div><dt>Por exceso o sin avances*</dt><dd>−10</dd></div>
         <div><dt>Mínimo para aprobar</dt><dd>60</dd></div>
       </dl>
-      <p class="metronet-reglas__nota">* Después de las prácticas sin descuento, si todavía quedan objetivos pendientes.</p>
+      <p class="metronet-reglas__nota">* Se aplica desde la primera simulación cuando hay exceso o no alcanzás ningún objetivo nuevo y todavía falta completar la consigna.</p>
     </header>
     <section id="reglaAprobacion" class="metronet-reglas__ancho" aria-labelledby="tituloAprobacion">
       <h2 id="tituloAprobacion">Cómo aprobás un nivel</h2>
       <p>Elegí <strong>Finalizar red</strong> en Edición para guardar tu red y comprobar si aprobaste. Completá <strong>toda la consigna</strong> y conservá al menos <strong>60 puntos</strong>. Si quedan objetivos pendientes, el nivel todavía no está aprobado.</p>
       <p>Cuando la consigna pida probar cambios de velocidad o duración, aplicalos y volvé a simular para cumplir ese objetivo.</p>
+      <p>Los objetivos se comprueban con la red actual. Si eliminás un elemento necesario, ese objetivo deja de estar cumplido.</p>
     </section>
     <section class="metronet-reglas__ancho" aria-labelledby="tituloAcciones">
       <h2 id="tituloAcciones">Guardar, Simular y Finalizar red</h2>
@@ -46,12 +47,14 @@
     </section>
     <section aria-labelledby="tituloDescuento">
       <h2 id="tituloDescuento">Cuándo perdés puntos</h2>
-      <p>Una vez usadas las prácticas sin descuento, perdés <strong>10 puntos</strong> al simular si se cumplen estas dos condiciones:</p>
+      <p>Perdés <strong>10 puntos</strong> al simular si superás un <strong>máximo explícito de la consigna</strong>, incluso en la primera simulación o si cumplís otro objetivo. La ventana de puntos indica qué límite superaste y los valores de esa ejecución.</p>
+      <p>Una red operable puede simularse con exceso. Para aprobar, corregí el exceso y cumplí toda la consigna. Si un objetivo dice <strong>«al menos»</strong>, agregar más no es un exceso.</p>
+      <p>También perdés <strong>10 puntos</strong> al simular, desde la primera ejecución, si se cumplen estas dos condiciones:</p>
       <ul>
         <li>Todavía quedan objetivos por completar.</li>
         <li>La simulación no cumple ningún objetivo que no hayas alcanzado antes en ese intento.</li>
       </ul>
-      <p>Se descuenta una sola vez por simulación, aunque falten varios objetivos. Volver a cumplir un objetivo ya alcanzado no cuenta como un avance nuevo.</p>
+      <p>Se descuentan como máximo <strong>10 puntos por simulación</strong>, aunque superes varios límites o también falten nuevos avances. Volver a cumplir un objetivo ya alcanzado no cuenta como un avance nuevo.</p>
       <p>Podés perder hasta <strong>40 puntos por intento</strong>. Al llegar a 60, podés seguir practicando sin más descuentos hasta completar el nivel.</p>
     </section>
     <section aria-labelledby="reglaCalculo">
@@ -64,27 +67,17 @@
       </table>
       <p>Al terminar, vas a ver tu puntaje y el detalle de cada descuento antes de continuar.</p>
     </section>
-    <section id="reglaPracticas" aria-labelledby="tituloPracticas">
-      <h2 id="tituloPracticas">Prácticas sin descuento</h2>
-      <p>Cada intento incluye estas primeras simulaciones para probar tu red sin perder puntos:</p>
-      <table id="practicasPuntos">
-        <thead><tr><th scope="col">Nivel</th><th scope="col">Simulaciones sin descuento</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <section id="reglaDescuentos" aria-labelledby="tituloDescuentos">
+    <section id="reglaDescuentos" class="metronet-reglas__ancho" aria-labelledby="tituloDescuentos">
       <h2 id="tituloDescuentos">Qué no te quita puntos</h2>
       <p>Estas acciones <strong>no descuentan puntos</strong>:</p>
       <ul>
         <li>Consultar el tutorial y tomarte tiempo para resolver.</li>
         <li>Guardar el diseño o mover el mapa.</li>
         <li>Cambiar velocidad, duración o ritmo sin iniciar otra simulación.</li>
-        <li>Simular y cumplir un objetivo nuevo.</li>
+        <li>Simular y cumplir un objetivo nuevo sin superar ningún máximo.</li>
         <li>Completar toda la consigna.</li>
         <li>Pausar o detener la animación.</li>
       </ul>
-      <p>Pausar o detener no revierte un descuento de la simulación que ya iniciaste.</p>
-      <p>Los fallos técnicos no te quitan puntos. Si la simulación no puede iniciarse, tampoco consume una práctica.</p>
     </section>
     <section class="metronet-reglas__ancho" aria-labelledby="reglaRanking">
       <h2 id="reglaRanking">Tu lugar en el ranking</h2>

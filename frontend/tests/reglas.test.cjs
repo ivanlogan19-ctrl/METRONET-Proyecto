@@ -21,7 +21,11 @@ for (const administrador of [false, true]) for (const width of [1440, 390, 320])
     assert.match(await p.locator('main').innerText(), /Guardar y Simular no terminan el nivel/);
     assert.match(await p.locator('#reglaDescuentos').innerText(), /no descuentan puntos/);
     assert.deepEqual(await p.locator('#ejemplosPuntos tbody tr td:nth-child(2)').allTextContents(), ['100', '90', '80', '70', '60']);
-    assert.deepEqual(await p.locator('#practicasPuntos tbody tr td:nth-child(2)').allTextContents(), ['1', '2', '2', '3', '1', '1', '1', '2', '2', '4']);
+    assert.equal(await p.locator('#reglaPracticas, #practicasPuntos').count(), 0);
+    assert.doesNotMatch(await p.locator('main').innerText(), /prácticas sin descuento|prácticas gratuitas/);
+    assert.match(await p.locator('main').innerText(), /desde la primera ejecución/);
+    assert.match(await p.locator('main').innerText(), /máximo explícito de la consigna/);
+    assert.match(await p.locator('main').innerText(), /10 puntos por simulación/);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await p.evaluate(() => window.scrollTo(0, 700));
     const cabecera = await p.locator('.metronet-reglas__titulo-fijo').boundingBox();

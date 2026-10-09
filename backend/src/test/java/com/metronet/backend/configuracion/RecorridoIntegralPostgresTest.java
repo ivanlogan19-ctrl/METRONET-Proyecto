@@ -42,7 +42,7 @@ class RecorridoIntegralPostgresTest {
         int ejecuciones=jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class);
         var publicaciones=recorrido.publicar(admin);
         assertEquals(10,publicaciones.size());
-        assertEquals("puntuacion-progreso-v1",
+        assertEquals(PoliticaPuntuacion.VERSION,
             new com.fasterxml.jackson.databind.ObjectMapper().readTree(jdbc.queryForObject(
                 "SELECT reglas_exito::text FROM escenario WHERE progresivo AND numero=1",String.class))
                 .path("puntuacion").path("version").asText());

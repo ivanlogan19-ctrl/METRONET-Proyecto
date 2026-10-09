@@ -12,13 +12,68 @@ class PoliticaPuntuacionTest {
         return List.of(new CondicionConsignaResponse("red", "Conectar la red", red ? 1 : 0, 1, red),
             new CondicionConsignaResponse("poi", "Cubrir el lugar solicitado", lugar ? 1 : 0, 1, lugar));
     }
+    @Test void excesoDescuentaDesdeLaPrimeraEjecucionAunqueHayaAvancesEnLosDiezNiveles() {
+        var exceso = new ArrayList<>(condiciones(true, false));
+        exceso.add(new CondicionConsignaResponse("maximoEstaciones", "Máximo 3 estaciones", 4, 3, false));
+        for (int nivel = 1; nivel <= 10; nivel++) {
+            var regla = PoliticaPuntuacion.leer(PoliticaPuntuacion.configuracionNivel(nivel));
+            var primera = regla.evaluar(exceso, List.of(), 1);
+            assertEquals(10, primera.descuento(), "Nivel " + nivel);
+            assertEquals(10, primera.totalDescontado());
+            assertEquals(List.of("4 estaciones; máximo 3"), primera.excesos());
+        }
+    }
+    @Test void excesosYSinAvanceCompartenTopeYCorregirNoBorraLosDescuentos() {
+        var exceso = List.of(new CondicionConsignaResponse("maximoEstaciones", "Máximo 3 estaciones", 4, 3, false));
+        var historia = new ArrayList<PoliticaPuntuacion.Registro>();
+        for (int i = 1; i <= 6; i++) {
+            var registro = politica.evaluar(exceso, historia, i, List.of("8 UV asignadas; máximo 6", "4 UT; máximo 3"));
+            assertEquals(i <= 4 ? 10 : 0, registro.descuento());
+            assertEquals(Math.min(40, i * 10), registro.totalDescontado());
+            assertEquals(3, registro.excesos().size());
+            historia.add(registro);
+        }
+        var corregida = politica.evaluar(List.of(new CondicionConsignaResponse("maximoEstaciones", "Máximo 3", 3, 3, true)), historia, 7);
+        assertEquals(0, corregida.descuento());
+        assertEquals(40, corregida.totalDescontado());
+        assertTrue(corregida.excesos().isEmpty());
+    }
+    @Test void superarMinimosOIgualarMaximosNoDescuenta() {
+        var condiciones = List.of(new CondicionConsignaResponse("minimoEstaciones", "Al menos 2", 5, 2, true),
+            new CondicionConsignaResponse("maximoEstaciones", "Máximo 5", 5, 5, true));
+        var registro = politica.evaluar(condiciones, List.of(), 8);
+        assertEquals(0, registro.descuento());
+        assertTrue(registro.excesos().isEmpty());
+    }
+    @Test void versionAnteriorConservaPracticasYRegistroSinExcesos() throws Exception {
+        var json = PoliticaPuntuacion.configuracionNivel(1).put("version", "puntuacion-progreso-v1");
+        json.remove("descuentoPorExceso");
+        json.put("practicasGratuitas", 1);
+        var anterior = PoliticaPuntuacion.leer(json);
+        assertEquals(0, anterior.descuentoPorExceso());
+        var registro = anterior.evaluar(List.of(new CondicionConsignaResponse("maximoEstaciones", "Máximo 3", 4, 3, false)), List.of(), 1);
+        assertEquals(0, registro.descuento());
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var viejo = mapper.valueToTree(registro);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) viejo).remove("excesos");
+        assertEquals(registro, mapper.treeToValue(viejo, PoliticaPuntuacion.Registro.class));
+    }
+    @Test void limitesUvUtSeComparanConLaEjecucionGuardadaSinInventarEquivalencias() {
+        var resultado = new CriterioUvUtService.Resultado(1, "red", "ejecucion", 3,
+            new java.math.BigDecimal("6"), 4, new java.math.BigDecimal("8.50"), false, List.of(), null);
+        assertEquals(List.of("4 UT; máximo 3", "8.5 UV asignadas; máximo 6"), CriterioUvUtService.excesos(resultado));
+        var justo = new CriterioUvUtService.Resultado(1, "red", "ejecucion", 3,
+            new java.math.BigDecimal("6"), 3, new java.math.BigDecimal("6"), true, List.of(), null);
+        assertTrue(CriterioUvUtService.excesos(justo).isEmpty());
+        assertTrue(CriterioUvUtService.excesos(null).isEmpty());
+    }
     @Test void descuentosDiezHastaCuarentaConMotivosYUnSoloCobroPorEjecucion() {
         var historia = new ArrayList<PoliticaPuntuacion.Registro>();
-        int[] esperados = {0, 10, 20, 30, 40, 40};
+        int[] esperados = {10, 20, 30, 40, 40, 40};
         for (int i = 0; i < esperados.length; i++) {
             var registro = politica.evaluar(condiciones(false, false), historia, i + 1);
             assertEquals(esperados[i], registro.totalDescontado());
-            assertEquals(i == 0 || i == 5 ? 0 : 10, registro.descuento());
+            assertEquals(i < 4 ? 10 : 0, registro.descuento());
             assertEquals(List.of("Conectar la red", "Cubrir el lugar solicitado"), registro.condicionesPendientes());
             historia.add(registro);
         }
@@ -33,16 +88,17 @@ class PoliticaPuntuacionTest {
         var retroceso = politica.evaluar(condiciones(false, false), List.of(uno, avance), 3);
         var recuperacion = politica.evaluar(condiciones(true, false), List.of(uno, avance, retroceso), 4);
         assertEquals(10, recuperacion.descuento());
-        assertEquals(20, recuperacion.totalDescontado());
+        assertEquals(30, recuperacion.totalDescontado());
         var completa = politica.evaluar(condiciones(true, true), List.of(uno, avance, retroceso, recuperacion), 5);
         assertEquals(0, completa.descuento());
     }
-    @Test void cadaNivelTieneSuCantidadDePracticasAntesDeDescontar() {
-        int[] gratuitas = {1,2,2,3,1,1,1,2,2,4};
+    @Test void ningunNivelEximeUnaPrimeraEjecucionSinAvances() {
         for (int nivel = 1; nivel <= 10; nivel++) {
             var regla = PoliticaPuntuacion.leer(PoliticaPuntuacion.configuracionNivel(nivel));
-            assertEquals(0, regla.evaluar(condiciones(false,false), List.of(), gratuitas[nivel-1]).descuento());
-            assertEquals(10, regla.evaluar(condiciones(false,false), List.of(), gratuitas[nivel-1]+1).descuento());
+            assertEquals(0, regla.practicasGratuitas());
+            assertEquals(10, regla.evaluar(condiciones(false,false), List.of(), 1).descuento());
+            assertEquals(0, regla.evaluar(condiciones(true,false), List.of(), 1).descuento(),
+                "Un avance real sin exceso sigue sin descontar");
         }
     }
     @Test void noAceptaConfiguracionesArbitrariasNiReinterpretaElFormatoHistorico() throws Exception {

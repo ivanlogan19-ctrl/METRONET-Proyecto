@@ -6,5 +6,5 @@ import java.util.List;
 public record DesglosePuntuacionResponse(String version, int puntosBase, int practicasGratuitas,
         int descuentoPorEjecucion, int descuentoMaximo, int puntajeMinimoAprobacion,
         int totalDescontado, int total, List<Descuento> descuentos) {
-    public record Descuento(int idSimulacion, int numeroEjecucion, int puntos, List<String> motivos) {}
+    public record Descuento(int idSimulacion, int numeroEjecucion, int puntos, List<String> motivos, List<String> excesos) {}
 }

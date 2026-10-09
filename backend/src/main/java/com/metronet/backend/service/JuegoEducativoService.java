@@ -362,7 +362,8 @@ public class JuegoEducativoService {
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
         if (intento == null || MODO_EDICION_LIBRE.equals(intento.modo())) return;
         puntuacion.registrarEjecucion(idDiseno, idSimulacion, intento.reglasExito(),
-            evaluarCondiciones(intento, idDiseno).condiciones());
+            evaluarCondiciones(intento, idDiseno).condiciones(),
+            CriterioUvUtService.excesos(criterioUvUt.resultadoDeSimulacion(idSimulacion)));
     }
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }

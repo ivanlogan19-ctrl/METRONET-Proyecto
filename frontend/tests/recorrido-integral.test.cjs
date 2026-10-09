@@ -3,6 +3,15 @@ const assert=require('node:assert/strict');
 const niveles=require('../src/educacion/recorrido-integral.json');
 const puntos=Object.values(require('../src/mapa/datos/puntos-interes.json').barrios).flatMap(b=>b.puntos);
 const herramientasPorRegla={minimoEstaciones:'estaciones',minimoLineas:'lineas',minimoTramos:'conexiones',minimoMetros:'metros',requiereMetroPorLinea:'metros',requiereSimulacion:'simulacion',aprendizajeSimulacion:'simulacion'};
+test('los objetivos POI no se repiten entre niveles del recorrido',()=>{
+ const usados=new Map();
+ for(const nivel of niveles) for(const punto of nivel.reglasExito.puntosInteresObjetivo||[]) {
+  assert.equal(usados.has(punto.idPunto),false,`POI ${punto.idPunto} repetido en niveles ${usados.get(punto.idPunto)} y ${nivel.numero}`);
+  usados.set(punto.idPunto,nivel.numero);
+ }
+ assert.equal(usados.size,7);
+ assert.deepEqual([...new Set(usados.values())],[5,6,8,10]);
+});
 for(const n of niveles) test(`consistencia del nivel ${n.numero}: reglas, herramientas, referencias y narrativa`,()=>{
  assert.equal(n.reglasExito.requiereSimulacion,true);
  for(const [regla,herramienta] of Object.entries(herramientasPorRegla)) if(n.reglasExito[regla]) assert.equal(n.herramientasHabilitadas[herramienta],true,regla);

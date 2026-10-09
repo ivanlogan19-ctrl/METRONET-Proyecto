@@ -126,7 +126,9 @@ public class PuntuacionService {
                 + " de descuentos = " + desglose.total() + " puntos. "
                 + satisfechas + " de " + condiciones.size() + " condiciones satisfechas. "
                 + (satisfechas < condiciones.size() ? "Todavía debés cumplir toda la consigna. " : "Toda la consigna está cumplida. ")
-                + "El tutorial y las prácticas gratuitas no descuentan.";
+                + (politica.descuentoPorExceso() > 0
+                    ? "El tutorial no descuenta. Los excesos descuentan desde la primera simulación."
+                    : "El tutorial y las prácticas gratuitas no descuentan.");
             return new DesempenoNivelResponse(desglose.total(), politica.puntosBase(), desglose.total(), 0, 0,
                 redResuelta, aprendizajeCumplido, simulacionActual, etapa, detalle, medirUnidades(idDiseno), null, null, desglose);
         }
@@ -150,7 +152,8 @@ public class PuntuacionService {
         var descuentos = registros.stream().filter(r -> r.registro() != null && r.registro().puntuacion() != null)
             .filter(r -> politica.version().equals(r.registro().puntuacion().version()) && r.registro().puntuacion().descuento() > 0)
             .map(r -> new DesglosePuntuacionResponse.Descuento(r.idSimulacion(), r.registro().puntuacion().numeroEjecucion(),
-                r.registro().puntuacion().descuento(), r.registro().puntuacion().condicionesPendientes())).toList();
+                r.registro().puntuacion().descuento(), r.registro().puntuacion().condicionesPendientes(),
+                r.registro().puntuacion().excesos())).toList();
         int total = Math.min(politica.descuentoMaximo(), descuentos.stream().mapToInt(DesglosePuntuacionResponse.Descuento::puntos).sum());
         return new DesglosePuntuacionResponse(politica.version(), politica.puntosBase(), politica.practicasGratuitas(),
             politica.descuentoPorEjecucionSinAvance(), politica.descuentoMaximo(), politica.puntajeMinimoAprobacion(),
@@ -158,7 +161,8 @@ public class PuntuacionService {
     }
 
     /** Se llama dentro de la transacción de ejecución, con el usuario bloqueado. Nunca desde una consulta. */
-    public void registrarEjecucion(int idDiseno, int idSimulacion, String reglas, List<CondicionConsignaResponse> condiciones) {
+    public void registrarEjecucion(int idDiseno, int idSimulacion, String reglas,
+            List<CondicionConsignaResponse> condiciones, List<String> excesosOperacion) {
         var politica = PoliticaPuntuacion.leer(configuracion(reglas));
         if (politica == null) return;
         var registros = registros(idDiseno);
@@ -170,7 +174,7 @@ public class PuntuacionService {
             .map(r -> r.registro().puntuacion()).filter(Objects::nonNull)
             .filter(r -> politica.version().equals(r.version())).toList();
         int numero = (int) registros.stream().filter(r -> r.idSimulacion() <= idSimulacion).count();
-        var evaluacion = politica.evaluar(condiciones, anteriores, numero);
+        var evaluacion = politica.evaluar(condiciones, anteriores, numero, excesosOperacion);
         var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion);
         // Conserva exactamente la huella evaluada, al final, como esperan los lectores existentes.
         String huella = actual.comentarios().substring(actual.comentarios().lastIndexOf(MARCA));

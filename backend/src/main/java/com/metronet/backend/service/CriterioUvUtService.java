@@ -169,6 +169,18 @@ public class CriterioUvUtService {
             }, idSimulacion).stream().findFirst().orElse(null);
     }
 
+    /** Límites de la ejecución guardada; no se deducen de un objetivo genérico incumplido. */
+    public static List<String> excesos(Resultado resultado) {
+        if (resultado == null) return List.of();
+        List<String> excesos = new ArrayList<>();
+        if (resultado.utEjecutadas() > resultado.limiteUt())
+            excesos.add(resultado.utEjecutadas() + " UT; máximo " + resultado.limiteUt());
+        if (resultado.sumaUv().compareTo(resultado.presupuestoUv()) > 0)
+            excesos.add(resultado.sumaUv().stripTrailingZeros().toPlainString() + " UV asignadas; máximo "
+                + resultado.presupuestoUv().stripTrailingZeros().toPlainString());
+        return List.copyOf(excesos);
+    }
+
     public CondicionConsignaResponse condicion(int idIntento, int idDiseno) {
         Configuracion c = configuracionIntento(idIntento);
         if (c == null) return null;

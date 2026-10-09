@@ -30,6 +30,8 @@ class PuntuacionDescuentosPostgresTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired JuegoEducativoService juego;
     @Autowired SimulacionService simulaciones;
+    @Autowired AdministracionNivelesService niveles;
+    @Autowired PublicacionNivelService publicador;
     @MockitoBean ServicioCorreo correo;
     @Autowired org.springframework.transaction.PlatformTransactionManager transacciones;
 
@@ -43,7 +45,7 @@ class PuntuacionDescuentosPostgresTest {
         assertTrue(simulaciones.validarDiseno(admin,diseno).preparadoParaSimular());
         var antes = juego.evaluarEscenario(admin,diseno);
         assertEquals(100, antes.puntaje()); assertFalse(antes.completado());
-        int[] puntos = {100,100,90,80,70,60,60};
+        int[] puntos = {100,90,80,70,60,60,60};
         ResultadoSimulacionResponse ultima = null;
         for (int esperado : puntos) {
             ultima = simulaciones.ejecutarSimulacion(admin,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6));
@@ -55,7 +57,7 @@ class PuntuacionDescuentosPostgresTest {
         var desglose = juego.obtenerDesempeno(admin,diseno).desglosePuntuacion();
         assertEquals(4,desglose.descuentos().size());
         assertEquals(40,desglose.totalDescontado());
-        assertEquals(3,desglose.descuentos().getFirst().numeroEjecucion());
+        assertEquals(2,desglose.descuentos().getFirst().numeroEjecucion());
         assertTrue(desglose.descuentos().getFirst().motivos().stream().anyMatch(m -> m.contains("Cambiar UV")));
         int idUltima = ultima.idSimulacion();
         String evidencia = jdbc.queryForObject("SELECT comentarios FROM simulacion WHERE id_simulacion=?",String.class,idUltima);
@@ -68,7 +70,7 @@ class PuntuacionDescuentosPostgresTest {
         assertEquals(evidencia,jdbc.queryForObject("SELECT comentarios FROM simulacion WHERE id_simulacion=?",String.class,idUltima));
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
             () -> simulaciones.ejecutarSimulacion(admin,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,0)));
-        assertEquals(7,simulaciones.listarResultados(admin,diseno).size(),"Una solicitud rechazada no consume práctica ni puntos");
+        assertEquals(7,simulaciones.listarResultados(admin,diseno).size(),"Una solicitud rechazada no consume ejecución ni puntos");
         int metro = jdbc.queryForObject("SELECT id_tren FROM metro WHERE id_diseno=?",Integer.class,diseno);
         simulaciones.actualizarUnidadMetro(admin,diseno,metro,new ActualizarUnidadMetroRequest("Principal",300,BigDecimal.valueOf(5)));
         simulaciones.validarDiseno(admin,diseno);
@@ -83,9 +85,88 @@ class PuntuacionDescuentosPostgresTest {
         assertEquals(60,jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=?",Integer.class,intento.idIntento()));
     }
 
+    @org.junit.jupiter.params.ParameterizedTest(name="Exceso corregido permite aprobar con {0} puntos")
+    @org.junit.jupiter.params.provider.ValueSource(ints={90,80,70,60})
+    void excesoOperableSimulaDescuentaUnaVezYPermiteFinalizarTrasCorregir(int esperado) throws Exception {
+        int admin = jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Publicador exceso',?,'!sin-acceso','ADMIN') RETURNING id_usuario",
+            Integer.class, java.util.UUID.randomUUID()+"@example.test");
+        recorrido.publicar(admin);
+        // Publicación de prueba con un máximo explícito, usando el flujo administrativo existente.
+        // El catálogo de producción no se modifica ni se interpreta un mínimo como un máximo.
+        var borrador = niveles.borrador(1);
+        var c = borrador.contenido();
+        com.fasterxml.jackson.databind.node.ObjectNode reglas = c.path("reglasExito").deepCopy();
+        reglas.put("maximoEstaciones", 2);
+        var guardado = niveles.guardar(1, new EdicionNivelRequest(borrador.versionBase(), borrador.revision(),
+            c.path("desafio"), reglas, c.path("herramientasHabilitadas"), c.path("criterioUvUt"),
+            borrador.redReferencia(), c.path("ayudas"), borrador.tarjetas()), admin);
+        var previa = publicador.previsualizar(1, admin);
+        publicador.publicar(1, new PublicarNivelRequest(guardado.versionBase(), guardado.revision(), previa.diagnostico().huella(), true), admin);
+        int jugador = jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Jugador exceso',?,'!sin-acceso','JUGADOR') RETURNING id_usuario",
+            Integer.class, java.util.UUID.randomUUID()+"@example.test");
+        int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=1",Integer.class);
+        var inicio = juego.iniciarEscenario(jugador, escenario);
+        int diseno = inicio.idDiseno();
+        red(diseno);
+        assertTrue(simulaciones.validarDiseno(jugador,diseno).preparadoParaSimular(), "El máximo de la consigna no invalida una red operable");
+        simulaciones.guardarDiseno(jugador,diseno);
+        for (int i=1; i<=(100-esperado)/10; i++) {
+            var resultado = simulaciones.ejecutarSimulacion(jugador,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6));
+            assertEquals(100-10*i, resultado.puntaje());
+            assertEquals(10, resultado.registroPuntuacion().descuento());
+            assertEquals(java.util.List.of("3 estaciones; máximo 2"), resultado.registroPuntuacion().excesos());
+            juego.registrarPuntuacionSimulacion(jugador,diseno,resultado.idSimulacion());
+            assertEquals(resultado.puntaje(),juego.obtenerDesempeno(jugador,diseno).puntaje(),"Releer o repetir registro no cobra otra vez");
+            assertFalse(juego.evaluarEscenario(jugador,diseno).completado(), "Finalizar exige corregir el exceso");
+        }
+        if (esperado==60) assertEquals(60,simulaciones.ejecutarSimulacion(jugador,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6)).puntaje());
+        var detalle = juego.obtenerDesempeno(jugador,diseno).desglosePuntuacion();
+        assertEquals((100-esperado)/10,detalle.descuentos().size());
+        assertTrue(detalle.descuentos().stream().allMatch(d -> d.excesos().equals(java.util.List.of("3 estaciones; máximo 2"))));
+        simulaciones.eliminarEstacion(jugador,diseno,"E2");
+        assertTrue(simulaciones.validarDiseno(jugador,diseno).preparadoParaSimular());
+        simulaciones.guardarDiseno(jugador,diseno);
+        assertFalse(juego.evaluarEscenario(jugador,diseno).completado(),"Cambiar la red exige simular el estado actual");
+        var corregida = simulaciones.ejecutarSimulacion(jugador,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6));
+        assertEquals(0,corregida.registroPuntuacion().descuento());
+        assertEquals(esperado,corregida.puntaje());
+        assertEquals(0,juego.obtenerResumenProgreso(jugador).nivelesCompletados(),"Simular no finaliza automáticamente");
+        var finalizada = juego.evaluarEscenario(jugador,diseno);
+        assertTrue(finalizada.completado());
+        assertEquals(esperado,finalizada.puntaje());
+        assertEquals(1,juego.obtenerResumenProgreso(jugador).nivelesCompletados());
+    }
+
+    @Test void eliminarElementosRevierteLosObjetivosSinContarObjetosBorrados() throws Exception {
+        int admin = jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('QA eliminación',?,'!sin-acceso','ADMIN') RETURNING id_usuario",
+            Integer.class, java.util.UUID.randomUUID()+"@example.test");
+        recorrido.publicar(admin);
+        int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=1",Integer.class);
+        int diseno = juego.iniciarEscenario(admin,escenario).idDiseno();
+        red(diseno);
+        simulaciones.validarDiseno(admin,diseno);
+        simulaciones.ejecutarSimulacion(admin,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6));
+        var usuario = new com.metronet.backend.entity.Usuario();
+        usuario.setIdUsuario(admin); usuario.setRol(com.metronet.backend.enums.Rol.ADMIN);
+        assertTrue(juego.obtenerConsigna(usuario,diseno).condiciones().stream().allMatch(CondicionConsignaResponse::completado));
+        int metro = simulaciones.obtenerSimulacion(admin,diseno).unidadesMetro().getFirst().idTren();
+        simulaciones.eliminarUnidadMetro(admin,diseno,metro);
+        var sinMetro = juego.obtenerConsigna(usuario,diseno);
+        assertFalse(sinMetro.condiciones().stream().filter(c -> c.clave().equals("minimoMetros")).findFirst().orElseThrow().completado());
+        assertFalse(sinMetro.condiciones().stream().filter(c -> c.clave().equals("simulacionActual")).findFirst().orElseThrow().completado());
+        simulaciones.eliminarEstacion(admin,diseno,"E2");
+        simulaciones.eliminarEstacion(admin,diseno,"E1");
+        simulaciones.eliminarLinea(admin,diseno,"Principal");
+        var actual = juego.obtenerConsigna(usuario,diseno);
+        for (String clave : java.util.List.of("minimoEstaciones","minimoLineas","minimoTramos","minimoMetros"))
+            assertFalse(actual.condiciones().stream().filter(c -> c.clave().equals(clave)).findFirst().orElseThrow().completado(), clave);
+        assertFalse(juego.evaluarEscenario(admin,diseno).completado());
+        assertEquals(100,juego.obtenerDesempeno(admin,diseno).puntaje(),"Eliminar y consultar no ejecuta otro descuento");
+    }
+
     @Test
     @Transactional(propagation=org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    void ejecucionesConcurrentesSeOrdenanSinDuplicarPracticasNiDescuentos() throws Exception {
+    void ejecucionesConcurrentesSeOrdenanSinDuplicarDescuentos() throws Exception {
         var tx = new org.springframework.transaction.support.TransactionTemplate(transacciones);
         // Caso privado fuera de los diez niveles: no publica ni altera el catálogo compartido.
         int[] ids = tx.execute(estado -> {
@@ -105,7 +186,7 @@ class PuntuacionDescuentosPostgresTest {
             return new int[]{usuario,diseno,escenario};
         });
         try {
-            for (int i=0;i<2;i++) simulaciones.ejecutarSimulacion(ids[0],ids[1],new EjecutarSimulacionRequest(BigDecimal.ONE,6));
+            for (int i=0;i<1;i++) simulaciones.ejecutarSimulacion(ids[0],ids[1],new EjecutarSimulacionRequest(BigDecimal.ONE,6));
             var salida = new java.util.concurrent.CountDownLatch(1);
             try (var ejecutor = java.util.concurrent.Executors.newFixedThreadPool(2)) {
                 java.util.concurrent.Callable<ResultadoSimulacionResponse> accion = () -> {
@@ -116,7 +197,7 @@ class PuntuacionDescuentosPostgresTest {
                 var resultados = java.util.stream.Stream.of(a.get(20,java.util.concurrent.TimeUnit.SECONDS),b.get(20,java.util.concurrent.TimeUnit.SECONDS))
                     .sorted(java.util.Comparator.comparingInt(ResultadoSimulacionResponse::idSimulacion)).toList();
                 assertEquals(java.util.List.of(90,80),resultados.stream().map(ResultadoSimulacionResponse::puntaje).toList());
-                assertEquals(java.util.List.of(3,4),resultados.stream().map(r -> r.registroPuntuacion().numeroEjecucion()).toList());
+                assertEquals(java.util.List.of(2,3),resultados.stream().map(r -> r.registroPuntuacion().numeroEjecucion()).toList());
             }
             var desglose = juego.obtenerDesempeno(ids[0],ids[1]).desglosePuntuacion();
             assertEquals(20,desglose.totalDescontado()); assertEquals(2,desglose.descuentos().size());

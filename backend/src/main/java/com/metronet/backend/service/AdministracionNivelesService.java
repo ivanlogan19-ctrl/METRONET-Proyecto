@@ -220,7 +220,7 @@ public class AdministracionNivelesService {
             } else if (clave.equals("puntuacion")) {
                 if (valor.has("version")) {
                     if (!PoliticaPuntuacion.configuracionNivel(numero).equals(valor))
-                        throw invalido("La puntuación debe coincidir con la política aprobada y sus prácticas por nivel");
+                        throw invalido("La puntuación debe coincidir con la política aprobada");
                     return;
                 }
                 if (!valor.isObject() || valor.size()!=6) throw invalido("Configuración de puntuación incompleta");

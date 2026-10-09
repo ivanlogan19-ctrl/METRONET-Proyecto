@@ -47,8 +47,11 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
         const motivo = texto('dt', '');
         const pendientes = document.createElement('details');
         const resumen = texto('summary', `Ejecución ${descuento.numeroEjecucion}`);
-        resumen.append(texto('span', 'Sin nuevos avances'));
-        pendientes.append(resumen, texto('p', `En esa ejecución faltaba: ${descuento.motivos.join('; ')}.`));
+        const excesos = descuento.excesos ?? [];
+        resumen.append(texto('span', excesos.length ? 'Exceso sobre la consigna' : 'Sin nuevos avances'));
+        pendientes.append(resumen, texto('p', excesos.length
+          ? `Superaste: ${excesos.join('; ')}.`
+          : `En esa ejecución faltaba: ${descuento.motivos.join('; ')}.`));
         motivo.append(pendientes);
         item.append(motivo, texto('dd', `−${descuento.puntos}`)); desglose.append(item);
       }
@@ -56,7 +59,7 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
       fila('Total obtenido', detalle.total, 'metronet-resultado-nivel__total');
       cuenta.append(desglose);
       if (detalle.descuentos.length)
-        cuenta.append(texto('p', 'Abrí cada ejecución para ver qué faltaba.', 'metronet-resultado-nivel__nota'));
+        cuenta.append(texto('p', 'Abrí cada ejecución para ver el motivo.', 'metronet-resultado-nivel__nota'));
       if (detalle.totalDescontado >= detalle.descuentoMaximo)
         cuenta.append(texto('p', `Tope alcanzado: ${detalle.descuentoMaximo} puntos de descuento. No se restó más.`, 'metronet-resultado-nivel__nota'));
     } else {

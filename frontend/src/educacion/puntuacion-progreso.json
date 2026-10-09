@@ -1,8 +1,9 @@
 {
-  "version": "puntuacion-progreso-v1",
+  "version": "puntuacion-progreso-v2",
   "puntosBase": 100,
   "descuentoPorEjecucionSinAvance": 10,
+  "descuentoPorExceso": 10,
   "descuentoMaximo": 40,
   "puntajeMinimoAprobacion": 60,
-  "practicasGratuitasPorNivel": [1, 2, 2, 3, 1, 1, 1, 2, 2, 4]
+  "practicasGratuitasPorNivel": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 }

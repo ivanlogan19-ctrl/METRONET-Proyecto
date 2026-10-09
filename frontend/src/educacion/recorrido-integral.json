@@ -199,8 +199,8 @@
   {
     "numero": 6,
     "nombre": "Nivel 6 · Dos lugares, un recorrido",
-    "objetivo": "Buscá Palacio Legislativo y Torre de las Comunicaciones. Cubrí ambos radios con estaciones y unilos por una misma línea continua de al menos tres estaciones y dos tramos. Asignale un Metro. Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red.",
-    "instrucciones": "Buscá Palacio Legislativo y Torre de las Comunicaciones. Cubrí ambos radios con estaciones y unilos por una misma línea continua de al menos tres estaciones y dos tramos. Asignale un Metro. Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red.",
+    "objetivo": "Buscá Mirador Panorámico de la Intendencia y Teatro Solís. Cubrí ambos radios con estaciones y unilos por una misma línea continua de al menos tres estaciones y dos tramos. Asignale un Metro. Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red.",
+    "instrucciones": "Buscá Mirador Panorámico de la Intendencia y Teatro Solís. Cubrí ambos radios con estaciones y unilos por una misma línea continua de al menos tres estaciones y dos tramos. Asignale un Metro. Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red.",
     "dificultad": "Intermedio",
     "reglasExito": {
       "minimoEstaciones": 3,
@@ -211,11 +211,11 @@
       "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
-          "idPunto": 1,
+          "idPunto": 33,
           "radioCobertura": 25
         },
         {
-          "idPunto": 3,
+          "idPunto": 40,
           "radioCobertura": 25
         }
       ]
@@ -229,18 +229,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Palacio Legislativo y la Torre de las Comunicaciones por una línea continua.",
+      "texto": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Mirador Panorámico de la Intendencia y el Teatro Solís por una línea continua.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Cobertura y continuidad",
       "explicacion": "Cubrir dos lugares indica proximidad. Una línea continua entre sus estaciones agrega conectividad.",
-      "contexto": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Palacio Legislativo y la Torre de las Comunicaciones por una línea continua.",
+      "contexto": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Mirador Panorámico de la Intendencia y el Teatro Solís por una línea continua.",
       "consejo": "Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red."
     },
     "transicion": {
       "aprendizaje": "Cubrir dos lugares indica proximidad. Una línea continua entre sus estaciones agrega conectividad.",
-      "ciudad": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Palacio Legislativo y la Torre de las Comunicaciones por una línea continua."
+      "ciudad": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Mirador Panorámico de la Intendencia y el Teatro Solís por una línea continua."
     }
   },
   {
@@ -285,8 +285,8 @@
   {
     "numero": 8,
     "nombre": "Nivel 8 · Red territorial integrada",
-    "objetivo": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Cubrí Palacio Legislativo y Torre de las Comunicaciones por una misma línea continua e incluí una estación en el barrio AGUADA. Asigná un Metro a cada línea. Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas.",
-    "instrucciones": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Cubrí Palacio Legislativo y Torre de las Comunicaciones por una misma línea continua e incluí una estación en el barrio AGUADA. Asigná un Metro a cada línea. Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas.",
+    "objetivo": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Cubrí Mercado Agrícola de Montevideo y Torre de las Comunicaciones por una misma línea continua e incluí una estación en el barrio AGUADA. Asigná un Metro a cada línea. Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas.",
+    "instrucciones": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Cubrí Mercado Agrícola de Montevideo y Torre de las Comunicaciones por una misma línea continua e incluí una estación en el barrio AGUADA. Asigná un Metro a cada línea. Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas.",
     "dificultad": "Avanzado",
     "reglasExito": {
       "minimoEstaciones": 5,
@@ -300,7 +300,7 @@
       "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
-          "idPunto": 1,
+          "idPunto": 2,
           "radioCobertura": 25
         },
         {
@@ -387,8 +387,8 @@
   {
     "numero": 10,
     "nombre": "Nivel 10 · Desafío integrador",
-    "objetivo": "Construí al menos seis estaciones, dos líneas y cinco tramos, con un transbordo. Cubrí Palacio Legislativo y Torre de las Comunicaciones por una misma línea continua. Asigná un Metro a cada línea. Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones.",
-    "instrucciones": "Construí al menos seis estaciones, dos líneas y cinco tramos, con un transbordo. Cubrí Palacio Legislativo y Torre de las Comunicaciones por una misma línea continua. Asigná un Metro a cada línea. Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones.",
+    "objetivo": "Construí al menos seis estaciones, dos líneas y cinco tramos, con un transbordo. Cubrí Estadio Centenario y Hospital de Clínicas por una misma línea continua. Asigná un Metro a cada línea. Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones.",
+    "instrucciones": "Construí al menos seis estaciones, dos líneas y cinco tramos, con un transbordo. Cubrí Estadio Centenario y Hospital de Clínicas por una misma línea continua. Asigná un Metro a cada línea. Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones.",
     "dificultad": "Desafío",
     "reglasExito": {
       "minimoEstaciones": 6,
@@ -404,11 +404,11 @@
       "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
-          "idPunto": 1,
+          "idPunto": 80,
           "radioCobertura": 25
         },
         {
-          "idPunto": 3,
+          "idPunto": 55,
           "radioCobertura": 25
         }
       ],
