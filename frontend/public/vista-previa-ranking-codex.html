@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es" data-contexto-musical="menu">
+<head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vista previa de Ranking · METRONET</title>
+  <link rel="stylesheet" href="/src/estilos/metronet.css" />
+  <link rel="stylesheet" href="/src/estilos/retro.css" />
+  <link rel="stylesheet" href="/src/educacion/ranking.css" />
+
+</head>
+<body class="metronet-pagina-navegable metronet-pagina-ranking">
+  <header class="metronet-navegacion" aria-label="Vista previa de navegación">
+    <nav class="metronet-navegacion__enlaces" aria-label="Navegación principal">
+      <span class="metronet-navegacion__enlace">Inicio</span>
+      <span class="metronet-navegacion__enlace">Niveles</span>
+      <span class="metronet-navegacion__enlace">Aprendizaje</span>
+      <span class="metronet-navegacion__enlace activo">Ranking</span>
+      <span class="metronet-navegacion__enlace">Mis diseños</span>
+    </nav>
+    <span class="metronet-navegacion__usuario">Vista previa</span>
+  </header>
+  <main class="metronet-ranking">
+    <header class="ranking-cabecera"><h1>Ranking METRONET</h1><p class="ranking-nota">Vista previa local sin sesión ni datos reales.</p></header>
+    <img class="ranking-ilustracion ranking-ilustracion--ari" src="/assets/personajes/ranking-ari-trofeo.svg" alt="" aria-hidden="true" width="192" height="256" />
+    <img class="ranking-ilustracion ranking-ilustracion--sol" src="/assets/personajes/ranking-sol-trofeo.svg" alt="" aria-hidden="true" width="192" height="256" />
+    <section class="ranking-marcador" aria-labelledby="tituloClasificacion">
+      <h2 id="tituloClasificacion">Clasificación general</h2>
+      <div class="ranking-tabla-contenedor" tabindex="0" role="region" aria-label="Tabla de puntuaciones">
+        <table class="ranking-tabla">
+          <thead><tr><th scope="col">Pos.</th><th scope="col">Jugador</th><th scope="col">Puntos</th><th scope="col">Niveles</th></tr></thead>
+          <tbody id="clasificacionRanking" class="ranking-clasificacion"></tbody>
+          <tbody id="estadoRanking"><tr><td colspan="4"><p id="mensajeRanking" role="status" aria-live="polite">Sin datos: el servidor local está detenido.</p><button type="button" id="reintentarRanking" hidden>Volver a consultar</button></td></tr></tbody>
+        </table>
+      </div>
+      <p class="ranking-nota">Mejor puntaje por nivel · Reiniciar conserva tus logros.</p>
+    </section>
+    <aside class="ranking-personal" aria-labelledby="tituloMiDesempeno"><h2 id="tituloMiDesempeno">Tu desempeño</h2><p id="resumenPuntaje">Sin datos de desempeño en esta vista previa.</p></aside>
+    <section class="ranking-trofeos" aria-labelledby="tituloTrofeos">
+      <div class="ranking-trofeos__cabecera"><div><h2 id="tituloTrofeos">Trofeos</h2></div><div><p id="resumenTrofeos" role="status" aria-live="polite">Sin datos de premios en esta vista previa.</p><button id="reintentarTrofeos" type="button" hidden>Volver a consultar premios</button></div></div>
+      <div id="galeriaTrofeos" class="ranking-trofeos__galeria"></div>
+    </section>
+    <details class="ranking-detalle"><summary id="tituloPuntosNivel">Tus puntos por nivel</summary><p id="resumenPuntosNivel" class="ranking-detalle__resumen">Sin datos de niveles en esta vista previa.</p><ol id="puntajesPorNivel" class="ranking-niveles"></ol></details>
+  </main>
+
+</body>
+</html>

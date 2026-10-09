@@ -72,11 +72,33 @@ class AdministracionNivelesControllerTest {
             http.perform(get(ruta).header("Authorization","Bearer jugador")).andExpect(status().isUnauthorized());
         http.perform(put("/api/admin/niveles/1/borrador").header("Authorization","Bearer jugador")
             .contentType(MediaType.APPLICATION_JSON).content("{}")) .andExpect(status().isUnauthorized());
+        http.perform(delete("/api/admin/niveles/1/versiones/sin-uso?versionEsperada=2")
+            .header("Authorization","Bearer jugador")).andExpect(status().isUnauthorized());
         for (String ruta : new String[]{"/api/admin/niveles/1/previsualizar",
             "/api/admin/niveles/1/publicar","/api/admin/niveles/1/versiones/1/preparar-reversion"})
             http.perform(post(ruta).header("Authorization","Bearer jugador")
                 .contentType(MediaType.APPLICATION_JSON).content("{}")) .andExpect(status().isUnauthorized());
         verifyNoInteractions(niveles,publicacion);
+    }
+
+    @Test
+    void limpiezaUsaLaIdentidadAdminYVersionEsperada() throws Exception {
+        var auth=mock(AuthService.class);
+        var niveles=mock(AdministracionNivelesService.class);
+        var admin=mock(Usuario.class);
+        when(admin.getIdUsuario()).thenReturn(17);
+        when(auth.obtenerAdministradorAutorizado("Bearer admin")).thenReturn(admin);
+        when(auth.obtenerAdministradorAutorizado(null)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        var http=MockMvcBuilders.standaloneSetup(new AdministracionNivelesController(auth,niveles,mock(PublicacionNivelService.class)))
+            .setControllerAdvice(new ManejadorExcepcionesApi()).build();
+        http.perform(delete("/api/admin/niveles/1/versiones/sin-uso?versionEsperada=2")).andExpect(status().isUnauthorized());
+        verifyNoInteractions(niveles);
+        http.perform(delete("/api/admin/niveles/1/versiones/sin-uso").header("Authorization","Bearer admin"))
+            .andExpect(status().isBadRequest());
+        verifyNoInteractions(niveles);
+        http.perform(delete("/api/admin/niveles/1/versiones/sin-uso?versionEsperada=2").header("Authorization","Bearer admin"))
+            .andExpect(status().isOk());
+        verify(niveles).borrarVersionesSinUso(1,2,17);
     }
 
     @Test

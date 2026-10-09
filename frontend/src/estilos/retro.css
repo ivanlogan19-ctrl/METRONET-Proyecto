@@ -44,7 +44,7 @@ html:root body .metronet-escenarios-pagina__reinicio .metronet-escenarios-pagina
   border-left-color: var(--warning);
   color: var(--warning);
 }
-html:root body #botonReiniciarRecorrido {
+html:root body :is(#botonReiniciarRecorrido, .metronet-boton--advertencia) {
   --boton-fondo: var(--warning);
   --boton-texto: var(--primary-ink);
   --boton-borde: var(--warning);

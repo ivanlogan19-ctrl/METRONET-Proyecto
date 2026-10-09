@@ -97,5 +97,19 @@ export METRONET_TEST_POSTGRES_URL="jdbc:postgresql://127.0.0.1:$puerto/metronet_
 preparado=true
 echo 'PostgreSQL temporal preparado. Se eliminará al terminar; no se utiliza la base de METRONET.'
 cd "$raiz/backend"
+if [[ "${1:-}" == --administracion-e2e ]]; then
+  # La interfaz utiliza el rol real de la aplicación dentro del clúster efímero.
+  # Los permisos de las tablas de niveles provienen de 018/020, sin ampliarlos.
+  "${psql[@]}" -d metronet_pruebas -v clave="$METRONET_TEST_POSTGRES_PASSWORD" >> "$temporal/preparacion.log" 2>&1 <<'SQL'
+ALTER ROLE metronet_app LOGIN PASSWORD :'clave';
+SELECT format('GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE %I TO metronet_app',tablename)
+FROM pg_tables WHERE schemaname='public' AND tablename NOT LIKE 'nivel_%' \gexec
+GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO metronet_app;
+SQL
+  export METRONET_TEST_PSQL="$pg_bin/psql"
+  ./mvnw -q -DskipTests package
+  node --test "$raiz/frontend/tests/administracion-niveles-e2e.test.cjs"
+  exit 0
+fi
 if [[ $# == 0 ]]; then set -- '-Dtest=*PostgresTest'; fi
 ./mvnw test "$@"

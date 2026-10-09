@@ -6,7 +6,11 @@ import com.metronet.backend.service.AdministracionNivelesService;
 import com.metronet.backend.service.AuthService;
 import com.metronet.backend.service.PublicacionNivelService;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -78,5 +82,15 @@ public class AdministracionNivelesController {
         @RequestHeader(value="Authorization",required=false) String autorizacion) {
         var admin = auth.obtenerAdministradorAutorizado(autorizacion);
         return niveles.prepararReversion(numero,version,admin.getIdUsuario());
+    }
+
+    @DeleteMapping("/{numero}/versiones/sin-uso")
+    public AdministracionNivelesService.LimpiezaHistorial borrarVersionesSinUso(@PathVariable int numero,
+        @RequestParam(required=false) Integer versionEsperada,
+        @RequestHeader(value="Authorization",required=false) String autorizacion) {
+        var admin = auth.obtenerAdministradorAutorizado(autorizacion);
+        if(versionEsperada==null || versionEsperada<1)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Falta una versión esperada válida");
+        return niveles.borrarVersionesSinUso(numero,versionEsperada,admin.getIdUsuario());
     }
 }

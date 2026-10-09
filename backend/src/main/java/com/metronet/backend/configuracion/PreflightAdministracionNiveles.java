@@ -25,10 +25,16 @@ public class PreflightAdministracionNiveles {
                     throw new IllegalStateException("Falta aplicar 018_administracion_niveles.sql antes de iniciar METRONET");
                 }
             }
-            Integer publicaciones = jdbc.queryForObject("SELECT COUNT(*) FROM nivel_publicacion WHERE numero_version=1", Integer.class);
-            Integer tarjetas = jdbc.queryForObject("SELECT COUNT(*) FROM nivel_publicacion_tarjeta t JOIN nivel_publicacion p USING(id_nivel_publicacion) WHERE p.numero_version=1", Integer.class);
-            if (publicaciones == null || publicaciones != 10 || tarjetas == null || tarjetas != 60) {
-                throw new IllegalStateException("La migración 018 no contiene diez niveles y 60 tarjetas iniciales");
+            // La limpieza autorizada puede retirar V1 si ninguna partida la utiliza.
+            // El arranque verifica las diez publicaciones vigentes y sus borradores.
+            Integer publicaciones = jdbc.queryForObject("""
+                SELECT COUNT(DISTINCT e.numero) FROM escenario e
+                JOIN nivel_borrador b ON b.id_escenario=e.id_escenario
+                WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero BETWEEN 1 AND 10
+                  AND EXISTS (SELECT 1 FROM nivel_publicacion p WHERE p.id_escenario=e.id_escenario)
+                """, Integer.class);
+            if (publicaciones == null || publicaciones != 10) {
+                throw new IllegalStateException("Deben existir diez niveles publicados con sus borradores");
             }
             Integer nivelesActualesIncompletos = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM (

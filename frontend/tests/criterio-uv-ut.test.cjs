@@ -80,19 +80,20 @@ test('Admin guarda UV/UT en borrador y publica la versión completa tras validar
   await p.getByRole('button',{name:'Editar'}).click();
   assert.equal(await p.getByRole('button',{name:'Quitar Puntuación'}).count(),0);
   assert.equal(await p.getByRole('option',{name:'Puntuación'}).count(),0);
-  const primeraTarjeta=p.locator('.admin-niveles__tarjetas details').first();
-  await primeraTarjeta.locator('summary').click();
+  await p.getByRole('tab',{name:'Tarjetas',exact:true}).click();
+  const primeraTarjeta=p.locator('[data-tarjeta-nivel="0"]');
   const fuente=primeraTarjeta.getByLabel('Url Fuente');
   const urlOriginal=await fuente.inputValue();
   await fuente.fill('https:foo');
-  await p.getByRole('button',{name:'Guardar borrador'}).click();
+  await p.getByRole('button',{name:'Guardar cambios del nivel'}).click();
   await p.getByText('Cada tarjeta necesita una URL HTTP(S) con host válido para su fuente.').waitFor();
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/borrador')&&s.method==='PUT').length,0);
   await fuente.fill(urlOriginal);
+  await p.getByRole('tab',{name:'UV / UT',exact:true}).click();
   await p.getByLabel('Presupuesto UV').fill('7');
   const publicar = p.getByRole('button',{name:'Publicar versión'});
   assert.equal(await publicar.isDisabled(),true);
-  await p.getByRole('button',{name:'Guardar borrador'}).click();
+  await p.getByRole('button',{name:'Guardar cambios del nivel'}).click();
   await p.getByRole('button',{name:'Previsualizar y validar'}).click();
   await p.getByText('Referencia viable').waitFor();
   assert.equal(await publicar.isEnabled(),true);
@@ -106,7 +107,7 @@ test('Admin guarda UV/UT en borrador y publica la versión completa tras validar
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/criterio-uvut/10')).length,0);
 });
 
-test('Admin protege cambios sin guardar antes de preparar la reversión inicial', async t => {
+test('Admin conserva los cambios al consultar el historial sin ofrecer reversión', async t => {
   const nivel=niveles[0];
   const tarjetas=catalogo[0].tarjetas.map(t=>({id:t.id,titulo:t.titulo,texto:t.texto,
     aprendizaje:t.aprendizaje,fuente:t.fuente,urlFuente:t.url,descripcionImagen:t.descripcionImagen,idSvgCatalogo:t.imagen}));
@@ -125,9 +126,6 @@ test('Admin protege cambios sin guardar antes de preparar la reversión inicial'
     if(ruta==='/api/admin/niveles')return {json:[{numero:1,nombre:nivel.nombre,versionPublicada:2,revisionBorrador:revision}]};
     if(ruta.endsWith('/1/borrador'))return {json:borrador()};
     if(ruta.endsWith('/1/versiones'))return {json:versiones};
-    if(ruta.endsWith('/1/versiones/1/preparar-reversion')&&req.method()==='POST'){
-      revision++;contenido=structuredClone(inicial);return {json:borrador()};
-    }
   }});
   t.after(async()=>{await vista.contexto.close();assert.deepEqual(vista.errores,[])});
   const p=vista.pagina;
@@ -135,14 +133,10 @@ test('Admin protege cambios sin guardar antes de preparar la reversión inicial'
   await p.getByRole('button',{name:'Editar'}).click();
   const nombre=p.locator('[data-editor-nivel] .admin-niveles__seccion').first().getByLabel('Nombre',{exact:true}).first();
   await nombre.fill('Cambio sin guardar');
-  const revertir=p.getByRole('button',{name:'Preparar reversión'}).last();
-  assert.equal(await revertir.isEnabled(),true,'La V1 puede usar la red de V2');
-  await revertir.click();
-  await p.getByRole('dialog',{name:'Confirmar acción'}).getByRole('button',{name:'Cancelar'}).click();
-  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/preparar-reversion')).length,0);
+  await p.getByRole('tab',{name:'Historial',exact:true}).click();
+  assert.equal(await p.getByRole('button',{name:'Preparar reversión'}).count(),0);
+  assert.equal(await p.locator('.admin-niveles__version').count(),2);
+  await p.getByRole('tab',{name:'Desafío',exact:true}).click();
   assert.equal(await nombre.inputValue(),'Cambio sin guardar');
-  await revertir.click();
-  await p.getByRole('dialog',{name:'Confirmar acción'}).getByRole('button',{name:'Aceptar'}).click();
-  await p.getByText(/Se conservó una referencia publicada reciente/).waitFor();
-  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/preparar-reversion')).length,1);
+  assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/preparar-reversion')).length,0);
 });

@@ -59,6 +59,7 @@ public class AdministracionNivelesService {
                            JsonNode redReferencia, JsonNode tarjetas) {}
     public record Version(int numero, int version, Integer versionCriterioUvUt, JsonNode contenido,
                           JsonNode redReferencia, JsonNode tarjetas, String huella, String publicadoEn) {}
+    public record LimpiezaHistorial(List<Integer> versionesEliminadas, int versionesConservadas) {}
 
     public List<Resumen> listar() {
         return jdbc.query("""
@@ -124,6 +125,35 @@ public class AdministracionNivelesService {
             WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=? ORDER BY p.numero_version DESC
             """, (r, fila) -> new Version(numero,r.getInt(1),r.getObject(2,Integer.class),json(r.getString(3)),
                 json(r.getString(4)),tarjetas(r.getLong(7)),r.getString(5),r.getString(6)), numero);
+    }
+
+    @Transactional
+    public LimpiezaHistorial borrarVersionesSinUso(int numero, int versionEsperada, Integer idAdmin) {
+        // Comparte el bloqueo utilizado por publicación y por el inicio de intentos.
+        int id = idEscenario(numero, true);
+        int vigente = versionVigente(id);
+        if (vigente != versionEsperada)
+            throw conflicto("El historial cambió. Recargá el nivel antes de eliminar versiones");
+        record Candidata(long id, int version) {}
+        var candidatas = jdbc.query("""
+            SELECT p.id_nivel_publicacion,p.numero_version FROM nivel_publicacion p
+            WHERE p.id_escenario=? AND p.numero_version<?
+              AND NOT EXISTS (SELECT 1 FROM intento i WHERE i.id_nivel_publicacion=p.id_nivel_publicacion)
+              AND NOT EXISTS (SELECT 1 FROM nivel_borrador b
+                WHERE b.id_escenario=p.id_escenario AND b.version_base=p.numero_version)
+            ORDER BY p.numero_version
+            """, (r,f) -> new Candidata(r.getLong(1),r.getInt(2)),id,vigente);
+        for (var candidata : candidatas) {
+            jdbc.update("DELETE FROM nivel_publicacion_tarjeta WHERE id_nivel_publicacion=?",candidata.id());
+            jdbc.update("DELETE FROM nivel_publicacion WHERE id_nivel_publicacion=?",candidata.id());
+        }
+        var eliminadas = candidatas.stream().map(Candidata::version).toList();
+        if (!eliminadas.isEmpty()) jdbc.update("""
+            INSERT INTO actividad_administrativa(id_administrador,accion,detalle) VALUES (?,?,?)
+            """,idAdmin,"Limpieza de historial de nivel","Nivel " + numero + ": " + eliminadas.size()
+                + " versiones antiguas sin uso; versión vigente " + vigente);
+        int conservadas = jdbc.queryForObject("SELECT COUNT(*) FROM nivel_publicacion WHERE id_escenario=?",Integer.class,id);
+        return new LimpiezaHistorial(eliminadas,conservadas);
     }
 
     @Transactional

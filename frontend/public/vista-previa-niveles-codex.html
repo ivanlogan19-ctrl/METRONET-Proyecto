@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es" data-contexto-musical="menu">
+  <head>
+  <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
+
+  <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vista previa de Niveles · METRONET</title>
+    <link rel="stylesheet" href="/src/estilos/metronet.css" />
+    <link rel="stylesheet" href="/src/estilos/retro.css" />
+    <style>
+      html:root body #botonReiniciarRecorrido:disabled {
+        color: var(--primary-ink) !important;
+        border-color: var(--warning) !important;
+        background-color: var(--warning) !important;
+      }
+    </style>
+
+</head>
+  <body class="metronet-pagina-navegable">
+    <header class="metronet-navegacion" aria-label="Vista previa de navegación">
+      <nav class="metronet-navegacion__enlaces" aria-label="Navegación principal">
+        <span class="metronet-navegacion__enlace">Inicio</span>
+        <span class="metronet-navegacion__enlace activo">Niveles</span>
+        <span class="metronet-navegacion__enlace">Aprendizaje</span>
+        <span class="metronet-navegacion__enlace">Ranking</span>
+        <span class="metronet-navegacion__enlace">Mis diseños</span>
+      </nav>
+      <span class="metronet-navegacion__usuario">Vista previa</span>
+    </header>
+    <main class="metronet-escenarios-pagina" aria-labelledby="tituloEscenarios">
+      <header class="metronet-escenarios-pagina__encabezado">
+        <div>
+          <p class="metronet-inicio__etiqueta">Juego didáctico de simulación de red de metro</p>
+          <h1 id="tituloEscenarios">Niveles</h1>
+          <div class="metronet-escenarios-pagina__presentacion">
+            <p>Ari, Sol y Dani estudian Logística y aprenden a diseñar una red de metro hipotética para Montevideo. Ari trabaja el trazado, Sol la cobertura y Dani la operación.</p>
+            <p>En cada etapa justifican qué lugares conectar, qué zonas atender y cómo responde la red al ponerla a prueba.</p>
+            <ul class="metronet-escenarios-pagina__equipo" aria-label="Equipo del proyecto">
+              <li><img src="/assets/personajes/ari.svg" alt="" width="64" height="64" /><span><strong>Ari</strong><small>Diseño de red</small></span></li>
+              <li><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span><strong>Sol</strong><small>Cobertura territorial</small></span></li>
+              <li><img src="/assets/personajes/dani.svg" alt="" width="64" height="64" /><span><strong>Dani</strong><small>Simulación operativa</small></span></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <section class="metronet-escenarios-pagina__desafios" aria-labelledby="tituloDesafios">
+        <div class="metronet-escenarios-pagina__seccion-cabecera">
+          <div>
+            <h2 id="tituloDesafios">Empezá tu aventura</h2>
+          </div>
+          <p>Elegí un nivel para seguir la historia de Ari, Sol y Dani.</p>
+        </div>
+        <p id="mensajeEscenarios" class="metronet-inicio__mensaje" role="status">Vista previa local: los estados de niveles son de muestra.</p>
+        <p id="estadoCargaEscenarios" class="metronet-escenarios-pagina__estado-carga" hidden></p>
+        <section id="listaEscenarios" class="metronet-escenarios-pagina__lista" aria-busy="false">
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--disponible" aria-labelledby="titulo-escenario-1">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--disponible">Disponible</span></header>
+          <h2 id="titulo-escenario-1">Nivel 1 · Red inicial</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/ari.svg" alt="" width="64" height="64" /><span>Ari · Diseño de red</span></div>
+            <p class="metronet-escenarios-pagina__relato">Creá una línea con al menos dos estaciones sobre el mapa.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Comenzar</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-2">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-2">Nivel 2 · Conexiones</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span>Sol · Cobertura territorial</span></div>
+            <p class="metronet-escenarios-pagina__relato">Construí un recorrido con al menos tres estaciones y dos conexiones.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-3">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-3">Nivel 3 · Unidades de metro</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/dani.svg" alt="" width="64" height="64" /><span>Dani · Simulación operativa</span></div>
+            <p class="metronet-escenarios-pagina__relato">Asigná una unidad de metro a una red con recorrido válido.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-4">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-4">Nivel 4 · Simulación completa</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span>Sol · Cobertura territorial</span></div>
+            <p class="metronet-escenarios-pagina__relato">Conectá Palacio Legislativo y Rambla de Carrasco mediante una línea que atienda las zonas Oeste y Este, y simulá su recorrido. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-5">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-5">Nivel 5 · Lugares y barrios</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/ari.svg" alt="" width="64" height="64" /><span>Ari · Diseño de red</span></div>
+            <p class="metronet-escenarios-pagina__relato">Conectá Palacio Legislativo, Terminal Tres Cruces y Plaza Virgilio, atendiendo sus barrios. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-6">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-6">Nivel 6 · Movilidad entre zonas</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span>Sol · Cobertura territorial</span></div>
+            <p class="metronet-escenarios-pagina__relato">Incorporá el Mirador de la Intendencia y conectá las zonas Centro, Oeste y Este. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-7">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-7">Nivel 7 · Nodos de intercambio</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/ari.svg" alt="" width="64" height="64" /><span>Ari · Diseño de red</span></div>
+            <p class="metronet-escenarios-pagina__relato">Extendé la cobertura hasta Brazo Oriental y creá un transbordo entre dos líneas. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-8">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-8">Nivel 8 · Red urbana</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/dani.svg" alt="" width="64" height="64" /><span>Dani · Simulación operativa</span></div>
+            <p class="metronet-escenarios-pagina__relato">Integrá el Estadio Centenario a una red de al menos tres líneas con dos transbordos. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-9">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-9">Nivel 9 · Planificación precisa</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/sol.svg" alt="" width="64" height="64" /><span>Sol · Cobertura territorial</span></div>
+            <p class="metronet-escenarios-pagina__relato">Resolvé la cobertura con estaciones más próximas a los POI y un máximo de nueve estaciones. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        <article class="metronet-escenarios-pagina__tarjeta metronet-escenarios-pagina__tarjeta--bloqueado bloqueada" aria-labelledby="titulo-escenario-10">
+          <header class="metronet-escenarios-pagina__tarjeta-cabecera"><span class="metronet-escenarios-pagina__estado metronet-escenarios-pagina__estado--bloqueado">Bloqueado</span></header>
+          <h2 id="titulo-escenario-10">Nivel 10 · Desafío integral</h2>
+          <div class="metronet-escenarios-pagina__tarjeta-contenido">
+            <div class="metronet-escenarios-pagina__personaje"><img src="/assets/personajes/dani.svg" alt="" width="64" height="64" /><span>Dani · Simulación operativa</span></div>
+            <p class="metronet-escenarios-pagina__relato">Integrá ocho puntos de interés, ocho barrios y cuatro zonas en una red de al menos tres líneas con tres transbordos. Experimentá con la configuración de simulación.</p>
+          </div>
+          <footer class="metronet-escenarios-pagina__acciones"><button type="button" disabled>Bloqueado</button></footer>
+        </article>
+        </section>
+      </section>
+      <section class="metronet-escenarios-pagina__reinicio" aria-labelledby="tituloReinicioEscenarios">
+        <div class="metronet-escenarios-pagina__seccion-cabecera">
+          <div><h2 id="tituloReinicioEscenarios">Reiniciar recorrido</h2></div>
+        </div>
+        <p class="metronet-escenarios-pagina__explicacion-reinicio">Volvés a empezar desde el Nivel 1. Se conservan tus intentos, diseños, simulaciones y puntajes anteriores. Si ya completaste una campaña, el Modo Libre sigue desbloqueado.</p>
+        <button id="botonReiniciarRecorrido" class="metronet-escenarios-pagina__reiniciar" type="button" disabled title="Vista previa: requiere progreso real para reiniciar">Reiniciar recorrido</button>
+      </section>
+    </main>
+    <dialog id="dialogoReiniciarRecorrido" class="metronet-dialogo-cambios metronet-escenarios-pagina__dialogo-reinicio" aria-labelledby="tituloReiniciarRecorrido">
+      <section class="metronet-dialogo-cambios__contenido">
+        <p class="metronet-inicio__etiqueta">Confirmación</p>
+        <h2 id="tituloReiniciarRecorrido">¿Reiniciar recorrido?</h2>
+        <p>Vas a comenzar nuevamente desde el Nivel 1. Los intentos, diseños, simulaciones y puntajes anteriores se conservarán.</p>
+        <p>El Modo Libre seguirá desbloqueado solamente si ya completaste una campaña anteriormente.</p>
+        <div class="metronet-dialogo-cambios__acciones">
+          <button type="button" data-cancelar-reinicio>Cancelar</button>
+          <button type="button" data-confirmar-reinicio data-accion-salir>Reiniciar recorrido</button>
+        </div>
+      </section>
+    </dialog>
+
+  </body>
+</html>

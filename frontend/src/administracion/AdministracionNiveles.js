@@ -2,15 +2,16 @@ import catalogo from '../educacion/catalogo-svgs-niveles.json';
 import nivelesIniciales from '../educacion/niveles.json';
 import { crearEditorRedReferenciaNivel } from './EditorRedReferenciaNivel.js';
 import { confirmarSistema } from '../componentes/DialogoSistema.js';
+import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 
 const nombres = {
   minimoEstaciones:'Mínimo de estaciones', maximoEstaciones:'Máximo de estaciones', minimoLineas:'Mínimo de líneas',
   minimoTramos:'Mínimo de conexiones', minimoMetros:'Mínimo de unidades', minimoTransbordos:'Mínimo de transbordos',
   transbordosPorConexion:'Contar estaciones compartidas por líneas',
-  requiereRedValida:'Regla histórica no evaluada', requiereSimulacion:'Exigir simulación',
+  requiereSimulacion:'Exigir simulación',
   requiereCoberturaPuntosInteres:'Cobertura de lugares objetivo', requiereObjetivosMismaLinea:'Lugares en una misma línea',
   requiereGeografiaValida:'Exigir geografía válida', puntosInteresObjetivo:'Lugares objetivo',
-  areasObjetivo:'Barrios y zonas objetivo', aprendizajeSimulacion:'Prácticas de simulación',
+  areasObjetivo:'Barrios y zonas objetivo', aprendizajeSimulacion:'Objetivos de simulación',
   puntuacion:'Puntuación', restriccionesGeograficas:'Restricciones geográficas',
 };
 
@@ -20,9 +21,15 @@ const crear = (tag, texto='', clase='') => {
   const n=document.createElement(tag); n.textContent=texto; if(clase)n.className=clase; return n;
 };
 const copiar = dato => structuredClone(dato);
+// Solo la vista de edición adapta el SVG al cuadro; se guarda la ruta original.
+const imagenAjustada = ruta => `${ruta}#svgView(preserveAspectRatio(none))`;
+// Se conservan en el contrato, pero no se ofrecen como reglas editables.
+const reglasNoEditables = new Set(['puntuacion', 'requiereRedValida']);
+const reglasIniciales = new Map(nivelesIniciales.flatMap(n=>Object.entries(n.reglasExito)));
 
 export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServidor, errorRespuesta }) {
   let lista=[], actual=null, mapa=null, operando=false;
+  const plantillasListas=new WeakMap();
   const anunciar=(texto,tipo='')=>{ mensaje.textContent=texto; mensaje.className=`admin-mensaje ${tipo}`; };
 
   async function pedir(ruta,opciones={}) {
@@ -40,22 +47,37 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
   }
 
   function pintarLista() {
+    contenedor.closest('.admin-vista')?.classList.toggle('admin-vista--editando',Boolean(actual));
+    if(actual) {
+      const editor=crear('div','','admin-niveles__editor');editor.dataset.editorNivel='';
+      contenedor.replaceChildren(editor);pintarEditor();return;
+    }
     const tabla=crear('div','','admin-niveles__lista');
     for(const nivel of lista) {
       const fila=crear('article','','admin-niveles__fila');
-      fila.append(crear('strong',`Nivel ${nivel.numero} · ${nombreCorto(nivel.numero,nivel.nombre)}`),
+      const cuerpo=crear('div','','admin-niveles__coche');
+      cuerpo.append(crear('strong',`Nivel ${nivel.numero} · ${nombreCorto(nivel.numero,nivel.nombre)}`),
         crear('span',`Publicada v${nivel.versionPublicada} · Borrador revisión ${nivel.revisionBorrador}`));
-      const boton=crear('button','Editar','admin-secundario'); boton.type='button';
-      boton.addEventListener('click',()=>abrir(nivel.numero)); fila.append(boton); tabla.append(fila);
+      const boton=crear('button','Editar','admin-secundario metronet-boton--advertencia'); boton.type='button';
+      boton.dataset.editarNivel=String(nivel.numero);
+      boton.addEventListener('click',()=>abrir(nivel.numero)); cuerpo.append(boton);
+      const ruedas=crear('span','','admin-niveles__rodaje'); ruedas.setAttribute('aria-hidden','true');
+      fila.append(cuerpo,ruedas); tabla.append(fila);
     }
-    const editor=contenedor.querySelector('[data-editor-nivel]') ?? crear('div','','admin-niveles__editor');
-    editor.dataset.editorNivel='';
-    if(actual) {
-      const cambiar=crear('details','','admin-niveles__cambiar');
-      cambiar.append(crear('summary','Cambiar de nivel'),tabla);
-      contenedor.replaceChildren(editor,cambiar);
-    } else contenedor.replaceChildren(tabla,editor);
-    if(actual) pintarEditor();
+    contenedor.replaceChildren(tabla);
+  }
+
+  async function volverALosNiveles() {
+    if(!actual||operando)return;
+    operando=true;
+    try {
+      if(actual.sucio&&!await confirmarSistema('Tenés cambios sin guardar. ¿Descartarlos y volver a la lista de niveles?'))return;
+      const numero=actual.numero;
+      lista=await pedir('');
+      actual=null;mapa=null;pintarLista();anunciar('');
+      contenedor.querySelector(`[data-editar-nivel="${numero}"]`)?.focus();
+    } catch(error){anunciar(error.message,'error')}
+    finally{operando=false}
   }
 
   async function abrir(numero) {
@@ -64,7 +86,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     try {
       const [borrador,versiones]=await Promise.all([pedir(`/${numero}/borrador`),pedir(`/${numero}/versiones`)]);
       const contenido=borrador.contenido;
-      actual={numero,borrador,versiones,vista:null,sucio:false,datos:{
+      actual={numero,borrador,versiones,vista:null,sucio:false,edicion:0,confirmacionEditorial:false,seccionActiva:'desafio',tarjetaActiva:0,datos:{
         desafio:copiar(contenido.desafio),reglasExito:copiar(contenido.reglasExito),
         herramientasHabilitadas:copiar(contenido.herramientasHabilitadas),
         criterioUvUt:contenido.criterioUvUt?copiar(contenido.criterioUvUt):null,
@@ -73,73 +95,92 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       }};
       for(const clave of ['estaciones','lineas','tramos','unidades','ejecuciones'])
         actual.datos.redReferencia[clave] ??= [];
-      pintarLista(); anunciar(`Editando nivel ${numero}. Guardá el borrador antes de previsualizar.`);
-      contenedor.querySelector('[data-editor-nivel]')?.scrollIntoView({block:'start'});
+      pintarLista(); anunciar('');
+      contenedor.closest('.admin-contenido')?.scrollIntoView({block:'start'});
     } catch(error){ anunciar(error.message,'error'); }
     finally { operando=false; }
   }
 
   function marcarSucio() {
     if(!actual)return;
-    actual.sucio=true; actual.vista=null;
+    actual.sucio=true; actual.vista=null; actual.edicion++; actual.confirmacionEditorial=false;
+    const confirmacion=contenedor.querySelector('[data-confirmacion-editorial]');if(confirmacion)confirmacion.checked=false;
     const boton=contenedor.querySelector('[data-publicar-nivel]'); if(boton) boton.disabled=true;
     const indicador=contenedor.querySelector('[data-estado-borrador]');
-    if(indicador) indicador.textContent='Cambios sin guardar';
+    if(indicador) actualizarEstadoBorrador(indicador);
     const vista=contenedor.querySelector('[data-vista-previa]');
-    if(vista) { vista.hidden=true; vista.replaceChildren(); }
+    if(vista)pintarEsperaVista(vista,'Guardá y previsualizá nuevamente para revisar los cambios.');
   }
 
-  function campo(parent,nombre,valor,alCambiar,{tipo,opciones}={}) {
+  function actualizarEstadoBorrador(indicador) {
+    const texto=actual.sucio?'Cambios sin guardar':'Borrador guardado';
+    indicador.title=`Guardar cambios del nivel · ${texto}`;
+    indicador.classList.toggle('admin-niveles__estado--pendiente',actual.sucio);
+    indicador.querySelector('.admin-niveles__estado-texto').textContent=texto;
+  }
+
+  function campo(parent,nombre,valor,alCambiar,{tipo,opciones,edicion=true}={}) {
     const label=crear('label',nombre,'admin-niveles__campo');
     let input;
     if(opciones) {
       input=crear('select');
+      const seleccion=crear('button');seleccion.type='button';seleccion.append(crear('selectedcontent'));
+      input.append(seleccion);
       for(const opcion of opciones) {const o=crear('option',opcion.texto??opcion.valor);o.value=opcion.valor;input.append(o)}
       input.value=String(valor ?? '');
     } else if(typeof valor==='boolean'||tipo==='checkbox') {
       input=crear('input'); input.type='checkbox'; input.checked=Boolean(valor);
-    } else if(tipo==='multiline'||String(valor??'').length>130) {
+    } else if(tipo==='multiline'||(!tipo&&String(valor??'').length>130)) {
       input=crear('textarea'); input.rows=tipo==='multiline'?4:3; input.value=valor??'';
     } else {
       input=crear('input'); input.type=typeof valor==='number'||tipo==='number'?'number':'text';
       if(input.type==='number') input.step='any'; input.value=valor??'';
     }
+    input.setAttribute('aria-label',nombre);
     input.addEventListener(input.type==='checkbox'||opciones?'change':'input',()=>{
       alCambiar(input.type==='checkbox'?input.checked:input.type==='number'?Number(input.value):input.value);
-      marcarSucio();
+      if(edicion)marcarSucio();
     });
+    label.classList.toggle('admin-niveles__campo--casilla',input.type==='checkbox');
+    label.classList.toggle('admin-niveles__campo--texto',input.tagName==='TEXTAREA');
     label.append(input); parent.append(label); return input;
   }
 
-  function editarValor(parent,nombre,valor,actualizar) {
+  function editarValor(parent,nombre,valor,actualizar,{alEditar=marcarSucio,repintar=pintarEditor}={}) {
+    const opcionesEdicion={alEditar,repintar};
     if(Array.isArray(valor)) {
-      const grupo=crear('fieldset'); grupo.append(crear('legend',etiqueta(nombre)));
+      const grupo=crear('fieldset','','admin-niveles__lista-valores'); grupo.append(crear('legend',etiqueta(nombre)));
+      if(valor.length)plantillasListas.set(valor,copiar(valor[0]));
+      const plantilla=plantillasListas.get(valor)??reglasIniciales.get(nombre)?.[0];
+      let activo=0;
+      const seleccionar=campo(grupo,'Elemento',0,nuevo=>{activo=Number(nuevo);mostrar()},
+        {opciones:valor.map((_,i)=>({valor:i,texto:`${i+1} / ${valor.length}`})),edicion:false});
+      const filas=[];
+      const mostrar=()=>filas.forEach((fila,i)=>{fila.hidden=i!==activo});
       valor.forEach((item,i)=>{
-        const fila=crear('div','','admin-niveles__grupo');
-        fila.append(crear('strong',`${etiqueta(nombre)} ${i+1}`));
-        editarValor(fila,'valor',item,nuevo=>{valor[i]=nuevo;actualizar(valor)});
-        const quitar=crear('button','Quitar','admin-secundario');quitar.type='button';
-        quitar.addEventListener('click',()=>{valor.splice(i,1);actualizar(valor);marcarSucio();pintarEditor()});
-        fila.append(quitar);grupo.append(fila);
+        const fila=crear('div','','admin-niveles__item-valores');
+        editarValor(fila,'valor',item,nuevo=>{valor[i]=nuevo;actualizar(valor)},opcionesEdicion);
+        grupo.append(fila);filas.push(fila);
       });
-      if(valor.length) {
-        const agregar=crear('button',`Agregar ${etiqueta(nombre).toLowerCase()}`,'admin-secundario');agregar.type='button';
-        agregar.addEventListener('click',()=>{valor.push(copiar(valor.at(-1)));actualizar(valor);marcarSucio();pintarEditor()});
-        grupo.append(agregar);
+      const acciones=crear('div','','admin-niveles__acciones-lista');
+      const quitar=crear('button','Quitar','admin-secundario metronet-boton--peligro metronet-boton--destacado');quitar.type='button';
+      quitar.disabled=!valor.length;
+      quitar.addEventListener('click',()=>{valor.splice(activo,1);actualizar(valor);alEditar();repintar()});
+      acciones.append(quitar);
+      if(plantilla!==undefined) {
+        const agregar=crear('button',`Agregar ${etiqueta(nombre).toLowerCase()}`,'admin-secundario metronet-boton--exito metronet-boton--destacado');agregar.type='button';
+        agregar.addEventListener('click',()=>{valor.push(copiar(valor.at(-1)??plantilla));actualizar(valor);alEditar();repintar()});
+        acciones.append(agregar);
       }
-      parent.append(grupo);return;
+      grupo.append(acciones);
+      seleccionar.disabled=!valor.length;mostrar();parent.append(grupo);return;
     }
     if(valor && typeof valor==='object') {
-      const grupo=crear('fieldset');grupo.append(crear('legend',etiqueta(nombre)));
-      for(const [clave,item] of Object.entries(valor)) editarValor(grupo,clave,item,nuevo=>{valor[clave]=nuevo;actualizar(valor)});
+      const grupo=crear('fieldset','','admin-niveles__objeto-valores');grupo.append(crear('legend',etiqueta(nombre)));
+      for(const [clave,item] of Object.entries(valor)) editarValor(grupo,clave,item,nuevo=>{valor[clave]=nuevo;actualizar(valor)},opcionesEdicion);
       parent.append(grupo);return;
     }
-    campo(parent,etiqueta(nombre),valor,actualizar);
-  }
-
-  function seccion(titulo) {
-    const detalles=crear('details','','admin-niveles__seccion');
-    detalles.append(crear('summary',titulo));detalles.open=true;return detalles;
+    campo(parent,etiqueta(nombre),valor,nuevo=>{actualizar(nuevo);alEditar()},{edicion:false});
   }
 
   function pintarEditor() {
@@ -150,112 +191,217 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const cabecera=crear('header','','admin-niveles__cabecera');
     cabecera.append(crear('h2',`Nivel ${numero} · ${nombreCorto(numero,datos.desafio.nombre)}`),
       crear('p',`Versión base ${borrador.versionBase} · Revisión ${borrador.revision}`));
-    const estado=crear('p',actual.sucio?'Cambios sin guardar':'Borrador guardado','admin-niveles__estado');
-    estado.dataset.estadoBorrador='';editor.append(cabecera);
+    const utilidades=crear('div','','admin-niveles__utilidades');
+    const estado=crear('button','','admin-secundario admin-niveles__estado');estado.type='button';
+    estado.dataset.estadoBorrador='';
+    configurarBotonIcono(estado,'guardar','Guardar cambios del nivel');
+    const textoEstado=crear('span','','admin-niveles__estado-texto');textoEstado.setAttribute('role','status');
+    estado.append(textoEstado);actualizarEstadoBorrador(estado);
+    estado.addEventListener('click',guardarBorrador);
+    utilidades.append(estado);
+    const salir=crear('button','','admin-secundario admin-niveles__salir');salir.type='button';
+    configurarBotonIcono(salir,'puertaSalida','Volver a los niveles para editar');
+    salir.addEventListener('click',volverALosNiveles);utilidades.append(salir);cabecera.append(utilidades);
+    editor.append(cabecera);
 
     const acciones=crear('div','','admin-niveles__acciones');
-    const guardar=crear('button','Guardar borrador','admin-guardar'); guardar.type='button';guardar.addEventListener('click',guardarBorrador);
     const previsualizar=crear('button','Previsualizar y validar','admin-secundario');previsualizar.type='button';
     previsualizar.addEventListener('click',previsualizarNivel);
     const confirmar=crear('label','Revisé las afirmaciones, fuentes e imágenes de las siete tarjetas.');
     const casilla=crear('input');casilla.type='checkbox';casilla.dataset.confirmacionEditorial='';confirmar.prepend(casilla);
+    casilla.checked=actual.confirmacionEditorial;
+    casilla.addEventListener('change',()=>{actual.confirmacionEditorial=casilla.checked});
     const publicar=crear('button','Publicar versión','admin-guardar');publicar.type='button';publicar.dataset.publicarNivel='';
     publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
     publicar.addEventListener('click',publicarNivel);
-    acciones.append(estado,guardar,previsualizar,confirmar,publicar);editor.append(acciones);
+    acciones.append(previsualizar,publicar,confirmar);editor.append(acciones);
 
-    const desafio=seccion('1. Desafío');
-    for(const clave of ['nombre','relato','objetivo','instrucciones','dificultad'])
-      campo(desafio,etiqueta(clave),datos.desafio[clave],valor=>{datos.desafio[clave]=valor},
-        {tipo:['relato','objetivo','instrucciones'].includes(clave)?'multiline':undefined});
-    editor.append(desafio);
+    const pestanas=crear('div','','admin-niveles__pestanas');
+    pestanas.setAttribute('role','tablist');pestanas.setAttribute('aria-label','Secciones del nivel');
+    const paneles=crear('div','','admin-niveles__paneles');
+    editor.append(pestanas,paneles);
+    const panel=(clave,titulo)=>{
+      const boton=crear('button',titulo);boton.type='button';boton.dataset.seccionNivel=clave;
+      boton.id=`nivel-${numero}-pestana-${clave}`;boton.setAttribute('role','tab');
+      const contenido=crear('section','',`admin-niveles__seccion admin-niveles__panel admin-niveles__panel--${clave}`);
+      contenido.id=`nivel-${numero}-panel-${clave}`;contenido.dataset.panelNivel=clave;
+      contenido.setAttribute('role','tabpanel');contenido.setAttribute('aria-labelledby',boton.id);
+      boton.setAttribute('aria-controls',contenido.id);
+      boton.addEventListener('click',()=>mostrarSeccion(clave));
+      pestanas.append(boton);paneles.append(contenido);return contenido;
+    };
+    pestanas.addEventListener('keydown',evento=>{
+      const botones=[...pestanas.querySelectorAll('[role="tab"]')];
+      const indice=botones.indexOf(document.activeElement);
+      if(indice<0)return;
+      const siguiente={ArrowRight:(indice+1)%botones.length,ArrowLeft:(indice+botones.length-1)%botones.length,
+        Home:0,End:botones.length-1}[evento.key];
+      if(siguiente===undefined)return;
+      evento.preventDefault();mostrarSeccion(botones[siguiente].dataset.seccionNivel);botones[siguiente].focus();
+    });
 
-    const reglas=seccion('2. Reglas y herramientas');
-    const conocidas=new Map(nivelesIniciales.flatMap(n=>Object.entries(n.reglasExito)));
+    const desafio=panel('desafio','Desafío');
+    const datosBreves=crear('div','','admin-niveles__datos-breves');desafio.append(datosBreves);
+    for(const clave of ['nombre','dificultad','relato','objetivo','instrucciones'])
+      campo(['nombre','dificultad'].includes(clave)?datosBreves:desafio,etiqueta(clave),datos.desafio[clave],valor=>{datos.desafio[clave]=valor},
+        {tipo:['relato','objetivo','instrucciones'].includes(clave)?'multiline':'text'});
+
+    const reglas=panel('reglas','Reglas');
+    const condiciones=crear('div','','admin-niveles__condiciones');
+    const opciones=crear('div','','admin-niveles__opciones');reglas.append(condiciones,opciones);
+    const grupoReglas=(titulo,clase)=>{
+      const seccion=crear('section','','admin-niveles__grupo-reglas');
+      seccion.setAttribute('aria-label',titulo);
+      seccion.append(crear('h3',titulo));
+      const cuerpo=crear('div','',clase);seccion.append(cuerpo);condiciones.append(seccion);
+      return cuerpo;
+    };
+    const listadoReglas=grupoReglas('Cantidades de la red','admin-niveles__reglas');
+    const reglasCondicion=grupoReglas('Condiciones de funcionamiento','admin-niveles__reglas admin-niveles__reglas--condiciones');
+    const detallesReglas=grupoReglas('Objetivos específicos','admin-niveles__reglas-detalle');
+    const conocidas=reglasIniciales;
     for(const [clave,valor] of Object.entries(datos.reglasExito)) {
-      if(clave==='puntuacion')continue;
+      if(reglasNoEditables.has(clave))continue;
       const fila=crear('div','','admin-niveles__regla');
+      fila.dataset.reglaNivel=clave;
+      const compuesta=valor && typeof valor==='object';
+      if(compuesta)fila.classList.add('admin-niveles__regla--compuesta');
+      if(typeof valor==='boolean')fila.classList.add('admin-niveles__regla--casilla');
       editarValor(fila,clave,valor,nuevo=>{datos.reglasExito[clave]=nuevo});
-      const quitar=crear('button',`Quitar ${etiqueta(clave)}`,'admin-secundario'); quitar.type='button';
+      const quitar=crear('button','','admin-secundario admin-niveles__quitar-regla'); quitar.type='button';
+      configurarBotonIcono(quitar,'eliminar',`Quitar ${etiqueta(clave)}`);
       quitar.addEventListener('click',()=>{delete datos.reglasExito[clave];marcarSucio();pintarEditor()});
-      fila.append(quitar);reglas.append(fila);
+      fila.append(quitar);
+      if(compuesta) {
+        const detalle=crear('details','','admin-niveles__detalle-regla');
+        detalle.append(crear('summary',etiqueta(clave)),fila);
+        detalle.open=actual.reglaAbierta===clave;
+        detalle.addEventListener('toggle',()=>{if(detalle.open)actual.reglaAbierta=clave});
+        detallesReglas.append(detalle);
+      } else (typeof valor==='boolean'?reglasCondicion:listadoReglas).append(fila);
     }
-    const agregarRegla=crear('select'); agregarRegla.setAttribute('aria-label','Regla admitida para agregar');
-    for(const [clave] of conocidas) if(clave!=='puntuacion'&&!(clave in datos.reglasExito)) {
-      const opcion=crear('option',etiqueta(clave));opcion.value=clave;agregarRegla.append(opcion);
-    }
-    const botonAgregar=crear('button','Agregar regla admitida','admin-secundario');botonAgregar.type='button';
+    for(const cuerpo of [listadoReglas,reglasCondicion,detallesReglas])cuerpo.parentElement.hidden=!cuerpo.children.length;
+    const opcionesRegla=[...conocidas.keys()].filter(clave=>!reglasNoEditables.has(clave)&&!(clave in datos.reglasExito))
+      .map(clave=>({valor:clave,texto:etiqueta(clave)}));
+    const nuevaRegla=crear('div','','admin-niveles__agregar-regla');
+    let valorRegla;
+    const agregarRegla=campo(nuevaRegla,'Regla admitida para agregar',opcionesRegla[0]?.valor,()=>prepararRegla(),
+      {opciones:opcionesRegla,edicion:false});
+    const valoresRegla=crear('div','','admin-niveles__valor-nueva-regla');
+    const pintarValorRegla=()=>{
+      valoresRegla.replaceChildren();
+      valoresRegla.dataset.tipo=Array.isArray(valorRegla)?'lista':typeof valorRegla;
+      if(agregarRegla.value)editarValor(valoresRegla,agregarRegla.value,valorRegla,nuevo=>{valorRegla=nuevo},
+        {alEditar:()=>{},repintar:pintarValorRegla});
+    };
+    const prepararRegla=()=>{valorRegla=copiar(conocidas.get(agregarRegla.value));pintarValorRegla()};
+    prepararRegla();
+    const botonAgregar=crear('button','Agregar regla admitida','admin-secundario metronet-boton--exito metronet-boton--destacado');botonAgregar.type='button';
     botonAgregar.disabled=!agregarRegla.options.length;
     botonAgregar.addEventListener('click',()=>{
-      const clave=agregarRegla.value;datos.reglasExito[clave]=copiar(conocidas.get(clave));marcarSucio();pintarEditor();
+      const clave=agregarRegla.value;datos.reglasExito[clave]=copiar(valorRegla);actual.reglaAbierta=clave;marcarSucio();pintarEditor();
     });
-    reglas.append(agregarRegla,botonAgregar);
-    const herramientas=crear('fieldset');herramientas.append(crear('legend','Herramientas habilitadas'));
+    nuevaRegla.hidden=!agregarRegla.options.length;
+    opciones.hidden=nuevaRegla.hidden;
+    nuevaRegla.append(valoresRegla,botonAgregar);opciones.append(nuevaRegla);
+    const herramientas=crear('fieldset','','admin-niveles__herramientas');herramientas.append(crear('legend','Herramientas habilitadas'));
     for(const [clave,valor] of Object.entries(datos.herramientasHabilitadas))
       campo(herramientas,etiqueta(clave),valor,nuevo=>{datos.herramientasHabilitadas[clave]=nuevo});
-    reglas.append(herramientas);
-    editor.append(reglas);
+    condiciones.append(herramientas);
 
-    const red=seccion('3. Red de referencia');
-    red.append(crear('p','Ubicá estaciones en el mapa, uní sus recorridos y describí las unidades. La referencia comprueba una solución; revisá también su valor pedagógico.'));
+    const red=panel('red','Red de referencia');
     const redTrabajo=crear('div','','admin-niveles__red-trabajo');
     const visor=crear('div','','admin-red-referencia');redTrabajo.append(visor);
     mapa=crearEditorRedReferenciaNivel(visor,datos.redReferencia,()=>{marcarSucio();pintarTablasRed()});
     const tablas=crear('div','','admin-niveles__tablas-red');tablas.dataset.tablasRed='';redTrabajo.append(tablas);
     red.append(redTrabajo);
-    editor.append(red);
 
     if(numero>=4) {
-      const criterio=seccion('4. Tiempo UT y presupuesto UV');
+      const criterio=panel('simulacion','UV / UT');
       for(const clave of ['limiteUt','presupuestoUv'])
         campo(criterio,clave==='limiteUt'?'Límite UT':'Presupuesto UV',datos.criterioUvUt?.[clave],
           valor=>{datos.criterioUvUt??={};datos.criterioUvUt[clave]=valor},{tipo:'number'});
-      editor.append(criterio);
     }
 
-    const educacion=seccion(numero>=4?'5. Tarjetas y ayudas':'4. Tarjetas y ayudas');
-    educacion.append(crear('p','Cada nivel conserva siete tarjetas con su ID. Revisá juntos texto, fuente e imagen antes de publicar.'));
+    const educacion=panel('tarjetas','Tarjetas');
+    const cabeceraTarjeta=crear('div','','admin-niveles__selector-tarjeta');educacion.append(cabeceraTarjeta);
+    const selectorTarjeta=campo(cabeceraTarjeta,'Tarjeta de aprendizaje',actual.tarjetaActiva,valor=>{
+      actual.tarjetaActiva=Number(valor);
+      mostrarTarjeta();
+    },{opciones:datos.tarjetas.map((tarjeta,i)=>({valor:i,texto:`${i+1} · ${tarjeta.titulo}`})),edicion:false});
+    selectorTarjeta.dataset.selectorTarjeta='';
+    const tituloTarjeta=campo(cabeceraTarjeta,'Título',datos.tarjetas[actual.tarjetaActiva].titulo,valor=>{
+      datos.tarjetas[actual.tarjetaActiva].titulo=valor;
+      selectorTarjeta.options[actual.tarjetaActiva].textContent=`${actual.tarjetaActiva+1} · ${valor}`;
+    },{tipo:'text'});
+    tituloTarjeta.dataset.tituloTarjeta='';
     const tarjetas=crear('div','','admin-niveles__tarjetas');
     datos.tarjetas.forEach((tarjeta,i)=>{
-      const panel=seccion(`Tarjeta ${i+1} · ${tarjeta.id}`);panel.open=false;
-      for(const clave of ['titulo','texto','aprendizaje','fuente','urlFuente','descripcionImagen'])
-        campo(panel,etiqueta(clave),tarjeta[clave],valor=>{tarjeta[clave]=valor},
-          {tipo:['texto','aprendizaje','descripcionImagen'].includes(clave)?'multiline':undefined});
-      const opciones=catalogo.flatMap(n=>n.tarjetas).map(t=>({valor:t.imagen,texto:`${t.id} · ${t.titulo}`}));
-      campo(panel,'Imagen SVG local',tarjeta.idSvgCatalogo,valor=>{tarjeta.idSvgCatalogo=valor},{opciones});
-      tarjetas.append(panel);
-    });
-    educacion.append(tarjetas,crear('h3','Pistas por condición'));
-    const ayudas=crear('div','','admin-niveles__ayudas');
-    datos.ayudas.forEach((ayuda,i)=>{
-      const fila=crear('div','','admin-niveles__grupo');
-      for(const clave of ['claveCondicion','texto','pista'])
-        campo(fila,etiqueta(clave),ayuda[clave]??'',valor=>{ayuda[clave]=valor},{tipo:clave==='claveCondicion'?undefined:'multiline'});
-      const quitar=crear('button','Quitar pista','admin-secundario');quitar.type='button';
-      quitar.addEventListener('click',()=>{datos.ayudas.splice(i,1);marcarSucio();pintarEditor()});
-      fila.append(quitar);ayudas.append(fila);
-    });
-    const agregarAyuda=crear('button','Agregar pista','admin-secundario');agregarAyuda.type='button';
-    agregarAyuda.addEventListener('click',()=>{datos.ayudas.push({claveCondicion:'minimoEstaciones',texto:'',pista:''});marcarSucio();pintarEditor()});
-    educacion.append(ayudas,agregarAyuda);editor.append(educacion);
-
-    const vista=crear('div','','admin-niveles__vista');vista.dataset.vistaPrevia='';vista.hidden=!actual.vista;editor.append(vista);
-    const historial=crear('section','','admin-niveles__historial');historial.append(crear('h3','Historial y reversión'));
-    actual.versiones.forEach(version=>{
-      const fila=crear('div','','admin-niveles__fila');fila.append(crear('span',`Versión ${version.version} · ${version.publicadoEn}`));
-      const boton=crear('button','Preparar reversión','admin-secundario');boton.type='button';
-      if(!referenciaConstruida(version.redReferencia)
-        && !actual.versiones.some(otra=>otra.version!==version.version&&referenciaConstruida(otra.redReferencia))) {
-        boton.disabled=true;
-        boton.title='Publicá primero una red de referencia para poder preparar esta reversión.';
+      const ficha=crear('div','','admin-niveles__ficha');ficha.dataset.tarjetaNivel=String(i);
+      for(const clave of ['texto','aprendizaje','fuente','urlFuente','descripcionImagen']) {
+        const input=campo(ficha,etiqueta(clave),tarjeta[clave],valor=>{
+          tarjeta[clave]=valor;
+          if(clave==='descripcionImagen')ficha.querySelector('img').alt=valor;
+        }, {tipo:['texto','aprendizaje','descripcionImagen'].includes(clave)?'multiline':'text'});
+        input.parentElement.dataset.campoTarjeta=clave;
       }
-      boton.addEventListener('click',()=>prepararReversion(version.version));fila.append(boton);historial.append(fila);
-    });editor.append(historial);
+      const ilustracion=crear('div','','admin-niveles__ilustracion');
+      const imagen=crear('img');imagen.src=imagenAjustada(tarjeta.idSvgCatalogo);imagen.alt=tarjeta.descripcionImagen;
+      const opciones=catalogo.flatMap(n=>n.tarjetas.map(t=>({valor:t.imagen,texto:`Nivel ${n.numero} · ${t.titulo}`})));
+      campo(ilustracion,'Elegir imagen del catálogo',tarjeta.idSvgCatalogo,valor=>{
+        tarjeta.idSvgCatalogo=valor;imagen.src=imagenAjustada(valor);
+      },{opciones});
+      ilustracion.append(imagen);ficha.append(ilustracion);
+      tarjetas.append(ficha);
+    });
+    // Las ayudas recibidas se preservan al guardar, sin exponer el editor de pistas retirado.
+    educacion.append(tarjetas);mostrarTarjeta();
+
+    const vista=panel('vista','Vista previa');vista.classList.add('admin-niveles__vista');vista.dataset.vistaPrevia='';
+    pintarEsperaVista(vista,'Guardá el borrador y usá «Previsualizar y validar» para revisar el resultado.');
+    const historial=panel('historial','Historial');
+    const limpieza=crear('div','','admin-niveles__limpieza');
+    const borrar=crear('button','','metronet-boton--peligro');borrar.type='button';
+    configurarBotonIcono(borrar,'eliminar','Borrar registro de versiones');
+    borrar.disabled=actual.versiones.length<2;
+    borrar.addEventListener('click',borrarHistorialSinUso);limpieza.append(borrar);historial.append(limpieza);
+    if(!actual.versiones.length)historial.append(crear('p','Todavía no hay versiones publicadas.'));
+    const paginaHistorial=Math.min(actual.paginaHistorial??0,Math.max(0,Math.ceil(actual.versiones.length/4)-1));
+    actual.paginaHistorial=paginaHistorial;
+    actual.versiones.slice(paginaHistorial*4,paginaHistorial*4+4).forEach(version=>{
+      const fila=crear('div','','admin-niveles__version');fila.append(crear('span',`Versión ${version.version} · ${version.publicadoEn}`));
+      historial.append(fila);
+    });
+    if(actual.versiones.length>4) {
+      const paginas=crear('div','','admin-niveles__paginas');
+      for(const [texto,paso] of [['Anterior',-1],['Siguiente',1]]) {
+        const boton=crear('button','','admin-niveles__pagina');boton.type='button';
+        configurarBotonIcono(boton,'plegar',texto);
+        boton.style.setProperty('--giro-flecha',paso<0?'-90deg':'90deg');
+        boton.disabled=paginaHistorial+paso<0||(paginaHistorial+paso)*4>=actual.versiones.length;
+        boton.addEventListener('click',()=>{actual.paginaHistorial=paginaHistorial+paso;pintarEditor()});paginas.append(boton);
+      }
+      paginas.append(crear('span',`${paginaHistorial+1} / ${Math.ceil(actual.versiones.length/4)}`));historial.append(paginas);
+    }
     pintarTablasRed(); if(actual.vista) pintarVista(actual.vista);
+    mostrarSeccion(actual.seccionActiva);
   }
 
-  function referenciaConstruida(red) {
-    return red?.estaciones?.length>=2&&red?.lineas?.length>0&&red?.tramos?.length>0;
+  function mostrarSeccion(clave) {
+    actual.seccionActiva=clave;
+    for(const boton of contenedor.querySelectorAll('[data-seccion-nivel]')) {
+      const activo=boton.dataset.seccionNivel===clave;
+      boton.setAttribute('aria-selected',String(activo));boton.tabIndex=activo?0:-1;
+    }
+    for(const panel of contenedor.querySelectorAll('[data-panel-nivel]'))panel.hidden=panel.dataset.panelNivel!==clave;
+    const paneles=contenedor.querySelector('.admin-niveles__paneles');if(paneles)paneles.scrollTop=0;
+  }
+
+  function mostrarTarjeta() {
+    for(const ficha of contenedor.querySelectorAll('[data-tarjeta-nivel]'))
+      ficha.hidden=Number(ficha.dataset.tarjetaNivel)!==actual.tarjetaActiva;
+    const titulo=contenedor.querySelector('[data-titulo-tarjeta]');
+    if(titulo)titulo.value=actual.datos.tarjetas[actual.tarjetaActiva].titulo;
   }
 
   function pintarTablasRed() {
@@ -270,19 +416,25 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       ejecuciones:()=>({duracion:2,velocidad:1,unidades:red.unidades.map(u=>({uv:u.uv}))}),
     };
     const titulos={estaciones:'Estaciones',lineas:'Líneas',tramos:'Conexiones',unidades:'Unidades',ejecuciones:'Ejecuciones de prueba'};
-    for(const [tipo,plantilla] of Object.entries(plantillas)) {
-      const panel=seccion(titulos[tipo]);panel.open=false;
-      red[tipo].forEach((item,i)=>{
-        const fila=crear('div','','admin-niveles__grupo');fila.append(crear('strong',`${titulos[tipo]} ${i+1}`));
+    const tipo=actual.redTipo??'estaciones';
+    campo(tablas,'Elementos de referencia',tipo,valor=>{
+      actual.redTipo=valor;actual.redIndice=0;pintarTablasRed();
+    },{opciones:Object.entries(titulos).map(([valor,texto])=>({valor,texto})),edicion:false});
+    actual.redIndice=Math.min(actual.redIndice??0,Math.max(0,red[tipo].length-1));
+    if(red[tipo].length) {
+      campo(tablas,'Elemento de referencia',actual.redIndice,valor=>{
+        actual.redIndice=Number(valor);pintarTablasRed();
+      },{opciones:red[tipo].map((item,i)=>({valor:i,texto:`${i+1} · ${item.nombre??item.linea??titulos[tipo]}`})),edicion:false});
+      const i=actual.redIndice,item=red[tipo][i];
+      const fila=crear('div','','admin-niveles__grupo');
         for(const [clave,valor] of Object.entries(item)) editarValor(fila,clave,valor,nuevo=>{item[clave]=nuevo;mapa?.actualizar()});
         const quitar=crear('button','Quitar','admin-secundario');quitar.type='button';
         quitar.addEventListener('click',()=>{red[tipo].splice(i,1);marcarSucio();pintarTablasRed();mapa?.actualizar()});
-        fila.append(quitar);panel.append(fila);
-      });
+        fila.append(quitar);tablas.append(fila);
+    } else tablas.append(crear('p',`Todavía no hay ${titulos[tipo].toLowerCase()}.`));
       const agregar=crear('button',`Agregar ${titulos[tipo].toLowerCase()}`,'admin-secundario');agregar.type='button';
-      agregar.addEventListener('click',()=>{red[tipo].push(plantilla());marcarSucio();pintarTablasRed();mapa?.actualizar()});
-      panel.append(agregar);tablas.append(panel);
-    }
+      agregar.addEventListener('click',()=>{red[tipo].push(plantillas[tipo]());actual.redIndice=red[tipo].length-1;marcarSucio();pintarTablasRed();mapa?.actualizar()});
+      tablas.append(agregar);
   }
 
   async function guardarBorrador() {
@@ -291,13 +443,17 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       anunciar('Cada tarjeta necesita una URL HTTP(S) con host válido para su fuente.','error');return;
     }
     operando=true;anunciar('Guardando borrador…');
+    const botonGuardar=contenedor.querySelector('[data-estado-borrador]');
+    botonGuardar.disabled=true;botonGuardar.setAttribute('aria-busy','true');
     try {
-      const {borrador,datos,numero}=actual;
+      const {borrador,datos,numero,edicion}=actual;
       const guardado=await pedir(`/${numero}/borrador`,{method:'PUT',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({...datos,versionBase:borrador.versionBase,revisionEsperada:borrador.revision})});
-      actual.borrador=guardado;actual.sucio=false;actual.vista=null;pintarEditor();
-      anunciar(`Borrador del nivel ${numero} guardado, revisión ${guardado.revision}.`);
-    } catch(error){anunciar(error.message,'error')} finally {operando=false}
+      actual.borrador=guardado;actual.sucio=actual.edicion!==edicion;actual.vista=null;pintarEditor();
+      anunciar(`Borrador del nivel ${numero} guardado, revisión ${guardado.revision}.${actual.sucio?' Hay cambios posteriores sin guardar.':''}`);
+    } catch(error){anunciar(error.message,'error')} finally {
+      operando=false;botonGuardar.disabled=false;botonGuardar.removeAttribute('aria-busy');
+    }
   }
 
   function urlFuenteValida(valor) {
@@ -310,31 +466,56 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     if(!actual||operando)return;
     if(actual.sucio){anunciar('Guardá el borrador antes de previsualizar.','error');return}
     operando=true;anunciar('Comprobando la red y las ejecuciones con las reglas del jugador…');
-    try {actual.vista=await pedir(`/${actual.numero}/previsualizar`,{method:'POST'});
-      pintarVista(actual.vista);
+    const edicion=actual.edicion;
+    try {
+      const vista=await pedir(`/${actual.numero}/previsualizar`,{method:'POST'});
+      if(actual.edicion!==edicion){anunciar('Guardá y previsualizá nuevamente para revisar los cambios.');return}
+      actual.vista=vista;
+      pintarVista(actual.vista);mostrarSeccion('vista');
       contenedor.querySelector('[data-publicar-nivel]').disabled=!actual.vista.diagnostico.viable;
       anunciar(actual.vista.diagnostico.mensaje,actual.vista.diagnostico.viable?'':'error');
     } catch(error){actual.vista=null;anunciar(error.message,'error')}
     finally {operando=false}
   }
 
+  function pintarEsperaVista(panel,texto) {
+    panel.classList.add('admin-niveles__vista--vacia');
+    panel.replaceChildren(crear('p',texto,'admin-niveles__aviso-vista'));
+  }
+
   function pintarVista(vista) {
     const panel=contenedor.querySelector('[data-vista-previa]');if(!panel)return;
-    panel.hidden=false;
-    panel.replaceChildren(crear('h3','Vista previa para Inicio, Niveles, preparación y Ayuda'));
-    const d=vista.contenido.desafio;
-    panel.append(crear('h4',d.nombre),crear('p',d.relato),crear('p',d.objetivo),crear('p',d.instrucciones));
-    panel.append(crear('strong',`Nivel ${vista.numero} · ${d.dificultad} · ${vista.tarjetas.length} tarjetas`));
-    const lista=crear('ul');
-    for(const condicion of vista.diagnostico.condiciones)
-      lista.append(crear('li',`${condicion.completado?'✓':'Pendiente'} · ${condicion.texto}`));
-    panel.append(lista);
-    for(const tarjeta of vista.tarjetas) {
-      const figura=crear('figure');const imagen=crear('img');imagen.src=tarjeta.idSvgCatalogo;
-      imagen.alt=tarjeta.descripcionImagen;imagen.loading='lazy';
-      figura.append(imagen,crear('figcaption',`${tarjeta.titulo} · ${tarjeta.fuente} · ${tarjeta.urlFuente}`));
-      panel.append(figura);
-    }
+    panel.classList.remove('admin-niveles__vista--vacia');
+    panel.replaceChildren();
+    const cuerpo=crear('div','','admin-niveles__vista-contenido');
+    const mostrar=valor=>{
+      cuerpo.replaceChildren();
+      const d=vista.contenido.desafio;
+      if(valor==='consigna') {
+        cuerpo.className='admin-niveles__vista-contenido admin-niveles__vista-consigna';
+        for(const [nombre,texto] of [['Relato',d.relato],['Objetivo',d.objetivo],['Instrucciones',d.instrucciones]]) {
+          const bloque=crear('div');bloque.append(crear('h3',nombre),crear('p',texto));cuerpo.append(bloque);
+        }
+      } else if(valor==='validacion') {
+        cuerpo.className='admin-niveles__vista-contenido';
+        const lista=crear('ul');
+        for(const condicion of vista.diagnostico.condiciones)
+          lista.append(crear('li',`${condicion.completado?'Cumplido':'Pendiente'} · ${condicion.texto}`));
+        cuerpo.append(lista);
+      } else {
+        cuerpo.className='admin-niveles__vista-contenido admin-niveles__vista-tarjeta';
+        const tarjeta=vista.tarjetas[Number(valor)],imagen=crear('img');
+        imagen.src=tarjeta.idSvgCatalogo;imagen.alt=tarjeta.descripcionImagen;
+        const texto=crear('div');texto.append(crear('h3',tarjeta.titulo),crear('p',tarjeta.texto),
+          crear('p',tarjeta.aprendizaje),crear('p',`${tarjeta.fuente} · ${tarjeta.urlFuente}`));
+        cuerpo.append(imagen,texto);
+      }
+    };
+    campo(panel,'Contenido de la vista previa','consigna',mostrar,{edicion:false,opciones:[
+      {valor:'consigna',texto:'Consigna'}, {valor:'validacion',texto:'Resultado de la validación'},
+      ...vista.tarjetas.map((tarjeta,i)=>({valor:i,texto:`Tarjeta ${i+1} · ${tarjeta.titulo}`})),
+    ]});
+    panel.append(cuerpo);mostrar('consigna');
   }
 
   async function publicarNivel() {
@@ -354,19 +535,21 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     } catch(error){anunciar(error.message,'error')}finally{operando=false}
   }
 
-  async function prepararReversion(version) {
+  async function borrarHistorialSinUso() {
     if(!actual||operando)return;
-    const numero=actual.numero;
-    if(actual.sucio && !await confirmarSistema('Tenés cambios sin guardar. ¿Descartarlos para preparar la reversión?'))return;
-    if(!actual||actual.numero!==numero||operando)return;
-    const origen=actual.versiones.find(item=>item.version===version);
-    const referenciaReutilizada=origen&&!referenciaConstruida(origen.redReferencia);
     operando=true;
     try {
-      await pedir(`/${numero}/versiones/${version}/preparar-reversion`,{method:'POST'});
-      operando=false;await abrir(numero);
-      anunciar(`Versión ${version} copiada al borrador.${referenciaReutilizada?' Se conservó una referencia publicada reciente.':''} Revisá y previsualizá antes de publicar.`);
-    } catch(error){anunciar(error.message,'error')}finally{operando=false}
+      const numero=actual.numero;
+      const versionEsperada=Math.max(...actual.versiones.map(v=>v.version));
+      if(!await confirmarSistema(`¿Eliminar todas las versiones antiguas sin uso del nivel ${numero}? Se conservarán la versión vigente, la del borrador y las vinculadas a partidas. Esta acción no se puede deshacer.`))return;
+      const resultado=await pedir(`/${numero}/versiones/sin-uso?versionEsperada=${versionEsperada}`,{method:'DELETE'});
+      actual.versiones=await pedir(`/${numero}/versiones`);
+      pintarEditor();
+      anunciar(resultado.versionesEliminadas.length
+        ?`Se eliminaron ${resultado.versionesEliminadas.length} versiones sin uso. Se conservaron ${resultado.versionesConservadas}.`
+        :'No hay versiones antiguas sin uso para eliminar.','exito');
+    } catch(error){anunciar(error.message,'error')}
+    finally{operando=false}
   }
 
   return { cargar };
