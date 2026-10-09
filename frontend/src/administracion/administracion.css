@@ -828,14 +828,15 @@ html:root body button.admin-niveles__estado--pendiente { --boton-texto: var(--wa
 .admin-niveles__estado-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .admin-niveles__acciones label { grid-column: 1 / -1; max-width: none; font-size: 13px; }
 .admin-vista--editando > h2 { display: none; }
-.admin-niveles__cabecera { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 10px 12px; }
+.admin-niveles__cabecera { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px 12px; padding: 10px 12px; }
 .admin-niveles__cabecera h2 { grid-column: 1; font-size: 17px; margin: 0; }
 .admin-niveles__cabecera p { grid-column: 1; font-size: 12px; color: var(--text-secondary); }
-.admin-niveles__utilidades { grid-column: 2; grid-row: 1 / 3; justify-self: end; display: flex; align-items: center; gap: 12px; }
+.admin-niveles__utilidades { grid-column: 3; grid-row: 1 / 3; justify-self: end; display: flex; align-items: center; gap: 12px; }
 .admin-niveles__cambios { display: flex; gap: 12px; }
 .admin-niveles__accion-salida { padding-left: 12px; border-left: 1px solid var(--border); }
 html:root body button.admin-niveles__publicar:not(:disabled) { --boton-texto: var(--success); color: var(--success); }
 .admin-niveles__cabecera .admin-niveles__alcance-publicacion {
+  grid-column: 2; grid-row: 1 / 3; justify-self: center;
   max-width: 260px; margin: 0; padding: 6px 10px;
   border: 1px solid var(--danger); background: var(--danger); color: var(--bg-primary);
   font-size: 11px; line-height: 1.4; text-align: center;
@@ -885,7 +886,8 @@ html:root body .admin-niveles__reglas .admin-niveles__quitar-regla > svg { width
 .admin-niveles__regla--compuesta { grid-column: 1 / -1; }
 .admin-niveles__agregar-regla { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 8px; margin-top: 12px; min-width: 0; }
 .admin-niveles__agregar-regla > label { width: 100%; }
-.admin-niveles__agregar-regla:has([data-tipo='lista']) .admin-niveles__campo { grid-template-rows: 2lh auto; }
+.admin-niveles__agregar-regla > .admin-niveles__acciones-lista { width: 100%; }
+html:root body .admin-niveles__panel .admin-niveles__agregar-regla > button { min-height: 32px; height: 32px; padding-block: 5px; }
 .admin-niveles__valor-nueva-regla { min-width: 0; width: 100%; }
 html:root body .admin-niveles__valor-nueva-regla input[type='number'] { width: 100%; text-align: center; }
 /* Campos y acciones independientes: ninguna lista hereda columnas implícitas. */
@@ -898,7 +900,32 @@ html:root body .admin-niveles__valor-nueva-regla input[type='number'] { width: 1
 .admin-niveles__item-valores { min-width: 0; }
 .admin-niveles__acciones-lista { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
 .admin-niveles__acciones-lista > button { flex: 1 1 auto; }
+.admin-niveles__panel--reglas .admin-niveles__acciones-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-niveles__panel--reglas .admin-niveles__acciones-lista > button { width: min(100%, 340px); justify-self: start; }
+.admin-niveles__panel--reglas .admin-niveles__acciones-lista > button:last-child { justify-self: end; }
 .admin-niveles__objeto-valores > .admin-niveles__campo:not(.admin-niveles__campo--casilla) { align-self: stretch; grid-template-rows: 1fr auto; }
+.admin-niveles__panel--reglas .admin-niveles__lista-valores .admin-niveles__campo { grid-template-rows: 2lh auto; align-items: end; row-gap: 4px; text-align: center; }
+.admin-niveles__panel--reglas .admin-niveles__lista-valores input[type='number'] { max-width: none; text-align: center; }
+.admin-niveles__seccion .admin-niveles__lista-valores--lugares {
+  grid-template-columns: minmax(100px, .6fr) minmax(0, 2fr) auto; align-items: end;
+}
+.admin-niveles__panel--reglas .admin-niveles__lista-valores--lugares .admin-niveles__campo { grid-template-rows: auto auto; }
+.admin-niveles__panel--reglas .admin-niveles__lista-valores--lugares .admin-niveles__acciones-lista {
+  grid-column: 3; grid-row: 1; grid-template-columns: repeat(2, 32px); gap: 8px;
+}
+html:root body .admin-niveles__lista-valores--lugares .admin-niveles__acciones-lista > button {
+  width: 32px; min-width: 32px; max-width: 32px; height: 32px; min-height: 32px; padding: 5px; flex-basis: 32px;
+}
+html:root body .admin-niveles__lista-valores--lugares .metronet-boton-icono > svg { width: 20px; height: 20px; flex-basis: 20px; }
+.admin-niveles__regla--compuesta[data-regla-nivel='puntosInteresObjetivo'] { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+html:root body [data-regla-nivel='puntosInteresObjetivo'] > .admin-niveles__quitar-regla {
+  align-self: end; width: 32px; min-width: 32px; max-width: 32px; height: 32px; min-height: 32px; padding: 4px;
+}
+html:root body [data-regla-nivel='puntosInteresObjetivo'] > .admin-niveles__quitar-regla > svg { width: 22px; height: 22px; flex-basis: 22px; }
+@media (max-width: 720px) {
+  .admin-niveles__seccion .admin-niveles__lista-valores--lugares { grid-template-columns: minmax(0, 1fr); }
+  .admin-niveles__panel--reglas .admin-niveles__lista-valores--lugares .admin-niveles__acciones-lista { grid-column: 1; grid-row: auto; justify-self: end; }
+}
 .admin-niveles__herramientas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
 .admin-niveles__panel--tarjetas { display: flex; flex-direction: column; gap: 10px; }
 .admin-niveles__selector-tarjeta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; flex-shrink: 0; }
@@ -980,7 +1007,7 @@ html:root body :is(.admin-niveles__paginas .admin-niveles__pagina, .admin-nivele
   .admin-niveles__paneles { flex: 1; min-height: 0; overflow: auto; }
   .admin-niveles__panel { min-height: 100%; }
   .admin-niveles__panel--reglas { height: 100%; gap: clamp(6px, 1dvh, 12px); }
-  .admin-niveles__condiciones { flex: 1; gap: clamp(6px, 1.2dvh, 14px); }
+  .admin-niveles__condiciones { flex: 0 0 auto; gap: clamp(6px, 1.2dvh, 14px); }
   .admin-niveles__grupo-reglas { flex: 1; gap: clamp(4px, .8dvh, 9px); }
   .admin-niveles__grupo-reglas:first-child { flex-grow: 1.35; }
   .admin-niveles__grupo-reglas > :is(.admin-niveles__reglas, .admin-niveles__reglas-detalle) { flex: 1; }
@@ -994,14 +1021,20 @@ html:root body :is(.admin-niveles__paginas .admin-niveles__pagina, .admin-nivele
   .admin-niveles__panel--desafio { height: 100%; grid-template-rows: auto minmax(0, 1fr); align-content: stretch; }
   .admin-niveles__panel--desafio > .admin-niveles__campo--texto { grid-template-rows: auto minmax(0, 1fr); align-content: stretch; min-height: 0; }
   html:root body .admin-niveles__panel--desafio textarea { height: 100%; min-height: 0; resize: none; }
-  .admin-niveles__agregar-regla { margin: 0; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); align-items: start; align-content: start; gap: 12px 20px; }
+  .admin-niveles__agregar-regla { margin: 0; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr) auto; align-items: start; align-content: start; gap: 12px; }
   .admin-niveles__agregar-regla > label { grid-column: 1; grid-row: 1; }
-  .admin-niveles__agregar-regla > button { grid-column: 1; grid-row: 2; }
-  .admin-niveles__valor-nueva-regla { grid-column: 2; grid-row: 1 / 3; }
+  .admin-niveles__agregar-regla > button { grid-column: 3; grid-row: 1; justify-self: end; margin-top: calc(var(--admin-subtitulo-tamano, 13px) * 1.4 + .4rem); }
+  .admin-niveles__valor-nueva-regla { grid-column: 2; grid-row: 1; }
+  .admin-niveles__agregar-regla:has([data-tipo='lista']) > label { grid-column: 1 / 3; }
+  .admin-niveles__agregar-regla[data-regla='areasObjetivo'] { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) auto; }
+  .admin-niveles__agregar-regla[data-regla='areasObjetivo'] > label { grid-column: 1; }
+  .admin-niveles__agregar-regla > .admin-niveles__acciones-lista { grid-column: 2; grid-row: 1; margin-top: calc(var(--admin-subtitulo-tamano, 13px) * 1.4 + .4rem); }
+  html:root body .admin-niveles__agregar-regla > .admin-niveles__acciones-lista > button { width: 100%; height: 32px; min-height: 32px; padding-block: 5px; }
+  .admin-niveles__valor-nueva-regla[data-tipo='lista'] { grid-column: 1 / -1; grid-row: 2; }
   .admin-niveles__valor-nueva-regla[data-tipo='boolean'],
   .admin-niveles__valor-nueva-regla[data-tipo='object'] { padding-top: calc(var(--admin-subtitulo-tamano, 13px) * 1.4 + .4rem); }
   .admin-niveles__valor-nueva-regla :is(.admin-niveles__campo--casilla) { min-height: 32px; }
-  .admin-niveles__seccion .admin-niveles__herramientas { flex: .7; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; margin: 0; padding: clamp(8px, 1.2dvh, 14px); gap: 6px 12px; }
+  .admin-niveles__seccion .admin-niveles__herramientas { flex: 0 0 auto; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; margin: 0; padding: 8px 10px; gap: 6px 12px; }
   .admin-niveles__herramientas legend { font-size: 12px; }
   .admin-niveles__regla--compuesta { grid-template-columns: minmax(0, 1fr) 44px; align-items: start; gap: 6px; padding: 6px; }
   .admin-niveles__regla--compuesta > .admin-niveles__quitar-regla { grid-column: 2; grid-row: 1; }
@@ -1034,6 +1067,7 @@ html:root body :is(.admin-niveles__paginas .admin-niveles__pagina, .admin-nivele
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto minmax(0, 1fr); gap: 6px 12px;
   }
   .admin-niveles__panel--reglas:has(.admin-niveles__opciones:not([hidden])) .admin-niveles__grupo-reglas:first-child,
+  .admin-niveles__panel--reglas:has(.admin-niveles__opciones:not([hidden])) .admin-niveles__grupo-reglas:has(.admin-niveles__detalle-regla[open]),
   .admin-niveles__panel--reglas:has(.admin-niveles__opciones:not([hidden])) .admin-niveles__herramientas { grid-column: 1 / -1; }
   .admin-niveles__grupo-reglas { gap: 4px; }
   .admin-niveles__reglas .admin-niveles__regla { padding: 6px; }
@@ -1095,8 +1129,8 @@ html:root body .admin-niveles__panel :is(input:not([type='checkbox']),textarea) 
   .admin-niveles__panel--desafio textarea { min-height: 112px; }
   .admin-niveles__cabecera { grid-template-columns: minmax(0, 1fr); }
   .admin-niveles__cabecera h2 { grid-column: 1; }
-  .admin-niveles__cabecera .admin-niveles__alcance-publicacion { max-width: 100%; }
-  .admin-niveles__utilidades { grid-column: 1; grid-row: 3; justify-self: end; flex-wrap: wrap; justify-content: flex-end; }
+  .admin-niveles__cabecera .admin-niveles__alcance-publicacion { grid-column: 1; grid-row: 3; max-width: 100%; }
+  .admin-niveles__utilidades { grid-column: 1; grid-row: 4; justify-self: end; flex-wrap: wrap; justify-content: flex-end; }
   .admin-niveles__acciones { grid-template-columns: minmax(0, 1fr); }
   .admin-niveles__acciones label, .admin-niveles__acciones > button { grid-column: 1; grid-row: auto; }
   .admin-niveles__acciones button { width: 100%; }

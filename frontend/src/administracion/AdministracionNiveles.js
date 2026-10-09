@@ -150,6 +150,8 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const opcionesEdicion={alEditar,repintar};
     if(Array.isArray(valor)) {
       const grupo=crear('fieldset','','admin-niveles__lista-valores'); grupo.append(crear('legend',etiqueta(nombre)));
+      const lugares=nombre==='puntosInteresObjetivo';
+      if(lugares)grupo.classList.add('admin-niveles__lista-valores--lugares');
       if(valor.length)plantillasListas.set(valor,copiar(valor[0]));
       const plantilla=plantillasListas.get(valor)??reglasIniciales.get(nombre)?.[0];
       let activo=0;
@@ -164,11 +166,14 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       });
       const acciones=crear('div','','admin-niveles__acciones-lista');
       const quitar=crear('button','Quitar','admin-secundario metronet-boton--peligro metronet-boton--destacado');quitar.type='button';
+      if(lugares)configurarBotonIcono(quitar,'restar','Quitar lugar seleccionado');
       quitar.disabled=!valor.length;
       quitar.addEventListener('click',()=>{valor.splice(activo,1);actualizar(valor);alEditar();repintar()});
       acciones.append(quitar);
       if(plantilla!==undefined) {
         const agregar=crear('button',`Agregar ${etiqueta(nombre).toLowerCase()}`,'admin-secundario metronet-boton--exito metronet-boton--destacado');agregar.type='button';
+        if(lugares)configurarBotonIcono(agregar,'sumar','Agregar lugares objetivo');
+        if(nombre==='areasObjetivo')agregar.classList.replace('metronet-boton--exito','metronet-boton--advertencia');
         agregar.addEventListener('click',()=>{valor.push(copiar(valor.at(-1)??plantilla));actualizar(valor);alEditar();repintar()});
         acciones.append(agregar);
       }
@@ -194,7 +199,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const utilidades=crear('div','','admin-niveles__utilidades');
     const avisoPublicacion=crear('p','Publicá para aplicar','admin-niveles__alcance-publicacion');
     avisoPublicacion.append(crear('br'),document.createTextNode('todos los cambios.'));
-    utilidades.append(avisoPublicacion);
+    cabecera.append(avisoPublicacion);
     const cambios=crear('div','','admin-niveles__cambios');
     cambios.setAttribute('role','group');cambios.setAttribute('aria-label','Cambios del nivel');
     const estado=crear('button','','admin-secundario admin-niveles__estado');estado.type='button';
@@ -279,7 +284,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       if(typeof valor==='boolean')fila.classList.add('admin-niveles__regla--casilla');
       editarValor(fila,clave,valor,nuevo=>{datos.reglasExito[clave]=nuevo});
       const quitar=crear('button','','admin-secundario admin-niveles__quitar-regla'); quitar.type='button';
-      configurarBotonIcono(quitar,'eliminar',`Quitar ${etiqueta(clave)}`);
+      configurarBotonIcono(quitar,'eliminar',clave==='puntosInteresObjetivo'?'Eliminar toda la regla de lugares objetivo':`Quitar ${etiqueta(clave)}`);
       quitar.addEventListener('click',()=>{delete datos.reglasExito[clave];marcarSucio();pintarEditor()});
       fila.append(quitar);
       if(compuesta) {
@@ -299,10 +304,19 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       {opciones:opcionesRegla,edicion:false});
     const valoresRegla=crear('div','','admin-niveles__valor-nueva-regla');
     const pintarValorRegla=()=>{
+      nuevaRegla.querySelector(':scope > .admin-niveles__acciones-lista')?.remove();
+      nuevaRegla.dataset.regla=agregarRegla.value;
       valoresRegla.replaceChildren();
       valoresRegla.dataset.tipo=Array.isArray(valorRegla)?'lista':typeof valorRegla;
       if(agregarRegla.value)editarValor(valoresRegla,agregarRegla.value,valorRegla,nuevo=>{valorRegla=nuevo},
         {alEditar:()=>{},repintar:pintarValorRegla});
+      if(agregarRegla.value==='areasObjetivo') {
+        const acciones=valoresRegla.querySelector('.admin-niveles__acciones-lista');
+        const agregarArea=acciones.lastElementChild;
+        agregarArea.setAttribute('aria-label',agregarArea.textContent);
+        agregarArea.textContent='Agregar barrio o zona';
+        nuevaRegla.append(acciones);
+      }
     };
     const prepararRegla=()=>{valorRegla=copiar(conocidas.get(agregarRegla.value));pintarValorRegla()};
     prepararRegla();

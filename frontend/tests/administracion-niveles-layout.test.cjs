@@ -23,6 +23,9 @@ for(const viewport of [{width:1280,height:720},{width:1440,height:900},{width:19
       const medidas=await p.locator('.admin-niveles__paneles').evaluate(n=>({alto:n.clientHeight,contenido:n.scrollHeight}));
       assert(medidas.contenido<=medidas.alto+1,`${clave}: formulario sin desplazamiento (${medidas.contenido}/${medidas.alto})`);
       const borde=await bloque.boundingBox(),menu=await selector.boundingBox();
+      const accion=await bloque.getByRole('button',{name:'Agregar regla admitida',exact:true}).boundingBox();
+      assert(Math.abs(accion.y+accion.height/2-menu.y-menu.height/2)<2,`${clave}: agregar a la altura del menú`);
+      assert(Math.abs(accion.x+accion.width-borde.x-borde.width)<2,`${clave}: agregar en el borde derecho`);
       for(const control of await campos.locator('input,select,button').filter({visible:true}).all()) {
         const caja=await control.boundingBox();
         assert(caja.x>=borde.x&&caja.x+caja.width<=borde.x+borde.width+1,`${clave}: control dentro del ancho`);
@@ -44,13 +47,30 @@ for(const viewport of [{width:1280,height:720},{width:1440,height:900},{width:19
       if(await lista.count()) {
         const controles=campos.locator('input');
         const cajas=await Promise.all((await controles.all()).map(n=>n.boundingBox()));
+        const elemento=await lista.boundingBox();
+        assert(cajas.every(c=>Math.abs(c.y-elemento.y)<2),`${clave}: Elemento alineado con los demás campos`);
         assert(cajas.every(c=>Math.abs(c.y-cajas[0].y)<2),`${clave}: campos en una fila`);
-        for(const nombre of ['Quitar',`Agregar ${(await selector.locator('option:checked').innerText()).toLowerCase()}`]) {
-          const boton=campos.getByRole('button',{name:nombre,exact:true});
+        for(const nombre of [clave==='puntosInteresObjetivo'?'Quitar lugar seleccionado':'Quitar',`Agregar ${(await selector.locator('option:checked').innerText()).toLowerCase()}`]) {
+          const boton=bloque.getByRole('button',{name:nombre,exact:true});
           const caja=await boton.boundingBox();
-          assert(caja.y>=Math.max(...cajas.map(c=>c.y+c.height))+5,`${clave}: ${nombre} debajo de los campos`);
+          if(clave==='areasObjetivo')assert(Math.abs(caja.y-menu.y)<2,`${clave}: ${nombre} en la fila del menú`);
+          else if(clave==='puntosInteresObjetivo')assert(Math.abs(caja.y-elemento.y)<2,`${clave}: ${nombre} en la fila de los campos`);
+          else assert(caja.y>=Math.max(...cajas.map(c=>c.y+c.height))+5,`${clave}: ${nombre} debajo de los campos`);
           const color=await boton.evaluate(n=>getComputedStyle(n).backgroundColor);
-          assert.equal(color,nombre==='Quitar'?'rgb(255, 141, 169)':'rgb(112, 229, 177)');
+          assert.equal(color,nombre.startsWith('Quitar')?'rgb(255, 141, 169)':clave==='areasObjetivo'?'rgb(255, 208, 120)':'rgb(112, 229, 177)');
+        }
+        const acciones=await bloque.locator('.admin-niveles__acciones-lista > button').evaluateAll(ns=>ns.map(n=>{
+          const r=n.getBoundingClientRect();return {x:r.x,y:r.y,ancho:r.width,alto:r.height};
+        }));
+        assert(Math.abs(acciones[0].ancho-acciones[1].ancho)<1&&Math.abs(acciones[0].alto-acciones[1].alto)<1,`${clave}: agregar y quitar tienen iguales dimensiones`);
+        assert(Math.abs(acciones[0].y-acciones[1].y)<1&&acciones[0].x+acciones[0].ancho<acciones[1].x,`${clave}: acciones separadas a izquierda y derecha`);
+        if(clave==='areasObjetivo') {
+          await bloque.getByRole('button',{name:'Agregar barrios y zonas objetivo',exact:true}).click();
+          assert.equal(await lista.locator('option').count(),2,'La acción reubicada agrega un área');
+          await lista.selectOption('1');
+          await campos.getByLabel('Nombre',{exact:true}).filter({visible:true}).fill('CENTRO');
+          await bloque.getByRole('button',{name:'Quitar',exact:true}).click();
+          assert.equal(await lista.locator('option').count(),1,'La acción reubicada quita el área seleccionada');
         }
       }
       if(process.env.METRONET_CAPTURAS_ADMIN&&['areasObjetivo','aprendizajeSimulacion','maximoEstaciones'].includes(clave))
@@ -188,8 +208,14 @@ test('Una lista vacía permite volver a agregar y editar lugares objetivo',async
   await p.getByRole('tab',{name:'Reglas',exact:true}).click();
   await p.locator('.admin-niveles__detalle-regla > summary').filter({hasText:'Lugares objetivo'}).click();
   const regla=p.locator('[data-regla-nivel="puntosInteresObjetivo"]');
-  await regla.getByRole('button',{name:'Quitar',exact:true}).click();
-  await regla.getByRole('button',{name:'Quitar',exact:true}).click();
+  assert.equal(await regla.getByRole('button',{name:'Eliminar toda la regla de lugares objetivo',exact:true}).count(),1,'Borrado de regla diferenciado del lugar seleccionado');
+  const quitar=regla.getByRole('button',{name:'Quitar lugar seleccionado',exact:true});
+  const idInicial=await regla.getByLabel('Id Punto',{exact:true}).filter({visible:true}).inputValue();
+  await regla.getByLabel('Elemento',{exact:true}).selectOption('1');
+  await quitar.click();
+  assert.equal(await regla.getByLabel('Id Punto',{exact:true}).inputValue(),idInicial,'Quitar conserva el otro lugar');
+  await quitar.click();
+  assert.equal(await quitar.isDisabled(),true,'Una lista vacía no permite quitar otro lugar');
   const agregar=regla.getByRole('button',{name:'Agregar lugares objetivo',exact:true});
   assert.equal(await agregar.isEnabled(),true);
   await agregar.click();await regla.getByLabel('Id Punto',{exact:true}).fill('18');
@@ -197,6 +223,11 @@ test('Una lista vacía permite volver a agregar y editar lugares objetivo',async
   await p.getByRole('button',{name:'Guardar cambios del nivel',exact:true}).click();
   await p.getByText(/Borrador del nivel 1 guardado/).waitFor();
   assert.deepEqual(solicitudes.find(s=>s.method==='PUT').body.reglasExito.puntosInteresObjetivo,[{idPunto:18,radioCobertura:20}]);
+  await regla.getByRole('button',{name:'Eliminar toda la regla de lugares objetivo',exact:true}).click();
+  assert.equal(await regla.count(),0,'El basurero elimina toda la regla');
+  await p.getByRole('button',{name:'Guardar cambios del nivel',exact:true}).click();
+  await p.getByText(/Borrador del nivel 1 guardado, revisión 3/).waitFor();
+  assert.equal('puntosInteresObjetivo' in solicitudes.filter(s=>s.method==='PUT').at(-1).body.reglasExito,false);
 });
 
 for(const viewport of [{width:1920,height:1080},{width:1440,height:900},{width:1366,height:768},{width:1280,height:720},{width:768,height:1024},{width:390,height:844},{width:320,height:740}]) {
@@ -321,7 +352,7 @@ test('Reglas legibles y mapa de referencia ocupa la altura disponible',async t=>
   const boton=await p.getByRole('button',{name:'Agregar regla admitida',exact:true}).boundingBox();
   const herramientas=await p.locator('.admin-niveles__herramientas').boundingBox();
   assert(lista.y>=herramientas.y+herramientas.height,'Agregar regla aparece debajo de herramientas');
-  assert(boton.y>=lista.y+lista.height&&Math.abs(boton.x-lista.x)<2,'Agregar queda debajo y alineado con el selector');
+  assert(Math.abs(boton.y+boton.height/2-lista.y-lista.height/2)<2&&boton.x>lista.x+lista.width,'Agregar queda a la derecha en la misma fila que el selector');
   await p.getByRole('tab',{name:'Red de referencia',exact:true}).click();
   assert.equal(await p.getByText(/Ubicá estaciones en el mapa/).count(),0);
   const mapa=p.locator('.admin-red-referencia__mapa');
@@ -510,7 +541,7 @@ test('Las 70 tarjetas y las reglas de los diez niveles caben a 1280×720',async 
 });
 
 for(const viewport of [{width:1280,height:720},{width:1920,height:1080}]) {
-  test(`Agregar regla con cantidad previa y menú hacia abajo a ${viewport.width}`,async t=>{
+  test(`Agregar regla con cantidad previa y menú hacia abajo dentro de pantalla a ${viewport.width}`,async t=>{
     const {pagina:p,solicitudes}=await abrirEditor(t,viewport,1);
     await p.getByRole('tab',{name:'Reglas',exact:true}).click();
     const agregar=p.getByLabel('Regla admitida para agregar',{exact:true});
@@ -529,8 +560,10 @@ for(const viewport of [{width:1280,height:720},{width:1920,height:1080}]) {
     const caja=await agregar.boundingBox();
     const opcion=await agregar.locator('option').first().boundingBox();
     if(process.env.METRONET_CAPTURAS_ADMIN)await p.screenshot({path:`${process.env.METRONET_CAPTURAS_ADMIN}/admin-reglas-abierto-${viewport.width}.png`});
-    assert(opcion.y>=caja.y+caja.height,`La lista abre por debajo del selector (${opcion.y}/${caja.y+caja.height})`);
-    assert(opcion.y+opcion.height<=viewport.height,'Primera opción dentro de la pantalla');
+    assert(opcion.y>=0&&opcion.y+opcion.height<=viewport.height,'Primera opción completa dentro de la pantalla');
+    assert(opcion.y>=caja.y+caja.height,'El menú abre hacia abajo sin tapar el selector');
+    await agregar.locator('option').last().click();
+    assert.equal(await agregar.inputValue(),await agregar.locator('option').last().getAttribute('value'),'La última opción se puede seleccionar');
     await p.keyboard.press('Escape');
   });
 }
@@ -553,7 +586,8 @@ test('Casillas próximas al texto, papelera alineada y objetivos de simulación 
     assert.equal(await p.getByRole('heading',{name:titulo,exact:true}).isVisible(),true);
   const panel=await p.getByRole('tabpanel',{name:'Reglas',exact:true}).boundingBox();
   const herramientas=await p.locator('.admin-niveles__herramientas').boundingBox();
-  assert(Math.abs(panel.y+panel.height-herramientas.y-herramientas.height-13)<3,'Los grupos ocupan hasta el borde inferior disponible');
+  assert(herramientas.height<=60,'Herramientas ocupa una franja compacta');
+  assert(herramientas.y+herramientas.height<panel.y+panel.height,'Queda espacio debajo de las herramientas');
   if(process.env.METRONET_CAPTURAS_ADMIN)await p.screenshot({path:`${process.env.METRONET_CAPTURAS_ADMIN}/admin-reglas-cantidades.png`});
   await p.getByText('Objetivos de simulación',{exact:true}).first().click();
   const objetivos=p.locator('[data-regla-nivel="aprendizajeSimulacion"]');
