@@ -81,6 +81,31 @@ body.metronet-pagina-administracion .metronet-navegacion {
   padding-top: var(--space-xl, 32px);
 }
 
+/* Decoración fija del hueco lateral: no recibe eventos ni participa del layout. */
+.admin-senal-ferroviaria {
+  position: fixed;
+  left: var(--admin-lateral-padding);
+  bottom: var(--space-lg);
+  width: calc(var(--admin-menu-width) - 2 * var(--admin-lateral-padding));
+  height: min(360px, calc(100svh - 420px));
+  pointer-events: none;
+  user-select: none;
+}
+.admin-senal-ferroviaria image { image-rendering: pixelated; }
+.admin-senal-ferroviaria__luz {
+  fill: #ff414d;
+  mix-blend-mode: screen;
+  animation: admin-senal-alternar 2s steps(1, end) infinite;
+}
+.admin-senal-ferroviaria__luz--derecha { animation-delay: -1s; }
+@keyframes admin-senal-alternar { 0%, 100% { opacity: .55; } 50% { opacity: 0; } }
+@media (max-width: 920px), (max-height: 640px) {
+  .admin-senal-ferroviaria { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-senal-ferroviaria__luz { animation: none; opacity: .25; }
+}
+
 .admin-contenido {
   min-width: 0;
   padding: clamp(12px, 1.8vw, 20px) clamp(12px, 1.5vw, 20px) var(--space-2xl, 48px);
