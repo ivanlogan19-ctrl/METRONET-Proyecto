@@ -77,7 +77,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: error de login conserva mÃ
   assert.equal(await p.locator(audio).getAttribute('src'), '/audio/welcome-theme.mp3');
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
   await p.evaluate(() => document.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-  await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+  await p.waitForURL('**/inicio.html');
   await reproduciendo(p);
   assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
   assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 2);

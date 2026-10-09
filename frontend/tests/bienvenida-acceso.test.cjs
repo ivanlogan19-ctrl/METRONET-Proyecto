@@ -59,7 +59,7 @@ async function capturar(p, nombre) {
 }
 
 for (const rol of ['JUGADOR', 'ADMIN']) {
-  test(`${rol}: una bienvenida después de guardar sesión, un POST y destino original`, async t => {
+  test(`${rol}: una bienvenida después de guardar sesión, un POST y llegada a Inicio`, async t => {
     const { pagina: p, solicitudes, navegaciones } = await preparar(t, rol);
     const inicio = Date.now();
     await ingresar(p, rol);
@@ -87,10 +87,10 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     assert.equal(await pantalla(p).locator('svg, [role="progressbar"]').count(), 0);
     assert.equal(await pantalla(p).locator('canvas').evaluate(e => getComputedStyle(e).imageRendering), 'pixelated');
     await capturar(p, `bienvenida-${rol.toLowerCase()}`);
-    await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+    await p.waitForURL('**/inicio.html');
     assert.ok(Date.now() - inicio >= 9300, 'La escena completa su recorrido visual');
     assert.ok(Date.now() - inicio < 14500, 'La pista larga no retiene el acceso');
-    assert.deepEqual(navegaciones, [rol === 'ADMIN' ? '/admin.html' : '/inicio.html']);
+    assert.deepEqual(navegaciones, ['/inicio.html']);
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
     assert.equal(await p.evaluate(() => sessionStorage.getItem('metronet:bienvenida-pendiente')), null);
     assert.equal(await pantalla(p).count(), 0);
@@ -109,7 +109,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     await ingresar(p, rol);
     await pantalla(p).waitFor();
     await p.locator('[data-continuar-bienvenida]').click();
-    await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+    await p.waitForURL('**/inicio.html');
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 2);
   });
 
@@ -124,7 +124,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
     await p.evaluate(() => { for (let i = 0; i < 3; i++) document.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
     assert.equal(await pantalla(p).count(), 1);
     await p.keyboard.press('Escape');
-    await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+    await p.waitForURL('**/inicio.html');
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
     assert.equal(navegaciones.length, 1);
   });
@@ -132,8 +132,15 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
   test(`${rol}: recargar durante bienvenida conserva sesión y continúa sin repetir el login`, async t => {
     const { pagina: p, solicitudes } = await preparar(t, rol);
     await ingresar(p, rol); await pantalla(p).waitFor();
+    // Una bienvenida pendiente de una versión anterior también termina en Inicio.
+    await p.evaluate(rol => {
+      const clave = 'metronet:bienvenida-pendiente';
+      const pendiente = JSON.parse(sessionStorage.getItem(clave));
+      pendiente.destino = rol === 'ADMIN' ? '/admin.html' : '/perfil.html';
+      sessionStorage.setItem(clave, JSON.stringify(pendiente));
+    }, rol);
     await p.reload();
-    await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+    await p.waitForURL('**/inicio.html');
     assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
     assert.equal(await pantalla(p).count(), 0);
   });
@@ -144,7 +151,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
       if (rol === 'ADMIN' && new URL(p.url()).pathname === '/login.html') await p.goto(p.url().replace('/login.html', '/admin-login.html'));
       await ingresar(p, rol); await pantalla(p).waitFor();
       await p.locator('[data-continuar-bienvenida]').click();
-      await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+      await p.waitForURL('**/inicio.html');
       if (vuelta === 0) {
         await p.locator('.metronet-navegacion__usuario > summary').click();
         await p.locator('.metronet-navegacion__menu-usuario').getByRole('button', { name: 'Cerrar sesión' }).click();
@@ -157,19 +164,25 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
   });
 }
 
-for (const [busqueda, destino] of [['?destino=%2Fperfil.html', '/perfil.html'], ['?destino=https%3A%2F%2Fexample.test', '/inicio.html'], ['?destino=%2F%2Fejemplo.test', '/inicio.html']]) {
-  test(`jugador conserva resolución previa de destino ${busqueda}`, async t => {
-    const { pagina: p } = await preparar(t, 'JUGADOR', { busqueda });
-    await ingresar(p); await pantalla(p).waitFor();
-    await p.locator('[data-continuar-bienvenida]').click();
-    await p.waitForURL(url => url.pathname === destino);
-  });
+for (const rol of ['JUGADOR', 'ADMIN']) {
+  for (const busqueda of ['?destino=%2Fperfil.html', '?destino=%2Fadmin.html', '?destino=https%3A%2F%2Fexample.test', '?destino=%2F%2Fejemplo.test']) {
+    test(`${rol}: el ingreso siempre llega a Inicio aunque exista ${busqueda}`, async t => {
+      const { pagina: p } = await preparar(t, rol, { busqueda });
+      p.setDefaultTimeout(4000);
+      await ingresar(p, rol); await pantalla(p).waitFor();
+      await p.locator('[data-continuar-bienvenida]').click();
+      await p.waitForURL('**/inicio.html');
+      assert.equal(await p.locator('.metronet-navegacion a[href="/admin.html"]').count() > 0, rol === 'ADMIN');
+    });
+  }
 }
 
 test('acceso de jugador no habilita la página de administración', async t => {
   const { pagina: p, solicitudes } = await preparar(t, 'JUGADOR', { busqueda: '?destino=%2Fadmin.html' });
   await ingresar(p); await pantalla(p).waitFor();
   await p.locator('[data-continuar-bienvenida]').click();
+  await p.waitForURL('**/inicio.html');
+  await p.goto(p.url().replace('/inicio.html', '/admin.html'));
   await p.waitForURL('**/admin-login.html');
   assert.equal(solicitudes.some(s => s.path.startsWith('/api/admin/')), false);
 });

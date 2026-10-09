@@ -50,12 +50,12 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: un solo MP3 sin bucle acom
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
   const duracion = await p.locator(audio).evaluate(a => a.duration);
   assert.ok(duracion > 32.5 && duracion < 32.7);
-  await p.waitForURL(rol === 'ADMIN' ? '**/admin.html' : '**/inicio.html');
+  await p.waitForURL('**/inicio.html');
   const fin = await p.evaluate(() => JSON.parse(sessionStorage.getItem('prueba:fin-audio')));
   assert.equal(fin.src, pista);
   assert.ok(fin.tiempo >= 8.5 && fin.tiempo < 13, 'La música suena durante el viaje visual y se corta al salir');
   assert.ok(Date.now() - fin.fin < 1500);
-  assert.deepEqual(navegaciones, [rol === 'ADMIN' ? '/admin.html' : '/inicio.html']);
+  assert.deepEqual(navegaciones, ['/inicio.html']);
   assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
   assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
 });

@@ -59,7 +59,7 @@ formulario.addEventListener("submit", async (evento) => {
     const sesion = await respuesta.json();
     if (!paginaActiva) return;
     guardarSesionAdministrador(sesion);
-    navegando = await continuarConBienvenida(sesion, "/admin.html");
+    navegando = await continuarConBienvenida(sesion);
   } catch (error) {
     mostrarMensaje(error.message, "error");
   } finally {

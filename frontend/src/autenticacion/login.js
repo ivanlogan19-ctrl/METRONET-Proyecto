@@ -1,5 +1,4 @@
 import { continuarConBienvenida, reanudarBienvenida } from "./BienvenidaAcceso.js";
-import { obtenerDestinoSeguro } from './DestinoSeguro.js';
 import {
   activarVisibilidadContrasena,
   establecerCarga,
@@ -83,16 +82,10 @@ formulario.addEventListener("submit", async (evento) => {
     if (!paginaActiva) return;
     guardarSesionUsuario(sesionUsuario);
 
-    const destino = obtenerDestino();
-    navegando = await continuarConBienvenida(sesionUsuario, destino);
+    navegando = await continuarConBienvenida(sesionUsuario);
   } catch (error) {
     mostrarMensaje(error.message, "error");
   } finally {
     if (!navegando) { envioEnCurso = false; establecerCarga(botonIngresar, false); }
   }
 });
-
-function obtenerDestino() {
-  const destino = new URLSearchParams(window.location.search).get("destino");
-  return obtenerDestinoSeguro(destino);
-}

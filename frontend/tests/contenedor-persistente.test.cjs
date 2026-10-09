@@ -106,7 +106,7 @@ for(const rol of ['ADMIN','JUGADOR']) test(`Login/logout ${rol}: pistas original
   await sonar(p,'portada'); await v.locator(admin?'#usuario':'#email').fill(admin?'operador':'prueba@example.test');
   await v.locator('#password').fill('Prueba1!'); await v.locator(admin?'#loginAdminButton':'#loginButton').click();
   await v.locator('.metronet-bienvenida').waitFor(); await sonar(p,'welcome');
-  await v.locator('[data-continuar-bienvenida]').click(); await v.waitForURL(`**/${admin?'admin':'inicio'}.html`); await sonar(p);
+  await v.locator('[data-continuar-bienvenida]').click(); await v.waitForURL('**/inicio.html'); await sonar(p);
   await v.locator('.metronet-navegacion__usuario>summary').click(); await v.getByRole('button',{name:'Cerrar sesión',exact:true}).click();
   await v.waitForURL('**/login.html'); await sonar(p,'portada');
   assert.equal(await p.evaluate(()=>localStorage.getItem('sesionAdministrador')||localStorage.getItem('sesionUsuario')),null);
