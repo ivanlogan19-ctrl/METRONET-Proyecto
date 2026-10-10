@@ -35,7 +35,8 @@ export default class PanelReferenciasTerritoriales {
       if (encabezado?.getAttribute('aria-expanded') === 'true') this.mostrarListaGeografica(encabezado);
     });
     for (const tipo of ['barrios','zonas']) {
-      const b=document.createElement('button'); b.type='button'; configurarBotonIcono(b, 'previsualizar', `Mostrar ${tipo}`); b.dataset.capaGeografica=tipo;
+      const b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label', `Mostrar ${tipo}`); b.title = `Mostrar ${tipo}`;
+      b.innerHTML = '<span class="metronet-poi__casilla" aria-hidden="true"></span>'; b.dataset.capaGeografica=tipo;
       b.addEventListener('click',()=>{this.geografia[tipo]=!this.geografia[tipo];this.alCambiarGeografia?.({...this.geografia});this.actualizarGeografia();});
       this.geografico.querySelector('.metronet-poi__visibilidad').append(b);
     }

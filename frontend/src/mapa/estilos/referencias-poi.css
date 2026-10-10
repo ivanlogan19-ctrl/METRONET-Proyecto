@@ -137,3 +137,8 @@ html:root body .metronet-poi [data-contenedor-selectores-mapa] > :first-child .m
 html:root body .metronet-poi [data-contenedor-selectores-mapa] > :last-child .metronet-panel-encabezado { grid-row:4; }
 .metronet-poi [data-contenedor-selectores-mapa] > :first-child .metronet-panel-contenido { grid-row:3; }
 .metronet-poi [data-contenedor-selectores-mapa] > :last-child .metronet-panel-contenido { grid-row:5; }
+
+/* Casillas de capas: activación visible sin confundirla con previsualizar. */
+.metronet-poi__visibilidad button { display:grid; place-items:center; }
+.metronet-poi__casilla { display:block; width:16px; height:16px; border:2px solid var(--border-active); box-sizing:border-box; padding:2px; background:var(--bg-primary); background-clip:content-box; }
+.metronet-poi__visibilidad button[aria-pressed='true'] .metronet-poi__casilla { background-color:var(--border-active); }

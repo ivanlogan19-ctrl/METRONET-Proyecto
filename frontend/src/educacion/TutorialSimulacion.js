@@ -113,7 +113,7 @@ export function pasosSimulacion(numero) {
   if (numero !== 1 && Number.isInteger(numero)) return [];
   return [...PASOS.slice(0,2), PASOS[7], PASOS[9], PASOS[11],
     ['.simulacion-ritmo', 'Ritmo visual ×', 'El ritmo cambia qué tan rápido ves la simulación; no modifica UV ni horas simuladas.'],
-    ...PASOS.slice(2,7), ['#seccionMetricas', 'Resultados', 'Al terminar, el nivel comprueba automáticamente la ejecución y actualiza su progreso. No necesitás abrir resultados para completarlo.']];
+    ...PASOS.slice(2,7)];
 }
 
 export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel) {

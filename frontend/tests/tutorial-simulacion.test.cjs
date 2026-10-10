@@ -263,3 +263,30 @@ test('Reiniciar la campaña vuelve a ofrecer el recorrido de Simulación complet
   await guia.waitFor();
   assert.equal(await guia.getAttribute('data-objetivo'), '#visorSimulacion');
 });
+
+test('Primera entrada: tutorial automático solo en niveles con aprendizaje nuevo', async () => {
+  for (const numero of [1,2,3,4,5,6,7,8,9,10]) {
+    const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
+      if (new URL(req.url()).pathname === '/api/juego/progreso') return {json:{
+        escenarios:[{idEscenario:42,numero,nombre:`Nivel ${numero}`,cantidadIntentosCampana:1,desbloqueado:true}],
+        numeroCampanaActual:1,
+      }};
+    }});
+    try {
+      const p = v.pagina;
+      await p.waitForFunction(() => document.querySelector('#velocidadUnidad')?.value === '40');
+      const corresponde = [1,2,3,4,9].includes(numero);
+      if (corresponde) await p.locator('.metronet-recorrido').waitFor();
+      assert.equal(await p.locator('.metronet-recorrido').count(), corresponde ? 1 : 0, `Nivel ${numero}`);
+      if (corresponde) {
+        assert.equal(await p.locator('[data-recorrido-siguiente]').evaluate(e=>e.getBoundingClientRect().width),30);
+        await p.getByRole('button',{name:'Omitir',exact:true}).click();
+        await p.reload();
+        await p.waitForFunction(() => document.querySelector('#velocidadUnidad')?.value === '40');
+        assert.equal(await p.locator('.metronet-recorrido').count(),0, `No repetir en nivel ${numero}`);
+      }
+      assert.equal(v.solicitudes.filter(s=>s.method !== 'GET').length,0);
+      assert.deepEqual(v.errores,[]);
+    } finally { await v.contexto.close(); }
+  }
+});

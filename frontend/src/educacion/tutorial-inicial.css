@@ -70,4 +70,6 @@ html:root body dialog.metronet-recorrido { background:var(--panel); color:var(--
 .metronet-recorrido__cabecera { display:flex; gap:12px; align-items:center; }
 .metronet-recorrido__cabecera [data-recorrido-icono] { display:flex; color:var(--warning); flex:0 0 28px; }
 .metronet-recorrido__cabecera svg { width:28px; height:28px; }
-html:root body dialog.metronet-recorrido .metronet-boton-icono { width:40px; min-width:40px; height:40px; min-height:40px; padding:6px; }
+html:root body dialog.metronet-recorrido .metronet-boton-icono { width:30px; min-width:30px; max-width:30px; flex:0 0 30px; height:30px; min-height:30px; padding:5px; }
+
+html:root body dialog.metronet-recorrido .metronet-boton-icono > .metronet-icono { width:18px; height:18px; flex-basis:18px; }
