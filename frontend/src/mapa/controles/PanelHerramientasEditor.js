@@ -3,8 +3,8 @@ const HERRAMIENTAS = [
   ['estaciones', 'Estación', 'Construcción'],
   ['lineas', 'Línea', 'Construcción'],
   ['conexiones', 'Conexión', 'Construcción'],
+  ['metros', 'Metros', 'Construcción'],
   ['seleccion', 'Seleccionar', 'Edición'],
-  ['metros', 'Metros', 'Unidades'],
 ];
 
 // Solo organiza controles y estados visuales. Las operaciones siguen en EditorRedMetro.
@@ -21,11 +21,16 @@ export default class PanelHerramientasEditor {
     const categorias = new Map();
     for (const [clave, nombre, categoria] of HERRAMIENTAS) {
       if (!categorias.has(categoria)) {
-        const grupo = document.createElement('fieldset');
-        const leyenda = document.createElement('legend');
-        leyenda.textContent = categoria;
-        grupo.append(leyenda);
-        categorias.set(categoria, grupo);
+        const grupo = document.createElement('section');
+        grupo.className = 'metronet-editor-bloque';
+        grupo.setAttribute('aria-label', categoria);
+        const titulo = document.createElement('h3');
+        titulo.className = 'metronet-editor-bloque__titulo';
+        titulo.textContent = categoria;
+        const botones = document.createElement('div');
+        botones.className = 'metronet-editor-bloque__botones';
+        grupo.append(titulo, botones);
+        categorias.set(categoria, botones);
         barra.append(grupo);
       }
       const boton = document.createElement('button');

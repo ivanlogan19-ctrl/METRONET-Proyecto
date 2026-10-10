@@ -138,10 +138,11 @@ export default class EditorRedMetro {
     this.agregarListaContextual('lineas', 'data-lista-lineas', 'Líneas existentes');
     this.obtener('[data-linea-gestion]')?.closest('.metronet-editor-fila')?.setAttribute('hidden', '');
     const finalizacion = document.createElement('section');
-    finalizacion.className = 'metronet-editor-finalizar';
-    finalizacion.innerHTML = '<header class="metronet-editor-finalizar__cabecera"><h3>Acciones</h3></header>';
+    finalizacion.className = 'metronet-editor-finalizar metronet-editor-bloque';
+    finalizacion.setAttribute('aria-label', 'Acciones');
+    finalizacion.innerHTML = '<h3 class="metronet-editor-bloque__titulo">Acciones</h3>';
     if (accionesFinales) {
-      accionesFinales.classList.add('metronet-editor-finalizar__acciones');
+      accionesFinales.classList.add('metronet-editor-finalizar__acciones', 'metronet-editor-bloque__botones');
       this.obtener('[data-guardar]')?.classList.add('metronet-accion-advertencia');
       this.obtener('[data-ir-simulacion]')?.classList.add('metronet-accion-simulacion');
       const botonSimular = this.obtener('[data-ir-simulacion]');
@@ -158,7 +159,7 @@ export default class EditorRedMetro {
     [['[data-guardar]', 'guardar', 'Guardar diseño'], ['[data-ir-simulacion]', 'play', 'Simular diseño']]
       .forEach(([selector, icono, texto]) => configurarBotonIcono(this.obtener(selector), icono, texto));
     const finalizar = this.obtener('[data-finalizar-red]');
-    finalizar.innerHTML = `${iconoRetro('finalizarRed')}<span>Finalizar red</span>`;
+    configurarBotonIcono(finalizar, 'finalizarRed', 'Finalizar red');
     finalizar.title = 'Guardar y comprobar toda la consigna para aprobar el nivel';
     this.obtener('[data-linea-conexion]').addEventListener('change', evento => this.creacionDirecta.elegirLinea(evento.target.value));
 
@@ -748,7 +749,7 @@ export default class EditorRedMetro {
     panelEditor?.setAttribute('aria-label', tituloHerramientas);
     panelEditor?.classList.toggle('metronet-panel-nivel', esEscenarioProgresivo);
     const tituloAcciones = this.contenedorPieEditor?.querySelector('.metronet-editor-finalizar h3');
-    if (tituloAcciones) tituloAcciones.textContent = 'Acciones de nivel';
+    if (tituloAcciones) tituloAcciones.textContent = 'Acciones';
     this.panelHerramientas?.actualizarDisponibilidad(herramientas, esEscenarioProgresivo);
     const consigna = this.obtenerContenedorConsigna();
     consigna.hidden = !this.escenarioJuegoActual;
@@ -831,6 +832,7 @@ export default class EditorRedMetro {
       ? objetivosCompactos(consignaActual.condiciones, escenario?.numero) : [];
     const referencias = detalleDisponible ? this.obtenerReferenciasObjetivoConsigna() : [];
     const esNivel = Number.isInteger(escenario?.numero);
+    this.contenedorObjetivos?.classList.toggle('metronet-objetivos-panel--nivel', esNivel);
     this.contenedorObjetivos?.classList.toggle('metronet-objetivos-panel--extendido',
       esNivel && escenario.numero >= 5 && escenario.numero <= 10);
 
@@ -844,24 +846,12 @@ export default class EditorRedMetro {
 
     const cabecera = document.createElement('header');
     cabecera.className = 'metronet-consigna__cabecera';
-    const contextoGrupo = document.createElement('div');
-    contextoGrupo.className = 'metronet-consigna__contexto-grupo';
-    const contexto = document.createElement('p');
-    contexto.className = 'metronet-consigna__contexto';
-    contexto.textContent = esNivel ? '' : this.obtenerContextoConsigna(escenario);
-    contexto.hidden = !contexto.textContent;
-    const estado = document.createElement('span');
-    estado.className = 'metronet-consigna__estado';
-    estado.textContent = this.obtenerEstadoConsigna(escenario, consignaActual);
-    estado.classList.toggle('es-cargando', this.estadoConsigna === 'cargando');
-    if (!esNivel) contextoGrupo.append(contexto, estado);
-    if (!esNivel) cabecera.append(contextoGrupo);
 
     const resumen = document.createElement('div');
     resumen.className = 'metronet-consigna__resumen';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-consigna__titulo';
-    titulo.textContent = esNivel ? 'Objetivos' : this.obtenerTituloConsigna(escenario);
+    titulo.textContent = esNivel ? 'Metas del nivel' : this.obtenerTituloConsigna(escenario);
     cabecera.prepend(titulo);
     const resumenActivo = document.createElement('div');
     resumenActivo.className = 'metronet-consigna__resumen-activo';
@@ -870,7 +860,7 @@ export default class EditorRedMetro {
       listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';
       listaBreve.style.setProperty('--cantidad-objetivos', String(condiciones.length));
       listaBreve.tabIndex = 0;
-      listaBreve.setAttribute('aria-label', 'Objetivos del nivel');
+      listaBreve.setAttribute('aria-label', 'Metas del nivel');
       condiciones
         .forEach(condicion => listaBreve.append(this.crearElementoCondicionConsigna(condicion)));
       resumenActivo.append(listaBreve);
@@ -878,7 +868,7 @@ export default class EditorRedMetro {
       const listaBreve = document.createElement('ul');
       listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';
       listaBreve.style.setProperty('--cantidad-objetivos', '1');
-      listaBreve.setAttribute('aria-label', 'Objetivos del nivel');
+      listaBreve.setAttribute('aria-label', 'Metas del nivel');
       const objetivo = document.createElement('li');
       objetivo.className = 'es-objetivo-general';
       const indicador = document.createElement('span');
@@ -890,14 +880,12 @@ export default class EditorRedMetro {
       objetivo.append(indicador, texto);
       listaBreve.append(objetivo);
       resumenActivo.append(listaBreve);
-    } else {
+    } else if (esNivel) {
       const objetivoBreve = document.createElement('p');
       objetivoBreve.className = 'metronet-consigna__objetivo-breve';
-      objetivoBreve.textContent = !esNivel
-        ? String(escenario.objetivo || escenario.instrucciones || 'Sin objetivo definido para esta actividad.')
-        : this.estadoConsigna === 'cargando'
-          ? 'Cargando objetivos…'
-          : 'Todavía no hay objetivos definidos para este nivel.';
+      objetivoBreve.textContent = this.estadoConsigna === 'cargando'
+        ? 'Cargando metas…'
+        : 'Todavía no hay metas definidas para este nivel.';
       resumenActivo.append(objetivoBreve);
     }
     resumen.append(resumenActivo);
@@ -909,7 +897,7 @@ export default class EditorRedMetro {
       cabeceraReferencias.className = 'metronet-consigna__cabecera';
       const tituloReferencias = document.createElement('h3');
       tituloReferencias.className = 'metronet-consigna__titulo';
-      tituloReferencias.textContent = 'Objetivos de POI';
+      tituloReferencias.textContent = 'Lugares a conectar';
       cabeceraReferencias.append(tituloReferencias);
       const listaReferencias = document.createElement('ul');
       listaReferencias.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-referencias';
@@ -936,22 +924,10 @@ export default class EditorRedMetro {
     return boton;
   }
 
-  obtenerContextoConsigna(escenario) {
-    if (Number.isInteger(escenario?.numero)) return `Nivel ${escenario.numero}`;
-    if (escenario?.modo === 'EDICION_LIBRE') return 'Modo Libre';
-    return 'Actividad';
-  }
-
   obtenerTituloConsigna(escenario) {
     const nombre = String(escenario?.nombre ?? '').trim();
     const titulo = nombre.replace(/^nivel\s+\d+\s*[·:—-]\s*/i, '').trim();
     return titulo || nombre || 'Objetivo del nivel';
-  }
-
-  obtenerEstadoConsigna(escenario, consigna) {
-    if (this.estadoConsigna === 'cargando') return 'Actualizando';
-    if (this.estadoConsigna === 'disponible' && consigna?.estadoGlobal) return this.formatearEstado(consigna.estadoGlobal);
-    return this.formatearEstado(escenario.estado ?? 'EN_DISENO');
   }
 
   crearElementoCondicionConsigna(condicion) {
@@ -965,7 +941,7 @@ export default class EditorRedMetro {
     indicador.className = 'metronet-consigna__indicador-objetivo';
     indicador.classList.toggle('es-estrella', condicion.completado);
     indicador.setAttribute('aria-hidden', 'true');
-    indicador.textContent = condicion.completado ? '★' : '';
+    indicador.innerHTML = condicion.completado ? iconoRetro('poi') : '';
     const texto = document.createElement('span');
     texto.className = 'metronet-consigna__texto-objetivo';
     texto.textContent = condicion.texto;
@@ -998,7 +974,7 @@ export default class EditorRedMetro {
     indicador.className = 'metronet-consigna__indicador-objetivo';
     indicador.classList.toggle('es-estrella', referencia.cubierto);
     indicador.setAttribute('aria-hidden', 'true');
-    indicador.textContent = referencia.cubierto ? '★' : '';
+    indicador.innerHTML = referencia.cubierto ? iconoRetro('poi') : '';
     const nombre = document.createElement('span');
     nombre.className = 'metronet-consigna__texto-objetivo';
     nombre.textContent = referencia.nombre;

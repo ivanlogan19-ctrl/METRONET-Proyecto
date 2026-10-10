@@ -73,7 +73,8 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   assert.equal(await p.locator('.metronet-recorrido__marca').isHidden(), true,
     'El marco debe ocultarse cuando el objetivo sale por completo de pantalla');
   await p.evaluate(() => document.getElementById('espacioPruebaRecorrido').remove());
-  await p.setViewportSize({ width, height: 210 });
+  // Sin el contador, la tarjeta cabe en 210 px; forzar una altura realmente insuficiente.
+  await p.setViewportSize({ width, height: 160 });
   const tarjetaBaja = await tutorial.evaluate(e => ({ alto: e.clientHeight, contenido: e.scrollHeight }));
   assert.ok(tarjetaBaja.contenido > tarjetaBaja.alto, 'La tarjeta debe permitir scroll interno en ventanas bajas');
   await p.evaluate(() => {
@@ -108,6 +109,8 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++) {
     const caja = await tutorial.boundingBox();
     assert.ok(caja.x >= 0 && caja.x + caja.width <= width, 'Burbuja dentro del viewport');
+    assert.equal(await tutorial.locator('[data-recorrido-progreso]').isVisible(), false);
+    assert.doesNotMatch(await tutorial.innerText(), /RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
     await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
   }
   assert.match(await tutorial.innerText(),/¡Listo para simular!/i);

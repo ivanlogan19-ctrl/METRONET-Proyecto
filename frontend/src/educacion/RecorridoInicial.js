@@ -74,7 +74,9 @@ export default class RecorridoInicial {
     // Los objetivos pueden ser reemplazados al refrescar la consigna.
     if (paso && !this.opciones.pasosDinamicos && !senalable(this.objetivo)) { this.indice++; this.mostrar(); return; }
     this.dialogo.dataset.objetivo = paso?.[0] ?? 'fin';
-    this.dialogo.querySelector('[data-recorrido-progreso]').textContent = paso ? `RECORRIDO // ${this.indice + 1} DE ${this.pasos.length}` : 'RECORRIDO COMPLETADO';
+    const estado = this.dialogo.querySelector('[data-recorrido-progreso]');
+    estado.hidden = Boolean(paso);
+    estado.textContent = paso ? '' : 'RECORRIDO COMPLETADO';
     this.dialogo.querySelector('h2').textContent = paso?.[1] ?? this.opciones.tituloFinal ?? '¡Listos para construir!';
     this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? this.opciones.textoFinal ?? 'Ya conocés los controles. Podés comenzar a construir la red.';
     this.dialogo.querySelector('[data-recorrido-siguiente]').hidden = !paso || Boolean(paso[3]);

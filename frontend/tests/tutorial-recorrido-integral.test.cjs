@@ -16,6 +16,8 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
  const titulos=[];
  while(await p.locator('.metronet-recorrido [data-recorrido-siguiente]:visible').count()) {
   titulos.push(await p.locator('.metronet-recorrido h2').textContent());
+  assert.equal(await p.locator('[data-recorrido-progreso]').isVisible(),false);
+  assert.doesNotMatch(await p.locator('.metronet-recorrido').innerText(),/RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
   const r=await p.locator('.metronet-recorrido').boundingBox();
   assert.ok(r.x>=0 && r.x+r.width<=width+1,'La guía queda dentro del ancho visible');
   await p.locator('[data-recorrido-siguiente]').click();

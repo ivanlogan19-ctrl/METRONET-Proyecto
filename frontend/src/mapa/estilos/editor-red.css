@@ -161,24 +161,24 @@ body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
   color: var(--text-secondary);
 }
 .metronet-consigna__lista-objetivos { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.metronet-consigna__lista-objetivos li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; min-height: 24px; gap: 6px; color: var(--text-secondary); font-size: 11px; line-height: 1.35; }
-.metronet-consigna__lista-objetivos li.es-objetivo-general { grid-template-columns: 14px minmax(0, 1fr); }
+.metronet-consigna__lista-objetivos li { display: grid; grid-template-columns: 18px minmax(0, 1fr) 5ch; align-items: center; min-height: 32px; gap: 8px; color: var(--text-secondary); font-size: 11px; line-height: 1.35; }
+.metronet-consigna__lista-objetivos li + li { border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent); }
+.metronet-consigna__lista-objetivos li.es-objetivo-general { grid-template-columns: 18px minmax(0, 1fr); }
 .metronet-consigna__lista-objetivos .es-completo { color: var(--text-primary); }
-.metronet-consigna__indicador-objetivo { flex: 0 0 14px; color: var(--text-disabled); font-family: var(--font-tecnica); font-size: 15px; font-weight: 700; line-height: 1; text-align: center; }
+.metronet-consigna__indicador-objetivo { display: grid; place-items: center; width: 18px; height: 18px; color: var(--text-disabled); }
+.metronet-consigna__indicador-objetivo:not(.es-estrella)::before { content: ''; width: 10px; height: 10px; border: 1px solid var(--border); }
+.metronet-consigna__indicador-objetivo .metronet-icono { width: 18px; height: 18px; }
 .metronet-consigna__lista-objetivos .es-completo .metronet-consigna__indicador-objetivo { color: var(--success); }
 .metronet-consigna__lista-objetivos .es-completo .metronet-consigna__indicador-objetivo.es-estrella {
   color: var(--warning);
   font-size: 18px;
   line-height: 1;
 }
-.metronet-referencias-objetivo .metronet-consigna__lista-referencias .es-completo .metronet-consigna__indicador-objetivo.es-estrella {
-  color: var(--text-primary);
-}
 .metronet-consigna__texto-objetivo { min-width: 0; }
-.metronet-consigna__avance-objetivo { color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; white-space: nowrap; }
+.metronet-consigna__avance-objetivo { color: var(--text-secondary); font-family: var(--font-tecnica); font-size: 10px; font-weight: 700; text-align: right; white-space: nowrap; }
 .metronet-consigna__lista-objetivos .es-completo .metronet-consigna__avance-objetivo { color: var(--success); }
 .metronet-consigna__lista-referencias { grid-auto-rows: max-content; gap: 5px; }
-.metronet-consigna__lista-referencias li { grid-template-columns: 14px minmax(0, 1fr); }
+.metronet-consigna__lista-referencias li { grid-template-columns: 18px minmax(0, 1fr); padding: 6px 0; }
 .metronet-consigna__progreso { display: grid; gap: 5px; min-height: 31px; padding-top: 2px; }
 .metronet-consigna__progreso-encabezado { color: var(--text-secondary); font-size: 10px; }
 .metronet-consigna__progreso-encabezado strong { color: var(--text-primary); font-family: var(--font-tecnica); font-size: 10px; }
@@ -704,17 +704,17 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-pane
   background: transparent;
 }
 .metronet-referencias-objetivo {
-  max-height: min(26svh, 260px);
+  max-height: none;
   overflow: visible;
   border-top: var(--border-width) solid var(--border);
 }
 .metronet-referencias-objetivo .metronet-consigna__referencias { gap: 0; }
 .metronet-referencias-objetivo .metronet-consigna__lista-referencias {
   grid-template-columns: minmax(0, 1fr);
-  gap: 4px;
-  align-content: center;
+  gap: 0;
+  align-content: start;
   min-height: 0;
-  margin: 0 12px 10px;
+  margin: 4px 12px;
   text-align: left;
 }
 .metronet-consigna__resumen {
@@ -733,7 +733,7 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-pane
   -webkit-line-clamp: unset;
 }
 .metronet-consigna__lista-breve {
-  gap: 4px;
+  gap: 0;
   grid-auto-rows: max-content;
   align-content: start;
   min-height: 0;
@@ -741,7 +741,7 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-pane
   overflow: visible;
 }
 .metronet-consigna__lista-breve:focus-visible { outline: 2px solid var(--info-active); outline-offset: -2px; }
-.metronet-consigna__lista-breve li { align-items: start; min-height: 20px; padding: 1px 0; line-height: 1.45; }
+.metronet-consigna__lista-breve li { align-items: center; min-height: 32px; padding: 6px 0; line-height: 1.45; }
 .metronet-consigna__lista-breve .metronet-consigna__texto-objetivo { overflow-wrap: anywhere; }
 .metronet-consigna__lista-breve .metronet-consigna__texto-objetivo,
 .metronet-consigna__lista-referencias .metronet-consigna__texto-objetivo {
@@ -909,7 +909,7 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
     padding: 6px;
   }
   #metronet-panel-controles.metronet-panel-nivel .metronet-panel-editor-contenido {
-    padding-bottom: 0;
+    padding-bottom: 8px;
   }
   #metronet-panel-controles .metronet-panel-editor-contenido {
     overflow: visible;
@@ -1021,43 +1021,52 @@ html:root body .metronet-aviso-guardado {
   pointer-events: none;
 }
 
-#metronet-panel-controles .metronet-editor-finalizar__acciones {
-  justify-content: center;
-  gap: 18px;
-  margin-top: 16px;
-  width: 100%;
-}
-
-/* Construcción y Unidades comparten fila; Edición agrupa cuatro iconos debajo. */
+/* Los mismos bloques e iconos para todos los niveles y Modo libre. */
 #metronet-panel-controles .metronet-herramientas__barra {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px 8px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
 }
 #metronet-panel-controles .metronet-herramientas { gap: 8px; }
-#metronet-panel-controles .metronet-herramientas__barra fieldset { padding: 2px 4px; }
-#metronet-panel-controles .metronet-herramientas__barra legend { margin-bottom: 2px; }
-#metronet-panel-controles .metronet-herramientas__barra fieldset:first-child {
-  grid-column: 1;
-  grid-row: 1;
-  justify-self: start;
+html:root body #metronet-panel-controles .metronet-editor-bloque {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border: var(--border-width) solid var(--border);
+  background: var(--panel);
 }
-#metronet-panel-controles .metronet-herramientas__barra fieldset:nth-child(2) {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  justify-self: start;
-  flex-wrap: nowrap;
+html:root body #metronet-panel-controles .metronet-editor-bloque > .metronet-editor-bloque__titulo {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  font: 700 12px/1.25 var(--font-arcade);
+  letter-spacing: .04em;
+  text-align: left;
+  text-transform: uppercase;
+  text-shadow: none;
 }
-#metronet-panel-controles .metronet-herramientas__barra fieldset:nth-child(2) legend {
+html:root body #metronet-panel-controles .metronet-editor-bloque__titulo::before { content: none; }
+html:root body #metronet-panel-controles .metronet-editor-bloque__botones {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
   width: 100%;
-  text-align: center;
 }
-#metronet-panel-controles .metronet-herramientas__barra fieldset:last-child {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  margin-left: 0;
+html:root body #metronet-panel-controles .metronet-editor-bloque__botones > button.metronet-boton-icono {
+  width: 100%;
+  min-width: 44px;
+  max-width: none;
+  height: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 6px;
 }
 
 /* Misma tipografía en Modo libre y niveles: la de Referencias de Montevideo. */
@@ -1173,24 +1182,35 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar__cabecera {
     grid-template-rows: minmax(0, 1fr);
     min-height: 0;
   }
-  .metronet-objetivos-panel .metronet-consigna__lista-breve {
-    height: 100%;
-    max-height: calc(60px + var(--cantidad-objetivos, 1) * 22px);
-    min-height: max-content;
-    gap: 0;
-    align-self: center;
-    align-content: space-evenly;
-  }
   #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) #metronet-panel-controles.metronet-panel-nivel {
     display: grid;
-    flex: 1 1 auto;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    flex: 0 0 auto;
+    grid-template-rows: auto auto auto;
     align-self: stretch;
-    min-height: 275px;
+    min-height: 0;
     overflow: hidden;
   }
   #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) #metronet-panel-controles.metronet-panel-nivel .metronet-panel-editor-contenido {
-    align-content: center;
+    align-content: start;
+  }
+}
+
+/* Las listas no recortan metas ni lugares en ventanas pequeñas. */
+#metronet-aplicacion .metronet-objetivos-panel--nivel {
+  grid-template-rows: auto auto;
+  max-height: none;
+  overflow: visible;
+}
+/* En escritorio las filas reparten la altura y las acciones llegan al pie del mapa. */
+@media (min-width: 921px) {
+  #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) .metronet-objetivos-panel--nivel {
+    flex: 1 1 auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .metronet-objetivos-panel--nivel .metronet-consigna__lista-breve {
+    grid-auto-rows: auto;
+    align-self: stretch;
+    align-content: stretch;
   }
 }
 
@@ -1205,18 +1225,9 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar__cabecera {
   }
   #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) .metronet-lateral-editor { gap: 4px; }
   .metronet-consigna-externa .metronet-consigna__resumen { padding-block: 7px; }
-  #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) #metronet-panel-controles.metronet-panel-nivel { min-height: 265px; }
 }
 
-/* La entrega del nivel es una acción explícita, separada de guardar y probar. */
-#metronet-panel-controles .metronet-editor-finalizar__acciones > [data-finalizar-red] {
-  flex: 1 1 100%;
-  width: 100%;
-  min-width: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  white-space: normal;
+#metronet-panel-controles .metronet-editor-bloque__botones > [data-finalizar-red] {
+  grid-column: span 2;
 }
 #metronet-panel-controles [data-finalizar-red][hidden] { display: none; }
