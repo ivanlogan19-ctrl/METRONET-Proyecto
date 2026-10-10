@@ -7,25 +7,24 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   contenedor.limpiarSelectorMetro?.();
   contenedor.innerHTML = `
     <section class="simulacion-grupo-metros">
-      <h3 class="simulacion-seccion-titulo">Metro</h3>
+      <h3 class="simulacion-seccion-titulo">Metros</h3>
       <details class="simulacion-selector-metros">
-        <summary aria-expanded="false"><span data-seleccion-metro></span></summary>
+        <summary aria-expanded="false">${iconoRetro('metros')}<span data-seleccion-metro></span></summary>
         <select id="unidadCirculacion" aria-label="Metro" aria-hidden="true" tabindex="-1"></select>
         <div class="simulacion-selector-metros__opciones" role="group" aria-label="Elegir metro"></div>
       </details>
-    </section>
     <section class="simulacion-configuracion-metros" aria-labelledby="tituloConfiguracionMetros">
-      <h3 id="tituloConfiguracionMetros" class="simulacion-seccion-titulo">UT / UV por Metro</h3>
       <details class="simulacion-configuracion-metros__desplegable">
-        <summary aria-label="Ver UT y UV por metro">Ver por metro</summary>
+        <summary title="Consultar la velocidad y duración de cada metro">${iconoRetro('metros')}<span id="tituloConfiguracionMetros">Detalle de metros</span></summary>
         <div class="simulacion-configuracion-metros__lista">
           <p data-nivel-configuracion></p>
           <ul></ul>
         </div>
       </details>
     </section>
+    </section>
     <section class="simulacion-grupo-velocidad">
-    <h3 class="simulacion-seccion-titulo">Unidad de velocidad</h3>
+    <h3 class="simulacion-seccion-titulo">Velocidad · UV</h3>
     <form class="simulacion-parametro-velocidad">
       <fieldset data-controles-circulacion>
         <div class="simulacion-parametro-titulo">${iconoRetro('velocidad')}<span>Velocidad</span></div>

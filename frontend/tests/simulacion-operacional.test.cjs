@@ -79,7 +79,7 @@ for (const n of catalogoRecorrido) test(`Nivel ${n.numero}: aplicar UV/UT permit
 
 test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t => {
   const { pagina: p, red } = await abrir(t);
-  assert.equal(await p.locator('#tituloConfiguracionMetros').textContent(), 'UT / UV por Metro');
+  assert.equal(await p.locator('#tituloConfiguracionMetros').textContent(), 'Detalle de metros');
   const configuracion = p.locator('.simulacion-configuracion-metros__desplegable');
   assert.equal(await configuracion.locator('summary').isVisible(), true);
   assert.equal(await configuracion.locator('li').first().isVisible(), false);
@@ -255,6 +255,7 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
         .map(selector => document.querySelector(selector).getBoundingClientRect());
       const titulo = document.querySelector('.simulacion-grupo-velocidad > .simulacion-seccion-titulo');
       return {
+        limites: { panel: panel.toJSON(), bloques: bloques.map(r => r.toJSON()) },
         dentro: bloques.every(rect => rect.left >= panel.left && rect.right <= panel.right)
           && bloques[0].top >= panel.top && bloques.at(-1).bottom <= panel.bottom,
         ordenados: bloques.every((rect, indice) => indice === 0 || rect.top >= bloques[indice - 1].bottom),
@@ -263,18 +264,28 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
         espacios: bloques.slice(1).map((rect, indice) => rect.top - bloques[indice].bottom),
       };
     });
-    assert.equal(distribucion.dentro, true);
+    assert.equal(distribucion.dentro, true, JSON.stringify(distribucion.limites));
     assert.equal(distribucion.ordenados, true);
     assert.equal(distribucion.tituloEnLinea, true);
     if (width > 1050) {
       assert.ok(distribucion.sobrante <= 2, `Espacio libre al pie: ${distribucion.sobrante}`);
-      assert.ok(distribucion.espacios[0] <= 10);
-      assert.ok(distribucion.espacios[2] <= 10);
+      assert.equal(distribucion.espacios[0], 12);
+      assert.equal(distribucion.espacios[2], 12);
       assert.ok(distribucion.espacios[1] >= distribucion.espacios[0]);
+    }
+    for (const selector of ['.simulacion-parametro-velocidad .simulacion-parametro-valor', '#seccionConfiguracion .simulacion-parametro-valor']) {
+      const filas = await p.locator(selector).evaluate(e => [...e.querySelectorAll('input, button')].map(c => c.getBoundingClientRect().top));
+      assert.ok(Math.max(...filas) - Math.min(...filas) <= 1, 'Valor y acciones deben compartir una fila');
+      const altos = await p.locator(selector).evaluate(e => [...e.querySelectorAll('input, button')].map(c => c.getBoundingClientRect().height));
+      assert.ok(altos.every(alto => alto === 44), 'Todos los controles de parámetros tienen el mismo alto');
     }
     const mapa = await p.locator('#visorSimulacion').boundingBox();
     const panel = await p.locator('#instrumentosSimulacion').boundingBox();
-    if (width > 1050) { assert.ok(panel.x >= mapa.x + mapa.width); assert.ok(panel.width >= 220 && panel.width <= 232); }
+    if (width > 1050) {
+      assert.ok(panel.x >= mapa.x + mapa.width);
+      assert.ok(Math.abs(panel.y - mapa.y) <= 1);
+      assert.ok(Math.abs(panel.height - mapa.height) <= 1, 'El panel debe ocupar todo el alto del mapa');
+    }
     else assert.ok(panel.y > mapa.y + mapa.height);
     await seleccionarMetro(p, '2');
     await p.locator('#velocidadUnidad').focus();
@@ -333,14 +344,19 @@ test('Separación uniforme, números centrados sin spinner y acciones con colore
       const bloque = document.querySelector(selector);
       return bloque.querySelector('summary').getBoundingClientRect().top - bloque.querySelector('h3').getBoundingClientRect().bottom;
     };
-    return { metros: separacion('.simulacion-grupo-metros'), ficha: separacion('.simulacion-configuracion-metros'),
+    const grupo = document.querySelector('.simulacion-grupo-metros');
+    const ficha = grupo.querySelector('.simulacion-configuracion-metros summary').getBoundingClientRect();
+    const selector = grupo.querySelector('.simulacion-selector-metros').getBoundingClientRect();
+    return { metros: separacion('.simulacion-grupo-metros'), ficha: ficha.top - selector.bottom,
+      menus: [grupo.querySelector('.simulacion-selector-metros summary'), grupo.querySelector('.simulacion-configuracion-metros summary')].map(e => ({width: e.getBoundingClientRect().width, height: e.getBoundingClientRect().height})),
       campos: [...document.querySelectorAll('#velocidadUnidad, #duracionSimulacion')].map(e => {
         const css = getComputedStyle(e);
         return { alineacion: css.textAlign, izquierda: css.paddingLeft, derecha: css.paddingRight, apariencia: css.appearance };
       }) };
   });
   assert.ok(medidas.ficha >= 4);
-  assert.equal(medidas.ficha, medidas.metros);
+  assert.deepEqual(medidas.menus[0], medidas.menus[1]);
+  assert.equal(medidas.menus[0].height, 44);
   for (const campo of medidas.campos) {
     assert.equal(campo.alineacion, 'center');
     assert.equal(campo.izquierda, campo.derecha);

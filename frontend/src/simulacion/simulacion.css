@@ -573,80 +573,95 @@ html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button[
   .simulacion-selector-metros__opciones { width: 210px; }
 }
 
-/* Conserva los cinco bloques y los controles completos a partir de 1280 × 720. */
-@media (min-width: 1051px) and (max-height: 760px) {
-  .simulacion-acciones-panel .simulacion-mandos { padding-block: 4px !important; }
-  .simulacion-grupo-metros,
-  .simulacion-configuracion-metros,
-  .simulacion-instrumentos #seccionConfiguracion { margin-top: 4px !important; }
-  .simulacion-grupo-metros,
-  .simulacion-grupo-velocidad { gap: 4px; padding-bottom: 4px; }
-  .simulacion-configuracion-metros { gap: 4px; }
-  .simulacion-configuracion-metros__desplegable { margin-bottom: 4px; }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-desempeno, .simulacion-parametros) { padding-bottom: 4px; }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-selector-metros > summary, .simulacion-configuracion-metros__desplegable > summary) {
-    min-height: 36px;
-    padding-block: 5px;
-  }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(input, .simulacion-parametro-valor > button[type='button']) {
-    min-height: 36px;
-    height: 36px;
-  }
-  html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type='submit'].metronet-boton-icono,
-  html:root body.simulacion-pagina #aplicarUnidadTiempo.metronet-boton-icono { min-height: 38px; height: 38px; }
-  html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo { min-height: 28px; padding-block: 4px; }
-  html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono { min-height: 40px; height: 40px; }
+/* El panel comparte el alto del mapa; los controles mantienen un tamaño uniforme. */
+.simulacion-pagina { --simulacion-panel-ancho: clamp(280px, 22vw, 320px); }
+.simulacion-instrumentos {
+  --simulacion-control-alto: 44px;
+  gap: 12px;
+  border: 0;
+  background: none;
 }
-
-/* Distribución proporcional dentro del alto que ya comparte con el mapa. */
+.simulacion-instrumentos :is(.simulacion-acciones-panel, .simulacion-grupo-metros, .simulacion-grupo-velocidad, #seccionConfiguracion) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  margin: 0;
+  min-width: 0;
+  border: var(--border-width) solid var(--border-active);
+  background: var(--panel);
+  padding: 0 0 8px;
+}
+.simulacion-instrumentos .simulacion-grupo-metros { grid-template-rows: auto repeat(2, minmax(44px, 1fr)); }
+.simulacion-instrumentos .simulacion-grupo-metros > :not(h3) { align-self: center; }
+.simulacion-instrumentos .simulacion-configuracion-metros {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.simulacion-instrumentos .simulacion-configuracion-metros[hidden] { display: none; }
+.simulacion-configuracion-metros__desplegable { margin-block: 0; }
+.simulacion-instrumentos #seccionConfiguracion {
+  grid-template-rows: auto 1fr 44px 1fr;
+  gap: 6px;
+  margin-top: 0;
+}
+.simulacion-instrumentos #seccionConfiguracion > .simulacion-parametro-titulo { align-self: end; }
+.simulacion-grupo-velocidad fieldset { height: 100%; grid-template-rows: 1fr 44px 1fr; gap: 6px; }
+.simulacion-grupo-velocidad .simulacion-parametro-titulo { align-self: end; }
+html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-valor {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto 32px 44px;
+  grid-template-rows: 44px;
+  gap: 6px;
+  align-items: center;
+}
+html:root body.simulacion-pagina .simulacion-instrumentos .simulacion-parametro-valor :is(input, button),
+html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="submit"].metronet-boton-icono {
+  width: 100%;
+  height: 44px;
+  min-width: 0;
+  max-width: none;
+  min-height: 44px;
+  padding: 4px;
+  grid-column: auto;
+}
+html:root body.simulacion-pagina .simulacion-parametro-valor .metronet-boton-icono { color: var(--info-active); }
+.simulacion-instrumentos :is(.simulacion-parametro-velocidad button[type='submit'], #aplicarUnidadTiempo)::after { content: none; }
+html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-selector-metros, .simulacion-configuracion-metros__desplegable) > summary {
+  height: 44px;
+  min-height: 44px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 8px 30px 8px 10px;
+  font-size: 11px;
+}
+.simulacion-instrumentos summary .metronet-icono { width: 24px; height: 24px; flex: 0 0 24px; color: var(--info-active); }
+.simulacion-instrumentos summary > span { min-width: 0; overflow-wrap: anywhere; }
+.simulacion-acciones-panel .simulacion-mandos {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  align-items: center;
+  padding: 0 12px;
+}
+.simulacion-acciones-panel .simulacion-formulario { align-items: center; }
+html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono {
+  width: 100%; max-width: none; min-width: 0; height: 48px; min-height: 48px;
+}
+html:root body.simulacion-pagina .simulacion-instrumentos .metronet-boton-icono > .metronet-icono {
+  width: 24px; height: 24px; flex-basis: 24px;
+}
+html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo {
+  display: flex; align-items: center; min-height: 30px;
+  font: 700 12px/1.4 var(--font-arcade);
+}
 @media (min-width: 1051px) {
-  .simulacion-instrumentos {
-    --simulacion-control-alto: clamp(40px, calc(6.5svh - 8px), 60px);
-    --simulacion-texto: clamp(11px, 1.45svh, 14px);
-  }
-  .simulacion-instrumentos :is(.simulacion-acciones-panel, .simulacion-grupo-metros, .simulacion-configuracion-metros) {
-    flex: 1 0 auto;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-  .simulacion-instrumentos :is(.simulacion-grupo-velocidad, #seccionConfiguracion) { flex: 1.6 0 auto; }
-  .simulacion-grupo-velocidad { grid-template-rows: auto minmax(0, 1fr); }
-  .simulacion-grupo-velocidad fieldset { height: 100%; grid-template-rows: auto minmax(0, 1fr); }
-  .simulacion-parametro-velocidad .simulacion-parametro-valor { grid-template-rows: repeat(2, minmax(0, 1fr)); }
-  #seccionConfiguracion { grid-template-rows: auto auto repeat(2, minmax(0, 1fr)); }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(input, .simulacion-parametro-valor > button[type='button'], .simulacion-selector-metros > summary, .simulacion-configuracion-metros__desplegable > summary) {
-    min-height: var(--simulacion-control-alto);
-    height: 100%;
-  }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-parametro-velocidad button[type='submit'], #aplicarUnidadTiempo).metronet-boton-icono {
-    height: 100%;
-    min-height: var(--simulacion-control-alto);
-  }
-  html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo {
-    min-height: clamp(28px, 4svh, 42px);
-    display: flex;
-    align-items: center;
-    font-size: var(--simulacion-texto);
-  }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-parametro-titulo, .simulacion-parametro-titulo button) { font-size: var(--simulacion-texto); }
-  html:root body.simulacion-pagina .simulacion-instrumentos input { font-size: clamp(14px, 1.9svh, 19px); }
-  html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-selector-metros > summary, .simulacion-configuracion-metros__desplegable > summary) { font-size: clamp(11px, 1.3svh, 13px); }
-  .simulacion-instrumentos :is(.simulacion-parametro-velocidad button[type='submit'], #aplicarUnidadTiempo)::after { font-size: clamp(12px, 1.5svh, 15px); }
-  .simulacion-instrumentos .simulacion-parametro-valor > button[type='button'] { font-size: clamp(14px, 1.9svh, 19px); }
-  html:root body.simulacion-pagina .simulacion-instrumentos .metronet-boton-icono > .metronet-icono {
-    width: clamp(24px, 3.2svh, 30px);
-    height: clamp(24px, 3.2svh, 30px);
-    flex-basis: clamp(24px, 3.2svh, 30px);
-  }
-  .simulacion-acciones-panel .simulacion-mandos { grid-template-columns: repeat(3, min(54px, var(--simulacion-control-alto))); }
-  html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono {
-    width: min(54px, var(--simulacion-control-alto));
-    height: min(54px, var(--simulacion-control-alto));
-    max-width: none;
-    min-width: 0;
-    min-height: 0;
-  }
+  .simulacion-instrumentos { height: var(--simulacion-mapa-alto); }
+  .simulacion-instrumentos :is(.simulacion-acciones-panel, .simulacion-grupo-velocidad, #seccionConfiguracion) { flex: 1 0 0; }
+  .simulacion-instrumentos .simulacion-grupo-metros { flex: 1.2 0 0; }
 }
-@media (min-width: 1051px) and (max-height: 760px) {
-  .simulacion-instrumentos { --simulacion-control-alto: 36px; }
+@media (max-width: 1050px) {
+  .simulacion-instrumentos { min-height: 0; }
+  .simulacion-instrumentos .simulacion-acciones-panel .simulacion-mandos { min-height: 60px; }
 }

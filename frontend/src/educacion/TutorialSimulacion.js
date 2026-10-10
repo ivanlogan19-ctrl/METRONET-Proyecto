@@ -10,7 +10,7 @@ const PASOS = [
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
   ['.simulacion-selector-metros > summary', 'Elegir metros', 'Seleccioná Todos los metros para aplicar la misma UV a todos, o elegí uno para ajustar solo esa unidad.'],
-  ['.simulacion-configuracion-metros__desplegable > summary', 'UV por metro', 'Abrí este resumen para comparar la UV de cada metro con la duración global aplicada. No modifica la red.'],
+  ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para comparar la UV de cada metro con la duración global aplicada. No modifica la red.'],
   ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', 'Ajustá la UV del metro seleccionado; con Todos los metros, el mismo valor se aplica al conjunto.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
   ['#seccionConfiguracion', 'Duración simulada · h', 'La duración representa horas simuladas. Es independiente de UV y del ritmo visual ×; pulsá Aplicar duración.'],
