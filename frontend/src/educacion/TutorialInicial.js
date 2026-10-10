@@ -96,7 +96,7 @@ export function pasosPracticosEditor(numero) {
     ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones de nivel y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
   ];
   if (numero === 5) return [
-    ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí POI usando la estrella.', 'poi-abierto'],
+    ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí los lugares usando la bandera amarilla.', 'poi-abierto'],
     ['.metronet-panel-puntos-alternar', 'Buscar punto de interés', 'Abrí la lupa para buscar un lugar concreto.', 'buscador-abierto'],
     ['.metronet-panel-puntos-busqueda', 'Buscá Palacio Legislativo', 'Escribí Palacio Legislativo. Los resultados usan el catálogo real del mapa.', 'poi-buscado'],
     ['.metronet-panel-puntos-lista', 'Localizá el lugar', 'Seleccioná Palacio Legislativo en los resultados para localizarlo en el mapa.', 'poi-localizado'],

@@ -1,3 +1,4 @@
+import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import RecorridoInicial from './RecorridoInicial.js';
 import './tutorial-inicial.css';
 
@@ -18,33 +19,42 @@ const PASOS = [
   ['.simulacion-accesos-titulo', 'Sonido y salida', 'Desde esta fila podés controlar el sonido, repetir el tutorial o volver a Edición.'],
 ];
 
-const RESUMEN = [0, 2, 3, 9, 11, 13].map(indice => PASOS[indice]);
+const RESUMEN = [
+  ['territorio', 'Recorré el mapa y ajustá la vista.'],
+  ['play', 'Iniciá, pausá o detené el recorrido.'],
+  ['metros', 'Elegí todos los metros o una unidad.'],
+  ['velocidad', 'Ajustá y aplicá la velocidad UV.'],
+  ['reloj', 'Ajustá y aplicá las horas simuladas.'],
+];
 
 export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () => {}) {
   const panel = document.createElement('section');
-  panel.className = 'metronet-tutorial__panel metronet-tutorial-simulacion';
+  panel.className = 'metronet-tutorial__panel metronet-tutorial-simulacion metronet-guia-rapida';
   panel.setAttribute('popover', 'manual');
   panel.setAttribute('aria-label', 'Tutorial de Simulación');
   panel.id = 'metronet-tutorial-simulacion-panel';
   acceso.setAttribute('aria-controls', panel.id);
   acceso.setAttribute('aria-expanded', 'false');
   const cabecera = document.createElement('header');
-  const titulo = document.createElement('h2'); titulo.textContent = 'Tutorial';
+  const titulo = document.createElement('h2'); titulo.textContent = 'Guía rápida';
   cabecera.append(titulo);
-  const introduccion = document.createElement('p');
-  introduccion.textContent = 'Estas son las herramientas que utilizarás en Simulación.';
+  const salir = document.createElement('button'); salir.type = 'button';
+  configurarBotonIcono(salir, 'cancelar', 'Cerrar guía rápida');
+  salir.addEventListener('click', () => { cerrar(); acceso.focus({preventScroll:true}); });
+  cabecera.append(salir);
+  const estado = document.createElement('p'); estado.className = 'metronet-tutorial__completado';
+  estado.textContent = 'Tutorial completado'; estado.hidden = true;
   const lista = document.createElement('div'); lista.className = 'metronet-tutorial__herramientas';
-  for (const [, nombre, descripcion] of RESUMEN) {
-    const item = document.createElement('p');
-    const nombreVisible = document.createElement('strong'); nombreVisible.textContent = `${nombre} → `;
+  for (const [icono, descripcion] of RESUMEN) {
+    const item = document.createElement('p'); item.innerHTML = iconoRetro(icono);
     const explicacion = document.createElement('span'); explicacion.textContent = descripcion;
-    item.append(nombreVisible, explicacion); lista.append(item);
+    item.append(explicacion); lista.append(item);
   }
   const repetir = document.createElement('button');
   repetir.type = 'button'; repetir.className = 'metronet-tutorial__repetir';
-  repetir.textContent = 'Recorrer la pantalla';
+  configurarBotonIcono(repetir, 'reiniciar', 'Recorrer la pantalla');
   repetir.addEventListener('click', () => { cerrar(); acceso.focus({ preventScroll:true }); alRecorrer(); });
-  panel.append(cabecera, introduccion, lista, repetir);
+  panel.append(cabecera, estado, lista, repetir);
   document.body.append(panel);
 
   function posicionar() {
@@ -78,7 +88,7 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
   document.addEventListener('keydown', cerrarEscape);
   window.addEventListener('resize', posicionar);
   window.addEventListener('scroll', posicionar, true);
-  return { abrir:alternar, cerrar, eliminar() {
+  return { abrir:alternar, cerrar, marcarCompletado() { estado.hidden = false; }, eliminar() {
     cerrar(); acceso.removeEventListener('click', alternar);
     document.removeEventListener('pointerdown', cerrarFuera);
     document.removeEventListener('keydown', cerrarEscape);

@@ -10,6 +10,7 @@ const MAXIMO_RESULTADOS_BUSQUEDA = 8;
 
 export default class PanelPuntosInteres {
   constructor(opciones = {}) {
+    this.siempreVisible = opciones.siempreVisible ?? false;
     this.contenedorPadre = opciones.contenedorPadre ?? null;
     this.contenedorAcceso = opciones.contenedorAcceso ?? null;
     this.alSeleccionar = opciones.alSeleccionar ?? (() => {});
@@ -60,7 +61,7 @@ export default class PanelPuntosInteres {
     this.botonAlternar.type = 'button';
     this.botonAlternar.className = 'metronet-panel-puntos-alternar';
     this.botonAlternar.setAttribute('aria-controls', this.identificador);
-    this.botonAlternar.addEventListener('click', () => this.establecerAbierto(!this.estaAbierto));
+    this.botonAlternar.addEventListener('click', () => { this.establecerAbierto(!this.estaAbierto); this.campoBusqueda.focus({preventScroll:true}); });
     acciones.append(this.contador, this.botonAlternar);
     this.contenedorHerramientas = document.createElement('div');
     this.contenedorHerramientas.className = 'metronet-panel-puntos-herramientas';
@@ -102,7 +103,7 @@ export default class PanelPuntosInteres {
     };
     document.addEventListener('pointerdown', this.manejadorClicFuera);
     this.elemento.addEventListener('keydown', (evento) => {
-      if (evento.key === 'Escape' && this.estaAbierto) {
+      if (evento.key === 'Escape' && this.estaAbierto && !this.siempreVisible) {
         evento.stopPropagation();
         this.establecerAbierto(false);
         this.botonAlternar.focus();
@@ -143,14 +144,14 @@ export default class PanelPuntosInteres {
   }
 
   establecerAbierto(estaAbierto) {
-    this.estaAbierto = Boolean(estaAbierto);
+    this.estaAbierto = this.siempreVisible || Boolean(estaAbierto);
     if (!this.contenido || !this.botonAlternar) return;
     this.contenido.hidden = !this.estaAbierto;
     this.elemento.dataset.abierto = String(this.estaAbierto);
     if (this.contenedorAcceso) this.contenedorPadre.hidden = !this.estaAbierto;
     this.botonAlternar.setAttribute('aria-expanded', String(this.estaAbierto));
     configurarBotonIcono(this.botonAlternar, 'buscar', 'Buscar punto de interés');
-    if (this.estaAbierto) this.campoBusqueda.focus({preventScroll:true});
+    if (this.estaAbierto && !this.siempreVisible) this.campoBusqueda.focus({preventScroll:true});
     if (this.estaAbierto) this.renderizarLista();
   }
 

@@ -78,10 +78,10 @@ test('El panel muestra explicaciones directas y cierra fuera o con Escape', asyn
   const panel = p.locator('.metronet-tutorial');
   if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
   await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
-  assert.equal(await panel.getByRole('heading',{name:'Tutorial'}).count(),1);
+  assert.equal(await panel.getByRole('heading',{name:'Guía rápida'}).count(),1);
   assert.equal(await panel.locator('[data-tutorial-cerrar]').count(),0);
-  assert.match(await panel.locator('.metronet-tutorial__herramientas').innerText(), /Conexión → Agregá tramos/);
-  assert.equal(await panel.locator('.metronet-tutorial__herramientas p strong').allTextContents().then(x => x.join(',')),'Nivel → ,Conexión → ');
+  assert.match(await panel.locator('.metronet-tutorial__herramientas').innerText(), /bandera amarilla/);
+  assert.equal(await panel.locator('.metronet-tutorial__herramientas svg').count(),4);
   assert.equal(await panel.locator('.metronet-tutorial__herramientas details').count(),0);
   assert.equal(await panel.locator('.metronet-tutorial__herramientas a, .metronet-tutorial__herramientas button').count(),0);
   assert.equal(await panel.getByRole('button',{name:'Recorrer la pantalla'}).isVisible(),true);
@@ -104,24 +104,15 @@ test('El panel muestra explicaciones directas y cierra fuera o con Escape', asyn
   assert.equal(await panel.evaluate(e => e.open),false);
 });
 
-test('Nivel 1 presenta nivel, estación y línea con texto directo y separadores amarillos', async t => {
+test('Nivel 1 presenta guía rápida con cuatro iconos y dos acciones', async t => {
   const { pagina:p } = await abrir(t,1,{ ofrecerRecorrido:true });
   await cerrarGuiaInicial(p);
   const panel = p.locator('.metronet-tutorial');
   await panel.locator('>summary').click();
   await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
-  assert.equal(await panel.locator('.metronet-tutorial__herramientas p strong').allTextContents().then(x => x.join(',')),
-    'Nivel → ,Estación → ,Línea → ');
-  assert.equal(await panel.getByText('¿Querés ver el tutorial de nuevo?').count(),0);
-  assert.equal(await panel.getByRole('button').count(),1);
-  assert.equal(await panel.getByRole('button').evaluate(e => getComputedStyle(e).backgroundColor),'rgb(244, 237, 121)');
-  const separadores = await panel.locator('.metronet-tutorial__herramientas p').evaluateAll(items =>
-    items.map(item => ({ borde:getComputedStyle(item).borderBottomStyle, color:getComputedStyle(item).borderBottomColor,
-      titulo:getComputedStyle(item.querySelector('strong')).color,
-      pesoTitulo:getComputedStyle(item.querySelector('strong')).fontWeight,
-      pesoExplicacion:getComputedStyle(item.querySelector('span')).fontWeight })));
-  assert.ok(separadores.every(item => item.borde === 'solid' && item.color === item.titulo
-    && Number(item.pesoTitulo) > Number(item.pesoExplicacion)),JSON.stringify(separadores));
+  assert.equal(await panel.locator('.metronet-tutorial__herramientas svg').count(),4);
+  assert.equal(await panel.getByRole('button').count(),2);
+  assert.equal(await panel.getByRole('button',{name:'Consultar ayuda'}).count(),0);
 });
 
 test('El cartel final permanece legible y cierra recorrido y panel automáticamente', async t => {
@@ -215,7 +206,7 @@ test('La guía aparece en primera entrada, no se repite al recargar y queda disp
   assert.equal(await guia.count(),0);
   await p.locator('.metronet-tutorial > summary').click();
   await p.locator('.metronet-tutorial__panel:popover-open').waitFor();
-  assert.equal(await p.locator('.metronet-tutorial__panel:popover-open').getByRole('button').count(),1);
+  assert.equal(await p.locator('.metronet-tutorial__panel:popover-open').getByRole('button').count(),2);
   await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
   await guia.waitFor();
   while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();

@@ -1,4 +1,4 @@
-import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
+import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { anclarPanelDesplegable } from '../interfaz/PanelDesplegable.js';
 import { pasoPractico, leccionesDisponibles, herramientasIntroducidas, pasosPracticosEditor, accionPracticaCumplida, esRecorridoIntegral } from './TutorialInicial.js';
 import RecorridoInicial from './RecorridoInicial.js';
@@ -45,10 +45,13 @@ export default class PanelTutorialInicial {
     this.elemento.name = 'metronet-asistencia';
     this.elemento.className = 'metronet-tutorial';
     this.elemento.setAttribute('aria-label', 'Tutorial de herramientas');
-    this.elemento.innerHTML = '<summary></summary><section class="metronet-tutorial__panel"><header><h2>Tutorial</h2></header><div data-tutorial-contenido aria-live="polite"></div></section>';
+    this.elemento.innerHTML = '<summary></summary><section class="metronet-tutorial__panel metronet-guia-rapida"><header><h2>Guía rápida</h2></header><div data-tutorial-contenido aria-live="polite"></div></section>';
     this.acceso = this.elemento.querySelector('summary');
     configurarBotonIcono(this.acceso, 'tutorialPizarra', 'Tutorial');
     const panel = this.elemento.querySelector('section');
+    const cerrar = this.boton('', () => { this.elemento.open = false; this.acceso.focus(); });
+    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar guía rápida');
+    panel.querySelector('header').append(cerrar);
     panel.id = `metronet-tutorial-${++secuenciaTutorial}`;
     this.acceso.setAttribute('aria-controls', panel.id);
     this.contenido = this.elemento.querySelector('[data-tutorial-contenido]');
@@ -61,7 +64,7 @@ export default class PanelTutorialInicial {
       this.acceso.focus({ preventScroll:true });
     };
     document.addEventListener('keydown', this.cerrarConEscape);
-    this.recorrido = new RecorridoInicial((completado) => { if (completado) this.comenzarPractica(); });
+    this.recorrido = new RecorridoInicial((completado) => { if (completado) { this.marcarCompletado(); this.comenzarPractica(); } });
     this.observarPractica = () => this.avanzarPractica();
     document.addEventListener('toggle', this.observarPractica, true);
     document.addEventListener('input', this.observarPractica);
@@ -110,6 +113,7 @@ export default class PanelTutorialInicial {
         if (this.claveNovedad && (completado || motivo === 'omitido')) try {
           localStorage.setItem(this.claveNovedad, completado ? 'presentada' : 'omitida');
         } catch { /* La guía sigue disponible. */ }
+        if (completado) this.marcarCompletado();
         if (completado && this.contexto?.escenario?.numero === 1) this.comenzarPractica();
       }, {
         interactivo: true, senalarDeshabilitados: true, disparador: '.metronet-tutorial > summary',
@@ -151,22 +155,22 @@ export default class PanelTutorialInicial {
   renderizar() {
     const contenido = [];
     const texto = (contenidoTexto, etiqueta = 'p') => { const e = document.createElement(etiqueta); e.textContent = contenidoTexto; contenido.push(e); return e; };
-    texto('Estas son las herramientas que utilizarás en este nivel.');
+    if (this.estado.completado) texto('Tutorial completado').className = 'metronet-tutorial__completado';
     const lista = document.createElement('div');
     lista.className = 'metronet-tutorial__herramientas';
-    const temas = [['Nivel', 'Cumplí los objetivos del nivel para avanzar.'],
-      ...this.herramientasNuevas.map(clave => HERRAMIENTAS_NUEVAS[clave])];
-    for (const [nombre, descripcion] of temas) {
-        const item = document.createElement('p');
-        const titulo = document.createElement('strong');
-        const explicacion = document.createElement('span');
-        titulo.textContent = `${nombre} → `;
-        explicacion.textContent = descripcion;
-        item.append(titulo, explicacion);
-        lista.append(item);
+    const temas = [
+      ['checkpoint', 'Abrí lugares con la bandera amarilla.'],
+      ['buscar', 'Buscá por nombre, tipo o barrio.'],
+      ['territorio', 'Elegí qué mostrar en el mapa.'],
+      ['estaciones', 'Para cubrir un lugar, ubicá la estación dentro del área marcada.'],
+    ];
+    for (const [icono, descripcion] of temas) {
+      const item = document.createElement('p');
+      item.innerHTML = iconoRetro(icono);
+      const explicacion = document.createElement('span'); explicacion.textContent = descripcion;
+      item.append(explicacion); lista.append(item);
     }
     contenido.push(lista);
-    if (!this.herramientasNuevas.length) texto('Seguí usando las herramientas que ya conocés.');
     const error = this.contexto.error;
     if (error) texto(typeof error === 'string' ? error : error.message ?? error.mensaje ?? 'La operación no pudo completarse. Revisá la ubicación o selección e intentá nuevamente.').className = 'metronet-tutorial__error';
     const repetir = this.boton('Recorrer la pantalla', () => {
@@ -175,8 +179,13 @@ export default class PanelTutorialInicial {
       } else if (this.contexto.escenario?.numero !== 1 && this.herramientasNuevas.length) this.mostrarNovedades();
       else this.iniciarRecorrido(this.recorrido);
     });
-    repetir.className = 'metronet-tutorial__repetir'; contenido.push(repetir);
+    configurarBotonIcono(repetir, 'reiniciar', 'Recorrer la pantalla');
+    repetir.className += ' metronet-tutorial__repetir'; contenido.push(repetir);
     this.contenido.replaceChildren(...contenido);
+  }
+
+  marcarCompletado() {
+    if (this.estado) { this.estado.completado = true; this.renderizar(); }
   }
 
   comenzarPractica() {
@@ -184,7 +193,7 @@ export default class PanelTutorialInicial {
     this.acceso.focus({ preventScroll:true });
     const pasos = this.integral ? pasosPracticosEditor(this.contexto.escenario?.numero) : [];
     if (pasos.length && !this.practica) {
-      this.practica = new RecorridoInicial(() => {}, { pasos, pasosDinamicos:true, interactivo:true,
+      this.practica = new RecorridoInicial(completado => { if (completado) this.marcarCompletado(); }, { pasos, pasosDinamicos:true, interactivo:true,
         disparador:'.metronet-tutorial > summary', tituloFinal:'Práctica realizada',
         textoFinal:'Continuá con la consigna. La pista y este tutorial siguen disponibles.' });
       this.practica.iniciar();

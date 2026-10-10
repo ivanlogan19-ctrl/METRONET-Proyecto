@@ -53,3 +53,21 @@ html:root body .metronet-tutorial-simulacion:popover-open { position:fixed; inse
 
 /* La tarjeta visual recibe sus eventos y puede apartarse de los controles. */
 .metronet-recorrido:not(:modal) { z-index: 3000; pointer-events: auto; }
+
+/* Resumen manual: las instrucciones completas siguen en el recorrido. */
+.metronet-tutorial__panel.metronet-guia-rapida { background:var(--panel); color:var(--text-primary); }
+.metronet-guia-rapida .metronet-tutorial__herramientas p { display:grid; grid-template-columns:28px minmax(0,1fr); gap:12px; align-items:center; padding:10px 0; margin:0; }
+.metronet-guia-rapida .metronet-tutorial__herramientas .metronet-icono { width:28px; height:28px; color:var(--warning); }
+.metronet-guia-rapida .metronet-tutorial__completado { color:var(--success); margin:0 0 8px; }
+html:root body .metronet-guia-rapida button.metronet-boton-icono { width:40px; min-width:40px; height:40px; min-height:40px; padding:6px; }
+.metronet-guia-rapida .metronet-tutorial__repetir { display:flex; margin:12px auto 0; }
+html:root body .metronet-tutorial__panel.metronet-guia-rapida { background:var(--panel); color:var(--text-primary); }
+.metronet-guia-rapida header { justify-content:space-between; }
+html:root body .metronet-guia-rapida .metronet-tutorial__repetir { display:flex; margin:12px auto 0; }
+
+/* Una misma familia visual para guías y recorridos de Edición y Simulación. */
+html:root body dialog.metronet-recorrido { background:var(--panel); color:var(--text-primary); }
+.metronet-recorrido__cabecera { display:flex; gap:12px; align-items:center; }
+.metronet-recorrido__cabecera [data-recorrido-icono] { display:flex; color:var(--warning); flex:0 0 28px; }
+.metronet-recorrido__cabecera svg { width:28px; height:28px; }
+html:root body dialog.metronet-recorrido .metronet-boton-icono { width:40px; min-width:40px; height:40px; min-height:40px; padding:6px; }

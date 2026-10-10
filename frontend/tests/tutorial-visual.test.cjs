@@ -30,6 +30,8 @@ for (const contexto of ['editor', 'simulacion']) for (const width of [1440, 390]
       assert.deepEqual(css, { sombra: 'none', borde: '0px', antes: 'none', despues: 'none', contorno: '0px' });
     }
     async function color(boton, token) {
+      await p.mouse.move(0, 0);
+      await boton.evaluate(e => e.getAnimations().forEach(a => a.finish()));
       const css = await boton.evaluate((e, token) => {
         const muestra = document.createElement('span'); muestra.style.backgroundColor = `var(${token})`; e.append(muestra);
         const estilos = getComputedStyle(e), esperado = getComputedStyle(muestra).backgroundColor;
@@ -37,12 +39,18 @@ for (const contexto of ['editor', 'simulacion']) for (const width of [1440, 390]
       }, token);
       assert.equal(css.actual, css.esperado);
     }
+    assert.equal(await panel.locator('h2').textContent(), 'Guía rápida');
+    assert.equal(await panel.getByRole('button', {name:'Cerrar guía rápida'}).count(), 1);
+    assert.equal(await panel.getByRole('button', {name:'Consultar ayuda'}).count(), 0);
+    assert.ok(await panel.locator('.metronet-tutorial__herramientas svg').count() >= 4);
     await tituloSinBarra(panel.locator('h2'));
     const repetir = panel.getByRole('button', { name: 'Recorrer la pantalla' });
     await color(repetir, '--tutorial-acento');
     await repetir.click();
     const guia = p.locator('.metronet-recorrido');
     await guia.waitFor();
+    assert.equal(await guia.locator('[data-recorrido-siguiente]').textContent(), '');
+    assert.equal(await guia.locator('[data-recorrido-icono] svg').count(), 1);
     await tituloSinBarra(guia.locator('h2'));
     const omitir = guia.getByRole('button', { name: 'Omitir', exact: true });
     const siguiente = guia.getByRole('button', { name: 'Siguiente', exact: true });

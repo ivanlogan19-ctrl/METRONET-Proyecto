@@ -18,20 +18,24 @@ export default class PanelReferenciasTerritoriales {
     acceso.setAttribute('aria-expanded','false');
     this.panel = document.createElement('div'); this.panel.className = 'metronet-poi__panel';
     for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) this.panel.addEventListener(tipo, e => e.stopPropagation());
-    this.panel.innerHTML = '<header><h2>Referencias de Montevideo</h2></header>';
+    this.panel.innerHTML = '<header><h2>Lugares del mapa</h2></header>';
+    const cerrar = document.createElement('button'); cerrar.type = 'button';
+    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar lugares del mapa');
+    cerrar.addEventListener('click', () => this.cerrar(true));
+    this.panel.querySelector('header').append(cerrar);
     const controles = document.createElement('div'); controles.className = 'metronet-poi__categorias';
     controles.setAttribute('role','group'); controles.setAttribute('aria-label','Capas geográficas');
     this.estado = document.createElement('div'); this.estado.className = 'metronet-capas-activas';
     this.estado.setAttribute('role','group'); this.estado.setAttribute('aria-label','Capas activas');
-    this.geografico = document.createElement('section'); this.geografico.className='metronet-poi__geografia'; this.geografico.hidden=true;
-    this.geografico.innerHTML='<h3>Barrios y/o zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
+    this.geografico = document.createElement('section'); this.geografico.className='metronet-poi__geografia'; this.geografico.hidden=false;
+    this.geografico.innerHTML='<h3>Barrios y zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
     this.seleccion = this.geografico.querySelector('[data-contenedor-selectores-mapa]');
     this.seleccion.addEventListener('click', evento => {
       const encabezado = evento.target.closest('.metronet-panel-encabezado');
       if (encabezado?.getAttribute('aria-expanded') === 'true') this.mostrarListaGeografica(encabezado);
     });
     for (const tipo of ['barrios','zonas']) {
-      const b=document.createElement('button'); b.type='button'; b.textContent=`Mostrar ${tipo}`; b.dataset.capaGeografica=tipo;
+      const b=document.createElement('button'); b.type='button'; configurarBotonIcono(b, 'previsualizar', `Mostrar ${tipo}`); b.dataset.capaGeografica=tipo;
       b.addEventListener('click',()=>{this.geografia[tipo]=!this.geografia[tipo];this.alCambiarGeografia?.({...this.geografia});this.actualizarGeografia();});
       this.geografico.querySelector('.metronet-poi__visibilidad').append(b);
     }
@@ -46,15 +50,16 @@ export default class PanelReferenciasTerritoriales {
       });
       if (categoria === 'BARRIOS_ZONAS') control.setAttribute('aria-expanded', 'false');
       this.controles.set(categoria,control);
-      controles.append(control);
+      if (categoria !== 'BARRIOS_ZONAS') controles.append(control);
       const indicador=document.createElement('span');indicador.dataset.categoria=categoria;indicador.innerHTML=iconoRetro(datos.icono);
       indicador.style.setProperty('--referencia-color',colorCssReferencia(categoria));indicador.title=datos.etiqueta;indicador.setAttribute('aria-label',datos.etiqueta);indicador.tabIndex=0;indicador.setAttribute('role','img');
       this.indicadores.set(categoria,indicador);this.estado.append(indicador);
     }
     this.busqueda=document.createElement('div');this.busqueda.className='metronet-poi__busqueda';
     this.accesoBusqueda=document.createElement('div');this.accesoBusqueda.className='metronet-poi__acceso-busqueda';
-    controles.append(this.accesoBusqueda);
-    this.panel.append(controles,this.busqueda,this.geografico);
+    const buscador = document.createElement('div'); buscador.className='metronet-poi__buscador';
+    buscador.append(this.accesoBusqueda, this.busqueda);
+    this.panel.append(buscador,controles,this.geografico);
     this.elemento.append(acceso,this.panel);this.contenedor.append(this.elemento);
     this.herramientas=document.createElement('div');this.herramientas.className='metronet-poi__zoom';this.contenedor.append(this.herramientas);
     this.mapa.append(this.estado);

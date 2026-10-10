@@ -156,8 +156,8 @@
   {
     "numero": 5,
     "nombre": "Nivel 5 · Un lugar al que llegar",
-    "objetivo": "Buscá Palacio Legislativo desde la estrella POI. Colocá una estación dentro de su radio de cobertura y otra en una ubicación distinta; unilas con una línea y asignale un Metro. Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella.",
-    "instrucciones": "Buscá Palacio Legislativo desde la estrella POI. Colocá una estación dentro de su radio de cobertura y otra en una ubicación distinta; unilas con una línea y asignale un Metro. Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella.",
+    "objetivo": "Buscá Palacio Legislativo desde la bandera amarilla de lugares. Colocá una estación dentro de su radio de cobertura y otra en una ubicación distinta; unilas con una línea y asignale un Metro. Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella.",
+    "instrucciones": "Buscá Palacio Legislativo desde la bandera amarilla de lugares. Colocá una estación dentro de su radio de cobertura y otra en una ubicación distinta; unilas con una línea y asignale un Metro. Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella.",
     "dificultad": "Intermedio",
     "reglasExito": {
       "minimoEstaciones": 2,

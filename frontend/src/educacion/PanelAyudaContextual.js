@@ -13,7 +13,7 @@ import '../mapa/estilos/referencias-poi.css';
 
 const CONTROLES_EDITOR = 'Arrastrá para mover el mapa. Clic: acción de la herramienta activa. Para colocar estaciones con teclado: enfocá el mapa, mové el cursor con las flechas y pulsá Enter. Escape termina la herramienta.';
 const CONTROLES_SIMULACION = 'Arrastrá para mover el mapa. Seleccioná una estación o un metro para consultar su información.';
-const CONTROLES_BUSQUEDA = ' La estrella abre las referencias. La lupa busca por nombre, tipo o barrio. Cerrar la búsqueda conserva el punto localizado; borrar el texto retira su marca.';
+const CONTROLES_BUSQUEDA = ' La bandera amarilla abre los lugares del mapa. La lupa busca por nombre, tipo o barrio. Cerrar la búsqueda conserva el punto localizado; borrar el texto retira su marca.';
 let secuenciaAyuda = 0;
 
 // La ayuda sigue derivándose del escenario. Abrir/cerrar el HUD nunca altera ese estado.

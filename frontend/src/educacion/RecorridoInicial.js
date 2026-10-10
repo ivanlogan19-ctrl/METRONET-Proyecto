@@ -1,3 +1,4 @@
+import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 const PASOS_INTEGRAL = [
   ['#metronet-mapa', 'Mapa de la red', 'Acá construís tu red. Arrastrá para desplazarte y usá los controles de vista para acercar o alejar.'],
   ['.metronet-herramientas__barra', 'Herramientas', 'Estos símbolos permiten construir y editar la red. Solo aparecen disponibles los que corresponden al nivel.'],
@@ -13,7 +14,7 @@ const PASOS_INTEGRAL = [
 ];
 
 const PASOS = [...PASOS_INTEGRAL.slice(1,6),
-  ['.metronet-poi > summary', 'Referencias', 'La estrella permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
+  ['.metronet-poi > summary', 'Referencias', 'La bandera amarilla permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
   ...PASOS_INTEGRAL.slice(-2)];
 
 const visible = elemento => elemento && !elemento.disabled && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';
@@ -37,7 +38,9 @@ export default class RecorridoInicial {
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';
     this.dialogo.setAttribute('aria-labelledby', 'recorrido-titulo');
-    this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><h2 id="recorrido-titulo"></h2><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
+    this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><header class="metronet-recorrido__cabecera"><span data-recorrido-icono aria-hidden="true"></span><h2 id="recorrido-titulo"></h2></header><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
+    configurarBotonIcono(this.dialogo.querySelector('[data-recorrido-omitir]'), 'cancelar', 'Omitir');
+    configurarBotonIcono(this.dialogo.querySelector('[data-recorrido-siguiente]'), 'play', 'Siguiente');
     document.body.append(this.dialogo);
     this.dialogo.addEventListener('cancel', e => { e.preventDefault(); this.terminar(true, false, 'omitido'); });
     this.dialogo.querySelector('[data-recorrido-omitir]').addEventListener('click', () => this.terminar(true, false, 'omitido'));
@@ -80,7 +83,8 @@ export default class RecorridoInicial {
     this.dialogo.querySelector('h2').textContent = paso?.[1] ?? this.opciones.tituloFinal ?? '¡Listos para construir!';
     this.dialogo.querySelector('[data-recorrido-texto]').textContent = paso?.[2] ?? this.opciones.textoFinal ?? 'Ya conocés los controles. Podés comenzar a construir la red.';
     this.dialogo.querySelector('[data-recorrido-siguiente]').hidden = !paso || Boolean(paso[3]);
-    this.dialogo.querySelector('[data-recorrido-siguiente]').textContent = 'Siguiente';
+    const icono = this.objetivo?.querySelector('svg.metronet-icono');
+    this.dialogo.querySelector('[data-recorrido-icono]').innerHTML = icono?.outerHTML ?? iconoRetro(paso ? 'tutorialPizarra' : 'finalizarRed');
     this.dialogo.querySelector('[data-recorrido-omitir]').hidden = !paso;
     this.objetivo?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
     this.posicionar();

@@ -126,8 +126,8 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await p.locator('#tutorialPantallaSimulacion').click();
   const panelManual = p.locator('.metronet-tutorial-simulacion:popover-open');
   await panelManual.waitFor();
-  assert.equal(await panelManual.getByRole('button').count(),1);
-  assert.equal(await panelManual.getByRole('button').evaluate(e => getComputedStyle(e).backgroundColor),'rgb(244, 237, 121)');
+  assert.equal(await panelManual.getByRole('button').count(),2);
+  assert.equal(await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).evaluate(e => getComputedStyle(e).backgroundColor),'rgb(244, 237, 121)');
   await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).click();
   await tutorial.waitFor();
   await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
@@ -192,7 +192,11 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
       const puntoRegresion = { x: 121.5, y: 160.8 };
       assert.equal(await p.evaluate(({ x, y }) => Boolean(document.elementFromPoint(x, y)?.closest('.metronet-recorrido')), puntoRegresion), true,
         'El punto que antes activó Play queda dentro de la tarjeta');
-      await p.mouse.click(puntoRegresion.x, puntoRegresion.y);
+      // El diseño compacto puede colocar una acción del tutorial en esta coordenada.
+      // El fondo debe interceptar el clic; las acciones conservan su comportamiento propio.
+      const sobreAccion = await p.evaluate(({x,y}) => Boolean(document.elementFromPoint(x,y)?.closest('button')), puntoRegresion);
+      if (!sobreAccion) await p.mouse.click(puntoRegresion.x, puntoRegresion.y);
+      else await tutorial.locator('h2').click();
       assert.equal(v.solicitudes.filter(s => ['/validacion', '/guardar', '/ejecutar'].some(final => s.path.endsWith(final))).length, 0,
         'Clic en Acciones no inicia validación, guardado ni ejecución');
     }

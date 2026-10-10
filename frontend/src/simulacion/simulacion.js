@@ -124,7 +124,7 @@ async function inicializar() {
   });
   panelTutorialSimulacion = crearPanelTutorialSimulacion(document.getElementById('tutorialPantallaSimulacion'), () => {
     tutorialSimulacion?.terminar(false);
-    const alFinalizar = () => { tutorialSimulacion = null; };
+    const alFinalizar = completado => { if (completado) panelTutorialSimulacion.marcarCompletado(); tutorialSimulacion = null; };
     tutorialSimulacion = abrirTutorialSimulacion(alFinalizar, escenariosGlosario.find(e => e.idEscenario === disenoActual?.simulacion.idEscenario)?.numero);
   }, () => { tutorialSimulacion?.terminar(false); tutorialSimulacion = null; });
   window.addEventListener('pagehide', limpiarVisor);
@@ -148,7 +148,7 @@ async function inicializar() {
       ?? disenoActual.simulacion.idEscenario,
     numeroCampana: progresoSimulacion?.numeroCampanaActual,
     repetido: (progresoSimulacion?.escenarios?.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.cantidadIntentosCampana ?? 0) > 1,
-    alFinalizar: () => { tutorialSimulacion = null; },
+    alFinalizar: completado => { if (completado) panelTutorialSimulacion.marcarCompletado(); tutorialSimulacion = null; },
   });
 }
 

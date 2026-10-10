@@ -121,3 +121,19 @@ html:root body #metronet-aplicacion
   height: 40px;
   min-height: 40px;
 }
+
+/* Búsqueda primero, categorías uniformes y visibilidad junto a cada selector. */
+.metronet-poi__buscador { display:grid; grid-template-columns:44px minmax(0,1fr); gap:8px; align-items:start; margin-bottom:12px; }
+.metronet-poi__buscador .metronet-poi__busqueda { margin:0; }
+.metronet-poi__categorias { grid-template-columns:repeat(4,minmax(44px,1fr)); }
+.metronet-poi__categorias .metronet-boton-icono { width:100%; }
+.metronet-poi__geografia { display:grid; grid-template-columns:44px minmax(0,1fr); gap:8px; }
+.metronet-poi__geografia h3 { grid-column:1/-1; }
+.metronet-poi__visibilidad, .metronet-poi [data-contenedor-selectores-mapa] { display:contents; }
+.metronet-poi__visibilidad button:first-child { grid-column:1; grid-row:2; }
+.metronet-poi__visibilidad button:last-child { grid-column:1; grid-row:4; }
+html:root body .metronet-poi [data-contenedor-selectores-mapa] .metronet-panel-encabezado { position:static; grid-column:2; }
+html:root body .metronet-poi [data-contenedor-selectores-mapa] > :first-child .metronet-panel-encabezado { grid-row:2; }
+html:root body .metronet-poi [data-contenedor-selectores-mapa] > :last-child .metronet-panel-encabezado { grid-row:4; }
+.metronet-poi [data-contenedor-selectores-mapa] > :first-child .metronet-panel-contenido { grid-row:3; }
+.metronet-poi [data-contenedor-selectores-mapa] > :last-child .metronet-panel-contenido { grid-row:5; }

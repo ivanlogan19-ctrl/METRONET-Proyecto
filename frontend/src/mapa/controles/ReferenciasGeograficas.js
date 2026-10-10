@@ -37,6 +37,7 @@ export default class ReferenciasGeograficas {
     this.barrios.crear(escena.capaBarrios.obtenerNombres());
     this.zonas.crear();
     this.busqueda = new PanelPuntosInteres({
+      siempreVisible: true,
       contenedorPadre:this.panel.busqueda,
       contenedorAcceso:this.panel.accesoBusqueda,
       alSeleccionar: punto => {
