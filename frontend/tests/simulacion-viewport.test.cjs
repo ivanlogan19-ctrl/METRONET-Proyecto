@@ -18,12 +18,12 @@ async function abrir(t, width, multiple = false) {
   const red = {
     simulacion: { idDiseno: 77, idEscenario: 42, nombre: 'Prueba de viewport', estado: 'VALIDADO', modo: 'NIVEL', puntosInteresObjetivo: [{ idPunto: 1, posicionX: 596, posicionY: 493, radioCobertura: 60 }] },
     estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 }, { nombre: 'C', posicionX: 810, posicionY: 480 }],
-    lineas: [{ nombre: 'Azul' }], tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B' }, { nombreLinea: 'Azul', estacionA: 'B', estacionB: 'C' }],
+    lineas: [{ nombre: 'Azul' }], tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B', distanciaKm: 8 }, { nombreLinea: 'Azul', estacionA: 'B', estacionB: 'C', distanciaKm: 8 }],
     unidadesMetro: [{ idTren: 1, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 1 }],
     preparadoParaSimular: true, territorio: { areas: [], errores: [] }, resultados: [],
   };
   if (multiple) {
-    red.lineas.push({ nombre: 'Verde' }); red.tramos.push({ nombreLinea: 'Verde', estacionA: 'A', estacionB: 'C' });
+    red.lineas.push({ nombre: 'Verde' }); red.tramos.push({ nombreLinea: 'Verde', estacionA: 'A', estacionB: 'C', distanciaKm: 8 });
     red.unidadesMetro.push({ idTren: 2, nombreLinea: 'Verde', capacidad: 300, velocidadPromedio: 1.5 });
   }
   const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport: { width, height: 1000 }, responder: async req => {
@@ -43,6 +43,7 @@ async function abrir(t, width, multiple = false) {
   });
   await vista.pagina.reload(); await vista.pagina.waitForFunction(() => window.escenaViewport?.disenoActual?.metricasUnidades?.length);
   await vista.pagina.locator('#desempenoNivel fieldset').waitFor({ state: 'attached' }); await cuadros(vista.pagina);
+  await vista.pagina.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
   // El recorrido inicial es modal: el gesto debe llegar al canvas, no a su botón de pausa.
   const omitirRecorrido = vista.pagina.locator('[data-recorrido-omitir]');
   if (await omitirRecorrido.isVisible().catch(() => false)) await omitirRecorrido.click();
@@ -142,5 +143,5 @@ for (const width of [1440, 390]) test(`Mandos visibles y agrupados ${width}: map
   assert.equal(await pagina.locator('#instrumentosSimulacion').isVisible(), true);
   assert.equal(await pagina.locator('.simulacion-mandos').isVisible(), true);
   assert.equal(await pagina.locator('#instrumentosSimulacion').getAttribute('aria-label'), 'Controles de simulación');
-  assert.equal(await pagina.getByRole('spinbutton', { name: 'Duración simulada en horas' }).inputValue(), '6');
+  assert.equal(await pagina.getByRole('spinbutton', { name: 'Duración simulada en UT' }).inputValue(), '6');
 });

@@ -25,6 +25,7 @@ async function abrir(t, width = 1440, responder) {
   await vista.pagina.reload();
   await vista.pagina.waitForFunction(() => window.escenaOrganizacion?.disenoActual);
   await vista.pagina.locator('#desempenoNivel fieldset').waitFor({ state: 'attached' });
+  await vista.pagina.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
   const recorrido = vista.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
   if (await recorrido.isVisible()) await recorrido.click();
   await cuadros(vista.pagina);

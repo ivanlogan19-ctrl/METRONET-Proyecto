@@ -14,7 +14,7 @@ const diseno = {
   simulacion: { idDiseno: 77, idEscenario: 42, nombre: 'Red de Montevideo', dificultad: 'Inicial', modo: 'NIVEL', estado: 'VALIDADO', objetivo: escenarios[1].objetivo, instrucciones: escenarios[1].instrucciones },
   estaciones: [{ nombre: 'Centro', posicionX: 580, posicionY: 470 }, { nombre: 'Parque', posicionX: 700, posicionY: 460 }, { nombre: 'Este', posicionX: 810, posicionY: 480 }],
   lineas: [{ nombre: 'Azul' }],
-  tramos: [{ nombreLinea: 'Azul', estacionA: 'Centro', estacionB: 'Parque' }, { nombreLinea: 'Azul', estacionA: 'Parque', estacionB: 'Este' }],
+  tramos: [{ nombreLinea: 'Azul', estacionA: 'Centro', estacionB: 'Parque', distanciaKm: 8 }, { nombreLinea: 'Azul', estacionA: 'Parque', estacionB: 'Este', distanciaKm: 8 }],
   unidadesMetro: [{ idTren: 1, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 40 }],
   preparadoParaSimular: true, observacionesSimulacion: [], resultados: [], territorio: { areas: [], errores: [] },
 };

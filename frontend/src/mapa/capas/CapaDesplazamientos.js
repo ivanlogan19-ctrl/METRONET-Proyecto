@@ -46,9 +46,13 @@ export default class CapaDesplazamientos {
     this.hora = this.reloj.hora;
     const escala = this.barrios.calcularEscalaMapa();
     if (!escala || !this.datos) return;
-    this.flujos = flujosPorHora(this.datos, this.hora).map(f => ({ ...f,
-      a: this.barrios.convertirCoordenada(this.datos.zonas[f.origen], escala),
-      b: this.barrios.convertirCoordenada(this.datos.zonas[f.destino], escala) }));
+    this.flujos = flujosPorHora(this.datos, this.hora).map(f => {
+      const a = this.barrios.convertirCoordenada(this.datos.zonas[f.origen], escala);
+      const b = this.barrios.convertirCoordenada(this.datos.zonas[f.destino], escala);
+      // La curva cambia con la hora o el tamaño del mapa, no con cada
+      // cuadro de la animación. Solo la punta de la flecha debe avanzar.
+      return { ...f, a, b, puntos: Array.from({ length: 49 }, (_, i) => puntoCurva(a, b, i/48)) };
+    });
     this.dibujar(); this.alCambiar();
   }
   avanzar(delta) {
@@ -63,12 +67,11 @@ export default class CapaDesplazamientos {
     const maximo = Math.max(1, ...this.flujos.map(f => f.viajes));
     for (const [indice, f] of this.flujos.entries()) {
       const peso = f.viajes/maximo;
-      const puntos = Array.from({length:49}, (_, i) => puntoCurva(f.a, f.b, i/48));
       // Borde oscuro para distinguir la dirección sobre población y tráfico.
       g.lineStyle((4 + 2*peso)/this.zoom, 0x071323, .9);
-      g.strokePoints(puntos, false);
+      g.strokePoints(f.puntos, false);
       g.lineStyle((2 + 2*peso)/this.zoom, 0x60e0c3, 1);
-      g.strokePoints(puntos, false);
+      g.strokePoints(f.puntos, false);
       const t = .06 + ((this.fase + indice*.137) % 1)*.88;
       const p = puntoCurva(f.a, f.b, t), anterior = puntoCurva(f.a, f.b, t-.01);
       const angulo = Math.atan2(p.y-anterior.y, p.x-anterior.x), largo = 10/this.zoom;

@@ -124,6 +124,20 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    return {consigna,listo:consigna.estadoGlobal==='LISTO',puntaje:desempeno.puntaje,desempeno,progreso};
   });
  }
+ async function comprobarColeccion(completados) {
+  const coleccion = await f().evaluate(async () => {
+   const {consultarJuego} = await import('/src/educacion/ClientePuntuacion.js');
+   const [tarjetas, trofeos] = await Promise.all([consultarJuego('/aprendizaje'), consultarJuego('/trofeos')]);
+   return {tarjetas, trofeos};
+  });
+  assert.deepEqual(coleccion.tarjetas.filter(n=>n.desbloqueado).map(n=>n.numero), Array.from({length:completados},(_,i)=>i+1));
+  for(const n of coleccion.tarjetas) {
+   if(n.desbloqueado) assert.equal(n.contenido.tarjetas.length,7,`Siete tarjetas ganadas en nivel ${n.numero}`);
+   else assert.equal(n.contenido,null,'No adelantar tarjetas de niveles pendientes');
+  }
+  const esperados=completados===10?['corona','biblioteca','copa','estacion','camino']:completados>=5?['estacion','camino']:completados>=1?['estacion']:[];
+  assert.deepEqual(coleccion.trofeos.filter(t=>t.obtenido).map(t=>t.id),esperados);
+ }
  async function ejecutar(){
   await presentaciones();
   const previas=evaluaciones.length;
@@ -243,11 +257,15 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await f().locator('[data-guardar]').click();
    await f().waitForFunction(()=>!juegoPrueba.scene.getScene('MapaScene').editorRedMetro.finalizacionEnCurso);
    assert.equal((await leerAvance()).progreso.nivelesCompletados,nivel.numero-1,'Guardar una red lista tampoco aprueba');
+   await comprobarColeccion(nivel.numero-1);
    const cierre=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok());
    await f().getByRole('button',{name:'Finalizar red',exact:true}).click();
    const aprobado=await(await cierre).json();
    assert.equal(aprobado.completado,true);assert.equal(aprobado.puntaje,esperado);
    assert.equal(aprobado.modoLibreDesbloqueado,nivel.numero===10);
+   const nuevosEsperados=nivel.numero===1?['estacion']:nivel.numero===5?['camino']:nivel.numero===10?['corona','biblioteca','copa']:[];
+   assert.deepEqual(aprobado.trofeosNuevos.map(t=>t.id),nuevosEsperados,'Premios solo al cumplir su requisito');
+   await comprobarColeccion(nivel.numero);
    assert.deepEqual(aprobado.desempeno.desglosePuntuacion,resultado.desempeno.desglosePuntuacion,'Finalizar no descuenta');
    console.log(JSON.stringify({nivel:nivel.numero,editor:'PASS',guardar:'PASS',simular:'PASS',finalizar:'PASS',reglas:'PASS',puntaje:resultado.puntaje}));
    {
@@ -261,12 +279,15 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     }
     assert.equal(await f().locator('.metronet-victoria').count(),0);
     await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
-    await f().waitForFunction(()=>document.querySelector('.metronet-premio[open] button') || [...document.querySelectorAll('button')].some(b=>b.textContent==='Jugar'));
-    while(await f().locator('.metronet-premio[open] button').count()) {
-     await f().locator('.metronet-premio[open] button').click();
-     await f().waitForFunction(()=>document.querySelector('.metronet-premio[open] button') || [...document.querySelectorAll('button')].some(b=>b.textContent==='Jugar'));
-    }
     await f().getByRole('button',{name:'Jugar',exact:true}).click();
+    const premiosMostrados=[];
+    for(let i=0;i<aprobado.trofeosNuevos.length;i++) {
+     const dialogo=f().locator('.metronet-premio[open]');
+     await dialogo.waitFor();
+     premiosMostrados.push(await dialogo.locator('h3').textContent());
+     await dialogo.getByRole('button',{name:'Continuar',exact:true}).click();
+    }
+    assert.deepEqual(premiosMostrados,aprobado.trofeosNuevos.map(t=>t.nombre),'Cada premio nuevo se presenta una vez en pantalla');
    }
    if(nivel.numero===10) {
     await editor(null);
