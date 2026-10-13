@@ -49,3 +49,28 @@ Validación posterior a la corrección:
 - La comprobación visual posterior con la cuenta personal quedó pendiente: la pestaña anterior se cerró y la nueva navegación mostró el inicio de sesión. El valor del diseño 451 se verificó por coordenadas, no visualmente después del reinicio. La prueba integrada con su cuenta de prueba sí aprobó ambas pantallas.
 
 Capas afectadas por esta corrección: arranque local y registro de auditoría. Sin cambios al documento académico. Continúan las limitaciones de navegadores y campaña completa indicadas arriba.
+
+## Actualización visual: recuadros paralelos y próximos
+
+DEFINIDO: se conserva la equivalencia y el cálculo geográfico vigente. El usuario aprobó recuadrar el número junto con «km», orientar la medida paralela al tramo y mantenerla cerca de la vía, tanto en edición como en simulación libre.
+
+IMPLEMENTADO: recuadros pequeños de fondo azul oscuro, borde fino y fuente pixelada clara. La orientación se obtiene de la proyección de cámara y conserva el sentido de lectura. La colocación busca primero a 8 px del tramo, probando distintas posiciones a lo largo de este y ambos lados; solo aumenta la separación si hay obstáculos, hasta 42 px. La detección contempla el rectángulo girado para no reservar espacio vacío de su caja envolvente. Se conserva el total compacto arriba a la derecha. Si no existe una posición visible libre, la medida puede ocultarse hasta cambiar la vista.
+
+Archivos de esta actualización:
+
+- `frontend/src/mapa/controles/MedicionDistancias.js`: orientación, proximidad y colisiones.
+- `frontend/src/mapa/controles/medicion-distancias.css`: recuadros y total.
+- `frontend/tests/medicion-tramos-cercanos.test.cjs`: cuatro tramos, estaciones y metros; ocho combinaciones de giro y zoom; legibilidad, separación y ausencia de colisiones entre polígonos.
+- `frontend/tests/calles-modo-libre-e2e.test.cjs`: comprobación visual de orientación, recuadro y distancia al tramo con datos reales en ambas pantallas.
+- Este registro de auditoría.
+
+Validación fresca del 13/10/2026, posterior al ajuste de proximidad:
+
+- `node --test --test-concurrency=1 frontend/tests/medicion-tramos-cercanos.test.cjs frontend/tests/medicion-rendimiento.test.cjs`, con Chrome y Vite en 5198: 2 aprobadas, 0 fallos, salida 0. La regla en reposo conserva cero mutaciones del DOM. Se corrigieron los casos inicialmente fallidos de tramos cortos antes de esta ejecución final.
+- `METRONET_E2E_CALLES=true bash backend/scripts/probar-postgres.sh -Dtest=CallesModoLibreE2EPostgresTest -DfailIfNoTests=true`, con Chrome: 1 prueba Java y su recorrido integrado de navegador aprobados, 0 fallos/errores/omisiones, salida 0; finalizó a las 14:49:23. Usa Spring Boot y PostgreSQL temporal real aislado, incluyendo guardar y recuperar la red, distancias en edición y simulación, tres tamaños, zoom, giro, ejecución y pausa. También verifica que «Continuar sin revisar» no dispara un aviso nativo duplicado.
+- `npm --prefix frontend run build`: salida 0.
+- `git diff --check`: salida 0.
+
+Captura real: `/tmp/metronet-regla-salida-real.png`. Evidencias de esta ejecución: `/tmp/metronet-regla-cercana-unit.log`, `/tmp/metronet-regla-cercana-real.log` y `/tmp/metronet-regla-cercana-build.log`.
+
+Capa modificada: presentación y pruebas. Sin cambios de API, esquema, migraciones, base personal ni documento académico. No se repitió la campaña completa de diez niveles ni se verificó Safari/Firefox o redes masivas. El correo está sustituido en la prueba integrada; las respuestas del flujo de red proceden del servidor y PostgreSQL reales.

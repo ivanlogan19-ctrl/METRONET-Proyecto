@@ -3,7 +3,20 @@ import './medicion-distancias.css';
 
 const formatoKm = new Intl.NumberFormat('es-UY', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const valido = valor => typeof valor === 'number' && Number.isFinite(valor) && valor > 0;
-const superpone = (a, b) => a.x < b.x + b.w + 4 && a.x + a.w + 4 > b.x && a.y < b.y + b.h + 4 && a.y + a.h + 4 > b.y;
+// Compara los recuadros girados, no sus cajas envolventes: estas últimas
+// reservan espacio vacío y alejan innecesariamente las medidas de la vía.
+const superpone = (a, b) => {
+  if (a.x >= b.x + b.w + 4 || b.x >= a.x + a.w + 4 || a.y >= b.y + b.h + 4 || b.y >= a.y + a.h + 4) return false;
+  const rectangulo = r => ({
+    x: r.x + r.w / 2, y: r.y + r.h / 2,
+    w: (r.ancho ?? r.w) / 2, h: (r.alto ?? r.h) / 2,
+    c: r.coseno ?? 1, s: r.seno ?? 0,
+  });
+  const p = rectangulo(a), q = rectangulo(b);
+  const radio = (r, x, y) => r.w * Math.abs(r.c * x + r.s * y) + r.h * Math.abs(-r.s * x + r.c * y);
+  return [[p.c, p.s], [-p.s, p.c], [q.c, q.s], [-q.s, q.c]].every(([x, y]) =>
+    Math.abs((p.x - q.x) * x + (p.y - q.y) * y) < radio(p, x, y) + radio(q, x, y) + 4);
+};
 
 /** Presenta las distancias geográficas de la API, sin recalcular ni alterar la red. */
 export default class MedicionDistancias {
@@ -102,21 +115,34 @@ export default class MedicionDistancias {
       const b = proyectar(capa.convertirPosicion(destino.posicionX, destino.posicionY));
       elemento.hidden = false;
       const w = elemento.offsetWidth, h = elemento.offsetHeight;
+      // La orientación se calcula después de proyectar la cámara: sigue al tramo
+      // también al girar el mapa, sin invertir la lectura al cambiar sus extremos.
+      let angulo = Math.atan2(b.y - a.y, b.x - a.x);
+      if (angulo > Math.PI / 2) angulo -= Math.PI;
+      if (angulo < -Math.PI / 2) angulo += Math.PI;
+      const coseno = Math.cos(angulo), seno = Math.sin(angulo);
+      const anchoGirado = Math.abs(coseno) * w + Math.abs(seno) * h;
+      const altoGirado = Math.abs(seno) * w + Math.abs(coseno) * h;
       let sitio;
-      for (const fraccion of [.5, .35, .65]) {
-        const x = a.x + (b.x - a.x) * fraccion;
-        const y = a.y + (b.y - a.y) * fraccion;
-        // En tramos verticales o cortos, estaciones y metros pueden ocupar
-        // todas las posiciones superiores/inferiores. Buscar también a los lados.
-        const lateral = w / 2 + 36;
-        const desplazamientos = [[0, -32], [0, 32], [0, -52], [0, 52],
-          [-lateral, 0], [lateral, 0], [-lateral, -32], [lateral, 32]];
-        sitio = desplazamientos.map(([dx, dy]) => ({ x: x + dx - w / 2, y: y + dy - h / 2, w, h }))
-          .find(r => r.x >= 6 && r.y >= 6 && r.x + w <= contenedor.width - 6 && r.y + h <= contenedor.height - 6 && !ocupados.some(o => superpone(r, o)));
+      // Busca primero cerca de la vía en todo el tramo. Solo aumenta la
+      // separación cuando ambas caras están ocupadas por otros elementos.
+      for (const margen of [8, 12, 18, 24, 30, 36, 42]) {
+        for (const fraccion of [.5, .35, .65, .2, .8]) {
+          const x = a.x + (b.x - a.x) * fraccion;
+          const y = a.y + (b.y - a.y) * fraccion;
+          sitio = [h / 2 + margen, -h / 2 - margen].map(distancia => {
+            const centroX = x + seno * distancia, centroY = y - coseno * distancia;
+            return { centroX, centroY, ancho: w, alto: h, coseno, seno, x: centroX - anchoGirado / 2, y: centroY - altoGirado / 2, w: anchoGirado, h: altoGirado };
+          }).find(r => r.x >= 6 && r.y >= 6 && r.x + r.w <= contenedor.width - 6 && r.y + r.h <= contenedor.height - 6 && !ocupados.some(o => superpone(r, o)));
+          if (sitio) break;
+        }
         if (sitio) break;
       }
       elemento.hidden = !sitio;
-      if (sitio) { elemento.style.transform = `translate(${sitio.x}px, ${sitio.y}px)`; ocupados.push(sitio); }
+      if (sitio) {
+        elemento.style.transform = `translate(${sitio.centroX - w / 2}px, ${sitio.centroY - h / 2}px) rotate(${angulo}rad)`;
+        ocupados.push(sitio);
+      }
     }
   }
 

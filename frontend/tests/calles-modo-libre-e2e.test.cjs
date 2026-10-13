@@ -65,6 +65,14 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
       const cabecera = document.querySelector('[data-medicion-distancias]').parentElement.getBoundingClientRect();
       const visibles = etiquetas.filter(e => !e.hidden).map(e => e.getBoundingClientRect());
       return {
+        paralelas: capa.medicionDistancias.etiquetas.filter(({elemento})=>!elemento.hidden).every(({elemento,origen,destino})=>{
+          const canvas=escena.game.canvas.getBoundingClientRect(),cam=escena.cameras.main;
+          const proyectar=e=>{const p=capa.convertirPosicion(e.posicionX,e.posicionY),q=cam.matrix.transformPoint(p.x-cam.scrollX,p.y-cam.scrollY);return {x:q.x*canvas.width/escena.scale.gameSize.width+canvas.left,y:q.y*canvas.height/escena.scale.gameSize.height+canvas.top};};
+          const a=proyectar(origen),b=proyectar(destino),dx=b.x-a.x,dy=b.y-a.y,largo=Math.hypot(dx,dy);
+          const estilo=getComputedStyle(elemento),m=new DOMMatrix(estilo.transform),r=elemento.getBoundingClientRect();
+          const separacion=Math.abs((r.x+r.width/2-a.x)*dy-(r.y+r.height/2-a.y)*dx)/largo-elemento.offsetHeight/2;
+          return Math.abs((m.a*dy-m.b*dx)/largo)<.00001 && m.a>=-.00001 && separacion>=7.5 && separacion<=42.5 && estilo.borderTopWidth==='1px' && estilo.backgroundColor==='rgb(11, 23, 42)';
+        }),
         distancias: etiquetas.map(e => Number(e.dataset.distanciaKm)), reales:tramos.map(t=>t.distanciaKm),
         total:document.querySelector('.metronet-mediciones__total').textContent,
         esperado:`${tramos[0].nombreLinea} · ${formatear(tramos.reduce((s,t)=>s+t.distanciaKm,0))} km`,
@@ -74,6 +82,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
         colisiones:visibles.some((a,i)=>visibles.slice(i+1).some(b=>a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top)),
       };
     });
+    assert.equal(resultado.paralelas, true, 'Los kilómetros quedan paralelos y separados de sus tramos, incluso con cámara girada');
     assert.deepEqual(resultado.distancias, resultado.reales);
     assert.equal(resultado.total, resultado.esperado);
     assert.ok(resultado.visibles>0 && resultado.dentro && resultado.integrado && !resultado.colisiones, JSON.stringify(resultado));
