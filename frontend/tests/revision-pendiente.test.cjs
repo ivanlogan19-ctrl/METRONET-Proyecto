@@ -32,6 +32,32 @@ for(const width of [1440,390])test(`Revisión pendiente ${width}: centrada, tres
  await p.evaluate(()=>window.abrirRevision());await p.keyboard.press('Escape');await p.evaluate(()=>window.salidaPendiente);assert.match(p.url(),/escenarios.html/);
 });
 for(const accion of ['Guardar y continuar','Continuar sin revisar'])test(`Revisión pendiente: ${accion} conserva su comportamiento`,async t=>{
- const p=await abrir(t);await p.getByRole('button',{name:accion,exact:true}).click();await p.waitForURL('**/inicio.html');
+ const p=await abrir(t);const nativos=[];p.on('dialog',async d=>{nativos.push(d.type());await d.accept();});await p.getByRole('button',{name:accion,exact:true}).click();await p.waitForURL('**/inicio.html');
+ assert.deepEqual(nativos,[], 'La confirmación del juego no debe abrir otra confirmación del navegador');
  assert.equal(await p.evaluate(()=>sessionStorage.getItem('qa-revision-guardada')),accion==='Guardar y continuar'?'true':null);
+});
+
+test('Cancelar la revisión conserva la protección nativa ante una recarga directa',async t=>{
+ const p=await abrir(t),nativos=[];
+ p.on('dialog',async d=>{nativos.push(d.type());await d.accept();});
+ await p.getByRole('button',{name:'Cancelar',exact:true}).click();
+ await p.evaluate(()=>window.salidaPendiente);
+ await p.reload();
+ assert.deepEqual(nativos,['beforeunload']);
+});
+
+test('Continuar sin revisar también evita el aviso nativo dentro del contenedor del juego',async t=>{
+ const v=await abrirPantalla(browser,'/escenarios.html',{contenedor:true});
+ t.after(()=>v.contexto.close());
+ const nativos=[];
+ v.pagina.on('dialog',async d=>{nativos.push(d.type());await d.accept();});
+ await v.vista.evaluate(async()=>{
+  const n=await import('/src/navegacion/NavegacionAplicacion.js');
+  n.registrarControlCambios({hayCambios:()=>true,guardar:async()=>false});
+ });
+ await v.vista.getByRole('link',{name:'Inicio',exact:true}).first().click();
+ await v.vista.getByRole('button',{name:'Continuar sin revisar',exact:true}).click();
+ await v.vista.waitForURL('**/inicio.html');
+ assert.deepEqual(nativos,[]);
+ assert.deepEqual(v.errores,[]);
 });

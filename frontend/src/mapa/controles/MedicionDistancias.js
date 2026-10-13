@@ -106,7 +106,12 @@ export default class MedicionDistancias {
       for (const fraccion of [.5, .35, .65]) {
         const x = a.x + (b.x - a.x) * fraccion;
         const y = a.y + (b.y - a.y) * fraccion;
-        sitio = [-32, 32, -52, 52].map(dy => ({ x: x - w / 2, y: y + dy - h / 2, w, h }))
+        // En tramos verticales o cortos, estaciones y metros pueden ocupar
+        // todas las posiciones superiores/inferiores. Buscar también a los lados.
+        const lateral = w / 2 + 36;
+        const desplazamientos = [[0, -32], [0, 32], [0, -52], [0, 52],
+          [-lateral, 0], [lateral, 0], [-lateral, -32], [lateral, 32]];
+        sitio = desplazamientos.map(([dx, dy]) => ({ x: x + dx - w / 2, y: y + dy - h / 2, w, h }))
           .find(r => r.x >= 6 && r.y >= 6 && r.x + w <= contenedor.width - 6 && r.y + h <= contenedor.height - 6 && !ocupados.some(o => superpone(r, o)));
         if (sitio) break;
       }

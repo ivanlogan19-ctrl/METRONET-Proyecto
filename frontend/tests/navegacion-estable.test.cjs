@@ -15,7 +15,7 @@ const responder=req=>{
  if(path==='/api/juego/ranking')return{json:ranking};
 };
 async function abrir(t,ruta,opciones={}){const v=await abrirPantalla(navegador,ruta,{responder,...opciones});t.after(()=>v.contexto.close());t.after(()=>assert.deepEqual(v.errores,[]));return v;}
-async function ingresar(p){await p.locator('#usuario').fill('operador');await p.locator('#password').fill('Prueba1!');await p.locator('#loginAdminButton').click();await p.locator('.metronet-bienvenida').waitFor();await p.locator('[data-continuar-bienvenida]').click();await p.waitForURL('**/admin.html');await p.locator('[data-editar-usuario]').first().waitFor();}
+async function ingresar(p){await p.locator('#usuario').fill('operador');await p.locator('#password').fill('Prueba1!');await p.locator('#loginAdminButton').click();await p.locator('.metronet-bienvenida').waitFor();await p.locator('[data-continuar-bienvenida]').click();await p.waitForURL('**/inicio.html');await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Administración',exact:true}).click();await p.waitForURL('**/admin.html');await p.locator('[data-editar-usuario]').first().waitFor();}
 test('Recorrido completo: editor, niveles, administración, logout, bienvenida, inicio, ranking y diseños',async t=>{
  const {pagina:p}=await abrir(t,'/admin-login.html');await ingresar(p);
  const alturas=[];

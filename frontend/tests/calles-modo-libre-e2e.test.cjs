@@ -515,6 +515,31 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     assert.equal(await frame().locator('#vista-unidades table').count(),2);
     await page.screenshot({path:'/tmp/metronet-admin-equivalencias.png'});
     console.log('Fuentes centralizadas y tabla de equivalencias: PASS');
+    // Salida confirmada tras una operación real ya persistida, sin doble aviso.
+    await frame().goto(BASE + '/?idDiseno=' + id);
+    await esperarEditor();
+    const rutaEditor = frame().url();
+    await herramienta('seleccion'); await mapa(800, 470);
+    await frame().getByRole('button', {name:'Mover estación seleccionada',exact:true}).click();
+    await mapa(795, 470);
+    await frame().waitForFunction(() => juegoPrueba.scene.getScene('MapaScene').editorRedMetro.cambiosPendientes &&
+      juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones.some(e=>Math.abs(e.posicionX-795)<3));
+    const persistida = await leer(() => juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones);
+    const avisosNativos = [];
+    const detectarAviso = async dialogo => { avisosNativos.push(dialogo.type()); await dialogo.accept(); };
+    page.on('dialog', detectarAviso);
+    await frame().getByRole('link',{name:'Inicio',exact:true}).first().click();
+    await frame().getByRole('button',{name:'Continuar sin revisar',exact:true}).click();
+    await frame().waitForURL('**/inicio.html');
+    assert.deepEqual(avisosNativos, [], 'La salida ya está confirmada en el juego');
+    page.off('dialog', detectarAviso);
+    await frame().goto(rutaEditor);
+    await esperarEditor();
+    assert.deepEqual(await leer(() => juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones), persistida);
+    await frame().getByRole('button',{name:'Mostrar distancias en kilómetros',exact:true}).click();
+    await comprobarMedicion();
+    await page.screenshot({path:'/tmp/metronet-regla-salida-real.png'});
+    console.log('Continuar sin revisar: cero avisos nativos; red y distancias recuperadas desde PostgreSQL: PASS');
     assert.deepEqual(errores, []); assert.deepEqual(fallos, []);
     console.log('Red recuperada desde servidor real y PostgreSQL: PASS');
   } catch (e) {

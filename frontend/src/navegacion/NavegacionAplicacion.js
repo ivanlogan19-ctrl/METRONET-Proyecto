@@ -100,6 +100,11 @@ function registrarAdvertenciaNativa(evento) {
   evento.returnValue = '';
 }
 
+// Al volver con Atrás, una vista restaurada debe proteger sus cambios otra vez.
+window.addEventListener('pageshow', () => {
+  if (controlCambios) window.addEventListener('beforeunload', registrarAdvertenciaNativa);
+});
+
 export function registrarControlCambios({ hayCambios, guardar }) {
   controlCambios = { hayCambios, guardar };
   window.removeEventListener('beforeunload', registrarAdvertenciaNativa);
@@ -117,7 +122,17 @@ export async function navegarConCambiosPendientes(ruta) {
   if (!controlCambios?.hayCambios()) return window.location.assign(ruta);
   const accion = await solicitarConfirmacionCambios();
   if (version !== versionNavegacion) return;
-  if (accion === 'salir') return window.location.assign(ruta);
+  if (accion === 'salir') {
+    // La salida ya fue confirmada en el diálogo del juego.
+    window.removeEventListener('beforeunload', registrarAdvertenciaNativa);
+    try {
+      window.location.assign(ruta);
+    } catch (error) {
+      window.addEventListener('beforeunload', registrarAdvertenciaNativa);
+      throw error;
+    }
+    return;
+  }
   if (accion !== 'guardar') return;
   try {
     guardadoSalida ??= Promise.resolve().then(() => controlCambios.guardar()).finally(() => { guardadoSalida = null; });
