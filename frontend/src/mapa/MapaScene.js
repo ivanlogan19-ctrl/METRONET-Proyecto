@@ -5,6 +5,9 @@ import { observarTamanoMapa } from './ObservarTamanoMapa.js';
 
 import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
+import CapaCalles from './capas/CapaCalles.js';
+import CapaPoblacion from './capas/CapaPoblacion.js';
+import CapaTrafico from './capas/CapaTrafico.js';
 import CapaZonas from './capas/CapaZonas.js';
 import CapaPuntosInteres from './capas/CapaPuntosInteres.js';
 import { guardarCategoriasPoi } from './EstadoCategoriasPoi.mjs';
@@ -86,6 +89,9 @@ export default class MapaScene extends Phaser.Scene {
     this.crearCapaMapaBase();
 
     this.crearCapaBarrios();
+    this.capaPoblacion = new CapaPoblacion(this, this.capaBarrios);
+    this.capaCalles = new CapaCalles(this, this.capaBarrios);
+    this.capaTrafico = new CapaTrafico(this, this.capaCalles);
 
     this.crearCapaZonas();
 
@@ -413,6 +419,9 @@ export default class MapaScene extends Phaser.Scene {
     }
 
     this.capaTerritorial?.dibujar();
+    this.capaPoblacion?.redibujar();
+    this.capaCalles?.redibujar();
+    this.capaTrafico?.redibujar();
     this.capaRedMetro?.actualizarTamano();
 
     if (actualizarControlZoom && this.controlZoom) {
@@ -444,6 +453,13 @@ export default class MapaScene extends Phaser.Scene {
     this.manejadorCambioPanelMovil = null;
     this.editorRedMetro?.eliminar();
     this.editorRedMetro = null;
+
+    this.capaTrafico?.eliminar();
+    this.capaTrafico = null;
+    this.capaPoblacion?.eliminar();
+    this.capaPoblacion = null;
+    this.capaCalles?.eliminar();
+    this.capaCalles = null;
 
     this.capaTerritorial?.eliminar();
     this.capaTerritorial = null;

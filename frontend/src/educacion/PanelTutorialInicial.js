@@ -189,7 +189,12 @@ export default class PanelTutorialInicial {
     if (visible('[data-elegir-herramienta="estaciones"]')) temas.push(['estaciones', 'Ubicá estaciones y unilas para construir tu red.']);
     if (visible('[data-elegir-herramienta="metros"]')) temas.push(['metros', 'Asigná un metro tocando una vía.']);
     if (visible('[data-guardar]')) temas.push(['guardar', 'Guardá la red con el disquete.']);
-    if (visible('[data-ir-simulacion]')) temas.push(['play', 'Simulá la red y volvé para finalizar el nivel.']);
+    if (visible('[data-ir-simulacion]')) temas.push(['play', Number.isInteger(this.contexto?.escenario?.numero)
+      ? 'Simulá la red y volvé para finalizar el nivel.' : 'Simulá tu red y volvé para seguir editando.']);
+    if (visible('[data-calles-visible]')) temas.push(['calles', 'Mostrá las vías reales y acercate para ver calles. Podés construir encima.']);
+    if (visible('[data-calles-ajustes]')) temas.push(['capas', 'Ajustá la transparencia de las calles.']);
+    if (visible('[data-poblacion-visible]')) temas.push(['poblacion', 'Mostrá densidad del Censo 2011 y ajustá su transparencia. No cambia con la hora del tráfico.']);
+    if (visible('[data-trafico-visible]')) temas.push(['trafico', 'Consultá tráfico histórico por hora. Los colores muestran intensidad relativa; no atascos.']);
     const requierePoi = this.contexto?.escenario?.reglasExito?.puntosInteresObjetivo?.length
       || this.contexto?.consigna?.referenciasObjetivo?.length;
     if (requierePoi && visible('.metronet-poi > summary')) temas.push(['checkpoint', 'Buscá los puntos de interés con la bandera y colocá estaciones dentro de sus áreas.']);

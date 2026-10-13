@@ -366,7 +366,7 @@ export default class CapaBarrios {
       return null;
     }
 
-    const grafico = this.escena.add.graphics();
+    const grafico = this.escena.add.graphics().setDepth(1);
 
     this.dibujarGeometria(
       grafico,

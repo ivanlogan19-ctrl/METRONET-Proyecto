@@ -1,4 +1,5 @@
 import CreacionDirecta from './CreacionDirecta.js';
+import PanelCalles from './PanelCalles.js';
 import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
 import { prepararDiseno, solicitarInicioSimulacion } from '../../red/PreparacionDiseno.js';
 import ClienteDisenos, { obtenerSesionActiva } from '../../red/ClienteDisenos.js';
@@ -305,6 +306,8 @@ export default class EditorRedMetro {
         this.identificacion = null;
         this.actualizarAyuda();
       }
+      if (this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE')
+        this.panelCalles?.prepararTutorial(idDiseno, this.sesion?.usuario?.idUsuario);
       return true;
     } catch (error) { this.mostrarError(error); return false; }
     finally {
@@ -733,6 +736,9 @@ export default class EditorRedMetro {
   }
 
   aplicarHerramientas() {
+    this.escena.capaCalles?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
+    this.escena.capaTrafico?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
+    this.escena.capaPoblacion?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     const herramientas = this.escenarioJuegoActual?.herramientasHabilitadas ?? { estaciones: true, lineas: true, conexiones: true, metros: true };
     const esEscenarioProgresivo = this.esEscenarioProgresivo();
     const tituloHerramientas = esEscenarioProgresivo ? 'Herramientas del nivel' : 'Herramientas';
@@ -860,6 +866,10 @@ export default class EditorRedMetro {
     cabecera.prepend(titulo);
     const resumenActivo = document.createElement('div');
     resumenActivo.className = 'metronet-consigna__resumen-activo';
+    if (!esNivel && this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE' && this.escena.capaCalles) {
+      this.panelCalles ??= new PanelCalles(this.escena.capaCalles, this.escena.capaTrafico, this.escena.capaPoblacion);
+      resumenActivo.append(this.panelCalles.elemento);
+    }
     if (condiciones.length) {
       const listaBreve = document.createElement('ul');
       listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';
@@ -1136,6 +1146,7 @@ export default class EditorRedMetro {
     this.actualizarAyuda();
   }
   eliminar() {
+    this.panelCalles?.eliminar();
     // La salida del documento puede cerrar una escena cuyo editor ya se liberó.
     if (!this.activo) return;
     this.activo = false;

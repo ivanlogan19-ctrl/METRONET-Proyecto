@@ -1,0 +1,13 @@
+{
+  "fuente": "Intendencia de Montevideo, Servicio de Geomática / Unidad de Nomenclatura y Numeración",
+  "catalogo": "https://ckan.montevideo.gub.uy/dataset/vias-de-transito",
+  "descarga": "https://intgis.montevideo.gub.uy/sit/php/common/datos/generar_zip2.php?nom_tab=v_sig_vias&tipo=gis",
+  "fechaDescarga": "2026-10-13",
+  "licencia": "Licencia de Datos Abiertos de Uruguay (DAG-UY)",
+  "sha256Original": "9a93d5202340078b4b044c9bb09697eca87fa7f3efb96bc281db682da6704a3a",
+  "proyeccionOriginal": "EPSG:32721",
+  "proyeccionPublicada": "EPSG:4326",
+  "transformacion": "Simplificación 2 metros, precisión 6 decimales, agrupación por código/nombre/tipo. Se excluyen vías proyectadas, peatonales, circulación interna, pasajes y geometrías vacías. Principales: AVENIDA, BULEVAR, RAMBLA, RUTA NACIONAL; detalle: CALLE, CAMINO. La clasificación describe el tipo de vía, no su intensidad de tránsito.",
+  "vias": 3931,
+  "tramos": 27656
+}

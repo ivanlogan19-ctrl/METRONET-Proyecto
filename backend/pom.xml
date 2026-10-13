@@ -81,6 +81,21 @@
                 <targetPath>educacion</targetPath>
                 <includes><include>niveles.json</include><include>recorrido-integral.json</include><include>puntuacion-progreso.json</include></includes>
             </resource>
+            <resource>
+                <directory>${project.basedir}/../frontend/src/mapa/datos</directory>
+                <targetPath>trafico</targetPath>
+                <includes><include>trafico-historico.json</include><include>calles-montevideo.geojson</include></includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/../frontend/scripts</directory>
+                <targetPath>trafico</targetPath>
+                <includes><include>preparar-trafico.py</include></includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/scripts/trafico</directory>
+                <targetPath>trafico</targetPath>
+                <includes><include>actualizar-trafico.py</include></includes>
+            </resource>
         </resources>
         <testResources>
             <testResource><directory>src/test/resources</directory></testResource>

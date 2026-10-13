@@ -1,0 +1,49 @@
+.metronet-calles { align-self:start; min-width:0; padding:8px 2px; }
+.metronet-calles__botones { display:flex; align-items:center; gap:8px; }
+html:root body #metronet-aplicacion .metronet-calles button.metronet-boton-icono {
+  width:40px; height:34px; min-width:40px; min-height:34px; padding:6px;
+}
+html:root body #metronet-aplicacion .metronet-calles .metronet-icono { width:20px; height:20px; }
+.metronet-calles [aria-pressed="true"] { border-color:var(--info-active); box-shadow:inset 0 0 0 1px var(--info-active); color:var(--info-active); }
+.metronet-calles__fuente { margin-left:auto; padding:6px; color:var(--text-secondary); text-decoration:none; }
+.metronet-calles__opacidad { display:flex; align-items:center; gap:10px; margin-top:16px; color:var(--text-secondary); }
+.metronet-calles__opacidad[hidden] { display:none; }
+.metronet-calles__opacidad input { min-width:0; width:100%; height:24px; padding:0; accent-color:var(--info-active); cursor:pointer; }
+.metronet-calles__tenue { opacity:.35; }
+.metronet-calles__estado { margin-top:10px; color:var(--text-secondary); }
+.metronet-calles [data-trafico-visible] { margin-left:auto; }
+.metronet-calles:has([data-trafico-visible]) .metronet-calles__fuente { margin-left:0; }
+.metronet-trafico { position:relative; margin-top:16px; color:var(--text-secondary); }
+.metronet-trafico[hidden], .metronet-trafico [hidden] { display:none !important; }
+.metronet-trafico__hora { display:grid; grid-template-columns:20px 32px minmax(50px,1fr) 32px 32px; align-items:center; gap:8px; }
+html:root body #metronet-aplicacion .metronet-trafico button.metronet-boton-icono { width:32px; min-width:32px; height:30px; min-height:30px; padding:6px; }
+html:root body #metronet-aplicacion .metronet-trafico [data-hora-anterior] .metronet-icono,
+html:root body #metronet-aplicacion .metronet-trafico [data-hora-siguiente] .metronet-icono { width:10px; height:10px; }
+.metronet-trafico output { text-align:center; padding:7px 4px; border:1px solid var(--border-default,#7d9cba); background:var(--bg-base,#071020); font:inherit; }
+.metronet-trafico > input { width:100%; min-width:0; height:24px; padding:0; margin:10px 0 0; accent-color:var(--info-active); }
+.metronet-trafico__horas { display:flex; justify-content:space-between; font-size:9px; }
+.metronet-trafico__leyenda { display:flex; align-items:center; gap:10px; margin-top:10px; }
+.metronet-trafico__leyenda > span { width:12px; height:12px; border:1px solid #8fa6bd; }
+.trafico-baja { background:#62c89b; } .trafico-media { background:#f2c563; }
+.trafico-alta { background:#f07878; } .trafico-sin-datos { background:#62758c; }
+.metronet-trafico__leyenda time { margin-left:auto; font-size:9px; }
+.metronet-trafico__info { position:absolute; top:100%; right:0; width:min(310px,100%); padding:12px; border:1px solid var(--info-active); background:#0d1b30; z-index:150; box-shadow:4px 4px #030914; font-size:10px; line-height:1.65; }
+.metronet-trafico__info p { margin:8px 0; }
+.metronet-trafico__info a { color:var(--info-active); }
+.metronet-trafico__error { margin:8px 0; font-size:10px; }
+@media(max-height:750px) {
+  .metronet-trafico { margin-top:8px; }
+  .metronet-trafico__leyenda { margin-top:4px; }
+  .metronet-calles__opacidad { margin-top:8px; }
+}
+.metronet-poblacion { position:relative; margin-top:14px; padding-top:12px; border-top:1px solid #405878; color:#bc98ee; }
+.metronet-poblacion [hidden] { display:none !important; }
+.metronet-poblacion__opacidad { display:flex; align-items:center; gap:10px; }
+.metronet-poblacion__opacidad input { width:100%; min-width:0; height:24px; padding:0; accent-color:#bc98ee; }
+.metronet-poblacion__leyenda { display:flex; align-items:center; gap:10px; margin-top:6px; }
+.metronet-poblacion__leyenda > span { width:12px; height:12px; border:1px solid #a18eb8; }
+.metronet-poblacion__leyenda time { margin-left:auto; font-size:9px; }
+.metronet-poblacion .metronet-trafico__info { color:var(--text-secondary); border-color:#bc98ee; }
+html:root body #metronet-aplicacion .metronet-poblacion button.metronet-boton-icono { width:32px; min-width:32px; height:30px; min-height:30px; padding:6px; }
+.metronet-calles [data-poblacion-visible][aria-pressed="true"] { color:#bc98ee; border-color:#bc98ee; box-shadow:inset 0 0 0 1px #bc98ee; }
+@media(max-height:750px) { .metronet-poblacion { margin-top:6px; padding-top:6px; } .metronet-calles__botones { gap:5px; } }
