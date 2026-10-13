@@ -27,6 +27,7 @@ class GestorMusica {
     guardar('sessionStorage', CLAVE_CONTINUIDAD, null);
     this.contexto = 'general';
     this.temporales = new Map();
+    this.atenuaciones = new Set();
     this.canales = new Map();
     this.actual = null;
     this.oyentes = new Set();
@@ -172,7 +173,7 @@ class GestorMusica {
     });
     escuchar('ended', () => { canal.finalizada = true; this.notificar(); });
     for (const evento of ['playing', 'pause', 'timeupdate']) escuchar(evento, () => this.notificar());
-    audio.volume = this.volumen * canal.ganancia;
+    audio.volume = this.volumen * canal.ganancia * (this.atenuaciones.size ? .5 : 1);
     audio.src = pista; audio.load();
     this.canales.set(pista, canal);
     return canal;
@@ -271,7 +272,13 @@ class GestorMusica {
     this.temporizadorMezcla = null; this.mezcla = null;
   }
   aplicarVolumen() {
-    for (const canal of this.canales.values()) canal.audio.volume = this.silenciado ? 0 : limitar(this.volumen * canal.ganancia);
+    for (const canal of this.canales.values()) canal.audio.volume = this.silenciado ? 0 : limitar(this.volumen * canal.ganancia * (this.atenuaciones.size ? .5 : 1));
+  }
+  atenuarLectura() {
+    const id = Symbol('lectura');
+    this.atenuaciones.add(id);
+    this.aplicarVolumen();
+    return () => { if (this.atenuaciones.delete(id)) this.aplicarVolumen(); };
   }
   guardarPosicion(canal) {
     if (canal.audio.loop && canal.audio.readyState > 0 && Number.isFinite(canal.audio.currentTime)) {

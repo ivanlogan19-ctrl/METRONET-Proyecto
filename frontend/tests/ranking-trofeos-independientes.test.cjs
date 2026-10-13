@@ -28,7 +28,7 @@ test('un fallo de trofeos conserva Ranking y su reintento recupera solo premios'
   };
   let fallaTrofeos = true;
   const llamadas = [];
-  const trofeos = ['corona', 'biblioteca', 'copa', 'estacion', 'camino']
+  const trofeos = ['corona', 'biblioteca', 'copa', 'estacion', 'camino', 'extras']
     .map(id => ({ id, nombre: id, requisito: 'Requisito', motivo: 'Logro', obtenido: id === 'estacion' }));
   const consultarJuego = ruta => {
     llamadas.push(ruta);
@@ -53,8 +53,8 @@ test('un fallo de trofeos conserva Ranking y su reintento recupera solo premios'
 
   fallaTrofeos = false;
   await contexto.cargarTrofeos();
-  assert.equal(documento.getElementById('galeriaTrofeos').children.length, 5);
-  assert.equal(documento.getElementById('resumenTrofeos').textContent, '1 de 5 trofeos obtenidos');
+  assert.equal(documento.getElementById('galeriaTrofeos').children.length, 6);
+  assert.equal(documento.getElementById('resumenTrofeos').textContent, '1 de 6 trofeos obtenidos');
   assert.equal(documento.getElementById('reintentarTrofeos').hidden, true);
   assert.equal(documento.getElementById('clasificacionRanking').children.length, 1);
   assert.equal(llamadas.filter(ruta => ruta === '/ranking').length, 1);

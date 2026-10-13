@@ -20,8 +20,8 @@ async function abrirMusica(p) {
     if (await p.locator('[data-hud-vista=musica]').count()) await p.locator('[data-hud-vista=musica]').click();
   } else await p.locator('.metronet-audio summary').click();
 }
-async function reproduciendo(p, pista = '/audio/simulacion-theme.mp3') {
-  await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume === 0.35; }, pista);
+async function reproduciendo(p, pista = '/audio/construccion-theme.m4a') {
+  await p.waitForFunction(pista => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === pista && !a.paused && a.currentTime > 0 && a.volume > 0 && a.volume <= 0.35 && !window[Symbol.for('metronet:gestor-musica')].obtenerEstado().mezclando; }, pista);
 }
 async function gestor(p, accion, valor) {
   return p.evaluate(async ({ accion, valor }) => {
@@ -37,13 +37,13 @@ for (const ruta of ['/inicio.html', '/escenarios.html', '/ranking.html', '/perfi
       await p.goto(`${base}/simulacion.html`);
       await p.locator('#estadoVacio:not([hidden])').waitFor();
     }
-    assert.equal(await p.locator(`${audio}[src="/audio/extra-theme.mp3"]`).count(), 0);
-    const recursos = await p.evaluate(() => performance.getEntriesByType('resource').filter(r => r.name.includes('extra-theme')).length);
+    assert.equal(await p.locator(`${audio}[src="/audio/inicio-nivel-theme.m4a"]`).count(), 0);
+    const recursos = await p.evaluate(() => performance.getEntriesByType('resource').filter(r => r.name.includes('inicio-nivel-theme')).length);
     assert.equal(recursos, 0);
     if (!ruta.includes('login')) {
-      await reproduciendo(p, ruta === '/simulacion.html' ? '/audio/simulacion-theme.mp3' : '/audio/menu-theme.mp3');
+      await reproduciendo(p, ruta === '/simulacion.html' ? '/audio/simulacion-theme.m4a' : '/audio/menu-theme.m4a');
       assert.equal(await p.locator(audio).count(), 1);
-      assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('extra-theme'))), false);
+      assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('inicio-nivel-theme'))), false);
     }
   });
 }
@@ -52,20 +52,20 @@ test('MP3 real en modo libre: una instancia, 35 %, loop y final sin detenerse', 
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   const inicial = await p.locator(audio).evaluate(a => ({ duration: a.duration, loop: a.loop, volumen: a.volume, src: a.getAttribute('src') }));
-  assert.ok(inicial.duration > 164 && inicial.duration < 164.2);
+  assert.ok(inicial.duration > 216.4 && inicial.duration < 216.7);
   assert.equal(inicial.loop, true); assert.equal(inicial.volumen, .35);
-  assert.equal(inicial.src, '/audio/simulacion-theme.mp3');
+  assert.equal(inicial.src, '/audio/construccion-theme.m4a');
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .4; });
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
   for (let i = 0; i < 5; i++) await gestor(p, 'establecerContexto', 'gameplay');
   assert.equal(await p.locator(audio).count(), 1);
 });
 
-test('Administración reproduce Guts de 224 segundos en bucle y conserva volumen y silencio', async t => {
+test('Administración reproduce Zodd de 180 segundos en bucle y conserva volumen y silencio', async t => {
   const { pagina: p } = await abrir(t, '/admin.html');
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   const datos = await p.locator(audio).evaluate(a => ({ duracion: a.duration, loop: a.loop }));
-  assert.ok(datos.duracion > 223.8 && datos.duracion < 224);
+  assert.ok(datos.duracion > 179.7 && datos.duracion < 180);
   assert.equal(datos.loop, true);
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .4; });
   await p.waitForFunction(() => { const a = document.querySelector('audio'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
@@ -81,13 +81,13 @@ test('Administración reproduce Guts de 224 segundos en bucle y conserva volumen
 
 test('Archivo de menú ausente no bloquea Administración ni la salida a Simulación', async t => {
   const { pagina: p } = await abrir(t, '/admin.html');
-  await p.route('**/audio/menu-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/menu-theme.m4a', route => route.fulfill({ status: 404 }));
   await p.reload();
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   await p.locator('[data-vista="configuracion"]').click();
   assert.equal(await p.locator('#vista-configuracion').isVisible(), true);
   await p.goto(`${base}/simulacion.html?idDiseno=77`);
-  await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await reproduciendo(p, '/audio/simulacion-theme.m4a');
 });
 
 test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin superponer pistas', async t => {
@@ -96,18 +96,18 @@ test('Menús: MP3 real en bucle, navegación y recarga conservan posición sin s
     responder: request => new URL(request.url()).pathname === '/auth/perfil'
       ? { json: { nombre: 'Ana', apellido: 'Prueba', email: 'ana@example.test', rol: 'ADMIN' } } : null,
   });
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   const datos = await p.locator(audio).evaluate(a => ({ duracion: a.duration, loop: a.loop }));
-  assert.ok(datos.duracion > 223.8 && datos.duracion < 224);
+  assert.ok(datos.duracion > 179.7 && datos.duracion < 180);
   assert.equal(datos.loop, true);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   for (const ruta of ['escenarios', 'ranking', 'perfil', 'admin', 'inicio']) {
     await p.goto(`${base}/${ruta}.html`);
-    await reproduciendo(p, '/audio/menu-theme.mp3');
+    await reproduciendo(p, '/audio/menu-theme.m4a');
     assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
     assert.equal(await p.locator(audio).count(), 1);
   }
-  await p.reload(); await reproduciendo(p, '/audio/menu-theme.mp3');
+  await p.reload(); await reproduciendo(p, '/audio/menu-theme.m4a');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .3; });
   await p.waitForFunction(() => { const a = document.querySelector('audio'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
@@ -118,7 +118,7 @@ test('Lista de diseños → edición libre → lista recupera cada canción desd
   await reproduciendo(p);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.goto(`${base}/`);
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   assert.equal(await p.locator('[data-editor-activo]').isHidden(), true);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.goto(`${base}/?idDiseno=77`);
@@ -126,7 +126,7 @@ test('Lista de diseños → edición libre → lista recupera cada canción desd
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator('[data-editor-activo]').isVisible(), true);
   await p.goto(`${base}/`);
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   assert.equal(await p.locator(audio).count(), 1);
 });
@@ -138,42 +138,42 @@ test('Selector y red abierta en Simulación usan la misma pista', async t => {
     if (ruta === '/api/juego/progreso') return { json: { escenarios: [], modoLibreDesbloqueado: true } };
     return null;
   } });
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.goto(`${base}/simulacion.html`);
-  await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await reproduciendo(p, '/audio/simulacion-theme.m4a');
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.locator('#estadoVacio').getByRole('link',{name:'Mis diseños'}).click();
   await p.getByRole('link',{name:'Simular diseño: Red de Montevideo'}).click();
-  await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await reproduciendo(p, '/audio/simulacion-theme.m4a');
   assert.equal(await p.locator('#panelSimulacion').isVisible(), true);
   await p.goto(`${base}/inicio.html`);
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
 });
 
-test('La preparación inicial usa FalsaCargaDeVictoria y al cancelar recupera el menú', async t => {
+test('La preparación inicial usa Extra y al cancelar recupera el menú', async t => {
   const { pagina: p } = await abrir(t, '/escenarios.html');
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
   await p.evaluate(async () => {
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionMenu = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
   });
-  await reproduciendo(p, '/audio/victory-theme.mp3');
+  await reproduciendo(p, '/audio/inicio-nivel-theme.m4a');
   await p.evaluate(() => preparacionMenu.cerrar());
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
 });
 
 test('Audio de menú ausente no impide navegar ni iniciar el juego', async t => {
   const { pagina: p } = await abrir(t, '/inicio.html', { responder: request => new URL(request.url()).pathname === '/api/juego/escenarios' ? { json: [] } : null });
-  await p.route('**/audio/menu-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/menu-theme.m4a', route => route.fulfill({ status: 404 }));
   await p.reload();
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   assert.equal(await p.locator('.metronet-inicio__tarjeta').first().isVisible(), true);
   await p.goto(`${base}/simulacion.html?idDiseno=77`);
-  await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await reproduciendo(p, '/audio/simulacion-theme.m4a');
 });
 
 test('Menú: bloqueo de autoplay y silencio se recuperan con los controles existentes', async t => {
@@ -189,11 +189,11 @@ test('Menú: bloqueo de autoplay y silencio se recuperan con los controles exist
   await p.reload();
   await abrirMusica(p);
   await p.getByRole('button', { name: 'Activar música' }).click();
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   await p.getByLabel('Silenciar música').check();
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
   await p.getByLabel('Silenciar música').uncheck();
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
 });
 
 test('Niveles y cambios internos conservan la pista y su posición', async t => {
@@ -208,20 +208,22 @@ test('Niveles y cambios internos conservan la pista y su posición', async t => 
 
 test('Mapa → simulación → mapa y refresh recuperan posición, sin reiniciar', async t => {
   const { pagina: p } = await abrir(t, '/simulacion.html?idDiseno=77', { responder: request => new URL(request.url()).pathname === '/api/juego/escenarios' ? { json: [] } : null });
-  await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await reproduciendo(p, '/audio/simulacion-theme.m4a');
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
-  if (await p.locator('dialog.metronet-recorrido[open]').count())
+  if (await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).count())
+    await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  else if (await p.locator('dialog.metronet-recorrido [data-recorrido-omitir]').count())
     await p.locator('dialog.metronet-recorrido [data-recorrido-omitir]').click();
   await p.locator('#volverEdicion').click();
   await p.waitForURL('**/?idDiseno=77*');
   await reproduciendo(p);
   await p.goto(`${base}/simulacion.html?idDiseno=77`);
-  await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await reproduciendo(p, '/audio/simulacion-theme.m4a');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
-  await p.reload(); await reproduciendo(p, '/audio/simulacion-theme.mp3');
+  await p.reload(); await reproduciendo(p, '/audio/simulacion-theme.m4a');
   assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
   await p.goto(`${base}/inicio.html`);
-  await reproduciendo(p, '/audio/menu-theme.mp3');
+  await reproduciendo(p, '/audio/menu-theme.m4a');
   assert.equal(await p.locator(audio).count(), 1);
 });
 
@@ -245,7 +247,7 @@ test('Mute y volumen persisten; volver de silencio no reinicia', async t => {
   assert.equal(await p.locator(audio).evaluate(a => a.paused), true);
 });
 
-test('FalsaCargaDeVictoria en preparación; victoria usa la misma pista puntual y al cancelar recupera gameplay', async t => {
+test('Extra en preparación; victoria usa su propia pista puntual y al cancelar recupera gameplay', async t => {
   const { pagina: p } = await abrir(t);
   await reproduciendo(p);
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
@@ -253,14 +255,14 @@ test('FalsaCargaDeVictoria en preparación; victoria usa la misma pista puntual 
     const { crearPreparacionNivel } = await import('/src/educacion/PantallaPreparacionNivel.js');
     window.preparacionAudio = crearPreparacionNivel({ numero: 1, nombre: 'Red inicial' });
   });
-  await reproduciendo(p, '/audio/victory-theme.mp3');
+  await reproduciendo(p, '/audio/inicio-nivel-theme.m4a');
   assert.equal((await gestor(p, 'obtenerEstado')).contexto, 'inicioNivel');
   await p.evaluate(() => preparacionAudio.cerrar()); await reproduciendo(p);
   await p.evaluate(async () => {
     const { mostrarTransicionNivel } = await import('/src/educacion/PantallaTransicionNivel.js');
     window.victoriaAudio = mostrarTransicionNivel({ numero: 1, nombre: 'Red inicial' }, null, { puntaje: 100 });
   });
-  await reproduciendo(p, '/audio/victory-theme.mp3');
+  await reproduciendo(p, '/audio/victory-theme.m4a');
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
   await p.getByRole('button', { name: 'Seleccionar nivel' }).click(); await reproduciendo(p);
   await p.evaluate(async () => {
@@ -294,7 +296,7 @@ test('Autoplay rechazado no bloquea; el siguiente gesto lo recupera', async t =>
 
 test('Archivo ausente y almacenamiento bloqueado no bloquean gameplay', async t => {
   const { pagina: p } = await abrir(t, '/inicio.html');
-  await p.route('**/audio/simulacion-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/construccion-theme.m4a', route => route.fulfill({ status: 404 }));
   await p.evaluate(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
@@ -358,7 +360,7 @@ test('Pestaña oculta y pagehide pausan; regreso recupera y logout detiene', asy
   // El login tiene su propio contexto: esperar la navegación evita observar al azar
   // el reproductor del documento anterior o el de autenticación.
   await p.waitForURL('**/login.html');
-  await reproduciendo(p, '/audio/portada-theme.mp3');
+  await reproduciendo(p, '/audio/portada-theme.m4a');
   assert.equal((await gestor(p, 'obtenerEstado')).contexto, 'auth');
   assert.equal(await p.locator(audio).count(), 1);
 });

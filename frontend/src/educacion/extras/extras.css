@@ -1,0 +1,36 @@
+html:root body .metronet-extras, html:root body .metronet-extras * { font-family:'Silkscreen', monospace; box-sizing:border-box; }
+html:root body dialog.metronet-extras { width:min(94vw,1180px); max-width:none; max-height:94svh; padding:clamp(16px,2.4vw,30px); margin:auto; border:2px solid #48b4ff; background:#091326; color:#edf5ff; overflow:auto; }
+.metronet-extras::backdrop { background:rgb(3 9 20 / .94); }
+.metronet-extras h2, .metronet-extras h3, .metronet-extras p { margin:0; }
+.metronet-extras h2::before,.metronet-extras h3::before { display:none!important; }
+html:root body .metronet-extras h2 { padding:0; border:0; font-size:clamp(20px,2.3vw,32px); line-height:1.4; }
+.metronet-extras header { display:flex; justify-content:space-between; gap:12px; color:#63caff; border-bottom:1px solid #48b4ff; padding-bottom:16px; }
+.metronet-extras__cuerpo { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:center; padding:24px 0; }
+.metronet-extras__imagen { border:1px solid #426084; }
+.metronet-extras svg { display:block; width:100%; height:auto; }
+.metronet-extras__texto { display:grid; gap:16px; min-width:0; }
+.metronet-extras p { font-size:clamp(12px,1.15vw,16px); line-height:1.65; }
+.metronet-extras__subtitulo { color:#88d4ee; }
+.metronet-extras__practica { padding:14px; border:1px solid #48b4ff; }
+.metronet-extras__practica strong { display:block; color:#63caff; margin-bottom:8px; }
+.metronet-extras__nota { color:#afc1db; font-size:12px!important; }
+.metronet-extras footer { display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid #426084; padding-top:16px; }
+html:root body .metronet-extras button { font-family:'Silkscreen',monospace; min-height:44px; font-size:12px; }
+.metronet-extras__saltar { display:block; margin:16px auto 0; }
+.metronet-extras__puntos { display:flex; gap:8px; }
+.metronet-extras__puntos span { width:12px; height:12px; border:1px solid #63caff; }
+.metronet-extras__puntos [aria-current] { background:#63caff; }
+.metronet-extras__bienvenida { text-align:center; display:grid; gap:18px; justify-items:center; padding:10px 0; }
+.metronet-extras__bienvenida > p { max-width:80ch; }
+.metronet-extras__bienvenida .metronet-extras__imagen { width:min(100%,470px); border:0; }
+.metronet-extras__desbloqueo { border:1px solid #48b4ff; padding:8px 16px; color:#63caff; }
+.metronet-extras__bienvenida footer { width:100%; justify-content:center; }
+.metronet-extras__bienvenida footer button { flex:1; max-width:450px; }
+.metronet-extras__estado { color:#ffd078; margin-top:10px!important; }
+html:root body .metronet-extras-acceso { color:#c1a6ff; }
+.ranking-trofeo--oculto .ranking-trofeo__icono svg { fill:#26354b; stroke:#26354b; filter:drop-shadow(0 0 1px #afc1db); }
+@media(max-width:700px) { .metronet-extras__cuerpo {grid-template-columns:1fr;gap:16px;padding:16px 0;} .metronet-extras__imagen{max-width:420px;justify-self:center;} .metronet-extras footer{flex-wrap:wrap;} .metronet-extras__puntos{order:3;justify-content:center;width:100%;} }
+@media(min-width:701px) and (max-height:800px) { .metronet-extras__bienvenida{gap:12px;padding:0;} .metronet-extras__bienvenida .metronet-extras__imagen{width:340px;} .metronet-extras__cuerpo{padding:16px 0;} .metronet-extras__texto{gap:12px;} }
+html:root body .metronet-extras h2:focus { outline:none; }
+html:root body .metronet-extras button.metronet-boton--exito { background:#70e5b1; color:#071221; border-color:#70e5b1; }
+html:root body .metronet-extras button.metronet-boton--exito:hover { background:#9aefca; }

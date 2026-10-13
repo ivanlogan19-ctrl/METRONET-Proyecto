@@ -54,10 +54,10 @@ class AprendizajeTrofeosPostgresTest {
                     numero == 5 ? 99 : 100, 2);
                 assertEquals(10, desbloqueados(aprendizaje, completo));
                 assertFalse(trofeos.consultar(completo).getFirst().obtenido());
-                assertTrue(trofeos.consultar(completo).stream().skip(1)
+                assertTrue(trofeos.consultar(completo).stream().limit(5).skip(1)
                     .allMatch(TrofeosService.Trofeo::obtenido));
                 completar(jdbc, completo, 5, 2, 100, 2);
-                assertTrue(trofeos.consultar(completo).stream().allMatch(TrofeosService.Trofeo::obtenido));
+                assertTrue(trofeos.consultar(completo).stream().limit(5).allMatch(TrofeosService.Trofeo::obtenido));
             } finally { conexion.rollback(); }
         }
     }

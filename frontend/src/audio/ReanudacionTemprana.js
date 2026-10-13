@@ -1,3 +1,4 @@
+import './AtenuacionLectura.js';
 import { gestorMusica } from './GestorMusica.js';
 
 // Entrada pequeña e independiente del código de interfaz/Phaser. Los HTML

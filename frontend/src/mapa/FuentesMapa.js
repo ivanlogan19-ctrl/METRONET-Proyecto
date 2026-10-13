@@ -1,8 +1,9 @@
 import './estilos/fuentes-mapa.css';
+import { iconoRetro } from '../interfaz/IconosRetro.js';
 import desplazamientos from './datos/desplazamientos-historicos.json';
 import { validarDatosTrafico } from './trafico/ModeloTrafico.mjs';
 
-// Consulta compartida de solo lectura: accesible también a jugadores desde Reglas.
+// Consulta compartida de solo lectura: accesible también a jugadores desde Administración.
 export async function mostrarFuentesMapa(contenedor) {
   if (!contenedor) return;
   contenedor.classList.add('metronet-fuentes');
@@ -26,12 +27,66 @@ export async function mostrarFuentesMapa(contenedor) {
     <a href="https://catalogodatos.gub.uy/dataset/encuesta-origen-destino-montevideo/resource/f9545ab1-367c-49e5-9157-aa18eb7ce9ac" target="_blank" rel="noopener noreferrer">Encuesta Origen-Destino · Licencia DAG-UY</a></article>`;
   const m = desplazamientos.metadata;
   contenedor.querySelector('[data-cobertura-desplazamientos]').textContent = `${m.incluidos} de ${m.totalRegistros} registros permiten representar viajes entre sectores de Montevideo. Excluidos: ${m.excluidos.fueraDeCoberturaOSinSegmento} fuera de la cobertura cartográfica o sin segmento, ${m.excluidos.dentroDelMismoSegmento} dentro del mismo sector y ${m.excluidos.sinHoraValida} sin hora válida. ${desplazamientos.flujos.length} pares por hora agregados, sobre cartografía censal 2011.`;
+  if (contenedor.closest('.metronet-pagina-administracion')) organizarResumenFuentes(contenedor);
   const estado = contenedor.querySelector('[data-periodo-trafico]');
   try {
     const respuesta = await fetch(`${location.protocol}//${location.hostname}:8080/api/trafico/historico`, { cache: 'no-store', signal: AbortSignal.timeout(12000) });
     if (!respuesta.ok) throw new Error();
     const datos = await respuesta.json();
     if (!validarDatosTrafico(datos)) throw new Error();
-    estado.textContent = `Período disponible: ${datos.periodo}. ${datos.tramos.length} tramos con sensores asociados.`;
+    estado.textContent = contenedor.classList.contains('metronet-fuentes--resumen')
+      ? datos.periodo.split('-').reverse().join('/')
+      : `Período disponible: ${datos.periodo}. ${datos.tramos.length} tramos con sensores asociados.`;
+    estado.dataset.consulta = 'disponible';
   } catch { estado.textContent = 'No se pudo consultar el período actual del servidor. Reabrí esta sección para reintentar; no se informa una fecha sin verificar.'; }
+}
+
+// Administración utiliza las fichas aprobadas; El catálogo conserva la metodología completa.
+function organizarResumenFuentes(contenedor) {
+  contenedor.classList.add('metronet-fuentes--resumen');
+  const fichas = [
+    { icono: 'calles', titulo: 'Calles y avenidas', datos: [['Fuente', 'Intendencia de Montevideo'], ['Cartografía', '13/10/2026'], ['Actualización', 'Manual']], resumen: 'Las calles menores aparecen al acercar el mapa.' },
+    { icono: 'trafico', titulo: 'Tráfico histórico', datos: [['Período', null], ['Actualización', 'Mensual']], resumen: 'Intensidad relativa por tramo y hora. No indica congestión ni tráfico en vivo.', colores: ['#65cba4', '#f1ce6d', '#ef797d', '#657a91'], etiquetas: ['Bajo', 'Medio', 'Alto', 'Sin datos'] },
+    { icono: 'poblacion', titulo: 'Densidad de población', datos: [['Fuente', 'INE · Censo 2011'], ['Actualización', 'Sin actualización automática']], resumen: 'Habitantes por km². No representa la población actual.', colores: ['#403454', '#625084', '#866bad', '#ac8acf', '#d4aff0'] },
+    { icono: 'desplazamientos', titulo: 'Desplazamientos', datos: [['Fuente', 'Encuesta Origen-Destino'], ['Año', '2016']], resumen: 'Flujos históricos por horario. Las flechas muestran dirección y peso relativo; la animación es ilustrativa.' },
+  ];
+  [...contenedor.children].forEach((articulo, indice) => {
+    const ficha = fichas[indice];
+    articulo.dataset.fuente = ficha.icono;
+    const titulo = articulo.querySelector('h3');
+    titulo.textContent = ficha.titulo;
+    titulo.insertAdjacentHTML('afterbegin', iconoRetro(ficha.icono));
+    const enlace = articulo.querySelector('a');
+    enlace.textContent = 'Consultar fuente';
+    enlace.setAttribute('aria-label', `Consultar fuente de ${ficha.titulo.toLowerCase()}`);
+    const periodo = articulo.querySelector('[data-periodo-trafico]');
+    const datos = document.createElement('dl');
+    datos.className = 'metronet-fuentes__datos';
+    for (const [etiqueta, valor] of ficha.datos) {
+      const nombre = document.createElement('dt'), contenido = document.createElement('dd');
+      nombre.textContent = etiqueta;
+      if (valor === null) contenido.append(periodo);
+      else contenido.textContent = valor;
+      datos.append(nombre, contenido);
+    }
+    const resumen = document.createElement('p'); resumen.className = 'metronet-fuentes__resumen'; resumen.textContent = ficha.resumen;
+    const pie = document.createElement('footer'); pie.className = 'metronet-fuentes__enlaces'; pie.append(enlace);
+    articulo.replaceChildren(titulo, datos);
+    if (ficha.colores) {
+      const leyenda = document.createElement('div'); leyenda.className = 'metronet-fuentes__leyenda';
+      for (const [i, color] of ficha.colores.entries()) {
+        const grupo = document.createElement('span'); grupo.className = 'metronet-fuentes__color';
+        const muestra = document.createElement('span'); muestra.className = 'metronet-fuentes__muestra'; muestra.style.backgroundColor = color; muestra.setAttribute('aria-hidden', 'true'); grupo.append(muestra);
+        if (ficha.etiquetas) grupo.append(document.createTextNode(ficha.etiquetas[i]));
+        leyenda.append(grupo);
+      }
+      if (!ficha.etiquetas) {
+        leyenda.classList.add('metronet-fuentes__leyenda--densidad');
+        const extremos = document.createElement('span'); extremos.className = 'metronet-fuentes__extremos'; extremos.innerHTML = '<span>Baja</span><span>Alta</span>'; leyenda.append(extremos);
+        leyenda.setAttribute('aria-label', 'Densidad de menor a mayor, de violeta oscuro a claro, como en el mapa');
+      }
+      articulo.append(leyenda);
+    }
+    articulo.append(resumen, pie);
+  });
 }

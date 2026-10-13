@@ -65,7 +65,7 @@ test('Registro recupera la pista de acceso mientras su formulario todavía carga
       const audio = document.querySelector('audio');
       return audio && !audio.paused && audio.currentTime >= 3;
     }, null, ANTES_DEL_RENDER);
-    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/portada-theme.mp3');
+    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/portada-theme.m4a');
     assert.equal(await pagina.locator('[data-control-musica]').count(), 0);
   } finally { await liberar(); }
   assert.equal(await pagina.locator('audio').count(), 1);
@@ -79,7 +79,7 @@ test('Administración conserva la pista del menú sin esperar a cargar sus vista
     await pagina.goto(`${BASE}/admin.html`, { waitUntil: 'commit' });
     await pagina.waitForFunction(() => document.querySelector('audio')?.currentTime >= 3, null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').evaluate(audio => audio.paused), false);
-    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/menu-theme.mp3');
+    assert.equal(await pagina.locator('audio').getAttribute('src'), '/audio/menu-theme.m4a');
     assert.equal(await pagina.locator('.metronet-navegacion').count(), 0);
   } finally { await liberar(); }
   await pagina.locator('[data-editar-usuario]').first().waitFor();
@@ -94,7 +94,7 @@ test('Simulación prepara su pista en silencio y reutiliza ese reproductor al ca
   });
   await pagina.waitForFunction(() => {
     const audio = document.querySelector('[data-musica-metronet]');
-    return audio?.getAttribute('src') === '/audio/simulacion-theme.mp3' && !audio.paused && audio.volume === .35;
+    return audio?.getAttribute('src') === '/audio/simulacion-theme.m4a' && !audio.paused && audio.volume === .35;
   });
   await pagina.locator('[data-musica-metronet]').evaluate(audio => { audio.currentTime = 3; });
   const liberar = await retenerPantalla(pagina, '**/src/simulacion/simulacion.js*');
@@ -111,7 +111,7 @@ test('Simulación prepara su pista en silencio y reutiliza ese reproductor al ca
     assert.equal(await pagina.locator('canvas').count(), 0);
   } finally { await liberar(); }
   await pagina.locator('#panelSimulacion:not([hidden])').waitFor();
-  await pagina.waitForFunction(() => !audioPreparado.paused && audioPreparado.volume === .35);
+  await pagina.waitForFunction(() => !audioPreparado.paused && audioPreparado.volume > 0 && audioPreparado.volume <= .35);
   assert.equal(await pagina.evaluate(() => audioPreparado === document.querySelector('audio')), true);
   assert.equal(await pagina.locator('audio').count(), 1);
 });
@@ -145,10 +145,10 @@ test('Una entrada asíncrona tardía no reemplaza bienvenida ni transiciones', a
   } finally { await liberar(); }
   const estado = await pagina.evaluate(() => window[Symbol.for('metronet:gestor-musica')].obtenerEstado());
   assert.equal(estado.contexto, 'welcome');
-  assert.equal(await pagina.locator('[data-musica-metronet]').getAttribute('src'), '/audio/welcome-theme.mp3');
+  assert.equal(await pagina.locator('[data-musica-metronet]').getAttribute('src'), '/audio/welcome-theme.m4a');
 });
 
-test('Un JUGADOR no anticipa audio administrativo ni altera su redirección de acceso', async t => {
+test('Un JUGADOR entra a información del juego sin anticipar gestión administrativa', async t => {
   const { pagina } = await abrir(t);
   const liberar = await retenerPantalla(pagina, '**/src/administracion/administracion.js*');
   try {
@@ -156,15 +156,18 @@ test('Un JUGADOR no anticipa audio administrativo ni altera su redirección de a
     await pagina.waitForFunction(() => window[Symbol.for('metronet:gestor-musica')], null, ANTES_DEL_RENDER);
     assert.equal(await pagina.locator('audio').count(), 0);
   } finally { await liberar(); }
-  await pagina.waitForURL('**/admin-login.html');
-  assert.equal(await pagina.locator('.metronet-navegacion').count(), 0);
+  await pagina.locator('#vista-unidades:not([hidden])').waitFor();
+  assert.equal(new URL(pagina.url()).pathname, '/admin.html');
+  assert.deepEqual(await pagina.locator('.admin-enlace').evaluateAll(es=>es.map(e=>e.dataset.vista)), ['fuentes','unidades']);
+  assert.equal(await pagina.locator('[data-editar-usuario]').count(), 0);
+  await pagina.waitForFunction(()=>document.querySelector('audio')?.getAttribute('src') === '/audio/menu-theme.m4a');
 });
 
 test('Un registro obsoleto no inicia audio anticipado', async t => {
   const { pagina, contexto } = await abrir(t);
   await contexto.addInitScript(() => {
     sessionStorage.setItem('metronet:musica:continuidad', JSON.stringify({
-      pista: '/audio/menu-theme.mp3', contexto: 'menu', instante: Date.now() - 15000,
+      pista: '/audio/menu-theme.m4a', contexto: 'menu', instante: Date.now() - 15000,
     }));
   });
   const liberar = await retenerPantalla(pagina, '**/src/navegacion/escenarios.js*');

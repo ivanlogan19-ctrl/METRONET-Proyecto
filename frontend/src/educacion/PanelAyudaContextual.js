@@ -8,6 +8,7 @@ import { conceptosDelNivel } from './glosario/ContextoConceptos.js';
 import { abrirTarjetaEducativaDesdeAyuda } from './TarjetaEducativaNivel.js';
 import { cargarContenidoPublicado, contenidoPublicadoEnCache } from './ContenidoPublicadoNivel.js';
 import { obtenerContextoRuta } from '../red/ContextoDiseno.js';
+import { ofrecerExtras, abrirExtras } from './extras/PresentacionExtras.js';
 import './ayuda-contextual.css';
 import '../mapa/estilos/referencias-poi.css';
 
@@ -70,6 +71,15 @@ export default class PanelAyudaContextual {
     if (controles && this.tutorial) contenedor.insertBefore(this.botonHistoria, this.tutorial.elemento);
     else if (controles) contenedor.append(this.botonHistoria);
     else this.elemento.querySelector('.metronet-hud__opciones').append(this.botonHistoria);
+    if (controles) {
+      this.botonExtras = document.createElement('button');
+      this.botonExtras.type = 'button';
+      this.botonExtras.classList.add('metronet-extras-acceso');
+      configurarBotonIcono(this.botonExtras, 'tarjetasExtras', 'Extras de Modo Libre');
+      this.botonExtras.hidden = true;
+      this.botonHistoria.after(this.botonExtras);
+      this.botonExtras.addEventListener('click', () => { this.cerrar(); abrirExtras({signal:this.controlExtras?.signal}); });
+    }
     this.mensaje = this.elemento.querySelector('[data-assist-mensaje]');
     this.boton = this.elemento.querySelector('[data-assist-pista]');
     this.boton.addEventListener('click', () => { this.ampliada = !this.ampliada; this.renderizar(); });
@@ -124,6 +134,7 @@ export default class PanelAyudaContextual {
         .catch(() => {});
     }
     this.botonHistoria.hidden = !this.numeroEducativo && !this.modoLibre;
+    if (this.botonExtras) this.botonExtras.hidden = !this.modoLibre;
     const tutorialActivo = this.tutorial?.actualizar(contexto) ?? false;
     contexto = { ...contexto, tutorialActivo };
     const instrucciones = contexto.escenario?.instrucciones ?? contexto.diseno?.simulacion?.instrucciones ?? '';
@@ -181,12 +192,21 @@ export default class PanelAyudaContextual {
     this.boton.setAttribute('aria-pressed', String(this.ampliada));
   }
 
+  async presentarExtras() {
+    this.controlExtras?.abort();
+    this.controlExtras = new AbortController();
+    try { await ofrecerExtras({signal:this.controlExtras.signal}); }
+    catch { /* No impedir construir cuando no está disponible el material. */ }
+  }
+
   eliminar() {
     this.eliminada = true;
     document.removeEventListener('pointerdown', this.alCerrarFuera);
     this.liberarPosicion();
     this.musica.eliminar();
     this.tutorial?.eliminar();
+    this.controlExtras?.abort();
+    this.botonExtras?.remove();
     this.botonHistoria.remove();
     this.elemento.remove();
   }

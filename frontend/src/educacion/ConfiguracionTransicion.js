@@ -1,8 +1,9 @@
-// El recorrido se normaliza a 1800 ms y se muestra durante 11 s visibles.
+// El recorrido se normaliza a 1800 ms: entrada de 5 s y victoria de 11 s.
 // La música suena a velocidad normal y se desvanece al concluir el viaje.
 export const CONFIGURACION_TRANSICION = Object.freeze({
   duracionMs: 1800,
   duracionVisibleMs: 11000,
+  duracionEntradaMs: 5000,
   identificacionMs: 1000,
   audioNivelEstimadoMs: 13767,
   esperaMaximaAudioMs: 20000,

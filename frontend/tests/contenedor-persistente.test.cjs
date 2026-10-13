@@ -13,7 +13,7 @@ async function abrir(t, ruta='/inicio.html', opciones={}) {
 }
 async function sonar(p, pista='menu') {
   await p.waitForFunction(pista => { const g=window[Symbol.for('metronet:gestor-musica')], a=g?.audio;
-    return a?.getAttribute('src')===`/audio/${pista}-theme.mp3` && !a.paused && a.currentTime>0 && a.volume===.35 && g.canales.size===1;
+    return a?.getAttribute('src')===`/audio/${pista}-theme.m4a` && !a.paused && a.currentTime>0 && a.volume>0 && a.volume<=.35 && !g.obtenerEstado().mezclando && g.canales.size===1;
   },pista);
 }
 async function marcar(p) {
@@ -35,9 +35,9 @@ async function ir(v,p,nombre,ruta) {
   await v.waitForURL(`**/${ruta}.html`); await v.locator('.metronet-navegacion').waitFor(); await p.waitForURL(`**/${ruta}.html`);
 }
 
-test('Quince cambios de menú, incluida Reglas, Atrás/Adelante: mismo Audio, sin pause/play/seek ni acumulación',async t=>{
+test('Quince cambios de menú, Atrás/Adelante: mismo Audio, sin pause/play/seek ni acumulación',async t=>{
   const {pagina:p,vista:v}=await abrir(t); await sonar(p); await marcar(p);
-  for(let i=0;i<3;i++) for(const [n,r] of [['Niveles','escenarios'],['Reglas','reglas'],['Ranking','ranking'],['Administración','admin'],['Inicio','inicio']]) await ir(v,p,n,r);
+  for(let i=0;i<3;i++) for(const [n,r] of [['Niveles','escenarios'],['Mis diseños','disenos'],['Ranking','ranking'],['Administración','admin'],['Inicio','inicio']]) await ir(v,p,n,r);
   await continuidad(p);
   await p.goBack(); await v.waitForURL('**/admin.html'); await p.waitForURL('**/admin.html');
   await p.goBack(); await v.waitForURL('**/ranking.html'); await p.waitForURL('**/ranking.html');
@@ -63,7 +63,7 @@ test('Menú, juego y Administración alternan sus pistas; las subsecciones ADMIN
   for (let i = 0; i < 3; i++) {
     await v.evaluate(() => location.assign('/?idDiseno=77'));
     await v.locator('[data-editor-activo]:not([hidden])').waitFor({ state: 'attached' });
-    await sonar(p, 'simulacion');
+    await sonar(p, 'construccion');
     await ir(v, p, 'Administración', 'admin'); await sonar(p, 'menu'); await marcar(p);
     for (const vista of ['disenos', 'configuracion', 'actividad', 'usuarios']) {
       await v.locator(`[data-vista="${vista}"]`).click();
@@ -80,14 +80,16 @@ test('Menú, juego y Administración alternan sus pistas; las subsecciones ADMIN
   }
 });
 
-test('Editor y Simulación conservan la misma pista, posición y reproductor; volumen y silencio compartidos',async t=>{
+test('Editor y Simulación alternan pistas, recuperan sus posiciones y comparten preferencias',async t=>{
   const {pagina:p,vista:v}=await abrir(t); await sonar(p);
   await v.evaluate(()=>location.assign('/?idDiseno=77')); await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});
-  await sonar(p,'simulacion'); await marcar(p);
+  await sonar(p,'construccion'); await p.locator('audio').evaluate(a=>a.currentTime=3);
   await v.evaluate(()=>location.assign('/simulacion.html?idDiseno=77')); await v.locator('#panelSimulacion:not([hidden])').waitFor();
-  await sonar(p,'simulacion'); await continuidad(p);
+  await sonar(p,'simulacion');
+  if(await v.getByRole('button',{name:'Comenzar directamente',exact:true}).count()) await v.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
   await v.locator('#volverEdicion').click(); await v.waitForURL('**/?idDiseno=77*');
-  await sonar(p,'simulacion'); await continuidad(p);
+  await sonar(p,'construccion');
+  assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>=3));
   assert.equal(await p.locator('audio').count(), 1);
   await v.evaluate(async()=>{const {gestorMusica:g}=await import('/src/audio/GestorMusica.js');g.establecerVolumen(.2);g.establecerSilencio(true);});
   await ir(v,p,'Inicio','inicio');
@@ -157,7 +159,7 @@ test('El respaldo de HTML independiente continúa disponible si falla el contene
 
 test('Salir del editor conserva confirmación, cancelar conserva mapa y música',async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/inicio.html');
-  await v.evaluate(()=>location.assign('/?idDiseno=77'));await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});await sonar(p,'simulacion');
+  await v.evaluate(()=>location.assign('/?idDiseno=77'));await v.locator('[data-editor-activo]:not([hidden])').waitFor({state:'attached'});await sonar(p,'construccion');
   await v.evaluate(async()=>{window.limpiarPrueba=(await import('/src/navegacion/NavegacionAplicacion.js')).registrarControlCambios({hayCambios:()=>true,guardar:()=>false});});
   await marcar(p);await v.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Inicio',exact:true}).click();await v.locator('[data-dialogo-cambios]').waitFor();
   await v.getByRole('button',{name:'Cancelar',exact:true}).click();assert.equal(new URL(v.url()).pathname,'/');await continuidad(p);
@@ -177,7 +179,7 @@ test('Fallo de entrada del contenedor ofrece acceso al HTML de respaldo',async t
   await p.locator('#abrir-documento').click();await p.locator('#loginForm').waitFor();assert.equal(await p.locator('iframe').count(),0);
 });
 
-for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 11 s (reducido ${reducido})`,async t=>{
+for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 5 s (reducido ${reducido})`,async t=>{
   const nivel={...require('../src/educacion/niveles.json')[0],idEscenario:1,estado:'DISPONIBLE',desbloqueado:true};
   const red={simulacion:{idDiseno:77,idEscenario:1,nombre:'Primera red',modo:'NIVEL',estado:'EN_DISENO'},estaciones:[],lineas:[],tramos:[],unidadesMetro:[],preparadoParaSimular:false,territorio:{areas:[],errores:[]}};
   const {pagina:p,vista:v}=await abrir(t,'/inicio.html',{administrador:false,reducedMotion:reducido?'reduce':'no-preference',responder:req=>{
@@ -187,18 +189,23 @@ for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 11 
     if(path.endsWith('/escenarios/1/iniciar'))return{json:{idDiseno:77,idEscenario:1,idIntento:123,numeroCampana:1,mostrarTutorial:true}};
     if(path==='/api/simulaciones/77')return{json:red};
   }});
-  const inicio=Date.now();await v.getByRole('button',{name:'Jugar',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'victory');await marcar(p);
-  await v.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();await continuidad(p);
-  assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>8.3&&a.currentTime<11.5));
+  const inicio=Date.now();await v.getByRole('button',{name:'Jugar',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'inicio-nivel');await marcar(p);
+  await v.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();
+  const cartel=await p.evaluate(()=>({mismo:audioOriginal===document.querySelector('audio'),eventos:eventosAudio,tiempo:audioOriginal.currentTime}));
+  assert.equal(cartel.mismo,true);
+  assert.deepEqual(cartel.eventos.filter(e=>e!=='pause'),[], 'El cartel no reinicia ni busca otra posición');
+  assert.ok(cartel.tiempo>3.8&&cartel.tiempo<5.2);
+  if(cartel.eventos.includes('pause')) assert.ok(cartel.tiempo>=4.8, 'Solo puede detenerse al completar el fragmento de cinco segundos');
   await v.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123');
-  assert.ok(Date.now()-inicio>=10800&&Date.now()-inicio<16000);await sonar(p,'simulacion');
+  assert.ok(Date.now()-inicio>=4800&&Date.now()-inicio<10000);await sonar(p,'construccion');
   await v.locator('.metronet-tutorial > summary').waitFor();assert.equal(await v.locator('.metronet-identificacion').count(),0);
 });
 
 test('Outro y siguiente nivel completan el viaje de 11 s y liberan su contexto al navegar',async t=>{
   const {pagina:p,vista:v}=await abrir(t);await sonar(p);
+  const inicio=Date.now();
   await v.evaluate(async()=>{const {mostrarTransicionNivel}=await import('/src/educacion/PantallaTransicionNivel.js');window.finPrueba=mostrarTransicionNivel({numero:1},{numero:2},{puntaje:100});});
-  await sonar(p,'victory');await marcar(p);const inicio=Date.now();
+  await sonar(p,'victory');await marcar(p);
   await v.locator('.metronet-victoria__recorrido').waitFor();await continuidad(p);
   assert.equal(await v.evaluate(()=>finPrueba),'siguiente');assert.ok(Date.now()-inicio>10500);
   await ir(v,p,'Niveles','escenarios');await sonar(p);assert.equal(await p.evaluate(()=>window[Symbol.for('metronet:gestor-musica')].temporales.size),0);
@@ -211,19 +218,23 @@ test('Gesto de usuario dentro del iframe habilita audio y conserva acceso con au
   assert.equal(await v.locator('#loginButton').isEnabled(),true);await v.locator('#email').click();await sonar(p,'portada');
 });
 
-test('Permisos de JUGADOR siguen bloqueando Administración dentro del contenedor',async t=>{
-  const {pagina:p,vista:v}=await abrir(t,'/inicio.html',{administrador:false});
-  await v.evaluate(()=>location.assign('/admin.html'));await v.waitForURL('**/admin-login.html');await p.waitForURL('**/admin-login.html');
-  assert.equal(await v.locator('#tablaUsuarios').count(),0);assert.equal(await v.locator('#loginAdminForm').isVisible(),true);
+test('JUGADOR accede solo a información del juego y conserva la música del menú',async t=>{
+  const {pagina:p,vista:v,solicitudes}=await abrir(t,'/inicio.html',{administrador:false});
+  await sonar(p);await marcar(p);
+  await v.evaluate(()=>location.assign('/admin.html'));await v.waitForURL('**/admin.html');await p.waitForURL('**/admin.html');
+  await v.locator('#vista-unidades').waitFor();await continuidad(p);
+  assert.deepEqual(await v.locator('.admin-enlace').evaluateAll(botones=>botones.map(b=>b.dataset.vista)),['fuentes','unidades']);
+  assert.equal(await v.locator('#tablaUsuarios').count(),0);
+  assert.equal(solicitudes.some(r=>r.path.startsWith('/api/admin/')),false);
 });
 
-for(const reducido of [false,true]) test(`Entrada contenida breve y redirects repetidos sin transición nativa inválida (reducido ${reducido})`,async t=>{
+for(const reducido of [false,true]) test(`Entrada contenida breve y navegación informativa repetida sin transición nativa inválida (reducido ${reducido})`,async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/inicio.html',{administrador:false,reducedMotion:reducido?'reduce':'no-preference'});
   const estilo=await v.locator('body').evaluate(e=>{const s=getComputedStyle(e);return{nombre:s.animationName,duracion:s.animationDuration};});
   assert.equal(estilo.nombre,reducido?'none':'metronet-entrada-pagina');
   if(!reducido)assert.equal(estilo.duracion,'0.18s');
   for(let i=0;i<4;i++){
-    await v.evaluate(()=>location.assign('/admin.html'));await v.waitForURL('**/admin-login.html');await v.locator('#loginAdminForm').waitFor();
+    await v.evaluate(()=>location.assign('/admin.html'));await v.waitForURL('**/admin.html');await v.locator('#vista-unidades').waitFor();
     assert.equal(await v.locator('link[href="/transiciones-documento.css"]').count(),0);
     await v.evaluate(()=>location.assign('/inicio.html'));await v.locator('.metronet-inicio__tarjeta').first().waitFor();
     await p.waitForURL('**/inicio.html');

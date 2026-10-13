@@ -6,7 +6,7 @@ let navegador;
 before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL, args: ['--autoplay-policy=no-user-gesture-required'] }); });
 after(async () => { await navegador?.close(); });
 const audio = 'audio[data-musica-metronet]';
-const pista = '/audio/welcome-theme.mp3';
+const pista = '/audio/welcome-theme.m4a';
 
 async function abrir(t, rol = 'JUGADOR', opciones = {}) {
   const vista = await abrirPantalla(navegador, rol === 'ADMIN' ? '/admin-login.html' : '/login.html', {
@@ -31,7 +31,7 @@ async function ingresar(p, rol = 'JUGADOR') {
 async function sonando(p) {
   await p.waitForFunction(() => {
     const a = document.querySelector('audio[data-musica-metronet]');
-    return a?.getAttribute('src') === '/audio/welcome-theme.mp3' && !a.paused && a.currentTime > 0 && a.volume > 0;
+    return a?.getAttribute('src') === '/audio/welcome-theme.m4a' && !a.paused && a.currentTime > 0 && a.volume > 0;
   });
 }
 
@@ -57,7 +57,7 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: un solo MP3 sin bucle acom
   assert.ok(Date.now() - fin.fin < 1500);
   assert.deepEqual(navegaciones, ['/inicio.html']);
   assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 1);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.m4a');
 });
 
 test('Login inválido no carga la pista de bienvenida', async t => {
@@ -65,7 +65,7 @@ test('Login inválido no carga la pista de bienvenida', async t => {
   await p.locator('#email').fill('ana@example.test'); await p.locator('#password').fill('Prueba1!');
   await p.locator('#loginButton').click(); await p.locator('#mensaje.error').waitFor();
   assert.equal(await p.locator('.metronet-bienvenida').count(), 0);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.m4a');
   assert.equal(await p.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('welcome-theme'))), false);
 });
 
@@ -77,7 +77,7 @@ test('Continuar, logout y nuevo login detienen la pista y la reinician desde cer
     await p.locator(audio).evaluate(a => { a.currentTime = 5; });
     await p.locator('[data-continuar-bienvenida]').click();
     await p.waitForURL('**/inicio.html');
-    assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
+    assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.m4a');
     const posiciones = await p.evaluate(() => JSON.parse(sessionStorage.getItem('metronet:musica:posiciones')));
     assert.equal(posiciones[pista], undefined);
     if (vez === 0) {
@@ -90,7 +90,7 @@ test('Continuar, logout y nuevo login detienen la pista y la reinician desde cer
 
 for (const fallo of ['silencio', 'volumen-cero', 'autoplay', 'archivo', 'play-pendiente']) test(`Sin bloqueo del acceso: ${fallo}`, async t => {
   const { pagina: p } = await abrir(t, 'JUGADOR', { reducedMotion: 'reduce' });
-  if (fallo === 'archivo') await p.route('**/audio/welcome-theme.mp3', route => route.fulfill({ status: 404 }));
+  if (fallo === 'archivo') await p.route('**/audio/welcome-theme.m4a', route => route.fulfill({ status: 404 }));
   if (fallo === 'silencio' || fallo === 'volumen-cero') await p.evaluate(async fallo => {
     const { gestorMusica } = await import('/src/audio/GestorMusica.js');
     if (fallo === 'silencio') gestorMusica.establecerSilencio(true);
@@ -107,7 +107,7 @@ for (const fallo of ['silencio', 'volumen-cero', 'autoplay', 'archivo', 'play-pe
   const inicio = Date.now();
   await ingresar(p); await p.waitForURL('**/inicio.html', { timeout: 4000 });
   assert.ok(Date.now() - inicio < 4000);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.m4a');
   assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem('sesionUsuario')).usuario.rol), 'JUGADOR');
 });
 
@@ -123,7 +123,7 @@ test('Audio interrumpido no prolonga la escena visual', async t => {
   assert.equal(await p.locator('.metronet-bienvenida').isVisible(), true);
   await p.clock.fastForward(2500);
   await p.waitForURL('**/inicio.html');
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.m4a');
 });
 
 test('El tren avanza a ritmo visual y se pausa mientras la pestaña está oculta', async t => {
@@ -148,6 +148,8 @@ test('Ocultar la pestaña 18 segundos no consume el tiempo visible de bienvenida
   await ingresar(p); await sonando(p);
   await p.clock.fastForward(3000);
   await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
+  // Dejar pintar el último frame pendiente con el reloj visible ya congelado.
+  await p.clock.runFor(80);
   const cuadro = await p.locator('.metronet-bienvenida canvas').evaluate(c => c.toDataURL());
   await p.clock.fastForward(18000);
   assert.equal(new URL(p.url()).pathname, '/login.html');

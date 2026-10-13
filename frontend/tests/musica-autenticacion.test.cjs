@@ -27,14 +27,14 @@ async function ingresar(p, rol) {
   await p.locator(rol === 'ADMIN' ? '#loginAdminButton' : '#loginButton').click();
 }
 
-for (const ruta of rutas) test(`Acceso sin sesión: Zodd y control disponible en ${ruta}`, async t => {
+for (const ruta of rutas) test(`Acceso sin sesión: Portada y control disponible en ${ruta}`, async t => {
   const { pagina: p, solicitudes } = await abrir(t, ruta);
   await reproduciendo(p);
   assert.equal(await p.locator(audio).count(), 1);
   const datos = await p.locator(audio).evaluate(a => ({ src: a.getAttribute('src'), loop: a.loop, duracion: a.duration }));
-  assert.equal(datos.src, '/audio/portada-theme.mp3');
+  assert.equal(datos.src, '/audio/portada-theme.m4a');
   assert.equal(datos.loop, true);
-  assert.ok(datos.duracion > 189 && datos.duracion < 189.2);
+  assert.ok(datos.duracion > 119.2 && datos.duracion < 119.4);
   assert.equal(await p.locator('[data-control-musica]').count(), 1);
   assert.equal(await p.evaluate(() => localStorage.getItem('sesionUsuario') || localStorage.getItem('sesionAdministrador')), null);
   assert.deepEqual(solicitudes.filter(s => s.path !== '/api/estado'), [], 'La música no agrega llamadas a backend');
@@ -74,17 +74,17 @@ for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: error de login conserva m�
   accesoValido = true;
   await ingresar(p, rol);
   await p.locator('.metronet-bienvenida').waitFor();
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/welcome-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/welcome-theme.m4a');
   assert.equal(await p.locator(audio).evaluate(a => a.loop), false);
   await p.evaluate(() => document.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
   await p.waitForURL('**/inicio.html');
   await reproduciendo(p);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.m4a');
   assert.equal(solicitudes.filter(s => s.path.startsWith('/auth/login')).length, 2);
   await p.locator('.metronet-navegacion__usuario > summary').click();
   await p.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
   await p.waitForURL('**/login.html'); await reproduciendo(p);
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.m4a');
 });
 
 test('Volumen y silencio persisten; eventos de almacenamiento sin sesión no detienen el contexto auth', async t => {
@@ -128,12 +128,12 @@ test('Autoplay bloqueado ofrece activación accesible sin impedir escribir en el
 test('MP3 ausente no bloquea el login ni la bienvenida', async t => {
   const { pagina: p } = await abrir(t, '/login.html', { reducedMotion: 'reduce', responder: req => /\/auth\/login$/.test(req.url())
     ? { json: { token: 'sesion-local-de-prueba', usuario: { idUsuario: 7, nombre: 'Ana', rol: 'JUGADOR' } } } : null });
-  await p.route('**/audio/portada-theme.mp3', route => route.fulfill({ status: 404 }));
+  await p.route('**/audio/portada-theme.m4a', route => route.fulfill({ status: 404 }));
   await p.reload();
   await p.waitForFunction(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.obtenerEstado().error);
   await ingresar(p, 'JUGADOR');
   await p.waitForURL('**/inicio.html');
-  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.mp3');
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/menu-theme.m4a');
 });
 
 test('Registro conserva su validación, solicitud y retorno a login con la misma pista', async t => {

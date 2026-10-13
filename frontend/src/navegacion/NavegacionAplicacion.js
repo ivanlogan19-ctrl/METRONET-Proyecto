@@ -171,7 +171,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   if (!marcador || !sesion) return null;
   // El editor/simulador decide la música al terminar de cargar la lista o la red.
   const esPantallaDeJuego = actual === 'edicion' || actual === 'simulacion';
-  gestorMusica.establecerContexto(esPantallaDeJuego ? 'general' : actual === 'administracion' ? 'admin' : actual === 'aprendizaje' ? 'educativo' : 'menu');
+  gestorMusica.establecerContexto(esPantallaDeJuego ? 'general' : actual === 'administracion' ? 'admin' : ['aprendizaje', 'reglas'].includes(actual) ? 'educativo' : 'menu');
   const contexto = obtenerContextoRuta();
   const cabecera = document.createElement('header');
   cabecera.className = 'metronet-navegacion';

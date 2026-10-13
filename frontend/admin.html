@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/administracion/administracion.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
+    <link rel="stylesheet" href="/src/administracion/consultas.css" />
 
   <script type="module" blocking="render" src="/src/componentes/inicializarLogoMetronet.js"></script>
   <script type="module" blocking="render" src="/src/administracion/administracion.js"></script>
@@ -131,28 +132,21 @@
         </section>
         <section id="vista-unidades" class="admin-vista">
           <div class="admin-equivalencias">
-            <table aria-label="Equivalencias de simulación">
-              <caption>Equivalencias</caption>
-              <thead><tr><th scope="col">Valor</th><th scope="col">Equivale a</th></tr></thead>
-              <tbody>
-                <tr><th scope="row">1 UT</th><td>1 hora del escenario</td></tr>
-                <tr><th scope="row">1 UV</th><td>1 km por UT · 1 km/h</td></tr>
-                <tr><th scope="row">Distancia</th><td>UV × UT transcurridas</td></tr>
-                <tr><th scope="row">Cobertura</th><td>500 m desde cada estación, en línea recta</td></tr>
-              </tbody>
-            </table>
+            <div class="admin-equivalencias__valores" aria-label="Equivalencias de simulación">
+              <article><h2>Tiempo</h2><strong>1 UT = 1 hora</strong></article>
+              <article><h2>Velocidad</h2><strong>1 UV = 1 km/UT</strong><p>Equivale a 1 km/h</p></article>
+            </div>
+            <div class="admin-equivalencias__formula"><strong>Distancia (km) = UV × UT transcurridas</strong><p>Hasta llegar al final del recorrido</p></div>
             <table aria-label="Ejemplos de recorrido de 12 kilómetros">
               <caption>Ejemplo · recorrido de 12 km</caption>
               <thead><tr><th scope="col">Velocidad</th><th scope="col">Duración</th><th scope="col">Resultado</th></tr></thead>
               <tbody>
-                <tr><td>4 UV</td><td>3 UT</td><td>12 km · llega</td></tr>
-                <tr><td>6 UV</td><td>2 UT</td><td>12 km · llega antes</td></tr>
-                <tr><td>4 UV</td><td>2 UT</td><td>8 km · no llega</td></tr>
+                <tr><td>4 UV</td><td>3 UT</td><td><span class="admin-resultado admin-resultado--completo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h3v3h2V8h2V5h2V2h4v4h-2v3h-2v3H8v3H5v-2H3v-2H1z"/></svg>12 km · llega</span></td></tr>
+                <tr><td>6 UV</td><td>2 UT</td><td><span class="admin-resultado admin-resultado--completo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h3v3h2V8h2V5h2V2h4v4h-2v3h-2v3H8v3H5v-2H3v-2H1z"/></svg>12 km · llega antes</span></td></tr>
+                <tr><td>4 UV</td><td>2 UT</td><td><span class="admin-resultado admin-resultado--incompleto"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4 0h8v2h2v2h2v8h-2v2h-2v2H4v-2H2v-2H0V4h2V2h2z M7 3h2v6H7z M7 11h2v2H7z"/></svg>8 km · no llega</span></td></tr>
               </tbody>
             </table>
-            <p>Compará velocidades con la misma red, hora de inicio y duración.</p>
-            <p>El metro se detiene al llegar o agotar su UT. La animación acelera el tiempo.</p>
-            <p>Las capas aportan contexto; no calculan reducción del tráfico. Los resultados anteriores conservan su escala.</p>
+            <div class="admin-equivalencias__cobertura"><p><strong>Cobertura ·</strong> 500 m desde cada estación, en línea recta.</p><p>Para comparar UV, mantené la misma red, inicio y duración.</p></div>
           </div>
         </section>
         <section id="vista-fuentes" class="admin-vista"><div id="listaFuentesMapa"></div></section>

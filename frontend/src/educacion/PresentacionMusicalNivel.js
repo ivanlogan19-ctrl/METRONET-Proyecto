@@ -3,7 +3,7 @@ import { CONFIGURACION_TRANSICION as TIEMPOS } from './ConfiguracionTransicion.j
 import './identificacion-nivel.css';
 
 // Viaje y cartel comparten documento, reproductor y reloj. La navegación ocurre
-// después de ended; nunca se intenta reconstruir el audio entre estas dos fases.
+// al finalizar la presentación; no se reinicia el audio entre ambas fases.
 export function crearPresentacionMusicalNivel({ dialogo, contexto, titulo, subtitulo,
   puedeMostrarCartel = () => true, alTerminar }) {
   const cartel = document.createElement('section');
@@ -31,7 +31,7 @@ export function crearPresentacionMusicalNivel({ dialogo, contexto, titulo, subti
   }
   const audio = iniciarAudioPresentacion({
     contexto, duracionVisualMs: TIEMPOS.duracionMs,
-    duracionMaximaMs: TIEMPOS.duracionVisibleMs,
+    duracionMaximaMs: contexto === 'inicioNivel' ? TIEMPOS.duracionEntradaMs : TIEMPOS.duracionVisibleMs,
     duracionAudioEstimadaMs: TIEMPOS.audioNivelEstimadoMs,
     demoraSinAudioMs: TIEMPOS.audioNivelEstimadoMs,
     esperaMaximaMs: TIEMPOS.esperaMaximaAudioMs,

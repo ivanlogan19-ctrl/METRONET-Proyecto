@@ -115,3 +115,5 @@ html:root body button.metronet-aprendizaje__tarjeta:focus-visible { border-color
     align-items: start;
   }
 }
+
+#extrasAprendizaje { margin-bottom:20px; --boleto-acento:#c1a6ff; }

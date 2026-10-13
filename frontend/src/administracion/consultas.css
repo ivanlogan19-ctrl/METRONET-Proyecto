@@ -1,0 +1,157 @@
+/* Presentación de las tres pantallas de consulta aprobadas. */
+html:root body .admin-aplicacion--consulta .admin-contenido { padding: 16px 22px 20px; }
+html:root body .admin-aplicacion--consulta .admin-encabezado { align-items: center; gap: 14px; padding-bottom: 14px; }
+html:root body .admin-aplicacion--consulta .admin-titulo-con-icono { min-width: 0; gap: 12px; }
+html:root body .admin-aplicacion--consulta .admin-titulo-con-icono h1 { font-size: clamp(17px, 1.75vw, 25px); white-space: normal; }
+html:root body .admin-aplicacion--consulta .admin-vista { padding-top: 18px; gap: 14px; }
+
+html:root body .admin-configuracion-item--mantenimiento {
+  width: min(100%, 860px);
+  margin: 20px auto;
+  padding: 24px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+}
+.admin-configuracion-item--mantenimiento .admin-configuracion-descripcion { grid-column: 1 / -1; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+html:root body .admin-configuracion-item--mantenimiento h3 { margin: 0 0 14px; font-size: 18px; }
+html:root body .admin-configuracion-item--mantenimiento p { max-width: 68ch; margin: 0; text-align: left; hyphens: none; font-size: 12px; line-height: 1.7; }
+.admin-configuracion-item--mantenimiento .admin-campo-configuracion { display: flex; align-items: center; gap: 20px; }
+.admin-configuracion-item--mantenimiento label { color: var(--text-secondary); font-size: 12px; }
+html:root body .admin-configuracion-item--mantenimiento :is(select, button) { min-height: 40px; margin: 0; font-size: 12px; }
+html:root body .admin-configuracion-item--mantenimiento > .admin-guardar { grid-column: 2; align-self: center; }
+
+html:root body #vista-unidades .admin-equivalencias { width: 100%; margin: 0 auto; gap: 12px; }
+.admin-equivalencias__valores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.admin-equivalencias__valores article { border: 1px solid var(--border-active);  padding: 16px; background: var(--panel); text-align: center; }
+html:root body #vista-unidades .admin-equivalencias__valores h2 { padding: 0; margin: 0 0 12px; border: 0; box-shadow: none; background: none; color: var(--info-active); font-size: 12px; }
+.admin-equivalencias__valores strong { display: block; margin-bottom: 8px; font: 400 clamp(17px, 1.7vw, 23px)/1.4 var(--font-arcade); }
+.admin-equivalencias__formula { padding: 12px; border: 1px solid var(--border); background: var(--bg-secondary); text-align: center; }
+.admin-equivalencias__formula strong { display: block; margin-bottom: 6px; font-size: 12px; color: var(--info-active); }
+html:root body #vista-unidades caption { padding: 10px; background: var(--panel-elevated); border: 1px solid var(--border); }
+html:root body #vista-unidades :is(th, td) { padding: 10px; }
+html:root body #vista-unidades .admin-equivalencias__cobertura { padding: 10px; background: var(--panel); border: 1px solid var(--border); font-size: 10px; }
+html:root body #vista-unidades .admin-equivalencias p { font-size: 12px; line-height: 1.6; }
+
+html:root body .metronet-fuentes--resumen { gap: 14px; }
+html:root body .metronet-fuentes--resumen article { display: flex; flex-direction: column; gap: 10px; padding: 16px; min-width: 0;  }
+html:root body .metronet-fuentes--resumen h3 { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 0 10px; border: 0; box-shadow: none; background: none; font-size: 16px; }
+.metronet-fuentes--resumen h3 svg { width: 36px; height: 36px; flex: 0 0 36px; }
+html:root body .metronet-fuentes--resumen :is(p, a) { margin: 0; font-size: 12px; line-height: 1.6; }
+.metronet-fuentes__datos { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; margin: 0; font-size: 12px; line-height: 1.5; }
+.metronet-fuentes__datos dt { color: var(--text-secondary); }
+.metronet-fuentes__datos dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.metronet-fuentes__leyenda { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; font-size: 12px; color: var(--text-secondary); }
+.metronet-fuentes__muestra { width: 16px; height: 14px; border: 1px solid var(--border-active); }
+.metronet-fuentes__enlaces { display: grid; gap: 5px; }
+@media (min-width: 801px) and (max-height: 800px) {
+  html:root body .metronet-fuentes--resumen { gap: 10px; }
+  html:root body .metronet-fuentes--resumen article { padding: 10px; gap: 6px; }
+  html:root body .metronet-fuentes--resumen h3 { font-size: 14px; padding-bottom: 6px; }
+  .metronet-fuentes--resumen h3 svg { width: 30px; height: 30px; flex-basis: 30px; }
+  html:root body .metronet-fuentes--resumen :is(p, a) { font-size: 11px; line-height: 1.5; }
+  .metronet-fuentes__datos { gap: 4px 10px; font-size: 11px; }
+}
+@media (max-width: 1100px) {
+  html:root body .admin-aplicacion--consulta .admin-encabezado { flex-wrap: wrap; }
+}
+@media (max-width: 800px) {
+  html:root body .admin-aplicacion--consulta .admin-navegacion { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html:root body .admin-aplicacion--consulta .admin-contenido { padding: 12px; }
+  .metronet-fuentes--resumen { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .admin-equivalencias__valores { grid-template-columns: minmax(0, 1fr); }
+  html:root body .admin-configuracion-item--mantenimiento { padding: 16px; grid-template-columns: minmax(0, 1fr); }
+  html:root body .admin-configuracion-item--mantenimiento > .admin-guardar { grid-column: 1; }
+  .admin-configuracion-item--mantenimiento .admin-campo-configuracion { flex-wrap: wrap; }
+}
+
+/* Tamaños explícitos: los símbolos nunca determinan la altura de la tabla. */
+.admin-resultado { display: inline-flex; align-items: center; justify-content: center; gap: 14px; }
+.admin-resultado svg { display: block; width: 18px; height: 18px; flex: 0 0 18px; fill: #6ee0b5; }
+.admin-resultado--incompleto svg { fill: #f1ce6d; }
+.admin-mantenimiento-indicador { display: block; width: 18px; height: 18px; flex: 0 0 18px; background: #6ee0b5; border: 1px solid #c5f6e4; }
+.admin-campo-configuracion:has(option[value="activado"]:checked) .admin-mantenimiento-indicador { background: #f1ce6d; }
+html:root body .admin-configuracion-item--mantenimiento select { width: 100%; min-width: 0; flex: 1; }
+html:root body .admin-configuracion-item--mantenimiento label { flex: 0 0 auto; }
+html:root body .admin-configuracion-item--mantenimiento > .admin-guardar { min-width: 140px; }
+html:root body #vista-unidades .admin-equivalencias__formula strong { color: var(--text-primary); font-size: clamp(12px, 1.25vw, 18px); }
+html:root body #vista-unidades .admin-equivalencias__cobertura p + p { margin-top: 8px; }
+.metronet-fuentes__color { display: inline-flex; align-items: center; gap: 8px; }
+.metronet-fuentes__muestra { display: inline-block; flex: 0 0 18px; width: 18px; height: 18px; }
+.metronet-fuentes__leyenda--densidad { width: max-content; max-width: 100%; gap: 10px; }
+.metronet-fuentes__extremos { display: flex; justify-content: space-between; flex-basis: 100%; }
+.metronet-fuentes__datos { padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.metronet-fuentes__enlaces { margin-top: auto; padding-top: 12px; }
+.metronet-fuentes--resumen [data-fuente="calles"] h3 svg { color: #d9e9f9; }
+.metronet-fuentes--resumen [data-fuente="trafico"] h3 svg { color: #ff777b; }
+.metronet-fuentes--resumen [data-fuente="poblacion"] h3 svg { color: #b697ed; }
+.metronet-fuentes--resumen [data-fuente="desplazamientos"] h3 svg { color: #56bcff; }
+
+/* El menú y sus ilustraciones conservan los estilos comunes de Administración. */
+html:root body .admin-aplicacion--consulta .admin-titulo-con-icono h1 { font-size: clamp(20px, 2vw, 28px); }
+html:root body #listaConfiguracion { max-width: none; }
+html:root body .admin-configuracion-item--mantenimiento { width: min(90%, 900px); margin: 20px auto; padding: 26px; border: 1px solid var(--info-active); }
+html:root body .admin-configuracion-item--mantenimiento h3 { padding: 0; color: var(--text-primary); font-size: 22px; }
+html:root body .admin-configuracion-item--mantenimiento p { font-size: 14px; max-width: 60ch; }
+html:root body .admin-configuracion-item--mantenimiento select { text-align: left; text-align-last: left; }
+html:root body :is(#vista-configuracion .admin-configuracion-item--mantenimiento, #listaFuentesMapa.metronet-fuentes--resumen) h3::before { content: none; display: none; }
+html:root body #vista-unidades :is(th, td, caption) { font-size: 12px; }
+html:root body #vista-unidades .admin-equivalencias__cobertura p { font-size: 12px; }
+@media (max-width: 800px) {
+  html:root body .admin-configuracion-item--mantenimiento { width: 100%; padding: 16px; }
+  html:root body .admin-configuracion-item--mantenimiento h3 { font-size: 18px; }
+}
+
+html:root body #vista-unidades :is(th, td, caption) { font-size: 14px; padding: 12px; }
+html:root body #vista-unidades .admin-equivalencias__cobertura { padding: 16px; }
+html:root body #vista-unidades .admin-equivalencias__cobertura p { font-size: 14px; }
+html:root body .metronet-fuentes--resumen h3 { font-size: 18px; min-height: 48px; gap: 16px; }
+html:root body .metronet-fuentes--resumen h3 svg { width: 48px; height: 48px; flex: 0 0 48px; }
+html:root body .metronet-fuentes--resumen :is(p, a) { font-size: 13px; }
+.metronet-fuentes__datos { grid-template-columns: 40% minmax(0, 1fr); align-content: start; font-size: 13px; }
+.metronet-fuentes__datos dd { text-align: left; }
+.metronet-fuentes__leyenda { justify-content: space-between; }
+.metronet-fuentes__leyenda--densidad { display: grid; grid-template-columns: repeat(5, 22px); gap: 8px 12px; }
+.metronet-fuentes__leyenda--densidad .metronet-fuentes__muestra { width: 22px; height: 22px; }
+.metronet-fuentes__extremos { grid-column: 1 / -1; }
+@media (min-width: 801px) and (max-height: 800px) {
+  html:root body #vista-unidades :is(th, td, caption) { padding: 8px 10px; }
+  html:root body #vista-unidades .admin-equivalencias__valores article { padding: 12px; }
+  html:root body .metronet-fuentes--resumen h3 { font-size: 16px; min-height: 40px; padding-bottom: 0; }
+  html:root body .metronet-fuentes--resumen h3 svg { width: 40px; height: 40px; flex-basis: 40px; }
+  html:root body .metronet-fuentes--resumen :is(p, a), .metronet-fuentes__datos { font-size: 12px; }
+}
+@media (max-width: 480px) {
+  html:root body #vista-unidades :is(th, td, caption) { font-size: 11px; padding: 8px 4px; }
+  .metronet-fuentes__datos { grid-template-columns: 1fr; gap: 4px; }
+  .metronet-fuentes__datos dd { margin-bottom: 8px; }
+}
+/* Una misma línea de inicio para el menú y el encabezado, en todas las vistas. */
+@media (min-width: 921px) {
+  html:root body.metronet-pagina-administracion .admin-menu,
+  html:root body.metronet-pagina-administracion .admin-contenido { padding-top: 20px; }
+  html:root body.metronet-pagina-administracion .admin-encabezado,
+  html:root body.metronet-pagina-administracion .admin-titulo-con-icono { align-items: flex-start; }
+}
+html:root body .admin-titulo-con-icono #iconoFuentes { width: 96px; height: 96px; }
+html:root body .admin-configuracion-item--mantenimiento { width: min(96%, 1040px); }
+html:root body .admin-configuracion-item--mantenimiento p { max-width: none; font-size: 13px; }
+@media (min-width: 801px) and (max-height: 850px) {
+  html:root body .admin-aplicacion--consulta .admin-vista { padding-top: 12px; }
+  html:root body #vista-unidades .admin-equivalencias { gap: 8px; }
+  html:root body #vista-unidades .admin-equivalencias__formula,
+  html:root body #vista-unidades .admin-equivalencias__cobertura { padding: 8px; }
+  html:root body #vista-unidades .admin-equivalencias__valores article { padding: 8px; }
+  html:root body #vista-unidades .admin-equivalencias__valores h2 { margin-bottom: 6px; }
+  html:root body .metronet-fuentes--resumen article { padding: 10px 12px; gap: 6px; }
+  html:root body .metronet-fuentes--resumen h3 { min-height: 36px; padding-bottom: 0; font-size: 15px; }
+  html:root body .metronet-fuentes--resumen h3 svg { width: 36px; height: 36px; flex-basis: 36px; }
+  html:root body .metronet-fuentes--resumen :is(p, a), .metronet-fuentes__datos { font-size: 12px; line-height: 1.4; }
+  .metronet-fuentes__datos { padding-bottom: 6px; gap: 4px 10px; }
+  .metronet-fuentes__enlaces { padding-top: 6px; }
+  .metronet-fuentes__leyenda { font-size: 11px; gap: 8px; }
+}
+@media (min-width: 921px) and (max-height: 800px) {
+  html:root body .admin-senal-ferroviaria { height: max(140px, min(360px, calc(100svh - 490px))); }
+}

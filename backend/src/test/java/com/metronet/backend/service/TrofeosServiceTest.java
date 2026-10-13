@@ -41,10 +41,10 @@ class TrofeosServiceTest {
         assertTrue(servicio.consultar(usuario(Rol.JUGADOR)).stream().noneMatch(TrofeosService.Trofeo::obtenido));
         completados.set(5);
         var parcial = servicio.consultar(usuario(Rol.JUGADOR));
-        assertEquals(List.of(false, false, false, true, true), parcial.stream()
+        assertEquals(List.of(false, false, false, true, true, false), parcial.stream()
             .map(TrofeosService.Trofeo::obtenido).toList());
         completados.set(10);
-        assertTrue(servicio.consultar(usuario(Rol.JUGADOR)).stream().allMatch(TrofeosService.Trofeo::obtenido));
+        assertTrue(servicio.consultar(usuario(Rol.JUGADOR)).stream().limit(5).allMatch(TrofeosService.Trofeo::obtenido));
         assertTrue(servicio.consultar(usuario(Rol.ADMIN)).stream().noneMatch(TrofeosService.Trofeo::obtenido));
     }
 }

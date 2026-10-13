@@ -63,7 +63,7 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   await p.getByRole('button',{name:'Jugar',exact:true}).click();
   await p.locator('.metronet-viaje').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(),0);
-  await p.clock.runFor(9000);
+  await p.clock.runFor(3000);
   assert.equal(await p.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').count(),0);
   await p.clock.runFor(2100);
   await p.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();
@@ -148,8 +148,8 @@ test('Simular y finalizar el último nivel desde Edición: celebración de un so
   let completado = false;
   const red = { simulacion:{idDiseno:77,idEscenario:ultimo,nombre:'Red integral',modo:'NIVEL',estado:'VALIDADO'},
     estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],
-    lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],
-    unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:40}],preparadoParaSimular:true,
+    lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B',distanciaKm:4}],
+    unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:40,duracionUt:1}],preparadoParaSimular:true,
     resultados:[],territorio:{areas:[],errores:[]} };
   const libreDiseno = { ...red, simulacion:{idDiseno:200,idEscenario:111,nombre:'Mi red libre',modo:'EDICION_LIBRE',estado:'EN_DISENO'} };
   const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder:req => {
@@ -167,6 +167,7 @@ test('Simular y finalizar el último nivel desde Edición: celebración de un so
   const p = v.pagina;
   await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
 
+  await p.getByRole('button', {name:'Comenzar directamente',exact:true}).click();
   await p.locator('#duracionSimulacion').fill('1');
   await p.locator('#formularioEjecucion button[type="submit"]').click();
   await p.waitForFunction(() => document.querySelector('#mensajeSimulacion')?.textContent.includes('Simulación terminada.'), null, {timeout:45000});
@@ -200,7 +201,7 @@ for (const width of [1920,1440,1366,1280,768,390,320]) test(`Cartel ${width}px: 
   const medidas = await p.locator('.metronet-identificacion__cartel').evaluate(e => ({r:e.getBoundingClientRect().toJSON(), animacion:getComputedStyle(e).animationName}));
   assert.equal(medidas.animacion,'none'); assert.ok(medidas.r.x>=0 && medidas.r.right<=width);
   assert.equal(await p.evaluate(() => document.querySelector('audio[data-musica-metronet]') === audioPrevio), true);
-  assert.equal(await p.evaluate(() => audioPrevio?.getAttribute('src')), '/audio/simulacion-theme.mp3');
+  assert.equal(await p.evaluate(() => audioPrevio?.getAttribute('src')), '/audio/construccion-theme.m4a');
   assert.ok(await p.evaluate(() => !audioPrevio || audioPrevio.currentTime >= .5));
   await p.clock.runFor(1100); assert.equal(await p.evaluate(() => fin),true);
   await p.evaluate(async () => {

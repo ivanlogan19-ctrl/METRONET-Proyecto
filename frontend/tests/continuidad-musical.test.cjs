@@ -11,7 +11,7 @@ async function abrir(t,ruta='/inicio.html') {
  await v.pagina.evaluate(async()=>{window.gestorPrueba=(await import('/src/audio/GestorMusica.js')).gestorMusica;});
  await estable(v.pagina);return v;
 }
-async function estable(p,pista='/audio/menu-theme.mp3') {
+async function estable(p,pista='/audio/menu-theme.m4a') {
  await p.waitForFunction(pista=>{const a=document.querySelector('[data-musica-metronet]');return a?.getAttribute('src')===pista&&!a.paused&&a.readyState>=2&&!a.seeking&&a.volume===.35&&document.querySelectorAll('audio').length===1;},pista);
 }
 async function medir(p){return p.evaluate(()=>[...document.querySelectorAll('audio')].map(a=>({pista:a.getAttribute('src'),volumen:a.volume,tiempo:a.currentTime,pausado:a.paused})));}
@@ -43,7 +43,7 @@ test('Misma pista menu→admin y carga de 200ms no tocan play, pause ni volumen'
  assert.ok((await medir(p))[0].tiempo>3);
 });
 
-test('Cambio de pista mezcla durante 180ms y respeta 40% maestro',async t=>{
+test('Cambio de pista mezcla durante 800ms y respeta 40% maestro',async t=>{
  const {pagina:p}=await abrir(t);
  await p.evaluate(()=>{gestorPrueba.establecerVolumen(.4);gestorPrueba.establecerContexto('gameplay');});
  await p.waitForFunction(()=>gestorPrueba.obtenerEstado().mezclando&&document.querySelector('[data-musica-metronet]')?.currentTime>0);
@@ -52,7 +52,7 @@ test('Cambio de pista mezcla durante 180ms y respeta 40% maestro',async t=>{
  assert.ok(mezcla.every(a=>!a.pausado&&a.volumen>0&&a.volumen<.4),JSON.stringify(mezcla));
  assert.ok(Math.abs(mezcla.reduce((s,a)=>s+a.volumen,0)-.4)<.025);
  await p.waitForFunction(()=>!gestorPrueba.obtenerEstado().mezclando);
- const final=await medir(p);assert.equal(final.length,1);assert.equal(final[0].pista,'/audio/simulacion-theme.mp3');assert.equal(final[0].volumen,.4);
+ const final=await medir(p);assert.equal(final.length,1);assert.equal(final[0].pista,'/audio/construccion-theme.m4a');assert.equal(final[0].volumen,.4);
  assert.equal(await p.evaluate(()=>gestorPrueba.temporizadorMezcla),null);
 });
 
@@ -82,7 +82,7 @@ test('Mute durante una mezcla detiene todas las pistas y se conserva al navegar'
 
 test('Pista de destino fallida no deja mezcla ni promesas sin capturar',async t=>{
  const {pagina:p}=await abrir(t);
- await p.route('**/audio/simulacion-theme.mp3',r=>r.fulfill({status:404}));
+ await p.route('**/audio/construccion-theme.m4a',r=>r.fulfill({status:404}));
  await p.evaluate(()=>gestorPrueba.establecerContexto('gameplay'));
  await p.waitForFunction(()=>gestorPrueba.obtenerEstado().error&&!gestorPrueba.obtenerEstado().mezclando);
  assert.ok((await medir(p)).every(a=>a.pausado));

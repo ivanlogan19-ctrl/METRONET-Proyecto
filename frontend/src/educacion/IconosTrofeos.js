@@ -1,4 +1,5 @@
 export const iconosTrofeos = {
+  extras: '<path d="M10 14h18l12 8 12-8h18v50H52l-12 8-12-8H10z"/><path d="M28 14v50m24-50v50M18 44l18-10 12 12 14-12"/><path d="M15 41h6v6h-6zm18-10h6v6h-6zm12 12h6v6h-6zm14-12h6v6h-6z"/>',
   corona: '<path d="M13 55 8 23l15 12 17-23 17 23 15-12-5 32Z"/><path d="M13 55h54v9H13z"/>',
   biblioteca: '<path d="M13 14h16v48H13zM32 14h16v48H32zM51 20h16v42H51z"/><path d="M18 24h6m13 0h6m13 7h6M18 52h6m13 0h6m13 1h6"/>',
   copa: '<path d="M22 14h36v23c0 14-8 22-18 22s-18-8-18-22V14Z"/><path d="M22 20H9v10c0 10 6 14 16 14m33-24h13v10c0 10-6 14-16 14M40 59v8m-15 0h30"/>',

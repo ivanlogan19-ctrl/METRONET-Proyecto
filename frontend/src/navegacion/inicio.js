@@ -58,7 +58,7 @@ function renderizarTablero(contenedor, progreso) {
   contenedor.replaceChildren(
     crearTarjetaContinuar(resumen),
     crearTarjetaModoLibre(resumen),
-    crearTarjetaAccesos(resumen),
+    crearTarjetaAccesos(),
   );
 }
 
@@ -88,9 +88,10 @@ function crearTarjetaContinuar(resumen) {
   if (resumen.escenarioContinuar) {
     const escenario = resumen.escenarioContinuar;
     contenido.append(
-      crearTituloTarjeta(`Nivel ${escenario.numero} · ${nombreSinNumero(escenario)}`),
+      crearTituloTarjeta('Continuar mi recorrido'),
       crearEstado(estadoLegible(escenario.estado), 'activo'),
-      crearDescripcion(escenario.objetivo || escenario.instrucciones || 'Retomá el próximo paso de tu recorrido.'),
+      crearNombreNivel(escenario),
+      crearDescripcion('Construí tu red y poné en práctica lo aprendido en este nivel.'),
     );
     const boton = crearBoton(
       ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado) ? 'Continuar' : 'Jugar',
@@ -98,7 +99,7 @@ function crearTarjetaContinuar(resumen) {
       () => iniciarEscenario(escenario, boton),
     );
     if (ESTADOS_CON_INTENTO_ACTIVO.has(escenario.estado)) boton.id = 'continuarNivelInicio';
-    tarjeta.append(contenido, crearPieTarjeta(boton, '/escenarios.html', 'Ver todos los niveles'));
+    tarjeta.append(contenido, crearIlustracion('recorrido'), crearPieTarjeta(boton, '/escenarios.html', 'Ver todos los niveles'));
     return tarjeta;
   }
   if (resumen.recorridoCompletado) {
@@ -107,7 +108,7 @@ function crearTarjetaContinuar(resumen) {
       crearEstado('Completado', 'completado'),
       crearDescripcion('Completaste todos los niveles de aprendizaje. El Modo Libre ya está disponible para crear sin consigna.'),
     );
-    tarjeta.append(contenido, crearPieTarjeta(null, '/escenarios.html', 'Ver recorrido completo'));
+    tarjeta.append(contenido, crearIlustracion('recorrido'), crearPieTarjeta(null, '/escenarios.html', 'Ver recorrido completo'));
     return tarjeta;
   }
   contenido.append(
@@ -115,7 +116,7 @@ function crearTarjetaContinuar(resumen) {
     crearEstado('Sin datos', 'neutral'),
     crearDescripcion('Todavía no hay un nivel disponible para continuar.'),
   );
-  tarjeta.append(contenido, crearPieTarjeta(null, '/escenarios.html', 'Consultar niveles'));
+  tarjeta.append(contenido, crearIlustracion('recorrido'), crearPieTarjeta(null, '/escenarios.html', 'Consultar niveles'));
   return tarjeta;
 }
 
@@ -131,7 +132,7 @@ function crearTarjetaModoLibre(resumen) {
       crearEstado('No disponible', 'neutral'),
       crearDescripcion('El Modo Libre se habilitará cuando esté configurado en el recorrido de aprendizaje.'),
     );
-    tarjeta.append(contenido);
+    tarjeta.append(contenido, crearIlustracion('plano'));
     return tarjeta;
   }
   if (!resumen.modoLibreDesbloqueado) {
@@ -141,27 +142,23 @@ function crearTarjetaModoLibre(resumen) {
       crearEstado('Bloqueado', 'bloqueado'),
       crearDescripcion('Ayudá a Ari, Sol y Dani a completar los niveles de la historia para desbloquear el Modo Libre.'),
     );
-    tarjeta.append(contenido);
+    tarjeta.append(contenido, crearIlustracion('plano'));
     return tarjeta;
   }
   contenido.append(
     crearTituloTarjeta('Modo Libre'),
     crearEstado(ESTADOS_CON_INTENTO_ACTIVO.has(modoLibre.estado) ? 'En curso' : 'Disponible', 'disponible'),
     crearDescripcion(resumen.campanaCompletadaHistoricamente
-      ? 'Logro permanente desbloqueado. Creá una red propia sin reiniciar tus avances anteriores.'
-      : 'Creá una red propia, definí líneas, estaciones, conexiones y unidades de metro antes de simularla.'),
+      ? 'Tu espacio para diseñar, construir y simular. Descubrí las herramientas del mapa; conservás este logro.'
+      : 'Diseñá, construí y simulá tu propia red. Descubrí las herramientas del mapa.'),
   );
   const boton = crearBoton(ESTADOS_CON_INTENTO_ACTIVO.has(modoLibre.estado) ? 'Continuar en Modo Libre' : 'Jugar en Modo Libre', 'verde', () => iniciarEscenario(modoLibre, boton));
-    tarjeta.append(contenido, crearPieTarjeta(boton, '/disenos.html', 'Abrir mis diseños'));
+  tarjeta.append(contenido, crearIlustracion('plano'), crearPieTarjeta(boton, '/disenos.html', 'Abrir mis diseños'));
   return tarjeta;
 }
 
-function crearTarjetaAccesos(resumen) {
-  const tarjeta = crearTarjeta('progreso', 'Tu recorrido');
-  const avance = crearMeta(resumen.niveles.length
-    ? `${resumen.cantidadCompletados}/${resumen.niveles.length} niveles completados`
-    : 'Sin niveles disponibles');
-  avance.classList.add('metronet-inicio__avance-recorrido');
+function crearTarjetaAccesos() {
+  const tarjeta = crearTarjeta('progreso');
   const accesos = document.createElement('nav');
   accesos.className = 'metronet-inicio__accesos';
   accesos.setAttribute('aria-label', 'Accesos al jugador');
@@ -171,7 +168,7 @@ function crearTarjetaAccesos(resumen) {
     misDisenos,
     crearEnlace('/simulacion.html', 'Simulaciones'),
   );
-  tarjeta.append(avance, accesos);
+  tarjeta.append(accesos);
   return tarjeta;
 }
 
@@ -185,6 +182,24 @@ function crearTarjeta(variante, etiqueta) {
     tarjeta.append(identificador);
   }
   return tarjeta;
+}
+
+function crearNombreNivel(escenario) {
+  const nombre = document.createElement('h3');
+  nombre.className = 'metronet-inicio__nombre-nivel';
+  nombre.textContent = `Nivel ${escenario.numero} · ${nombreSinNumero(escenario)}`;
+  return nombre;
+}
+
+function crearIlustracion(tipo) {
+  const imagen = document.createElement('img');
+  imagen.className = 'metronet-inicio__ilustracion';
+  imagen.src = `/assets/inicio-${tipo}-pixel.png`;
+  imagen.alt = '';
+  imagen.width = 2172;
+  imagen.height = 724;
+  imagen.decoding = 'async';
+  return imagen;
 }
 
 function crearPieTarjeta(boton, ruta, textoEnlace) {

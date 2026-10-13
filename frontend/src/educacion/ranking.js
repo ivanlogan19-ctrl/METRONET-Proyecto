@@ -2,6 +2,7 @@ import { iconosTrofeos } from './IconosTrofeos.js';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { inicializarNavegacion } from '../navegacion/NavegacionAplicacion.js';
 import { consultarJuego } from './ClientePuntuacion.js';
+import './extras/extras.css';
 const sesion = requerirSesion('/ranking.html');
 const formatoPuntos = valor => String(valor ?? 0).padStart(6, '0');
 const texto = (tag, valor) => { const e = document.createElement(tag); e.textContent = valor; return e; };
@@ -67,7 +68,7 @@ async function cargarTrofeos() {
   resumen.textContent = 'Consultando premios…';
   try {
     const trofeos = await consultarJuego('/trofeos');
-    if (!Array.isArray(trofeos) || trofeos.length !== 5) throw new Error('Respuesta de premios incompleta.');
+    if (!Array.isArray(trofeos) || trofeos.length !== 6) throw new Error('Respuesta de premios incompleta.');
     renderizarTrofeos(trofeos);
   } catch {
     resumen.textContent = 'No fue posible consultar los premios. La clasificación sigue disponible.';
@@ -82,6 +83,7 @@ function renderizarTrofeos(trofeos) {
   galeria.replaceChildren(...trofeos.map(trofeo => {
     const tarjeta = texto('article', '');
     tarjeta.className = `ranking-trofeo${trofeo.obtenido ? ' ranking-trofeo--obtenido' : ''}`;
+    tarjeta.classList.toggle('ranking-trofeo--oculto', trofeo.id === 'extras' && !trofeo.obtenido);
     const icono = document.createElement('div');
     icono.className = 'ranking-trofeo__icono';
     icono.setAttribute('aria-hidden', 'true');
@@ -94,5 +96,5 @@ function renderizarTrofeos(trofeos) {
   const obtenidos = trofeos.filter(trofeo => trofeo.obtenido).length;
   document.getElementById('resumenTrofeos').textContent = administrador
     ? 'Catálogo completo · la vista de administrador no atribuye premios.'
-    : `${obtenidos} de 5 trofeos obtenidos`;
+    : `${obtenidos} de ${trofeos.length} trofeos obtenidos`;
 }

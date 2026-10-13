@@ -1,4 +1,3 @@
-import { mostrarFuentesMapa } from '../mapa/FuentesMapa.js';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { inicializarNavegacion } from '../navegacion/NavegacionAplicacion.js';
 
@@ -8,7 +7,6 @@ import politica from './puntuacion-progreso.json';
 // Esta pantalla no calcula ni registra puntajes.
 if (requerirSesion('/reglas.html')) {
   inicializarNavegacion({ actual: 'reglas' });
-  void mostrarFuentesMapa(document.getElementById('listaFuentesMapa'));
 }
 
 function fila(tabla, valores) {

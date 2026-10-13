@@ -159,7 +159,7 @@ function mostrarVista(nombreVista) {
   const titulos = {
     usuarios: "Gestión de usuarios",
     disenos: "Supervisión de diseños",
-    configuracion: "Modo de mantenimiento",
+    configuracion: "Configuración",
     niveles: 'Experiencia de juego',
     actividad: "Actividad reciente",
     fuentes: "Fuentes del mapa",
@@ -174,6 +174,7 @@ function mostrarVista(nombreVista) {
     vista.classList.toggle("activa", vista.id === `vista-${nombreVista}`);
   });
 
+  document.querySelector(".admin-aplicacion").classList.toggle("admin-aplicacion--consulta", ["configuracion", "fuentes", "unidades"].includes(nombreVista));
   document.getElementById("tituloVista").textContent = titulos[nombreVista];
   document.getElementById('iconoUsuarios').hidden = nombreVista !== 'usuarios';
   document.getElementById('iconoDisenos').hidden = nombreVista !== 'disenos';
@@ -666,7 +667,7 @@ function crearCampoConfiguracion(configuracion) {
     const modo = String(configuracion.valor).trim().toLowerCase();
     const titulo = formatearClave(configuracion.clave);
     const descripcion = esMantenimiento
-      ? 'Al activarlo, los jugadores no pueden iniciar sesión ni entrar al juego. Solo ven la pantalla de mantenimiento hasta que un administrador lo desactive.'
+      ? 'Al activarlo, los jugadores no podrán ingresar. Los administradores conservarán el acceso.'
       : configuracion.descripcion;
     const atributos = `class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" aria-label="Valor de ${escaparHtml(titulo)}"`;
     const campo = esMantenimiento
@@ -674,8 +675,8 @@ function crearCampoConfiguracion(configuracion) {
       : `<input ${atributos} type="text" value="${escaparHtml(configuracion.valor)}" />`;
     elemento.className = `admin-configuracion-item${esMantenimiento ? ' admin-configuracion-item--mantenimiento' : ''}`;
     elemento.innerHTML = `
-      <div>${esMantenimiento ? '' : `<h3>${escaparHtml(titulo)}</h3>`}<p>${escaparHtml(descripcion)}</p></div>
-      <div class="admin-campo-configuracion">${campo}</div>
+      <div class="admin-configuracion-descripcion"><h3>${esMantenimiento ? 'Modo de mantenimiento' : escaparHtml(titulo)}</h3><p>${escaparHtml(descripcion)}</p></div>
+      <div class="admin-campo-configuracion">${esMantenimiento ? `<label for="configuracion-${escaparHtml(configuracion.clave)}">Estado</label><span class="admin-mantenimiento-indicador" aria-hidden="true"></span>` : ''}${campo}</div>
       <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
     `;
     return elemento;
@@ -964,7 +965,7 @@ function actualizarSesionAdministradorSiCorresponde(usuarioActualizado) {
 
 function actualizarEtiquetaAdministrador(administrador) {
   const identificador = administrador.identificadorAdministrador || administrador.nombre;
-  document.getElementById("nombreAdministrador").textContent = `Administrador: ${identificador}`;
+  document.getElementById("nombreAdministrador").textContent = `${identificador} · Administrador`;
 }
 
 async function cerrarSesion(token) {

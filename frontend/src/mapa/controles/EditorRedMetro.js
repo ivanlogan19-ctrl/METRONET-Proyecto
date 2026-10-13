@@ -306,8 +306,11 @@ export default class EditorRedMetro {
         this.identificacion = null;
         this.actualizarAyuda();
       }
-      if (this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE')
+      if (cambioDeDiseno && this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE') {
+        await this.panelAyuda?.presentarExtras();
+        if (apertura !== this.versionApertura || !this.activo) return false;
         this.panelCalles?.prepararTutorial(idDiseno, this.sesion?.usuario?.idUsuario);
+      }
       return true;
     } catch (error) { this.mostrarError(error); return false; }
     finally {

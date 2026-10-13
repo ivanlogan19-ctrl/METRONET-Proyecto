@@ -5,9 +5,9 @@ const API = process.env.METRONET_API_PRUEBAS;
 const BASE = 'http://127.0.0.1:5198';
 
 test('calles y tráfico histórico: controles, edición libre, cámara, POI y persistencia reales', { skip: !API, timeout: 300000 }, async t => {
-  const browser = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL });
+  const browser = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL, args: ['--autoplay-policy=no-user-gesture-required'] });
   t.after(() => browser.close());
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 2 });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   // Solo cambia el destino al Spring de prueba; no reemplaza respuestas REST.
   await context.route(/http:\/\/[^/]+:8080\//, route => route.continue({ url: API + new URL(route.request().url()).pathname + new URL(route.request().url()).search }));
   // Instrumentación de lectura para situar clics y observar la cámara real.
@@ -31,6 +31,13 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await page.waitForFunction(() => document.querySelector('#pantalla-metronet')?.contentWindow?.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual);
     await frame().waitForFunction(() => !juegoPrueba.scene.getScene('MapaScene').editorRedMetro.identificacion);
   };
+  async function comprobarMusica(pista) {
+    await page.waitForFunction(pista => {
+      const g = window[Symbol.for('metronet:gestor-musica')];
+      return g?.pista === pista && g.audio?.currentTime > 0 && !g.audio.paused && !g.obtenerEstado().mezclando;
+    }, pista);
+    assert.equal(await page.locator('audio').count(), 1, 'El contenedor mantiene un solo canal al terminar la mezcla');
+  }
   async function login() {
     await page.goto(BASE + '/admin-login.html');
     await page.locator('#pantalla-metronet').waitFor();
@@ -90,6 +97,29 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
   const herramienta = clave => frame().locator(`[data-elegir-herramienta="${clave}"]`).click();
   try {
     await login();
+    await frame().getByRole('link', { name: 'Inicio', exact: true }).first().click();
+    await frame().locator('#accionesInicio[aria-busy="false"]').waitFor();
+    for (const [ancho, alto] of [[1440, 900], [1366, 768], [1280, 720], [390, 844]]) {
+      await page.setViewportSize({ width: ancho, height: alto });
+      await frame().waitForFunction(() => [...document.querySelectorAll('.metronet-inicio__ilustracion')].length === 2
+        && [...document.querySelectorAll('.metronet-inicio__ilustracion')].every(i => i.complete && i.naturalWidth > 0));
+      const disposicion = await frame().evaluate(() => {
+        const cajas = [...document.querySelectorAll('.metronet-inicio__tarjeta-pie')].map(e => e.getBoundingClientRect());
+        return { sinDesborde: document.documentElement.scrollWidth <= innerWidth,
+          cabeEnPantalla: document.querySelector(".metronet-inicio").getBoundingClientRect().bottom <= innerHeight + 1,
+          alineados: cajas.length === 2 && Math.abs(cajas[0].top - cajas[1].top) < 2 };
+      });
+      assert.equal(disposicion.sinDesborde, true, `Inicio sin desborde horizontal a ${ancho}px`);
+      if (ancho > 760) {
+        assert.equal(disposicion.alineados, true, 'Acciones de ambas tarjetas alineadas');
+        assert.equal(disposicion.cabeEnPantalla, true, `Inicio completo dentro de ${ancho}×${alto}`);
+      }
+      await page.screenshot({ path: `/tmp/metronet-inicio-${ancho}.png`, fullPage: true, animations: 'disabled' });
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    assert.equal(await frame().locator('.metronet-inicio__tarjeta--crear button').isEnabled(), true);
+    assert.match(await frame().locator('.metronet-inicio__nombre-nivel').innerText(), /Nivel 1/i);
+    await frame().locator('.metronet-inicio__tarjeta--continuar a').click();
     const contextoJugador = await browser.newContext();
     t.after(() => contextoJugador.close());
     await contextoJugador.route(/http:\/\/[^/]+:8080\//, route => route.continue({ url: API + new URL(route.request().url()).pathname + new URL(route.request().url()).search }));
@@ -102,9 +132,11 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await vistaJugador.locator('#password').fill(process.env.METRONET_E2E_CLAVE);
     await vistaJugador.locator('#loginButton').click();
     await vistaJugador.locator('[data-continuar-bienvenida]').click();
+    await vistaJugador.locator('#accionesInicio[aria-busy="false"]').waitFor();
+    assert.equal(await vistaJugador.locator('.metronet-inicio__tarjeta--crear button').count(), 0, 'Modo Libre sigue bloqueado para el jugador nuevo');
+    assert.match(await vistaJugador.locator('.metronet-inicio__tarjeta--crear').innerText(), /Bloqueado/i);
     await vistaJugador.getByRole('link', { name: 'Reglas', exact: true }).first().click();
-    await vistaJugador.locator('[data-periodo-trafico]').filter({ hasText: 'Período disponible:' }).waitFor();
-    assert.match(await vistaJugador.locator('#listaFuentesMapa').innerText(), /2016/);
+    assert.equal(await vistaJugador.locator('#listaFuentesMapa').count(), 0, 'Las fuentes se consultan en Administración');
     await vistaJugador.getByRole('link', { name: 'Administración', exact: true }).first().click();
     await vistaJugador.locator('#vista-unidades:not([hidden])').waitFor();
     assert.deepEqual(await vistaJugador.locator('.admin-enlace').evaluateAll(es => es.map(e => e.dataset.vista)), ['fuentes', 'unidades']);
@@ -112,8 +144,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     const tokenJugador = await marcoJugador.evaluate(() => JSON.parse(localStorage.getItem('sesionUsuario')).token);
     assert.equal((await contextoJugador.request.get(API + '/api/admin/usuarios', {headers:{Authorization:`Bearer ${tokenJugador}`}})).status(), 401, 'La sesión de jugador no autoriza una sesión administrativa');
     await vistaJugador.getByRole('button', { name: 'Fuentes del mapa', exact: true }).click();
-    await vistaJugador.locator('[data-periodo-trafico]').filter({ hasText: 'Período disponible:' }).waitFor();
-    await paginaJugador.screenshot({ path: '/tmp/metronet-fuentes-jugador.png', fullPage: true });
+    await vistaJugador.locator('[data-periodo-trafico][data-consulta="disponible"]').waitFor();
+    await paginaJugador.screenshot({ path: '/tmp/metronet-fuentes-jugador.png', fullPage: true, animations: 'disabled' });
     console.log('Jugador real: solo fuentes y equivalencias; API de gestión rechaza sesión de jugador (401): PASS');
     await marcoJugador.goto(BASE + '/perfil.html');
     await vistaJugador.locator('.perfil-contenedor[aria-busy="false"]').waitFor();
@@ -144,6 +176,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     console.log('Perfil real: tipografía, alineación, sin scroll, guardado y recuperación: PASS');
     await frame().getByRole('button', { name: 'Entrar al Modo Libre', exact: true }).click();
     await esperarEditor();
+    await frame().getByRole('button', { name: 'Ir a construir', exact: true }).click();
     await frame().waitForFunction(() => juegoPrueba.scene.getScene('MapaScene').capaCalles.estado === 'lista');
     await frame().getByRole('heading', { name: 'Bienvenido al Modo Libre', exact: true }).waitFor();
     assert.match(await frame().locator('[data-bienvenida-libre]').innerText(), /Utilizá las herramientas de calles/);
@@ -160,7 +193,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await capasApagadas();
     await page.screenshot({ path: '/tmp/metronet-bienvenida-libre-real.png' });
     await frame().getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-    for (const titulo of ['Calles y avenidas', 'Transparencia', 'Tráfico histórico', 'Horarios', 'Densidad de población', 'Transparencia de población', 'Desplazamientos históricos', 'Animación de desplazamientos', 'Distancias de la red']) {
+    for (const titulo of ['Tarjetas Extras', 'Calles y avenidas', 'Transparencia', 'Tráfico histórico', 'Horarios', 'Densidad de población', 'Transparencia de población', 'Desplazamientos históricos', 'Animación de desplazamientos', 'Distancias de la red']) {
       await frame().locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
       await capasApagadas();
       await frame().locator('[data-recorrido-siguiente]').click();
@@ -312,7 +345,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await page.mouse.move(5, 5);
     await page.screenshot({ path: '/tmp/metronet-trafico-real.png' });
     await page.screenshot({ path: '/tmp/metronet-desplazamientos-real.png' });
-    console.log('Construir, conectar, asignar metro, mover y guardar: PASS');
+    await comprobarMusica('/audio/construccion-theme.m4a');
+    console.log('Construcción y música Puck con servidor/PostgreSQL reales: PASS');
     assert.deepEqual(await frame().locator('[data-categoria-territorio] > h3').allTextContents(),
       ['Calles', 'Tráfico', 'Población', 'Desplazamientos', 'Horarios']);
     assert.equal(await frame().locator('[data-categoria-territorio=calles] button').count(), 1);
@@ -507,23 +541,70 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await frame().waitForFunction(() => window.escenaSimulacionPrueba?.capasLibre);
     assert.equal(await frame().getByLabel('Hora de inicio del escenario', {exact:true}).inputValue(), '23:30');
     for (const capa of ['calles','trafico','poblacion','desplazamientos','cobertura']) await frame().locator(`[data-capa-simulacion="${capa}"][aria-pressed="true"]`).waitFor();
-    console.log('Simulación real: capas, cobertura, UT persistida, medianoche, pausa, reanudación, parada y preferencias: PASS');
+    await comprobarMusica('/audio/simulacion-theme.m4a');
+    console.log('Simulación real: capas, cobertura, UT, reloj y música propia: PASS');
     assert.equal(await frame().locator('.metronet-recorrido').count(), 0, 'El tutorial ya completado no vuelve a ofrecerse al recargar');
     console.log('Bienvenida del editor y tutorial territorial de Simulación completados: PASS');
     await frame().getByRole('link', { name: 'Reglas', exact: true }).first().click();
-    await frame().locator('[data-periodo-trafico]').filter({ hasText: 'Período disponible:' }).waitFor();
-    assert.match(await frame().locator('#listaFuentesMapa').innerText(), /2016/);
-    assert.match(await frame().locator('#listaFuentesMapa').innerText(), /2011/);
-    assert.match(await frame().locator('[data-cobertura-desplazamientos]').innerText(), /6253 de 12537/);
+    await frame().getByRole('heading', {name:'Reglas de puntuación',exact:true}).waitFor();
+    assert.equal(await frame().locator('#listaFuentesMapa').count(), 0);
     await frame().getByRole('link', { name: 'Administración', exact: true }).first().click();
+    await frame().getByRole('button', {name:'Usuarios',exact:true}).waitFor();
+    const medirMenuAdmin = () => frame().evaluate(() => [...document.querySelectorAll('.admin-enlace')].map(e => {
+      const r=e.getBoundingClientRect(); return {ancho:r.width,alto:r.height,fuente:getComputedStyle(e).fontSize};
+    }));
+    const menuAdminOriginal = await medirMenuAdmin();
     await frame().getByRole('button', { name: 'Fuentes del mapa', exact: true }).click();
-    await frame().locator('[data-periodo-trafico]').filter({ hasText: 'Período disponible:' }).waitFor();
-    assert.equal(await frame().locator('#vista-fuentes button, #vista-fuentes input').count(), 0);
+    assert.deepEqual(await medirMenuAdmin(), menuAdminOriginal, 'Fuentes conserva el tamaño del menú');
+    assert.match(await frame().locator('#nombreAdministrador').innerText(), /Administrador$/i);
+    await frame().locator('[data-periodo-trafico][data-consulta="disponible"]').waitFor();
+    assert.equal(await frame().locator('#vista-fuentes button, #vista-fuentes input, #vista-fuentes details').count(), 0);
+    assert.equal(await frame().locator('#vista-fuentes article').count(), 4);
     await page.screenshot({path:'/tmp/metronet-admin-fuentes.png'});
     await frame().getByRole('button', {name:'Unidades y equivalencias',exact:true}).click();
-    assert.equal(await frame().locator('#vista-unidades table').count(),2);
+    assert.equal(await frame().locator('#vista-unidades table').count(),1);
+    assert.deepEqual(await medirMenuAdmin(), menuAdminOriginal, 'Unidades conserva el tamaño del menú');
+    assert.ok(await frame().locator('.admin-resultado svg').evaluateAll(es=>es.every(e=>e.getBoundingClientRect().height===18)), 'Símbolos pequeños dentro de las filas');
+    assert.equal(await frame().locator('.admin-equivalencias__valores article').count(),2);
     await page.screenshot({path:'/tmp/metronet-admin-equivalencias.png'});
-    console.log('Fuentes centralizadas y tabla de equivalencias: PASS');
+    await frame().getByRole('button', {name:'Configuración',exact:true}).click();
+    assert.deepEqual(await medirMenuAdmin(), menuAdminOriginal, 'Configuración conserva el tamaño del menú');
+    const mantenimiento = frame().locator('#configuracion-modo_mantenimiento');
+    await mantenimiento.waitFor();
+    const guardarMantenimiento = frame().locator('[data-guardar-configuracion="modo_mantenimiento"]');
+    await mantenimiento.selectOption('activado');
+    await Promise.all([page.waitForResponse(r=>r.url().includes('/api/admin/configuracion/modo_mantenimiento') && r.request().method()==='PATCH' && r.ok()), guardarMantenimiento.click()]);
+    await frame().locator('#mensajeConfiguracion').filter({hasText:'actualizada correctamente'}).waitFor();
+    await frame().getByRole('button', {name:'Unidades y equivalencias',exact:true}).click();
+    await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/admin/configuracion') && r.request().method()==='GET' && r.ok()), frame().getByRole('button', {name:'Configuración',exact:true}).click()]);
+    await frame().waitForFunction(() => document.querySelector('#configuracion-modo_mantenimiento')?.value === 'activado');
+    await mantenimiento.selectOption('desactivado');
+    await Promise.all([page.waitForResponse(r=>r.url().includes('/api/admin/configuracion/modo_mantenimiento') && r.request().method()==='PATCH' && r.ok()), guardarMantenimiento.click()]);
+    await frame().locator('#mensajeConfiguracion').filter({hasText:'actualizada correctamente'}).waitFor();
+    for (const [ancho,alto] of [[1440,900],[1280,720],[390,844]]) {
+      await page.setViewportSize({width:ancho,height:alto});
+      for (const [vista, nombre] of [['configuracion','Configuración'],['unidades','Unidades y equivalencias'],['fuentes','Fuentes del mapa']]) {
+        await frame().getByRole('button',{name:nombre,exact:true}).click();
+        if(vista==='fuentes') await frame().locator('[data-periodo-trafico][data-consulta="disponible"]').waitFor();
+        const medidas = await frame().evaluate(vista => ({
+          horizontal:document.documentElement.scrollWidth<=innerWidth,
+          vertical:document.querySelector('#vista-'+vista).getBoundingClientRect().bottom<=innerHeight+1,
+          sinScroll:document.documentElement.scrollHeight<=innerHeight+1,
+          tituloAlineado:Math.abs(document.querySelector('.admin-enlace').getBoundingClientRect().top-document.querySelector('#tituloVista').getBoundingClientRect().top)<1,
+          senalLibre:document.querySelector('.admin-senal-ferroviaria').getBoundingClientRect().top>=document.querySelector('.admin-navegacion').getBoundingClientRect().bottom,
+        }), vista);
+        await page.screenshot({path:`/tmp/metronet-admin-${vista}-${ancho}.png`,fullPage:true,animations:'disabled'});
+        assert.equal(medidas.horizontal,true, `${vista}: sin desborde horizontal a ${ancho}px`);
+        if(ancho>800) {
+          assert.equal(medidas.vertical,true, `${vista}: cabe en ${ancho}×${alto}`);
+          assert.equal(medidas.sinScroll,true, `${vista}: sin desplazamiento vertical`);
+          assert.equal(medidas.tituloAlineado,true, `${vista}: menú alineado con el título`);
+          assert.equal(medidas.senalLibre,true, `${vista}: señal sin superponerse al menú`);
+        }
+      }
+    }
+    await page.setViewportSize({width:1440,height:1000});
+    console.log('Inicio y tres vistas administrativas: alineación, tamaños, roles y mantenimiento persistido: PASS');
     // Salida confirmada tras una operación real ya persistida, sin doble aviso.
     await frame().goto(BASE + '/?idDiseno=' + id);
     await esperarEditor();

@@ -54,7 +54,16 @@ public class TrofeosService {
             trofeo("estacion", "Primera estación", "Completar el Nivel 1.",
                 "Completaste el primer nivel.", porNumero.containsKey(1) && porNumero.get(1).completo(), admin),
             trofeo("camino", "Camino a la cima", "Completar 5 niveles distintos.",
-                "Completaste cinco niveles distintos.", completados >= 5, admin));
+                "Completaste cinco niveles distintos.", completados >= 5, admin),
+            trofeoExtras(!admin && Boolean.TRUE.equals(jdbc.queryForObject(
+                "SELECT EXISTS(SELECT 1 FROM aprendizaje_extra_usuario WHERE id_usuario=? AND premio_obtenido_en IS NOT NULL)",
+                Boolean.class, idUsuario))));
+    }
+
+    public static Trofeo trofeoExtras(boolean obtenido) {
+        return new Trofeo("extras", obtenido ? "Cartógrafo de la red" : "Premio oculto",
+            obtenido ? "Recorrer las siete tarjetas Extras de Modo Libre." : "???",
+            obtenido ? "Conociste las siete herramientas para planificar tu propia red." : "", obtenido);
     }
 
     private Trofeo trofeo(String id, String nombre, String requisito, String motivo, boolean obtenido, boolean admin) {

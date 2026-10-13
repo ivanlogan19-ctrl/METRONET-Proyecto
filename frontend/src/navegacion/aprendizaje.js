@@ -2,6 +2,10 @@ import { requerirSesion } from '../autenticacion/sesion.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
 import { ajustarIlustracionTarjeta } from '../educacion/AjustarIlustracionTarjeta.js';
 
+import { TARJETAS_EXTRAS } from '../educacion/extras/TarjetasExtras.js';
+import { solicitarExtras } from '../educacion/extras/ClienteExtras.js';
+import { abrirExtras } from '../educacion/extras/PresentacionExtras.js';
+
 const sesion = requerirSesion('/aprendizaje.html');
 const contenedor = document.getElementById('nivelesAprendizaje');
 const dialogo = document.getElementById('tarjetaAprendizaje');
@@ -104,3 +108,31 @@ if (sesion) {
     document.getElementById('resumenAprendizaje').textContent = 'No fue posible cargar la biblioteca.';
   }).finally(() => { contenedor.setAttribute('aria-busy', 'false'); });
 }
+
+async function cargarExtras() {
+  const contenedor = document.getElementById('extrasAprendizaje');
+  contenedor.replaceChildren(nodo('h2','Extras · Modo Libre'),nodo('p','Consultando tarjetas…'));
+  try {
+    renderizarExtras(await solicitarExtras());
+  } catch {
+    contenedor.replaceChildren(nodo('h2','Extras · Modo Libre'),nodo('p','No fue posible consultar Extras.'));
+    const reintentar=nodo('button','Reintentar'); reintentar.type='button';
+    reintentar.addEventListener('click',cargarExtras);contenedor.append(reintentar);
+  }
+}
+function renderizarExtras(estado) {
+  const contenedor=document.getElementById('extrasAprendizaje');
+  contenedor.replaceChildren(nodo('h2','Extras · Modo Libre'),nodo('p',estado.desbloqueado
+    ? `7 tarjetas disponibles · ${estado.visitadas.length} de 7 recorridas`
+    : 'Ingresá a Modo Libre para desbloquear estas siete tarjetas.'));
+  contenedor.classList.toggle('metronet-aprendizaje__nivel--bloqueado',!estado.desbloqueado);
+  if(!estado.desbloqueado)return;
+  const lista=nodo('div','','metronet-aprendizaje__lista');
+  TARJETAS_EXTRAS.forEach((tarjeta,i)=>{
+    const boton=nodo('button','','metronet-aprendizaje__tarjeta');boton.type='button';
+    boton.append(nodo('span',estado.visitadas.includes(tarjeta.id)?'Recorrida':`Extra ${i+1}`),nodo('strong',tarjeta.titulo));
+    boton.addEventListener('click',()=>abrirExtras({indiceInicial:i,alActualizar:renderizarExtras}));lista.append(boton);
+  });
+  contenedor.append(lista);
+}
+if(sesion)cargarExtras();

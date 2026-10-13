@@ -18,6 +18,12 @@ export function crearClienteMusicaPersistente(gestor) {
       temporales.add(liberar);
       return () => { if (temporales.delete(liberar)) liberar(activa); };
     },
+    atenuarLectura() {
+      if (!activa) return () => {};
+      const liberar = gestor.atenuarLectura();
+      temporales.add(liberar);
+      return () => { if (temporales.delete(liberar)) liberar(); };
+    },
     suscribir(oyente) {
       if (!activa) return () => {};
       oyentes.set(oyente, gestor.suscribir(oyente));
