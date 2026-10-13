@@ -30,6 +30,8 @@ const RESUMEN = [
 
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
+  ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
+
   ['.simulacion-horarios', 'Horarios de la simulación', 'Inicio es la hora elegida para el escenario. Actual avanza con la ejecución y Fin indica hasta cuándo se simula según la mayor duración UT de tus metros.'],
   ['#horaInicioEscenario', 'Elegir la hora de inicio', 'Escribí la hora o usá las flechas para adelantar o atrasar una hora. Elegila antes de iniciar; durante el recorrido o una pausa queda bloqueada.'],
   ['[data-capa-simulacion="calles"]', 'Calles y avenidas', 'Este botón muestra u oculta las calles para ubicar tu red en la ciudad. Las estaciones, líneas y metros permanecen por encima.'],
@@ -158,7 +160,7 @@ export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { p
 export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroNivel, numeroCampana, escenario, alFinalizar } = {}) {
   if (esModoLibre(modo)) {
     // Independiente del aprendizaje de la campaña: estas funciones solo existen en Modo Libre.
-    const clave = `metronet:tutorial-simulacion-libre:v1:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
+    const clave = `metronet:tutorial-simulacion-libre:v2:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
     try { if (localStorage.getItem(clave)) return null; } catch { /* No bloquea jugar. */ }
     const registrar = (completado, motivo) => {
       if (completado || motivo === 'omitido') try {

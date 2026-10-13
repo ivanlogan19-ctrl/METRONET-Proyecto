@@ -17,7 +17,7 @@ const PASOS_INTEGRAL = [
   ['.metronet-consigna__cabecera', 'Metas del nivel', 'Este panel muestra las metas y su progreso. Cada meta cumplida se marca con una estrella.'],
 ];
 
-const PASOS = [...PASOS_CALLES.slice(0,-1), ...PASOS_INTEGRAL.slice(3,8),
+const PASOS = [...PASOS_CALLES, ...PASOS_INTEGRAL.slice(3,8),
   ['.metronet-poi > summary', 'Referencias', 'La bandera amarilla permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
   ...PASOS_INTEGRAL.slice(-3)];
 

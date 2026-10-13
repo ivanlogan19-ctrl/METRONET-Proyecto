@@ -1,0 +1,23 @@
+/* Regla integrada en la cabecera; no agrega filas ni ensancha el panel. */
+html:root body .metronet-cabecera-medicion { position: relative; padding-right: 42px !important; }
+html:root body .metronet-cabecera-medicion button.metronet-regla {
+  position: absolute; top: 50%; right: 7px; transform: translateY(-50%);
+  display: grid; place-items: center; width: 28px; min-width: 28px;
+  height: 20px; min-height: 20px; padding: 2px 4px; margin: 0;
+  border: 1px solid transparent; background: transparent; color: #ffd078;
+  box-shadow: none; border-radius: 0;
+}
+html:root body .metronet-cabecera-medicion button.metronet-regla:is(:hover, [aria-pressed="true"]) { border-color: #ffd078; background: #263044; }
+html:root body .metronet-cabecera-medicion button.metronet-regla:focus-visible { outline: 2px solid #fff0c8; outline-offset: 2px; }
+html:root body button.metronet-regla .metronet-icono { width: 20px; height: 14px; min-width: 0; min-height: 0; }
+html:root body .metronet-mediciones { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 4; }
+html:root body .metronet-mediciones[hidden], html:root body .metronet-mediciones [hidden] { display: none; }
+html:root body .metronet-mediciones :is(span, output) {
+  position: absolute; display: block; width: max-content; max-width: calc(100% - 20px);
+  margin: 0; padding: 4px 7px; background: #fff0c8; color: #101b2c;
+  border: 1px solid #17273e; box-shadow: 2px 2px 0 #050b18;
+  font: 400 11px/1.2 'Silkscreen', monospace; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+html:root body .metronet-mediciones__total { top: 10px; right: 10px; }
+html:root body .metronet-mediciones__tramo { top: 0; left: 0; }

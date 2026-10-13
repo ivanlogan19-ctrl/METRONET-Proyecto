@@ -21,6 +21,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
   });
   const page = await context.newPage(); page.setDefaultTimeout(20000);
   const errores = [], fallos = [];
+  let escrituras = 0;
+  page.on('request', r => { if (r.url().includes('/api/') && ['POST','PUT','PATCH','DELETE'].includes(r.method())) escrituras++; });
   page.on('pageerror', e => errores.push(e.stack));
   page.on('response', r => { if (r.url().includes('/api/') && r.status() >= 400) fallos.push([r.url(), r.status()]); });
   const frame = () => page.frames().find(f => f.parentFrame());
@@ -50,6 +52,31 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
   }
   async function cantidad(tipo, n) {
     await frame().waitForFunction(({ tipo, n }) => juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual[tipo].length === n, { tipo, n });
+  }
+  async function comprobarMedicion() {
+    const resultado = await leer(() => {
+      const escena = window.escenaSimulacionPrueba || juegoPrueba.scene.getScene('MapaScene');
+      const capa = escena.capaRedMetro;
+      const formatear = n => new Intl.NumberFormat('es-UY', {minimumFractionDigits:1, maximumFractionDigits:1}).format(n);
+      const tramos = capa.diseno.tramos;
+      const etiquetas = [...document.querySelectorAll('.metronet-mediciones__tramo')];
+      const overlay = document.querySelector('.metronet-mediciones').getBoundingClientRect();
+      const boton = document.querySelector('[data-medicion-distancias]').getBoundingClientRect();
+      const cabecera = document.querySelector('[data-medicion-distancias]').parentElement.getBoundingClientRect();
+      const visibles = etiquetas.filter(e => !e.hidden).map(e => e.getBoundingClientRect());
+      return {
+        distancias: etiquetas.map(e => Number(e.dataset.distanciaKm)), reales:tramos.map(t=>t.distanciaKm),
+        total:document.querySelector('.metronet-mediciones__total').textContent,
+        esperado:`${tramos[0].nombreLinea} · ${formatear(tramos.reduce((s,t)=>s+t.distanciaKm,0))} km`,
+        visibles:visibles.length,
+        dentro:visibles.every(r=>r.left>=overlay.left && r.right<=overlay.right && r.top>=overlay.top && r.bottom<=overlay.bottom),
+        integrado:boton.width<=30 && boton.height<=22 && boton.top>=cabecera.top && boton.bottom<=cabecera.bottom,
+        colisiones:visibles.some((a,i)=>visibles.slice(i+1).some(b=>a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top)),
+      };
+    });
+    assert.deepEqual(resultado.distancias, resultado.reales);
+    assert.equal(resultado.total, resultado.esperado);
+    assert.ok(resultado.visibles>0 && resultado.dentro && resultado.integrado && !resultado.colisiones, JSON.stringify(resultado));
   }
   const herramienta = clave => frame().locator(`[data-elegir-herramienta="${clave}"]`).click();
   try {
@@ -124,7 +151,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await capasApagadas();
     await page.screenshot({ path: '/tmp/metronet-bienvenida-libre-real.png' });
     await frame().getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-    for (const titulo of ['Calles y avenidas', 'Transparencia', 'Tráfico histórico', 'Horarios', 'Densidad de población', 'Transparencia de población', 'Desplazamientos históricos', 'Animación de desplazamientos']) {
+    for (const titulo of ['Calles y avenidas', 'Transparencia', 'Tráfico histórico', 'Horarios', 'Densidad de población', 'Transparencia de población', 'Desplazamientos históricos', 'Animación de desplazamientos', 'Distancias de la red']) {
       await frame().locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
       await capasApagadas();
       await frame().locator('[data-recorrido-siguiente]').click();
@@ -256,12 +283,19 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await herramienta('lineas'); await mapa(580, 470); await mapa(700, 460); await cantidad('lineas', 1);
     await herramienta('conexiones'); await mapa(700, 460); await mapa(810, 480); await cantidad('tramos', 2);
     await herramienta('metros'); await mapa(640, 465); await cantidad('unidadesMetro', 1);
+    const antesRegla = escrituras;
+    await frame().getByRole('button', {name:'Mostrar distancias en kilómetros',exact:true}).click();
+    await comprobarMedicion();
+    assert.equal(escrituras, antesRegla, 'Mostrar medidas no escribe en el servidor');
+    const distanciasAntes = await frame().locator('.metronet-mediciones__tramo').allTextContents();
     await herramienta('seleccion'); await mapa(810, 480);
     await frame().getByRole('button', { name: 'Mover estación seleccionada', exact: true }).click();
     await mapa(800, 470);
     await frame().waitForFunction(() => juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones.some(e => Math.abs(e.posicionX - 800) < 3));
     await frame().getByRole('button', { name: 'Guardar diseño', exact: true }).click();
     await frame().waitForFunction(() => !juegoPrueba.scene.getScene('MapaScene').editorRedMetro.cambiosPendientes);
+    await comprobarMedicion();
+    assert.notDeepEqual(await frame().locator('.metronet-mediciones__tramo').allTextContents(), distanciasAntes, 'Mover una estación actualiza los kilómetros desde PostgreSQL');
     const red = await leer(() => juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual);
     await frame().locator('.metronet-aviso-guardado').waitFor({ state: 'hidden' });
     await densidad.fill('35');
@@ -314,6 +348,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
       assert.ok(distribucion.sinRecorte, JSON.stringify(distribucion));
       assert.deepEqual(distribucion.filas.map(f => f.cantidad), [4, 4, 2]);
       assert.ok(distribucion.filas.every(f => f.enFila && f.compactos), JSON.stringify(distribucion));
+      await comprobarMedicion();
       await page.screenshot({ path: `/tmp/metronet-libre-compacto-${viewport.width}.png` });
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
@@ -321,9 +356,15 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await frame().getByRole('button', { name: 'Acercar mapa', exact: true }).click();
     await frame().waitForFunction(() => juegoPrueba.scene.getScene('MapaScene').capaCalles.detalleVisible);
     await page.screenshot({ path: '/tmp/metronet-desplazamientos-zoom.png' });
+    const posicionAntesGiro = await frame().locator('.metronet-mediciones__tramo').first().getAttribute('style');
     const girar = frame().getByRole('button', { name: /Girar.*derecha/i });
     await girar.click();
     assert.notEqual(await leer(() => juegoPrueba.scene.getScene('MapaScene').cameras.main.rotation), 0);
+    await frame().waitForFunction(antes => document.querySelector('.metronet-mediciones__tramo').getAttribute('style') !== antes, posicionAntesGiro);
+    await comprobarMedicion();
+    await frame().getByRole('button', {name:'Ocultar distancias en kilómetros',exact:true}).click();
+    assert.equal(await frame().locator('.metronet-mediciones').isVisible(),false);
+    console.log('Regla en edición: kilómetros reales, actualización al mover, cámara, tres tamaños y ocultar: PASS');
     await frame().locator('.metronet-poi > summary').click();
     await frame().locator('#metronet-selector-barrios .metronet-panel-encabezado').click();
     await frame().locator('#metronet-selector-barrios input[value="AGUADA"]').check();
@@ -374,7 +415,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await frame().waitForFunction(() => window.escenaSimulacionPrueba?.capasLibre);
     await frame().getByRole('heading', {name:'Simulación de Modo Libre',exact:true}).waitFor();
     await frame().getByRole('button', {name:'Recorrer las funciones',exact:true}).click();
-    for (const titulo of ['Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+    for (const titulo of ['Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
       await frame().locator('.metronet-recorrido').getByRole('heading',{name:titulo,exact:true}).waitFor();
       const cartel = await frame().locator('.metronet-recorrido').boundingBox();
       const ventana = await frame().evaluate(()=>({width:innerWidth,height:innerHeight}));
@@ -383,6 +424,9 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
       await frame().locator('[data-recorrido-siguiente]').click();
     }
     await frame().locator('.metronet-recorrido').waitFor({state:'detached'});
+    await frame().getByRole('button',{name:'Mostrar distancias en kilómetros',exact:true}).click();
+    await comprobarMedicion();
+    assert.deepEqual(await leer(()=>escenaSimulacionPrueba.capaRedMetro.diseno.tramos),red.tramos);
     assert.equal(await frame().locator('[data-capa-simulacion]').count(), 5);
     assert.equal(await frame().locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0);
     for (const capa of ['calles', 'trafico', 'poblacion', 'desplazamientos', 'cobertura']) {
@@ -418,6 +462,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
       assert.ok(geometria.bloques.at(-1).bottom <= geometria.panel.bottom+1, 'Los seis bloques caben dentro del panel');
       assert.ok(geometria.panel.bottom <= geometria.alto+1);
       for(let i=1;i<geometria.bloques.length;i++) assert.ok(geometria.bloques[i].top>=geometria.bloques[i-1].bottom+3);
+      await comprobarMedicion();
       await page.screenshot({path:`/tmp/metronet-simulacion-libre-${tamano.width}.png`});
     }
     await page.setViewportSize({width:1440,height:1000});
@@ -433,6 +478,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     }
     await frame().waitForFunction(() => escenaSimulacionPrueba.motorSimulacion?.obtenerEstado().tiempoTranscurrido > .6);
     await frame().locator('#pausarSimulacion').click();
+    await comprobarMedicion();
     const pausado = await leer(() => ({hora:document.querySelector('[data-hora-actual]').textContent, fase:escenaSimulacionPrueba.capasLibre.desplazamientos.fase, reloj:escenaSimulacionPrueba.capasLibre.reloj.hora}));
     assert.match(pausado.hora, /\+1d/); assert.equal(pausado.reloj, 0);
     await page.waitForTimeout(500);
@@ -442,6 +488,11 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await frame().locator('#detenerSimulacion').click();
     assert.equal(await frame().locator('[data-hora-actual]').innerText(), '23:30');
     assert.equal(await leer(() => escenaSimulacionPrueba.capasLibre.desplazamientos.fase), 0);
+    const sinEscrituras = escrituras;
+    await frame().getByRole('button',{name:'Ocultar distancias en kilómetros',exact:true}).click();
+    assert.equal(await frame().locator('.metronet-mediciones').isVisible(),false);
+    assert.equal(escrituras,sinEscrituras);
+    console.log('Regla en simulación: mismos kilómetros, ejecución/pausa, tres tamaños y ocultar sin modificar la red: PASS');
     const urlSimulacion = frame().url();
     await frame().goto(urlSimulacion);
     await frame().waitForFunction(() => window.escenaSimulacionPrueba?.capasLibre);

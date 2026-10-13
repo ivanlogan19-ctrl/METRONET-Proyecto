@@ -94,7 +94,7 @@ export default class PanelCalles {
   }
 
   prepararTutorial(idDiseno, idUsuario) {
-    this.claveTutorial = `metronet:oferta-calles:v5:${idUsuario}:${idDiseno}`;
+    this.claveTutorial = `metronet:oferta-calles:v6:${idUsuario}:${idDiseno}`;
     this.ofrecerSiCorresponde();
   }
 

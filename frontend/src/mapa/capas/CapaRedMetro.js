@@ -2,6 +2,7 @@ import { PALETA_RED, coloresDeLineas, colorMetro } from '../configuracion/Paleta
 import GestosRed from '../controles/GestosRed.js';
 import { numeroMetroEnRed } from '../controles/NombresRed.js';
 import Phaser from 'phaser';
+import MedicionDistancias from '../controles/MedicionDistancias.js';
 
 import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../configuracion/ColoresMapa.js';
 
@@ -59,6 +60,7 @@ export default class CapaRedMetro {
     this.previsualizacion = this.escena.add.graphics().setDepth(PROFUNDIDAD_RED + 1);
     this.lineaActiva = '';
     this.gestos = new GestosRed(this);
+    this.medicionDistancias = new MedicionDistancias(this);
     this.escena.events.on('postupdate', this.manejadorPostUpdate);
   }
 
@@ -71,6 +73,7 @@ export default class CapaRedMetro {
     this.elementoSeleccionado = null;
     this.mostrarUnidadesEstaticas = true;
     this.dibujar();
+    this.medicionDistancias?.actualizar(diseno);
   }
 
   establecerModo(modo) {
@@ -789,6 +792,7 @@ export default class CapaRedMetro {
   eliminar() {
     this.detenerAnimacion(false);
     this.gestos?.eliminar();
+    this.medicionDistancias?.eliminar();
     this.previsualizacion?.destroy();
     this.escena.events.off('postupdate', this.manejadorPostUpdate);
     this.eliminarElementosEstaticos();

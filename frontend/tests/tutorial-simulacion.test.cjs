@@ -356,7 +356,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-  for (const titulo of ['Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+  for (const titulo of ['Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     assert.equal(await p.locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0, 'La guía no activa capas');
     await p.locator('[data-recorrido-siguiente]').click();
@@ -369,7 +369,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   assert.deepEqual(await p.evaluate(() => Object.keys(localStorage).filter(c => c.includes('tutorial-pantalla-simulacion'))), []);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
-  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Horarios de la simulación', exact: true }).waitFor();
+  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Distancias de la red', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Omitir', exact: true }).click();
   await p.goto(new URL('/simulacion.html?idDiseno=78', p.url()).href);
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
@@ -380,4 +380,42 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   assert.equal(await p.locator('.metronet-recorrido').count(), 0);
   assert.equal(v.solicitudes.filter(s => s.method !== 'GET').length, 0);
   assert.deepEqual(v.errores, []);
+});
+
+test('Regla: total por red y línea, teclado y distancias ausentes sin valores inventados', async t => {
+  let modo = 'LIBRE', distancia = 3.5;
+  const v = await abrirBase(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
+    if (new URL(req.url()).pathname === '/api/simulaciones/77') return {json: {
+      simulacion:{idDiseno:77,idEscenario:42,nombre:'Modo libre',modo,estado:'VALIDADO'},
+      estaciones:[{nombre:'A',posicionX:400,posicionY:420},{nombre:'B',posicionX:570,posicionY:440},{nombre:'C',posicionX:770,posicionY:410}],
+      lineas:[{nombre:'Línea 01'},{nombre:'Línea 02'}],
+      tramos:[{nombreLinea:'Línea 01',estacionA:'A',estacionB:'B',distanciaKm:2.4},{nombreLinea:'Línea 02',estacionA:'B',estacionB:'C',distanciaKm:distancia}],
+      unidadesMetro:[{idTren:1,nombreLinea:'Línea 01',capacidad:300,velocidadPromedio:4,duracionUt:2},{idTren:2,nombreLinea:'Línea 02',capacidad:300,velocidadPromedio:4,duracionUt:2}],
+      preparadoParaSimular:true,observacionesSimulacion:[],resultados:[],territorio:{areas:[],errores:[]},
+    }};
+  }});
+  t.after(()=>v.contexto.close());
+  const p=v.pagina;
+  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  const regla=p.locator('[data-medicion-distancias]');
+  await regla.focus(); await p.keyboard.press('Enter');
+  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Red · 5,9 km');
+  await p.locator('.simulacion-selector-metros > summary').click();
+  await p.locator('button[data-metro="2"]').click();
+  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 02 · 3,5 km');
+  await regla.focus(); await p.keyboard.press('Space');
+  assert.equal(await p.locator('.metronet-mediciones').isVisible(),false);
+  distancia=null;
+  await p.reload();
+  await p.getByRole('button',{name:'Mostrar distancias en kilómetros',exact:true}).click();
+  assert.equal(await p.locator('.metronet-mediciones__tramo').count(),1);
+  assert.equal(await p.locator('.metronet-mediciones__total').isVisible(),false,'No sumar una red incompleta');
+  await p.locator('.simulacion-selector-metros > summary').click();
+  await p.locator('button[data-metro="1"]').click();
+  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 01 · 2,4 km');
+  modo='NIVEL'; await p.reload();
+  await p.locator('#velocidadUnidad').waitFor();
+  assert.equal(await p.locator('[data-medicion-distancias],.metronet-mediciones').count(),0);
+  assert.equal(v.solicitudes.filter(s=>s.method!=='GET').length,0);
+  assert.deepEqual(v.errores,[]);
 });
