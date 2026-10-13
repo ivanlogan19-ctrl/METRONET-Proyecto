@@ -14,6 +14,7 @@ import { COLORES_INTERFAZ_MAPA, FUENTES_INTERFAZ_MAPA } from '../mapa/configurac
 import ControlZoom from '../mapa/controles/ControlZoom.js';
 import ReferenciasGeograficas from '../mapa/controles/ReferenciasGeograficas.js';
 import MotorSimulacion from './MotorSimulacion.js';
+import CapasSimulacionLibre from './CapasSimulacionLibre.js';
 
 const PROFUNDIDAD_CONTEXTO = 30;
 const INTERVALO_NOTIFICACION_ESTADO = 120;
@@ -104,6 +105,10 @@ class EscenaSimulacion extends Phaser.Scene {
     this.territorioMapa?.configurar(diseno.territorio);
     this.capaTerritorial?.dibujar();
     this.motorSimulacion = new MotorSimulacion(diseno);
+    const libre = ['LIBRE', 'EDICION_LIBRE'].includes(diseno.simulacion?.modo);
+    if (cambiaDiseno || !libre) { this.capasLibre?.eliminar(); this.capasLibre = null; }
+    if (libre && !this.capasLibre) this.capasLibre = new CapasSimulacionLibre(this, diseno);
+    else if (this.capasLibre) { this.capasLibre.diseno = diseno; this.capasLibre.redibujar(); }
     this.capaRedMetro.establecerDiseno(diseno);
     this.capaPuntosInteres?.establecerPuntosObjetivo(this.obtenerPuntosInteresObjetivo());
     this.capaPuntosInteres?.establecerEstacionesReferencia(diseno.estaciones ?? []);
@@ -268,6 +273,7 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   sincronizarEstadoMotor(estado, forzar = false) {
+    this.capasLibre?.sincronizar(estado);
     const cambioEstado = estado.estado !== this.estadoMotorAnterior;
     if (cambioEstado) {
       this.estadoMotorAnterior = estado.estado;
@@ -290,6 +296,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaPuntosInteres?.dibujar();
     this.capaTerritorial?.dibujar();
     this.capaRedMetro?.actualizarTamano();
+    this.capasLibre?.redibujar();
     this.controlZoom?.restaurarVistaTrasRedimension(vistaAnterior, this.obtenerLimitesRed());
     this.aplicarVistaGeograficaPendiente();
     this.actualizarContextoVisual();
@@ -395,6 +402,7 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   eliminar() {
+    this.capasLibre?.eliminar(); this.capasLibre = null;
     this.liberarTamano?.();
     this.liberarTamano = null;
     this.detenerPulsoActividad();

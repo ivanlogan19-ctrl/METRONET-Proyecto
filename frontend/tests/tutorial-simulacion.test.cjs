@@ -342,3 +342,42 @@ test('Primera visita a simulación: tutorial automático desde cualquier nivel',
     } finally { await v.contexto.close(); }
   }
 });
+
+for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece funciones nuevas, respeta la omisión y conserva ayuda manual`, async t => {
+  const v = await abrirBase(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
+    if (/^\/api\/simulaciones\/(77|78)$/.test(new URL(req.url()).pathname)) return { json: {
+      simulacion: { idDiseno: Number(new URL(req.url()).pathname.split('/').at(-1)), idEscenario: 42, nombre: 'Modo libre', modo, estado: 'VALIDADO' },
+      estaciones: [], lineas: [], tramos: [], unidadesMetro: [], resultados: [],
+      preparadoParaSimular: false, territorio: { areas: [], errores: [] },
+    } };
+  } });
+  t.after(() => v.contexto.close());
+  const p = v.pagina;
+  await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
+  await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
+  await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
+  for (const titulo of ['Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+    await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
+    assert.equal(await p.locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0, 'La guía no activa capas');
+    await p.locator('[data-recorrido-siguiente]').click();
+  }
+  await p.locator('.metronet-recorrido').waitFor({ state: 'detached' });
+  await p.reload();
+  await p.locator('.simulacion-horarios').waitFor();
+  await p.waitForTimeout(400);
+  assert.equal(await p.locator('.metronet-recorrido').count(), 0);
+  assert.deepEqual(await p.evaluate(() => Object.keys(localStorage).filter(c => c.includes('tutorial-pantalla-simulacion'))), []);
+  await p.locator('#tutorialPantallaSimulacion').click();
+  await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
+  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Horarios de la simulación', exact: true }).waitFor();
+  await p.getByRole('button', { name: 'Omitir', exact: true }).click();
+  await p.goto(new URL('/simulacion.html?idDiseno=78', p.url()).href);
+  await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
+  await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  await p.reload();
+  await p.locator('.simulacion-horarios').waitFor();
+  await p.waitForTimeout(400);
+  assert.equal(await p.locator('.metronet-recorrido').count(), 0);
+  assert.equal(v.solicitudes.filter(s => s.method !== 'GET').length, 0);
+  assert.deepEqual(v.errores, []);
+});

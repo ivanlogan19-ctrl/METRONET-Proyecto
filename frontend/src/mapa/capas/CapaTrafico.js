@@ -1,15 +1,16 @@
-import { COLORES_TRAFICO, nivelIntensidad, normalizarHora, validarDatosTrafico } from '../trafico/ModeloTrafico.mjs';
+import { COLORES_TRAFICO, nivelIntensidad, validarDatosTrafico } from '../trafico/ModeloTrafico.mjs';
 
 // Capa histórica pasiva. Su reloj nunca modifica UV, UT ni el motor de metros.
 export default class CapaTrafico {
-  constructor(escena, calles) {
+  constructor(escena, calles, reloj) {
     this.escena = escena;
     this.calles = calles;
     this.disponible = false;
     this.visible = false;
     this.activa = true;
     this.estado = 'pendiente';
-    this.hora = 8;
+    this.reloj = reloj;
+    this.desuscribir = reloj.suscribir(() => { this.dibujar(); this.alCambiar(); });
     this.tramos = [];
     this.alCambiar = () => {};
     this.grafico = escena.add.graphics().setDepth(2.5).setVisible(false);
@@ -31,7 +32,7 @@ export default class CapaTrafico {
   async alternar() {
     if (!this.disponible) return;
     if (this.estado !== 'error') this.visible = !this.visible;
-    if (!this.visible) this.pausar();
+
     this.actualizar();
     if (this.visible) await this.cargar();
   }
@@ -49,30 +50,20 @@ export default class CapaTrafico {
       this.datos = datos; this.estado = 'lista'; this.redibujar();
     } catch (e) {
       if (!this.activa || e.name === 'AbortError') return;
-      this.estado = 'error'; this.pausar();
+      this.estado = 'error';
     }
     this.actualizar();
   }
 
-  cambiarHora(valor) {
-    const hora = normalizarHora(valor);
-    if (hora === null) return;
-    this.hora = hora; this.dibujar(); this.alCambiar();
-  }
-
-  reproducir() {
-    if (this.temporizador) return this.pausar();
-    if (!this.disponible || !this.visible || this.estado !== 'lista') return;
-    this.temporizador = setInterval(() => this.cambiarHora(this.hora + 1), 1200);
-    this.alCambiar();
-  }
-
-  pausar() {
-    clearInterval(this.temporizador); this.temporizador = null; this.alCambiar();
-  }
+  get hora() { return this.reloj.hora; }
+  get temporizador() { return this.reloj.temporizador; }
+  cambiarHora(valor) { this.reloj.cambiarHora(valor); }
+  reproducir() { this.reloj.reproducir(); }
+  pausar() { this.reloj.pausar(); }
 
   actualizar() {
     const mostrar = this.disponible && this.visible && this.estado === 'lista';
+    this.reloj.habilitar(this, mostrar);
     this.grafico.setVisible(mostrar);
     this.grafico.setAlpha(this.calles.opacidad);
     this.calles.establecerTraficoActivo(mostrar);
@@ -91,13 +82,13 @@ export default class CapaTrafico {
     const zoom = Math.max(.25, Math.round(this.escena.cameras.main.zoom * 4)/4);
     this.zoomDibujado = zoom; this.grafico.clear();
     for (const tramo of this.tramos) {
-      this.grafico.lineStyle(2/zoom, COLORES_TRAFICO[nivelIntensidad(tramo.intensidades[this.hora])], 1);
+      this.grafico.lineStyle(2.5/zoom, COLORES_TRAFICO[nivelIntensidad(tramo.intensidades[this.hora])], 1);
       this.grafico.strokePoints(tramo.puntos, false);
     }
   }
 
   eliminar() {
-    this.activa = false; this.alCambiar = () => {}; this.pausar(); this.peticion?.abort();
+    this.activa = false; this.alCambiar = () => {}; this.desuscribir(); this.reloj.habilitar(this, false); this.peticion?.abort();
     this.escena.events.off('postupdate', this.actualizarZoom);
     document.removeEventListener('visibilitychange', this.alOcultarDocumento);
     this.grafico.destroy(); this.tramos = []; this.datos = null;

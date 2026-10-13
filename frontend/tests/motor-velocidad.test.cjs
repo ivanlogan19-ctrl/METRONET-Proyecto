@@ -9,8 +9,35 @@ const cargar = async () => (await import(url(fuente('MotorSimulacion.js')
   .replace('../mapa/controles/NombresRed.js', url(fuente('../mapa/controles/NombresRed.js')))))).default;
 const red = (uv = [4, 6]) => ({
   estaciones: Array.from({ length: 31 }, (_, i) => ({ nombre: `E${i}` })),
-  tramos: Array.from({ length: 30 }, (_, i) => ({ nombreLinea: 'Línea', estacionA: `E${i}`, estacionB: `E${i+1}` })),
+  tramos: Array.from({ length: 30 }, (_, i) => ({ distanciaKm: 1, nombreLinea: 'Línea', estacionA: `E${i}`, estacionB: `E${i+1}` })),
   unidadesMetro: uv.map((velocidadPromedio, i) => ({ idTren: i + 1, nombreLinea: 'Línea', velocidadPromedio })),
+});
+test('Recorre 2 km y luego 10 km según UV × UT, sin repartir tiempo por cantidad de tramos', async () => {
+  const Motor = await cargar(), datos = red([4]);
+  datos.tramos = datos.tramos.slice(0, 2);
+  datos.tramos[0].distanciaKm = 2;
+  datos.tramos[1].distanciaKm = 10;
+  const motor = new Motor(datos);
+  motor.iniciar({duracion:3});
+  let unidad = motor.actualizar(3000).unidades[0];
+  assert.equal(unidad.distanciaRecorridaKm,4);
+  assert.equal(unidad.estacionActual,'E1');
+  assert.equal(unidad.progresoTramo,.2);
+  assert.equal(unidad.utLlegada,3);
+  unidad = motor.actualizar(9000).unidades[0];
+  assert.equal(unidad.distanciaRecorridaKm,12);
+  assert.equal(unidad.proximaEstacion,null);
+  datos.unidadesMetro[0].duracionUt=2;
+  const corto = new Motor(datos); corto.iniciar({duracion:3});
+  assert.equal(corto.actualizar(18000).unidades[0].distanciaRecorridaKm,8);
+  datos.unidadesMetro[0].velocidadPromedio=6;
+  const rapido = new Motor(datos); rapido.iniciar({duracion:3});
+  assert.equal(rapido.actualizar(18000).unidades[0].distanciaRecorridaKm,12);
+});
+test('Sin distancias no inventa un kilómetro por tramo', async () => {
+  const Motor = await cargar(), datos = red([4]);
+  delete datos.tramos[0].distanciaKm;
+  assert.equal(new Motor(datos).obtenerEstado().unidades[0].transitable,false);
 });
 test('La numeración visible pertenece a la red; los IDs persistidos se conservan', async () => {
   const Motor = await cargar(), datos = red();
@@ -21,7 +48,7 @@ test('La numeración visible pertenece a la red; los IDs persistidos se conserva
   const nueva = red([4]); nueva.unidadesMetro[0].idTren = 900;
   assert.equal(new Motor(nueva).obtenerEstado().unidades[0].identificador, 'M-1');
 });
-test('UV, horas y ritmo son independientes, sin tiempos físicos derivados', async () => {
+test('UV y UT determinan kilómetros; el ritmo solo acelera la reproducción', async () => {
   const Motor = await cargar(), motor = new Motor(red());
   motor.iniciar({ duracion: 6, velocidad: 1, ahora: 0 });
   const antes = motor.actualizar(4500);
@@ -75,7 +102,7 @@ test('Conexión prolonga A–B hasta C y D; el Metro visita toda la cadena aunqu
     [['C','B'],['D','C'],['B','A']],
   ]) {
     const datos = {estaciones:['A','B','C','D'].map(nombre=>({nombre})),
-      tramos:tramos.map(([estacionA,estacionB])=>({nombreLinea:'Principal',estacionA,estacionB})),
+      tramos:tramos.map(([estacionA,estacionB])=>({distanciaKm:1,nombreLinea:'Principal',estacionA,estacionB})),
       unidadesMetro:[{idTren:1,nombreLinea:'Principal',velocidadPromedio:1}]};
     const motor = new Motor(datos);
     assert.equal(motor.rutas[0].ruta.length,4);
@@ -107,4 +134,23 @@ test('UT ausente conserva el respaldo global de diseños anteriores',async()=>{
  const m=new Motor(datos);m.iniciar({duracion:7});m.actualizar(21000);
  assert.deepEqual(m.obtenerEstado().unidades.map(u=>u.duracionUt),[2,7]);
  assert.equal(m.obtenerEstado().duracion,7);
+});
+
+test('Reloj territorial comparte UT máxima e ignora cambios de UV; pausa y reinicio no derivan', async () => {
+  const { RelojTerritorial } = await import('../src/simulacion/RelojTerritorial.mjs');
+  const Motor = await cargar(), datos = red([1, 2]);
+  datos.unidadesMetro[0].duracionUt = 1;
+  datos.unidadesMetro[1].duracionUt = 3;
+  const motor = new Motor(datos), reloj = new RelojTerritorial(23 * 60 + 30);
+  motor.iniciar({duracion:6,ahora:0});
+  const estado = motor.actualizar(4500); reloj.sincronizar(estado.tiempoTranscurrido);
+  assert.equal(estado.duracion,3); assert.equal(estado.tiempoTranscurrido,1.5);
+  assert.equal(reloj.hora,1); assert.deepEqual(estado.unidades.map(u=>u.tiempoAgotado),[true,false]);
+  motor.pausar(4500); reloj.sincronizar(motor.actualizar(9000).tiempoTranscurrido); assert.equal(reloj.hora,1);
+  motor.reanudar(10000); reloj.sincronizar(motor.actualizar(14500).tiempoTranscurrido); assert.equal(reloj.hora,2);
+  motor.reiniciar(15000); reloj.sincronizar(motor.obtenerEstado().tiempoTranscurrido); assert.equal(reloj.hora,23);
+  motor.detener(); reloj.sincronizar(motor.obtenerEstado().tiempoTranscurrido); assert.equal(reloj.hora,23);
+  datos.unidadesMetro[0].velocidadPromedio=8;
+  const rapido=new Motor(datos); rapido.iniciar({duracion:6,ahora:0});
+  assert.equal(rapido.actualizar(4500).tiempoTranscurrido,1.5);
 });

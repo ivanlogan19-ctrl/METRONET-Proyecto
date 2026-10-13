@@ -34,6 +34,8 @@
             Configuración
           </button>
           <button class="admin-enlace" type="button" data-vista="niveles">Experiencia de juego</button>
+          <button class="admin-enlace" type="button" data-vista="fuentes">Fuentes del mapa</button>
+          <button class="admin-enlace" type="button" data-vista="unidades">Unidades y equivalencias</button>
           <button class="admin-enlace" type="button" data-vista="actividad">
             Actividad
           </button>
@@ -58,6 +60,8 @@
             <img id="iconoDisenos" src="/assets/pare-admin.svg" width="56" height="56" alt="" aria-hidden="true" hidden />
             <img id="iconoConfiguracion" src="/assets/icono-mantenimiento-engranaje-v2.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
             <img id="iconoActividad" src="/assets/icono-actividad-caja-herramientas-v3.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
+            <img id="iconoFuentes" src="/assets/icono-montevideo-admin.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
+            <img id="iconoUnidades" src="/assets/icono-unidades-admin.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
             <img id="iconoNiveles" src="/assets/icono-experiencia-tren-v2.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
           </div>
           <p id="nombreAdministrador" class="admin-usuario"></p>
@@ -125,6 +129,33 @@
           <p id="mensajeNivelesAdmin" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div id="listaNivelesAdmin" class="admin-niveles"></div>
         </section>
+        <section id="vista-unidades" class="admin-vista">
+          <div class="admin-equivalencias">
+            <table aria-label="Equivalencias de simulación">
+              <caption>Equivalencias</caption>
+              <thead><tr><th scope="col">Valor</th><th scope="col">Equivale a</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">1 UT</th><td>1 hora del escenario</td></tr>
+                <tr><th scope="row">1 UV</th><td>1 km por UT · 1 km/h</td></tr>
+                <tr><th scope="row">Distancia</th><td>UV × UT transcurridas</td></tr>
+                <tr><th scope="row">Cobertura</th><td>500 m desde cada estación, en línea recta</td></tr>
+              </tbody>
+            </table>
+            <table aria-label="Ejemplos de recorrido de 12 kilómetros">
+              <caption>Ejemplo · recorrido de 12 km</caption>
+              <thead><tr><th scope="col">Velocidad</th><th scope="col">Duración</th><th scope="col">Resultado</th></tr></thead>
+              <tbody>
+                <tr><td>4 UV</td><td>3 UT</td><td>12 km · llega</td></tr>
+                <tr><td>6 UV</td><td>2 UT</td><td>12 km · llega antes</td></tr>
+                <tr><td>4 UV</td><td>2 UT</td><td>8 km · no llega</td></tr>
+              </tbody>
+            </table>
+            <p>Compará velocidades con la misma red, hora de inicio y duración.</p>
+            <p>El metro se detiene al llegar o agotar su UT. La animación acelera el tiempo.</p>
+            <p>Las capas aportan contexto; no calculan reducción del tráfico. Los resultados anteriores conservan su escala.</p>
+          </div>
+        </section>
+        <section id="vista-fuentes" class="admin-vista"><div id="listaFuentesMapa"></div></section>
         <section id="vista-actividad" class="admin-vista">
           <div class="admin-actividad-cabecera">
             <h2>Registro de actividad de administradores</h2>

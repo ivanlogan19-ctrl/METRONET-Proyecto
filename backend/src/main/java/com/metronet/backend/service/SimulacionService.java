@@ -45,6 +45,7 @@ public class SimulacionService {
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
     private final JuegoEducativoService juegoEducativoService;
     private final CriterioUvUtService criterioUvUt;
+    private final DistanciasRedService distancias;
 
     public SimulacionService(
         JdbcTemplate jdbcTemplate,
@@ -58,7 +59,6 @@ public class SimulacionService {
                 new PuntuacionService(jdbcTemplate, new com.fasterxml.jackson.databind.ObjectMapper())));
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
     public SimulacionService(
         JdbcTemplate jdbcTemplate,
         DisenoAdministracionService disenoAdministracionService,
@@ -67,6 +67,16 @@ public class SimulacionService {
         RestriccionesGeograficasService restriccionesGeograficas,
         CriterioUvUtService criterioUvUt
     ) {
+        this(jdbcTemplate, disenoAdministracionService, objetivosPuntosInteresService, juegoEducativoService,
+            restriccionesGeograficas, criterioUvUt, new DistanciasRedService(jdbcTemplate,
+                new GeografiaService(new com.fasterxml.jackson.databind.ObjectMapper())));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SimulacionService(JdbcTemplate jdbcTemplate, DisenoAdministracionService disenoAdministracionService,
+        ObjetivosPuntosInteresService objetivosPuntosInteresService, JuegoEducativoService juegoEducativoService,
+        RestriccionesGeograficasService restriccionesGeograficas, CriterioUvUtService criterioUvUt, DistanciasRedService distancias) {
+        this.distancias = distancias;
         this.jdbcTemplate = jdbcTemplate;
         this.restriccionesGeograficas = restriccionesGeograficas;
         this.disenoAdministracionService = disenoAdministracionService;
@@ -174,14 +184,7 @@ public class SimulacionService {
             "SELECT nombre FROM linea WHERE id_diseno = ? ORDER BY nombre",
             (resultado, fila) -> new LineaSimulacionResponse(resultado.getString("nombre")), idDiseno
         );
-        List<TramoSimulacionResponse> tramos = jdbcTemplate.query("""
-            SELECT nombre_linea, nombre_estacion_a, nombre_estacion_b
-            FROM tramo WHERE id_diseno = ? ORDER BY id_tramo
-            """, (resultado, fila) -> new TramoSimulacionResponse(
-                resultado.getString("nombre_linea"),
-                resultado.getString("nombre_estacion_a"),
-                resultado.getString("nombre_estacion_b")
-            ), idDiseno);
+        List<TramoSimulacionResponse> tramos = distancias.tramos(idDiseno);
         List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
         List<ResultadoSimulacionResponse> resultados = listarResultados(idUsuario, idDiseno);
         PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
@@ -819,7 +822,8 @@ public class SimulacionService {
             resultado.getInt("puntaje"),
             PuntuacionService.comentarioVisible(resultado.getString("comentarios")),
             resultado.getTimestamp("fecha_ejecucion").toLocalDateTime(),
-            uvUt != null ? "UV_UT_V2" : registro == null ? "HISTORICA" : "UV_H_V1",
+            registro != null && registro.esFisica() ? RegistroSimulacionDidactica.ESCALA_FISICA
+                : uvUt != null ? "UV_UT_V2" : registro == null ? "HISTORICA" : "UV_H_V1",
             registro == null ? List.of() : registro.unidades(),
             uvUt, registro == null ? null : registro.puntuacion()
         );

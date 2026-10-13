@@ -1158,3 +1158,18 @@ html:root body.metronet-pagina-administracion [data-guardar-rol] {
   --boton-borde: var(--success);
   --boton-hover: color-mix(in srgb, var(--success) 80%, var(--text-primary));
 }
+
+/* Lectura breve y centrada de las unidades adoptadas. */
+#vista-unidades .admin-equivalencias { width:min(100%, 960px); margin:16px auto; display:grid; gap:18px; }
+#vista-unidades table { width:100%; table-layout:fixed; border-collapse:collapse; background:var(--panel); }
+#vista-unidades caption { padding:12px; color:var(--text-primary); font:12px/1.6 var(--font-arcade); text-align:center; }
+#vista-unidades :is(th,td) { padding:12px 10px; border:1px solid var(--border); text-align:center; vertical-align:middle; font:10px/1.7 var(--font-arcade); overflow-wrap:anywhere; }
+#vista-unidades thead { background:var(--panel-elevated); color:var(--info-active); }
+#vista-unidades tbody th { color:var(--info-active); }
+#vista-unidades .admin-equivalencias p { margin:0; max-width:none; text-align:center; font:9px/1.8 var(--font-arcade); color:var(--text-secondary); }
+@media(max-width:700px) { #vista-unidades :is(th,td) { padding:8px 4px; font-size:8px; } }
+
+html:root body .admin-enlace[data-vista='unidades'] { text-align:left; }
+html:root body .admin-titulo-con-icono:has(#iconoUnidades:not([hidden])) h1 {
+  white-space:nowrap; font-size:clamp(12px,2vw,28px);
+}

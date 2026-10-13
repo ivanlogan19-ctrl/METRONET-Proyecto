@@ -1357,3 +1357,57 @@ html:root body #metronet-aplicacion:has(.metronet-objetivos-panel--nivel:not([hi
   html:root body #metronet-aplicacion .metronet-panel-editor-contenido { gap: 8px; }
   html:root body #metronet-aplicacion .metronet-editor-bloque { padding: 8px; }
 }
+
+/* Modo Libre: las capas reciben el espacio que liberan las tres filas de herramientas.
+   La presencia del panel de calles limita este diseño al editor libre. */
+@media (min-width: 701px) {
+  html:root body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-calles) {
+    --lateral-ancho: clamp(280px, 22vw, 340px);
+    --icono-herramienta: clamp(30px, 4vh, 36px);
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-panel-editor-contenido {
+    padding: 0 8px;
+    gap: 0;
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-panel-editor-pie {
+    padding: 0 8px 8px;
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) :is(.metronet-herramientas, .metronet-herramientas__barra) {
+    gap: 0;
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloque {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: center;
+    min-height: clamp(40px, 5.4vh, 60px);
+    padding: 4px;
+    gap: 8px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-finalizar {
+    border-bottom: 0;
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloque__titulo {
+    margin: 0;
+    font-size: clamp(8px, .7vw, 10px);
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloque__botones {
+    gap: 6px;
+    align-items: center;
+    margin: 0;
+  }
+  html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloque__botones > button.metronet-boton-icono {
+    width: var(--icono-herramienta);
+    max-width: 100%;
+    height: var(--icono-herramienta);
+    min-height: var(--icono-herramienta);
+    padding: 4px;
+  }
+}
+
+/* Modo Libre: pictogramas más legibles dentro de los botones existentes. */
+html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloque__botones svg.metronet-icono {
+  width:calc(var(--icono-herramienta) * .72); height:calc(var(--icono-herramienta) * .72);
+  flex-basis:calc(var(--icono-herramienta) * .72);
+}

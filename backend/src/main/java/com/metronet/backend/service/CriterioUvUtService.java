@@ -16,14 +16,21 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Evalúa tramos lógicos con UV/UT; las ejecuciones V1 nunca pasan por este servicio. */
+/** Evalúa kilómetros con 1 UV = 1 km/UT y 1 UT = 1 hora; las ejecuciones V1 nunca pasan por este servicio. */
 @Service
 public class CriterioUvUtService {
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper;
     private final PuntuacionService puntuacion;
+    private final DistanciasRedService distancias;
 
     public CriterioUvUtService(JdbcTemplate jdbc, ObjectMapper mapper, PuntuacionService puntuacion) {
+        this(jdbc, mapper, puntuacion, new DistanciasRedService(jdbc, new GeografiaService(mapper)));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public CriterioUvUtService(JdbcTemplate jdbc, ObjectMapper mapper, PuntuacionService puntuacion, DistanciasRedService distancias) {
+        this.distancias = distancias;
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.puntuacion = puntuacion;
@@ -31,7 +38,11 @@ public class CriterioUvUtService {
 
     public record Configuracion(int version, int limiteUt, BigDecimal presupuestoUv) {}
     public record Presentacion(String objetivo, String instrucciones, String herramientas) {}
-    public record Unidad(int idTren, String linea, int tramos, BigDecimal uv, BigDecimal utLlegada, boolean termino) {}
+    public record Unidad(int idTren, String linea, int tramos, BigDecimal uv, BigDecimal utLlegada, boolean termino, Double distanciaKm) {
+        public Unidad(int idTren, String linea, int tramos, BigDecimal uv, BigDecimal utLlegada, boolean termino) {
+            this(idTren, linea, tramos, uv, utLlegada, termino, null);
+        }
+    }
     public record Resultado(int version, String huellaProblema, String huellaEjecucion, int limiteUt,
                             BigDecimal presupuestoUv, int utEjecutadas, BigDecimal sumaUv,
                             boolean completo, List<Unidad> unidades, BigDecimal mejorUv) {}
@@ -97,6 +108,7 @@ public class CriterioUvUtService {
         if (c == null) return null;
         List<Unidad> unidades = new ArrayList<>();
         Map<String, Integer> longitudes = longitudes(idDiseno);
+        Map<String, Double> kilometros = distancias.porLinea(idDiseno);
         List<Metro> metros = jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? ORDER BY id_tren",
             (r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3), r.getObject(4, Integer.class)), idDiseno);
         Set<String> atendidas = new HashSet<>();
@@ -110,10 +122,11 @@ public class CriterioUvUtService {
             }
             atendidas.add(metro.linea());
             suma = suma.add(metro.uv());
-            boolean termino = metro.uv().multiply(BigDecimal.valueOf(metro.duracion() == null ? utEjecutadas : metro.duracion())).compareTo(BigDecimal.valueOf(tramos)) >= 0;
+            BigDecimal longitud = BigDecimal.valueOf(kilometros.getOrDefault(metro.linea(), 0d));
+            boolean termino = metro.uv().multiply(BigDecimal.valueOf(metro.duracion() == null ? utEjecutadas : metro.duracion())).compareTo(longitud) >= 0;
             completo &= termino;
             unidades.add(new Unidad(metro.id(), metro.linea(), tramos, metro.uv(),
-                BigDecimal.valueOf(tramos).divide(metro.uv(), 4, RoundingMode.HALF_UP), termino));
+                longitud.divide(metro.uv(), 4, RoundingMode.HALF_UP), termino, longitud.doubleValue()));
         }
         completo &= atendidas.containsAll(longitudes.keySet()) && suma.compareTo(c.presupuestoUv()) <= 0;
         String problema = puntuacion.marcaProblemaUvUt(idDiseno);

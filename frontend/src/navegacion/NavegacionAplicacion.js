@@ -171,7 +171,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );
-  if (sesion.usuario?.rol === 'ADMIN') enlaces.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
+  enlaces.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
   const usuario = document.createElement('details');
   usuario.className = 'metronet-navegacion__usuario';
   const resumenUsuario = document.createElement('summary');
@@ -187,7 +187,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
     crearEnlace('Ranking', '/ranking.html', actual === 'ranking'),
     crearEnlace('Mis diseños', establecerContextoEnRuta('/disenos.html', contexto), ['disenos', 'edicion', 'simulacion'].includes(actual)),
   );
-  if (sesion.usuario?.rol === 'ADMIN') menuUsuario.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
+  menuUsuario.append(crearEnlace('Administración', '/admin.html', actual === 'administracion'));
   const enlacePerfil = crearEnlace('Mi perfil', '/perfil.html', actual === 'perfil');
   enlacePerfil.classList.add('metronet-navegacion__enlace-perfil');
   menuUsuario.append(enlacePerfil);

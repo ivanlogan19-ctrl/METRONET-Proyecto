@@ -26,7 +26,7 @@ export function crearAdministracionUvUt({ contenedor, mensaje, token, urlServido
     const titulo = document.createElement('h3');
     titulo.textContent = `Nivel ${nivel.numero} · criterio UV/UT`;
     const detalle = document.createElement('p');
-    detalle.textContent = `Versión ${nivel.version || 'sin publicar'} · Red verificada: ${nivel.tramosFixture.join(' + ')} tramos. ${nivel.aviso}`;
+    detalle.textContent = `Versión ${nivel.version || 'sin publicar'} · ${nivel.aviso}`;
     info.append(titulo, detalle);
     const campos = document.createElement('div');
     campos.className = 'admin-campo-configuracion';

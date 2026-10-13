@@ -24,7 +24,10 @@ public record DesempenoNivelResponse(
         this(puntaje, puntajeMaximo, puntosResolucion, puntosEficiencia, puntosVelocidad,
             redResuelta, aprendizajeCumplido, simulacionActual, etapa, explicacion, unidades, null, null);
     }
-    public record MedicionUnidad(int idTren, String linea, double velocidad, int tramos, Integer duracionUt) {
+    public record MedicionUnidad(int idTren, String linea, double velocidad, int tramos, Integer duracionUt, Double distanciaKm, Double distanciaRecorridaKm, Double utLlegada) {
+        public MedicionUnidad(int idTren, String linea, double velocidad, int tramos, Integer duracionUt) {
+            this(idTren, linea, velocidad, tramos, duracionUt, null, null, null);
+        }
         public MedicionUnidad(int idTren, String linea, double velocidad, int tramos) { this(idTren, linea, velocidad, tramos, null); }
         public int tiempoEfectivo(int global) { return duracionUt == null ? global : duracionUt; }
     }

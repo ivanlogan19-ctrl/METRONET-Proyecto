@@ -20,7 +20,7 @@ test('Selección usa nombres y relatos publicados de los diez niveles, y describ
   assert.equal(await tarjeta.locator('.metronet-escenarios-pagina__relato').innerText(),n.historia.texto);
  }
  const libre=p.getByRole('article').filter({has:p.getByRole('heading',{name:'Modo Libre',exact:true})});
- assert.match(await libre.innerText(),/sin consignas obligatorias/);
+ assert.match(await libre.innerText(),/Ahora te toca a vos: diseñá, construí y simulá tu propia red/);
  assert.doesNotMatch(await libre.innerText(),/para desbloquear/);
  assert.deepEqual(v.errores,[]);
 });

@@ -351,7 +351,7 @@ class CampanaPostgresTest {
                     int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=?", Integer.class, nivel);
                     var cambio = new AdministracionUvUtService.Cambio(2, presupuestos[nivel], 1);
                     var vista = admin.previsualizar(nivel, cambio);
-                    assertTrue(vista.viable(), "Presupuesto nivel " + nivel);
+                    assertFalse(vista.viable(), "El conteo histórico no certifica una red en kilómetros sin referencia");
                     // Esta prueba usa tablas temporales sin publicaciones: prepara el criterio del motor directamente.
                     jdbc.update("UPDATE criterio_uv_ut SET version=2,limite_ut=?,presupuesto_uv=? WHERE id_escenario=?",
                         cambio.limiteUt(), cambio.presupuestoUv(), escenario);
@@ -385,18 +385,23 @@ class CampanaPostgresTest {
                         jdbc.update("INSERT INTO pasa VALUES (?,?,?),(?,?,'E2')", nivel, linea, origen, nivel, linea);
                         jdbc.update("INSERT INTO tramo VALUES (?,?,?,'E2')", nivel, linea, origen);
                     }
+                    var distancias = new DistanciasRedService(jdbc, geo).porLinea(nivel);
                     int[] longitudes = vista.tramosFixture();
+                    java.math.BigDecimal presupuestoFisico = java.math.BigDecimal.ZERO;
                     for (int i = 0; i < longitudes.length; i++) {
-                        var uv = java.math.BigDecimal.valueOf(longitudes[i]).divide(java.math.BigDecimal.valueOf(2), 2, java.math.RoundingMode.UNNECESSARY);
+                        var uv = java.math.BigDecimal.valueOf(distancias.get(i == 0 ? "Principal" : "Enlace" + i))
+                            .divide(java.math.BigDecimal.valueOf(2), 2, java.math.RoundingMode.CEILING);
+                        presupuestoFisico = presupuestoFisico.add(uv);
                         jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,velocidad_promedio) VALUES (?,?,?)",
                             nivel, i == 0 ? "Principal" : "Enlace" + i, uv);
                     }
+                    jdbc.update("UPDATE intento_uv_ut SET presupuesto_uv=? WHERE id_intento=?", presupuestoFisico, nivel);
                     assertTrue(restricciones.observarDiseno(nivel).isEmpty(), "Territorio nivel " + nivel);
                     assertTrue(juego.obtenerDesempeno(7, nivel).redResuelta(), "La red completa permite ajustar UV antes de Play en nivel " + nivel);
                     int simulacion = jdbc.queryForObject("INSERT INTO simulacion(id_intento,comentarios,duracion) VALUES (?,'Prueba UV/UT',2) RETURNING id_simulacion", Integer.class, nivel);
                     var resultado = criterio.registrar(nivel, nivel, simulacion, 2);
                     assertTrue(resultado.completo(), "Llegada de todas las unidades nivel " + nivel + ": " + resultado.unidades() + ", suma " + resultado.sumaUv());
-                    assertTrue(resultado.sumaUv().compareTo(presupuestos[nivel]) <= 0, "UV del nivel " + nivel);
+                    assertTrue(resultado.sumaUv().compareTo(presupuestoFisico) <= 0, "UV del nivel " + nivel);
                     assertTrue(criterio.condicion(nivel, nivel).completado());
                     assertEquals(0, resultado.sumaUv().compareTo(resultado.mejorUv()));
                     jdbc.update("UPDATE metro SET capacidad=capacidad+1 WHERE id_diseno=?", nivel);
@@ -413,13 +418,16 @@ class CampanaPostgresTest {
                 jdbc.execute("ALTER TABLE escenario ADD COLUMN id_diseno_base INT");
                 jdbc.execute("ALTER TABLE simulacion ADD COLUMN velocidad NUMERIC, ADD COLUMN estado VARCHAR, ADD COLUMN fecha_ejecucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 ComparacionesSimulacionFixture.practicar(jdbc, juego, 10);
-                jdbc.update("UPDATE metro SET velocidad_promedio=CASE WHEN nombre_linea='Principal' THEN 4.5 ELSE 0.5 END WHERE id_diseno=10");
+                for (var linea : new DistanciasRedService(jdbc,geo).porLinea(10).entrySet()) {
+                    var uv = java.math.BigDecimal.valueOf(linea.getValue()).divide(java.math.BigDecimal.valueOf(2),2,java.math.RoundingMode.CEILING);
+                    jdbc.update("UPDATE metro SET velocidad_promedio=? WHERE id_diseno=10 AND nombre_linea=?",uv,linea.getKey());
+                }
                 jdbc.update("UPDATE intento SET estado='VALIDADO' WHERE id_intento=10");
                 var simulaciones = new SimulacionService(jdbc, org.mockito.Mockito.mock(DisenoAdministracionService.class),
                     new ObjetivosPuntosInteresService(mapper, geo), juego, restricciones);
                 var ejecucion = simulaciones.ejecutarSimulacion(7, 10,
                     new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 2));
-                assertEquals("UV_UT_V2", ejecucion.escala());
+                assertEquals("UV_KM_UT_V3", ejecucion.escala());
                 assertTrue(ejecucion.resultadoUvUt().completo(), "Play guarda el resultado V2 para el nivel 10");
                 assertEquals(ejecucion, simulaciones.listarResultados(7, 10).getFirst());
                 assertTrue(juego.evaluarEscenario(7, 10).completado(), "Las comparaciones, la red y la llegada permiten terminar el nivel 10");
@@ -460,7 +468,7 @@ class CampanaPostgresTest {
             var resultado = simulaciones.ejecutarSimulacion(7, 6,
                 new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, duracion));
             assertEquals(100, resultado.puntaje());
-            assertEquals("UV_H_V1", resultado.escala());
+            assertEquals("UV_KM_UT_V3", resultado.escala());
             assertEquals(duracion, resultado.duracion());
             assertFalse(resultado.unidades().isEmpty());
             assertEquals(resultado, simulaciones.listarResultados(7, 6).getFirst());

@@ -94,6 +94,13 @@ class ValidacionPublicacionNivelPostgresTest {
                     [{"duracion":2,"velocidad":1,"unidades":[{"uv":0.5}]},
                      {"duracion":2,"velocidad":1,"unidades":[{"uv":1}]}]
                     """));
+                assertFalse(validador.validar(escenario4,admin,contenido4,red4,tarjetas4).viable(),
+                    "Los valores lógicos antiguos no bastan para cubrir los kilómetros del trazado");
+                ((ObjectNode)contenido4.path("criterioUvUt")).put("presupuestoUv", 20);
+                ((ObjectNode)red4).set("ejecuciones",mapper.readTree("""
+                    [{"duracion":2,"velocidad":1,"unidades":[{"uv":10}]},
+                     {"duracion":2,"velocidad":1,"unidades":[{"uv":20}]}]
+                    """));
                 var conEjecuciones=validador.validar(escenario4,admin,contenido4,red4,tarjetas4);
                 assertTrue(conEjecuciones.viable(),conEjecuciones.mensaje());
                 for (String herramienta : new String[]{"estaciones","lineas","conexiones","metros","simulacion"}) {

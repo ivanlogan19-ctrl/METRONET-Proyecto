@@ -19,9 +19,15 @@ public class PuntuacionService {
     private static final String MARCA = " [METRONET-RED-v1:";
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper;
+    private final DistanciasRedService distancias;
 
     public PuntuacionService(JdbcTemplate jdbc, ObjectMapper mapper) {
-        this.jdbc = jdbc; this.mapper = mapper;
+        this(jdbc, mapper, new DistanciasRedService(jdbc, new GeografiaService(mapper)));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public PuntuacionService(JdbcTemplate jdbc, ObjectMapper mapper, DistanciasRedService distancias) {
+        this.jdbc = jdbc; this.mapper = mapper; this.distancias = distancias;
     }
 
     public int maximo(String reglas) {
@@ -65,6 +71,7 @@ public class PuntuacionService {
         for (int i = 1; i < ejecuciones.size(); i++) {
             Ejecucion anterior = ejecuciones.get(i - 1), actual = ejecuciones.get(i);
             if (anterior.registro == null || actual.registro == null
+                || !Objects.equals(anterior.registro.escala(), actual.registro.escala())
                 || !estructuraActual.equals(anterior.registro.estructura()) || !estructuraActual.equals(actual.registro.estructura())) continue;
             List<MedicionUnidad> antes = anterior.registro.unidades(), despues = actual.registro.unidades();
             if (antes.isEmpty() || antes.size() != despues.size()) continue;
@@ -177,7 +184,7 @@ public class PuntuacionService {
             .filter(r -> politica.version().equals(r.version())).toList();
         int numero = (int) registros.stream().filter(r -> r.idSimulacion() <= idSimulacion).count();
         var evaluacion = politica.evaluar(condiciones, anteriores, numero, excesosOperacion);
-        var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion);
+        var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion, actual.registro().escala());
         // Conserva exactamente la huella evaluada, al final, como esperan los lectores existentes.
         String huella = actual.comentarios().substring(actual.comentarios().lastIndexOf(MARCA));
         jdbc.update("UPDATE simulacion SET comentarios=?,puntaje=? WHERE id_simulacion=?",
@@ -186,28 +193,31 @@ public class PuntuacionService {
     }
 
     public List<MedicionUnidad> medirUnidades(int idDiseno) {
+        var longitudes = distancias.porLinea(idDiseno);
         return jdbc.query("""
             SELECT m.id_tren, m.nombre_linea, m.velocidad_promedio, m.duracion_ut,
                 (SELECT COUNT(*) FROM tramo t WHERE t.id_diseno=m.id_diseno AND t.nombre_linea=m.nombre_linea) tramos
             FROM metro m WHERE m.id_diseno=? ORDER BY m.id_tren
             """, (r, fila) -> new MedicionUnidad(r.getInt("id_tren"), r.getString("nombre_linea"),
-                r.getDouble("velocidad_promedio"), r.getInt("tramos"), r.getObject("duracion_ut", Integer.class)), idDiseno);
+                r.getDouble("velocidad_promedio"), r.getInt("tramos"), r.getObject("duracion_ut", Integer.class), longitudes.getOrDefault(r.getString("nombre_linea"), 0d), null, null), idDiseno);
     }
 
     public String marcaDidactica(int idDiseno, int duracionGlobal) {
-        var unidades = medirUnidades(idDiseno).stream().map(u -> new MedicionUnidad(u.idTren(), u.linea(), u.velocidad(), u.tramos(), u.tiempoEfectivo(duracionGlobal))).toList();
-        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), unidades).codificar() + marcaRed(idDiseno);
+        var unidades = medirUnidades(idDiseno).stream().map(u -> new MedicionUnidad(u.idTren(), u.linea(), u.velocidad(), u.tramos(), u.tiempoEfectivo(duracionGlobal), u.distanciaKm(),
+            Math.min(u.distanciaKm(), u.velocidad() * u.tiempoEfectivo(duracionGlobal)),
+            u.velocidad() > 0 ? u.distanciaKm() / u.velocidad() : null)).toList();
+        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), unidades, null, RegistroSimulacionDidactica.ESCALA_FISICA).codificar() + marcaRed(idDiseno);
     }
 
     public String marcaDidactica(int idDiseno) {
-        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), medirUnidades(idDiseno)).codificar() + marcaRed(idDiseno);
+        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), medirUnidades(idDiseno), null, RegistroSimulacionDidactica.ESCALA_FISICA).codificar() + marcaRed(idDiseno);
     }
 
     private String marcaEstructura(int idDiseno) { return marcaRed(idDiseno, false); }
 
     /** V2 compara solo componentes que intervienen en recorridos y asignación UV. */
-    public String marcaProblemaUvUt(int idDiseno) { return marcaRed(idDiseno, false, false); }
-    public String marcaEjecucionUvUt(int idDiseno) { return marcaRed(idDiseno, true, false); }
+    public String marcaProblemaUvUt(int idDiseno) { return "km-v3:" + marcaRed(idDiseno, false, false); }
+    public String marcaEjecucionUvUt(int idDiseno) { return "km-v3:" + marcaRed(idDiseno, true, false); }
 
     /** Identifica la red y sus velocidades tal como fueron simuladas, usando el campo comentarios existente. */
     public String marcaRed(int idDiseno) { return marcaRed(idDiseno, true); }
@@ -241,7 +251,8 @@ public class PuntuacionService {
 
     public static String comentarioVisible(String comentario) {
         if (comentario == null) return "";
-        int indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA_V2);
+        int indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA_V3);
+        if (indice < 0) indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA_V2);
         if (indice < 0) indice = comentario.indexOf(RegistroSimulacionDidactica.MARCA);
         if (indice < 0) indice = comentario.lastIndexOf(MARCA);
         return indice < 0 ? comentario : comentario.substring(0, indice);

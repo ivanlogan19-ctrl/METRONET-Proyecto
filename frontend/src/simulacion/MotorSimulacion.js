@@ -1,4 +1,4 @@
-import { RITMOS as VELOCIDADES_ADMITIDAS, HORAS_INICIALES, duracionVisual, avanceEnTramos, normalizarHoras } from './EscalaSimulacion.js';
+import { RITMOS as VELOCIDADES_ADMITIDAS, HORAS_INICIALES, duracionVisual, avanceEnKilometros, normalizarHoras } from './EscalaSimulacion.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 
 export default class MotorSimulacion {
@@ -115,11 +115,16 @@ export default class MotorSimulacion {
   crearEstadoUnidad(unidad) {
     const nombresEstaciones = unidad.ruta.map((estacion) => estacion.nombre);
     const cantidadTramos = Math.max(0, nombresEstaciones.length - 1);
-    const progresoRuta = cantidadTramos
-      ? Math.min(1, avanceEnTramos(unidad.velocidadUV, Math.min(this.progreso * this.duracion, unidad.duracionUt ?? this.ventanaVisual)) / cantidadTramos)
-      : 0;
-    const indiceTramo = cantidadTramos ? Math.min(Math.floor(progresoRuta * cantidadTramos), cantidadTramos - 1) : -1;
-    const esFinal = cantidadTramos > 0 && progresoRuta >= 1;
+    const longitudes = unidad.ruta.slice(1).map(estacion => estacion.distanciaDesdeAnteriorKm);
+    const distanciaTotalKm = longitudes.reduce((total, km) => total + km, 0);
+    const distanciaRecorridaKm = Math.min(distanciaTotalKm,
+      avanceEnKilometros(unidad.velocidadUV, Math.min(this.progreso * this.duracion, unidad.duracionUt ?? this.ventanaVisual)));
+    const progresoRuta = distanciaTotalKm > 0 ? distanciaRecorridaKm / distanciaTotalKm : 0;
+    let indiceTramo = 0, distanciaPrevia = 0;
+    while (indiceTramo < cantidadTramos - 1 && distanciaRecorridaKm >= distanciaPrevia + longitudes[indiceTramo]) {
+      distanciaPrevia += longitudes[indiceTramo++];
+    }
+    const esFinal = cantidadTramos > 0 && distanciaRecorridaKm >= distanciaTotalKm;
     const estacionActual = esFinal
       ? nombresEstaciones.at(-1)
       : (nombresEstaciones[indiceTramo] ?? nombresEstaciones[0] ?? null);
@@ -132,10 +137,13 @@ export default class MotorSimulacion {
       duracionUt: unidad.duracionUt ?? this.ventanaVisual,
       tiempoAgotado: this.progreso * this.duracion >= (unidad.duracionUt ?? this.ventanaVisual),
       progresoRuta,
+      distanciaTotalKm,
+      distanciaRecorridaKm,
+      utLlegada: unidad.velocidadUV > 0 ? distanciaTotalKm / unidad.velocidadUV : null,
       estacionActual,
       proximaEstacion,
-      progresoTramo: cantidadTramos ? (progresoRuta * cantidadTramos) % 1 : 0,
-      transitable: cantidadTramos > 0,
+      progresoTramo: !esFinal && longitudes[indiceTramo] > 0 ? (distanciaRecorridaKm - distanciaPrevia) / longitudes[indiceTramo] : 0,
+      transitable: cantidadTramos > 0 && distanciaTotalKm > 0,
     };
   }
 
@@ -150,7 +158,8 @@ export default class MotorSimulacion {
 
 function construirRuta(tramos, estacionesPorNombre, nombreLinea) {
   const tramosLinea = tramos.filter((tramo) => tramo.nombreLinea === nombreLinea);
-  if (!tramosLinea.length) return [];
+  if (!tramosLinea.length || tramosLinea.some(t => !Number.isFinite(t.distanciaKm) || t.distanciaKm < 0
+      || !estacionesPorNombre.has(t.estacionA) || !estacionesPorNombre.has(t.estacionB))) return [];
   const adyacencias = new Map();
   tramosLinea.forEach((tramo, indice) => {
     agregarAdyacencia(adyacencias, tramo.estacionA, { nombre: tramo.estacionB, indice });
@@ -158,16 +167,16 @@ function construirRuta(tramos, estacionesPorNombre, nombreLinea) {
   });
   const inicio = [...adyacencias.entries()].find(([, conexiones]) => conexiones.length === 1)?.[0] ?? tramosLinea[0].estacionA;
   const visitados = new Set();
-  const ruta = [inicio];
+  const ruta = [{ ...estacionesPorNombre.get(inicio), distanciaDesdeAnteriorKm: 0 }];
   let estacionActual = inicio;
   while (visitados.size < tramosLinea.length) {
     const siguiente = (adyacencias.get(estacionActual) ?? []).find((conexion) => !visitados.has(conexion.indice));
     if (!siguiente) break;
     visitados.add(siguiente.indice);
     estacionActual = siguiente.nombre;
-    ruta.push(estacionActual);
+    ruta.push({ ...estacionesPorNombre.get(estacionActual), distanciaDesdeAnteriorKm: tramosLinea[siguiente.indice].distanciaKm });
   }
-  return ruta.map((nombre) => estacionesPorNombre.get(nombre)).filter(Boolean);
+  return visitados.size === tramosLinea.length ? ruta : [];
 }
 
 function agregarAdyacencia(adyacencias, origen, destino) {

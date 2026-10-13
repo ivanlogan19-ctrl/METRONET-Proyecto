@@ -13,9 +13,9 @@ const PASOS = [
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
   ['.simulacion-selector-metros > summary', 'Elegir metros', 'Seleccioná Todos los metros para aplicar UV o UT a todos, o elegí uno para ajustar solo esa unidad.'],
   ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para consultar la UV y la UT guardadas de cada metro. No modifica la red.'],
-  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', 'Ajustá la UV del metro seleccionado; con Todos los metros, el mismo valor se aplica al conjunto.'],
+  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá el metro seleccionado o todos los metros y guardá el valor.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
-  ['#seccionConfiguracion', 'Duración simulada · UT', 'La duración UT representa el tiempo simulado y es independiente de UV. Confirmala con el disquete.'],
+  ['#seccionConfiguracion', 'Duración simulada · UT', '1 UT equivale a una hora del escenario. A 4 UV durante 2 UT, el metro puede recorrer 8 km. Confirmá la duración con el disquete.'],
   ['#aplicarUnidadTiempo', 'Aplicar duración', 'Confirmá la duración UT antes del próximo recorrido. Podés cambiarla sin iniciar la simulación.'],
   ['.simulacion-accesos-titulo', 'Sonido y salida', 'Desde esta fila podés controlar el sonido, repetir el tutorial o volver a Edición.'],
 ];
@@ -28,7 +28,25 @@ const RESUMEN = [
   ['reloj', 'Ajustá y aplicá la duración UT.'],
 ];
 
-export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () => {}) {
+const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
+const PASOS_LIBRE = [
+  ['.simulacion-horarios', 'Horarios de la simulación', 'Inicio es la hora elegida para el escenario. Actual avanza con la ejecución y Fin indica hasta cuándo se simula según la mayor duración UT de tus metros.'],
+  ['#horaInicioEscenario', 'Elegir la hora de inicio', 'Escribí la hora o usá las flechas para adelantar o atrasar una hora. Elegila antes de iniciar; durante el recorrido o una pausa queda bloqueada.'],
+  ['[data-capa-simulacion="calles"]', 'Calles y avenidas', 'Este botón muestra u oculta las calles para ubicar tu red en la ciudad. Las estaciones, líneas y metros permanecen por encima.'],
+  ['[data-capa-simulacion="trafico"]', 'Tráfico sincronizado', 'Activá el tráfico histórico para ver su intensidad por colores. Cambia con la hora Actual de la simulación; son datos históricos, no tráfico en vivo.'],
+  ['[data-capa-simulacion="poblacion"]', 'Densidad de población', 'Mostrá dónde se concentra la población. Esta capa censal permanece igual al avanzar el reloj.'],
+  ['[data-capa-simulacion="desplazamientos"]', 'Desplazamientos sincronizados', 'Las flechas muestran los desplazamientos históricos del horario Actual. Su animación sigue la ejecución: se pausa y se reinicia junto con ella.'],
+  ['[data-capa-simulacion="cobertura"]', 'Cobertura de las estaciones', 'Mostrá u ocultá el área de 500 m alrededor de cada estación para compararla con las capas. El área depende del diseño de la red.'],
+  ['.simulacion-capas input[type="range"]', 'Transparencia de las capas', 'Deslizá este control para ver las capas con mayor o menor intensidad, manteniendo tu red visible. Podés combinarlas o apagarlas con sus botones.'],
+];
+const RESUMEN_LIBRE = [
+  ['reloj', 'Elegí Inicio y seguí el horario Actual.'],
+  ['trafico', 'Tráfico y desplazamientos siguen el reloj.'],
+  ['poblacion', 'La población conserva sus datos censales.'],
+  ['cobertura', 'Compará las capas con la cobertura de 500 m.'],
+];
+
+export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () => {}, obtenerModo = () => undefined) {
   const panel = document.createElement('section');
   panel.className = 'metronet-tutorial__panel metronet-tutorial-simulacion metronet-guia-rapida';
   panel.setAttribute('popover', 'manual');
@@ -42,11 +60,15 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
   const estado = document.createElement('p'); estado.className = 'metronet-tutorial__completado';
   estado.textContent = 'Tutorial completado'; estado.hidden = true;
   const lista = document.createElement('div'); lista.className = 'metronet-tutorial__herramientas';
-  for (const [icono, descripcion] of RESUMEN) {
+  function actualizarResumen() {
+    lista.replaceChildren();
+    for (const [icono, descripcion] of esModoLibre(obtenerModo()) ? RESUMEN_LIBRE : RESUMEN) {
     const item = document.createElement('p'); item.innerHTML = iconoRetro(icono);
     const explicacion = document.createElement('span'); explicacion.textContent = descripcion;
     item.append(explicacion); lista.append(item);
+    }
   }
+  actualizarResumen();
   const repetir = document.createElement('button');
   repetir.type = 'button'; repetir.className = 'metronet-tutorial__repetir';
   configurarBotonIcono(repetir, 'reiniciar', 'Recorrer la pantalla');
@@ -71,6 +93,7 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
   function alternar() {
     if (panel.matches(':popover-open')) { cerrar(); return; }
     alAbrir();
+    actualizarResumen();
     panel.showPopover(); acceso.setAttribute('aria-expanded', 'true'); posicionar();
   }
   function cerrarFuera(evento) {
@@ -113,9 +136,9 @@ export function pasosSimulacion(numero, escenario, pendientes) {
     ...PASOS.slice(1,6)];
 }
 
-export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { primeraVisita = false, escenario, pendientes } = {}) {
+export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { primeraVisita = false, escenario, pendientes, modo } = {}) {
   const practicas = pasosSimulacion(numeroNivel, escenario, pendientes);
-  const pasos = primeraVisita && numeroNivel !== 1
+  const pasos = esModoLibre(modo) ? PASOS_LIBRE : primeraVisita && numeroNivel !== 1
     ? [...pasosSimulacion(1), ...practicas]
     : practicas.length ? practicas : pasosSimulacion(1);
   const recorrido = new RecorridoInicial(alFinalizar, {
@@ -132,7 +155,27 @@ export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { p
   return recorrido;
 }
 
-export function presentarTutorialSimulacion({ idUsuario, idDiseno, numeroNivel, numeroCampana, escenario, alFinalizar } = {}) {
+export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroNivel, numeroCampana, escenario, alFinalizar } = {}) {
+  if (esModoLibre(modo)) {
+    // Independiente del aprendizaje de la campaña: estas funciones solo existen en Modo Libre.
+    const clave = `metronet:tutorial-simulacion-libre:v1:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
+    try { if (localStorage.getItem(clave)) return null; } catch { /* No bloquea jugar. */ }
+    const registrar = (completado, motivo) => {
+      if (completado || motivo === 'omitido') try {
+        localStorage.setItem(clave, completado ? 'presentado' : 'omitido');
+      } catch { /* La ayuda manual sigue disponible. */ }
+      alFinalizar?.(completado);
+    };
+    let recorrido;
+    const oferta = ofrecerTutorial({
+      titulo: 'Simulación de Modo Libre',
+      descripcion: 'Conocé Horarios, las capas sincronizadas y la cobertura de tu red. Te mostramos cómo usar estas funciones en esta pantalla.',
+      textoAceptar: 'Recorrer las funciones',
+      alAceptar: () => { recorrido = abrirTutorialSimulacion(registrar, undefined, { modo }); },
+      alOmitir: () => registrar(false, 'omitido'),
+    });
+    return { notificar: evento => recorrido?.notificar(evento), terminar: (...args) => { oferta.terminar(); recorrido?.terminar(...args); } };
+  }
   const prefijo = `metronet:tutorial-pantalla-simulacion:v5:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
   const clave = `${prefijo}${numeroNivel ?? 'libre'}:${idDiseno ?? 'actual'}`;
   const primeraVisita = `${prefijo}primera-visita`;

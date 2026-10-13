@@ -1,0 +1,97 @@
+/* Solo los controles nuevos de Simulación libre; no modifica pestañas ni navegación. */
+.simulacion-libre-territorio .simulacion-territorio-panel {
+  display:grid; grid-template-columns:minmax(0,1fr); gap:8px; min-width:0;
+  padding:0 0 8px; border:var(--border-width) solid var(--border-active); background:var(--panel);
+}
+/* Seis bloques en el mismo alto del mapa: controles iguales, sin estirar iconos. */
+html:root body.simulacion-libre-territorio #instrumentosSimulacion { gap:6px; }
+html:root body.simulacion-pagina.simulacion-libre-territorio #instrumentosSimulacion h3.simulacion-seccion-titulo {
+  min-height:24px; height:24px; padding:4px 8px; margin:0; font-size:9px; color:var(--text-primary);
+  background:color-mix(in srgb, var(--info-active) 19%, var(--panel-elevated)); border-bottom:1px solid var(--info-active);
+}
+html:root body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-grupo-metros {
+  grid-template-rows:24px minmax(32px,1fr) minmax(32px,1fr); gap:6px; padding-bottom:6px;
+}
+body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-grupo-metros > .simulacion-selector-metros { grid-row:2; }
+body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-grupo-metros > .simulacion-configuracion-metros { grid-row:3; }
+html:root body.simulacion-libre-territorio #instrumentosSimulacion :is(.simulacion-selector-metros,.simulacion-configuracion-metros__desplegable) > summary {
+  height:32px; min-height:32px; font-size:8px; padding:3px 22px;
+}
+html:root body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-parametro-valor {
+  grid-template-columns:24px minmax(0,1fr) 24px 30px; grid-template-rows:32px; gap:4px;
+}
+html:root body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-parametro-valor :is(input,button),
+html:root body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-parametro-velocidad button[type="submit"].metronet-boton-icono {
+  min-height:32px; height:32px; padding:3px;
+}
+html:root body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-mandos button.metronet-boton-icono {
+  width:34px; min-width:34px; max-width:34px; height:32px; min-height:32px; padding:4px;
+}
+html:root body.simulacion-libre-territorio #instrumentosSimulacion .metronet-boton-icono > .metronet-icono {
+  width:16px; height:16px; flex-basis:16px;
+}
+.simulacion-libre-territorio #instrumentosSimulacion :is(.simulacion-acciones-panel,.simulacion-grupo-velocidad,#seccionConfiguracion) {
+  min-height:66px; gap:6px; padding-bottom:6px; grid-template-rows:24px minmax(32px,1fr);
+}
+.simulacion-libre-territorio .simulacion-territorio-panel { gap:6px; padding-bottom:6px; }
+@media (min-width:1051px) {
+  .simulacion-libre-territorio #instrumentosSimulacion .simulacion-grupo-metros { flex:1 1 auto; }
+  .simulacion-libre-territorio #instrumentosSimulacion :is(.simulacion-grupo-velocidad,#seccionConfiguracion) { flex:0 0 72px; min-height:72px; }
+}
+.simulacion-territorio-panel .simulacion-seccion-titulo { margin:0; }
+.simulacion-horarios__valores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; padding:0 8px; text-align:center; align-items:start; }
+.simulacion-horarios__valores > * { display:grid; gap:5px; min-width:0; }
+html:root body.simulacion-pagina .simulacion-horarios__valores :is(label,span) { font:9px/1.4 var(--font-arcade); }
+html:root body.simulacion-pagina .simulacion-horarios__valores :is(input,output) { width:100%; min-width:0; min-height:28px; height:28px; padding:4px 0; font:10px/1.4 var(--font-tecnica); text-align:center; }
+.simulacion-horarios__valores input::-webkit-calendar-picker-indicator { display:none; }
+.simulacion-horarios progress { width:calc(100% - 16px); height:7px; margin:0 8px; accent-color:var(--info-active); }
+.simulacion-capas__botones { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; margin:0 8px; }
+html:root body.simulacion-pagina .simulacion-capas__botones button.metronet-boton-icono { width:100%; min-width:0; height:30px; min-height:30px; padding:4px; }
+.simulacion-capas__botones button[aria-pressed="true"] { border-color:var(--info-active); color:var(--info-active); box-shadow:inset 0 0 0 1px var(--info-active); }
+html:root body.simulacion-pagina .simulacion-capas > input { width:calc(100% - 16px); min-width:0; margin:0 8px; min-height:16px; height:16px; padding:0; accent-color:var(--info-active); }
+.simulacion-capas p { margin:0 8px; font:10px/1.4 var(--font-ui); color:var(--warning); }
+@media (min-width:1051px) {
+  .simulacion-libre-territorio .simulacion-instrumentos { gap:8px; }
+  .simulacion-libre-territorio .simulacion-territorio-panel { flex:0 0 auto; }
+  body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-horarios {
+    order:1; flex:1 1 108px; min-height:100px; grid-template-rows:24px minmax(44px,1fr) 7px;
+  }
+  .simulacion-horarios__valores { align-self:center; }
+  .simulacion-libre-territorio .simulacion-grupo-metros { order:2; }
+  .simulacion-libre-territorio .simulacion-grupo-velocidad { order:3; }
+  .simulacion-libre-territorio #seccionConfiguracion { order:4; }
+  .simulacion-libre-territorio .simulacion-capas { order:5; }
+  /* Acciones ocupa solo lo necesario; el espacio sobrante pasa a las capas. */
+  body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-acciones-panel {
+    flex:0 0 72px; min-height:72px;
+  }
+  body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-capas {
+    flex:1 1 90px; grid-template-rows:24px minmax(30px,1fr) 16px;
+  }
+  .simulacion-libre-territorio .simulacion-capas__botones { align-self:center; }
+}
+
+/* Relojes con la misma caja y línea de base; Inicio conserva edición por teclado. */
+html:root body.simulacion-pagina .simulacion-horarios__valores > div { gap:4px; grid-template-rows:14px 36px; }
+html:root body.simulacion-pagina .simulacion-horarios__valores label { margin:0; }
+html:root body.simulacion-pagina .simulacion-horarios__valores :is(output,.simulacion-horarios__inicio) {
+  box-sizing:border-box; height:36px; min-height:36px; border:1px solid var(--border-active);
+  background:var(--background); color:var(--text-primary); margin:0; padding:0;
+}
+html:root body.simulacion-pagina .simulacion-horarios__valores output { display:flex; flex-wrap:wrap; align-content:center; align-items:center; justify-content:center; font:10px/1.3 var(--font-arcade); }
+html:root body.simulacion-pagina .simulacion-horarios__valores output[data-hora-actual] { color:var(--info-active); border-color:var(--info-active); }
+.simulacion-horarios__inicio { display:grid; grid-template-columns:minmax(0,1fr) 12px; align-items:center; }
+html:root body.simulacion-pagina .simulacion-horarios__inicio input { border:0; box-shadow:none; background:transparent; color:var(--text-primary); padding:0; margin:0; height:28px; font:10px/1.3 var(--font-arcade); }
+.simulacion-horarios__inicio input::-webkit-datetime-edit { padding:0; }
+.simulacion-horarios__flechas { display:grid; grid-template-rows:14px 14px; }
+html:root body.simulacion-pagina #instrumentosSimulacion .simulacion-horarios__flechas button {
+  width:12px; min-width:12px; height:14px; min-height:14px; padding:0; margin:0;
+  border:0; background:transparent; color:var(--info-active); box-shadow:none; font:12px/1 monospace;
+}
+.simulacion-horarios__flechas button:disabled { opacity:.35; }
+.simulacion-horarios progress { appearance:none; border:0; background:var(--panel-elevated); border-radius:0; }
+.simulacion-horarios progress::-webkit-progress-bar { background:var(--panel-elevated); }
+.simulacion-horarios progress::-webkit-progress-value { background:var(--info-active); }
+.simulacion-horarios progress::-moz-progress-bar { background:var(--info-active); }
+
+.simulacion-horarios__dia { flex-basis:100%; font-size:6px; line-height:1.2; }

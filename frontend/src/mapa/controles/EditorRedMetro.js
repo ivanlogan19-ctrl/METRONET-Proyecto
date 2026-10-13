@@ -739,9 +739,11 @@ export default class EditorRedMetro {
     this.escena.capaCalles?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     this.escena.capaTrafico?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     this.escena.capaPoblacion?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
+    this.escena.capaDesplazamientos?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     const herramientas = this.escenarioJuegoActual?.herramientasHabilitadas ?? { estaciones: true, lineas: true, conexiones: true, metros: true };
     const esEscenarioProgresivo = this.esEscenarioProgresivo();
-    const tituloHerramientas = esEscenarioProgresivo ? 'Herramientas del nivel' : 'Herramientas';
+    const esModoLibre = this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE';
+    const tituloHerramientas = esEscenarioProgresivo ? 'Herramientas del nivel' : esModoLibre ? 'Diseño de la red' : 'Herramientas';
     const tituloEditor = document.querySelector('[data-titulo-editor]');
     if (tituloEditor) tituloEditor.textContent = tituloHerramientas;
     const tituloMapa = document.querySelector('[data-titulo-mapa]');
@@ -757,6 +759,10 @@ export default class EditorRedMetro {
     const tituloAcciones = this.contenedorPieEditor?.querySelector('.metronet-editor-finalizar h3');
     if (tituloAcciones) tituloAcciones.textContent = 'Acciones';
     this.panelHerramientas?.actualizarDisponibilidad(herramientas, esEscenarioProgresivo);
+    for (const [categoria, etiqueta] of [['Construcción', 'Construir'], ['Edición', 'Editar']]) {
+      const titulo = panelEditor?.querySelector(`[aria-label="${categoria}"] h3`);
+      if (titulo) titulo.textContent = esModoLibre ? etiqueta : categoria;
+    }
     const consigna = this.obtenerContenedorConsigna();
     consigna.hidden = !this.escenarioJuegoActual;
     if (this.contenedorObjetivos) this.contenedorObjetivos.hidden = !this.escenarioJuegoActual;
@@ -862,12 +868,12 @@ export default class EditorRedMetro {
     resumen.className = 'metronet-consigna__resumen';
     const titulo = document.createElement('h2');
     titulo.className = 'metronet-consigna__titulo';
-    titulo.textContent = esNivel ? 'Metas del nivel' : this.obtenerTituloConsigna(escenario);
+    titulo.textContent = esNivel ? 'Metas del nivel' : this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE' ? 'Análisis del territorio' : this.obtenerTituloConsigna(escenario);
     cabecera.prepend(titulo);
     const resumenActivo = document.createElement('div');
     resumenActivo.className = 'metronet-consigna__resumen-activo';
     if (!esNivel && this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE' && this.escena.capaCalles) {
-      this.panelCalles ??= new PanelCalles(this.escena.capaCalles, this.escena.capaTrafico, this.escena.capaPoblacion);
+      this.panelCalles ??= new PanelCalles(this.escena.capaCalles, this.escena.capaTrafico, this.escena.capaPoblacion, this.escena.capaDesplazamientos);
       resumenActivo.append(this.panelCalles.elemento);
     }
     if (condiciones.length) {

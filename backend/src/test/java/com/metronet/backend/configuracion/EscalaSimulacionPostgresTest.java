@@ -71,7 +71,8 @@ class EscalaSimulacionPostgresTest {
         enviar(ruta + "/validacion", "{}", token);
         for (int ritmo : new int[]{1, 2}) {
             var resultado = enviar(ruta + "/ejecutar", "{\"velocidad\":" + ritmo + ",\"duracion\":6}", token);
-            assertEquals("UV_H_V1", resultado.path("escala").asText());
+            assertEquals("UV_KM_UT_V3", resultado.path("escala").asText());
+            assertTrue(resultado.path("unidades").get(0).path("distanciaKm").asDouble() > 0);
             assertEquals(6, resultado.path("duracion").asInt());
             assertEquals(ritmo, resultado.path("velocidad").asInt());
             assertEquals(4, resultado.path("unidades").get(0).path("velocidad").asInt());

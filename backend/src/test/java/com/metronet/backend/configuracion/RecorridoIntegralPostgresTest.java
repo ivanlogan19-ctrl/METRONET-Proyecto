@@ -48,7 +48,22 @@ class RecorridoIntegralPostgresTest {
                 .path("puntuacion").path("version").asText());
         var objetivosUnicos = new java.util.HashSet<Integer>();
         for (var publicada:publicaciones) {
-            var reglas = borradores.versiones(publicada.numero()).getFirst().contenido().path("reglasExito");
+            var version = borradores.versiones(publicada.numero()).getFirst();
+            var reglas = version.contenido().path("reglasExito");
+            var red = version.redReferencia();
+            var geo = new GeografiaService(new com.fasterxml.jackson.databind.ObjectMapper());
+            var estaciones = new java.util.HashMap<String,com.metronet.backend.utilidades.GeometriaTerritorial.Punto>();
+            for (var e : red.path("estaciones")) estaciones.put(e.path("nombre").asText(),geo.coordenadaGeografica(e.path("x").decimalValue(),e.path("y").decimalValue()));
+            var km = new java.util.HashMap<String,Double>();
+            for (var t : red.path("tramos")) km.merge(t.path("linea").asText(),DistanciasRedService.kilometros(
+                estaciones.get(t.path("a").asText()),estaciones.get(t.path("b").asText())),Double::sum);
+            for (var ejecucion : red.path("ejecuciones")) {
+                for (int i=0;i<red.path("unidades").size();i++) {
+                    double alcance = ejecucion.path("unidades").get(i).path("uv").asDouble()*ejecucion.path("duracion").asDouble();
+                    double longitud = km.get(red.path("unidades").get(i).path("linea").asText());
+                    assertTrue(alcance>=longitud,"Nivel "+publicada.numero()+": alcanza "+alcance+" km, necesita "+longitud);
+                }
+            }
             var puntos = reglas.path("puntosInteresObjetivo");
             assertEquals(publicada.numero() < 6 ? 0 : 3, puntos.size());
             for (var punto : puntos) assertTrue(objetivosUnicos.add(punto.path("idPunto").asInt()), "POI repetido");

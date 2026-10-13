@@ -132,7 +132,7 @@ function crearTarjetaEscenario(escenario) {
   const relato = document.createElement('p');
   relato.className = 'metronet-escenarios-pagina__relato';
   relato.textContent = escenario.numero === null
-    ? (escenario.desbloqueado ? 'Diseñá y probá tu propia red junto a Ari, Sol y Dani, sin consignas obligatorias.' : 'Ayudá a Ari, Sol y Dani a completar los diez niveles para desbloquear el Modo Libre.')
+    ? (escenario.desbloqueado ? 'Ya ayudaste a Ari, Sol y Dani a superar los desafíos. Ahora te toca a vos: diseñá, construí y simulá tu propia red de metro. Descubrí nuevas herramientas y poné tus ideas a prueba.' : 'Ayudá a Ari, Sol y Dani a completar los diez niveles para desbloquear el Modo Libre.')
     : obtenerRelatoSeleccion(escenario);
   contenido.append(relato);
   const acciones = document.createElement('footer');

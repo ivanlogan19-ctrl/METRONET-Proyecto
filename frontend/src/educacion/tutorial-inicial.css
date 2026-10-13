@@ -111,3 +111,19 @@ html:root body .metronet-guia-rapida button.metronet-boton-icono {
 }
 html:root body .metronet-guia-rapida button.metronet-boton-icono > .metronet-icono { width:14px; height:14px; }
 html:root body .metronet-guia-rapida .metronet-tutorial__repetir { margin:8px auto 0; }
+
+/* Bienvenida del editor libre: introducción centrada y acciones parejas. */
+html:root body dialog.metronet-recorrido[data-bienvenida-libre] {
+  width:min(540px,calc(100vw - 32px)); padding:20px; text-align:left;
+}
+html:root body dialog[data-bienvenida-libre] h2 { font-size:14px; }
+html:root body dialog[data-bienvenida-libre] p { margin:14px 0; }
+dialog[data-bienvenida-libre] .metronet-recorrido__acciones {
+  grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:18px;
+}
+html:root body dialog[data-bienvenida-libre] .metronet-recorrido__acciones button {
+  min-height:40px; padding:8px; font-size:10px;
+}
+@media (max-width:480px) {
+  dialog[data-bienvenida-libre] .metronet-recorrido__acciones { grid-template-columns:1fr; }
+}

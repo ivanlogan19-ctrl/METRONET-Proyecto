@@ -5,7 +5,7 @@ export default class CapaCalles {
     this.escena = escena;
     this.capaBarrios = capaBarrios;
     this.disponible = false;
-    this.visible = true;
+    this.visible = false;
     this.opacidad = 0.65;
     this.estado = 'pendiente';
     this.activa = true;
@@ -92,8 +92,8 @@ export default class CapaCalles {
     // Ancho en píxeles de pantalla: las calles nunca tapan las vías del metro.
     for (const principal of [false, true]) {
       if (!principal && !this.detalleVisible) continue;
-      this.grafico.lineStyle((principal ? 1.15 : 0.7) / zoom,
-        this.traficoActivo ? 0x62758c : principal ? 0xd9b75e : 0x9c8957, principal ? 1 : 0.7);
+      this.grafico.lineStyle((principal ? 1.6 : 1) / zoom,
+        this.traficoActivo ? 0x9aaec4 : principal ? 0xf1cf80 : 0xc6b384, principal ? 1 : 0.9);
       for (const tramo of this.tramos) {
         if (tramo.principal === principal) this.grafico.strokePoints(tramo.puntos, false);
       }

@@ -64,12 +64,12 @@
     },
     "preparacion": {
       "concepto": "UV — Unidad de Velocidad",
-      "explicacion": "UV es una escala didáctica de velocidad. Para observar su efecto, cambiá solamente UV entre dos ejecuciones de la misma red.",
+      "explicacion": "1 UV equivale a 1 km por UT; cada UT es una hora del escenario. Para observar su efecto, cambiá solamente UV entre dos ejecuciones de la misma red.",
       "contexto": "El primer enlace debe llegar más lejos. Extendé el recorrido y observá cómo cambia el movimiento cuando ajustás la velocidad de la unidad.",
       "consejo": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la misma duración. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
     },
     "transicion": {
-      "aprendizaje": "UV es una escala didáctica de velocidad. Para observar su efecto, cambiá solamente UV entre dos ejecuciones de la misma red.",
+      "aprendizaje": "1 UV equivale a 1 km por UT; cada UT es una hora del escenario. Para observar su efecto, cambiá solamente UV entre dos ejecuciones de la misma red.",
       "ciudad": "El primer enlace debe llegar más lejos. Extendé el recorrido y observá cómo cambia el movimiento cuando ajustás la velocidad de la unidad."
     }
   },
@@ -102,12 +102,12 @@
     },
     "preparacion": {
       "concepto": "Duración simulada",
-      "explicacion": "La duración UT representa el tiempo simulado. Cambiala entre dos ejecuciones conservando UV para observar su efecto.",
+      "explicacion": "La duración UT representa el tiempo simulado: 1 UT equivale a una hora del escenario. Cambiala entre dos ejecuciones conservando UV para observar su efecto.",
       "contexto": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la misma velocidad.",
       "consejo": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B sin cambiar UV. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
     },
     "transicion": {
-      "aprendizaje": "La duración UT representa el tiempo simulado. Cambiala entre dos ejecuciones conservando UV para observar su efecto.",
+      "aprendizaje": "La duración UT representa el tiempo simulado: 1 UT equivale a una hora del escenario. Cambiala entre dos ejecuciones conservando UV para observar su efecto.",
       "ciudad": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la misma velocidad."
     }
   },

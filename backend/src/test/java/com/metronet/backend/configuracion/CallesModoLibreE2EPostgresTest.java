@@ -67,6 +67,7 @@ class CallesModoLibreE2EPostgresTest {
         }
         String clave = "CallesQA!7";
         int admin = jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol,identificador_administrador) VALUES ('Calles QA','calles-e2e@example.test',?,'ADMIN','calles-e2e') RETURNING id_usuario", Integer.class, encoder.encode(clave));
+        jdbc.update("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Fuentes QA','fuentes-e2e@example.test',?,'JUGADOR')", encoder.encode(clave));
         recorrido.publicar(admin);
         var salida = Path.of("/tmp/metronet-calles-browser.log");
         var proceso = new ProcessBuilder("node", "--test", "tests/calles-modo-libre-e2e.test.cjs")

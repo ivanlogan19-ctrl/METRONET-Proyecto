@@ -1,4 +1,5 @@
-import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
+import PanelDesplazamientos from './PanelDesplazamientos.js';
+import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 import '../estilos/calles.css';
 import { ofrecerTutorial } from '../../educacion/OfertaTutorial.js';
 import RecorridoInicial from '../../educacion/RecorridoInicial.js';
@@ -7,44 +8,75 @@ import PanelTrafico from './PanelTrafico.js';
 import PanelPoblacion from './PanelPoblacion.js';
 
 export default class PanelCalles {
-  constructor(capa, trafico, poblacion) {
+  constructor(capa, trafico, poblacion, desplazamientos) {
     this.capa = capa;
     this.elemento = document.createElement('section');
     this.elemento.className = 'metronet-calles';
-    this.elemento.setAttribute('aria-label', 'Calles y avenidas de Montevideo');
+    this.elemento.setAttribute('aria-label', 'Análisis del territorio');
     this.elemento.innerHTML = `<div class="metronet-calles__botones">
       <button type="button" data-calles-visible></button>
-      <button type="button" data-calles-ajustes aria-expanded="true" aria-controls="opacidad-calles"></button>
-      <a class="metronet-calles__fuente" href="https://ckan.montevideo.gub.uy/dataset/vias-de-transito" target="_blank" rel="noopener noreferrer"
-         aria-label="Fuente: Intendencia de Montevideo, Geomática. Vías de tránsito, licencia de datos abiertos de Uruguay."
-         title="Cartografía: Intendencia de Montevideo · Licencia DAG-UY · Descarga 13/10/2026">ⓘ</a>
     </div>
     <div id="opacidad-calles" class="metronet-calles__opacidad">
-      <span aria-hidden="true" class="metronet-calles__tenue">${iconoRetro('capas')}</span>
       <input type="range" min="10" max="100" step="5" value="65" aria-label="Opacidad de calles y avenidas">
-      <span aria-hidden="true">${iconoRetro('capas')}</span>
     </div>
     <p class="metronet-calles__estado" role="status" hidden></p>`;
     this.boton = this.elemento.querySelector('[data-calles-visible]');
-    this.ajustes = this.elemento.querySelector('[data-calles-ajustes]');
     this.rango = this.elemento.querySelector('input');
     this.panelPoblacion = poblacion ? new PanelPoblacion(poblacion, this.elemento) : null;
     this.panelTrafico = trafico ? new PanelTrafico(trafico, this.elemento) : null;
-    if (this.panelPoblacion) this.elemento.querySelector('.metronet-calles__fuente').before(this.panelPoblacion.boton);
-    configurarBotonIcono(this.ajustes, 'capas', 'Ajustar transparencia de calles');
+    if (this.panelPoblacion) this.elemento.querySelector('.metronet-calles__botones').append(this.panelPoblacion.boton);
+    this.panelDesplazamientos = desplazamientos ? new PanelDesplazamientos(desplazamientos, this.elemento) : null;
     this.boton.addEventListener('click', () => capa.alternar());
-    this.ajustes.addEventListener('click', () => {
-      const abierto = this.ajustes.getAttribute('aria-expanded') !== 'true';
-      this.ajustes.setAttribute('aria-expanded', String(abierto));
-      this.elemento.querySelector('#opacidad-calles').hidden = !abierto;
-    });
     this.rango.addEventListener('input', () => {
       capa.establecerOpacidad(Number(this.rango.value) / 100);
       trafico?.actualizar();
       this.rango.setAttribute('aria-valuetext', `${this.rango.value} %`);
     });
     capa.alCambiar = () => this.actualizar();
+    this.organizarCategorias();
     this.actualizar();
+  }
+
+  organizarCategorias() {
+    // Reutilizar los controles conserva sus eventos, estados y accesos del tutorial.
+    const categoria = (nombre, clave) => {
+      const seccion = document.createElement('section');
+      seccion.className = 'metronet-territorio__categoria';
+      seccion.dataset.categoriaTerritorio = clave;
+      seccion.setAttribute('aria-label', nombre);
+      const titulo = document.createElement('h3'); titulo.textContent = nombre;
+      const controles = document.createElement('div'); controles.className = 'metronet-territorio__controles';
+      seccion.append(titulo, controles); this.elemento.append(seccion);
+      return controles;
+    };
+    const botones = this.elemento.querySelector('.metronet-calles__botones');
+    const calles = categoria('Calles', 'calles');
+    const opacidad = this.elemento.querySelector('#opacidad-calles');
+    calles.append(this.boton, opacidad);
+    calles.parentElement.append(this.elemento.querySelector('.metronet-calles__estado'));
+    if (this.panelTrafico) {
+      const trafico = categoria('Tráfico', 'trafico');
+      trafico.append(this.panelTrafico.boton, this.panelTrafico.elemento.querySelector('.metronet-trafico__leyenda'));
+      trafico.parentElement.append(this.panelTrafico.error);
+    }
+    if (this.panelPoblacion) {
+      const poblacion = categoria('Población', 'poblacion');
+      const panel = this.panelPoblacion;
+      panel.elemento.querySelector('.metronet-poblacion__opacidad > span').remove();
+      poblacion.append(panel.boton, panel.elemento);
+    }
+    if (this.panelDesplazamientos) {
+      const desplazamientos = categoria('Desplazamientos', 'desplazamientos');
+      const panel = this.panelDesplazamientos;
+      panel.elemento.querySelector('.metronet-desplazamientos__opacidad > span').remove();
+      desplazamientos.append(panel.boton, panel.elemento);
+    }
+    if (this.panelTrafico) {
+      const horarios = categoria('Horarios', 'horarios');
+      this.panelTrafico.elemento.querySelector('.metronet-trafico__hora > span').remove();
+      horarios.append(this.panelTrafico.elemento);
+    }
+    botones.remove();
   }
 
   actualizar() {
@@ -62,7 +94,7 @@ export default class PanelCalles {
   }
 
   prepararTutorial(idDiseno, idUsuario) {
-    this.claveTutorial = `metronet:oferta-calles:v3:${idUsuario}:${idDiseno}`;
+    this.claveTutorial = `metronet:oferta-calles:v5:${idUsuario}:${idDiseno}`;
     this.ofrecerSiCorresponde();
   }
 
@@ -73,12 +105,19 @@ export default class PanelCalles {
     try { if (localStorage.getItem(this.claveTutorial)) return; } catch { /* La guía no bloquea editar. */ }
     const clave = this.claveTutorial;
     const registrar = () => { try { localStorage.setItem(clave, 'ofrecida'); } catch { /* Preferencia opcional. */ } };
-    this.oferta = ofrecerTutorial({ descripcion: 'Consultá calles, tráfico histórico por horario y densidad de población mientras construís tu red. ¿Querés conocer los controles?',
+    this.oferta = ofrecerTutorial({
+      titulo: 'Bienvenido al Modo Libre', bienvenidaLibre: true,
+      descripcion: [
+        'Diseñá tu propia red de metro sobre Montevideo.',
+        'Utilizá las herramientas de calles, tráfico histórico, población y desplazamientos por horario para decidir dónde ubicar estaciones y cómo conectarlas.',
+        'Conocé las funciones nuevas paso a paso.',
+      ],
+      textoAceptar: 'Recorrer las funciones', textoOmitir: 'Empezar a diseñar',
       alOmitir: registrar,
       alAceptar: () => {
         registrar();
         this.recorrido = new RecorridoInicial(() => {}, { pasos: PASOS_CALLES,
-          interactivo: true, disparador: '.metronet-tutorial > summary',
+          interactivo: true, senalarDeshabilitados: true, disparador: '.metronet-tutorial > summary',
           textoFinal: 'Podés seguir construyendo tu red sobre las calles.' });
         this.recorrido.iniciar();
       } });
@@ -87,6 +126,7 @@ export default class PanelCalles {
   eliminar() {
     this.panelTrafico?.eliminar();
     this.panelPoblacion?.eliminar();
+    this.panelDesplazamientos?.eliminar();
     this.oferta?.terminar(); this.recorrido?.terminar(false);
     this.capa.alCambiar = () => {}; this.elemento.remove();
   }

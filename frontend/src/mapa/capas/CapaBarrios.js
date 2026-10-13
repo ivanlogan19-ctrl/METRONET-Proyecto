@@ -20,6 +20,19 @@ export default class CapaBarrios {
     this.barriosSeleccionados = [];
 
     this.transformacion = null;
+    // En Modo Libre el grosor de los límites no aumenta con el acercamiento.
+    this.alCambiarZoom = () => {
+      const zoom = this.zoomBordes();
+      if (zoom === this.zoomDibujado) return;
+      this.zoomDibujado = zoom;
+      const transformacion = this.calcularEscalaMapa();
+      if (!transformacion) return;
+      for (const { barrio, grafico } of this.graficos) {
+        grafico.clear();
+        this.dibujarGeometria(grafico, barrio.feature.geometry, barrio, transformacion);
+      }
+    };
+    escena.events.on('postupdate', this.alCambiarZoom);
 
     if (this.datos) {
       this.extraerBarrios();
@@ -261,7 +274,13 @@ export default class CapaBarrios {
     };
   }
 
+  zoomBordes() {
+    return this.escena.capaCalles?.disponible
+      ? Math.max(1, Math.round(this.escena.cameras.main.zoom * 4) / 4) : 1;
+  }
+
   dibujar() {
+    this.zoomDibujado = this.zoomBordes();
     this.eliminarGraficos();
 
     if (this.barrios.length === 0) {
@@ -413,7 +432,7 @@ export default class CapaBarrios {
      * Bordes internos de los barrios.
      */
     grafico.lineStyle(
-      barrioSeleccionado || zonaSeleccionada ? 3 : 1,
+      (barrioSeleccionado || zonaSeleccionada ? 3 : 1) / this.zoomBordes(),
 
       colorReferencia('BARRIOS_ZONAS'),
 
@@ -574,6 +593,7 @@ export default class CapaBarrios {
   }
 
   eliminar() {
+    this.escena.events.off('postupdate', this.alCambiarZoom);
     this.eliminarGraficos();
 
     this.barrios = [];

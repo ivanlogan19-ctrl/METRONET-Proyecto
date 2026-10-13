@@ -1,10 +1,11 @@
+import { mostrarFuentesMapa } from '../mapa/FuentesMapa.js';
 import { formatearVelocidad, VELOCIDAD_INICIAL } from '../simulacion/EscalaSimulacion.js';
 import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
-import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionAdministrador } from "../autenticacion/sesion.js";
+import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionActiva } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
 import { crearAdministracionNiveles } from './AdministracionNiveles.js';
 
-const sesion = obtenerSesionAdministrador();
+const sesion = obtenerSesionActiva();
 const CAPACIDAD_COMPATIBILIDAD = 300;
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
@@ -13,9 +14,28 @@ let borrandoActividad = false;
 let administracionNiveles = null;
 
 if (!sesion) {
-  window.location.replace("/admin-login.html");
-} else {
+  window.location.replace("/login.html?destino=%2Fadmin.html");
+} else if (sesion.usuario.rol === 'ADMIN') {
   inicializarAdministracion(sesion);
+} else {
+  inicializarInformacionJugador();
+}
+
+function inicializarInformacionJugador() {
+  inicializarNavegacion({ actual: 'administracion' });
+  document.getElementById('nombreAdministrador').hidden = true;
+  const permitidas = new Set(['fuentes', 'unidades']);
+  document.querySelectorAll('.admin-enlace').forEach(boton => {
+    if (!permitidas.has(boton.dataset.vista)) { boton.remove(); return; }
+    boton.addEventListener('click', () => {
+      mostrarVista(boton.dataset.vista);
+      if (boton.dataset.vista === 'fuentes') void mostrarFuentesMapa(document.getElementById('listaFuentesMapa'));
+    });
+  });
+  document.querySelectorAll('.admin-vista').forEach(vista => {
+    if (!permitidas.has(vista.id.replace('vista-', ''))) vista.remove();
+  });
+  mostrarVista('unidades');
 }
 
 function inicializarAdministracion(sesionAdministrador) {
@@ -44,6 +64,7 @@ function inicializarAdministracion(sesionAdministrador) {
         cargarConfiguracion(sesionAdministrador.token);
       }
       if (boton.dataset.vista === 'niveles') administracionNiveles.cargar();
+      if (boton.dataset.vista === 'fuentes') void mostrarFuentesMapa(document.getElementById('listaFuentesMapa'));
 
       if (boton.dataset.vista === "actividad") {
         cargarActividad(sesionAdministrador.token);
@@ -134,12 +155,15 @@ function inicializarAdministracion(sesionAdministrador) {
 }
 
 function mostrarVista(nombreVista) {
+  if (sesion?.usuario?.rol !== 'ADMIN' && !['fuentes','unidades'].includes(nombreVista)) return;
   const titulos = {
     usuarios: "Gestión de usuarios",
     disenos: "Supervisión de diseños",
     configuracion: "Modo de mantenimiento",
     niveles: 'Experiencia de juego',
     actividad: "Actividad reciente",
+    fuentes: "Fuentes del mapa",
+    unidades: "Unidades y equivalencias",
   };
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
@@ -156,6 +180,8 @@ function mostrarVista(nombreVista) {
   document.getElementById('iconoConfiguracion').hidden = nombreVista !== 'configuracion';
   document.getElementById('iconoActividad').hidden = nombreVista !== 'actividad';
   document.getElementById('iconoNiveles').hidden = nombreVista !== 'niveles';
+  document.getElementById('iconoFuentes').hidden = nombreVista !== 'fuentes';
+  document.getElementById('iconoUnidades').hidden = nombreVista !== 'unidades';
 }
 
 async function cargarUsuarios(token) {

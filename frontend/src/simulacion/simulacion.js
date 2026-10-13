@@ -118,8 +118,9 @@ async function inicializar() {
   panelTutorialSimulacion = crearPanelTutorialSimulacion(document.getElementById('tutorialPantallaSimulacion'), () => {
     tutorialSimulacion?.terminar(false);
     const alFinalizar = completado => { if (completado) panelTutorialSimulacion.marcarCompletado(); tutorialSimulacion = null; };
-    tutorialSimulacion = abrirTutorialSimulacion(alFinalizar, escenariosGlosario.find(e => e.idEscenario === disenoActual?.simulacion.idEscenario)?.numero);
-  }, () => { tutorialSimulacion?.terminar(false); tutorialSimulacion = null; });
+    tutorialSimulacion = abrirTutorialSimulacion(alFinalizar, escenariosGlosario.find(e => e.idEscenario === disenoActual?.simulacion.idEscenario)?.numero,
+      { modo: disenoActual?.simulacion.modo });
+  }, () => { tutorialSimulacion?.terminar(false); tutorialSimulacion = null; }, () => disenoActual?.simulacion.modo);
   window.addEventListener('pagehide', limpiarVisor);
   window.addEventListener('pageshow', evento => {
     if (!evento.persisted || !reanudarAlVolver) return;
@@ -137,6 +138,7 @@ async function inicializar() {
   if (!paginaActiva) return;
   if (disenoActual) tutorialSimulacion = presentarTutorialSimulacion({
     idDiseno: disenoActual.simulacion.idDiseno,
+    modo: disenoActual.simulacion.modo,
     idUsuario: sesion.usuario?.idUsuario,
     numeroNivel: escenariosGlosario.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.numero
       ?? disenoActual.simulacion.idEscenario,

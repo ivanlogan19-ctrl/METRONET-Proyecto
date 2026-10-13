@@ -1,3 +1,5 @@
+import RelojCapas from './desplazamientos/RelojCapas.mjs';
+import CapaDesplazamientos from './capas/CapaDesplazamientos.js';
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { confirmarSistema } from '../componentes/DialogoSistema.js';
 import Phaser from 'phaser';
@@ -91,7 +93,9 @@ export default class MapaScene extends Phaser.Scene {
     this.crearCapaBarrios();
     this.capaPoblacion = new CapaPoblacion(this, this.capaBarrios);
     this.capaCalles = new CapaCalles(this, this.capaBarrios);
-    this.capaTrafico = new CapaTrafico(this, this.capaCalles);
+    this.relojCapas = new RelojCapas();
+    this.capaTrafico = new CapaTrafico(this, this.capaCalles, this.relojCapas);
+    this.capaDesplazamientos = new CapaDesplazamientos(this, this.capaBarrios, this.relojCapas);
 
     this.crearCapaZonas();
 
@@ -422,6 +426,7 @@ export default class MapaScene extends Phaser.Scene {
     this.capaPoblacion?.redibujar();
     this.capaCalles?.redibujar();
     this.capaTrafico?.redibujar();
+    this.capaDesplazamientos?.redibujar();
     this.capaRedMetro?.actualizarTamano();
 
     if (actualizarControlZoom && this.controlZoom) {
@@ -454,8 +459,12 @@ export default class MapaScene extends Phaser.Scene {
     this.editorRedMetro?.eliminar();
     this.editorRedMetro = null;
 
+    this.capaDesplazamientos?.eliminar();
+    this.capaDesplazamientos = null;
     this.capaTrafico?.eliminar();
     this.capaTrafico = null;
+    this.relojCapas?.eliminar();
+    this.relojCapas = null;
     this.capaPoblacion?.eliminar();
     this.capaPoblacion = null;
     this.capaCalles?.eliminar();
