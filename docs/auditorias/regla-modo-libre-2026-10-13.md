@@ -34,3 +34,18 @@ La evidencia integrada usa Chrome, Spring Boot y PostgreSQL temporal real aislad
 - `git diff --check`: salida 0.
 
 No se ejecutó nuevamente la campaña de diez niveles ni la suite completa de backend: no se modificó su lógica. No verificado en Safari/Firefox, pantallas móviles para la regla, ni rendimiento con redes masivas. Al cerrar la implementación todavía no se habían creado commits. Para la publicación posterior autorizada se repitieron la compilación y `git diff --check` (salida 0); se conservaron las pruebas integradas y de tutoriales ya aprobadas para el mismo código. El respaldo personal `metronet.dump` permanece fuera del repositorio.
+
+## Corrección del arranque local
+
+IMPLEMENTADO: después de publicar la regla en `bec2be9`, se reprodujo en la aplicación personal el botón activado sin valores. El servidor del puerto 8080 ejecutaba un JAR antiguo que no incluía `DistanciasRedService`; el arranque reutilizaba ese archivo sin compilar. Se corrigió `backend/scripts/iniciar-local.sh` para empaquetar el código actual antes de ejecutarlo. Si falla la compilación, el arranque se detiene, sin recurrir al JAR anterior.
+
+El cálculo geográfico existente se conserva: distancias entre las coordenadas de las estaciones, en kilómetros, independientes del zoom. No son distancias por calles. Una comprobación independiente sobre las coordenadas guardadas del diseño 451 dio 22,489773 km, que la regla redondea a 22,5 km. No se cambiaron entidades, esquema, contratos REST ni datos del diseño personal.
+
+Validación posterior a la corrección:
+
+- `bash -n backend/scripts/iniciar-local.sh` y `git diff --check`: salida 0.
+- `METRONET_E2E_CALLES=true METRONET_PLAYWRIGHT_PATH=… METRONET_BROWSER_CHANNEL=chrome bash backend/scripts/probar-postgres.sh -Dtest=DistanciasRedServiceTest,CallesModoLibreE2EPostgresTest`: salida 0; tres pruebas aprobadas, cero fallos, errores u omisiones. Incluye Chrome, servidor real y PostgreSQL temporal real, mediciones en edición/simulación y conservación de kilómetros al cambiar la cámara.
+- `npm start` recompiló el JAR y arrancó el servidor actualizado, conectado a PostgreSQL local. Se comprobó que el paquete contiene `DistanciasRedService`.
+- La comprobación visual posterior con la cuenta personal quedó pendiente: la pestaña anterior se cerró y la nueva navegación mostró el inicio de sesión. El valor del diseño 451 se verificó por coordenadas, no visualmente después del reinicio. La prueba integrada con su cuenta de prueba sí aprobó ambas pantallas.
+
+Capas afectadas por esta corrección: arranque local y registro de auditoría. Sin cambios al documento académico. Continúan las limitaciones de navegadores y campaña completa indicadas arriba.
