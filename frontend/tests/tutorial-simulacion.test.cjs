@@ -4,17 +4,61 @@ const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright
 const { abrirPantalla: abrirBase } = require('./soporte/pantallas.cjs');
 // La presentación completa pertenece al nuevo Nivel 1; después solo hay prácticas incrementales.
 async function abrirPantalla(navegador,ruta,opciones={}) {
-  return abrirBase(navegador,ruta,{...opciones,responder:async req=>{
+  const vista = await abrirBase(navegador,ruta,{...opciones,responder:async req=>{
     const respuesta=await opciones.responder?.(req);
     if(respuesta) return respuesta;
     if(new URL(req.url()).pathname==='/api/juego/progreso') return {json:{
       escenarios:[{idEscenario:42,numero:1,nombre:'Primer recorrido',cantidadIntentosCampana:1,estado:'COMPLETADO',desbloqueado:true,progreso:100}],numeroCampanaActual:1,nivelesCompletados:1,cantidadNiveles:10,
     }};
   }});
+  if (ruta.startsWith('/simulacion.html')) await vista.pagina.getByRole('button', { name: 'Hacer el tutorial', exact: true }).click();
+  return vista;
 }
 let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
+
+for (const width of [1440, 390]) test(`Mapa de la red ${width}: el primer paso conserva el marco visible`, async t => {
+  const v=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{viewport:{width,height:900}});
+  t.after(()=>v.contexto.close());const p=v.pagina;
+  const marca=p.locator('.metronet-recorrido__marca');
+  assert.equal(await marca.isVisible(),false,'La marca flotante no debe atravesar el cartel');
+  const mapa=p.locator('#visorSimulacion');
+  assert.equal(await mapa.evaluate(e=>getComputedStyle(e).outlineWidth),'3px');
+  const m=await mapa.boundingBox(), c=await p.locator('.metronet-recorrido').boundingBox();
+  assert.ok(c.x>=m.x && c.x+c.width<=m.x+m.width+1,'El cartel permanece dentro del mapa');
+  await p.screenshot({path:`/tmp/metronet-marco-mapa-${width}.png`});
+  await p.getByRole('button',{name:'Siguiente',exact:true}).click();
+  assert.equal(await mapa.evaluate(e=>e.style.outline),'','Al avanzar se limpia el resaltado');
+  assert.deepEqual(v.errores,[]);
+});
+
+for (const anterior of ['presentado', 'omitido']) test(`Tutorial actualizado: registro anterior ${anterior} no omite el paseo nuevo`, async t => {
+  const v = await abrirPantalla(navegador, '/escenarios.html');
+  t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
+  const p = v.pagina;
+  await p.evaluate(anterior => {
+    localStorage.setItem('metronet:tutorial-pantalla-simulacion:v4:7:1:1', anterior);
+    localStorage.setItem('metronet:tutorial-pantalla-simulacion:v4:7:1:primera-visita', 'presentado');
+    localStorage.setItem('metronet:funciones-ensenadas:v1:7', JSON.stringify(['editor.basico', 'simulacion.inicial', 'simulacion.velocidad']));
+  }, anterior);
+  await p.goto(new URL('/simulacion.html?idDiseno=77', p.url()).href);
+  const tutorial = p.locator('.metronet-recorrido');
+  await tutorial.waitFor({ timeout: 5000 });
+  assert.equal(await tutorial.locator('h2').textContent(), 'Nueva funcionalidad');
+  await tutorial.getByRole('button', { name: 'Hacer el tutorial', exact: true }).click();
+  assert.equal(await tutorial.locator('h2').textContent(), 'Mapa de la red');
+  await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
+  await p.reload();
+  await p.locator('#velocidadUnidad').waitFor();
+  assert.equal(await tutorial.count(), 0, 'La omisión de la versión nueva sí se respeta');
+  await p.locator('#tutorialPantallaSimulacion').click();
+  await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
+  await tutorial.waitFor();
+  assert.equal(await tutorial.locator('h2').textContent(), 'Mapa de la red');
+  assert.deepEqual(await p.evaluate(() => JSON.parse(localStorage.getItem('metronet:funciones-ensenadas:v1:7'))),
+    ['editor.basico', 'simulacion.inicial', 'simulacion.velocidad'], 'No se borra el aprendizaje anterior');
+});
 
 // La presentación del Nivel 1 es no bloqueante y no modifica parámetros.
 // Las prácticas de los niveles posteriores esperan acciones reales.
@@ -57,12 +101,12 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await p.waitForTimeout(100);
   const marca = await p.locator('.metronet-recorrido__marca').evaluate(e => {
     const r = e.getBoundingClientRect();
-    return { oculta: e.hidden, izquierda: r.left, arriba: r.top, derecha: r.right, abajo: r.bottom };
+    return { oculta: e.hidden, recortada: Boolean(e.style.clipPath), izquierda: r.left, arriba: r.top, derecha: r.right, abajo: r.bottom };
   });
   assert.ok(marca.oculta || (marca.izquierda >= 0 && marca.arriba >= 0 && marca.derecha <= width && marca.abajo <= 900),
     'El marco del recorrido debe quedar dentro del viewport visible');
   const tarjetaDesplazada = await tutorial.boundingBox();
-  assert.ok(marca.oculta || tarjetaDesplazada.x >= marca.derecha || tarjetaDesplazada.x + tarjetaDesplazada.width <= marca.izquierda
+  assert.ok(marca.oculta || marca.recortada || tarjetaDesplazada.x >= marca.derecha || tarjetaDesplazada.x + tarjetaDesplazada.width <= marca.izquierda
     || tarjetaDesplazada.y >= marca.abajo || tarjetaDesplazada.y + tarjetaDesplazada.height <= marca.arriba,
   'El marco no debe atravesar el texto ni los botones de la tarjeta');
   await p.evaluate(() => {
@@ -106,13 +150,17 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
     'Clic y rueda sobre la tarjeta no llegan a controles ni títulos detrás');
   await tutorial.getByRole('button',{name:'Siguiente',exact:true}).scrollIntoViewIfNeeded();
   await p.setViewportSize({ width, height: 900 });
+  const titulosVisitados=[];
   for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++) {
+    titulosVisitados.push(await tutorial.locator('h2').textContent());
     const caja = await tutorial.boundingBox();
     assert.ok(caja.x >= 0 && caja.x + caja.width <= width, 'Burbuja dentro del viewport');
     assert.equal(await tutorial.locator('[data-recorrido-progreso]').isVisible(), false);
     assert.doesNotMatch(await tutorial.innerText(), /RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
     await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
   }
+  assert.ok(titulosVisitados.includes('Detalle de metros'));
+  assert.ok(!titulosVisitados.includes('Vista del mapa'));
   assert.match(await tutorial.innerText(),/¡Listo para simular!/i);
   await tutorial.waitFor({state:'detached',timeout:5000});
   assert.deepEqual(await p.evaluate(() => ({
@@ -143,8 +191,10 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await p.reload(); await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(),0,'No repite en el mismo navegador y campaña');
   campana=2; await p.reload(); await p.locator('#velocidadUnidad').waitFor();
-  assert.equal(await tutorial.count(),0,'La función ya fue enseñada a este usuario');
+  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  assert.equal(await tutorial.count(),0,'La nueva campaña vuelve a ofrecerlo y respeta omitir');
   disponible=false; campana=3; await p.reload(); await p.locator('#velocidadUnidad').waitFor();
+  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
   assert.equal(await tutorial.count(),0);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla'}).click();
@@ -218,7 +268,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
   await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
   await tutorial.waitFor({ state: 'detached' });
-  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v4:7:1:1')), 'omitido');
+  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v5:7:1:1:77')), 'omitido');
   await p.reload();
   await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(), 0);
@@ -229,7 +279,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
 });
 
-test('Reiniciar la campaña conserva las funciones de Simulación ya enseñadas', async t => {
+test('Reiniciar la campaña vuelve a ofrecer el tutorial de Simulación', async t => {
   let campana = 1;
   const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
     const ruta = new URL(req.url()).pathname;
@@ -248,7 +298,7 @@ test('Reiniciar la campaña conserva las funciones de Simulación ya enseñadas'
   while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
   assert.equal(await guia.locator('h2').textContent(), '¡Listo para simular!');
   await guia.waitFor({state:'detached',timeout:5000});
-  const clave = 'metronet:tutorial-pantalla-simulacion:v4:7:1:1';
+  const clave = 'metronet:tutorial-pantalla-simulacion:v5:7:1:1:77';
   assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
   await p.goto(`${new URL(p.url()).origin}/escenarios.html`);
   await p.locator('#botonReiniciarRecorrido:not([hidden])').click();
@@ -257,7 +307,8 @@ test('Reiniciar la campaña conserva las funciones de Simulación ya enseñadas'
   assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
   await p.goto(`${new URL(p.url()).origin}/simulacion.html?idDiseno=77`);
   await p.locator('#velocidadUnidad').waitFor();
-  assert.equal(await guia.count(),0);
+  assert.equal(await guia.locator('h2').textContent(),'Nueva funcionalidad');
+  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
   await guia.waitFor();

@@ -78,10 +78,10 @@ test('seleccionar, usar botones de zoom y cerrar conserva y después elimina nom
   assert.deepEqual(await pagina.evaluate(() => ({ seleccion: poi.puntoSeleccionado, etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).map(r => r.punto.id) })), { seleccion: 'id:1', etiquetas: [] });
   assert.match(await ficha.innerText(), /AGUADA · OESTE/);
   assert.match(await ficha.innerText(), /AGUADA · OESTE/);
-  assert.equal(await ficha.getByRole('button').count(),2);
+  assert.equal(await ficha.getByRole('button').count(),1);
   assert.equal(await ficha.locator('details').count(), 0);
   assert.doesNotMatch(await ficha.innerText(), /Detalles|Coordenadas:/);
-  await ficha.getByRole('button', { name: 'Centrar punto de interés' }).click();
+  assert.equal(await ficha.getByRole('button', { name: 'Centrar punto de interés' }).count(), 0);
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), 'id:1');
   await ficha.screenshot({path:'/tmp/ficha-poi-compacta.png'});
   await ficha.getByRole('button', { name: 'Cerrar información', exact: true }).click();
@@ -105,6 +105,42 @@ test('búsqueda localiza el POI y muestra nombre; sin resultados no selecciona o
   await busqueda.fill('zz-no-existe-zz');
   assert.equal(await pagina.locator('.metronet-panel-puntos-lista button').count(), 0);
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), null);
+});
+
+for (const width of [1440, 390]) test(`Mantener visible ${width}: conserva varios POI y permite quitarlos`, async t => {
+  const { pagina: p } = await preparar(t, { viewport: { width, height: 1000 } });
+  async function buscar(nombre) {
+    await p.locator('.metronet-poi>summary').click();
+    await p.getByRole('button', { name: 'Buscar punto de interés', exact: true }).click();
+    await p.getByRole('searchbox', { name: 'Buscar punto de interés' }).fill(nombre);
+    await p.locator('.metronet-panel-puntos-lista button').first().click();
+    await p.getByRole('dialog', { name: `Información de ${nombre}` }).waitFor();
+  }
+  for (const nombre of ['Palacio Legislativo', 'Teatro Solís']) {
+    await buscar(nombre);
+    const ficha = p.locator('.metronet-punto-interes-panel');
+    const dimensiones = await ficha.evaluate(e => ({ ancho:e.clientWidth, contenido:e.scrollWidth }));
+    await ficha.screenshot({path:`/tmp/metronet-poi-fijo-${width}.png`});
+    assert.ok(dimensiones.contenido <= dimensiones.ancho + 1, `La ficha no desborda horizontalmente: ${JSON.stringify(dimensiones)}`);
+    await p.getByRole('checkbox', { name: 'Mantener visible', exact: true }).check();
+    if (nombre === 'Palacio Legislativo') await ficha.screenshot({path:`/tmp/metronet-poi-fijo-${width}.png`});
+    await p.getByRole('button', { name: 'Cerrar información', exact: true }).click();
+  }
+  const comprobar = () => p.evaluate(() => {
+    poi.limpiarPuntoBuscado();
+    poi.establecerCategoriasVisibles([]);
+    poi.escena.cameras.main.setZoom(1);
+    poi.actualizarVisibilidad(1, { vista: { minimoX: 0, minimoY: 0, maximoX: 2000, maximoY: 2000 } });
+    return [...poi.puntosFijados].map(clave => ({ clave, visible: poi.representaciones.find(r => poi.clavePunto(r.punto) === clave)?.contenedor.visible }));
+  });
+  assert.equal((await comprobar()).length, 2);
+  assert.ok((await comprobar()).every(r => r.visible), 'Ambos marcadores permanecen sin categorías activas');
+  await buscar('Palacio Legislativo');
+  assert.equal(await p.getByRole('checkbox', { name: 'Mantener visible', exact: true }).isChecked(), true);
+  await p.getByRole('checkbox', { name: 'Mantener visible', exact: true }).uncheck();
+  await p.getByRole('button', { name: 'Cerrar información', exact: true }).click();
+  assert.equal((await comprobar()).length, 1);
+  assert.equal(await p.evaluate(() => poi.representaciones.find(r => r.punto.id === 1).contenedor.visible), false);
 });
 
 test('varios objetivos conservan etiquetas y radios, y se limpian al cambiar de escenario', async (t) => {

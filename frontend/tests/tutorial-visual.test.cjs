@@ -12,15 +12,21 @@ for (const contexto of ['editor', 'simulacion']) for (const width of [1440, 390]
   test(`Tutorial ${contexto} ${width}: acciones semánticas y títulos sin barra azul`, async t => {
     const opciones = { viewport: { width, height: 900 } };
     const v = contexto === 'editor'
-      ? await abrirEditor(navegador, { ...opciones, escenario: { ...niveles[0], idEscenario: 1, desbloqueado: true }, novedadPresentada: true })
+      ? await abrirEditor(navegador, { ...opciones, escenario: { ...niveles[0], idEscenario: 1, desbloqueado: true }, novedadPresentada: true, ofrecerRecorrido:true })
       : await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', opciones);
     t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
     const p = v.pagina;
     if (contexto === 'editor') {
+      const oferta=p.getByRole('button',{name:/^(Mostrar tutorial|Hacer el tutorial)$/});
+      if(await oferta.isVisible()) await oferta.click();
       await p.locator('.metronet-recorrido').waitFor();
       await p.keyboard.press('Escape');
       await p.locator('.metronet-tutorial > summary').click();
-    } else await p.locator('#tutorialPantallaSimulacion').click();
+    } else {
+      const oferta=p.getByRole('button',{name:'Comenzar directamente',exact:true});
+      await oferta.click();
+      await p.locator('#tutorialPantallaSimulacion').click();
+    }
     const panel = p.locator('.metronet-tutorial__panel:popover-open');
     await panel.waitFor();
     async function tituloSinBarra(titulo) {

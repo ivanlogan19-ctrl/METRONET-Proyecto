@@ -364,3 +364,8 @@ html:root body .metronet-punto-interes-panel-pie .metronet-punto-interes-panel-b
 html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-acciones { flex:0 0 auto; margin:0; }
 html:root body .metronet-punto-interes-panel-acciones .metronet-boton-icono { width:28px; min-width:28px; height:28px; min-height:28px; flex:0 0 28px; padding:5px; }
 html:root body .metronet-punto-interes-panel-acciones .metronet-icono { width:16px; height:16px; }
+
+.metronet-punto-interes-mantener { display:flex; align-items:center; gap:6px; font:10px/1.4 var(--font-arcade); cursor:pointer; }
+.metronet-punto-interes-mantener input { width:14px; height:14px; margin:0; flex:0 0 14px; }
+.metronet-punto-interes-panel-acciones { flex-wrap:wrap; max-width:100%; }
+.metronet-punto-interes-panel-pie { flex-wrap:wrap; }

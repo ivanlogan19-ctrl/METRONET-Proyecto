@@ -232,6 +232,8 @@ export default class PanelDinamico {
     this.cancelarCierreAlClicFuera();
 
     this.manejadorClicFuera = (evento) => {
+      // La guía acompaña la interacción; avanzar no debe cerrar lo explicado.
+      if (evento.target.closest?.('.metronet-recorrido')) return;
       if (this.coexistir && this.contenedorPadre.contains(evento.target)) return;
       // Cerrar al completar el clic evita desplazar su destino en paneles
       // con scroll. Otro encabezado coordina el cierre desde abrirContenido().

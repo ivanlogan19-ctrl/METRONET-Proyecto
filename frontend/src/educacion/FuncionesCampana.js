@@ -30,3 +30,13 @@ export function registrarFuncionesEnsenadas(id, funciones) {
   funciones.forEach(clave => aprendidas.add(clave));
   try { localStorage.setItem(claveRegistro(id), JSON.stringify([...aprendidas])); } catch { /* No bloquea jugar. */ }
 }
+
+// Cambiar una lección no borra lo aprendido en las demás.
+export const claveAprendizajeTutorial = clave => clave === 'editor.poi' ? 'editor.poi.v2' : clave;
+export function describirFunciones(funciones) {
+  const nombres = { 'editor.extender':'extender recorridos con Conexión', 'editor.poi':'buscar puntos de interés y usar sus categorías, barrios y zonas',
+    'editor.transbordo':'conectar líneas con una estación de transbordo', 'simulacion.velocidad':'comparar velocidades UV',
+    'simulacion.duracion':'comparar duraciones UT', 'simulacion.global':'ajustar todas las unidades',
+    'simulacion.individual':'ajustar una sola unidad', 'simulacion.combinacion':'comparar UV y UT juntas' };
+  return funciones.map(c => nombres[c] ?? c).join(' y ');
+}

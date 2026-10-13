@@ -1,11 +1,11 @@
-import { funcionesIntroducidas, funcionesEnsenadas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
+import { ofrecerTutorial } from './OfertaTutorial.js';
+import { describirFunciones, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import RecorridoInicial from './RecorridoInicial.js';
 import './tutorial-inicial.css';
 
 const PASOS = [
   ['#visorSimulacion', 'Mapa de la red', 'Acá ves estaciones, conexiones y metros. Arrastrá el mapa para recorrerlo.'],
-  ['.simulacion-mandos-camara', 'Vista del mapa', 'Usá estos botones para acercar, alejar, ajustar la red o girar el mapa.'],
   ['#formularioEjecucion button[type="submit"]', 'Iniciar', 'Play comienza el recorrido cuando la red está validada y tiene al menos un metro. El tutorial no lo inicia por vos.'],
   ['.simulacion-acciones-ejecucion', 'Pausar y reanudar', 'Durante la ejecución aparece Pausar. Si pausás, Reanudar continúa desde el mismo punto; los botones se habilitan según el estado.'],
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
@@ -100,17 +100,17 @@ export function pasosSimulacion(numero, escenario, pendientes) {
   const ejecucion = ['#formularioEjecucion', 'Observá el recorrido', 'Pulsá Play y esperá a que termine la ejecución. Pausar o detener no completa este paso.', 'ejecucion'];
   const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Mantené la misma duración UT para observar el efecto de la velocidad.', 'velocidad'];
   const duracion = ['#seccionConfiguracion', 'Cambiá duración UT', 'Aumentá o reducí la duración UT y aplicala. La velocidad UV se conserva.', 'duracion'];
-  if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[9]], ejecucion, velocidad, ejecucion];
-  if (nuevas.includes('simulacion.duracion')) return [[...PASOS[11]], ejecucion, duracion, ejecucion];
-  if (nuevas.includes('simulacion.global') || nuevas.includes('simulacion.individual')) return [PASOS[7], ejecucion,
+  if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[8]], ejecucion, velocidad, ejecucion];
+  if (nuevas.includes('simulacion.duracion')) return [[...PASOS[10]], ejecucion, duracion, ejecucion];
+  if (nuevas.includes('simulacion.global') || nuevas.includes('simulacion.individual')) return [PASOS[6], ejecucion,
     ['.simulacion-parametro-velocidad', 'Ajuste global', 'Elegí Todos los metros, aplicá una misma UV nueva al conjunto y conservá la duración UT.', 'velocidad-global'], ejecucion,
     ['.simulacion-selector-metros', 'Elegí una unidad', 'Seleccioná un Metro concreto en el selector.', 'unidad-individual'],
     ['.simulacion-parametro-velocidad', 'Ajuste individual', 'Cambiá y aplicá solo la UV de la unidad elegida. Las otras unidades conservan su valor.', 'velocidad-individual'], ejecucion];
   if (nuevas.includes('simulacion.combinacion')) return [['#formularioEjecucion', 'Comparar A y B', 'Compararemos ejecuciones de la misma red. Cambiar controles sin volver a ejecutar no alcanza.'],
     ejecucion, velocidad, duracion, ejecucion];
   if (numero !== 1 && Number.isInteger(numero)) return [];
-  return [...PASOS.slice(0,2), PASOS[7], PASOS[9], PASOS[11],
-    ...PASOS.slice(2,7)];
+  return [PASOS[0], PASOS[6], PASOS[7], PASOS[8], PASOS[10],
+    ...PASOS.slice(1,6)];
 }
 
 export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { primeraVisita = false, escenario, pendientes } = {}) {
@@ -132,25 +132,32 @@ export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { p
   return recorrido;
 }
 
-export function presentarTutorialSimulacion({ idUsuario, numeroNivel, numeroCampana, escenario, repetido = false, alFinalizar } = {}) {
-  const prefijo = `metronet:tutorial-pantalla-simulacion:v4:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
-  const clave = `${prefijo}${numeroNivel ?? 'libre'}`;
+export function presentarTutorialSimulacion({ idUsuario, idDiseno, numeroNivel, numeroCampana, escenario, alFinalizar } = {}) {
+  const prefijo = `metronet:tutorial-pantalla-simulacion:v5:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
+  const clave = `${prefijo}${numeroNivel ?? 'libre'}:${idDiseno ?? 'actual'}`;
   const primeraVisita = `${prefijo}primera-visita`;
-  let conocido = funcionesEnsenadas(idUsuario).has('simulacion.inicial');
+  let conocido = false;
   try {
-    conocido ||= Boolean(localStorage.getItem(primeraVisita))
-      || [1,2,3,4,5,6,7,8,9,10,'libre'].some(n => localStorage.getItem(`${prefijo}${n}`));
+    conocido = Boolean(localStorage.getItem(primeraVisita));
     if (localStorage.getItem(clave)) return null;
   } catch { /* La guía sigue disponible sin almacenamiento. */ }
-  const pendientes = funcionesIntroducidas(numeroNivel, escenario).filter(clave => clave.startsWith('simulacion.') && !funcionesEnsenadas(idUsuario).has(clave));
-  if (conocido && (repetido || !Number.isInteger(numeroNivel) || !pendientes.length)) return null;
-  const recorrido = abrirTutorialSimulacion((completado, motivo) => {
+  const pendientes = funcionesIntroducidas(numeroNivel, escenario).filter(clave => clave.startsWith('simulacion.'));
+  if (conocido && numeroNivel !== 1 && (!Number.isInteger(numeroNivel) || !pendientes.length)) return null;
+  const registrar = (completado, motivo) => {
     if (completado || motivo === 'omitido') try {
       localStorage.setItem(clave, completado ? 'presentado' : 'omitido');
       localStorage.setItem(primeraVisita, 'presentado');
     } catch { /* No afecta la simulación. */ }
-    if (completado) registrarFuncionesEnsenadas(idUsuario, ['simulacion.inicial', ...pendientes]);
+    if (completado) registrarFuncionesEnsenadas(idUsuario, ['simulacion.inicial.v2', ...pendientes]);
     alFinalizar?.(completado);
-  }, numeroNivel, { primeraVisita: !conocido, escenario, pendientes });
-  return recorrido;
+  };
+  let recorrido;
+  const oferta = ofrecerTutorial({
+    descripcion: conocido && pendientes.length ? `Ahora podés ${describirFunciones(pendientes)}. ¿Querés aprender cómo se usa?` : 'Conocé el mapa, los controles y cómo aplicar UV y UT en Simulación.',
+    alAceptar: () => {
+      try { localStorage.setItem(clave, 'iniciado'); } catch { /* No bloquea jugar. */ }
+      recorrido = abrirTutorialSimulacion(registrar, numeroNivel, { primeraVisita: !conocido, escenario, pendientes }); },
+    alOmitir: () => registrar(false, 'omitido'),
+  });
+  return { notificar: evento => recorrido?.notificar(evento), terminar: (...args) => { oferta.terminar(); recorrido?.terminar(...args); } };
 }

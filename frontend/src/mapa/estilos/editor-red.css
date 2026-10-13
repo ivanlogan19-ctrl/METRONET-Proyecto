@@ -924,19 +924,7 @@ html:root body :is(.metronet-consigna-externa .metronet-consigna__cabecera,
     width: calc(100% + clamp(8px, 1vw, 14px) + clamp(330px, 26vw, 380px));
     max-width: none;
   }
-  /* En Modo libre, los accesos de ayuda ocupan el espacio sobre Herramientas. */
-  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden])
-    .metronet-barra-geografica > [data-hud-mapa] {
-    position: absolute;
-    top: 8px;
-    left: calc(100% + clamp(8px, 1vw, 14px));
-    box-sizing: border-box;
-    width: clamp(330px, 26vw, 380px);
-    padding-right: 8px;
-    display: flex;
-    justify-content: flex-end;
-    margin-left: 0;
-  }
+
 }
 
 html:root body dialog.metronet-dialogo-editor {
@@ -1144,10 +1132,7 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar__cabecera {
     .metronet-area-mapa > .metronet-mapa-titulo {
     width: calc(100% + clamp(8px, 1vw, 14px) + var(--lateral-ancho));
   }
-  body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel[hidden])
-    .metronet-barra-geografica > [data-hud-mapa] {
-    width: var(--lateral-ancho);
-  }
+
 }
 @media (min-width: 921px) {
   body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-panel:not([hidden])) {

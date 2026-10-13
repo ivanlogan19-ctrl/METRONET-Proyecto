@@ -73,7 +73,8 @@ test('música bajo demanda; canvas sin tooltip y mapa con zoom operativo', async
   assert.equal(await pagina.locator('#metronet-mapa canvas').getAttribute('title'), null);
   assert.equal(await pagina.locator('#metronet-mapa canvas').getAttribute('data-ayuda-sistema'), null);
   await pagina.reload();
-  await pagina.waitForFunction(() => window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.disenoActual);
+  await pagina.waitForFunction(() => {const editor=window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro;return editor?.disenoActual && editor.estadoConsigna!=='cargando' && !editor.identificacion;});
+  await pagina.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   assert.doesNotMatch(await pagina.locator('[data-estado-editor]').innerText(), /Rueda|Mover mapa/);
   const mapa = await pagina.locator('#metronet-mapa').boundingBox();
   if (!await pagina.locator('.metronet-hud').evaluate(e=>e.open)) await pagina.locator('.metronet-hud>summary').click();
@@ -139,7 +140,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 
     assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await pagina.locator('.metronet-estado-editor__mensaje').focus();
     assert.match(await pagina.locator('[role=alert]').innerText(), /Error de conexión/);
-    if (viewport.width < 620) await pagina.locator('[data-panel-edicion-toggle]').click();
+    assert.equal(await pagina.locator('[data-elegir-herramienta=estaciones]').isVisible(),true,'El panel permanece abierto también en móvil');
     await pagina.locator('[data-elegir-herramienta=estaciones]').click();
 
     assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');

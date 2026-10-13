@@ -1,4 +1,5 @@
-import { funcionesIntroducidas, funcionesEnsenadas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
+import { ofrecerTutorial } from './OfertaTutorial.js';
+import { claveAprendizajeTutorial, describirFunciones, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { anclarPanelDesplegable } from '../interfaz/PanelDesplegable.js';
 import { pasoPractico, leccionesDisponibles, herramientasIntroducidas, pasosPracticosEditor, accionPracticaCumplida, esRecorridoIntegral, objetivoTutorialPoi } from './TutorialInicial.js';
@@ -63,9 +64,13 @@ export default class PanelTutorialInicial {
     };
     document.addEventListener('keydown', this.cerrarConEscape);
     this.recorrido = new RecorridoInicial((completado) => { if (completado) { this.marcarCompletado(); this.comenzarPractica(); } });
-    this.observarPractica = () => this.avanzarPractica();
+    this.observarPractica = evento => {
+      if (evento.type === 'click' && evento.target.closest?.('.metronet-poi__categorias button') && this.estado) this.estado.categoriaUsada = true;
+      this.avanzarPractica();
+    };
     document.addEventListener('toggle', this.observarPractica, true);
     document.addEventListener('input', this.observarPractica);
+    document.addEventListener('change', this.observarPractica);
     document.addEventListener('click', this.observarPractica);
     this.recorridoNovedades = null;
     this.cerrarOtros = evento => {
@@ -89,7 +94,7 @@ export default class PanelTutorialInicial {
     this.recorrido.opciones.senalarDeshabilitados = this.integral;
     const id = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario]);
     const nuevo = this.id !== id;
-    if (nuevo) { this.practica?.terminar(false); this.practica = null; this.recorrido.terminar(false); this.recorridoNovedades?.terminar(false); this.elemento.open = false; this.id = id; }
+    if (nuevo) { this.oferta?.terminar(); this.practica?.terminar(false); this.practica = null; this.recorrido.terminar(false); this.recorridoNovedades?.terminar(false); this.elemento.open = false; this.id = id; }
     const disponible = Boolean(contexto.diseno);
     this.elemento.hidden = !disponible;
     if (!disponible) return false;
@@ -125,35 +130,36 @@ export default class PanelTutorialInicial {
     }
     const identidad = JSON.stringify([id, this.estado.fase, this.leccion, contexto.error, leccionesDisponibles(contexto)]);
     if (identidad !== this.identidad) { this.identidad = identidad; this.renderizar(); }
-    if (nuevo && !this.recorridosSuspendidos && this.estado.primeraPasada) {
+    if (nuevo && !this.recorridosSuspendidos) {
+      const primeraPasada = this.estado.primeraPasada;
       this.estado.primeraPasada = false;
       if (!this.integral) {
-        if (nuevas.length) this.mostrarNovedades(); else this.iniciarRecorrido(this.recorrido);
+        if (nuevas.length) this.ofrecerNovedades(() => this.mostrarNovedades(), nuevas); else if (primeraPasada) this.iniciarRecorrido(this.recorrido);
       } else if (contexto.escenario?.numero === 1) this.ofrecerTutorialInicial();
       else if (pasosPracticosEditor(contexto.escenario?.numero, contexto.escenario).length
-        && funcionesIntroducidas(contexto.escenario.numero, contexto.escenario).some(clave => clave.startsWith('editor.') && !funcionesEnsenadas(obtenerSesionActiva()?.usuario?.idUsuario).has(clave))) this.comenzarPractica();
-      else if (nuevas.length) this.mostrarNovedades();
+        && funcionesIntroducidas(contexto.escenario.numero, contexto.escenario).some(clave => clave.startsWith('editor.'))) this.ofrecerNovedades(() => this.comenzarPractica(), funcionesIntroducidas(contexto.escenario.numero, contexto.escenario).filter(c => c.startsWith('editor.')));
+      else if (nuevas.length) this.ofrecerNovedades(() => this.mostrarNovedades(), nuevas);
     }
     this.avanzarPractica();
     return Boolean(this.leccion);
   }
 
   ofrecerTutorialInicial() {
-    const dialogo = document.createElement('dialog');
-    dialogo.className = 'metronet-recorrido';
-    dialogo.setAttribute('data-oferta-tutorial', '');
-    const titulo = document.createElement('h2'); titulo.textContent = '¿Querés realizar el tutorial inicial?';
-    titulo.id = 'oferta-tutorial-titulo';
-    dialogo.setAttribute('aria-labelledby', titulo.id);
-    const descripcion = document.createElement('p');
-    descripcion.textContent = 'Conocé las herramientas paso a paso. También podés empezar a construir ahora.';
-    const acciones = document.createElement('div'); acciones.className = 'metronet-recorrido__acciones';
-    const cerrar = () => { dialogo.close(); dialogo.remove(); };
-    acciones.append(this.boton('Mostrar tutorial', () => { cerrar(); this.iniciarRecorrido(this.recorrido); }),
-      this.boton('Comenzar directamente', cerrar));
-    dialogo.append(titulo, descripcion, acciones); document.body.append(dialogo);
-    dialogo.addEventListener('cancel', () => dialogo.remove());
-    dialogo.showModal();
+    const clave = `metronet:oferta-inicial:v1:${obtenerSesionActiva()?.usuario?.idUsuario}:${this.contexto.diseno.simulacion.idDiseno}`;
+    try { if (localStorage.getItem(clave)) return; } catch { /* Ayuda disponible. */ }
+    const registrar = () => { try { localStorage.setItem(clave, 'ofrecida'); } catch { /* No bloquea jugar. */ } };
+    this.oferta = ofrecerTutorial({ titulo:'¿Querés realizar el tutorial inicial?', inicial:true,
+      descripcion:'Conocé las herramientas paso a paso. También podés empezar a construir ahora.',
+      alAceptar:() => { registrar(); this.iniciarRecorrido(this.recorrido); }, alOmitir:registrar });
+  }
+
+  ofrecerNovedades(accion, funciones) {
+    const idUsuario = obtenerSesionActiva()?.usuario?.idUsuario;
+    const claves = funciones.map(c => `metronet:oferta-funcion:v3:${idUsuario}:${this.contexto.diseno.simulacion.idDiseno}:${claveAprendizajeTutorial(c)}`);
+    try { if (claves.length && claves.every(c => localStorage.getItem(c))) return; } catch { /* Ayuda disponible. */ }
+    const registrar = () => { try { claves.forEach(c => localStorage.setItem(c, 'ofrecida')); } catch { /* No bloquea jugar. */ } };
+    this.oferta = ofrecerTutorial({ descripcion:`Ahora podés ${describirFunciones(funciones)}. ¿Querés aprender cómo se usa?`,
+      alAceptar:() => { registrar(); accion(); }, alOmitir:registrar });
   }
 
   boton(texto, accion) {
@@ -217,9 +223,9 @@ export default class PanelTutorialInicial {
     this.acceso.focus({ preventScroll:true });
     const pasos = this.integral ? pasosPracticosEditor(this.contexto.escenario?.numero, this.contexto.escenario) : [];
     if (pasos.length && !this.practica) {
-      this.practica = new RecorridoInicial(completado => { if (completado) { this.marcarCompletado(); registrarFuncionesEnsenadas(obtenerSesionActiva()?.usuario?.idUsuario, funcionesIntroducidas(this.contexto.escenario.numero, this.contexto.escenario).filter(c => c.startsWith('editor.'))); } }, { pasos, pasosDinamicos:true, interactivo:true,
+      this.practica = new RecorridoInicial(completado => { if (completado) { this.marcarCompletado(); registrarFuncionesEnsenadas(obtenerSesionActiva()?.usuario?.idUsuario, funcionesIntroducidas(this.contexto.escenario.numero, this.contexto.escenario).filter(c => c.startsWith('editor.')).map(claveAprendizajeTutorial)); } }, { pasos, pasosDinamicos:true, interactivo:true,
         disparador:'.metronet-tutorial > summary', tituloFinal:'Práctica realizada',
-        textoFinal:'Continuá con la consigna. La pista y este tutorial siguen disponibles.' });
+        textoFinal:'Continuá con la consigna. Podés volver a abrir este tutorial cuando lo necesites.' });
       this.practica.iniciar();
       this.avanzarPractica();
     }
@@ -228,6 +234,13 @@ export default class PanelTutorialInicial {
     if (!this.practica?.dialogo || !this.contexto?.diseno) return;
     const objetivo = objetivoTutorialPoi(this.contexto.escenario?.numero, this.contexto.escenario);
     const controles = {
+      categoriaUsada:Boolean(this.estado.categoriaUsada),
+      barriosAbiertos:document.querySelector('#metronet-selector-barrios .metronet-panel-encabezado')?.getAttribute('aria-expanded') === 'true',
+      barrioSeleccionado:Boolean(document.querySelector('.metronet-selector-barrios-lista input:checked:not([value=""])')),
+      zonasAbiertas:document.querySelector('#metronet-selector-zonas .metronet-panel-encabezado')?.getAttribute('aria-expanded') === 'true',
+      zonaSeleccionada:Boolean(document.querySelector('.metronet-selector-zonas-lista input:checked')),
+      poiFijado:Boolean(document.querySelector('.metronet-punto-interes-mantener input:checked')),
+      poiFichaCerrada:!document.querySelector('.metronet-punto-interes-panel'),
       poiAbierto:Boolean(document.querySelector('.metronet-poi[open]')),
       buscadorAbierto:document.querySelector('.metronet-panel-puntos-alternar')?.getAttribute('aria-expanded') === 'true',
       poiBuscado:Boolean(objetivo && document.querySelector('.metronet-panel-puntos-busqueda')?.value.trim()
@@ -241,6 +254,7 @@ export default class PanelTutorialInicial {
   }
   registrarUso(herramienta) { this.estado?.aprendidas.add(herramienta); }
   cerrarRecorridos(suspender = false) {
+    this.oferta?.terminar();
     if (suspender) this.recorridosSuspendidos = true;
     this.practica?.terminar(false); this.practica = null;
     this.recorrido.terminar(false);
@@ -257,6 +271,7 @@ export default class PanelTutorialInicial {
     document.removeEventListener('keydown', this.cerrarConEscape);
     document.removeEventListener('toggle', this.observarPractica, true);
     document.removeEventListener('input', this.observarPractica);
+    document.removeEventListener('change', this.observarPractica);
     document.removeEventListener('click', this.observarPractica);
     this.elemento.remove(); this.intentos.clear();
   }

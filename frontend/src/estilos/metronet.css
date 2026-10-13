@@ -1015,3 +1015,15 @@ html:root body .metronet-escenarios-pagina__tarjeta--bloqueado .metronet-escenar
 /* Viñeta común: mismo joystick pixelado del control de ayuda.
    Las listas de tarjetas/menús con list-style:none conservan su presentación. */
 :where(ul) { list-style-image: url('/assets/vineta-control-retro.svg'); }
+
+/* Revisión de salida: tres acciones con la misma jerarquía y tamaño. */
+html:root body .metronet-revision-pendiente { width: min(420px, calc(100vw - 32px)); border: 1px solid var(--border); }
+html:root body .metronet-revision-pendiente .metronet-dialogo-cambios__contenido { padding: 22px; gap: 16px; }
+html:root body .metronet-revision-pendiente #tituloRevisionPendiente { padding: 0; border: 0; box-shadow: none; text-shadow: none; -webkit-text-stroke: 0; color: var(--tutorial-acento); font: 16px/1.5 var(--font-arcade); }
+html:root body .metronet-revision-pendiente h2::before { display: none; }
+html:root body .metronet-revision-pendiente p { font: 12px/1.7 var(--font-arcade); }
+html:root body .metronet-revision-pendiente .metronet-dialogo-cambios__acciones { display: grid; grid-template-columns: 1fr; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); }
+html:root body .metronet-revision-pendiente button { width: 100%; min-height: 40px; padding: 8px 10px; font: 12px/1.4 var(--font-arcade); }
+html:root body .metronet-revision-pendiente button[data-accion-guardar] { background: var(--success); color: var(--bg-primary); border-color: var(--success); }
+html:root body .metronet-revision-pendiente button[data-accion-salir] { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border); }
+html:root body .metronet-revision-pendiente button[value="cancelar"] { background: var(--bg-secondary); color: var(--danger); border-color: var(--danger); }

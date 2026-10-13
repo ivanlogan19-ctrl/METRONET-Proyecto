@@ -1,4 +1,4 @@
-import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
+import { iconoRetro } from '../../interfaz/IconosRetro.js';
 import { pixelesIcono } from '../../interfaz/PictogramasMapa.js';
 import Phaser from 'phaser';
 import { CATEGORIAS_REFERENCIAS, CATEGORIAS_PUNTUALES, obtenerCategoriaReferencia, describirReferencia, esPoiBuscable, colorReferencia } from '../configuracion/CategoriasReferencias.js';
@@ -77,6 +77,7 @@ export default class CapaPuntosInteres {
 
     this.puntoSeleccionado = null;
     this.puntoBuscado = null;
+    this.puntosFijados = new Set();
 
     this.elementos = [];
 
@@ -425,7 +426,7 @@ export default class CapaPuntosInteres {
 
   esPuntoDestacado(punto) {
     const clave = this.clavePunto(punto);
-    return clave === this.puntoSeleccionado || clave === this.puntoBuscado;
+    return clave === this.puntoSeleccionado || clave === this.puntoBuscado || this.puntosFijados.has(clave);
   }
 
   establecerCategoriasVisibles(categorias) {
@@ -1668,17 +1669,19 @@ export default class CapaPuntosInteres {
 
     acciones.className = 'metronet-punto-interes-panel-acciones';
 
-    const botonCentrar = document.createElement('button');
-
-    botonCentrar.type = 'button';
-
-    botonCentrar.className = 'metronet-punto-interes-panel-accion';
-
-    configurarBotonIcono(botonCentrar, 'ampliar', 'Centrar punto de interés');
-
-    botonCentrar.addEventListener('click', () => this.enfocarPunto(punto));
-
-    acciones.append(botonCentrar);
+    const mantener = document.createElement('label');
+    mantener.className = 'metronet-punto-interes-mantener';
+    const casilla = document.createElement('input');
+    casilla.type = 'checkbox';
+    casilla.checked = this.puntosFijados.has(this.clavePunto(punto));
+    casilla.addEventListener('change', () => {
+      const clave = this.clavePunto(punto);
+      if (casilla.checked) this.puntosFijados.add(clave);
+      else this.puntosFijados.delete(clave);
+      this.dibujar(new Set([clave]));
+    });
+    mantener.append(casilla, document.createTextNode('Mantener visible'));
+    acciones.append(mantener);
 
     pie.append(acciones);
     elementos.push(pie);
@@ -1710,7 +1713,7 @@ export default class CapaPuntosInteres {
     this.cancelarCierreInformacionAlClicFuera();
 
     this.manejadorClicFueraInformacion = (evento) => {
-      if (evento.target.closest?.('.metronet-control-zoom')) return;
+      if (evento.target.closest?.('.metronet-control-zoom, .metronet-recorrido')) return;
       if (this.panelInformacion && !this.panelInformacion.contains(evento.target)) {
         this.ocultarInformacion();
       }
@@ -1804,6 +1807,7 @@ export default class CapaPuntosInteres {
 
     this.datos = null;
     this.puntoBuscado = null;
+    this.puntosFijados.clear();
 
     this.zonasSeleccionadas = [];
 

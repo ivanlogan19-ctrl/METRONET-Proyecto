@@ -33,7 +33,7 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
   assert.ok(r.x>=0 && r.x+r.width<=width+1,'La guía queda dentro del ancho visible');
   await p.locator('[data-recorrido-siguiente]').click();
  }
- for(const nombre of ['Mapa de la red','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
+ for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
  await p.waitForFunction(()=>document.querySelector('.metronet-recorrido h2')?.textContent==='Elegí Estación');
  assert.equal(await p.locator('[data-recorrido-siguiente]').isVisible(),false,'La práctica requiere la herramienta real');
  await p.locator('[data-elegir-herramienta="estaciones"]').click();
@@ -44,7 +44,7 @@ test('Simulación incremental exige eventos, y la ayuda manual sigue disponible 
  const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
  await p.evaluate(async()=>{
   const {abrirTutorialSimulacion,presentarTutorialSimulacion}=await import('/src/educacion/TutorialSimulacion.js');
-  localStorage.setItem("metronet:tutorial-pantalla-simulacion:v4:7:1:primera-visita","presentado");
+  localStorage.setItem("metronet:tutorial-pantalla-simulacion:v5:7:1:primera-visita","presentado");
   window.autoReutilizacion=presentarTutorialSimulacion({numeroNivel:6,idUsuario:7});
   window.guia=abrirTutorialSimulacion(()=>{},6);
  });
@@ -72,6 +72,8 @@ for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial autom
  const p=v.pagina, titulo={2:'Extendé la línea',6:'Puntos de interés de Montevideo',7:'Un intercambio real'}[nivel.numero];
  if(titulo) {
   await p.locator('.metronet-recorrido').waitFor();
+  assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Nueva funcionalidad');
+  await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),titulo);
   assert.equal(await p.locator('[data-recorrido-omitir]').evaluate(e=>e.getBoundingClientRect().width),24);
   await p.keyboard.press('Escape');
@@ -91,6 +93,65 @@ test('N1 permite comenzar directamente y sigue aceptando estaciones', async t =>
  assert.deepEqual(v.errores,[]);
 });
 
+test('N6 ofrece el tutorial una vez por diseño y vuelve a ofrecerlo al empezar otro', async t => {
+ const nivel=catalogo[5];
+ const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:6,recorrido:'integral-2026-10-objetivos-reales-v2'},primeraPasada:false,ofrecerRecorrido:true});
+ t.after(()=>v.contexto.close());const p=v.pagina;
+ await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).click();
+ assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Puntos de interés de Montevideo');
+ await p.reload();
+ await p.waitForFunction(()=>window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.panelTutorial?.contexto?.diseno?.simulacion?.idDiseno===77);
+ assert.equal(await p.locator('[data-oferta-tutorial]').count(),0,'No vuelve a ofrecer en la misma partida');
+ await p.evaluate(()=>{
+  const panel=juegoPrueba.scene.getScene('MapaScene').editorRedMetro.panelTutorial;
+  const contexto=panel.contexto;
+  panel.actualizar({...contexto,diseno:{...contexto.diseno,simulacion:{...contexto.diseno.simulacion,idDiseno:78}}});
+ });
+ await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).waitFor();
+ await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+ assert.deepEqual(v.errores,[]);
+});
+
+test('N6: el paseo enseña categorías, barrios, zonas, búsqueda y mantener visible con acciones reales', async t => {
+ const nivel=catalogo[5];
+ const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:6,recorrido:'integral-2026-10-objetivos-reales-v2'},ofrecerRecorrido:true,consigna:()=>({condiciones:[],referenciasObjetivo:nivel.reglasExito.puntosInteresObjetivo.map(p=>({...p,nombre:`Referencia ${p.idPunto}`}))})});
+ t.after(()=>v.contexto.close()); const p=v.pagina;
+ const titulo=async texto=>{try {await p.waitForFunction(texto=>document.querySelector('.metronet-recorrido h2')?.textContent===texto,texto,{timeout:5000});}catch(e){throw new Error(`Esperado: ${texto}; actual: ${await p.locator('.metronet-recorrido').innerText()}`);}};
+ await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).click();
+ await p.locator('.metronet-poi>summary').click();
+ await titulo('Probá una categoría');
+ await p.locator('.metronet-poi__categorias button').first().click();
+ await titulo('Abrí Barrios');
+ await p.locator('#metronet-selector-barrios .metronet-panel-encabezado').click();
+ await titulo('Seleccioná un barrio');
+ await p.locator('.metronet-selector-barrios-lista input:not([value=""])').first().check();
+ await titulo('Más barrios');
+ await p.getByRole('button',{name:'Siguiente',exact:true}).click();
+ await titulo('Cerrá la lista de barrios');
+ await p.locator('#metronet-selector-barrios .metronet-panel-encabezado').click();
+ await titulo('Abrí Zonas');
+ await p.locator('#metronet-selector-zonas .metronet-panel-encabezado').click();
+ await titulo('Seleccioná una zona');
+ await p.locator('.metronet-selector-zonas-lista input').first().check();
+ await titulo('Cerrá la lista de zonas');
+ await p.locator('#metronet-selector-zonas .metronet-panel-encabezado').click();
+ if (await p.locator('.metronet-panel-puntos-alternar').getAttribute('aria-expanded') !== 'true') {
+  await titulo('Buscar punto de interés');
+  await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).click();
+ }
+ await p.getByRole('searchbox',{name:'Buscar punto de interés'}).fill('Mirador Panorámico de la Intendencia');
+ await titulo('Localizá el punto');
+ await p.locator('.metronet-panel-puntos-lista button').first().click();
+ await titulo('Mantené el punto visible');
+ await p.getByRole('checkbox',{name:'Mantener visible',exact:true}).check();
+ await titulo('Volvé al mapa');
+ await p.getByRole('button',{name:'Cerrar información',exact:true}).click();
+ await titulo('Marcador y cobertura');
+ await p.getByRole('button',{name:'Siguiente',exact:true}).click();
+ await titulo('Estación dentro del radio');
+ assert.deepEqual(v.errores,[]);
+});
+
 test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan antes de practicarlas',async t=>{
  const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
  const estado=await p.evaluate(async()=>{
@@ -98,8 +159,9 @@ test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan
   const e=await import('/src/educacion/TutorialInicial.js');
   const s=await import('/src/educacion/TutorialSimulacion.js');
   const secuencia=Array.from({length:10},(_,i)=>r.funcionesIntroducidas(i+1));
-  r.registrarFuncionesEnsenadas(7,['editor.poi','simulacion.inicial','simulacion.velocidad']);
+  r.registrarFuncionesEnsenadas(7,['editor.poi','simulacion.inicial.v2','simulacion.velocidad']);
   const conocida=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:2,numeroCampana:4});
+  conocida?.terminar();
   const otraCuenta=s.presentarTutorialSimulacion({idUsuario:8,numeroNivel:8});
   const inicialOtraCuenta=document.querySelector('.metronet-recorrido h2')?.textContent;
   otraCuenta?.terminar(false);
@@ -108,9 +170,37 @@ test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan
    pasosPoi:e.pasosPracticosEditor(6).map(p=>p[3]).filter(Boolean)};
  });
  assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender','simulacion.velocidad'],['simulacion.duracion'],['simulacion.global','simulacion.individual'],[],['editor.poi'],['editor.transbordo'],[],['simulacion.combinacion'],[]]);
- assert.equal(estado.conocida,true);assert.equal(estado.inicialOtraCuenta,'Mapa de la red');assert.equal(estado.ajena,0);
+ assert.equal(estado.conocida,false);assert.equal(estado.inicialOtraCuenta,'Nueva funcionalidad');assert.equal(estado.ajena,0);
  assert.equal(estado.poi,33);assert.equal(estado.poiInicial,undefined);
- assert.deepEqual(estado.pasosPoi,['poi-abierto','buscador-abierto','poi-buscado','poi-localizado','poi-cubierto']);
+ assert.deepEqual(estado.pasosPoi,['poi-abierto','poi-categoria','barrios-abiertos','barrio-seleccionado','barrios-cerrados','zonas-abiertas','zona-seleccionada','zonas-cerradas','buscador-abierto','poi-buscado','poi-localizado','poi-fijado','poi-ficha-cerrada','poi-cubierto']);
+});
+
+test('Simulación ofrece cada función nueva una vez por partida y la repite en una nueva campaña', async t => {
+ const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
+ await p.evaluate(async()=>{
+  const r=await import('/src/educacion/FuncionesCampana.js');
+  r.registrarFuncionesEnsenadas(7,['simulacion.inicial.v2']);
+ });
+ for (const numero of [2,3,4,9]) {
+  await p.evaluate(async numero=>{
+   const s=await import('/src/educacion/TutorialSimulacion.js');
+   window.ofertaPrueba=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:numero,repetido:true});
+  },numero);
+  assert.equal(await p.locator('[data-oferta-tutorial] h2').textContent(),'Nueva funcionalidad');
+  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  assert.equal(await p.evaluate(async numero=>{
+   const s=await import('/src/educacion/TutorialSimulacion.js');
+   return s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:numero})===null;
+  },numero),true,'Respeta comenzar directamente');
+ }
+ assert.equal(await p.evaluate(async()=>{
+  const s=await import('/src/educacion/TutorialSimulacion.js');
+  const r=await import('/src/educacion/FuncionesCampana.js');
+  r.registrarFuncionesEnsenadas(7,['simulacion.velocidad']);
+  const oferta=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:2,numeroCampana:2});
+  const ofrecida=Boolean(oferta);oferta?.terminar();return ofrecida;
+ }),true);
+ assert.deepEqual(v.errores,[]);
 });
 
 for (const numero of [1,6]) test(`Guía rápida N${numero}: solo funciones visibles y acceso Aprender`,async t=>{

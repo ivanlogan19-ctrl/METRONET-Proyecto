@@ -1,6 +1,8 @@
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 const PASOS_INTEGRAL = [
-  ['#metronet-mapa', 'Mapa de la red', 'Acá construís tu red. Arrastrá para desplazarte y usá los controles de vista para acercar o alejar.'],
+  ['#metronet-mapa', 'Mapa de la red', 'Acá construís tu red. Arrastrá para desplazarte por el mapa.'],
+  ['.metronet-control-zoom', 'Vista del mapa', 'Usá + y − para acercar o alejar. El botón de ajustar vuelve a encuadrar la red.'],
+  ['.metronet-control-zoom__brujula', 'Rotación del mapa', 'Las flechas curvas giran el mapa a izquierda o derecha. La aguja señala el norte. Tocá la brújula para volver a colocar el norte arriba.'],
   ['.metronet-herramientas__barra', 'Herramientas', 'Estos símbolos permiten construir y editar la red. Solo aparecen disponibles los que corresponden al nivel.'],
   ['[data-elegir-herramienta="estaciones"]', 'Estación', 'Este símbolo permite colocar estaciones sobre el mapa.'],
   ['[data-elegir-herramienta="lineas"]', 'Línea', 'Esta herramienta une dos estaciones y crea una línea con su primer tramo.'],
@@ -14,7 +16,7 @@ const PASOS_INTEGRAL = [
   ['.metronet-consigna__cabecera', 'Metas del nivel', 'Este panel muestra las metas y su progreso. Cada meta cumplida se marca con una estrella.'],
 ];
 
-const PASOS = [...PASOS_INTEGRAL.slice(1,6),
+const PASOS = [...PASOS_INTEGRAL.slice(3,8),
   ['.metronet-poi > summary', 'Referencias', 'La bandera amarilla permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
   ...PASOS_INTEGRAL.slice(-3)];
 
@@ -101,6 +103,7 @@ export default class RecorridoInicial {
   }
   posicionar() {
     if (!this.dialogo?.open) return;
+    this.restaurarMarcoMapa();
     const selector = this.pasos[this.indice]?.[0];
     this.objetivo = selector ? document.querySelector(selector) : null;
     const margen = 12, espacio = 12;
@@ -162,11 +165,28 @@ export default class RecorridoInicial {
       ({ x, y } = mejor);
       this.dialogo.dataset.controlesCubiertos = String(mejor.area > 0);
     }
+    if (visible && this.objetivo.matches('#visorSimulacion, #metronet-mapa')) {
+      // El borde pertenece al mapa, detrás del cartel; nunca a su capa flotante.
+      this.marcoMapa = { elemento: this.objetivo, outline: this.objetivo.style.outline, offset: this.objetivo.style.outlineOffset };
+      this.objetivo.style.outline = '3px solid var(--tutorial-acento)';
+      this.objetivo.style.outlineOffset = '-3px';
+      marca.hidden = true;
+      x = limitar(r.left + espacio, w, innerWidth);
+      y = limitar(r.top + espacio, h, innerHeight);
+    }
     this.dialogo.style.left = `${x}px`;
     this.dialogo.style.top = `${y}px`;
     evitarSuperposicion();
   }
+  restaurarMarcoMapa() {
+    if (!this.marcoMapa) return;
+    const { elemento, outline, offset } = this.marcoMapa;
+    elemento.style.outline = outline;
+    elemento.style.outlineOffset = offset;
+    this.marcoMapa = null;
+  }
   terminar(notificar = true, completado = false, motivo = 'interrumpido') {
+    this.restaurarMarcoMapa();
     if (!this.dialogo) return;
     clearTimeout(this.cierreFinal);
     this.cierreFinal = null;

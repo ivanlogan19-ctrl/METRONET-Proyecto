@@ -33,3 +33,25 @@ for(const [width,height] of [[1440,900],[1280,720],[390,844]]) for(const nivel o
  assert.deepEqual(medidas,{alineado:true,dentro:true,scroll:false,recortados:[]});
  if(width===1440&&[1,5,8,10].includes(nivel.numero)) await p.screenshot({path:`/tmp/metronet-nivel-${nivel.numero}-actualizado.png`});
 });
+
+for(const nivel of niveles) test(`N${nivel.numero}: crear una estación conserva las metas mientras se actualizan`,async t=>{
+ const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-objetivos-reales-v2'},viewport:{width:1280,height:720},consigna:()=>consigna(nivel)});
+ t.after(()=>v.contexto.close());const p=v.pagina;
+ const medir=()=>p.evaluate(()=>{
+  const caja=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
+  return {mapa:caja('#metronet-mapa'),objetivos:caja('.metronet-objetivos-panel'),herramientas:caja('#metronet-panel-controles'),textos:[...document.querySelectorAll('.metronet-consigna__texto-objetivo')].map(e=>e.textContent)};
+ });
+ const antes=await medir();
+ let responder;const espera=new Promise(resolve=>{responder=resolve;});
+ await p.route('**/consigna',async route=>{await espera;const datos=consigna(nivel);datos.condiciones[0].completado=true;datos.condiciones[0].actual=datos.condiciones[0].requerido;await route.fulfill({json:datos});});
+ t.after(responder);
+ await p.locator('[data-elegir-herramienta=estaciones]').click();
+ const punto=await p.evaluate(()=>{const e=editorPrueba.escena,m=e.capaRedMetro.convertirPosicion(750,500),c=e.cameras.main,r=document.querySelector('#metronet-mapa canvas').getBoundingClientRect();return {x:r.x+(m.x-c.worldView.x)*c.zoom,y:r.y+(m.y-c.worldView.y)*c.zoom};});
+ await p.mouse.click(punto.x,punto.y);
+ await p.waitForFunction(()=>editorPrueba.estadoConsigna==='cargando');
+ assert.deepEqual(await medir(),antes,'Las metas y los POI no se sustituyen por la historia del nivel ni desplazan el panel');
+ responder();await p.waitForFunction(()=>editorPrueba.estadoConsigna==='disponible');
+ assert.equal(await p.locator('.metronet-consigna__lista-breve .es-estrella').count(),1);
+ assert.deepEqual(await medir(),antes);
+ assert.deepEqual(v.errores,[]);
+});

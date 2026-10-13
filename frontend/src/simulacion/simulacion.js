@@ -136,12 +136,12 @@ async function inicializar() {
   await consultaProgreso;
   if (!paginaActiva) return;
   if (disenoActual) tutorialSimulacion = presentarTutorialSimulacion({
+    idDiseno: disenoActual.simulacion.idDiseno,
     idUsuario: sesion.usuario?.idUsuario,
     numeroNivel: escenariosGlosario.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.numero
       ?? disenoActual.simulacion.idEscenario,
     numeroCampana: progresoSimulacion?.numeroCampanaActual,
     escenario: escenariosGlosario.find(e => e.idEscenario === disenoActual.simulacion.idEscenario),
-    repetido: (progresoSimulacion?.escenarios?.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.cantidadIntentosCampana ?? 0) > 1,
     alFinalizar: completado => { if (completado) panelTutorialSimulacion.marcarCompletado(); tutorialSimulacion = null; },
   });
 }

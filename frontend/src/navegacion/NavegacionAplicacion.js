@@ -66,16 +66,17 @@ function crearEnlace(texto, ruta, activo) {
 
 function crearDialogoCambios() {
   const dialogo = document.createElement('dialog');
-  dialogo.className = 'metronet-dialogo-cambios';
+  dialogo.className = 'metronet-dialogo-cambios metronet-revision-pendiente';
+  dialogo.setAttribute('aria-labelledby', 'tituloRevisionPendiente');
   dialogo.dataset.dialogoCambios = 'true';
   dialogo.innerHTML = `
     <form method="dialog" class="metronet-dialogo-cambios__contenido">
-      <h2>Revisión pendiente</h2>
-      <p>Las operaciones confirmadas ya están almacenadas. Podés guardar y revisar la red antes de salir.</p>
+      <h2 id="tituloRevisionPendiente">Revisión pendiente</h2>
+      <p>Tus cambios ya están guardados.<br>Podés revisar la red antes de salir.</p>
       <div class="metronet-dialogo-cambios__acciones">
-        <button value="cancelar" type="submit">Cancelar</button>
-        <button value="salir" type="submit" data-accion-salir>Continuar sin revisar</button>
         <button value="guardar" type="submit" data-accion-guardar>Guardar y continuar</button>
+        <button value="salir" type="submit" data-accion-salir>Continuar sin revisar</button>
+        <button value="cancelar" type="submit">Cancelar</button>
       </div>
     </form>`;
   document.body.append(dialogo);

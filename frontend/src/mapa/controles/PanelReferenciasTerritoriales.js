@@ -61,7 +61,7 @@ export default class PanelReferenciasTerritoriales {
     this.herramientas=document.createElement('div');this.herramientas.className='metronet-poi__zoom';this.contenedor.append(this.herramientas);
     this.mapa.append(this.estado);
     this.estado.hidden = true;
-    this.alCerrarFuera=e=>{if(!this.elemento.contains(e.target))this.cerrar();};
+    this.alCerrarFuera=e=>{if(!this.elemento.contains(e.target) && !e.target.closest('.metronet-recorrido'))this.cerrar();};
     this.alEscape=e=>{if(e.key==='Escape' && this.elemento.open){e.stopPropagation();this.cerrar(true);}};
     document.addEventListener('pointerdown',this.alCerrarFuera);
     this.elemento.addEventListener('keydown',this.alEscape);

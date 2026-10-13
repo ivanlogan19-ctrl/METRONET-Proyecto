@@ -274,7 +274,7 @@ export default class EditorRedMetro {
       // escenario y la ruta del diseño nuevo, nunca los del nivel anterior.
       actualizarRutaEdicion(idDiseno, this.obtenerContextoDiseno(idDiseno));
       this.actualizarEscenarioJuegoActual();
-      this.prepararConsigna();
+      this.prepararConsigna({ conservar: !cambioDeDiseno });
       if (cambioDeDiseno) this.escena.capaPuntosInteres?.establecerCategoriasVisibles(leerCategoriasPoi(idDiseno));
       this.errorAyuda = null;
       if (cambioDeDiseno) {
@@ -760,9 +760,11 @@ export default class EditorRedMetro {
     this.contenedor.querySelectorAll('[data-herramienta] > p.metronet-editor-etiqueta').forEach(texto => destacarConceptos(texto, conceptos, { contextual: true }));
   }
 
-  prepararConsigna() {
+  prepararConsigna({ conservar = false } = {}) {
     this.versionConsigna += 1;
-    this.consignaActual = null;
+    // Durante una edición del mismo diseño conservar las filas hasta recibir
+    // el progreso nuevo; al cambiar de nivel no reutilizar metas anteriores.
+    if (!conservar) this.consignaActual = null;
     this.estadoConsigna = this.escenarioJuegoActual ? 'cargando' : 'sinDatos';
     this.actualizarAyuda(true);
   }
@@ -827,7 +829,8 @@ export default class EditorRedMetro {
       return;
     }
     const consignaActual = this.consignaActual;
-    const detalleDisponible = this.estadoConsigna === 'disponible' && Boolean(consignaActual);
+    const detalleDisponible = ['disponible', 'cargando'].includes(this.estadoConsigna) && Boolean(consignaActual);
+    consigna.setAttribute('aria-busy', String(this.estadoConsigna === 'cargando'));
     const condiciones = detalleDisponible
       ? (escenario?.recorrido === 'integral-2026-10-objetivos-reales-v2'
         ? consignaActual.condiciones.filter(c => !c.clave.startsWith('poi:'))

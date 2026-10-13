@@ -36,6 +36,8 @@ async function abrir(t, { fallaSegunda = false, redResuelta = true, demoraEjecuc
   } });
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
   await vista.pagina.locator('#velocidadUnidad').waitFor();
+  const oferta = vista.pagina.getByRole('button', { name: 'Comenzar directamente', exact: true });
+  if (await oferta.isVisible()) await oferta.click();
   const recorrido = vista.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
   if (await recorrido.isVisible()) await recorrido.click();
   return { ...vista, red };
