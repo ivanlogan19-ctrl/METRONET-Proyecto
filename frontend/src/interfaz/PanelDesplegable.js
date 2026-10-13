@@ -1,5 +1,5 @@
 // Ventana anclada a un <details>, fuera del flujo y del recorte de su panel padre.
-export function anclarPanelDesplegable(detalle, panel, { cerrarAlSalir = true } = {}) {
+export function anclarPanelDesplegable(detalle, panel, { cerrarAlSalir = true, ancho = 360 } = {}) {
   const acceso = detalle.querySelector('summary');
   panel.setAttribute('popover', 'manual');
   panel.classList.add('metronet-panel-superpuesto');
@@ -10,7 +10,7 @@ export function anclarPanelDesplegable(detalle, panel, { cerrarAlSalir = true } 
     const debajo = innerHeight - r.bottom - 16;
     const encima = r.top - 16;
     const arriba = debajo < 200 && encima > debajo;
-    panel.style.width = `${Math.min(360, innerWidth - 24)}px`;
+    panel.style.width = `${Math.min(ancho, innerWidth - 24)}px`;
     panel.style.left = `${Math.max(12, Math.min(r.left, innerWidth - panel.offsetWidth - 12))}px`;
     panel.style.top = arriba ? 'auto' : `${r.bottom + 6}px`;
     panel.style.bottom = arriba ? `${innerHeight - r.top + 6}px` : 'auto';

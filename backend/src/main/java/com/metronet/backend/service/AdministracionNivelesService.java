@@ -47,6 +47,7 @@ public class AdministracionNivelesService {
                 n.path("herramientasHabilitadas").fieldNames().forEachRemaining(herramientasConocidas::add);
             });
             reglasConocidas.add("requiereMetroPorLinea");
+            reglasConocidas.add("requierePoiIndividuales");
             clavesRegla = Set.copyOf(reglasConocidas);
             clavesHerramienta = Set.copyOf(herramientasConocidas);
         } catch (Exception error) {

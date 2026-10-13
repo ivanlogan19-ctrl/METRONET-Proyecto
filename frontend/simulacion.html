@@ -20,7 +20,7 @@
     <main class="simulacion-aplicacion simulacion-contenido">
       <header class="simulacion-encabezado">
         <div class="simulacion-identidad"><h1 id="tituloSimulacion">Elegí un diseño</h1></div>
-        <div class="simulacion-accesos-titulo" aria-label="Opciones del mapa"><div data-contenedor-referencias></div><div data-hud-mapa><div data-ayuda-contextual></div></div><button id="tutorialPantallaSimulacion" class="simulacion-volver-icono" type="button" aria-label="Ver tutorial de Simulación" title="Ver tutorial de Simulación"></button><a id="volverEdicion" class="simulacion-volver simulacion-volver-icono" href="/" aria-label="Volver a edición" title="Volver a edición"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M7 2h7v12H7v-2h5V4H7V2ZM1 8l4-4v3h5v2H5v3L1 8Z"/></svg></a></div>
+        <div class="simulacion-accesos-titulo" aria-label="Opciones del mapa"><div data-contenedor-referencias hidden></div><div data-hud-mapa><div data-ayuda-contextual></div></div><button id="tutorialPantallaSimulacion" class="simulacion-volver-icono" type="button" aria-label="Ver tutorial de Simulación" title="Ver tutorial de Simulación"></button><a id="volverEdicion" class="simulacion-volver simulacion-volver-icono" href="/" aria-label="Volver a edición" title="Volver a edición"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M7 2h7v12H7v-2h5V4H7V2ZM1 8l4-4v3h5v2H5v3L1 8Z"/></svg></a></div>
       </header>
       <div class="simulacion-espacio-trabajo">
         <section id="estadoVacio" class="simulacion-vacio">
@@ -42,7 +42,7 @@
           <section class="simulacion-acciones-panel" aria-label="Acciones de simulación">
             <h3 class="simulacion-seccion-titulo">Acciones</h3>
           <div class="simulacion-mandos" aria-label="Controles de simulación">
-            <form id="formularioEjecucion" class="simulacion-formulario"><input id="velocidadSimulacion" type="hidden" value="1" /><button class="simulacion-primario" type="submit" aria-label="Iniciar simulación" data-etiqueta-corta="Iniciar">Iniciar</button></form>
+            <form id="formularioEjecucion" class="simulacion-formulario"><input id="velocidadSimulacion" type="hidden" value="1" /><button class="simulacion-primario" type="submit" disabled aria-label="Iniciar simulación" data-etiqueta-corta="Iniciar">Iniciar</button></form>
             <div class="simulacion-acciones-ejecucion" role="group" aria-label="Controlar la ejecución">
               <button id="pausarSimulacion" type="button" data-etiqueta-corta="Pausar" disabled>Pausar</button>
               <button id="reanudarSimulacion" type="button" data-etiqueta-corta="Reanudar" disabled hidden>Reanudar</button>
@@ -67,7 +67,7 @@
           <section id="seccionConfiguracion" class="simulacion-parametros" data-requiere-diseno hidden>
             <h3 class="simulacion-seccion-titulo">Duración · UT</h3>
             <div class="simulacion-parametro-titulo"><span data-icono-duracion></span><span data-termino-duracion>Duración</span></div>
-            <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en horas" type="number" min="1" step="1" value="6" required /><span id="unidadDuracionSimulacion">h</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button><button id="aplicarUnidadTiempo" type="button">Aplicar UT</button></div>
+            <div class="simulacion-parametro-valor"><button type="button" data-paso-horas="-1" aria-label="Reducir duración">−</button><input id="duracionSimulacion" form="formularioEjecucion" aria-label="Duración simulada en UT" type="number" min="1" step="1" value="6" required /><span id="unidadDuracionSimulacion">UT</span><button type="button" data-paso-horas="1" aria-label="Aumentar duración">+</button><button id="aplicarUnidadTiempo" type="button">Aplicar UT</button></div>
             <div class="simulacion-ritmo"><span class="simulacion-etiqueta-control">Ritmo visual (×)</span><div class="simulacion-selector-velocidad" role="group" aria-label="Ritmo de reproducción">
               <button type="button" data-paso-ritmo="-1" aria-label="Reducir ritmo">−</button><output id="ritmoVisible" for="velocidadSimulacion">1×</output><button type="button" data-paso-ritmo="1" aria-label="Aumentar ritmo">+</button>
             </div></div>

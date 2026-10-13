@@ -1,3 +1,4 @@
+import { escenarioCampana, funcionesCampana } from '../educacion/FuncionesCampana.js';
 import { abrirTutorialSimulacion, crearPanelTutorialSimulacion, presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
 import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
@@ -113,15 +114,7 @@ async function inicializar() {
     input.value = String(Math.max(1, Number(input.value) + Number(boton.dataset.pasoHoras)));
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }));
-  document.getElementById('aplicarUnidadTiempo').addEventListener('click', () => {
-    const input = document.getElementById('duracionSimulacion');
-    if (!input.reportValidity()) return;
-    const modificada = duracionAplicada !== Number(input.value);
-    duracionAplicada = Number(input.value);
-    if (modificada) tutorialSimulacion?.notificar('duracion');
-    controlUnidades?.actualizarTiempo(duracionAplicada, configuracionUvUt ? 'UT' : 'h');
-    confirmarAplicacion(document.getElementById('aplicarUnidadTiempo'));
-  });
+  document.getElementById('aplicarUnidadTiempo').addEventListener('click', guardarDuraciones);
   panelTutorialSimulacion = crearPanelTutorialSimulacion(document.getElementById('tutorialPantallaSimulacion'), () => {
     tutorialSimulacion?.terminar(false);
     const alFinalizar = completado => { if (completado) panelTutorialSimulacion.marcarCompletado(); tutorialSimulacion = null; };
@@ -147,6 +140,7 @@ async function inicializar() {
     numeroNivel: escenariosGlosario.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.numero
       ?? disenoActual.simulacion.idEscenario,
     numeroCampana: progresoSimulacion?.numeroCampanaActual,
+    escenario: escenariosGlosario.find(e => e.idEscenario === disenoActual.simulacion.idEscenario),
     repetido: (progresoSimulacion?.escenarios?.find(e => e.idEscenario === disenoActual.simulacion.idEscenario)?.cantidadIntentosCampana ?? 0) > 1,
     alFinalizar: completado => { if (completado) panelTutorialSimulacion.marcarCompletado(); tutorialSimulacion = null; },
   });
@@ -285,9 +279,9 @@ async function actualizarDesempeno(idDiseno) {
     document.getElementById('duracionSimulacion').value = String(configuracionUvUt.limiteUt);
   }
   duracionAplicada ??= Number(document.getElementById('duracionSimulacion').value);
-  document.getElementById('duracionSimulacion').setAttribute('aria-label', esUvUt ? 'Duración simulada en UT' : 'Duración simulada en horas');
-  document.getElementById('unidadDuracionSimulacion').textContent = esUvUt ? 'UT' : 'h';
-  configurarBotonIcono(document.getElementById('aplicarUnidadTiempo'), 'guardar', esUvUt ? 'Aplicar UT' : 'Aplicar duración');
+  document.getElementById('duracionSimulacion').setAttribute('aria-label', 'Duración simulada en UT');
+  document.getElementById('unidadDuracionSimulacion').textContent = 'UT';
+  configurarBotonIcono(document.getElementById('aplicarUnidadTiempo'), 'guardar', 'Aplicar UT');
   const resumenCriterio = document.getElementById('resumenCriterioUvUt');
   resumenCriterio.hidden = !esUvUt;
   if (esUvUt) {
@@ -302,11 +296,12 @@ async function actualizarDesempeno(idDiseno) {
   controlUnidades = renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, guardarVelocidades, {
     seleccion: unidadSeleccionada, alSeleccionar: seleccionarUnidad,
     nivel: obtenerRotuloNivel(),
-    duracionGlobal: duracionAplicada, unidadTiempo: esUvUt ? 'UT' : 'h',
+    duracionGlobal: duracionAplicada, unidadTiempo: 'UT',
     bloqueado: guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado),
   });
   visor?.escena.establecerUnidadSeleccionada(unidadSeleccionada);
   actualizarFichaUnidad();
+  actualizarCampoDuracion();
 }
 
 function obtenerRotuloNivel() {
@@ -323,6 +318,55 @@ function seleccionarUnidad(id) {
   if (id && id !== 'todas') tutorialSimulacion?.notificar('unidad-individual');
   visor?.escena.establecerUnidadSeleccionada(id);
   actualizarFichaUnidad();
+  actualizarCampoDuracion();
+}
+
+function unidadesElegidas() {
+  return (disenoActual?.unidadesMetro ?? []).filter(u => unidadSeleccionada === 'todas' || String(u.idTren) === unidadSeleccionada);
+}
+function actualizarCampoDuracion() {
+  const input = document.getElementById('duracionSimulacion');
+  const valores = [...new Set(unidadesElegidas().map(u => u.duracionUt ?? duracionAplicada ?? 6))];
+  input.value = valores.length === 1 ? String(valores[0]) : '';
+  input.placeholder = valores.length > 1 ? 'MIXTO' : '';
+  input.required = valores.length <= 1;
+}
+async function guardarDuraciones() {
+  if (!disenoActual || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return false;
+  const input = document.getElementById('duracionSimulacion');
+  const duracion = Number(input.value);
+  if (!input.reportValidity() || !Number.isInteger(duracion) || duracion <= 0) return false;
+  const unidades = unidadesElegidas();
+  if (!unidades.length) return false;
+  const id = disenoActual.simulacion.idDiseno, version = versionDiseno;
+  const vigente = () => paginaActiva && versionDiseno === version && disenoActual?.simulacion.idDiseno === id;
+  const cambioReal = unidades.some(u => (u.duracionUt ?? duracionAplicada) !== duracion);
+  guardandoVelocidad = true;
+  actualizarControlesSimulacion(estadoMotor);
+  let actualizadas = 0, fallo = null;
+  try {
+    for (const unidad of unidades) {
+      if (!vigente()) return false;
+      await cliente.solicitar(`/${id}/unidades/${unidad.idTren}`, { method:'PATCH', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({nombreLinea:unidad.nombreLinea,capacidad:unidad.capacidad,velocidadPromedio:unidad.velocidadPromedio,duracionUt:duracion}) });
+      actualizadas++;
+    }
+  } catch (error) { fallo = error; }
+  finally {
+    if (vigente()) {
+      if (!fallo && unidadSeleccionada === 'todas') duracionAplicada = duracion;
+      const recargado = await abrirDiseno(id);
+      if (recargado) {
+        mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}`
+          : `Duración guardada: ${duracion} UT en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
+        if (!fallo) confirmarAplicacion(document.getElementById('aplicarUnidadTiempo'));
+      }
+    }
+    guardandoVelocidad = false;
+    if (!fallo && cambioReal && actualizadas) tutorialSimulacion?.notificar('duracion');
+    if (paginaActiva) actualizarControlesSimulacion(estadoMotor);
+  }
+  return !fallo && actualizadas === unidades.length;
 }
 
 function actualizarFichaUnidad() {
@@ -385,9 +429,13 @@ async function ejecutarSimulacion(evento) {
   evento.preventDefault();
   if (!disenoActual || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return;
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
-  const duracion = Number(document.getElementById('duracionSimulacion').value);
+  const input = document.getElementById('duracionSimulacion');
+  if (input.value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(input.value))) {
+    if (!await guardarDuraciones()) return;
+  }
+  const duracion = duracionAplicada ?? 6;
   if (!VELOCIDADES_SIMULACION.has(velocidad) || !Number.isInteger(duracion) || duracion <= 0) {
-    mostrarMensaje(`Elegí un ritmo de reproducción disponible (×) y una cantidad entera de ${configuracionUvUt ? 'UT' : 'horas simuladas'} mayor que cero.`, 'error');
+    mostrarMensaje('Elegí una duración UT entera mayor que cero.', 'error');
     return;
   }
   preparacionEnCurso = true;
@@ -401,8 +449,8 @@ async function ejecutarSimulacion(evento) {
     if (!vigente()) return;
     if (!await abrirDiseno(id) || !paginaActiva) return;
     duracionAplicada = duracion;
-    document.getElementById('duracionSimulacion').value = String(duracion);
-    controlUnidades?.actualizarTiempo(duracion, configuracionUvUt ? 'UT' : 'h');
+    actualizarCampoDuracion();
+    controlUnidades?.actualizarTiempo(duracion);
     parametrosUltimaEjecucion = { velocidad, duracion };
     ejecucionPendiente = { idDiseno: disenoActual.simulacion.idDiseno, resultado };
     if (estaMantenimientoActivo(sesion)) return;
@@ -439,7 +487,7 @@ function detenerSimulacion() {
 async function reiniciarSimulacion() {
   if (estaMantenimientoActivo(sesion)) return;
   if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
-  if (Number(document.getElementById('duracionSimulacion').value) !== parametrosUltimaEjecucion.duracion) {
+  if (document.getElementById('duracionSimulacion').value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(document.getElementById('duracionSimulacion').value))) {
     await ejecutarSimulacion({ preventDefault() {} });
     return;
   }
@@ -573,7 +621,7 @@ function actualizarControlesSimulacion(estado) {
   const enCurso = estadoActual === 'EN_CURSO';
   const pausada = estadoActual === 'PAUSADA';
   const horas = document.getElementById('duracionSimulacion');
-  horas.disabled = enCurso || pausada || preparacionEnCurso || resultadoEnCurso;
+  horas.disabled = enCurso || pausada || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || estaMantenimientoActivo(sesion);
   document.getElementById('aplicarUnidadTiempo').disabled = horas.disabled;
   document.querySelectorAll('[data-paso-horas]').forEach(boton => { boton.disabled = horas.disabled; });
   document.querySelectorAll('[data-paso-ritmo]').forEach(boton => { boton.disabled = preparacionEnCurso || resultadoEnCurso; });
@@ -613,7 +661,7 @@ function crearEstadoInicial() {
   };
 }
 
-function formatearTiempo(horas) { const valor = Math.max(0, Number(horas) || 0); return configuracionUvUt ? `${valor.toLocaleString('es-UY', { maximumFractionDigits: 2 })} UT` : formatearDuracion(valor); }
+function formatearTiempo(horas) { const valor = Math.max(0, Number(horas) || 0); return `${valor.toLocaleString('es-UY', { maximumFractionDigits: 2 })} UT`; }
 
 function formatearEstadoMotor(estado) {
   return ({
@@ -652,9 +700,16 @@ function mostrarEstadoVacio() {
 
 function actualizarAyuda() {
   const resumen = disenoActual?.simulacion;
+  const escenario = escenariosGlosario.find(e => e.idEscenario === resumen?.idEscenario) ?? resumen;
+  const referencias = document.querySelector('[data-contenedor-referencias]');
+  if (referencias) {
+    const disponible = ['LIBRE','EDICION_LIBRE'].includes(resumen?.modo) || funcionesCampana(escenarioCampana(escenario?.numero, escenario)).includes('editor.poi');
+    referencias.hidden = !disponible;
+    if (!disponible) referencias.querySelectorAll('details[open]').forEach(panel => { panel.open = false; });
+  }
   panelAyuda?.actualizar({
     diseno: disenoActual,
-    escenario: escenariosGlosario.find(e => e.idEscenario === resumen?.idEscenario) ?? resumen,
+    escenario,
     consigna: consignaActual,
     estadoConsigna: consignaActual && idDisenoConsigna === resumen?.idDiseno ? 'disponible' : 'noDisponible',
     pantalla: 'simulacion', estadoMotor: estadoMotor?.estado, error: errorAyuda,

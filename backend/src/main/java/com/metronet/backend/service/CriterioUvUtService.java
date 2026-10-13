@@ -97,11 +97,12 @@ public class CriterioUvUtService {
         if (c == null) return null;
         List<Unidad> unidades = new ArrayList<>();
         Map<String, Integer> longitudes = longitudes(idDiseno);
-        List<Metro> metros = jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio FROM metro WHERE id_diseno=? ORDER BY id_tren",
-            (r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3)), idDiseno);
+        List<Metro> metros = jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? ORDER BY id_tren",
+            (r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3), r.getObject(4, Integer.class)), idDiseno);
         Set<String> atendidas = new HashSet<>();
         BigDecimal suma = BigDecimal.ZERO;
-        boolean completo = utEjecutadas <= c.limiteUt() && !metros.isEmpty();
+        int tiempoTotal = metros.stream().mapToInt(m -> m.duracion() == null ? utEjecutadas : m.duracion()).max().orElse(utEjecutadas);
+        boolean completo = tiempoTotal <= c.limiteUt() && !metros.isEmpty();
         for (Metro metro : metros) {
             int tramos = longitudes.getOrDefault(metro.linea(), 0);
             if (tramos == 0 || metro.uv() == null || metro.uv().signum() <= 0) {
@@ -109,7 +110,7 @@ public class CriterioUvUtService {
             }
             atendidas.add(metro.linea());
             suma = suma.add(metro.uv());
-            boolean termino = metro.uv().multiply(BigDecimal.valueOf(utEjecutadas)).compareTo(BigDecimal.valueOf(tramos)) >= 0;
+            boolean termino = metro.uv().multiply(BigDecimal.valueOf(metro.duracion() == null ? utEjecutadas : metro.duracion())).compareTo(BigDecimal.valueOf(tramos)) >= 0;
             completo &= termino;
             unidades.add(new Unidad(metro.id(), metro.linea(), tramos, metro.uv(),
                 BigDecimal.valueOf(tramos).divide(metro.uv(), 4, RoundingMode.HALF_UP), termino));
@@ -121,7 +122,7 @@ public class CriterioUvUtService {
             jdbc.update("""
                 INSERT INTO resultado_uv_ut(id_simulacion,version,huella_problema,huella_ejecucion,limite_ut,presupuesto_uv,ut_ejecutadas,suma_uv,completo,unidades)
                 VALUES (?,?,?,?,?,?,?,?,?,CAST(? AS jsonb))
-                """, idSimulacion, c.version(), problema, ejecucion, c.limiteUt(), c.presupuestoUv(), utEjecutadas,
+                """, idSimulacion, c.version(), problema, ejecucion, c.limiteUt(), c.presupuestoUv(), tiempoTotal,
                 suma, completo, mapper.writeValueAsString(unidades));
         } catch (com.fasterxml.jackson.core.JsonProcessingException error) {
             throw new IllegalStateException("No fue posible registrar el resultado UV/UT", error);
@@ -220,6 +221,6 @@ public class CriterioUvUtService {
         return resultado;
     }
 
-    private record Metro(int id, String linea, BigDecimal uv) {}
+    private record Metro(int id, String linea, BigDecimal uv, Integer duracion) {}
     private record Tramo(String linea, String a, String b) {}
 }

@@ -152,8 +152,8 @@ public class SimulacionService {
             SELECT ?, nombre_linea, nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?
             """, idDisenoNuevo, idDisenoBase);
         jdbcTemplate.update("""
-            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio)
-            SELECT ?, nombre_linea, capacidad, velocidad_promedio FROM metro WHERE id_diseno = ?
+            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio, duracion_ut)
+            SELECT ?, nombre_linea, capacidad, velocidad_promedio, duracion_ut FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, idDisenoNuevo, idDisenoBase);
         jdbcTemplate.update("""
             INSERT INTO intento (id_usuario, id_escenario, id_diseno, estado, puntaje)
@@ -312,10 +312,12 @@ public class SimulacionService {
         if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
         }
+        if (solicitud.duracionUt() != null && solicitud.duracionUt() <= 0)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "UT debe ser un entero mayor que cero");
         if (jdbcTemplate.update("""
-            UPDATE metro SET nombre_linea = ?, capacidad = ?, velocidad_promedio = ?
+            UPDATE metro SET nombre_linea = ?, capacidad = ?, velocidad_promedio = ?, duracion_ut = COALESCE(?, duracion_ut)
             WHERE id_diseno = ? AND id_tren = ?
-            """, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio(), idDiseno, idTren) == 0) {
+            """, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio(), solicitud.duracionUt(), idDiseno, idTren) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la unidad de metro solicitada");
         }
         marcarEnDiseno(idUsuario, idDiseno);
@@ -360,6 +362,7 @@ public class SimulacionService {
         }
         List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
         int unidades = unidadesMetro.size();
+        int duracion = unidadesMetro.stream().mapToInt(u -> u.duracionUt() == null ? solicitud.duracion() : u.duracionUt()).max().orElse(solicitud.duracion());
         PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
             estadoPermiteSimular(resumen.estado()), unidadesMetro, idDiseno
         );
@@ -375,14 +378,14 @@ public class SimulacionService {
                      AND (t.nombre_estacion_a = e.nombre OR t.nombre_estacion_b = e.nombre)) >= 2
             """, Integer.class, idDiseno);
         int puntaje = 0; // Sin criterios de escenario no se asignan puntos por cantidad de elementos.
-        String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + solicitud.duracion()
-            + (uvUt ? " UT." : " h simuladas.") + " La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
+        String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + duracion
+            + " UT." + " La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
         boolean progresivo = juegoEducativoService.esDisenoProgresivo(idUsuario, idDiseno);
-        comentarios += juegoEducativoService.marcaRedSimulada(idDiseno);
+        comentarios += juegoEducativoService.marcaRedSimulada(idDiseno, solicitud.duracion());
         Integer idSimulacion = jdbcTemplate.queryForObject("""
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
-            """, Integer.class, idIntento, solicitud.velocidad(), solicitud.duracion(), comentarios, puntaje);
+            """, Integer.class, idIntento, solicitud.velocidad(), duracion, comentarios, puntaje);
         criterioUvUt.registrar(idIntento, idDiseno, idSimulacion, solicitud.duracion());
         if (progresivo) {
             juegoEducativoService.registrarPuntuacionSimulacion(idUsuario, idDiseno, idSimulacion);
@@ -789,10 +792,10 @@ public class SimulacionService {
 
     private List<UnidadMetroSimulacionResponse> listarUnidades(Integer idDiseno) {
         return jdbcTemplate.query("""
-            SELECT id_tren, nombre_linea, capacidad, velocidad_promedio
+            SELECT id_tren, nombre_linea, capacidad, velocidad_promedio, duracion_ut
             FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, (resultado, fila) -> new UnidadMetroSimulacionResponse(
-                resultado.getInt("id_tren"), resultado.getString("nombre_linea"), resultado.getInt("capacidad"), resultado.getBigDecimal("velocidad_promedio")
+                resultado.getInt("id_tren"), resultado.getString("nombre_linea"), resultado.getInt("capacidad"), resultado.getBigDecimal("velocidad_promedio"), resultado.getObject("duracion_ut", Integer.class)
             ), idDiseno);
     }
 

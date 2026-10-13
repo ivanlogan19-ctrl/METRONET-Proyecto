@@ -1,3 +1,4 @@
+import { funcionesIntroducidas, funcionesEnsenadas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import RecorridoInicial from './RecorridoInicial.js';
 import './tutorial-inicial.css';
@@ -10,12 +11,12 @@ const PASOS = [
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
-  ['.simulacion-selector-metros > summary', 'Elegir metros', 'Seleccioná Todos los metros para aplicar la misma UV a todos, o elegí uno para ajustar solo esa unidad.'],
-  ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para comparar la UV de cada metro con la duración global aplicada. No modifica la red.'],
+  ['.simulacion-selector-metros > summary', 'Elegir metros', 'Seleccioná Todos los metros para aplicar UV o UT a todos, o elegí uno para ajustar solo esa unidad.'],
+  ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para consultar la UV y la UT guardadas de cada metro. No modifica la red.'],
   ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', 'Ajustá la UV del metro seleccionado; con Todos los metros, el mismo valor se aplica al conjunto.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
-  ['#seccionConfiguracion', 'Duración simulada · h', 'La duración representa horas simuladas. Es independiente de UV y del ritmo visual ×; pulsá Aplicar duración.'],
-  ['#aplicarUnidadTiempo', 'Aplicar duración', 'Confirmá las horas simuladas antes del próximo recorrido. Podés cambiarla sin iniciar la simulación.'],
+  ['#seccionConfiguracion', 'Duración simulada · UT', 'La duración UT representa el tiempo simulado y es independiente de UV. Confirmala con el disquete.'],
+  ['#aplicarUnidadTiempo', 'Aplicar duración', 'Confirmá la duración UT antes del próximo recorrido. Podés cambiarla sin iniciar la simulación.'],
   ['.simulacion-accesos-titulo', 'Sonido y salida', 'Desde esta fila podés controlar el sonido, repetir el tutorial o volver a Edición.'],
 ];
 
@@ -24,7 +25,7 @@ const RESUMEN = [
   ['play', 'Iniciá, pausá o detené el recorrido.'],
   ['metros', 'Elegí todos los metros o una unidad.'],
   ['velocidad', 'Ajustá y aplicá la velocidad UV.'],
-  ['reloj', 'Ajustá y aplicá las horas simuladas.'],
+  ['reloj', 'Ajustá y aplicá la duración UT.'],
 ];
 
 export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () => {}) {
@@ -38,10 +39,6 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
   const cabecera = document.createElement('header');
   const titulo = document.createElement('h2'); titulo.textContent = 'Guía rápida';
   cabecera.append(titulo);
-  const salir = document.createElement('button'); salir.type = 'button';
-  configurarBotonIcono(salir, 'cancelar', 'Cerrar guía rápida');
-  salir.addEventListener('click', () => { cerrar(); acceso.focus({preventScroll:true}); });
-  cabecera.append(salir);
   const estado = document.createElement('p'); estado.className = 'metronet-tutorial__completado';
   estado.textContent = 'Tutorial completado'; estado.hidden = true;
   const lista = document.createElement('div'); lista.className = 'metronet-tutorial__herramientas';
@@ -77,7 +74,7 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
     panel.showPopover(); acceso.setAttribute('aria-expanded', 'true'); posicionar();
   }
   function cerrarFuera(evento) {
-    if (!panel.contains(evento.target) && evento.target !== acceso) cerrar();
+    if (!panel.contains(evento.target) && !acceso.contains(evento.target)) cerrar();
   }
   function cerrarEscape(evento) {
     if (evento.key !== 'Escape' || !panel.matches(':popover-open')) return;
@@ -98,31 +95,35 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
   } };
 }
 
-export function pasosSimulacion(numero) {
+export function pasosSimulacion(numero, escenario, pendientes) {
+  const nuevas = pendientes ?? funcionesIntroducidas(numero, escenario);
   const ejecucion = ['#formularioEjecucion', 'Observá el recorrido', 'Pulsá Play y esperá a que termine la ejecución. Pausar o detener no completa este paso.', 'ejecucion'];
-  const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Mantené las mismas horas para observar el efecto de la velocidad.', 'velocidad'];
-  const duracion = ['#seccionConfiguracion', 'Cambiá horas simuladas', 'Aumentá o reducí las horas y aplicá la duración. UV y ritmo × permanecen independientes.', 'duracion'];
-  if (numero === 2) return [[...PASOS[9]], ejecucion, velocidad, ejecucion];
-  if (numero === 3) return [[...PASOS[11]], ejecucion, duracion, ejecucion];
-  if (numero === 4) return [PASOS[7], ejecucion,
-    ['.simulacion-parametro-velocidad', 'Ajuste global', 'Elegí Todos los metros, aplicá una misma UV nueva al conjunto y conservá las horas.', 'velocidad-global'], ejecucion,
+  const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Mantené la misma duración UT para observar el efecto de la velocidad.', 'velocidad'];
+  const duracion = ['#seccionConfiguracion', 'Cambiá duración UT', 'Aumentá o reducí la duración UT y aplicala. La velocidad UV se conserva.', 'duracion'];
+  if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[9]], ejecucion, velocidad, ejecucion];
+  if (nuevas.includes('simulacion.duracion')) return [[...PASOS[11]], ejecucion, duracion, ejecucion];
+  if (nuevas.includes('simulacion.global') || nuevas.includes('simulacion.individual')) return [PASOS[7], ejecucion,
+    ['.simulacion-parametro-velocidad', 'Ajuste global', 'Elegí Todos los metros, aplicá una misma UV nueva al conjunto y conservá la duración UT.', 'velocidad-global'], ejecucion,
     ['.simulacion-selector-metros', 'Elegí una unidad', 'Seleccioná un Metro concreto en el selector.', 'unidad-individual'],
     ['.simulacion-parametro-velocidad', 'Ajuste individual', 'Cambiá y aplicá solo la UV de la unidad elegida. Las otras unidades conservan su valor.', 'velocidad-individual'], ejecucion];
-  if (numero === 9) return [['#formularioEjecucion', 'Comparar A y B', 'Compararemos ejecuciones de la misma red. Cambiar controles sin volver a ejecutar no alcanza.'],
+  if (nuevas.includes('simulacion.combinacion')) return [['#formularioEjecucion', 'Comparar A y B', 'Compararemos ejecuciones de la misma red. Cambiar controles sin volver a ejecutar no alcanza.'],
     ejecucion, velocidad, duracion, ejecucion];
   if (numero !== 1 && Number.isInteger(numero)) return [];
   return [...PASOS.slice(0,2), PASOS[7], PASOS[9], PASOS[11],
-    ['.simulacion-ritmo', 'Ritmo visual ×', 'El ritmo cambia qué tan rápido ves la simulación; no modifica UV ni horas simuladas.'],
     ...PASOS.slice(2,7)];
 }
 
-export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel) {
+export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { primeraVisita = false, escenario, pendientes } = {}) {
+  const practicas = pasosSimulacion(numeroNivel, escenario, pendientes);
+  const pasos = primeraVisita && numeroNivel !== 1
+    ? [...pasosSimulacion(1), ...practicas]
+    : practicas.length ? practicas : pasosSimulacion(1);
   const recorrido = new RecorridoInicial(alFinalizar, {
     interactivo: true,
     senalarDeshabilitados: true,
     disparador: '#tutorialPantallaSimulacion',
     evitarControles: '.simulacion-aplicacion button, .simulacion-aplicacion a[href], .simulacion-aplicacion summary, .simulacion-aplicacion input:not([type="hidden"]), .simulacion-aplicacion select:not([aria-hidden="true"])',
-    pasos: pasosSimulacion(numeroNivel).length ? pasosSimulacion(numeroNivel) : pasosSimulacion(1),
+    pasos,
     pasosDinamicos: true,
     tituloFinal: '¡Listo para simular!',
     textoFinal: 'Ya conocés los controles de esta pantalla. Podés repetir el recorrido junto al botón de sonido.',
@@ -131,17 +132,25 @@ export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel) {
   return recorrido;
 }
 
-export function presentarTutorialSimulacion({ idUsuario, numeroNivel, numeroCampana, repetido = false, alFinalizar } = {}) {
-  if (repetido || !Number.isInteger(numeroNivel) || !pasosSimulacion(numeroNivel).length) return null;
-  const clave = `metronet:tutorial-pantalla-simulacion:v4:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:${numeroNivel ?? 'libre'}`;
+export function presentarTutorialSimulacion({ idUsuario, numeroNivel, numeroCampana, escenario, repetido = false, alFinalizar } = {}) {
+  const prefijo = `metronet:tutorial-pantalla-simulacion:v4:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
+  const clave = `${prefijo}${numeroNivel ?? 'libre'}`;
+  const primeraVisita = `${prefijo}primera-visita`;
+  let conocido = funcionesEnsenadas(idUsuario).has('simulacion.inicial');
   try {
+    conocido ||= Boolean(localStorage.getItem(primeraVisita))
+      || [1,2,3,4,5,6,7,8,9,10,'libre'].some(n => localStorage.getItem(`${prefijo}${n}`));
     if (localStorage.getItem(clave)) return null;
-  } catch { /* El recorrido sigue disponible si el almacenamiento está bloqueado. */ }
+  } catch { /* La guía sigue disponible sin almacenamiento. */ }
+  const pendientes = funcionesIntroducidas(numeroNivel, escenario).filter(clave => clave.startsWith('simulacion.') && !funcionesEnsenadas(idUsuario).has(clave));
+  if (conocido && (repetido || !Number.isInteger(numeroNivel) || !pendientes.length)) return null;
   const recorrido = abrirTutorialSimulacion((completado, motivo) => {
     if (completado || motivo === 'omitido') try {
       localStorage.setItem(clave, completado ? 'presentado' : 'omitido');
+      localStorage.setItem(primeraVisita, 'presentado');
     } catch { /* No afecta la simulación. */ }
+    if (completado) registrarFuncionesEnsenadas(idUsuario, ['simulacion.inicial', ...pendientes]);
     alFinalizar?.(completado);
-  }, numeroNivel);
+  }, numeroNivel, { primeraVisita: !conocido, escenario, pendientes });
   return recorrido;
 }

@@ -32,10 +32,11 @@ export default class ReferenciasGeograficas {
         else escena.controlZoom?.enfocarZonas(seleccion);
       }
     };
-    this.barrios = new SelectorBarrios({ titulo:'Barrios', integrado:true, contenedorPadre:this.panel.seleccion, onCambio:s => seleccionar('barrio',s) });
-    this.zonas = new SelectorZonas({ titulo:'Zonas', integrado:true, contenedorPadre:this.panel.seleccion, onCambio:s => seleccionar('zona',s) });
+    this.barrios = new SelectorBarrios({ titulo:'Barrios', integrado:true, coexistir:true, tamanoPagina:6, contenedorPadre:this.panel.seleccion, onCambio:s => seleccionar('barrio',s) });
+    this.zonas = new SelectorZonas({ titulo:'Zonas', integrado:true, coexistir:true, contenedorPadre:this.panel.seleccion, onCambio:s => seleccionar('zona',s) });
     this.barrios.crear(escena.capaBarrios.obtenerNombres());
     this.zonas.crear();
+    this.panel.integrarSelectores(this.barrios, this.zonas);
     this.busqueda = new PanelPuntosInteres({
       siempreVisible: true,
       contenedorPadre:this.panel.busqueda,

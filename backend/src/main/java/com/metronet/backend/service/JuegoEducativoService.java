@@ -368,6 +368,7 @@ public class JuegoEducativoService {
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
 
+    public String marcaRedSimulada(Integer idDiseno, int duracion) { return puntuacion.marcaDidactica(idDiseno, duracion); }
     public String marcaRedSimulada(Integer idDiseno) { return puntuacion.marcaDidactica(idDiseno); }
 
     public boolean esDisenoProgresivo(Integer idUsuario, Integer idDiseno) {
@@ -590,11 +591,16 @@ public class JuegoEducativoService {
             booleano(reglas, "requiereSimulacion")
         );
         boolean requiereCoberturaPuntosInteres = booleano(reglas, "requiereCoberturaPuntosInteres");
-        List<PuntoInteresObjetivoResponse> puntosInteresObjetivo = requiereCoberturaPuntosInteres || booleano(reglas, "requiereObjetivosMismaLinea")
+        boolean poiIndividuales = booleano(reglas, "requierePoiIndividuales");
+        List<PuntoInteresObjetivoResponse> puntosInteresObjetivo = requiereCoberturaPuntosInteres || booleano(reglas, "requiereObjetivosMismaLinea") || poiIndividuales
             ? objetivosPuntosInteresService.obtenerObjetivos(intento.reglasExito())
             : List.of();
         List<ReferenciaObjetivoConsignaResponse> referenciasObjetivo = obtenerReferenciasObjetivo(idDiseno, puntosInteresObjetivo);
         int puntosCubiertos = (int) referenciasObjetivo.stream().filter(ReferenciaObjetivoConsignaResponse::cubierto).count();
+        if (poiIndividuales) for (var referencia : referenciasObjetivo) {
+            condiciones.add(new CondicionConsignaResponse("poi:" + referencia.idPunto(),
+                "Conectar " + referencia.nombrePunto(), referencia.cubierto() ? 1 : 0, 1, referencia.cubierto()));
+        }
         boolean coberturaPuntosInteres = !requiereCoberturaPuntosInteres || (
             !referenciasObjetivo.isEmpty() && puntosCubiertos == referenciasObjetivo.size()
         );

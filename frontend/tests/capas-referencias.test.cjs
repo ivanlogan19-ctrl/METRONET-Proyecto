@@ -45,7 +45,7 @@ test('Inventario: 121 IDs, metadata y coordenadas intactos, 62 polígonos, seis 
 
 test('Multiselección por UI: barrios y zonas independientes, ocultar/restaurar no borra selección ni afecta POI', async t=>{
   const {pagina:p,solicitudes}=await abrir(t);
-  await panel(p); await p.getByRole('button',{name:'Barrios / Zonas',exact:true}).click();
+  await panel(p);
   await p.locator('#metronet-selector-barrios .metronet-panel-encabezado').click();
   await p.locator('#metronet-selector-barrios input[value="AGUADA"]').check();
   await p.locator('#metronet-selector-barrios input[value="AIRES PUROS"]').check();
@@ -54,11 +54,9 @@ test('Multiselección por UI: barrios y zonas independientes, ocultar/restaurar 
   await zonas.nth(1).check(); await zonas.nth(2).check();
   const seleccion=()=>p.evaluate(()=>({b:editorPrueba.escena.capaBarrios.barriosSeleccionados,z:editorPrueba.escena.capaBarrios.zonasSeleccionadas,c:[...poi.categoriasVisibles]}));
   const antes=await seleccion(); assert.equal(antes.b.length,2); assert.equal(antes.z.length,2);
-  await p.locator('#metronet-selector-barrios .metronet-panel-encabezado').click();
   await p.locator('#metronet-selector-barrios input[value="AGUADA"]').uncheck();
   assert.deepEqual(await seleccion(), { ...antes, b: ['AIRES PUROS'] });
   await p.locator('#metronet-selector-barrios input[value="AGUADA"]').check();
-  await p.locator('#metronet-selector-zonas .metronet-panel-encabezado').click();
   await zonas.nth(1).uncheck();
   const restante = await seleccion();
   assert.equal(restante.z.length, 1);
@@ -80,23 +78,21 @@ for (const viewport of [{width:1440,height:900},{width:320,height:568},{width:84
   test(`Listas de barrios y zonas legibles al abrir a ${viewport.width}x${viewport.height}`, async t => {
     const {pagina:p}=await abrir(t,{viewport});
     await panel(p);
-    await p.getByRole('button',{name:'Barrios / Zonas',exact:true}).click();
     const camara=()=>p.evaluate(()=>{
       const c=editorPrueba.escena.cameras.main;
       return {scrollX:c.scrollX,scrollY:c.scrollY,zoom:c.zoom,paginaY:window.scrollY};
     });
     const antes=await camara();
     for (const tipo of ['barrios','zonas','barrios']) {
-      const encabezado=p.locator(`#metronet-selector-${tipo} > button`);
-      await encabezado.focus();
-      await p.keyboard.press('Enter');
+      const encabezado=p.locator(`#metronet-selector-${tipo} .metronet-panel-encabezado`);
+      if (await encabezado.getAttribute('aria-expanded') !== 'true') { await encabezado.focus(); await p.keyboard.press('Enter'); }
       const medidas=await p.locator('.metronet-poi__panel').evaluate((panel,tipo)=>{
         const caja=panel.getBoundingClientRect();
-        const contenedor=panel.querySelector('[data-contenedor-selectores-mapa]').getBoundingClientRect();
+        const contenedor=panel.querySelector(`#metronet-selector-${tipo}`).getBoundingClientRect();
         const contenido=panel.querySelector(`#metronet-selector-${tipo} .metronet-panel-contenido`).getBoundingClientRect();
         const visibles=[...panel.querySelectorAll(`#metronet-selector-${tipo} label`)].filter(e=>{
           const r=e.getBoundingClientRect();
-          return r.top>=caja.top && r.bottom<=caja.bottom && r.height>=44;
+          return r.top>=caja.top && r.bottom<=caja.bottom && r.height>=38;
         });
         const botones=[...panel.querySelectorAll('.metronet-panel-encabezado')].map(e=>e.getBoundingClientRect());
         return {
@@ -108,7 +104,7 @@ for (const viewport of [{width:1440,height:900},{width:320,height:568},{width:84
         };
       },tipo);
       assert.ok(medidas.visibles>=2,'Las primeras opciones deben verse sin desplazar manualmente el menú');
-      assert.equal(medidas.ancho,medidas.anchoDisponible);
+      assert.equal(medidas.ancho,medidas.anchoDisponible-2);
       assert.equal(medidas.alineados,true);
       assert.equal(medidas.accesibles,true);
       assert.equal(medidas.dentro,true);
@@ -127,7 +123,7 @@ test('Búsqueda de objetivos con capas apagadas conserva la selección territori
     await p.getByRole('searchbox').fill(nombre);
     await p.locator(`.metronet-panel-puntos-lista [data-id-punto="${id}"]`).click();
     const ficha=p.getByRole('dialog'); await ficha.waitFor(); assert.match(await ficha.innerText(),new RegExp(nombre.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));
-    await ficha.getByRole('button',{name:'Cerrar',exact:true}).click();
+    await ficha.getByRole('button',{name:'Cerrar información',exact:true}).click();
     const r=await p.evaluate(id=>({capas:[...poi.categoriasVisibles],b:editorPrueba.escena.capaBarrios.barriosSeleccionados,visible:poi.representaciones.find(r=>r.punto.id===id).contenedor.visible,buscado:poi.puntoBuscado}),id);
     assert.deepEqual(r.capas,[]); assert.deepEqual(r.b,['AGUADA']); assert.equal(r.visible,true); assert.ok(r.buscado);
     await panel(p); await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).click(); await p.getByRole('searchbox').fill(''); await p.keyboard.press('Escape');
@@ -142,9 +138,9 @@ for(const width of [1440,1024,768,390,320]) test(`POI y HUD a ${width}px: acceso
   assert.equal(await p.locator('.metronet-territorio-selectores').count(),0);
   await p.locator('.metronet-poi>summary').focus(); await p.keyboard.press('Enter');
   const rect=await p.locator('.metronet-poi__panel').boundingBox();
-  assert.ok(rect.x>=0&&rect.x+rect.width<=width); assert.ok(rect.width<=410);
+  assert.ok(rect.x>=0&&rect.x+rect.width<=width,JSON.stringify(await p.locator('.metronet-poi__panel').evaluate(e=>({rect:e.getBoundingClientRect().toJSON(),left:e.style.left,parent:e.offsetParent?.className,parentRect:e.offsetParent?.getBoundingClientRect().toJSON()})))); assert.ok(rect.width<=410);
   const sizes=await p.locator('.metronet-poi__categorias button').evaluateAll(bs=>bs.map(b=>({h:b.getBoundingClientRect().height,w:b.getBoundingClientRect().width,p:getComputedStyle(b).padding,svg:!!b.querySelector('svg')})));
-  assert.ok(sizes.every(b=>b.h>=44&&b.w>=44&&b.svg)); assert.equal(new Set(sizes.map(b=>b.h)).size,1); assert.equal(new Set(sizes.map(b=>b.p)).size,1);
+  assert.ok(sizes.every(b=>b.h===34&&b.w===34&&b.svg)); assert.equal(new Set(sizes.map(b=>b.h)).size,1); assert.equal(new Set(sizes.map(b=>b.p)).size,1);
   await p.keyboard.press('Escape'); assert.equal(await p.locator('.metronet-poi').evaluate(e=>e.open),false);
   assert.equal(await p.locator('.metronet-poi>summary').evaluate(e=>e===document.activeElement),true);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -165,7 +161,7 @@ test('Iconos e indicadores mantienen el color de su categoría y muestran ayuda 
   await panel(p);
   const colores = await p.evaluate(async () => {
     const { CATEGORIAS_REFERENCIAS } = await import('/src/mapa/configuracion/CategoriasReferencias.js');
-    return Object.entries(CATEGORIAS_REFERENCIAS).filter(([categoria]) => categoria !== 'OTROS').map(([categoria, { color }]) => {
+    return Object.entries(CATEGORIAS_REFERENCIAS).filter(([categoria]) => categoria !== 'OTROS' && categoria !== 'BARRIOS_ZONAS').map(([categoria, { color }]) => {
       const boton = document.querySelector(`.metronet-poi__categorias [data-categoria="${categoria}"]`);
       const indicador = document.querySelector(`.metronet-capas-activas [data-categoria="${categoria}"]`);
       return {

@@ -7,7 +7,7 @@ let navegador;
 before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 
-async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2], nivel = false, numeroNivel = 2, nombreLinea = 'Azul', viewport = { width: 1440, height: 900 } } = {}) {
+async function abrir(t, { fallaSegunda = false, redResuelta = true, demoraEjecucion = 0, ids = [1, 2], nivel = false, numeroNivel = 2, nombreLinea = 'Azul', viewport = { width: 1440, height: 900 } } = {}) {
   const idEscenario = 40 + numeroNivel;
   const red = {
     simulacion: { idDiseno: 77, nombre: 'Red operacional', modo: nivel ? 'NIVEL' : 'LIBRE', estado: 'VALIDADO', ...(nivel ? { idEscenario } : {}) },
@@ -23,7 +23,7 @@ async function abrir(t, { fallaSegunda = false, demoraEjecucion = 0, ids = [1, 2
         estado: 'EN_DESARROLLO', desbloqueado: true, cantidadIntentosCampana: 2 })),
     } };
     if (path === '/api/simulaciones/77') return { json: red };
-    if (path.endsWith('/desempeno')) return { json: { puntajeMaximo: 100, redResuelta: true, unidades: [],
+    if (path.endsWith('/desempeno')) return { json: { puntajeMaximo: 100, redResuelta, unidades: [],
       ...(nivel ? { configuracionUvUt: { limiteUt: 6, presupuestoUv: 8 } } : {}) } };
     if (/\/unidades\/\d+$/.test(path)) {
       const id = Number(path.split('/').pop());
@@ -56,9 +56,11 @@ async function seleccionarMetro(p, id) {
 // de cada nivel sin modificar partidas ni puntajes de usuarios reales.
 for (const n of catalogoRecorrido) test(`Nivel ${n.numero}: aplicar UV/UT permite Play, detener y volver a ejecutar`, async t => {
   const { pagina: p, solicitudes, red } = await abrir(t, { nivel: true, numeroNivel: n.numero });
+  assert.equal(await p.locator(".metronet-poi > summary").isVisible(), n.numero >= 6, "POI solo después de su introducción");
   await aplicar(p, 4);
   await p.locator('#duracionSimulacion').fill('8');
   await p.locator('#aplicarUnidadTiempo').click();
+  await p.waitForFunction(()=>document.getElementById('mensajeSimulacion').textContent.startsWith('Duración guardada: 8')&&!document.getElementById('aplicarUnidadTiempo').disabled);
   const play = p.locator('#formularioEjecucion button[type=submit]');
   for (let i = 0; i < 2; i++) {
     assert.equal(await play.isEnabled(), true);
@@ -86,7 +88,7 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   await configuracion.locator('summary').click();
   assert.equal(await configuracion.locator('li').first().isVisible(), true);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1Línea AzulUV actual3 UVUT actual6 h', 'Metro 2Línea AzulUV actual3 UVUT actual6 h',
+    'Metro 1Línea AzulUV actual3 UVUT actual6 UT', 'Metro 2Línea AzulUV actual3 UVUT actual6 UT',
   ]);
   await configuracion.locator('summary').press('Escape');
   assert.equal(await configuracion.locator('li').first().isVisible(), false);
@@ -99,12 +101,13 @@ test('Feedback UV visible: selección, valor aplicado y unidad elegida', async t
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '2');
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [2, 3]);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1Línea AzulUV actual2 UVUT actual6 h', 'Metro 2Línea AzulUV actual3 UVUT actual6 h',
+    'Metro 1Línea AzulUV actual2 UVUT actual6 UT', 'Metro 2Línea AzulUV actual3 UVUT actual6 UT',
   ]);
   await p.locator('#duracionSimulacion').fill('4');
   await p.locator('#aplicarUnidadTiempo').click();
+  await p.waitForFunction(()=>document.getElementById('mensajeSimulacion').textContent.startsWith('Duración guardada: 4')&&!document.getElementById('aplicarUnidadTiempo').disabled);
   assert.deepEqual(await p.locator('.simulacion-configuracion-metros__lista li').allTextContents(), [
-    'Metro 1Línea AzulUV actual2 UVUT actual4 h', 'Metro 2Línea AzulUV actual3 UVUT actual4 h',
+    'Metro 1Línea AzulUV actual2 UVUT actual4 UT', 'Metro 2Línea AzulUV actual3 UVUT actual6 UT',
   ]);
 });
 
@@ -115,6 +118,7 @@ test('Aplicar UT confirma con el mismo gesto breve que UV, sin carteles ni texto
   const mensaje = await p.locator('#mensajeSimulacion').textContent();
   await p.locator('#duracionSimulacion').fill('4');
   await boton.click();
+  await p.waitForFunction(()=>!document.getElementById('aplicarUnidadTiempo').disabled);
   const gesto = await boton.evaluate(e => {
     const animaciones = e.getAnimations().filter(a => a.id === 'aplicar-parametro');
     return { cantidad: animaciones.length, duracion: animaciones[0]?.effect.getTiming().duration,
@@ -124,15 +128,17 @@ test('Aplicar UT confirma con el mismo gesto breve que UV, sin carteles ni texto
   assert.ok(gesto.duracion > 0 && gesto.duracion <= 300);
   assert.equal(gesto.transform, 'none');
   assert.equal(await boton.getAttribute('aria-label'), nombre);
-  assert.equal(await p.locator('#mensajeSimulacion').textContent(), mensaje);
+  assert.match(await p.locator('#mensajeSimulacion').textContent(), /Duración guardada: 4 UT/);
   assert.equal(await p.locator('dialog[open]').count(), 0);
   await boton.evaluate(e => { e.click(); e.click(); });
+  await p.waitForFunction(()=>!document.getElementById('aplicarUnidadTiempo').disabled);
   assert.equal(await boton.evaluate(e => e.getAnimations().filter(a => a.id === 'aplicar-parametro').length), 1);
   await boton.evaluate(e => Promise.all(e.getAnimations().filter(a => a.id === 'aplicar-parametro').map(a => a.finished)));
   assert.equal(await boton.evaluate(e => e.getAnimations().filter(a => a.id === 'aplicar-parametro').length), 0);
   assert.match(await p.locator('.simulacion-configuracion-metros__lista').textContent(), /4 UT/);
   assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [3, 3]);
-  assert.equal(solicitudes.some(s => ['POST', 'PATCH', 'PUT'].includes(s.method)), false);
+  assert.equal(solicitudes.filter(s => s.method === 'PATCH').length,4);
+  assert.ok(solicitudes.filter(s=>s.method==='PATCH').every(s=>s.body.duracionUt===4));
   await p.locator('#duracionSimulacion').fill('0');
   await boton.click();
   assert.equal(await boton.evaluate(e => e.getAnimations().filter(a => a.id === 'aplicar-parametro').length), 0);
@@ -140,6 +146,7 @@ test('Aplicar UT confirma con el mismo gesto breve que UV, sin carteles ni texto
   await p.locator('#duracionSimulacion').fill('5');
   await boton.focus();
   await p.keyboard.press('Enter');
+  await p.waitForFunction(()=>!document.getElementById('aplicarUnidadTiempo').disabled);
   assert.equal(await boton.evaluate(e => getComputedStyle(e).transform), 'none');
   assert.match(await p.locator('.simulacion-configuracion-metros__lista').textContent(), /5 UT/);
 });
@@ -240,7 +247,7 @@ test('Ejecución: validación automática, horas simuladas y selección sin perm
   assert.deepEqual(solicitudes.find(s => s.path.endsWith('/ejecutar')).body, { velocidad: 1, duracion: 60 });
   assert.ok(solicitudes.some(s => s.path.endsWith('/validacion') && s.method === 'POST'));
   assert.ok(solicitudes.some(s => s.path.endsWith('/guardar') && s.method === 'POST'));
-  assert.equal(solicitudes.filter(s => s.method === 'PATCH').length, 0);
+  assert.equal(solicitudes.filter(s => s.method === 'PATCH').length, 2, 'Solo las dos UT guardadas antes de Play; seleccionar y pausar no escribe');
 });
 
 for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720], [768, 900], [390, 844], [320, 740]]) {
@@ -277,8 +284,36 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
       const filas = await p.locator(selector).evaluate(e => [...e.querySelectorAll('input, button')].map(c => c.getBoundingClientRect().top));
       assert.ok(Math.max(...filas) - Math.min(...filas) <= 1, 'Valor y acciones deben compartir una fila');
       const altos = await p.locator(selector).evaluate(e => [...e.querySelectorAll('input, button')].map(c => c.getBoundingClientRect().height));
-      assert.ok(altos.every(alto => alto === 44), 'Todos los controles de parámetros tienen el mismo alto');
+      assert.ok(altos.every(alto => alto === 40), 'Todos los controles de parámetros tienen el mismo alto');
     }
+    const iconosGuardado = await p.locator('.simulacion-parametro-valor .metronet-boton-icono > .metronet-icono').evaluateAll(iconos => iconos.map(icono => {
+      const rect = icono.getBoundingClientRect(), boton = icono.parentElement.getBoundingClientRect();
+      return { ancho: rect.width, alto: rect.height, desvioX: Math.abs(rect.x + rect.width / 2 - boton.x - boton.width / 2), desvioY: Math.abs(rect.y + rect.height / 2 - boton.y - boton.height / 2) };
+    }));
+    assert.equal(iconosGuardado.length, 2);
+    assert.ok(iconosGuardado.every(icono => icono.ancho === 18 && icono.alto === 18 && icono.desvioX <= 1 && icono.desvioY <= 1), JSON.stringify(iconosGuardado));
+    const centrado = await p.evaluate(() => {
+      const grupo = document.querySelector('.simulacion-grupo-metros');
+      const r = e => e.getBoundingClientRect();
+      const cabecera = r(grupo.querySelector('h3'));
+      const menus = [...grupo.querySelectorAll('summary')].map(r);
+      const borde = Number.parseFloat(getComputedStyle(grupo).borderBottomWidth);
+      const espacios = [menus[0].top - cabecera.bottom, menus[1].top - menus[0].bottom, r(grupo).bottom - borde - menus[1].bottom];
+      const etiquetas = [...grupo.querySelectorAll('summary')].map(menu => {
+        const texto = r(menu.querySelector('span')), box = r(menu);
+        return Math.abs((texto.left + texto.right) / 2 - (box.left + box.right) / 2);
+      });
+      const parametros = ['.simulacion-grupo-velocidad', '#seccionConfiguracion'].map(selector => {
+        const bloque = document.querySelector(selector), rect = r(bloque), titulo = r(bloque.querySelector('h3'));
+        const fila = r(bloque.querySelector('.simulacion-parametro-valor'));
+        const bordeInferior = Number.parseFloat(getComputedStyle(bloque).borderBottomWidth);
+        return Math.abs((fila.top + fila.bottom) / 2 - (titulo.bottom + rect.bottom - bordeInferior) / 2);
+      });
+      return { espacios, etiquetas, parametros };
+    });
+    assert.ok(Math.max(...centrado.espacios) - Math.min(...centrado.espacios) <= 1, JSON.stringify(centrado));
+    assert.ok(centrado.etiquetas.every(desvio => desvio <= 1), JSON.stringify(centrado));
+    assert.ok(centrado.parametros.every(desvio => desvio <= 1), JSON.stringify(centrado));
     const mapa = await p.locator('#visorSimulacion').boundingBox();
     const panel = await p.locator('#instrumentosSimulacion').boundingBox();
     if (width > 1050) {
@@ -356,7 +391,7 @@ test('Separación uniforme, números centrados sin spinner y acciones con colore
   });
   assert.ok(medidas.ficha >= 4);
   assert.deepEqual(medidas.menus[0], medidas.menus[1]);
-  assert.equal(medidas.menus[0].height, 44);
+  assert.equal(medidas.menus[0].height, 40);
   for (const campo of medidas.campos) {
     assert.equal(campo.alineacion, 'center');
     assert.equal(campo.izquierda, campo.derecha);
@@ -413,4 +448,34 @@ for (const width of [1440, 390]) test(`Ficha por Metro a ${width}px: nivel centr
   const caja = await menu.locator('.simulacion-configuracion-metros__lista').boundingBox();
   assert.ok(caja.x >= 0 && caja.x + caja.width <= width);
   if (process.env.METRONET_CAPTURAS_FICHA) await p.screenshot({ path: `${process.env.METRONET_CAPTURAS_FICHA}/metronet-ficha-${width}.png` });
+});
+
+// Una meta pendiente de comparación no debe impedir el ajuste que la completa.
+test('UV editable con objetivos todavía pendientes', async t => {
+  const { pagina: p, red } = await abrir(t, { nivel: true, redResuelta: false });
+  assert.equal(await p.locator('#velocidadUnidad').isEnabled(), true);
+  await aplicar(p, 5);
+  assert.deepEqual(red.unidadesMetro.map(u => u.velocidadPromedio), [5, 5]);
+  assert.equal(await p.locator('#duracionSimulacion').isEnabled(), true);
+});
+
+test('UT individual y global persisten, muestran MIXTO y conservan UV',async t=>{
+ const {pagina:p,red}=await abrir(t);
+ async function guardar(ut) {
+  await p.locator('#duracionSimulacion').fill(String(ut));await p.locator('#aplicarUnidadTiempo').click();
+  await p.waitForFunction(ut=>document.getElementById('mensajeSimulacion').textContent.startsWith(`Duración guardada: ${ut}`)&&!document.getElementById('aplicarUnidadTiempo').disabled,ut);
+ }
+ await seleccionarMetro(p,'1');await guardar(2);
+ assert.deepEqual(red.unidadesMetro.map(u=>u.duracionUt),[2,undefined]);
+ assert.deepEqual(red.unidadesMetro.map(u=>u.velocidadPromedio),[3,3]);
+ await seleccionarMetro(p,'todas');
+ assert.equal(await p.locator('#duracionSimulacion').inputValue(),'');
+ assert.equal(await p.locator('#duracionSimulacion').getAttribute('placeholder'),'MIXTO');
+ await guardar(8);assert.deepEqual(red.unidadesMetro.map(u=>u.duracionUt),[8,8]);
+ await seleccionarMetro(p,'2');await aplicar(p,5);
+ assert.deepEqual(red.unidadesMetro.map(u=>u.duracionUt),[8,8]);
+ assert.deepEqual(red.unidadesMetro.map(u=>u.velocidadPromedio),[3,5]);
+ const menu=p.locator('.simulacion-configuracion-metros__desplegable');await menu.locator('summary').click();
+ assert.ok((await menu.innerText()).includes('8 UT'));
+ assert.equal(await p.locator('.metronet-poi > summary').isVisible(),true,'POI disponible en modo libre');
 });

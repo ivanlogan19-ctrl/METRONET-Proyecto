@@ -829,7 +829,9 @@ export default class EditorRedMetro {
     const consignaActual = this.consignaActual;
     const detalleDisponible = this.estadoConsigna === 'disponible' && Boolean(consignaActual);
     const condiciones = detalleDisponible
-      ? objetivosCompactos(consignaActual.condiciones, escenario?.numero) : [];
+      ? (escenario?.recorrido === 'integral-2026-10-objetivos-reales-v2'
+        ? consignaActual.condiciones.filter(c => !c.clave.startsWith('poi:'))
+        : objetivosCompactos(consignaActual.condiciones, escenario?.numero)) : [];
     const referencias = detalleDisponible ? this.obtenerReferenciasObjetivoConsigna() : [];
     const esNivel = Number.isInteger(escenario?.numero);
     this.contenedorObjetivos?.classList.toggle('metronet-objetivos-panel--nivel', esNivel);

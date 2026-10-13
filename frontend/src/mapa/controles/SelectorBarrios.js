@@ -1,4 +1,5 @@
 import PanelDinamico from './PanelDinamico.js';
+import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 
 import { normalizarBarrio } from '../utilidades/ClasificadorZonas.js';
 
@@ -19,9 +20,12 @@ export default class SelectorBarrios {
       contenedorPadre: opciones.contenedorPadre,
 
       integrado: opciones.integrado,
+      coexistir: opciones.coexistir,
     });
 
     this.barrios = [];
+    this.tamanoPagina = opciones.tamanoPagina ?? 0;
+    this.pagina = 0;
 
     this.barriosSeleccionados = new Set();
 
@@ -44,6 +48,19 @@ export default class SelectorBarrios {
     this.menu.className = 'metronet-selector-barrios-lista';
 
     this.panel.agregarElemento(this.menu);
+    if (this.tamanoPagina) {
+      this.paginacion = document.createElement('nav');
+      this.paginacion.className = 'metronet-poi__paginacion';
+      this.paginacion.setAttribute('aria-label', 'Páginas de barrios');
+      this.anterior = document.createElement('button'); this.anterior.type = 'button';
+      this.siguiente = document.createElement('button'); this.siguiente.type = 'button';
+      configurarBotonIcono(this.anterior, 'desplegar', 'Barrios anteriores');
+      configurarBotonIcono(this.siguiente, 'desplegar', 'Barrios siguientes');
+      this.anterior.addEventListener('click', () => { this.pagina--; this.actualizarPagina(); });
+      this.siguiente.addEventListener('click', () => { this.pagina++; this.actualizarPagina(); });
+      this.paginacion.append(this.anterior, this.siguiente);
+      this.panel.agregarElemento(this.paginacion);
+    }
 
     this.crearEstilos();
 
@@ -329,6 +346,20 @@ export default class SelectorBarrios {
     }
 
     this.actualizarOpcionNinguno();
+    this.actualizarPagina();
+  }
+
+  actualizarPagina() {
+    if (!this.tamanoPagina || !this.menu) return;
+    const opciones = [...this.menu.children];
+    const ultima = Math.max(0, Math.ceil(opciones.length / this.tamanoPagina) - 1);
+    this.pagina = Math.max(0, Math.min(this.pagina, ultima));
+    opciones.forEach((opcion, indice) => {
+      opcion.hidden = Math.floor(indice / this.tamanoPagina) !== this.pagina;
+    });
+    this.anterior.disabled = this.pagina === 0;
+    this.siguiente.disabled = this.pagina === ultima;
+    this.paginacion.hidden = ultima === 0;
   }
 
   mostrar() {

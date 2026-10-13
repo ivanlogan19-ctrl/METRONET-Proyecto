@@ -2,8 +2,8 @@
   {
     "numero": 1,
     "nombre": "Nivel 1 · Primer recorrido",
-    "objetivo": "Construí dos estaciones y una línea que las una con un tramo. Asignale un Metro. Guardá, entrá a Simulación e iniciá Play. El nivel termina al completar el recorrido.",
-    "instrucciones": "Construí dos estaciones y una línea que las una con un tramo. Asignale un Metro. Guardá, entrá a Simulación e iniciá Play. El nivel termina al completar el recorrido.",
+    "objetivo": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido.",
+    "instrucciones": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido.",
     "dificultad": "Inicial",
     "reglasExito": {
       "minimoEstaciones": 2,
@@ -28,7 +28,7 @@
       "concepto": "Del diseño a la circulación",
       "explicacion": "Una línea necesita estaciones conectadas y un Metro asignado para circular. Guardar comprueba la red; Simular permite observarla.",
       "contexto": "Una red comienza con un trayecto sencillo. Construí tu primer enlace y observá cómo una unidad recorre lo que diseñaste.",
-      "consejo": "Guardá, entrá a Simulación e iniciá Play. El nivel termina al completar el recorrido."
+      "consejo": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido."
     },
     "transicion": {
       "aprendizaje": "Una línea necesita estaciones conectadas y un Metro asignado para circular. Guardar comprueba la red; Simular permite observarla.",
@@ -37,13 +37,12 @@
   },
   {
     "numero": 2,
-    "nombre": "Nivel 2 · Ampliar el recorrido",
-    "objetivo": "Construí al menos tres estaciones y una línea continua con al menos dos tramos. Asignale un Metro. Guardá y ejecutá una primera simulación. Cambiá UV, aplicá el valor y volvé a ejecutar manteniendo las mismas horas simuladas.",
-    "instrucciones": "Construí al menos tres estaciones y una línea continua con al menos dos tramos. Asignale un Metro. Guardá y ejecutá una primera simulación. Cambiá UV, aplicá el valor y volvé a ejecutar manteniendo las mismas horas simuladas.",
+    "nombre": "Nivel 2 · Extender y cambiar velocidad",
+    "objetivo": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la misma duración. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
+    "instrucciones": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la misma duración. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
     "dificultad": "Inicial",
     "reglasExito": {
       "minimoEstaciones": 3,
-      "minimoLineas": 1,
       "minimoTramos": 2,
       "minimoMetros": 1,
       "requiereSimulacion": true,
@@ -67,7 +66,7 @@
       "concepto": "UV — Unidad de Velocidad",
       "explicacion": "UV es una escala didáctica de velocidad. Para observar su efecto, cambiá solamente UV entre dos ejecuciones de la misma red.",
       "contexto": "El primer enlace debe llegar más lejos. Extendé el recorrido y observá cómo cambia el movimiento cuando ajustás la velocidad de la unidad.",
-      "consejo": "Guardá y ejecutá una primera simulación. Cambiá UV, aplicá el valor y volvé a ejecutar manteniendo las mismas horas simuladas."
+      "consejo": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la misma duración. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
     },
     "transicion": {
       "aprendizaje": "UV es una escala didáctica de velocidad. Para observar su efecto, cambiá solamente UV entre dos ejecuciones de la misma red.",
@@ -77,12 +76,11 @@
   {
     "numero": 3,
     "nombre": "Nivel 3 · Tiempo simulado",
-    "objetivo": "Construí al menos cuatro estaciones y una línea continua con al menos tres tramos. Asignale un Metro. Guardá y ejecutá una primera simulación. Cambiá las horas simuladas, aplicá la duración y volvé a ejecutar manteniendo UV. El ritmo × solo cambia la reproducción visual.",
-    "instrucciones": "Construí al menos cuatro estaciones y una línea continua con al menos tres tramos. Asignale un Metro. Guardá y ejecutá una primera simulación. Cambiá las horas simuladas, aplicá la duración y volvé a ejecutar manteniendo UV. El ritmo × solo cambia la reproducción visual.",
+    "objetivo": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B sin cambiar UV. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
+    "instrucciones": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B sin cambiar UV. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
     "dificultad": "Básico",
     "reglasExito": {
       "minimoEstaciones": 4,
-      "minimoLineas": 1,
       "minimoTramos": 3,
       "minimoMetros": 1,
       "requiereSimulacion": true,
@@ -99,30 +97,28 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "La red ya conecta varios puntos. Ahora decidí cuánto tiempo simulado observar y distinguí esa duración de la velocidad del metro y del ritmo de reproducción.",
+      "texto": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la misma velocidad.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Duración simulada",
-      "explicacion": "La duración representa horas simuladas. UV define la velocidad de la unidad; el ritmo × modifica únicamente cuánto tarda en verse la ejecución.",
-      "contexto": "La red ya conecta varios puntos. Ahora decidí cuánto tiempo simulado observar y distinguí esa duración de la velocidad del metro y del ritmo de reproducción.",
-      "consejo": "Guardá y ejecutá una primera simulación. Cambiá las horas simuladas, aplicá la duración y volvé a ejecutar manteniendo UV. El ritmo × solo cambia la reproducción visual."
+      "explicacion": "La duración UT representa el tiempo simulado. Cambiala entre dos ejecuciones conservando UV para observar su efecto.",
+      "contexto": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la misma velocidad.",
+      "consejo": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B sin cambiar UV. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
     },
     "transicion": {
-      "aprendizaje": "La duración representa horas simuladas. UV define la velocidad de la unidad; el ritmo × modifica únicamente cuánto tarda en verse la ejecución.",
-      "ciudad": "La red ya conecta varios puntos. Ahora decidí cuánto tiempo simulado observar y distinguí esa duración de la velocidad del metro y del ritmo de reproducción."
+      "aprendizaje": "La duración UT representa el tiempo simulado. Cambiala entre dos ejecuciones conservando UV para observar su efecto.",
+      "ciudad": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la misma velocidad."
     }
   },
   {
     "numero": 4,
     "nombre": "Nivel 4 · Varias unidades",
-    "objetivo": "Construí al menos cuatro estaciones y una línea continua con al menos tres tramos. Asignale al menos dos Metros. Guardá y ejecutá una primera simulación. Con Todos los metros aplicá una misma UV nueva y ejecutá. Después seleccioná un Metro, cambiá solo su UV y ejecutá nuevamente. Conservá las mismas horas en las tres ejecuciones.",
-    "instrucciones": "Construí al menos cuatro estaciones y una línea continua con al menos tres tramos. Asignale al menos dos Metros. Guardá y ejecutá una primera simulación. Con Todos los metros aplicá una misma UV nueva y ejecutá. Después seleccioná un Metro, cambiá solo su UV y ejecutá nuevamente. Conservá las mismas horas en las tres ejecuciones.",
+    "objetivo": "Ubicá 4 estaciones y asigná 2 Metros a una red conectada. Guardá y entrá en Simulación. Ejecutá A. Elegí Todos los metros, cambiá y aplicá una misma UV al conjunto y ejecutá B. Después elegí un solo Metro, cambiá y aplicá su UV y ejecutá C. Conservá la duración UT. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red.",
+    "instrucciones": "Ubicá 4 estaciones y asigná 2 Metros a una red conectada. Guardá y entrá en Simulación. Ejecutá A. Elegí Todos los metros, cambiá y aplicá una misma UV al conjunto y ejecutá B. Después elegí un solo Metro, cambiá y aplicá su UV y ejecutá C. Conservá la duración UT. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red.",
     "dificultad": "Básico",
     "reglasExito": {
       "minimoEstaciones": 4,
-      "minimoLineas": 1,
-      "minimoTramos": 3,
       "minimoMetros": 2,
       "requiereSimulacion": true,
       "aprendizajeSimulacion": {
@@ -146,7 +142,7 @@
       "concepto": "Control global e individual",
       "explicacion": "Todos los metros aplica la misma UV al conjunto. Al elegir un Metro, el ajuste afecta solo a esa unidad; el resumen puede mostrar MIXTO.",
       "contexto": "Dos unidades comparten una línea. Probá una configuración común y después una individual para reconocer qué unidades cambian en cada caso.",
-      "consejo": "Guardá y ejecutá una primera simulación. Con Todos los metros aplicá una misma UV nueva y ejecutá. Después seleccioná un Metro, cambiá solo su UV y ejecutá nuevamente. Conservá las mismas horas en las tres ejecuciones."
+      "consejo": "Ubicá 4 estaciones y asigná 2 Metros a una red conectada. Guardá y entrá en Simulación. Ejecutá A. Elegí Todos los metros, cambiá y aplicá una misma UV al conjunto y ejecutá B. Después elegí un solo Metro, cambiá y aplicá su UV y ejecutá C. Conservá la duración UT. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Todos los metros aplica la misma UV al conjunto. Al elegir un Metro, el ajuste afecta solo a esa unidad; el resumen puede mostrar MIXTO.",
@@ -155,23 +151,16 @@
   },
   {
     "numero": 5,
-    "nombre": "Nivel 5 · Un lugar al que llegar",
-    "objetivo": "Buscá Palacio Legislativo desde la bandera amarilla de lugares. Colocá una estación dentro de su radio de cobertura y otra en una ubicación distinta; unilas con una línea y asignale un Metro. Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella.",
-    "instrucciones": "Buscá Palacio Legislativo desde la bandera amarilla de lugares. Colocá una estación dentro de su radio de cobertura y otra en una ubicación distinta; unilas con una línea y asignale un Metro. Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella.",
+    "nombre": "Nivel 5 · Dos líneas en servicio",
+    "objetivo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red.",
+    "instrucciones": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red.",
     "dificultad": "Intermedio",
     "reglasExito": {
-      "minimoEstaciones": 2,
-      "minimoLineas": 1,
-      "minimoTramos": 1,
-      "minimoMetros": 1,
-      "requiereSimulacion": true,
-      "requiereObjetivosMismaLinea": true,
-      "puntosInteresObjetivo": [
-        {
-          "idPunto": 1,
-          "radioCobertura": 25
-        }
-      ]
+      "minimoEstaciones": 5,
+      "minimoLineas": 2,
+      "minimoTramos": 4,
+      "minimoMetros": 2,
+      "requiereSimulacion": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -182,43 +171,47 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "La red empieza a dialogar con Montevideo. El Palacio Legislativo será la primera referencia concreta para decidir dónde colocar una estación.",
+      "texto": "El recorrido se divide en dos líneas de servicio. Construí una red conectada y poné dos unidades a circular para observar cómo se organiza el conjunto.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "POI y cobertura",
-      "explicacion": "POI significa punto de interés. La estrella identifica el lugar y el área marcada muestra dónde una estación cumple su cobertura.",
-      "contexto": "La red empieza a dialogar con Montevideo. El Palacio Legislativo será la primera referencia concreta para decidir dónde colocar una estación.",
-      "consejo": "Guardá y completá una simulación de la red. La estación debe quedar dentro del radio marcado, no solo cerca de la estrella."
+      "concepto": "Dos líneas conectadas",
+      "explicacion": "Cada línea tiene sus propios tramos. Una estación compartida permite unirlas en una misma red sin confundirlas.",
+      "contexto": "El recorrido se divide en dos líneas de servicio. Construí una red conectada y poné dos unidades a circular para observar cómo se organiza el conjunto.",
+      "consejo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red."
     },
     "transicion": {
-      "aprendizaje": "POI significa punto de interés. La estrella identifica el lugar y el área marcada muestra dónde una estación cumple su cobertura.",
-      "ciudad": "La red empieza a dialogar con Montevideo. El Palacio Legislativo será la primera referencia concreta para decidir dónde colocar una estación."
+      "aprendizaje": "Cada línea tiene sus propios tramos. Una estación compartida permite unirlas en una misma red sin confundirlas.",
+      "ciudad": "El recorrido se divide en dos líneas de servicio. Construí una red conectada y poné dos unidades a circular para observar cómo se organiza el conjunto."
     }
   },
   {
     "numero": 6,
-    "nombre": "Nivel 6 · Dos lugares, un recorrido",
-    "objetivo": "Buscá Mirador Panorámico de la Intendencia y Teatro Solís. Cubrí ambos radios con estaciones y unilos por una misma línea continua de al menos tres estaciones y dos tramos. Asignale un Metro. Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red.",
-    "instrucciones": "Buscá Mirador Panorámico de la Intendencia y Teatro Solís. Cubrí ambos radios con estaciones y unilos por una misma línea continua de al menos tres estaciones y dos tramos. Asignale un Metro. Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red.",
+    "nombre": "Nivel 6 · Tres referencias del centro",
+    "objetivo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini.",
+    "instrucciones": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini.",
     "dificultad": "Intermedio",
     "reglasExito": {
-      "minimoEstaciones": 3,
-      "minimoLineas": 1,
-      "minimoTramos": 2,
-      "minimoMetros": 1,
+      "minimoEstaciones": 5,
+      "minimoLineas": 2,
+      "minimoTramos": 4,
+      "minimoMetros": 2,
       "requiereSimulacion": true,
-      "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
           "idPunto": 33,
           "radioCobertura": 25
         },
         {
-          "idPunto": 40,
+          "idPunto": 34,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 35,
           "radioCobertura": 25
         }
-      ]
+      ],
+      "requierePoiIndividuales": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -229,35 +222,48 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Mirador Panorámico de la Intendencia y el Teatro Solís por una línea continua.",
+      "texto": "La red llega a tres referencias del centro: el Mirador de la Intendencia, Plaza Cagancha y Plaza Fabini. Acercá una estación a cada lugar y comprobá la circulación.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Cobertura y continuidad",
-      "explicacion": "Cubrir dos lugares indica proximidad. Una línea continua entre sus estaciones agrega conectividad.",
-      "contexto": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Mirador Panorámico de la Intendencia y el Teatro Solís por una línea continua.",
-      "consejo": "Guardá y completá una simulación. La cobertura y la continuidad deben cumplirse en la misma red."
+      "concepto": "POI y cobertura",
+      "explicacion": "La bandera amarilla abre los puntos de interés. Buscá un objetivo y localizalo; una estación dentro del área marcada satisface su cobertura, incluido el borde.",
+      "contexto": "La red llega a tres referencias del centro: el Mirador de la Intendencia, Plaza Cagancha y Plaza Fabini. Acercá una estación a cada lugar y comprobá la circulación.",
+      "consejo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini."
     },
     "transicion": {
-      "aprendizaje": "Cubrir dos lugares indica proximidad. Una línea continua entre sus estaciones agrega conectividad.",
-      "ciudad": "Un lugar atendido no basta para formar un recorrido útil. Vinculá el Mirador Panorámico de la Intendencia y el Teatro Solís por una línea continua."
+      "aprendizaje": "La bandera amarilla abre los puntos de interés. Buscá un objetivo y localizalo; una estación dentro del área marcada satisface su cobertura, incluido el borde.",
+      "ciudad": "La red llega a tres referencias del centro: el Mirador de la Intendencia, Plaza Cagancha y Plaza Fabini. Acercá una estación a cada lugar y comprobá la circulación."
     }
   },
   {
     "numero": 7,
     "nombre": "Nivel 7 · Dos líneas, un intercambio",
-    "objetivo": "Construí al menos cuatro estaciones, dos líneas y tres tramos. Compartí una estación entre ambas líneas para formar un transbordo. Asigná un Metro a cada línea. Guardá y completá una simulación de ambas líneas. Un cruce de vías sin estación compartida no cuenta como transbordo.",
-    "instrucciones": "Construí al menos cuatro estaciones, dos líneas y tres tramos. Compartí una estación entre ambas líneas para formar un transbordo. Asigná un Metro a cada línea. Guardá y completá una simulación de ambas líneas. Un cruce de vías sin estación compartida no cuenta como transbordo.",
+    "objetivo": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís.",
+    "instrucciones": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís.",
     "dificultad": "Avanzado",
     "reglasExito": {
-      "minimoEstaciones": 4,
+      "minimoEstaciones": 5,
       "minimoLineas": 2,
-      "minimoTramos": 3,
       "minimoMetros": 2,
       "requiereSimulacion": true,
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 38,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 39,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 40,
+          "radioCobertura": 25
+        }
+      ],
       "minimoTransbordos": 1,
       "transbordosPorConexion": true,
-      "requiereMetroPorLinea": true
+      "requierePoiIndividuales": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -268,56 +274,49 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Una segunda línea abre otra posibilidad de viaje. Hacé que ambas se encuentren en una estación y observá sus unidades circulando.",
+      "texto": "Una línea atiende tres referencias de Ciudad Vieja y se encuentra con otra en una estación compartida. Cada Metro recorre su propia línea; el transbordo representa el intercambio entre ambas.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Transbordos",
       "explicacion": "Una estación con tramos de dos líneas distintas permite transbordar. El intercambio depende de conexiones reales, no de un cruce dibujado.",
-      "contexto": "Una segunda línea abre otra posibilidad de viaje. Hacé que ambas se encuentren en una estación y observá sus unidades circulando.",
-      "consejo": "Guardá y completá una simulación de ambas líneas. Un cruce de vías sin estación compartida no cuenta como transbordo."
+      "contexto": "Una línea atiende tres referencias de Ciudad Vieja y se encuentra con otra en una estación compartida. Cada Metro recorre su propia línea; el transbordo representa el intercambio entre ambas.",
+      "consejo": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís."
     },
     "transicion": {
       "aprendizaje": "Una estación con tramos de dos líneas distintas permite transbordar. El intercambio depende de conexiones reales, no de un cruce dibujado.",
-      "ciudad": "Una segunda línea abre otra posibilidad de viaje. Hacé que ambas se encuentren en una estación y observá sus unidades circulando."
+      "ciudad": "Una línea atiende tres referencias de Ciudad Vieja y se encuentra con otra en una estación compartida. Cada Metro recorre su propia línea; el transbordo representa el intercambio entre ambas."
     }
   },
   {
     "numero": 8,
-    "nombre": "Nivel 8 · Red territorial integrada",
-    "objetivo": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Cubrí Mercado Agrícola de Montevideo y Torre de las Comunicaciones por una misma línea continua e incluí una estación en el barrio AGUADA. Asigná un Metro a cada línea. Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas.",
-    "instrucciones": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Cubrí Mercado Agrícola de Montevideo y Torre de las Comunicaciones por una misma línea continua e incluí una estación en el barrio AGUADA. Asigná un Metro a cada línea. Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas.",
+    "nombre": "Nivel 8 · Ajustar una unidad",
+    "objetivo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná un solo Metro, cambiá y aplicá su UV y ejecutá B manteniendo la duración UT. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central.",
+    "instrucciones": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná un solo Metro, cambiá y aplicá su UV y ejecutá B manteniendo la duración UT. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central.",
     "dificultad": "Avanzado",
     "reglasExito": {
-      "minimoEstaciones": 5,
+      "minimoEstaciones": 6,
       "minimoLineas": 2,
-      "minimoTramos": 4,
       "minimoMetros": 2,
       "requiereSimulacion": true,
       "aprendizajeSimulacion": {
         "individual": true
       },
-      "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
-          "idPunto": 2,
+          "idPunto": 46,
           "radioCobertura": 25
         },
         {
-          "idPunto": 3,
+          "idPunto": 47,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 48,
           "radioCobertura": 25
         }
       ],
-      "minimoTransbordos": 1,
-      "transbordosPorConexion": true,
-      "areasObjetivo": [
-        {
-          "tipo": "barrio",
-          "nombre": "AGUADA",
-          "minimoEstaciones": 1
-        }
-      ],
-      "requiereMetroPorLinea": true
+      "requierePoiIndividuales": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -328,93 +327,49 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Una red combina lugares y sectores de la ciudad. Integrá dos líneas, un intercambio y referencias del territorio sin perder la continuidad de cada recorrido.",
+      "texto": "Dos líneas atienden referencias de Cordón. Ajustá la velocidad de una sola unidad para observar qué cambia y qué se conserva en el resto de la red.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Lugar y territorio",
-      "explicacion": "Un POI es una referencia puntual; un barrio es un área. Una estación puede atender un lugar y pertenecer a un barrio al mismo tiempo.",
-      "contexto": "Una red combina lugares y sectores de la ciudad. Integrá dos líneas, un intercambio y referencias del territorio sin perder la continuidad de cada recorrido.",
-      "consejo": "Guardá y ejecutá. Seleccioná un Metro, cambiá solo su UV y repetí con las mismas horas simuladas."
+      "concepto": "Ajuste individual",
+      "explicacion": "Seleccionar un Metro limita el cambio de UV a esa unidad. Compará dos ejecuciones conservando la duración y la velocidad de las demás unidades.",
+      "contexto": "Dos líneas atienden referencias de Cordón. Ajustá la velocidad de una sola unidad para observar qué cambia y qué se conserva en el resto de la red.",
+      "consejo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná un solo Metro, cambiá y aplicá su UV y ejecutá B manteniendo la duración UT. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central."
     },
     "transicion": {
-      "aprendizaje": "Un POI es una referencia puntual; un barrio es un área. Una estación puede atender un lugar y pertenecer a un barrio al mismo tiempo.",
-      "ciudad": "Una red combina lugares y sectores de la ciudad. Integrá dos líneas, un intercambio y referencias del territorio sin perder la continuidad de cada recorrido."
+      "aprendizaje": "Seleccionar un Metro limita el cambio de UV a esa unidad. Compará dos ejecuciones conservando la duración y la velocidad de las demás unidades.",
+      "ciudad": "Dos líneas atienden referencias de Cordón. Ajustá la velocidad de una sola unidad para observar qué cambia y qué se conserva en el resto de la red."
     }
   },
   {
     "numero": 9,
     "nombre": "Nivel 9 · Comparar ejecuciones",
-    "objetivo": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Asigná un Metro a cada línea. Guardá y completá la ejecución A. Cambiá UV y horas simuladas y completá la ejecución B sin modificar la estructura de la red.",
-    "instrucciones": "Construí al menos cinco estaciones, dos líneas y cuatro tramos, con un transbordo. Asigná un Metro a cada línea. Guardá y completá la ejecución A. Cambiá UV y horas simuladas y completá la ejecución B sin modificar la estructura de la red.",
-    "dificultad": "Desafío",
-    "reglasExito": {
-      "minimoEstaciones": 5,
-      "minimoLineas": 2,
-      "minimoTramos": 4,
-      "minimoMetros": 2,
-      "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "combinacion": true
-      },
-      "minimoTransbordos": 1,
-      "transbordosPorConexion": true,
-      "requiereMetroPorLinea": true
-    },
-    "herramientasHabilitadas": {
-      "estaciones": true,
-      "lineas": true,
-      "conexiones": true,
-      "metros": true,
-      "simulacion": true
-    },
-    "historia": {
-      "estado": "APROBADA",
-      "texto": "El diseño está listo para experimentar. Compará dos ejecuciones de la misma red cambiando conjuntamente velocidad y duración simulada.",
-      "fuente": "Relato didáctico de METRONET"
-    },
-    "preparacion": {
-      "concepto": "Comparación de ejecuciones",
-      "explicacion": "Comparar requiere dos ejecuciones guardadas de la misma estructura. Cambiar controles sin volver a ejecutar no demuestra el efecto.",
-      "contexto": "El diseño está listo para experimentar. Compará dos ejecuciones de la misma red cambiando conjuntamente velocidad y duración simulada.",
-      "consejo": "Guardá y completá la ejecución A. Cambiá UV y horas simuladas y completá la ejecución B sin modificar la estructura de la red."
-    },
-    "transicion": {
-      "aprendizaje": "Comparar requiere dos ejecuciones guardadas de la misma estructura. Cambiar controles sin volver a ejecutar no demuestra el efecto.",
-      "ciudad": "El diseño está listo para experimentar. Compará dos ejecuciones de la misma red cambiando conjuntamente velocidad y duración simulada."
-    }
-  },
-  {
-    "numero": 10,
-    "nombre": "Nivel 10 · Desafío integrador",
-    "objetivo": "Construí al menos seis estaciones, dos líneas y cinco tramos, con un transbordo. Cubrí Estadio Centenario y Hospital de Clínicas por una misma línea continua. Asigná un Metro a cada línea. Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones.",
-    "instrucciones": "Construí al menos seis estaciones, dos líneas y cinco tramos, con un transbordo. Cubrí Estadio Centenario y Hospital de Clínicas por una misma línea continua. Asigná un Metro a cada línea. Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones.",
+    "objetivo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; cambiá y aplicá UV y duración UT, y ejecutá B con ambos cambios. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François.",
+    "instrucciones": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; cambiá y aplicá UV y duración UT, y ejecutá B con ambos cambios. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François.",
     "dificultad": "Desafío",
     "reglasExito": {
       "minimoEstaciones": 6,
       "minimoLineas": 2,
-      "minimoTramos": 5,
       "minimoMetros": 2,
       "requiereSimulacion": true,
       "aprendizajeSimulacion": {
-        "global": true,
-        "individual": true,
         "combinacion": true
       },
-      "requiereObjetivosMismaLinea": true,
       "puntosInteresObjetivo": [
         {
           "idPunto": 80,
           "radioCobertura": 25
         },
         {
-          "idPunto": 55,
+          "idPunto": 81,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 82,
           "radioCobertura": 25
         }
       ],
-      "minimoTransbordos": 1,
-      "transbordosPorConexion": true,
-      "requiereMetroPorLinea": true
+      "requierePoiIndividuales": true
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -425,18 +380,72 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Es momento de reunir lo aprendido. Construí una red compacta con cobertura e intercambio, probá controles globales e individuales y compará configuraciones antes de pasar a Modo Libre.",
+      "texto": "Tres referencias de Parque Batlle forman el contexto para comparar configuraciones de una misma red. Observá qué cambia al modificar juntos velocidad y tiempo simulado.",
+      "fuente": "Relato didáctico de METRONET"
+    },
+    "preparacion": {
+      "concepto": "Comparación de ejecuciones",
+      "explicacion": "Comparar requiere dos ejecuciones guardadas de la misma estructura. Cambiar controles sin volver a ejecutar no demuestra el efecto.",
+      "contexto": "Tres referencias de Parque Batlle forman el contexto para comparar configuraciones de una misma red. Observá qué cambia al modificar juntos velocidad y tiempo simulado.",
+      "consejo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; cambiá y aplicá UV y duración UT, y ejecutá B con ambos cambios. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François."
+    },
+    "transicion": {
+      "aprendizaje": "Comparar requiere dos ejecuciones guardadas de la misma estructura. Cambiar controles sin volver a ejecutar no demuestra el efecto.",
+      "ciudad": "Tres referencias de Parque Batlle forman el contexto para comparar configuraciones de una misma red. Observá qué cambia al modificar juntos velocidad y tiempo simulado."
+    }
+  },
+  {
+    "numero": 10,
+    "nombre": "Nivel 10 · Integrar la red",
+    "objetivo": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; cambiá y aplicá UV y duración UT y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo.",
+    "instrucciones": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; cambiá y aplicá UV y duración UT y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo.",
+    "dificultad": "Desafío",
+    "reglasExito": {
+      "minimoEstaciones": 7,
+      "minimoMetros": 3,
+      "requiereSimulacion": true,
+      "aprendizajeSimulacion": {
+        "combinacion": true
+      },
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 100,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 101,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 102,
+          "radioCobertura": 25
+        }
+      ],
+      "minimoTransbordos": 1,
+      "transbordosPorConexion": true,
+      "requierePoiIndividuales": true
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "historia": {
+      "estado": "APROBADA",
+      "texto": "La campaña culmina con una red de siete estaciones, un transbordo y tres unidades. Atendé tres referencias de Prado y compará dos ejecuciones con distinta velocidad y duración.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Integración de la red",
-      "explicacion": "Cobertura, continuidad e intercambio describen la red. UV y horas describen cada ejecución; el ritmo visual permanece independiente.",
-      "contexto": "Es momento de reunir lo aprendido. Construí una red compacta con cobertura e intercambio, probá controles globales e individuales y compará configuraciones antes de pasar a Modo Libre.",
-      "consejo": "Guardá y ejecutá A. Aplicá una nueva UV común a Todos los metros y ejecutá B con las mismas horas. Cambiá solo un Metro y ejecutá C conservando horas. Finalmente cambiá UV y horas y ejecutá D. El nivel termina al comprobar la red y las comparaciones."
+      "explicacion": "Cobertura, continuidad e intercambio describen la red. UV y UT describen la operación de cada metro en una ejecución.",
+      "contexto": "La campaña culmina con una red de siete estaciones, un transbordo y tres unidades. Atendé tres referencias de Prado y compará dos ejecuciones con distinta velocidad y duración.",
+      "consejo": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; cambiá y aplicá UV y duración UT y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo."
     },
     "transicion": {
-      "aprendizaje": "Cobertura, continuidad e intercambio describen la red. UV y horas describen cada ejecución; el ritmo visual permanece independiente.",
-      "ciudad": "Es momento de reunir lo aprendido. Construí una red compacta con cobertura e intercambio, probá controles globales e individuales y compará configuraciones antes de pasar a Modo Libre."
+      "aprendizaje": "Cobertura, continuidad e intercambio describen la red. UV y UT describen la operación de cada metro en una ejecución.",
+      "ciudad": "La campaña culmina con una red de siete estaciones, un transbordo y tres unidades. Atendé tres referencias de Prado y compará dos ejecuciones con distinta velocidad y duración."
     }
   }
 ]

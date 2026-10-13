@@ -76,10 +76,15 @@ test('seleccionar, usar botones de zoom y cerrar conserva y después elimina nom
   }
   assert.equal(await ficha.count(), 1);
   assert.deepEqual(await pagina.evaluate(() => ({ seleccion: poi.puntoSeleccionado, etiquetas: poi.representaciones.filter(r => r.etiqueta?.visible).map(r => r.punto.id) })), { seleccion: 'id:1', etiquetas: [] });
-  assert.match(await ficha.innerText(), /Barrio según el mapa: AGUADA/);
-  assert.match(await ficha.innerText(), /Zona: OESTE/);
-  assert.match(await ficha.innerText(), /Coordenadas:/);
-  await ficha.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  assert.match(await ficha.innerText(), /AGUADA · OESTE/);
+  assert.match(await ficha.innerText(), /AGUADA · OESTE/);
+  assert.equal(await ficha.getByRole('button').count(),2);
+  assert.equal(await ficha.locator('details').count(), 0);
+  assert.doesNotMatch(await ficha.innerText(), /Detalles|Coordenadas:/);
+  await ficha.getByRole('button', { name: 'Centrar punto de interés' }).click();
+  assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), 'id:1');
+  await ficha.screenshot({path:'/tmp/ficha-poi-compacta.png'});
+  await ficha.getByRole('button', { name: 'Cerrar información', exact: true }).click();
   assert.equal(await ficha.count(), 0);
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), null);
   assert.equal(await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).length), 0);
@@ -94,7 +99,7 @@ test('búsqueda localiza el POI y muestra nombre; sin resultados no selecciona o
   await pagina.locator('.metronet-panel-puntos-lista button').first().click();
   await pagina.getByRole('dialog', { name: 'Información de Palacio Legislativo' }).waitFor();
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), 'id:1');
-  await pagina.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Cerrar información', exact: true }).click();
   await pagina.locator('.metronet-poi>summary').click();
   await pagina.getByRole('button', { name: 'Buscar punto de interés' }).click();
   await busqueda.fill('zz-no-existe-zz');
@@ -127,9 +132,9 @@ test('varios objetivos conservan etiquetas y radios, y se limpian al cambiar de 
   const texto = await pagina.getByRole('dialog').innerText();
   assert.match(texto, /Objetivo del nivel/i);
   assert.match(texto, /60 unidades del mapa/);
-  assert.match(texto, /Barrio según el mapa: PUNTA GORDA/);
+  assert.match(texto, /PUNTA GORDA/);
   assert.match(texto, /Barrio del catálogo: CARRASCO/);
-  await pagina.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Cerrar información', exact: true }).click();
   assert.equal(await pagina.evaluate(() => poi.representaciones.filter(r => r.etiqueta).length), 0);
   await pagina.evaluate(() => {
     poi.establecerPuntosObjetivo([]);
@@ -160,7 +165,7 @@ test('ficha sin campos opcionales no inventa información', async (t) => {
   const ficha = pagina.getByRole('dialog', { name: 'Información de Referencia de prueba' });
   const texto = await ficha.innerText();
   assert.doesNotMatch(texto, /undefined|null|Sin descripción|Barrio:|Zona:/);
-  assert.match(texto, /Coordenadas: 0.00000, 0.00000/);
+  assert.doesNotMatch(texto, /Detalles|Coordenadas:/);
   assert.equal(await ficha.locator('.metronet-punto-interes-panel-descripcion').count(), 0);
 });
 

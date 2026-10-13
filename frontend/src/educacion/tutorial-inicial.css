@@ -39,6 +39,20 @@ html:root body .metronet-tutorial__repetir {
 .metronet-tutorial__herramientas span { font-weight:400; }
 .metronet-recorrido { position:fixed; inset:auto; margin:0; width:min(310px, calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow-y:auto; overscroll-behavior:contain; }
 .metronet-recorrido::backdrop { background:rgb(2 9 25 / 24%); }
+html:root body dialog.metronet-recorrido[data-oferta-tutorial] {
+  inset: 0; margin: auto; width: min(440px, calc(100vw - 32px));
+  height: fit-content; padding: 24px; text-align: center;
+  font-family: var(--font-arcade);
+}
+html:root body dialog[data-oferta-tutorial] h2 { font-size: 16px; line-height: 1.6; }
+html:root body dialog[data-oferta-tutorial] p { margin: 16px 0 20px; font: 11px/1.8 var(--font-arcade); }
+dialog[data-oferta-tutorial] .metronet-recorrido__acciones { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0; }
+html:root body dialog[data-oferta-tutorial] .metronet-recorrido__acciones button {
+  width: 100%; min-height: 44px; padding: 10px 14px; font: 11px/1.5 var(--font-arcade);
+}
+html:root body dialog[data-oferta-tutorial] .metronet-recorrido__acciones button:last-child {
+  --boton-fondo: var(--panel); --boton-texto: var(--text-primary); --boton-borde: var(--border);
+}
 .metronet-recorrido__marca { position:fixed; box-sizing:border-box; pointer-events:none; border:3px solid var(--tutorial-acento); box-shadow:0 0 0 2px var(--bg-primary), 4px 4px 0 var(--shadow-color); }
 .metronet-recorrido__marca[hidden] { display:none; }
 .metronet-recorrido [data-recorrido-progreso] { color:var(--text-secondary); font-size:12px; }
@@ -70,6 +84,30 @@ html:root body dialog.metronet-recorrido { background:var(--panel); color:var(--
 .metronet-recorrido__cabecera { display:flex; gap:12px; align-items:center; }
 .metronet-recorrido__cabecera [data-recorrido-icono] { display:flex; color:var(--warning); flex:0 0 28px; }
 .metronet-recorrido__cabecera svg { width:28px; height:28px; }
-html:root body dialog.metronet-recorrido .metronet-boton-icono { width:30px; min-width:30px; max-width:30px; flex:0 0 30px; height:30px; min-height:30px; padding:5px; }
+html:root body dialog.metronet-recorrido .metronet-boton-icono { width:24px; min-width:24px; max-width:24px; flex:0 0 24px; height:24px; min-height:24px; padding:4px; }
 
-html:root body dialog.metronet-recorrido .metronet-boton-icono > .metronet-icono { width:18px; height:18px; flex-basis:18px; }
+html:root body dialog.metronet-recorrido .metronet-boton-icono > .metronet-icono { width:12px; height:12px; flex-basis:12px; }
+html:root body dialog.metronet-recorrido { width:min(280px,calc(100vw - 24px)); padding:10px; font-size:12px; }
+html:root body dialog.metronet-recorrido h2 { font-size:13px; }
+.metronet-recorrido__cabecera { gap:8px; }
+.metronet-recorrido__cabecera [data-recorrido-icono] { flex-basis:22px; }
+.metronet-recorrido__cabecera svg { width:22px; height:22px; }
+
+/* Guías rápidas: mismo tamaño compacto en edición y simulación. */
+html:root body .metronet-tutorial__panel.metronet-guia-rapida {
+  width:min(280px,calc(100vw - 24px)); padding:10px;
+  font:11px/1.4 var(--font-ui);
+}
+html:root body .metronet-tutorial__panel.metronet-guia-rapida h2 { font-size:12px; line-height:1.4; }
+html:root body .metronet-guia-rapida .metronet-tutorial__herramientas { gap:0; margin:6px 0 0; }
+html:root body .metronet-guia-rapida .metronet-tutorial__herramientas p {
+  grid-template-columns:18px minmax(0,1fr); gap:8px; padding:6px 0;
+  font-size:11px; line-height:1.4;
+}
+html:root body .metronet-guia-rapida .metronet-tutorial__herramientas .metronet-icono { width:18px; height:18px; }
+html:root body .metronet-guia-rapida .metronet-tutorial__completado { margin:4px 0; font-size:10px; }
+html:root body .metronet-guia-rapida button.metronet-boton-icono {
+  width:24px; min-width:24px; height:24px; min-height:24px; padding:4px;
+}
+html:root body .metronet-guia-rapida button.metronet-boton-icono > .metronet-icono { width:14px; height:14px; }
+html:root body .metronet-guia-rapida .metronet-tutorial__repetir { margin:8px auto 0; }

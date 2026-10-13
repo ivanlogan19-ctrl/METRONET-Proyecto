@@ -238,6 +238,10 @@ button { cursor: pointer; }
   overflow: visible;
 }
 .metronet-navegacion__marca { display: flex; flex: 0 0 auto; align-items: center; height: 100%; line-height: 0; }
+/* El menú de sesión debe superar también las barras de herramientas del mapa. */
+.metronet-navegacion:has(.metronet-navegacion__usuario[open]) {
+  z-index: calc(var(--layer-dropdown) + 3);
+}
 .metronet-navegacion__marca .metronet-logo { width: calc(var(--metronet-logo-alto-header) * var(--metronet-logo-marco-proporcion)); height: var(--metronet-logo-alto-header); }
 .metronet-navegacion__marca .metronet-logo__imagen { width: 100%; height: auto; }
 .metronet-navegacion__enlaces { display: flex; align-items: center; gap: 4px; min-width: 0; }

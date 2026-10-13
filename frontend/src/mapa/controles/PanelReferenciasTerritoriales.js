@@ -12,23 +12,19 @@ export default class PanelReferenciasTerritoriales {
   }
   crear() {
     this.elemento = document.createElement('details');
-    this.elemento.className = 'metronet-poi';
+    this.elemento.className = 'metronet-poi metronet-poi--compacto';
     const acceso = document.createElement('summary');
     configurarBotonIcono(acceso, 'checkpoint', 'Puntos de interés de Montevideo');
     acceso.setAttribute('aria-expanded','false');
     this.panel = document.createElement('div'); this.panel.className = 'metronet-poi__panel';
     for (const tipo of ['pointerdown', 'mousedown', 'touchstart']) this.panel.addEventListener(tipo, e => e.stopPropagation());
-    this.panel.innerHTML = '<header><h2>Lugares del mapa</h2></header>';
-    const cerrar = document.createElement('button'); cerrar.type = 'button';
-    configurarBotonIcono(cerrar, 'cancelar', 'Cerrar lugares del mapa');
-    cerrar.addEventListener('click', () => this.cerrar(true));
-    this.panel.querySelector('header').append(cerrar);
+    this.panel.innerHTML = '<header><h2>Puntos de interés del mapa</h2></header>';
     const controles = document.createElement('div'); controles.className = 'metronet-poi__categorias';
     controles.setAttribute('role','group'); controles.setAttribute('aria-label','Capas geográficas');
     this.estado = document.createElement('div'); this.estado.className = 'metronet-capas-activas';
     this.estado.setAttribute('role','group'); this.estado.setAttribute('aria-label','Capas activas');
     this.geografico = document.createElement('section'); this.geografico.className='metronet-poi__geografia'; this.geografico.hidden=false;
-    this.geografico.innerHTML='<h3>Barrios y zonas</h3><div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
+    this.geografico.innerHTML='<div class="metronet-poi__visibilidad"></div><div data-contenedor-selectores-mapa></div>';
     this.seleccion = this.geografico.querySelector('[data-contenedor-selectores-mapa]');
     this.seleccion.addEventListener('click', evento => {
       const encabezado = evento.target.closest('.metronet-panel-encabezado');
@@ -70,12 +66,21 @@ export default class PanelReferenciasTerritoriales {
     document.addEventListener('pointerdown',this.alCerrarFuera);
     this.elemento.addEventListener('keydown',this.alEscape);
     this.elemento.addEventListener('toggle',()=>{acceso.setAttribute('aria-expanded',String(this.elemento.open));acceso.setAttribute('aria-pressed',String(this.elemento.open));this.estado.hidden=!this.elemento.open;});
-    this.liberarPosicion = ajustarPanelMapa(acceso, this.panel);
+    this.liberarPosicion = ajustarPanelMapa(acceso, this.panel, { ajustarHorizontal:true });
     this.actualizarGeografia();
   }
   cerrar(foco=false){this.elemento.open=false;if(foco)this.elemento.querySelector('summary').focus();}
+  integrarSelectores(barrios, zonas) {
+    for (const [tipo, selector] of [['barrios', barrios], ['zonas', zonas]]) {
+      const cabecera = document.createElement('div');
+      cabecera.className = 'metronet-poi__selector-cabecera';
+      cabecera.append(this.geografico.querySelector(`[data-capa-geografica="${tipo}"]`), selector.panel.encabezado);
+      selector.elemento.prepend(cabecera);
+    }
+    this.geografico.querySelector('.metronet-poi__visibilidad').remove();
+  }
   mostrarListaGeografica(encabezado) {
-    const contenido = encabezado.parentElement.querySelector('.metronet-panel-contenido');
+    const contenido = encabezado.closest('.metronet-panel-dinamico')?.querySelector('.metronet-panel-contenido');
     if (!contenido) return;
     const panel = this.panel.getBoundingClientRect();
     const margen = parseFloat(getComputedStyle(this.panel).paddingTop) || 0;

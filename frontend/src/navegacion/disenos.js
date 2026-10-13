@@ -33,7 +33,7 @@ function iniciar() {
   };
 
   if (administrador) {
-    document.getElementById('alcanceEliminarDiseno').textContent = 'Esta acción no se puede deshacer. Se eliminarán el diseño, sus elementos, su intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar.';
+    document.getElementById('alcanceEliminarDiseno').textContent = 'Se borrarán también su partida, puntaje y resultados. Puede cambiar el progreso y ranking. No se puede deshacer.';
   }
 
   function crearFila(d) {
@@ -124,8 +124,8 @@ function iniciar() {
 
   function confirmarEliminar(diseno) {
     if (operacion || dialogo.open || protegido(diseno)) return;
-    const propietario = administrador ? ` Propietario: ${diseno.propietario || 'Sin usuario asignado'}.` : '';
-    document.getElementById('nombreEliminarDiseno').textContent = `¿Eliminar «${diseno.nombre}» (#${diseno.idDiseno})?${propietario}`;
+    const propietario = administrador ? ` · ${diseno.propietario || 'Sin usuario asignado'}` : '';
+    document.getElementById('nombreEliminarDiseno').textContent = `«${diseno.nombre}»${propietario}`;
     dialogo.returnValue = 'cancelar'; dialogo.showModal();
     dialogo.addEventListener('close', async () => {
       if (dialogo.returnValue !== 'eliminar') { recargarSiPendiente(); return; }

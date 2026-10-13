@@ -97,6 +97,56 @@ class EscalaSimulacionPostgresTest {
     }
 
     @Test
+    void utIndividualPersisteAislaUnidadesYConservaInstantaneas() throws Exception {
+        var u = new Usuario(); String identificador = UUID.randomUUID().toString();
+        u.setNombre("UT individual"); u.setEmail(identificador + "@example.test");
+        u.setPassword(encoder.encode("Clave1!")); u.setRol(Rol.ADMIN); u.setIdentificadorAdministrador(identificador);
+        usuarios.saveAndFlush(u);
+        String token = "Bearer " + auth.iniciarSesionAdministrador(new LoginAdministradorRequest(identificador, "Clave1!")).token();
+        int id = enviar("/api/simulaciones", "{\"nombre\":\"UT por metro\"}", token).path("idDiseno").asInt();
+        String ruta = "/api/simulaciones/" + id;
+        enviar(ruta + "/estaciones", "{\"nombre\":\"A\",\"posicionX\":660,\"posicionY\":460}", token);
+        enviar(ruta + "/estaciones", "{\"nombre\":\"B\",\"posicionX\":670,\"posicionY\":460}", token);
+        enviar(ruta + "/lineas", "{\"nombre\":\"Línea\",\"estaciones\":[\"A\",\"B\"]}", token);
+        String unidad = "{\"nombreLinea\":\"Línea\",\"capacidad\":300,\"velocidadPromedio\":4";
+        int a=enviar(ruta+"/unidades",unidad+"}",token).path("idTren").asInt();
+        int b=enviar(ruta+"/unidades",unidad+"}",token).path("idTren").asInt();
+        http.perform(patch(ruta+"/unidades/"+a).header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+            .content(unidad+",\"duracionUt\":2}")).andExpect(status().isOk());
+        assertEquals(2,jdbc.queryForObject("SELECT duracion_ut FROM metro WHERE id_tren=?",Integer.class,a));
+        assertNull(jdbc.queryForObject("SELECT duracion_ut FROM metro WHERE id_tren=?",Integer.class,b));
+        for(String invalida:new String[]{"0","-1","1.5"}) http.perform(patch(ruta+"/unidades/"+a).header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+            .content(unidad+",\"duracionUt\":"+invalida+"}")).andExpect(status().isBadRequest());
+        enviar(ruta+"/validacion","{}",token);
+        var primera=enviar(ruta+"/ejecutar","{\"velocidad\":1,\"duracion\":6}",token);
+        assertEquals(6,primera.path("duracion").asInt());
+        assertEquals(2,primera.path("unidades").get(0).path("duracionUt").asInt());
+        assertEquals(6,primera.path("unidades").get(1).path("duracionUt").asInt());
+        http.perform(patch(ruta+"/unidades/"+b).header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+            .content(unidad+",\"duracionUt\":8}")).andExpect(status().isOk());
+        // Una petición antigua de UV no borra la UT configurada.
+        http.perform(patch(ruta+"/unidades/"+a).header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+            .content(unidad+"}")).andExpect(status().isOk());
+        enviar(ruta+"/validacion","{}",token);
+        var segunda=enviar(ruta+"/ejecutar","{\"velocidad\":1,\"duracion\":6}",token);
+        assertEquals(8,segunda.path("duracion").asInt());
+        assertEquals(2,segunda.path("unidades").get(0).path("duracionUt").asInt());
+        assertEquals(8,segunda.path("unidades").get(1).path("duracionUt").asInt());
+        var historico=json.readTree(http.perform(get(ruta+"/resultados").header("Authorization",token)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertEquals(primera,historico.get(1));
+        http.perform(get(ruta).header("Authorization",token)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.unidadesMetro[0].duracionUt").value(2))
+            .andExpect(jsonPath("$.unidadesMetro[1].duracionUt").value(8));
+        http.perform(patch(ruta+"/unidades/"+a).header("Authorization",token).contentType(MediaType.APPLICATION_JSON)
+            .content(unidad+"}")).andExpect(status().isOk());
+        enviar(ruta+"/validacion","{}",token);
+        int copia=enviar(ruta+"/escenarios", "{\"nombre\":\"Copia con UT\",\"modo\":\"EDICION_LIBRE\",\"dificultad\":\"Inicial\"}",token).path("idDiseno").asInt();
+        http.perform(get("/api/simulaciones/"+copia).header("Authorization",token)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.unidadesMetro[0].duracionUt").value(2))
+            .andExpect(jsonPath("$.unidadesMetro[1].duracionUt").value(8));
+    }
+
+    @Test
     void resultadoCuentaSoloTransbordosEntreLineas() throws Exception {
         var u = new Usuario(); String identificador = UUID.randomUUID().toString();
         u.setNombre("Transbordo de prueba"); u.setEmail(identificador + "@example.test");

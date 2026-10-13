@@ -52,7 +52,8 @@ public class ObjetivosPuntosInteresService {
         try {
             JsonNode reglas = objectMapper.readTree(reglasExito == null ? "{}" : reglasExito);
             if (reglas == null || !reglas.isObject()) return List.of("La configuración de los POI no es válida.");
-            if (!reglas.path("requiereCoberturaPuntosInteres").asBoolean() && !reglas.path("requiereObjetivosMismaLinea").asBoolean()) return List.of();
+            if (!reglas.path("requiereCoberturaPuntosInteres").asBoolean() && !reglas.path("requiereObjetivosMismaLinea").asBoolean()
+                && !reglas.path("requierePoiIndividuales").asBoolean()) return List.of();
             JsonNode objetivos = reglas.path("puntosInteresObjetivo");
             if (!objetivos.isArray() || objetivos.isEmpty()) return List.of("El diseño requiere puntos de interés pero no tiene objetivos configurados.");
             List<String> errores = new ArrayList<>();

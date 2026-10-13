@@ -1,7 +1,9 @@
+import { funcionesIntroducidas, escenarioCampana } from './FuncionesCampana.js';
+import puntos from '../mapa/datos/puntos-interes.json';
 import niveles from './niveles.json';
 import recorridoIntegral from './recorrido-integral.json';
 
-export const esRecorridoIntegral = escenario => escenario?.recorrido === 'integral-2026-10';
+export const esRecorridoIntegral = escenario => typeof escenario?.recorrido === 'string' && escenario.recorrido.startsWith('integral-2026-10');
 
 const LECCIONES = {
   estaciones: ['Estación', 'Elegí el icono de estación y hacé clic en una ubicación válida. Podés colocar varias seguidas: el nombre se genera automáticamente. Arrastrá para mover el mapa; Escape termina la herramienta.'],
@@ -79,7 +81,9 @@ export function pasoPractico(contexto, estado) {
 }
 
 // Pasos prácticos: avanzan únicamente al observar acciones/estado confirmados.
-export function pasosPracticosEditor(numero) {
+export function pasosPracticosEditor(numero, escenario) {
+  const nuevas = funcionesIntroducidas(numero, escenario);
+  const objetivo = objetivoTutorialPoi(numero, escenario);
   const mapa = '#metronet-mapa';
   const estacion = '[data-elegir-herramienta="estaciones"]';
   const comunes = [
@@ -89,23 +93,28 @@ export function pasosPracticosEditor(numero) {
     [mapa, 'Origen de la línea', 'Elegí una estación como origen.', 'origen-elegido'],
     [mapa, 'Destino de la línea', 'Elegí otra estación. Se crearán la línea y su primer tramo.', 'linea-creada'],
   ];
-  if (numero === 1) return [...comunes,
+  if (nuevas.includes('editor.basico')) return [...comunes,
     ['[data-elegir-herramienta="metros"]', 'Elegí Metro', 'Seleccioná Metro y después tocá la vía de tu línea.', 'metro-elegido'],
     [mapa, 'Asigná el Metro', 'Tocá la vía. La unidad queda asignada cuando se confirme su creación.', 'metro-creado'],
     ['[data-guardar]', 'Guardá la red', 'Pulsá el disquete para conservar el avance. Guardar no termina el nivel.', 'guardado'],
     ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones de nivel y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
   ];
-  if (numero === 5) return [
-    ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí los lugares usando la bandera amarilla.', 'poi-abierto'],
-    ['.metronet-panel-puntos-alternar', 'Buscar punto de interés', 'Abrí la lupa para buscar un lugar concreto.', 'buscador-abierto'],
-    ['.metronet-panel-puntos-busqueda', 'Buscá Palacio Legislativo', 'Escribí Palacio Legislativo. Los resultados usan el catálogo real del mapa.', 'poi-buscado'],
-    ['.metronet-panel-puntos-lista', 'Localizá el lugar', 'Seleccioná Palacio Legislativo en los resultados para localizarlo en el mapa.', 'poi-localizado'],
-    [mapa, 'Estrella y cobertura', 'La estrella marca el centro. El área visible alrededor muestra dónde debe quedar la estación; el límite está incluido.'],
-    [estacion, 'Estación dentro del radio', 'Elegí Estación. Colocala dentro del área marcada, sin buscar un punto exacto.', 'poi-cubierto'],
+  if (nuevas.includes('editor.extender')) return [
+    ['[data-elegir-herramienta="conexiones"]', 'Extendé la línea', 'Creá primero una línea entre dos estaciones. Luego elegí Conexión para agregar otra estación al mismo recorrido.', 'conexion-elegida'],
+    [mapa, 'Continuá el recorrido', 'Elegí una estación de la línea y otra estación como destino. El Metro recorrerá también el nuevo tramo.', 'conexion-creada'],
   ];
-  if (numero === 7) return [
-    ['[data-elegir-herramienta="lineas"]', 'Un intercambio real', 'Creá la segunda línea reutilizando una estación de la primera. Un cruce sin estación común no forma un transbordo.'],
-    [mapa, 'Compartí una estación', 'Conectá tramos de dos líneas diferentes a una misma estación. El símbolo de intercambio aparece automáticamente.', 'transbordo-creado'],
+  if (nuevas.includes('editor.poi') && objetivo) return [
+    ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí los puntos de interés usando la bandera amarilla.', 'poi-abierto'],
+    ['.metronet-poi__panel', 'Categorías del mapa', 'Los iconos de categorías muestran los lugares del catálogo. Los objetivos se distinguen por su marcador y área de cobertura.'],
+    ['.metronet-panel-puntos-alternar', 'Buscar punto de interés', 'Abrí la lupa para buscar un punto concreto.', 'buscador-abierto'],
+    ['.metronet-panel-puntos-busqueda', `Buscá ${objetivo.nombre}`, `Escribí ${objetivo.nombre}. Los resultados usan el catálogo real del mapa.`, 'poi-buscado'],
+    ['.metronet-panel-puntos-lista', 'Localizá el punto', `Seleccioná ${objetivo.nombre} en los resultados para localizarlo en el mapa.`, 'poi-localizado'],
+    [mapa, 'Marcador y cobertura', 'El marcador indica el centro. El área visible muestra dónde debe quedar la estación; el límite está incluido.'],
+    [estacion, 'Estación dentro del radio', 'Elegí Estación y colocala dentro del área marcada.', 'poi-cubierto'],
+  ];
+  if (nuevas.includes('editor.transbordo')) return [
+    ['[data-elegir-herramienta="lineas"]', 'Un intercambio real', 'Creá otra línea reutilizando una estación de la primera. Un cruce sin estación común no forma un transbordo.'],
+    [mapa, 'Compartí una estación', 'Conectá tramos de dos líneas diferentes a una misma estación.', 'transbordo-creado'],
   ];
   return [];
 }
@@ -128,8 +137,13 @@ export function accionPracticaCumplida(evento, contexto, estado, controles = {})
     'poi-abierto': controles.poiAbierto,
     'buscador-abierto': controles.buscadorAbierto,
     'poi-buscado': controles.poiBuscado,
-    'poi-localizado': Number(referencia?.id ?? referencia?.idPunto) === 1,
-    'poi-cubierto': consigna?.referenciasObjetivo?.some(p => Number(p.idPunto) === 1 && p.cubierto),
+    'poi-localizado': Number(referencia?.id ?? referencia?.idPunto) === objetivoTutorialPoi(escenario?.numero, escenario)?.id,
+    'poi-cubierto': consigna?.referenciasObjetivo?.some(p => Number(p.idPunto) === objetivoTutorialPoi(escenario?.numero, escenario)?.id && p.cubierto),
     'transbordo-creado': completa('minimoTransbordos'),
   })[evento] === true;
+}
+
+export function objetivoTutorialPoi(numero, escenario) {
+  const id = escenarioCampana(numero, escenario)?.reglasExito?.puntosInteresObjetivo?.[0]?.idPunto;
+  return Object.values(puntos.barrios).flatMap(b => b.puntos).find(p => p.id === id);
 }

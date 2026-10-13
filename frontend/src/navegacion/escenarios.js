@@ -1,3 +1,4 @@
+import catalogoRecorrido from '../educacion/recorrido-integral.json';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
 import { inicializarNavegacion } from './NavegacionAplicacion.js';
@@ -5,31 +6,7 @@ import { iniciarNivelConTransicion } from '../educacion/PreparacionNivel.js';
 import { cargarContenidoPublicado } from '../educacion/ContenidoPublicadoNivel.js';
 
 const ESTADOS_EN_CURSO = new Set(['EN_DESARROLLO', 'EN_DISENO', 'GUARDADO', 'VALIDADO', 'COMPLETADA']);
-// Relato de selección: la misión comprobable sigue en la consigna del editor.
-const RELATOS_INICIALES_PUBLICADOS = Object.freeze({
-  1: 'Ari despliega el mapa sobre la mesa. Sol señala el Palacio Legislativo y la Torre de las Comunicaciones; Dani propone unirlos con la primera línea del metro hipotético.',
-  2: 'La primera línea ya une dos lugares, pero Sol propone extenderla hacia el Mirador de la Intendencia. Ari añade una conexión y Dani comprueba que las tres estaciones formen un recorrido continuo.',
-  3: 'Dani propone conectar el Palacio Legislativo con Terminal Tres Cruces antes de poner en marcha el primer tren. Ari y Sol revisan que la línea tenga un recorrido continuo.',
-  4: 'El equipo mira dos extremos de Montevideo: Palacio Legislativo y Rambla de Carrasco. Sol plantea unirlos sin perder de vista los barrios; Dani pide probar en la simulación si la propuesta realmente funciona.',
-  5: 'El mapa suma Terminal Tres Cruces y Plaza Virgilio. Ari busca un trazado que acerque esos destinos; Sol comprueba los barrios y Dani compara el recorrido en otra ejecución. Cada decisión cambia la lectura de la red.',
-  6: 'El Mirador de la Intendencia y Plaza Virgilio entran en la discusión. Sol revisa la cobertura hacia el Este, Ari ajusta las conexiones y Dani compara por separado UV y UT.',
-  7: 'El avance hacia Brazo Oriental complica la red. Ari plantea dos líneas y Sol encuentra un punto donde cambiar entre ellas. Dani quiere comprobar que ambas puedan operar: el primer transbordo se convierte en una decisión del equipo.',
-  8: 'La red llega al entorno del Estadio Centenario. Sol detecta nuevos destinos; Ari organiza más líneas y transbordos. Dani cambia la UV de todos los metros y compara el conjunto, porque una red mayor pide coordinación.',
-  9: 'El equipo tiene poco margen para sumar estaciones y debe cubrir también Terminal Tres Cruces. Sol exige precisión en cuatro destinos, Ari simplifica el trazado y Dani prueba una combinación nueva de UV y UT.',
-  10: 'Llega la presentación final del proyecto. Ari defiende las conexiones, Sol explica la cobertura de barrios y zonas, y Dani muestra las comparaciones de operación. El equipo reúne lo aprendido en una red hipotética completa y revisable.',
-});
-const HISTORIA_NIVELES = Object.freeze({
-  1: 'Ari define una primera línea entre Palacio Legislativo y Torre de las Comunicaciones. Sol revisa la cercanía de las estaciones a ambos destinos y Dani comprueba que el recorrido quede conectado.',
-  2: 'Sol propone extender la línea desde Palacio Legislativo hasta el Mirador de la Intendencia. Ari agrega una tercera estación y Dani revisa la continuidad de los dos tramos.',
-  3: 'Dani se concentra en la operación entre Palacio Legislativo y Terminal Tres Cruces. Ari y Sol revisan la línea continua y el equipo le asigna su primera unidad de metro.',
-  4: 'Sol plantea estudiar la relación entre el Palacio Legislativo y la Rambla de Carrasco, con atención a las zonas Oeste y Este. Ari prepara el trazado y Dani lo somete a una primera simulación para contrastar la propuesta con su funcionamiento.',
-  5: 'Ari estudia cómo incorporar Terminal Tres Cruces y Plaza Virgilio al trazado que parte del Palacio Legislativo. Sol revisa la cobertura de los barrios implicados y Dani compara qué cambia en el servicio al sumar esos destinos.',
-  6: 'Sol incorpora Plaza Virgilio al recorrido que conecta Palacio Legislativo y Mirador de la Intendencia. Ari ajusta las conexiones y Dani compara UV y UT en ejecuciones distintas.',
-  7: 'Ari propone organizar la ampliación hacia Brazo Oriental en dos líneas. Sol analiza dónde conviene realizar el intercambio entre ellas y Dani comprueba su funcionamiento. El transbordo pasa a ser una decisión central del diseño.',
-  8: 'La incorporación del Estadio Centenario aumenta la complejidad del proyecto. Dani estudia cómo operan varias líneas y sus transbordos; Ari revisa la estructura de la red y Sol contrasta la cobertura obtenida con los destinos previstos. Dani compara después un cambio de UV aplicado a todos los metros.',
-  9: 'Sol revisa la cercanía a cuatro puntos de interés, incluido Terminal Tres Cruces. Ari organiza al menos siete conexiones entre ocho y nueve estaciones; Dani compara UV y UT juntas para evaluar la red precisa que construyeron.',
-  10: 'En la presentación final, Ari fundamenta una red de tres líneas y al menos nueve conexiones; Sol explica su cobertura territorial y Dani reúne las pruebas de operación. Los tres integran lo aprendido en una propuesta hipotética con transbordos que pueden defender con resultados.',
-});
+const HISTORIA_NIVELES = Object.fromEntries(catalogoRecorrido.map(n => [n.numero, n.historia.texto]));
 const PERSONAJES = Object.freeze({
   Ari: { imagen: '/assets/personajes/ari.svg', rol: 'Diseño de red' },
   Sol: { imagen: '/assets/personajes/sol.svg', rol: 'Cobertura territorial' },
@@ -155,7 +132,7 @@ function crearTarjetaEscenario(escenario) {
   const relato = document.createElement('p');
   relato.className = 'metronet-escenarios-pagina__relato';
   relato.textContent = escenario.numero === null
-    ? 'Ayudá a Ari, Sol y Dani a completar los niveles de la historia para desbloquear el Modo Libre.'
+    ? (escenario.desbloqueado ? 'Diseñá y probá tu propia red junto a Ari, Sol y Dani, sin consignas obligatorias.' : 'Ayudá a Ari, Sol y Dani a completar los diez niveles para desbloquear el Modo Libre.')
     : obtenerRelatoSeleccion(escenario);
   contenido.append(relato);
   const acciones = document.createElement('footer');
@@ -191,8 +168,8 @@ function nombreSinNumero(escenario) {
 
 function obtenerRelatoSeleccion(escenario) {
   const publicado = escenario.contenidoPublicado?.desafio?.relato?.trim() ?? escenario.relato?.trim();
-  // La publicación inicial conserva el relato anterior. Una edición posterior del administrador prevalece.
-  if (publicado && publicado !== RELATOS_INICIALES_PUBLICADOS[escenario.numero]) return publicado;
+  // La publicación que acompaña la consigna prevalece sobre el respaldo local.
+  if (publicado) return publicado;
   return HISTORIA_NIVELES[escenario.numero] ?? publicado ?? escenario.objetivo ?? 'Sin descripción disponible.';
 }
 

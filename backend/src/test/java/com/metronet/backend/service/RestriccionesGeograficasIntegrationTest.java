@@ -40,7 +40,7 @@ class RestriccionesGeograficasIntegrationTest {
         jdbc.execute("CREATE TABLE linea(id_diseno INT NOT NULL, nombre VARCHAR NOT NULL, modificable BOOLEAN)");
         jdbc.execute("CREATE TABLE tramo(id_diseno INT, nombre_linea VARCHAR, nombre_estacion_a VARCHAR, nombre_estacion_b VARCHAR)");
         jdbc.execute("CREATE TABLE pasa(id_diseno INT, nombre_linea VARCHAR, nombre_estacion VARCHAR)");
-        jdbc.execute("CREATE TABLE metro(id_diseno INT, nombre_linea VARCHAR, id_tren INT, capacidad INT, velocidad_promedio NUMERIC(6,2))");
+        jdbc.execute("CREATE TABLE metro(duracion_ut INT, id_diseno INT, nombre_linea VARCHAR, id_tren INT, capacidad INT, velocidad_promedio NUMERIC(6,2))");
         jdbc.update("INSERT INTO diseno VALUES (1)");
         jdbc.update("INSERT INTO escenario VALUES (1,'Prueba','NIVEL','Inicial','Objetivo','Instrucciones',NULL,FALSE,'{}')");
         jdbc.update("INSERT INTO intento VALUES (1,1,1,7,'EN_DISENO')");
@@ -71,7 +71,7 @@ class RestriccionesGeograficasIntegrationTest {
         simulacion.crearTramo(7,1,new ActualizarTramoRequest("Original","A","B"));
         simulacion.crearTramo(7,1,new ActualizarTramoRequest("Original","C","D"));
         simulacion.crearTramo(7,1,new ActualizarTramoRequest("Original","D","A"));
-        jdbc.update("INSERT INTO metro VALUES(1,'Original',1,300,40)");
+        jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,id_tren,capacidad,velocidad_promedio) VALUES(1,'Original',1,300,40)");
         var antes = jdbc.queryForList("SELECT id_tramo,nombre_estacion_a,nombre_estacion_b FROM tramo ORDER BY id_tramo");
         var asociaciones = jdbc.queryForList("SELECT nombre_estacion FROM pasa ORDER BY nombre_estacion");
         simulacion.actualizarLinea(7,1,"Original",new ActualizarLineaSimulacionRequest("Renombrada",null));
@@ -86,7 +86,7 @@ class RestriccionesGeograficasIntegrationTest {
     void ejecutarRevalidaTodaLaEstructuraAunqueElEstadoDigaValidado() {
         estacion("A",580,470); estacion("B",610,460); estacion("Aislada",640,460);
         simulacion.crearLinea(7,1,new CrearLineaSimulacionRequest("Línea 01",List.of("A","B")));
-        jdbc.update("INSERT INTO metro VALUES(1,'Línea 01',1,300,40)");
+        jdbc.update("INSERT INTO metro(id_diseno,nombre_linea,id_tren,capacidad,velocidad_promedio) VALUES(1,'Línea 01',1,300,40)");
         jdbc.update("UPDATE intento SET estado='VALIDADO'");
         var error = assertThrows(ResponseStatusException.class, () -> simulacion.ejecutarSimulacion(7,1,new EjecutarSimulacionRequest(BigDecimal.ONE,60)));
         assertEquals(400,error.getStatusCode().value());

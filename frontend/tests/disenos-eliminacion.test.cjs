@@ -30,7 +30,7 @@ async function abrir(t, opciones = {}) {
 }
 async function confirmar(pagina, nombre) {
   await pagina.getByRole('button', { name: `Eliminar diseño: ${nombre}`, exact: true }).click();
-  await pagina.locator('dialog').getByRole('button', { name: 'Eliminar diseño', exact: true }).click();
+  await pagina.locator('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
 }
 
 for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado propio/ajeno/completado y persistencia al recargar`, async t => {
@@ -44,7 +44,8 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado pro
   assert.equal(await p.locator('#listaDisenosLibres [data-diseno="77"]').count(), 1);
   await p.getByRole('button', { name: 'Eliminar diseño: Nivel completado' }).click();
   assert.match(await p.locator('#nombreEliminarDiseno').innerText(), /Otro Jugador/);
-  assert.match(await p.locator('#alcanceEliminarDiseno').innerText(), /intento, puntaje y resultados/);
+  assert.match(await p.locator('#alcanceEliminarDiseno').innerText(), /partida, puntaje y resultados/);
+  if (width === 1440) await p.locator('#confirmarEliminarDiseno').screenshot({path:'/tmp/eliminar-diseno-compacto.png'});
   await p.getByRole('button', { name: 'Cancelar', exact: true }).click();
   assert.equal(v.solicitudes.filter(s => s.method === 'DELETE').length, 0);
   await confirmar(p, 'Nivel completado'); await p.getByText('Diseño eliminado.', { exact: true }).waitFor();

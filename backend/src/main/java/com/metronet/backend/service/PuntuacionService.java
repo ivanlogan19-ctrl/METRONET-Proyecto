@@ -72,7 +72,9 @@ public class PuntuacionService {
             antes.forEach(u -> velocidades.put(u.idTren(), u.velocidad()));
             if (despues.stream().anyMatch(u -> !velocidades.containsKey(u.idTren()))) continue;
             long cambios = despues.stream().filter(u -> Double.compare(velocidades.get(u.idTren()), u.velocidad()) != 0).count();
-            boolean horas = anterior.duracion != actual.duracion;
+            Map<Integer, MedicionUnidad> previas = new HashMap<>();
+            antes.forEach(u -> previas.put(u.idTren(), u));
+            boolean horas = despues.stream().anyMatch(u -> u.tiempoEfectivo(actual.duracion) != previas.get(u.idTren()).tiempoEfectivo(anterior.duracion));
             if (cambios > 0 && !horas) realizadas.add("velocidad");
             if (horas && cambios == 0) realizadas.add("duracion");
             if (despues.size() > 1 && cambios == 1 && !horas) realizadas.add("individual");
@@ -96,7 +98,7 @@ public class PuntuacionService {
             boolean actual = escalaUt ? simulacionVigenteUvUt(idIntento, idDiseno)
                 : !ejecuciones.isEmpty() && ejecuciones.getLast().registro != null
                     && ejecuciones.getLast().comentarios.endsWith(marcaRed(idDiseno));
-            condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y UV actuales", actual ? 1 : 0, 1, actual));
+            condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y sus UV/UT actuales", actual ? 1 : 0, 1, actual));
         }
         return condiciones;
     }
@@ -185,11 +187,16 @@ public class PuntuacionService {
 
     public List<MedicionUnidad> medirUnidades(int idDiseno) {
         return jdbc.query("""
-            SELECT m.id_tren, m.nombre_linea, m.velocidad_promedio,
+            SELECT m.id_tren, m.nombre_linea, m.velocidad_promedio, m.duracion_ut,
                 (SELECT COUNT(*) FROM tramo t WHERE t.id_diseno=m.id_diseno AND t.nombre_linea=m.nombre_linea) tramos
             FROM metro m WHERE m.id_diseno=? ORDER BY m.id_tren
             """, (r, fila) -> new MedicionUnidad(r.getInt("id_tren"), r.getString("nombre_linea"),
-                r.getDouble("velocidad_promedio"), r.getInt("tramos")), idDiseno);
+                r.getDouble("velocidad_promedio"), r.getInt("tramos"), r.getObject("duracion_ut", Integer.class)), idDiseno);
+    }
+
+    public String marcaDidactica(int idDiseno, int duracionGlobal) {
+        var unidades = medirUnidades(idDiseno).stream().map(u -> new MedicionUnidad(u.idTren(), u.linea(), u.velocidad(), u.tramos(), u.tiempoEfectivo(duracionGlobal))).toList();
+        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), unidades).codificar() + marcaRed(idDiseno);
     }
 
     public String marcaDidactica(int idDiseno) {
@@ -209,12 +216,14 @@ public class PuntuacionService {
 
     private String marcaRed(int idDiseno, boolean incluirVelocidad, boolean incluirCapacidad) {
         try {
+            boolean incluirDuracion = incluirVelocidad && Boolean.TRUE.equals(jdbc.queryForObject(
+                "SELECT EXISTS(SELECT 1 FROM metro WHERE id_diseno=? AND duracion_ut IS NOT NULL)", Boolean.class, idDiseno));
             var datos = List.of(
                 jdbc.queryForList("SELECT nombre,posicion_x,posicion_y,transbordo FROM estacion WHERE id_diseno=? ORDER BY nombre", idDiseno),
                 jdbc.queryForList("SELECT nombre FROM linea WHERE id_diseno=? ORDER BY nombre", idDiseno),
                 jdbc.queryForList("SELECT nombre_linea,nombre_estacion FROM pasa WHERE id_diseno=? ORDER BY nombre_linea,nombre_estacion", idDiseno),
                 jdbc.queryForList("SELECT nombre_linea,nombre_estacion_a,nombre_estacion_b FROM tramo WHERE id_diseno=? ORDER BY nombre_linea,nombre_estacion_a,nombre_estacion_b", idDiseno),
-                jdbc.queryForList("SELECT id_tren,nombre_linea" + (incluirVelocidad ? ",velocidad_promedio" : "")
+                jdbc.queryForList("SELECT id_tren,nombre_linea" + (incluirVelocidad ? ",velocidad_promedio" : "") + (incluirDuracion ? ",duracion_ut" : "")
                     + (incluirCapacidad ? ",capacidad" : "") + " FROM metro WHERE id_diseno=? ORDER BY id_tren", idDiseno));
             byte[] hash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsString(datos).getBytes(StandardCharsets.UTF_8));
             return MARCA + HexFormat.of().formatHex(hash) + "]";

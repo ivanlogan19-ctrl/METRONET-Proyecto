@@ -34,3 +34,13 @@ html:root body .metronet-disenos__acciones button.metronet-boton--peligro:disabl
   background-color: var(--danger-surface) !important;
 }
 @media(max-width:480px) { .metronet-disenos__lista li { align-items:start; flex-direction:column; } }
+
+/* Confirmación breve, con una única jerarquía de peligro. */
+html:root body #confirmarEliminarDiseno { width:min(420px, calc(100vw - 24px)); max-width:420px; padding:0; border:1px solid var(--danger); background:#291722; color:#ffd5df; }
+html:root body #confirmarEliminarDiseno .metronet-dialogo-eliminar__contenido { padding:18px; gap:12px; }
+html:root body #confirmarEliminarDiseno h2 { border:0; padding:0; background:none; box-shadow:none; color:var(--danger); font-size:16px; line-height:1.4; }
+html:root body #confirmarEliminarDiseno h2::before, html:root body #confirmarEliminarDiseno h2::after { content:none; }
+html:root body #confirmarEliminarDiseno p { color:#ffd5df; font-size:11px; line-height:1.6; overflow-wrap:anywhere; }
+html:root body #confirmarEliminarDiseno .metronet-dialogo-eliminar__acciones { display:flex; justify-content:center; gap:12px; }
+html:root body #confirmarEliminarDiseno button { flex:0 1 auto; min-height:32px; padding:6px 12px; font-size:11px; --boton-borde:var(--danger); --boton-texto:#ffd5df; --boton-fondo:#291722; }
+html:root body #confirmarEliminarDiseno button[value="eliminar"] { --boton-fondo:var(--danger); --boton-texto:var(--primary-ink); }

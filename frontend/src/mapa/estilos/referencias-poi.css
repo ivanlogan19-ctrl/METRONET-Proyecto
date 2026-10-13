@@ -142,3 +142,68 @@ html:root body .metronet-poi [data-contenedor-selectores-mapa] > :last-child .me
 .metronet-poi__visibilidad button { display:grid; place-items:center; }
 .metronet-poi__casilla { display:block; width:16px; height:16px; border:2px solid var(--border-active); box-sizing:border-box; padding:2px; background:var(--bg-primary); background-clip:content-box; }
 .metronet-poi__visibilidad button[aria-pressed='true'] .metronet-poi__casilla { background-color:var(--border-active); }
+
+/* Paleta compartida: buscador integrado y dos selectores independientes. */
+.metronet-poi--compacto .metronet-poi__panel { width:min(410px,calc(100vw - 24px)); padding:12px; }
+html:root body .metronet-poi--compacto .metronet-poi__panel > header .metronet-boton-icono {
+  width:28px; min-width:28px; max-width:28px; height:28px; min-height:28px; flex:0 0 28px; padding:4px;
+}
+html:root body .metronet-poi--compacto .metronet-poi__panel > header .metronet-icono { width:18px; height:18px; flex-basis:18px; }
+.metronet-poi--compacto .metronet-poi__buscador { display:block; position:relative; margin:10px 0 12px; }
+.metronet-poi--compacto .metronet-poi__acceso-busqueda { position:absolute; left:3px; top:3px; z-index:1; }
+html:root body .metronet-poi--compacto .metronet-panel-puntos-alternar {
+  width:30px; min-width:30px; max-width:30px; height:30px; min-height:30px; flex:0 0 30px; padding:5px;
+  border:0; background:none; box-shadow:none;
+}
+html:root body .metronet-poi--compacto .metronet-panel-puntos-alternar > .metronet-icono { width:20px; height:20px; flex-basis:20px; }
+html:root body .metronet-poi--compacto .metronet-panel-puntos-busqueda {
+  height:36px; min-height:36px; box-sizing:border-box; padding:6px 8px 6px 38px; text-align:left;
+  font:12px/1.4 var(--font-ui); border:1px solid var(--border); width:100%;
+}
+.metronet-poi--compacto .metronet-poi__categorias { gap:8px; margin-bottom:12px; }
+.metronet-poi--compacto .metronet-poi__geografia { display:block; margin:0; border-top:1px solid var(--border); padding-top:10px; }
+.metronet-poi--compacto [data-contenedor-selectores-mapa] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; align-items:start; }
+.metronet-poi--compacto [data-contenedor-selectores-mapa] > .metronet-panel-integrado { display:block; border:1px solid var(--border); }
+.metronet-poi__selector-cabecera { display:flex; align-items:center; background:var(--panel-elevated); }
+html:root body .metronet-poi--compacto .metronet-poi__selector-cabecera [data-capa-geografica] {
+  display:grid; place-items:center; width:30px; min-width:30px; height:36px; min-height:36px; padding:6px;
+  margin:0; border:0; box-shadow:none; background:none; flex:0 0 30px;
+}
+html:root body .metronet-poi--compacto .metronet-poi__selector-cabecera .metronet-panel-encabezado {
+  height:36px; min-height:36px; flex:1; min-width:0; padding:6px 4px; border:0; box-shadow:none;
+  justify-content:space-between; font:11px/1.4 var(--font-arcade); white-space:nowrap;
+}
+.metronet-poi__selector-cabecera [aria-pressed='true'] .metronet-poi__casilla { background-color:var(--border-active); }
+.metronet-poi--compacto [data-contenedor-selectores-mapa] .metronet-panel-contenido { padding:0; border:0; border-top:1px solid var(--border); }
+html:root body .metronet-poi--compacto :is(.metronet-selector-barrios-lista,.metronet-selector-zonas-lista) { max-height:none; overflow:visible; gap:0; }
+html:root body .metronet-poi--compacto :is(.metronet-selector-barrio-opcion,.metronet-selector-zona-opcion) {
+  min-height:38px; padding:6px; gap:7px; margin:0; border-bottom:1px solid var(--border);
+  font:11px/1.35 var(--font-ui); border-radius:0;
+}
+.metronet-poi--compacto :is(.metronet-selector-barrio-opcion,.metronet-selector-zona-opcion) input { flex:0 0 14px; width:14px; height:14px; }
+.metronet-poi__paginacion { display:flex; justify-content:space-between; gap:12px; padding:3px 6px; }
+html:root body .metronet-poi__paginacion .metronet-boton-icono { width:20px; min-width:20px; max-width:20px; height:20px; min-height:20px; flex:0 0 20px; padding:3px; border:0; background:none; box-shadow:none; }
+html:root body .metronet-poi__paginacion .metronet-icono { width:10px; height:10px; flex:0 0 10px; }
+.metronet-poi__paginacion button:first-child svg { transform:rotate(90deg); }
+.metronet-poi__paginacion button:last-child svg { transform:rotate(-90deg); }
+
+html:root body #metronet-aplicacion .metronet-poi--compacto .metronet-panel-puntos-busqueda { text-align:center; }
+
+/* Los controles de página conservan su escala frente al tema global de iconos. */
+html:root body .metronet-poi .metronet-poi__paginacion button.metronet-boton-icono > svg.metronet-icono { width:8px !important; height:8px !important; min-width:8px; max-width:8px; min-height:8px; max-height:8px; flex:0 0 8px; }
+
+/* Paleta compacta; la bandera, clic fuera y Escape permiten cerrarla. */
+.metronet-poi--compacto .metronet-poi__panel { width:min(360px,calc(100vw - 24px)); padding:8px; }
+html:root body .metronet-poi--compacto .metronet-poi__panel > header h2 { font:11px/1.4 var(--font-arcade); margin:0; width:100%; text-align:center; }
+.metronet-poi--compacto .metronet-poi__panel > header { margin:0 0 6px; }
+.metronet-poi--compacto .metronet-poi__buscador { margin:0 0 8px; }
+.metronet-poi--compacto .metronet-poi__acceso-busqueda { top:2px; }
+html:root body .metronet-poi--compacto .metronet-panel-puntos-alternar { width:26px; min-width:26px; max-width:26px; height:26px; min-height:26px; padding:4px; }
+html:root body .metronet-poi--compacto .metronet-panel-puntos-alternar > .metronet-icono { width:16px; height:16px; flex-basis:16px; }
+html:root body .metronet-poi--compacto .metronet-panel-puntos-busqueda { height:30px; min-height:30px; padding:4px 32px; text-align:center; font-size:10px; }
+.metronet-poi--compacto .metronet-poi__categorias { gap:6px; margin-bottom:8px; }
+html:root body .metronet-poi--compacto .metronet-poi__categorias button.metronet-boton-icono { width:34px; min-width:34px; max-width:34px; height:34px; min-height:34px; padding:5px; }
+html:root body .metronet-poi--compacto .metronet-poi__categorias button.metronet-boton-icono > svg.metronet-icono { width:22px; height:22px; flex-basis:22px; }
+.metronet-poi--compacto .metronet-poi__geografia { padding-top:6px; }
+html:root body #metronet-aplicacion .metronet-poi--compacto .metronet-poi__selector-cabecera :is(.metronet-panel-encabezado,[data-capa-geografica]),
+html:root body .metronet-poi--compacto .metronet-poi__selector-cabecera :is(.metronet-panel-encabezado,[data-capa-geografica]) { height:30px; min-height:30px; font-size:10px; }

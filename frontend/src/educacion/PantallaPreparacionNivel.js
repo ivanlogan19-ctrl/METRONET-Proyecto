@@ -23,7 +23,7 @@ export function crearPreparacionNivel(escenario) {
   transicionActiva?.cerrar();
   const contenido = escenario.contenidoPublicado?.desafio ?? obtenerContenidoNivel(escenario.numero);
   const hayTarjetas = Boolean(tarjetaEducativaActual(escenario.numero));
-  const mensaje = contenido?.recorrido === 'integral-2026-10'
+  const mensaje = contenido?.recorrido?.startsWith('integral-2026-10')
     ? { id:`recorrido-${escenario.numero}`, categoria:'Tu misión', texto:contenido.relato }
     : seleccionarMensajeTransicion(escenario.numero);
   const movimientoReducido = matchMedia('(prefers-reduced-motion: reduce)').matches;

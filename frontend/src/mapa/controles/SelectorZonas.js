@@ -19,6 +19,7 @@ export default class SelectorZonas {
       contenedorPadre: opciones.contenedorPadre,
 
       integrado: opciones.integrado,
+      coexistir: opciones.coexistir,
     });
 
     this.zonasSeleccionadas = new Set();

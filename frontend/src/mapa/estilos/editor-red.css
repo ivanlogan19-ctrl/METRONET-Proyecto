@@ -1231,3 +1231,144 @@ html:root body #metronet-panel-controles .metronet-editor-finalizar__cabecera {
   grid-column: span 2;
 }
 #metronet-panel-controles [data-finalizar-red][hidden] { display: none; }
+
+/* Una misma fila delimita el mapa y el conjunto de metas y herramientas. */
+html:root body.metronet-pagina-editor { overflow:hidden; }
+html:root body .metronet-pantalla-editor { height:100svh; min-height:0; grid-template-rows:auto auto minmax(0,1fr) !important; }
+html:root body .metronet-pantalla-editor #metronet-aplicacion {
+  --lateral-ancho:clamp(300px, 31.25vw, 460px);
+  --texto-lateral:clamp(9px, 1.4vh, 13px);
+  --icono-herramienta:clamp(28px, 4.7vh, 48px);
+  height:100%; min-height:0; overflow:visible;
+  grid-template-columns:minmax(0,1fr) var(--lateral-ancho) !important;
+  grid-template-rows:auto auto minmax(0,1fr) !important;
+  grid-template-areas:'titulo titulo' 'barra barra' 'mapa lateral' !important;
+  gap:6px 10px; padding:6px 8px;
+}
+html:root body #metronet-aplicacion .metronet-area-mapa { display:contents; }
+html:root body #metronet-aplicacion .metronet-mapa-titulo { grid-area:titulo; width:100% !important; margin:0; }
+html:root body #metronet-aplicacion .metronet-barra-geografica { grid-area:barra; width:100%; margin:0; }
+html:root body #metronet-aplicacion .metronet-barra-geografica > [data-hud-mapa] { width:auto; }
+html:root body #metronet-aplicacion #metronet-mapa { grid-area:mapa; width:100%; height:100%; min-height:0; }
+html:root body #metronet-aplicacion .metronet-lateral-editor {
+  grid-area:lateral; display:flex; flex-direction:column; align-self:stretch;
+  width:100%; height:100%; min-height:0; min-width:0; gap:6px;
+}
+html:root body #metronet-aplicacion .metronet-objetivos-panel:not([hidden]) {
+  display:grid; grid-template-rows:minmax(0,1fr) auto; flex:1 1 0; min-height:0; max-height:none; overflow:visible;
+}
+html:root body #metronet-aplicacion .metronet-consigna-externa { min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr); }
+html:root body #metronet-aplicacion .metronet-consigna__resumen,
+html:root body #metronet-aplicacion .metronet-consigna__resumen-activo { min-height:0; display:grid; grid-template-rows:minmax(0,1fr); }
+html:root body #metronet-aplicacion .metronet-consigna__lista-breve { max-height:none; min-height:0; overflow:visible; margin:0; display:grid; align-content:stretch; }
+html:root body #metronet-aplicacion .metronet-consigna__lista-breve li { min-height:0; padding:3px 0; line-height:1.3; }
+html:root body #metronet-aplicacion .metronet-lateral-editor :is(p,li,span,b,strong,small,h1,h2,h3) { font-size:var(--texto-lateral); line-height:1.35; }
+html:root body #metronet-aplicacion :is(.metronet-consigna__cabecera,.metronet-panel-editor-cabecera) { min-height:24px; padding:5px 8px; }
+html:root body #metronet-aplicacion .metronet-consigna__resumen { padding:4px 8px; }
+html:root body #metronet-aplicacion #metronet-panel-controles { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto; align-self:stretch; flex:0 0 auto; max-height:none; overflow:visible; }
+html:root body #metronet-aplicacion .metronet-panel-editor-contenido { padding:6px; gap:4px; }
+html:root body #metronet-aplicacion .metronet-editor-bloque { margin:0; padding:5px; gap:4px; }
+html:root body #metronet-aplicacion .metronet-editor-bloque__titulo { margin:0 0 4px; padding:0; }
+html:root body #metronet-aplicacion .metronet-editor-bloque__botones { gap:5px; }
+html:root body #metronet-aplicacion .metronet-editor-bloque__botones > button.metronet-boton-icono { min-width:0; min-height:var(--icono-herramienta); height:var(--icono-herramienta); padding:3px; }
+html:root body #metronet-aplicacion .metronet-editor-bloque__botones svg.metronet-icono { width:calc(var(--icono-herramienta) * .6); height:calc(var(--icono-herramienta) * .6); }
+html:root body #metronet-aplicacion .metronet-panel-editor-pie { padding:0 6px 6px; }
+html:root body #metronet-aplicacion .metronet-panel-editor-toggle { display:none; }
+@media(max-width:700px) {
+  html:root body .metronet-pantalla-editor #metronet-aplicacion { --lateral-ancho:46vw; --texto-lateral:8px; --icono-herramienta:28px; gap:4px; padding:4px; }
+  html:root body #metronet-aplicacion .metronet-panel-editor-contenido { display:grid !important; }
+  html:root body #metronet-aplicacion .metronet-editor-bloque { padding:3px; }
+}
+html:root body #metronet-aplicacion .metronet-barra-geografica { min-height:32px; height:32px; padding:0; gap:6px; }
+html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) { width:30px !important; min-width:30px; max-width:30px; height:30px; min-height:30px; padding:4px; }
+html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) > svg.metronet-icono { width:18px; height:18px; min-width:18px; flex:0 0 18px; }
+
+/* Las cinco metas solas aprovechan la altura que no ocupa la lista de lugares. */
+@media (min-width:701px) {
+  html:root body #metronet-aplicacion .metronet-objetivos-panel:not(:has(.metronet-consigna__lista-referencias)) .metronet-consigna__lista-breve { --texto-lateral:clamp(11px, 1.8vh, 16px); }
+}
+@media (min-width:701px) and (max-height:760px) {
+  html:root body .metronet-pantalla-editor #metronet-aplicacion { --icono-herramienta:28px; }
+  html:root body #metronet-aplicacion .metronet-objetivos-panel:has(.metronet-consigna__lista-referencias) { --texto-lateral:8px; }
+}
+html:root body #metronet-aplicacion .metronet-consigna__lista-breve { grid-auto-rows:minmax(max-content,1fr); }
+
+/* Jerarquía común para las dos variantes: cinco metas, con o sin lugares. */
+html:root body #metronet-aplicacion :is(.metronet-consigna__cabecera,.metronet-panel-editor-cabecera) :is(h1,h2,h3),
+html:root body #metronet-aplicacion .metronet-consigna__referencias > h3 {
+  font-size:clamp(10px,1.5vh,14px); line-height:1.3;
+}
+html:root body #metronet-aplicacion .metronet-editor-bloque__titulo {
+  color:var(--text-secondary); font-size:clamp(9px,1.3vh,12px); line-height:1.3;
+}
+html:root body #metronet-aplicacion .metronet-consigna__lista-referencias li { padding:5px 0; }
+@media(min-width:701px) and (min-height:761px) {
+  html:root body #metronet-aplicacion .metronet-panel-editor-contenido { padding:8px; gap:6px; }
+  html:root body #metronet-aplicacion .metronet-editor-bloque { padding:6px; }
+}
+
+/* Variantes aprobadas: cinco metas y, cuando corresponda, tres lugares. */
+@media (min-width: 701px) {
+  html:root body .metronet-pantalla-editor #metronet-aplicacion {
+    --lateral-ancho: clamp(300px, 30vw, 420px);
+    --texto-lateral: clamp(9px, 1.4vh, 12px);
+    --icono-herramienta: clamp(28px, 4vh, 36px);
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    grid-template-areas: 'titulo barra' 'mapa lateral' !important;
+    row-gap: 8px;
+  }
+  html:root body #metronet-aplicacion .metronet-mapa-titulo {
+    min-height: 42px;
+    padding-block: 8px;
+    font-size: clamp(14px, 1.4vw, 20px);
+    line-height: 1.4;
+  }
+  html:root body #metronet-aplicacion .metronet-barra-geografica {
+    align-self: center;
+    justify-content: flex-end;
+  }
+  html:root body #metronet-aplicacion .metronet-lateral-editor { gap: 8px; }
+  html:root body #metronet-aplicacion .metronet-objetivos-panel:not(:has(.metronet-consigna__lista-referencias)) .metronet-consigna__lista-breve {
+    --texto-lateral: clamp(11px, 1.6vh, 14px);
+  }
+  html:root body #metronet-aplicacion :is(.metronet-consigna__cabecera, .metronet-panel-editor-cabecera) :is(h1,h2,h3),
+  html:root body #metronet-aplicacion .metronet-consigna__referencias > h3 {
+    font-size: clamp(10px, 1.4vh, 12px);
+  }
+  html:root body #metronet-aplicacion .metronet-editor-bloque__titulo { font-size: clamp(9px, 1.3vh, 11px); }
+  html:root body #metronet-aplicacion .metronet-editor-bloque__botones svg.metronet-icono { width: 18px; height: 18px; }
+  .metronet-mandos-mapa .metronet-control-zoom__panel-mapa { --mando-mapa: 28px; }
+  .metronet-mandos-mapa .metronet-control-zoom__rosa { width: 32px; height: 32px; }
+}
+/* El acceso territorial aparece en las consignas con lugares y en modo libre. */
+html:root body #metronet-aplicacion:has(.metronet-objetivos-panel--nivel:not([hidden])):not(:has(.metronet-consigna__lista-referencias)) .metronet-barra-geografica .metronet-poi {
+  display: none;
+}
+@media (min-width: 701px) {
+  html:root body .metronet-pantalla-editor #metronet-aplicacion {
+    --icono-herramienta: clamp(28px, 4.5vh, 40px);
+  }
+  html:root body #metronet-aplicacion .metronet-mapa-titulo {
+    grid-column: 1 / -1;
+    padding-right: calc(var(--lateral-ancho) + 12px);
+  }
+  html:root body #metronet-aplicacion .metronet-barra-geografica {
+    padding-right: 8px;
+    justify-content: flex-end;
+  }
+  html:root body #metronet-aplicacion .metronet-barra-geografica > [data-hud-mapa] { margin-left: 0; }
+  html:root body #metronet-aplicacion .metronet-objetivos-panel:not([hidden]) {
+    border: 0;
+    background: transparent;
+    gap: 8px;
+  }
+  html:root body #metronet-aplicacion :is(.metronet-consigna-externa, .metronet-referencias-objetivo) {
+    border: var(--border-width) solid var(--border-active);
+    border-left: var(--border-accent) solid var(--info-active);
+    background: var(--panel-elevated);
+  }
+}
+@media (min-width: 701px) and (min-height: 761px) {
+  html:root body #metronet-aplicacion .metronet-panel-editor-contenido { gap: 8px; }
+  html:root body #metronet-aplicacion .metronet-editor-bloque { padding: 8px; }
+}

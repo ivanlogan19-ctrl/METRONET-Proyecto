@@ -19,8 +19,8 @@ export default class MotorSimulacion {
   iniciar({ velocidad = 1, duracion = HORAS_INICIALES, ahora = 0 } = {}) {
     this.velocidad = normalizarVelocidad(velocidad);
     this.ventanaVisual = normalizarHoras(duracion);
-    this.duracion = normalizarHoras(duracion);
-    this.duracionVisual = this.calcularDuracionVisual(normalizarHoras(duracion));
+    this.duracion = Math.max(...this.rutas.map(u => u.duracionUt ?? this.ventanaVisual), this.rutas.length ? 0 : this.ventanaVisual);
+    this.duracionVisual = this.calcularDuracionVisual(this.duracion);
     this.marcaInicio = Number(ahora);
     this.tiempoAcumulado = 0;
     this.progreso = 0;
@@ -107,6 +107,7 @@ export default class MotorSimulacion {
       identificador: `M-${numeroMetroEnRed(unidad.idTren, this.obtenerUnidadesMetro()) ?? '—'}`,
       nombreLinea: unidad.nombreLinea,
       velocidadUV: Number(unidad.velocidadPromedio) || 0,
+      duracionUt: Number.isInteger(unidad.duracionUt) && unidad.duracionUt > 0 ? unidad.duracionUt : null,
       ruta: construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea),
     }));
   }
@@ -115,7 +116,7 @@ export default class MotorSimulacion {
     const nombresEstaciones = unidad.ruta.map((estacion) => estacion.nombre);
     const cantidadTramos = Math.max(0, nombresEstaciones.length - 1);
     const progresoRuta = cantidadTramos
-      ? Math.min(1, avanceEnTramos(unidad.velocidadUV, this.progreso * this.duracion) / cantidadTramos)
+      ? Math.min(1, avanceEnTramos(unidad.velocidadUV, Math.min(this.progreso * this.duracion, unidad.duracionUt ?? this.ventanaVisual)) / cantidadTramos)
       : 0;
     const indiceTramo = cantidadTramos ? Math.min(Math.floor(progresoRuta * cantidadTramos), cantidadTramos - 1) : -1;
     const esFinal = cantidadTramos > 0 && progresoRuta >= 1;
@@ -128,6 +129,8 @@ export default class MotorSimulacion {
       identificador: unidad.identificador,
       nombreLinea: unidad.nombreLinea,
       velocidadUV: unidad.velocidadUV,
+      duracionUt: unidad.duracionUt ?? this.ventanaVisual,
+      tiempoAgotado: this.progreso * this.duracion >= (unidad.duracionUt ?? this.ventanaVisual),
       progresoRuta,
       estacionActual,
       proximaEstacion,

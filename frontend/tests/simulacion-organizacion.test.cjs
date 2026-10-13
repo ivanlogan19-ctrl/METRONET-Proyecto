@@ -68,6 +68,12 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
   assert.equal(await p.locator('#instrumentosSimulacion').isVisible(), true);
   assert.equal(await p.locator('#ampliarMapa').isVisible(), false);
   assert.equal(await p.locator('#seccionResultados').count(), 0);
+  assert.equal(await p.locator('.simulacion-parametro-titulo:visible').count(), 0);
+  assert.equal(await p.locator('.simulacion-parametro-valor > span:visible').count(), 0);
+  for (const selector of ['.simulacion-grupo-velocidad', '#seccionConfiguracion']) {
+    assert.equal(await p.locator(`${selector} .simulacion-seccion-titulo`).count(), 1);
+    assert.equal(await p.locator(`${selector} .simulacion-parametro-valor button:visible`).count(), 3);
+  }
   assert.deepEqual(await geometria(p), inicial);
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await p.waitForFunction(() => escenaOrganizacion.motorSimulacion.estado === 'EN_CURSO');

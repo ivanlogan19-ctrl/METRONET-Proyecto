@@ -335,3 +335,32 @@ html:root body .metronet-solo-lectores {
 
 /* Marcadores de resultado: misma rejilla, escala 1:1 dentro de la fila textual. */
 .metronet-panel-puntos-icono .metronet-icono { width:16px; height:16px; flex-basis:16px; }
+/* Ficha de POI: identidad, descripción y ubicación con controles discretos. */
+html:root body .metronet-punto-interes-panel {
+  width:min(340px,calc(100% - 16px)); padding:14px;
+  border:1px solid var(--border);
+}
+html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-cabecera {
+  display:flex; align-items:center; gap:10px; margin:0; padding:0; border:0;
+}
+html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-titulo {
+  flex:1; min-width:0; margin:0; padding:0; border:0;
+  font:14px/1.4 var(--font-arcade); letter-spacing:.04em;
+  box-shadow:none; text-shadow:none; -webkit-text-stroke:0;
+}
+html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-titulo::before { display:none; }
+.metronet-punto-interes-panel-icono { display:flex; flex:0 0 24px; }
+.metronet-punto-interes-panel-icono .metronet-icono { width:24px; height:24px; }
+html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-cerrar {
+  width:22px; min-width:22px; height:22px; min-height:22px; padding:0;
+  flex:0 0 22px; font-size:18px; border:0; background:transparent; box-shadow:none;
+}
+html:root body .metronet-punto-interes-panel p { font:12px/1.5 var(--font-ui); margin:10px 0 0; }
+html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-tipo {
+  color:var(--text-secondary); font-size:10px; padding-bottom:10px; border-bottom:1px solid var(--border);
+}
+.metronet-punto-interes-panel-pie { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; }
+html:root body .metronet-punto-interes-panel-pie .metronet-punto-interes-panel-barrio { margin:0; font-size:11px; }
+html:root body .metronet-punto-interes-panel .metronet-punto-interes-panel-acciones { flex:0 0 auto; margin:0; }
+html:root body .metronet-punto-interes-panel-acciones .metronet-boton-icono { width:28px; min-width:28px; height:28px; min-height:28px; flex:0 0 28px; padding:5px; }
+html:root body .metronet-punto-interes-panel-acciones .metronet-icono { width:16px; height:16px; }

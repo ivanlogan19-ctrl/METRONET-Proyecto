@@ -14,6 +14,7 @@ export default class PanelDinamico {
     this.contenedorPadre = opciones.contenedorPadre ?? document.body;
 
     this.integrado = Boolean(opciones.integrado);
+    this.coexistir = Boolean(opciones.coexistir);
 
     this.elemento = null;
 
@@ -85,6 +86,7 @@ export default class PanelDinamico {
     this.contenido = contenido;
 
     this.contenido.style.display = 'none';
+    this.actualizarEncabezado();
 
     this.encabezado.addEventListener('click', () => {
       this.alternarContenido();
@@ -105,6 +107,13 @@ export default class PanelDinamico {
     }
 
     this.encabezado.setAttribute('aria-expanded', String(this.abierto));
+    if (this.coexistir) {
+      const titulo = document.createElement('span'); titulo.textContent = this.titulo;
+      const flecha = document.createElement('span'); flecha.textContent = this.abierto ? '▲' : '▼';
+      flecha.setAttribute('aria-hidden', 'true');
+      this.encabezado.replaceChildren(titulo, flecha);
+      return;
+    }
     this.encabezado.textContent = this.abierto ? `${this.titulo} ▲` : `${this.titulo} ▼`;
   }
 
@@ -207,6 +216,7 @@ export default class PanelDinamico {
   }
 
   cerrarOtrosPaneles() {
+    if (this.coexistir) return;
     const paneles = document.querySelectorAll('.metronet-panel-dinamico');
 
     paneles.forEach((panel) => {
@@ -222,6 +232,7 @@ export default class PanelDinamico {
     this.cancelarCierreAlClicFuera();
 
     this.manejadorClicFuera = (evento) => {
+      if (this.coexistir && this.contenedorPadre.contains(evento.target)) return;
       // Cerrar al completar el clic evita desplazar su destino en paneles
       // con scroll. Otro encabezado coordina el cierre desde abrirContenido().
       const otroEncabezado = evento.target.closest?.('.metronet-panel-dinamico > .metronet-panel-encabezado');

@@ -126,7 +126,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await p.locator('#tutorialPantallaSimulacion').click();
   const panelManual = p.locator('.metronet-tutorial-simulacion:popover-open');
   await panelManual.waitFor();
-  assert.equal(await panelManual.getByRole('button').count(),2);
+  assert.equal(await panelManual.getByRole('button').count(),1);
   assert.equal(await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).evaluate(e => getComputedStyle(e).backgroundColor),'rgb(244, 237, 121)');
   await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).click();
   await tutorial.waitFor();
@@ -143,11 +143,9 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await p.reload(); await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(),0,'No repite en el mismo navegador y campaña');
   campana=2; await p.reload(); await p.locator('#velocidadUnidad').waitFor();
-  await tutorial.waitFor();
-  await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
+  assert.equal(await tutorial.count(),0,'La función ya fue enseñada a este usuario');
   disponible=false; campana=3; await p.reload(); await p.locator('#velocidadUnidad').waitFor();
-  await tutorial.waitFor();
-  await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
+  assert.equal(await tutorial.count(),0);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla'}).click();
   await tutorial.waitFor();
@@ -188,17 +186,15 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
     assert.equal(await p.evaluate(({ x, y }) => Boolean(document.elementFromPoint(x, y)?.closest('.metronet-recorrido')), borde), true,
       `El fondo de la tarjeta recibe el puntero en el paso ${paso + 1}`);
     await p.mouse.click(borde.x, borde.y);
-    if (paso === 2 && width === 390 && height === 210) {
-      const puntoRegresion = { x: 121.5, y: 160.8 };
-      assert.equal(await p.evaluate(({ x, y }) => Boolean(document.elementFromPoint(x, y)?.closest('.metronet-recorrido')), puntoRegresion), true,
-        'El punto que antes activó Play queda dentro de la tarjeta');
-      // El diseño compacto puede colocar una acción del tutorial en esta coordenada.
-      // El fondo debe interceptar el clic; las acciones conservan su comportamiento propio.
-      const sobreAccion = await p.evaluate(({x,y}) => Boolean(document.elementFromPoint(x,y)?.closest('button')), puntoRegresion);
-      if (!sobreAccion) await p.mouse.click(puntoRegresion.x, puntoRegresion.y);
-      else await tutorial.locator('h2').click();
-      assert.equal(v.solicitudes.filter(s => ['/validacion', '/guardar', '/ejecutar'].some(final => s.path.endsWith(final))).length, 0,
-        'Clic en Acciones no inicia validación, guardado ni ejecución');
+    // Comprobar el encabezado real: las coordenadas del diseño anterior ya
+    // no corresponden a la tarjeta compacta, y fuera debe poder cerrarse.
+    if (width === 390 && height === 210) {
+      const titulo = await tutorial.locator('h2').boundingBox();
+      const punto = { x: titulo.x + titulo.width / 2, y: titulo.y + titulo.height / 2 };
+      assert.equal(await p.evaluate(({x,y}) => Boolean(document.elementFromPoint(x,y)?.closest('.metronet-recorrido')), punto), true);
+      await p.mouse.click(punto.x,punto.y);
+      assert.equal(v.solicitudes.filter(s => s.method !== 'GET').length, 0,
+        'El cartel intercepta los clics sin modificar ni ejecutar la red');
     }
     await tutorial.getByRole('button', { name: 'Siguiente', exact: true }).click();
   }
@@ -233,7 +229,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
 });
 
-test('Reiniciar la campaña vuelve a ofrecer el recorrido de Simulación completado', async t => {
+test('Reiniciar la campaña conserva las funciones de Simulación ya enseñadas', async t => {
   let campana = 1;
   const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
     const ruta = new URL(req.url()).pathname;
@@ -260,11 +256,15 @@ test('Reiniciar la campaña vuelve a ofrecer el recorrido de Simulación complet
   await p.waitForFunction(() => document.getElementById('mensajeEscenarios')?.textContent.includes('reinició'));
   assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
   await p.goto(`${new URL(p.url()).origin}/simulacion.html?idDiseno=77`);
+  await p.locator('#velocidadUnidad').waitFor();
+  assert.equal(await guia.count(),0);
+  await p.locator('#tutorialPantallaSimulacion').click();
+  await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
   await guia.waitFor();
   assert.equal(await guia.getAttribute('data-objetivo'), '#visorSimulacion');
 });
 
-test('Primera entrada: tutorial automático solo en niveles con aprendizaje nuevo', async () => {
+test('Primera visita a simulación: tutorial automático desde cualquier nivel', async () => {
   for (const numero of [1,2,3,4,5,6,7,8,9,10]) {
     const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
       if (new URL(req.url()).pathname === '/api/juego/progreso') return {json:{
@@ -275,11 +275,12 @@ test('Primera entrada: tutorial automático solo en niveles con aprendizaje nuev
     try {
       const p = v.pagina;
       await p.waitForFunction(() => document.querySelector('#velocidadUnidad')?.value === '40');
-      const corresponde = [1,2,3,4,9].includes(numero);
+      const corresponde = true;
       if (corresponde) await p.locator('.metronet-recorrido').waitFor();
       assert.equal(await p.locator('.metronet-recorrido').count(), corresponde ? 1 : 0, `Nivel ${numero}`);
       if (corresponde) {
-        assert.equal(await p.locator('[data-recorrido-siguiente]').evaluate(e=>e.getBoundingClientRect().width),30);
+        assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Mapa de la red');
+        assert.equal(await p.locator('[data-recorrido-siguiente]').evaluate(e=>e.getBoundingClientRect().width),24);
         await p.getByRole('button',{name:'Omitir',exact:true}).click();
         await p.reload();
         await p.waitForFunction(() => document.querySelector('#velocidadUnidad')?.value === '40');

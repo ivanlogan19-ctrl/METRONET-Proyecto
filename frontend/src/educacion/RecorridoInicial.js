@@ -9,13 +9,14 @@ const PASOS_INTEGRAL = [
   ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Elegí una vía y dos estaciones para extender una línea.'],
   ['[data-elegir-herramienta="metros"]', 'Metro', 'Tocá una vía con esta herramienta para asignarle una unidad.'],
   ['[data-ir-simulacion]', 'Simular', 'En Acciones de nivel podés pasar a Simulación después de guardar y comprobar la red.'],
-  ['.metronet-hud > summary', 'Controles y pista', 'Acá podés consultar los controles técnicos o pedir una pista sobre la consigna. El libro abre este tutorial.'],
-  ['.metronet-consigna__cabecera', 'Objetivo', 'Este panel resume el objetivo y su progreso. Podés desplegar los detalles cuando los necesites.'],
+  ['.metronet-aprender-acceso', 'Aprender', 'Abrí este botón para volver a ver las tarjetas educativas de este nivel.'],
+  ['.metronet-hud--integrado > summary', 'Música', 'Este botón permite activar o silenciar la música y ajustar su volumen.'],
+  ['.metronet-consigna__cabecera', 'Metas del nivel', 'Este panel muestra las metas y su progreso. Cada meta cumplida se marca con una estrella.'],
 ];
 
 const PASOS = [...PASOS_INTEGRAL.slice(1,6),
   ['.metronet-poi > summary', 'Referencias', 'La bandera amarilla permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
-  ...PASOS_INTEGRAL.slice(-2)];
+  ...PASOS_INTEGRAL.slice(-3)];
 
 const visible = elemento => elemento && !elemento.disabled && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';
 const senalable = elemento => elemento && elemento.getClientRects().length && getComputedStyle(elemento).visibility !== 'hidden';

@@ -47,3 +47,19 @@ test('N5–N10 conservan las condiciones vigentes sin conectividad global', () =
     assert.deepEqual(new Set(clavesExpandidas), new Set(base.map(({ clave }) => clave)), `N${nivel}: ninguna condición oculta`);
   }
 });
+
+test('Cada nivel agrupa cinco metas y ninguna estrella se adelanta al cumplimiento de sus requisitos',()=>{
+  const bases=['minimoEstaciones','minimoLineas','minimoTramos','minimoMetros','simulacionActual'];
+  for(let n=1;n<=10;n++) {
+    const claves=[...bases,...(n>=5?['requiereObjetivosMismaLinea']:[]),...(n>=7?['minimoTransbordos','requiereMetroPorLinea']:[]),...(n===8?['areaObjetivo:0']:[]),...(n===10?['aprendizajeSimulacion:global','aprendizajeSimulacion:individual','aprendizajeSimulacion:combinacion']:[])];
+    const condiciones=claves.map(clave=>({clave,texto:clave,actual:1,requerido:1,completado:true}));
+    assert.equal(objetivosCompactos(condiciones,n).length,5);
+    assert.ok(objetivosCompactos(condiciones,n).every(c=>c.completado));
+    for(const clave of claves){
+      const faltante=condiciones.map(c=>({...c,completado:c.clave!==clave}));
+      const visibles=objetivosCompactos(faltante,n);
+      assert.equal(visibles.length,5);
+      assert.equal(visibles.filter(c=>!c.completado).length,1,`N${n}: ${clave}`);
+    }
+  }
+});

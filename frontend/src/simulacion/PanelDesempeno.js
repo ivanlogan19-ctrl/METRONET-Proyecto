@@ -49,8 +49,8 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   }
   actualizarNivel(opciones.nivel);
   resumen.hidden = unidades.length === 0;
-  function actualizarTiempo(duracionGlobal, unidadTiempo = 'UT') {
-    const unidad = unidadTiempo === 'UT' ? 'UT' : 'h';
+  function actualizarTiempo(duracionGlobal) {
+    const unidad = 'UT';
     const tiempo = Number.isInteger(Number(duracionGlobal)) && Number(duracionGlobal) > 0
       ? `${duracionGlobal} ${unidad}` : `— ${unidad}`;
     listaResumen.replaceChildren(...unidades.map(metro => {
@@ -67,13 +67,13 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       const velocidad = Number(metro.velocidadPromedio);
       for (const [etiqueta, valor] of [
         ['UV actual', Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'],
-        ['UT actual', tiempo],
+        ['UT actual', metro.duracionUt != null ? `${metro.duracionUt} UT` : tiempo],
       ]) {
         const termino = document.createElement('dt');
         const dato = document.createElement('dd');
         termino.textContent = etiqueta;
         dato.textContent = valor;
-        if (etiqueta === 'UT actual') dato.title = 'Duración aplicada a todas las unidades de esta red';
+        if (etiqueta === 'UT actual') dato.title = 'Duración aplicada a este metro';
         valores.append(termino, dato);
       }
       fila.append(nombre, linea, valores);
@@ -150,7 +150,9 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   });
   window.addEventListener('resize', posicionarMenu, { signal: escucha.signal });
   contenedor.limpiarSelectorMetro = () => escucha.abort();
-  const permitidas = unidades.length > 0 && (!Number.isFinite(desempeno?.puntajeMaximo) || desempeno.redResuelta);
+  // Los objetivos pendientes no bloquean experimentar. El estado del motor y
+  // mantenimiento gobiernan la edición; Play aplica el preflight estructural.
+  const permitidas = unidades.length > 0;
   input.disabled = boton.disabled = !permitidas;
   campo.disabled = opciones.bloqueado === true;
   configurarBotonIcono(boton, 'guardar', 'Aplicar velocidad');
@@ -167,7 +169,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     input.placeholder = valorMixto ? 'Mixto' : '—';
     mixto.hidden = !valorMixto;
   }
-  actualizarTiempo(opciones.duracionGlobal, opciones.unidadTiempo);
+  actualizarTiempo(opciones.duracionGlobal);
   seleccionar(opciones.seleccion);
   contenedor.querySelectorAll('[data-paso-uv]').forEach(control => {
     control.disabled = !permitidas;

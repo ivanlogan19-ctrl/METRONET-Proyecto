@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
 @Service
 public class RecorridoIntegralService {
-    public static final String VERSION = "integral-2026-10";
+    public static final String VERSION = "integral-2026-10-objetivos-reales-v2";
     private final AdministracionNivelesService borradores;
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
@@ -37,6 +37,7 @@ public class RecorridoIntegralService {
         try (var entrada=new ClassPathResource("educacion/recorrido-integral.json").getInputStream()) {
             catalogo=mapper.readTree(entrada);
         }
+        validarCatalogo(catalogo);
         List<PublicacionNivelService.Publicada> resultado=new ArrayList<>();
         for (JsonNode nivel:catalogo) {
             int numero=nivel.path("numero").asInt();
@@ -98,7 +99,7 @@ public class RecorridoIntegralService {
             ((ObjectNode)estaciones.get(indice++)).put("x",geografia.posicionX(punto)).put("y",geografia.posicionY(punto));
         }
         var lineas=red.putArray("lineas"); lineas.addObject().put("nombre","Principal");
-        boolean dos=reglas.path("minimoLineas").asInt()>1;
+        boolean dos=reglas.path("minimoLineas").asInt()>1 || reglas.path("minimoTransbordos").asInt()>0;
         if (dos) lineas.addObject().put("nombre","Enlace");
         var tramos=red.putArray("tramos");
         for (int i=1;i<cantidad;i++) tramos.addObject().put("linea",dos && i==cantidad-1 ? "Enlace":"Principal")
@@ -111,10 +112,39 @@ public class RecorridoIntegralService {
         paso(ejecuciones,6,metros,4,4);
         if (numero==2) paso(ejecuciones,6,metros,5,5);
         if (numero==3) paso(ejecuciones,8,metros,4,4);
-        if (numero==4 || numero==10) { paso(ejecuciones,6,metros,5,5); paso(ejecuciones,6,metros,3,5); }
+        if (numero==4) { paso(ejecuciones,6,metros,5,5); paso(ejecuciones,6,metros,3,5); }
         if (numero==8) paso(ejecuciones,6,metros,3,4);
         if (numero==9 || numero==10) paso(ejecuciones,8,metros,6,6);
         return red;
+    }
+
+    private void validarCatalogo(JsonNode catalogo) {
+        if (!catalogo.isArray() || catalogo.size() != 10) throw new IllegalStateException("Se requieren diez niveles");
+        var usados = new java.util.HashSet<Integer>();
+        for (int indice = 0; indice < 10; indice++) {
+            var nivel = catalogo.get(indice);
+            int numero = indice + 1;
+            var reglas = nivel.path("reglasExito");
+            if (nivel.path("numero").asInt() != numero) throw new IllegalStateException("Secuencia de niveles inválida");
+            int objetivos = 0;
+            for (String clave : List.of("minimoEstaciones", "minimoLineas", "minimoTramos", "minimoMetros", "minimoTransbordos"))
+                if (reglas.path(clave).asInt() > 0) objetivos++;
+            for (JsonNode practica : reglas.path("aprendizajeSimulacion")) if (practica.asBoolean()) objetivos++;
+            if (reglas.path("requiereSimulacion").asBoolean()) objetivos++;
+            if (objetivos != 5 || !reglas.path("requiereSimulacion").asBoolean())
+                throw new IllegalStateException("Nivel " + numero + ": se requieren cinco objetivos y Simulación");
+            for (String herramienta : List.of("estaciones", "lineas", "conexiones", "metros", "simulacion"))
+                if (!nivel.path("herramientasHabilitadas").path(herramienta).asBoolean())
+                    throw new IllegalStateException("Nivel " + numero + ": herramienta requerida no habilitada: " + herramienta);
+            var puntos = reglas.path("puntosInteresObjetivo");
+            if (puntos.size() != (numero < 6 ? 0 : 3) || (numero >= 6 && !reglas.path("requierePoiIndividuales").asBoolean()))
+                throw new IllegalStateException("Nivel " + numero + ": cantidad/evaluación de POI inválida");
+            for (var punto : puntos) {
+                int id = punto.path("idPunto").asInt();
+                if (!usados.add(id) || geografia.resolverPunto(id, null) == null || punto.path("radioCobertura").asDouble() <= 0)
+                    throw new IllegalStateException("Nivel " + numero + ": POI inexistente, repetido o radio inválido");
+            }
+        }
     }
 
     private void paso(com.fasterxml.jackson.databind.node.ArrayNode ejecuciones,int horas,int cantidad,int primera,int resto) {

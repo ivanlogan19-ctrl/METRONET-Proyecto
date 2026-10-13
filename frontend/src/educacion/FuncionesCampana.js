@@ -1,0 +1,32 @@
+import catalogo from './recorrido-integral.json';
+
+// Registro compartido por Editor y Simulación. La progresión surge de reglas,
+// no de listas de números duplicadas en cada pantalla.
+export function escenarioCampana(numero, escenario) {
+  return escenario?.reglasExito ? escenario : catalogo.find(n => n.numero === numero);
+}
+export function funcionesCampana(escenario) {
+  const r = escenario?.reglasExito ?? {}, h = escenario?.herramientasHabilitadas ?? {};
+  const funciones = [];
+  if (h.estaciones && h.lineas && h.metros) funciones.push('editor.basico');
+  if (r.minimoTramos >= 2) funciones.push('editor.extender');
+  if (r.puntosInteresObjetivo?.length) funciones.push('editor.poi');
+  if (r.minimoTransbordos) funciones.push('editor.transbordo');
+  for (const [clave, activa] of Object.entries(r.aprendizajeSimulacion ?? {}))
+    if (activa) funciones.push(`simulacion.${clave}`);
+  return funciones;
+}
+export function funcionesIntroducidas(numero, escenario) {
+  const anteriores = new Set(catalogo.filter(n => n.numero < numero).flatMap(funcionesCampana));
+  return funcionesCampana(escenarioCampana(numero, escenario)).filter(clave => !anteriores.has(clave));
+}
+const claveRegistro = id => `metronet:funciones-ensenadas:v1:${id ?? 'invitado'}`;
+export function funcionesEnsenadas(id) {
+  try { return new Set(JSON.parse(localStorage.getItem(claveRegistro(id)) ?? '[]')); }
+  catch { return new Set(); }
+}
+export function registrarFuncionesEnsenadas(id, funciones) {
+  const aprendidas = funcionesEnsenadas(id);
+  funciones.forEach(clave => aprendidas.add(clave));
+  try { localStorage.setItem(claveRegistro(id), JSON.stringify([...aprendidas])); } catch { /* No bloquea jugar. */ }
+}

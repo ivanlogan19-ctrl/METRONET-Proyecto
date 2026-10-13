@@ -24,6 +24,8 @@ public class VerificadorEsquemaUvUt {
                 String encontrada = jdbc.queryForObject("SELECT to_regclass(?)::text", String.class, tabla);
                 if (encontrada == null) throw migracionPendiente();
             }
+            Boolean columnaUt = jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='duracion_ut')", Boolean.class);
+            if (!Boolean.TRUE.equals(columnaUt)) throw new IllegalStateException("Falta aplicar 021_duracion_por_metro.sql antes de iniciar METRONET");
             Boolean disparador = jdbc.queryForObject("""
                 SELECT EXISTS (SELECT 1 FROM pg_trigger
                   WHERE tgrelid=to_regclass('intento') AND tgname='congelar_catalogo_intento_v1'

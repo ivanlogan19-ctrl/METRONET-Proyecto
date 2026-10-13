@@ -68,3 +68,43 @@ test('Formateo centralizado y reloj visual acotado', async () => {
   assert.equal(escala.formatearVelocidad(4), '4 UV'); assert.equal(escala.formatearDuracion(6), '6 h'); assert.equal(escala.formatearRitmo(2), '2×');
   assert.equal(escala.duracionVisual(1), 5000); assert.equal(escala.duracionVisual(6), 18000); assert.equal(escala.duracionVisual(1000), 18000);
 });
+test('Conexión prolonga A–B hasta C y D; el Metro visita toda la cadena aunque los tramos lleguen desordenados', async () => {
+  const Motor = await cargar();
+  for (const tramos of [
+    [['A','B'],['B','C'],['C','D']],
+    [['C','B'],['D','C'],['B','A']],
+  ]) {
+    const datos = {estaciones:['A','B','C','D'].map(nombre=>({nombre})),
+      tramos:tramos.map(([estacionA,estacionB])=>({nombreLinea:'Principal',estacionA,estacionB})),
+      unidadesMetro:[{idTren:1,nombreLinea:'Principal',velocidadPromedio:1}]};
+    const motor = new Motor(datos);
+    assert.equal(motor.rutas[0].ruta.length,4);
+    assert.deepEqual(new Set(motor.rutas[0].ruta.map(e=>e.nombre)),new Set(['A','B','C','D']));
+    motor.iniciar({duracion:3,ahora:0});
+    const visitadas = new Set();
+    for(let t=0;t<=18000;t+=50) visitadas.add(motor.actualizar(t).unidades[0].estacionActual);
+    assert.deepEqual(visitadas,new Set(['A','B','C','D']));
+    assert.equal(motor.obtenerEstado().unidades[0].proximaEstacion,null);
+  }
+});
+
+test('UT individual limita cada metro y el reloj termina en la mayor duración', async () => {
+ const Motor=await cargar(), datos=red([1,1]);
+ datos.unidadesMetro[0].duracionUt=2; datos.unidadesMetro[1].duracionUt=8;
+ const m=new Motor(datos);m.iniciar({duracion:6,ahora:0});
+ const a=m.actualizar(9000); // Mitad de la ventana visual: 4 UT.
+ assert.equal(a.duracion,8);assert.equal(a.unidades[0].progresoRuta,2/30);assert.equal(a.unidades[1].progresoRuta,4/30);
+ assert.equal(a.unidades[0].tiempoAgotado,true);assert.equal(a.unidades[1].tiempoAgotado,false);
+ m.pausar(9000);assert.equal(m.actualizar(24000).tiempoTranscurrido,4);
+ m.reanudar(24000);assert.equal(m.actualizar(33000).estado,'FINALIZADA');
+ assert.equal(m.obtenerEstado().unidades[0].progresoRuta,2/30);
+ assert.equal(m.obtenerEstado().unidades[1].progresoRuta,8/30);
+ assert.equal(m.reiniciar(40000).tiempoTranscurrido,0);
+ assert.equal(m.obtenerEstado().duracion,8);
+});
+test('UT ausente conserva el respaldo global de diseños anteriores',async()=>{
+ const Motor=await cargar(),datos=red([1,1]);datos.unidadesMetro[0].duracionUt=2;
+ const m=new Motor(datos);m.iniciar({duracion:7});m.actualizar(21000);
+ assert.deepEqual(m.obtenerEstado().unidades.map(u=>u.duracionUt),[2,7]);
+ assert.equal(m.obtenerEstado().duracion,7);
+});

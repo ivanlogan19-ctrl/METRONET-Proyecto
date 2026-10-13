@@ -8,6 +8,13 @@ const NOMBRES_PRUEBAS = {
 
 /** Reúne requisitos relacionados para mostrarlos juntos; la API conserva cada comprobación. */
 export function objetivosCompactos(condiciones, numeroNivel) {
+  if (Number.isInteger(numeroNivel) && numeroNivel >= 1 && numeroNivel <= 10) {
+    const bases = ['minimoEstaciones', 'minimoLineas', 'minimoTramos', 'minimoMetros'];
+    const simulacion = condiciones.some(c => ['simulacionActual', 'requiereSimulacion', 'criterioUvUt'].includes(c.clave));
+    if (simulacion && bases.every(clave => condiciones.some(c => c.clave === clave))) {
+      return cincoMetas(condiciones);
+    }
+  }
   if (!Number.isInteger(numeroNivel) || numeroNivel < 5 || numeroNivel > 10) return condiciones;
   const areas = condiciones.filter(({ clave }) => /^areaObjetivo:\d+$/.test(clave));
   const pruebas = condiciones.filter(({ clave }) => clave.startsWith('aprendizajeSimulacion:'));
@@ -64,4 +71,36 @@ export function objetivosCompactos(condiciones, numeroNivel) {
     } else reunidas.push(condicion);
   }
   return reunidas;
+}
+
+/** Una estrella por meta; ningún requisito se descarta ni se da por cumplido por agruparlo. */
+function cincoMetas(condiciones) {
+  const grupos = [
+    ['estaciones', c => ['minimoEstaciones', 'maximoEstaciones', 'requiereGeografiaValida'].includes(c.clave) || c.clave.startsWith('areaObjetivo:')],
+    ['lineas', c => ['minimoLineas', 'minimoTransbordos', 'requiereObjetivosMismaLinea', 'requiereCoberturaPuntosInteres'].includes(c.clave)],
+    ['conexiones', c => c.clave === 'minimoTramos'],
+    ['metros', c => ['minimoMetros', 'requiereMetroPorLinea'].includes(c.clave)],
+    ['simulacion', c => ['requiereSimulacion', 'simulacionActual', 'criterioUvUt', 'requiereRedValida'].includes(c.clave) || c.clave.startsWith('aprendizajeSimulacion:')],
+  ];
+  const asignadas = new Set();
+  const metas = grupos.map(([nombre, pertenece]) => {
+    const miembros = condiciones.filter(pertenece);
+    miembros.forEach(c => asignadas.add(c));
+    if (miembros.length === 1) return miembros[0];
+    const base = miembros[0];
+    const extras = miembros.slice(1).map(c => {
+      if (c.clave.startsWith('aprendizajeSimulacion:')) return NOMBRES_PRUEBAS[c.clave.split(':')[1]] ?? c.texto;
+      if (c.clave === 'requiereObjetivosMismaLinea') return 'puntos de interés en una línea';
+      if (c.clave === 'requiereMetroPorLinea') return 'uno por línea';
+      return c.texto;
+    });
+    return {
+      clave:`meta:${nombre}`, texto:[base.texto, ...extras].join(' · '),
+      actual:miembros.filter(c => c.completado).length, requerido:miembros.length,
+      completado:miembros.every(c => c.completado),
+      detalle:miembros.map(c => c.texto).join('\n'),
+    };
+  });
+  // Una condición desconocida o un error de configuración debe seguir visible.
+  return [...metas, ...condiciones.filter(c => !asignadas.has(c))];
 }

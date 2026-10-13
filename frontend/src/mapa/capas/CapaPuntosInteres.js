@@ -1,3 +1,4 @@
+import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
 import { pixelesIcono } from '../../interfaz/PictogramasMapa.js';
 import Phaser from 'phaser';
 import { CATEGORIAS_REFERENCIAS, CATEGORIAS_PUNTUALES, obtenerCategoriaReferencia, describirReferencia, esPoiBuscable, colorReferencia } from '../configuracion/CategoriasReferencias.js';
@@ -1599,7 +1600,12 @@ export default class CapaPuntosInteres {
 
     botonCerrar.addEventListener('click', () => this.ocultarInformacion());
 
-    cabecera.append(titulo, botonCerrar);
+    const categoria = CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)];
+    const icono = document.createElement('span');
+    icono.className = 'metronet-punto-interes-panel-icono';
+    icono.style.color = `#${categoria.color.toString(16).padStart(6, '0')}`;
+    icono.innerHTML = iconoRetro(categoria.icono);
+    cabecera.append(icono, titulo, botonCerrar);
 
     const estado = document.createElement('p');
 
@@ -1620,7 +1626,8 @@ export default class CapaPuntosInteres {
     descripcion.textContent = punto.descripcion || 'Sin descripción disponible.';
 
     const estacionMasCercana = punto.estacionMasCercana ?? this.obtenerEstacionMasCercana(punto);
-    const elementos = [cabecera, estado];
+    const elementos = [cabecera];
+    if (punto.objetivo) elementos.push(estado);
     if (typeof punto.tipo === 'string' && punto.tipo.trim()) elementos.push(tipo);
     if (typeof punto.descripcion === 'string' && punto.descripcion.trim()) elementos.push(descripcion);
     const agregarDato = (texto) => {
@@ -1629,14 +1636,19 @@ export default class CapaPuntosInteres {
       dato.textContent = texto;
       elementos.push(dato);
     };
-    if (punto.barrioGeografico) agregarDato(`Barrio según el mapa: ${punto.barrioGeografico}`);
+    const ubicacion = [punto.barrioGeografico, punto.zonaGeografica?.replace(/^ZONA /, '')].filter(Boolean);
+    const pie = document.createElement('div');
+    pie.className = 'metronet-punto-interes-panel-pie';
+    if (ubicacion.length) {
+      const lugar = document.createElement('p');
+      lugar.className = 'metronet-punto-interes-panel-barrio';
+      lugar.textContent = ubicacion.join(' · ');
+      pie.append(lugar);
+    }
     if (punto.barrio && normalizarBarrio(punto.barrio) !== normalizarBarrio(punto.barrioGeografico)) {
       agregarDato(`Barrio del catálogo: ${punto.barrio}`);
     }
-    if (punto.zonaGeografica) agregarDato(`Zona: ${punto.zonaGeografica.replace(/^ZONA /, '')}`);
-    if (Number.isFinite(punto.latitud) && Number.isFinite(punto.longitud)) {
-      agregarDato(`Coordenadas: ${punto.latitud.toFixed(5)}, ${punto.longitud.toFixed(5)}`);
-    }
+
     const objetivo = this.obtenerObjetivoPunto(punto);
     if (Number.isFinite(objetivo?.radioCobertura) && objetivo.radioCobertura > 0) {
       agregarDato(`Cobertura requerida: hasta ${objetivo.radioCobertura} unidades del mapa desde este punto.`);
@@ -1662,23 +1674,14 @@ export default class CapaPuntosInteres {
 
     botonCentrar.className = 'metronet-punto-interes-panel-accion';
 
-    botonCentrar.textContent = 'Centrar';
+    configurarBotonIcono(botonCentrar, 'ampliar', 'Centrar punto de interés');
 
     botonCentrar.addEventListener('click', () => this.enfocarPunto(punto));
 
-    const botonCerrarAccion = document.createElement('button');
+    acciones.append(botonCentrar);
 
-    botonCerrarAccion.type = 'button';
-
-    botonCerrarAccion.className = 'metronet-punto-interes-panel-accion';
-
-    botonCerrarAccion.textContent = 'Cerrar';
-
-    botonCerrarAccion.addEventListener('click', () => this.ocultarInformacion());
-
-    acciones.append(botonCentrar, botonCerrarAccion);
-
-    elementos.push(acciones);
+    pie.append(acciones);
+    elementos.push(pie);
 
     this.panelInformacion.append(...elementos);
 

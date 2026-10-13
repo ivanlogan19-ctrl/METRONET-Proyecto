@@ -46,10 +46,16 @@ class RecorridoIntegralPostgresTest {
             new com.fasterxml.jackson.databind.ObjectMapper().readTree(jdbc.queryForObject(
                 "SELECT reglas_exito::text FROM escenario WHERE progresivo AND numero=1",String.class))
                 .path("puntuacion").path("version").asText());
+        var objetivosUnicos = new java.util.HashSet<Integer>();
         for (var publicada:publicaciones) {
+            var reglas = borradores.versiones(publicada.numero()).getFirst().contenido().path("reglasExito");
+            var puntos = reglas.path("puntosInteresObjetivo");
+            assertEquals(publicada.numero() < 6 ? 0 : 3, puntos.size());
+            for (var punto : puntos) assertTrue(objetivosUnicos.add(punto.path("idPunto").asInt()), "POI repetido");
             assertNull(publicada.versionCriterioUvUt(),"El recorrido usa horas; los presupuestos UT históricos no se heredan");
             assertEquals(RecorridoIntegralService.VERSION,contenido.actual(publicada.numero()).desafio().path("recorrido").asText());
         }
+        assertEquals(15, objetivosUnicos.size());
         assertEquals(historia,contenido.deIntento(anterior.idIntento(),admin));
         assertEquals(intentos,jdbc.queryForObject("SELECT COUNT(*) FROM intento",Integer.class));
         assertEquals(ejecuciones,jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class));

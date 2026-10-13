@@ -40,8 +40,22 @@ for (const contexto of ['editor', 'simulacion']) for (const width of [1440, 390]
       assert.equal(css.actual, css.esperado);
     }
     assert.equal(await panel.locator('h2').textContent(), 'Guía rápida');
-    assert.equal(await panel.getByRole('button', {name:'Cerrar guía rápida'}).count(), 1);
+    assert.equal(await panel.getByRole('button', {name:'Cerrar guía rápida'}).count(), 0);
     assert.equal(await panel.getByRole('button', {name:'Consultar ayuda'}).count(), 0);
+    const medidas = await panel.evaluate(e => ({ ancho:e.getBoundingClientRect().width, alto:e.getBoundingClientRect().height, desborda:e.scrollHeight>e.clientHeight+1 }));
+    assert.ok(medidas.ancho <= 280 && medidas.alto <= 360, JSON.stringify(medidas));
+    assert.equal(medidas.desborda,false);
+    const acceso = p.locator(contexto === 'editor' ? '.metronet-tutorial > summary' : '#tutorialPantallaSimulacion');
+    await (contexto === 'editor' ? acceso : acceso.locator('svg')).click();
+    await panel.waitFor({state:'hidden'});
+    await acceso.click(); await panel.waitFor();
+    await p.mouse.click(2,2);
+    await panel.waitFor({state:'hidden'});
+    await acceso.click(); await panel.waitFor();
+    await p.keyboard.press('Escape');
+    await panel.waitFor({state:'hidden'});
+    await acceso.click(); await panel.waitFor();
+    await panel.screenshot({path:`/tmp/guia-rapida-${contexto}-${width}.png`});
     assert.ok(await panel.locator('.metronet-tutorial__herramientas svg').count() >= 4);
     await tituloSinBarra(panel.locator('h2'));
     const repetir = panel.getByRole('button', { name: 'Recorrer la pantalla' });
