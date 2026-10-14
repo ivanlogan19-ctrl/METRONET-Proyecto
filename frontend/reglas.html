@@ -16,87 +16,155 @@
 <body class="metronet-pagina-navegable">
   <div data-navegacion-global></div>
   <main class="metronet-reglas" aria-labelledby="tituloReglas">
-    <div class="metronet-reglas__titulo-fijo">
-      <div class="metronet-reglas__hoja" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-      <h1 id="tituloReglas">Reglas de puntuación</h1>
-      <div class="metronet-reglas__hoja metronet-reglas__hoja--derecha" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-    </div>
-    <header class="metronet-reglas__cabecera">
-      <p>Completá los objetivos de cada nivel y conseguí el mejor puntaje posible.</p>
-      <dl class="metronet-reglas__resumen">
-        <div><dt>Puntos al comenzar</dt><dd>100</dd></div>
-        <div><dt>Por exceso o sin avances*</dt><dd>−10</dd></div>
-        <div><dt>Mínimo para aprobar</dt><dd>60</dd></div>
-      </dl>
-      <p class="metronet-reglas__nota">* Se aplica desde la primera simulación cuando hay exceso o no alcanzás ningún objetivo nuevo y todavía falta completar la consigna.</p>
+    <header class="metronet-reglas__titulo-fijo">
+      <div class="metronet-reglas__titulo-fila">
+        <div class="metronet-reglas__hoja" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <h1 id="tituloReglas">Reglas del juego</h1>
+        <div class="metronet-reglas__hoja metronet-reglas__hoja--derecha" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      </div>
+      <p>Consultá las reglas por tema.</p>
     </header>
-    <section id="reglaAprobacion" class="metronet-reglas__ancho" aria-labelledby="tituloAprobacion">
-      <h2 id="tituloAprobacion">Cómo aprobás un nivel</h2>
-      <p>Elegí <strong>Finalizar red</strong> en Edición para guardar tu red y comprobar si aprobaste. Completá <strong>toda la consigna</strong> y conservá al menos <strong>60 puntos</strong>. Si quedan objetivos pendientes, el nivel todavía no está aprobado.</p>
-      <p>Cuando la consigna pida probar cambios de velocidad o duración, aplicalos y volvé a simular para cumplir ese objetivo.</p>
-      <p>Los objetivos se comprueban con la red actual. Si eliminás un elemento necesario, ese objetivo deja de estar cumplido.</p>
+    <div class="metronet-reglas__pestanas" role="tablist" aria-label="Temas de las reglas">
+      <button type="button" role="tab" id="pestanaPuntuacion" aria-controls="panelPuntuacion" aria-selected="true">Puntuación</button>
+      <button type="button" role="tab" id="pestanaAprobacion" aria-controls="panelAprobacion" aria-selected="false" tabindex="-1">Cómo aprobar</button>
+      <button type="button" role="tab" id="pestanaAcciones" aria-controls="panelAcciones" aria-selected="false" tabindex="-1">Acciones</button>
+      <button type="button" role="tab" id="pestanaLibre" aria-controls="panelLibre" aria-selected="false" tabindex="-1">Modo Libre</button>
+      <button type="button" role="tab" id="pestanaRanking" aria-controls="panelRanking" aria-selected="false" tabindex="-1">Ranking</button>
+    </div>
+
+    <section id="panelPuntuacion" class="metronet-reglas__panel" role="tabpanel" aria-labelledby="pestanaPuntuacion" tabindex="0">
+      <dl class="metronet-reglas__resumen">
+        <div><dt>Puntos iniciales</dt><dd data-puntos="puntosBase">100</dd></div>
+        <div><dt>Descuento máximo<br>por simulación</dt><dd>−<span data-puntos="descuentoPorEjecucionSinAvance">10</span></dd></div>
+        <div><dt>Mínimo para aprobar</dt><dd data-puntos="puntajeMinimoAprobacion">60</dd><small>Y toda la consigna cumplida</small></div>
+      </dl>
+      <div class="metronet-reglas__columnas metronet-reglas__columnas--puntos">
+        <article class="metronet-reglas__tarjeta" aria-labelledby="tituloDescuento">
+          <h2 id="tituloDescuento">Cuándo perdés puntos</h2>
+          <ol class="metronet-reglas__motivos">
+            <li><span>Superás un <strong>máximo explícito de la consigna</strong>, aunque cumplas otro objetivo.</span></li>
+            <li><span>No cumplís un objetivo nuevo y aún quedan objetivos pendientes.</span></li>
+          </ol>
+          <div class="metronet-reglas__separador">
+            <p>Desde la primera ejecución. Máximo <strong>10 puntos por simulación</strong> y <strong>40 por intento</strong>.</p>
+            <p>Si dice <strong>«al menos»</strong>, agregar más no es exceso.</p>
+          </div>
+          <details class="metronet-reglas__detalle">
+            <summary>Detalle de los descuentos</summary>
+            <p>Una red operable puede simularse con exceso. Para aprobar, corregilo y cumplí toda la consigna. La ventana de puntos muestra qué límite superaste y los valores de esa ejecución.</p>
+            <p>Se descuenta una sola vez por simulación, aunque haya varios motivos. Volver a cumplir un objetivo ya alcanzado en ese intento no cuenta como avance nuevo.</p>
+          </details>
+        </article>
+        <article class="metronet-reglas__tarjeta" aria-labelledby="reglaCalculo">
+          <h2 id="reglaCalculo">Tu puntaje final</h2>
+          <table id="ejemplosPuntos">
+            <caption>Al completar toda la consigna</caption>
+            <thead><tr><th scope="col">Descuentos</th><th scope="col">Puntaje</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="metronet-reglas__nota">Al terminar, ves tu puntaje y el detalle de cada descuento.</p>
+        </article>
+      </div>
+      <article id="reglaDescuentos" class="metronet-reglas__tarjeta metronet-reglas__tarjeta--exito" aria-labelledby="tituloDescuentos">
+        <h2 id="tituloDescuentos">Estas acciones no descuentan puntos</h2>
+        <ul class="metronet-reglas__sin-descuentos">
+          <li>Consultar el tutorial y tomarte tiempo.</li>
+          <li>Guardar o mover el mapa.</li>
+          <li>Cambiar UV, UT o ritmo sin simular.</li>
+          <li>Cumplir un objetivo nuevo sin superar máximos.</li>
+          <li>Completar toda la consigna.</li>
+          <li>Pausar o detener la animación.</li>
+        </ul>
+      </article>
+      <p class="metronet-reglas__pie">Al llegar a 60 puntos, podés seguir practicando sin más descuentos.</p>
     </section>
-    <section class="metronet-reglas__ancho" aria-labelledby="tituloAcciones">
-      <h2 id="tituloAcciones">Guardar, Simular y Finalizar red</h2>
-      <ul>
-        <li><strong>Guardar:</strong> conserva el avance, aunque esté incompleto.</li>
-        <li><strong>Simular:</strong> prueba la red y registra los resultados y descuentos que correspondan.</li>
-        <li><strong>Finalizar red:</strong> guarda y comprueba toda la consigna. Si aprobás, muestra tu puntaje y habilita el siguiente nivel; si falta algo, podés seguir editando.</li>
-      </ul>
-      <p>Guardar y Simular no terminan el nivel. Finalizar red no agrega descuentos. Si modificás la red o las UV después de simular, volvé a ejecutarla antes de finalizar.</p>
+
+    <section id="panelAprobacion" class="metronet-reglas__panel" role="tabpanel" aria-labelledby="pestanaAprobacion" tabindex="0" hidden>
+      <article id="reglaAprobacion" class="metronet-reglas__tarjeta metronet-reglas__centrado">
+        <h2>Para aprobar un nivel</h2>
+        <div class="metronet-reglas__requisitos">
+          <p><span data-icono-regla="checkpoint" class="metronet-reglas__verde" aria-hidden="true"></span><strong>Completá toda la consigna</strong></p>
+          <span class="metronet-reglas__mas" aria-hidden="true">+</span>
+          <p><span data-icono-regla="checkpoint" class="metronet-reglas__amarillo" aria-hidden="true"></span><strong>Conservá 60 puntos o más</strong></p>
+        </div>
+        <p class="metronet-reglas__nota">Elegí Finalizar red en Edición para comprobar si aprobaste.</p>
+      </article>
+      <ol class="metronet-reglas__pasos">
+        <li class="metronet-reglas__tarjeta"><h3>01 · Completá</h3><span data-icono-regla="lineas" aria-hidden="true"></span><p>Construí la red y cumplí todos los objetivos.</p></li>
+        <li class="metronet-reglas__tarjeta"><h3>02 · Simulá</h3><span data-icono-regla="play" class="metronet-reglas__verde" aria-hidden="true"></span><p>Probá la red actual. Si la consigna pide cambios de UV o UT, aplicalos y volvé a simular.</p></li>
+        <li class="metronet-reglas__tarjeta"><h3>03 · Finalizá</h3><span data-icono-regla="finalizarRed" aria-hidden="true"></span><p>En Edición, elegí <strong>Finalizar red</strong> para guardar y comprobar si aprobaste.</p></li>
+      </ol>
+      <div class="metronet-reglas__columnas">
+        <article class="metronet-reglas__tarjeta metronet-reglas__aviso"><span data-icono-regla="checkpoint" class="metronet-reglas__verde" aria-hidden="true"></span><div><h3>Si aprobás</h3><p>Ves tu puntaje y habilitás el siguiente nivel.</p></div></article>
+        <article class="metronet-reglas__tarjeta metronet-reglas__aviso"><span class="metronet-reglas__alerta" aria-hidden="true">!</span><div><h3>Si falta algo</h3><p>Podés seguir editando y volver a intentarlo.</p></div></article>
+      </div>
+      <article class="metronet-reglas__tarjeta"><h3>Antes de finalizar</h3><p>Los objetivos se comprueban con la red actual. Si eliminás un elemento necesario, ese objetivo deja de estar cumplido.</p></article>
+      <p class="metronet-reglas__pie">Guardar y Simular no terminan el nivel.</p>
     </section>
-    <section aria-labelledby="tituloDescuento">
-      <h2 id="tituloDescuento">Cuándo perdés puntos</h2>
-      <p>Perdés <strong>10 puntos</strong> al simular si superás un <strong>máximo explícito de la consigna</strong>, incluso en la primera simulación o si cumplís otro objetivo. La ventana de puntos indica qué límite superaste y los valores de esa ejecución.</p>
-      <p>Una red operable puede simularse con exceso. Para aprobar, corregí el exceso y cumplí toda la consigna. Si un objetivo dice <strong>«al menos»</strong>, agregar más no es un exceso.</p>
-      <p>También perdés <strong>10 puntos</strong> al simular, desde la primera ejecución, si se cumplen estas dos condiciones:</p>
-      <ul>
-        <li>Todavía quedan objetivos por completar.</li>
-        <li>La simulación no cumple ningún objetivo que no hayas alcanzado antes en ese intento.</li>
-      </ul>
-      <p>Se descuentan como máximo <strong>10 puntos por simulación</strong>, aunque superes varios límites o también falten nuevos avances. Volver a cumplir un objetivo ya alcanzado no cuenta como un avance nuevo.</p>
-      <p>Podés perder hasta <strong>40 puntos por intento</strong>. Al llegar a 60, podés seguir practicando sin más descuentos hasta completar el nivel.</p>
+
+    <section id="panelAcciones" class="metronet-reglas__panel" role="tabpanel" aria-labelledby="pestanaAcciones" tabindex="0" hidden>
+      <article class="metronet-reglas__tarjeta">
+        <h2>Cada acción tiene su función</h2>
+        <div class="metronet-reglas__acciones-red">
+          <article class="metronet-reglas__tarjeta">
+            <span data-icono-regla="guardar" aria-hidden="true"></span><h3>Guardar</h3><p>Conserva tu avance.</p>
+            <dl><div><dt>Red incompleta</dt><dd>También podés guardarla.</dd></div><div><dt>Puntos</dt><dd>No descuenta.</dd></div></dl>
+            <p class="metronet-reglas__separador">Podés seguir construyendo.</p>
+          </article>
+          <article class="metronet-reglas__tarjeta">
+            <span data-icono-regla="play" class="metronet-reglas__verde" aria-hidden="true"></span><h3>Simular</h3><p>Pone a prueba la red.</p>
+            <dl><div><dt>Resultados</dt><dd>Registra la ejecución.</dd></div><div><dt>Puntos</dt><dd>Aplica descuentos cuando corresponda.</dd></div></dl>
+            <p class="metronet-reglas__separador">No termina el nivel.</p>
+          </article>
+          <article class="metronet-reglas__tarjeta">
+            <span data-icono-regla="finalizarRed" class="metronet-reglas__verde" aria-hidden="true"></span><h3>Finalizar red</h3><p>Guarda y comprueba toda la consigna.</p>
+            <dl><div><dt>Si aprobás</dt><dd>Muestra tu puntaje y habilita el siguiente nivel.</dd></div><div><dt>Puntos</dt><dd>No agrega descuentos.</dd></div></dl>
+            <p class="metronet-reglas__separador">Se realiza desde Edición.</p>
+          </article>
+        </div>
+        <aside class="metronet-reglas__tarjeta metronet-reglas__tarjeta--advertencia metronet-reglas__aviso metronet-reglas__recordatorio">
+          <span data-icono-regla="reiniciar" aria-hidden="true"></span><div><h3>¿Cambiaste la red o las UV?</h3><p>Volvé a simular antes de finalizar.</p></div>
+        </aside>
+      </article>
+      <p class="metronet-reglas__pie">Guardar conserva. Simular prueba. Finalizar comprueba.</p>
     </section>
-    <section aria-labelledby="reglaCalculo">
-      <h2 id="reglaCalculo">Cuántos puntos ganás</h2>
-      <p>Completá el nivel sin descuentos para ganar <strong>100 puntos</strong>.</p>
-      <table id="ejemplosPuntos">
-        <caption>Puntaje al completar toda la consigna</caption>
-        <thead><tr><th scope="col">Puntos descontados</th><th scope="col">Puntaje final</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p>Al terminar, vas a ver tu puntaje y el detalle de cada descuento antes de continuar.</p>
+
+    <section id="panelLibre" class="metronet-reglas__panel" role="tabpanel" aria-labelledby="pestanaLibre" tabindex="0" hidden>
+      <div id="reglaUvUtLibre" class="metronet-reglas__formulas">
+        <article class="metronet-reglas__tarjeta"><h2>Tiempo</h2><div><span data-icono-regla="relojTrafico" aria-hidden="true"></span><strong>1 UT = 1 hora</strong></div><p class="metronet-reglas__nota">Una hora del escenario.</p></article>
+        <article class="metronet-reglas__tarjeta"><h2>Velocidad</h2><div><span data-icono-regla="velocidad" aria-hidden="true"></span><strong>1 UV = 1 km/UT</strong></div><p class="metronet-reglas__nota">Equivale a 1 km/h.</p></article>
+        <article class="metronet-reglas__tarjeta"><h2>Si cambiás UV</h2><div><span data-icono-regla="regla" aria-hidden="true"></span><strong>UT = km ÷ UV</strong></div></article>
+        <article class="metronet-reglas__tarjeta"><h2>Si cambiás UT</h2><div><span data-icono-regla="regla" aria-hidden="true"></span><strong>UV = km ÷ UT</strong></div></article>
+      </div>
+      <article class="metronet-reglas__tarjeta">
+        <table><caption>Ejemplo · una línea de 12 km</caption><thead><tr><th scope="col">Distancia</th><th scope="col">Velocidad</th><th scope="col">Duración</th></tr></thead><tbody>
+          <tr><td>12 km</td><td>4 UV</td><td>3 UT</td></tr><tr><td>12 km</td><td>6 UV</td><td>2 UT</td></tr><tr><td>12 km</td><td>8 UV</td><td>1,5 UT</td></tr>
+        </tbody></table>
+        <p class="metronet-reglas__nota">1,5 UT es una hora y media.</p>
+      </article>
+      <div class="metronet-reglas__columnas">
+        <article class="metronet-reglas__tarjeta"><h3>Cada línea es independiente</h3><p>Sus metros comparten UV y UT según su distancia geográfica. Las demás líneas conservan sus valores.</p></article>
+        <article class="metronet-reglas__tarjeta"><h3>Si cambiás el recorrido</h3><p>Se conserva el último valor elegido y se recalcula el otro.</p></article>
+      </div>
+      <details class="metronet-reglas__detalle"><summary>Aplicar y consultar los valores de las líneas</summary><p>Con <strong>Todas las líneas</strong>, se aplica el valor elegido al conjunto; el otro puede aparecer como <strong>Mixto</strong> si las longitudes son distintas. Los metros nuevos heredan la configuración de su línea.</p><p>Guardá con los controles habituales o iniciá la simulación para aplicar los cambios. Al elegir otra línea, se guarda primero el ajuste pendiente de la anterior. El reloj termina con la mayor duración de tus metros.</p></details>
+      <aside class="metronet-reglas__tarjeta metronet-reglas__tarjeta--advertencia metronet-reglas__aviso"><span class="metronet-reglas__alerta" aria-hidden="true">!</span><p><strong>Sólo en Modo Libre.</strong> En los niveles 1–10, UV y UT se ajustan por separado según la consigna.</p></aside>
     </section>
-    <section id="reglaDescuentos" class="metronet-reglas__ancho" aria-labelledby="tituloDescuentos">
-      <h2 id="tituloDescuentos">Qué no te quita puntos</h2>
-      <p>Estas acciones <strong>no descuentan puntos</strong>:</p>
-      <ul>
-        <li>Consultar el tutorial y tomarte tiempo para resolver.</li>
-        <li>Guardar el diseño o mover el mapa.</li>
-        <li>Cambiar velocidad, duración o ritmo sin iniciar otra simulación.</li>
-        <li>Simular y cumplir un objetivo nuevo sin superar ningún máximo.</li>
-        <li>Completar toda la consigna.</li>
-        <li>Pausar o detener la animación.</li>
-      </ul>
-    </section>
-    <section id="reglaUvUtLibre" class="metronet-reglas__ancho" aria-labelledby="tituloUvUtLibre">
-      <h2 id="tituloUvUtLibre">Velocidad y duración en Modo Libre</h2>
-      <p><strong>1 UT equivale a 1 hora</strong> del escenario y <strong>1 UV equivale a 1 km por UT</strong> (1 km/h).</p>
-      <ul>
-        <li>Al cambiar la velocidad, se calcula el tiempo para completar el recorrido: <strong>UT = kilómetros ÷ UV</strong>.</li>
-        <li>Al cambiar el tiempo, se calcula la velocidad necesaria: <strong>UV = kilómetros ÷ UT</strong>.</li>
-      </ul>
-      <p>Para un recorrido de <strong>12 km</strong>: a <strong>4 UV</strong> necesitás <strong>3 UT</strong>; a <strong>8 UV</strong>, <strong>1,5 UT</strong> (una hora y media).</p>
-      <p>Cada línea tiene una configuración UV/UT común para todos sus metros, calculada con su propia distancia geográfica. Al elegir una línea, las demás conservan sus valores. Con <strong>Todas las líneas</strong>, se aplica el valor elegido al conjunto; el otro puede aparecer como <strong>Mixto</strong> si las longitudes son distintas. Los metros nuevos heredan la configuración de su línea.</p>
-      <p>Si modificás el recorrido, se conserva el último valor elegido y se recalcula el otro. Guardá con los controles habituales o iniciá la simulación para aplicar los cambios. El reloj termina con la mayor duración de tus metros.</p>
-      <p><strong>Esta relación automática se aplica sólo en Modo Libre.</strong> En los niveles 1 al 10, UV y UT se ajustan por separado según la consigna.</p>
-    </section>
-    <section class="metronet-reglas__ancho" aria-labelledby="reglaRanking">
-      <h2 id="reglaRanking">Tu lugar en el ranking</h2>
-      <p>El ranking suma tu <strong>mejor puntaje de cada nivel completado</strong>: hasta <strong>1000 puntos</strong> en los diez niveles.</p>
-      <p>Podés repetir un nivel para mejorar tu marca. Se conserva el mejor resultado; los puntos de las repeticiones no se suman entre sí. Los niveles sin completar no aportan puntos.</p>
-      <p>Reiniciar el recorrido conserva tus marcas. La clasificación incluye solamente jugadores.</p>
-      <div class="metronet-reglas__acciones"><a class="metronet-boton" href="/escenarios.html">Ver niveles</a><a class="metronet-boton" href="/ranking.html">Ver ranking</a></div>
+
+    <section id="panelRanking" class="metronet-reglas__panel metronet-reglas__centrado" role="tabpanel" aria-labelledby="pestanaRanking" tabindex="0" hidden>
+      <article class="metronet-reglas__tarjeta">
+        <h2>Tu mejor marca cuenta</h2>
+        <dl class="metronet-reglas__resumen metronet-reglas__resumen--ranking"><div><dt>Niveles</dt><dd>10</dd></div><div><dt>Máximo por nivel</dt><dd data-puntos="puntosBase">100</dd></div><div><dt>Máximo total</dt><dd id="maximoRanking">1000</dd></div></dl>
+      </article>
+      <article class="metronet-reglas__tarjeta"><h2>¿Cómo se suma?</h2><p>El ranking suma tu <strong>mejor puntaje de cada nivel completado</strong>.</p><p>Los niveles sin completar no aportan puntos.</p></article>
+      <article class="metronet-reglas__tarjeta"><h2>Ejemplo · repetir un nivel</h2>
+        <dl class="metronet-reglas__resumen metronet-reglas__resumen--ejemplo"><div><dt>Primer intento</dt><dd>80</dd></div><div><dt>Nueva marca</dt><dd>100</dd></div><div><dt>Aporta al ranking</dt><dd>100</dd></div></dl>
+        <p>Se conserva la mejor marca. Las repeticiones no se suman.</p>
+      </article>
+      <div class="metronet-reglas__columnas">
+        <p class="metronet-reglas__tarjeta metronet-reglas__aviso"><span data-icono-regla="checkpoint" class="metronet-reglas__verde" aria-hidden="true"></span>Reiniciar el recorrido conserva tus marcas.</p>
+        <p class="metronet-reglas__tarjeta metronet-reglas__aviso"><span data-icono-regla="checkpoint" class="metronet-reglas__verde" aria-hidden="true"></span>La clasificación incluye solamente jugadores.</p>
+      </div>
+      <div class="metronet-reglas__acciones"><a class="metronet-boton" href="/escenarios.html">Ver niveles</a><a class="metronet-boton metronet-boton--primario" href="/ranking.html">Ver ranking</a></div>
     </section>
   </main>
 </body>

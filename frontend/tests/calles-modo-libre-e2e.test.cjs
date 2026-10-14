@@ -546,7 +546,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     assert.equal(await frame().locator('.metronet-recorrido').count(), 0, 'El tutorial ya completado no vuelve a ofrecerse al recargar');
     console.log('Bienvenida del editor y tutorial territorial de Simulación completados: PASS');
     await frame().getByRole('link', { name: 'Reglas', exact: true }).first().click();
-    await frame().getByRole('heading', {name:'Reglas de puntuación',exact:true}).waitFor();
+    await frame().getByRole('heading', {name:'Reglas del juego',exact:true}).waitFor();
     assert.equal(await frame().locator('#listaFuentesMapa').count(), 0);
     await frame().getByRole('link', { name: 'Administración', exact: true }).first().click();
     await frame().getByRole('button', {name:'Usuarios',exact:true}).waitFor();

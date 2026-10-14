@@ -1,28 +1,39 @@
+/* Reglas: consulta por temas, sobre la tipografía y pictogramas del juego. */
 .metronet-reglas {
-  width: min(1120px, calc(100% - 32px));
+  --font-ui: 'Silkscreen', monospace;
+  --font-tecnica: var(--font-ui);
+  width: min(1320px, calc(100% - 48px));
   margin: auto;
-  padding: 24px 0 40px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  line-height: 1.65;
+  padding: 8px 0;
+  font: 400 13px/1.55 var(--font-arcade);
+  color: var(--text-primary);
 }
-.metronet-reglas__cabecera,
-.metronet-reglas__ancho { grid-column: 1 / -1; }
 .metronet-reglas__titulo-fijo {
-  grid-column: 1 / -1;
   position: sticky;
   top: 0;
   z-index: 2;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: clamp(8px, 2vw, 24px);
-  padding: 12px 0;
+  padding: 4px 0 8px;
   background: var(--bg-primary);
-  border-bottom: var(--border-width) solid var(--border);
+  text-align: center;
 }
-.metronet-reglas__titulo-fijo h1 { margin: 0; text-align: center; }
+.metronet-reglas__titulo-fila {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) 60px;
+  align-items: center;
+  gap: 24px;
+  max-width: 920px;
+  margin: auto;
+}
+html:root body .metronet-reglas h1 {
+  --titulo-tamano: clamp(24px, 2.5vw, 32px);
+  --titulo-sombra: none;
+  --titulo-contorno: 0px;
+  --titulo-brillo: none;
+  margin: 0;
+  padding: 12px;
+  border-color: var(--info-active);
+  text-align: center;
+}
 .metronet-reglas__hoja {
   width: 60px;
   height: 72px;
@@ -49,68 +60,182 @@
   from { clip-path: inset(0 100% 0 0); }
   to { clip-path: inset(0 0 0 0); }
 }
-.metronet-reglas__cabecera > p { color: var(--text-secondary); }
-.metronet-reglas__resumen {
+.metronet-reglas p { margin: 8px 0 0; }
+.metronet-reglas__pestanas {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 24px 0 8px;
-}
-.metronet-reglas__resumen > div {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
-  padding: 16px;
-  border: var(--border-width) solid var(--border);
-  background: var(--panel);
+  margin: 6px 0 14px;
 }
-.metronet-reglas__resumen dt { color: var(--text-secondary); }
-.metronet-reglas__resumen dd {
-  margin: 0;
-  font: 400 clamp(28px, 4vw, 40px)/1.2 var(--font-arcade);
-  color: var(--info-active);
+html:root body .metronet-reglas__pestanas button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px;
+  font: 400 13px/1.4 var(--font-arcade);
+  white-space: normal;
 }
+html:root body .metronet-reglas__pestanas button[aria-selected='true'],
+html:root body .metronet-reglas__pestanas button[aria-selected='true']:is(:hover, :active, :focus) {
+  --boton-fondo: var(--info-active);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--info-active);
+  --boton-hover: var(--info-active);
+  background: var(--info-active);
+  color: var(--primary-ink);
+  box-shadow: inset 0 0 0 2px var(--text-primary), 0 0 0 1px var(--info-active);
+}
+.metronet-reglas__panel { display: grid; gap: 12px; min-width: 0; }
+.metronet-reglas__panel[hidden] { display: none; }
+.metronet-reglas :is(button, a, summary, [role='tabpanel']):focus-visible { outline: 2px solid var(--text-primary); outline-offset: 3px; }
+.metronet-reglas__tarjeta {
+  min-width: 0;
+  padding: 12px 18px;
+  border: 1px solid var(--info-active);
+  background: linear-gradient(120deg, var(--panel), var(--bg-secondary));
+}
+html:root body .metronet-reglas :is(h2, h3) {
+  --titulo-sombra: none;
+  --titulo-contorno: 0px;
+  --titulo-brillo: none;
+  --titulo-relleno: 0;
+  --titulo-color: var(--text-primary);
+  --titulo-fuente: var(--font-arcade);
+  --titulo-peso: 400;
+  --titulo-tamano: 17px;
+  margin: 0 0 10px;
+  line-height: 1.4;
+  letter-spacing: .035em;
+}
+html:root body .metronet-reglas h3 { --titulo-tamano: 15px; }
+html:root body .metronet-reglas :is(h2, h3)::before { display: none; }
+.metronet-reglas__columnas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.metronet-reglas__columnas--puntos { grid-template-columns: 1.4fr 1fr; }
+.metronet-reglas__resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.metronet-reglas__resumen > div { display: grid; gap: 4px; align-content: center; text-align: center; min-height: 100px; padding: 12px; background: var(--panel); border: 1px solid var(--info-active); }
+.metronet-reglas__resumen dt { line-height: 1.35; }
+.metronet-reglas__resumen dd { margin: 0; font: 400 38px/1.1 var(--font-arcade); color: var(--info-active); }
 .metronet-reglas__resumen > div:first-child dd { color: var(--success); }
 .metronet-reglas__resumen > div:nth-child(2) dd { color: var(--warning); }
-.metronet-reglas__nota { margin: 8px 0 0; font-size: 14px; }
-.metronet-reglas section {
-  min-width: 0;
-  padding: clamp(16px, 2vw, 24px);
-  border: var(--border-width) solid var(--border);
-  background: var(--panel);
+.metronet-reglas__resumen small { font-size: 11px; }
+.metronet-reglas__motivos { list-style: none; counter-reset: motivo; padding: 0; margin: 14px 0; display: grid; gap: 12px; }
+.metronet-reglas__motivos li { counter-increment: motivo; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.metronet-reglas__motivos li::before { content: counter(motivo, decimal-leading-zero); padding: 2px; text-align: center; border: 1px solid var(--info-active); color: var(--warning); }
+/* El texto completo del motivo conserva un único bloque junto al número. */
+.metronet-reglas__motivos li strong { font-weight: inherit; }
+.metronet-reglas__separador { border-top: 1px solid var(--border-active); padding-top: 8px; }
+html:root body .metronet-reglas table { width: 100%; border-collapse: collapse; table-layout: fixed; font: inherit; }
+.metronet-reglas caption { padding: 0 0 10px; text-align: left; }
+html:root body .metronet-reglas :is(th, td) { padding: 4px 10px; border: 1px solid var(--border-active); text-align: center; white-space: normal; overflow-wrap: anywhere; font: inherit; }
+html:root body .metronet-reglas th { color: var(--info-active); font-size: 12px; letter-spacing: .03em; }
+.metronet-reglas #ejemplosPuntos td:nth-child(2) { color: var(--success); font-size: 17px; }
+.metronet-reglas__tarjeta--exito { border-color: var(--success); }
+.metronet-reglas__sin-descuentos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; gap: 10px 16px; margin: 0; padding: 0; font-size: 12px; }
+.metronet-reglas__sin-descuentos li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; }
+.metronet-reglas__sin-descuentos li::before { content: '+'; border: 1px solid var(--success); color: var(--success); text-align: center; line-height: 18px; }
+.metronet-reglas .metronet-reglas__nota { color: var(--text-secondary); font-size: 11px; }
+.metronet-reglas .metronet-reglas__pie { margin: 0; text-align: center; font-size: 11px; color: var(--text-secondary); }
+.metronet-reglas__detalle { font-size: 12px; }
+.metronet-reglas__detalle summary { cursor: pointer; padding: 8px 0; color: var(--info-active); }
+.metronet-reglas__detalle p { padding-bottom: 6px; }
+.metronet-reglas__centrado { text-align: center; }
+.metronet-reglas__requisitos { display: grid; grid-template-columns: 1fr 36px 1fr; align-items: center; gap: 12px; }
+.metronet-reglas__requisitos p { display: flex; justify-content: center; align-items: center; gap: 14px; margin: 0; padding: 12px; border: 1px solid var(--info-active); font-size: 17px; }
+.metronet-reglas__mas { color: var(--info-active); font-size: 30px; }
+.metronet-reglas__pasos { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px; margin: 0; padding: 0; text-align: center; }
+.metronet-reglas__pasos li { position: relative; }
+.metronet-reglas__pasos li + li::before { content: '→'; position: absolute; left: -28px; top: 42%; color: var(--info-active); font-size: 24px; }
+.metronet-reglas [data-icono-regla] { display: inline-flex; color: var(--info-active); flex: 0 0 auto; }
+.metronet-reglas [data-icono-regla] > svg { width: 48px; height: 48px; flex: 0 0 48px; }
+.metronet-reglas [data-icono-regla].metronet-reglas__verde { color: var(--success); }
+.metronet-reglas [data-icono-regla].metronet-reglas__amarillo { color: var(--warning); }
+.metronet-reglas__aviso { display: flex; gap: 18px; align-items: center; }
+.metronet-reglas__aviso h3 { margin-bottom: 4px; }
+.metronet-reglas__aviso p { margin: 0; }
+.metronet-reglas__alerta { display: inline-grid; place-items: center; width: 32px; height: 32px; flex: 0 0 32px; font-size: 25px; color: var(--primary-ink); background: var(--warning); }
+.metronet-reglas__acciones-red { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; text-align: center; }
+.metronet-reglas__acciones-red > article { display: flex; flex-direction: column; align-items: center; }
+.metronet-reglas__acciones-red [data-icono-regla] > svg { width: 64px; height: 64px; flex-basis: 64px; margin-bottom: 8px; }
+.metronet-reglas__acciones-red h3 { font-size: 20px; margin-bottom: 0; }
+.metronet-reglas__acciones-red dl { width: 100%; flex: 1; margin: 12px 0 10px; display: grid; gap: 8px; grid-template-rows: repeat(2, 1fr); text-align: left; }
+.metronet-reglas__acciones-red dl > div { border: 1px solid var(--border-active); padding: 10px; }
+.metronet-reglas__acciones-red dt { color: var(--info-active); }
+.metronet-reglas__acciones-red dd { margin: 6px 0 0; }
+.metronet-reglas__acciones-red .metronet-reglas__separador { width: 100%; }
+.metronet-reglas__tarjeta--advertencia { border-color: var(--warning); }
+.metronet-reglas__tarjeta--advertencia [data-icono-regla] { color: var(--warning); }
+.metronet-reglas__recordatorio { margin-top: 12px; }
+.metronet-reglas__formulas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.metronet-reglas__formulas article { padding-block: 10px; }
+.metronet-reglas__formulas h2 { margin-bottom: 4px; }
+.metronet-reglas__formulas article > div { display: flex; gap: 18px; align-items: center; }
+.metronet-reglas__formulas strong { color: var(--success); font-size: clamp(20px, 2.1vw, 28px); font-weight: 400; }
+.metronet-reglas__resumen--ranking, .metronet-reglas__resumen--ejemplo { margin: 8px 0; }
+.metronet-reglas__resumen--ranking > div, .metronet-reglas__resumen--ejemplo > div { min-height: 84px; }
+.metronet-reglas__resumen--ranking > div dd { color: var(--success); }
+.metronet-reglas__resumen--ejemplo > div dd { color: var(--info-active); }
+.metronet-reglas__resumen--ejemplo > div:last-child { border-color: var(--success); }
+.metronet-reglas__resumen--ejemplo > div:last-child dd { color: var(--success); }
+.metronet-reglas__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 4px 0; }
+.metronet-reglas__acciones a { min-width: 200px; }
+@media (min-width: 901px) and (max-height: 940px) {
+  .metronet-reglas__formulas [data-icono-regla] > svg { width: 36px; height: 36px; flex-basis: 36px; }
+  .metronet-reglas__formulas article { padding-block: 8px; }
+  .metronet-reglas__formulas .metronet-reglas__nota { margin: 2px 0 0 54px; }
+  .metronet-reglas__formulas strong { font-size: 25px; }
+  .metronet-reglas__formulas { gap: 10px; }
+  .metronet-reglas #panelLibre > .metronet-reglas__tarjeta { padding-block: 8px; }
+  .metronet-reglas #panelLibre .metronet-reglas__columnas h3 { font-size: 14px; margin-bottom: 4px; }
 }
-.metronet-reglas #reglaAprobacion { border-left: var(--border-accent) solid var(--success); }
-.metronet-reglas h2 { margin-top: 0; }
-.metronet-reglas p:last-child { margin-bottom: 0; }
-.metronet-reglas ul { padding-left: 20px; }
-.metronet-reglas li + li { margin-top: 8px; }
-.metronet-reglas #reglaDescuentos ul {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px 32px;
+@media (min-width: 901px) and (max-height: 840px) {
+  .metronet-reglas { padding-block: 12px 6px; font-size: 12px; line-height: 1.45; }
+  .metronet-reglas__titulo-fijo { padding: 0 0 4px; }
+  .metronet-reglas__titulo-fijo > p { margin-top: 2px; }
+  .metronet-reglas__pestanas { margin-block: 4px 8px; }
+  .metronet-reglas__panel { gap: 7px; }
+  .metronet-reglas__tarjeta { padding: 8px 14px; }
+  .metronet-reglas__resumen > div { min-height: 80px; padding: 6px; }
+  .metronet-reglas__resumen dd { font-size: 32px; }
+  .metronet-reglas__resumen small { font-size: 10px; }
+  .metronet-reglas__motivos { margin-block: 10px; gap: 10px; }
+  .metronet-reglas__sin-descuentos { gap: 6px 14px; }
+  html:root body .metronet-reglas :is(th, td) { padding-block: 2px; }
+  html:root body .metronet-reglas :is(h2, h3) { margin-bottom: 6px; }
+  .metronet-reglas__acciones-red dl > div { padding: 8px; }
+  .metronet-reglas__acciones-red dl { margin-block: 8px; }
+  .metronet-reglas__resumen--ranking, .metronet-reglas__resumen--ejemplo { margin-block: 4px; }
+  .metronet-reglas__resumen--ranking > div, .metronet-reglas__resumen--ejemplo > div { min-height: 72px; }
+  .metronet-reglas__formulas article { padding-block: 4px; }
+  .metronet-reglas__formulas article { position: relative; }
+  .metronet-reglas__formulas .metronet-reglas__nota { position: absolute; right: 14px; top: 5px; margin: 0; }
+  .metronet-reglas__formulas [data-icono-regla] > svg { width: 32px; height: 32px; flex-basis: 32px; }
 }
-.metronet-reglas #reglaDescuentos li { margin-top: 0; }
-.metronet-reglas table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.metronet-reglas caption { padding: 0 0 12px; text-align: left; color: var(--text-secondary); }
-.metronet-reglas :is(th, td) { padding: 8px 12px; text-align: left; border: 1px solid var(--border); }
-.metronet-reglas th { background: var(--bg-secondary); }
-.metronet-reglas td:nth-child(2) { text-align: center; font-weight: 700; }
-.metronet-reglas #ejemplosPuntos td:nth-child(2) { color: var(--success); }
-.metronet-reglas__acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
-@media (max-width: 760px) {
-  .metronet-reglas { grid-template-columns: minmax(0, 1fr); }
-  .metronet-reglas #reglaDescuentos ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+  .metronet-reglas { width: calc(100% - 32px); }
+  .metronet-reglas__pestanas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .metronet-reglas__columnas--puntos { grid-template-columns: 1fr; }
+  .metronet-reglas__sin-descuentos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metronet-reglas__pasos { gap: 12px; }
+  .metronet-reglas__pasos li + li::before { display: none; }
 }
-@media (max-width: 480px) {
-  .metronet-reglas #reglaDescuentos ul { grid-template-columns: minmax(0, 1fr); }
-  .metronet-reglas__hoja { width: 28px; height: 40px; padding: 7px 4px; box-shadow: 2px 2px 0 var(--border); }
+@media (max-width: 620px) {
+  .metronet-reglas { font-size: 12px; padding-top: 10px; }
+  .metronet-reglas__titulo-fila { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 8px; }
+  .metronet-reglas__hoja { width: 32px; height: 44px; padding: 7px 4px; box-shadow: 2px 2px 0 var(--border); }
   .metronet-reglas__hoja span { height: 2px; }
-  html:root body .metronet-reglas__titulo-fijo h1 { --titulo-tamano: 17px; }
-  .metronet-reglas__resumen { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .metronet-reglas__resumen > div { flex-direction: row; align-items: center; padding: 12px 16px; }
-  .metronet-reglas__resumen dt { max-width: 70%; }
-  .metronet-reglas :is(th, td) { padding: 8px; }
+  html:root body .metronet-reglas h1 { --titulo-tamano: 18px; padding: 8px; }
+  .metronet-reglas__titulo-fijo > p { font-size: 11px; }
+  .metronet-reglas__pestanas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html:root body .metronet-reglas__pestanas button { font-size: 12px; }
+  .metronet-reglas__columnas, .metronet-reglas__acciones-red, .metronet-reglas__pasos, .metronet-reglas__formulas, .metronet-reglas__sin-descuentos { grid-template-columns: 1fr; }
+  .metronet-reglas__resumen { grid-template-columns: 1fr; gap: 8px; }
+  .metronet-reglas__resumen > div { min-height: 92px; }
+  .metronet-reglas__requisitos { grid-template-columns: 1fr; gap: 6px; }
+  .metronet-reglas__tarjeta { padding: 14px; }
+  .metronet-reglas__requisitos p { font-size: 14px; }
+  .metronet-reglas__mas { line-height: 1; }
+  .metronet-reglas__formulas strong { font-size: 18px; }
+  .metronet-reglas [data-icono-regla] > svg { width: 40px; height: 40px; flex-basis: 40px; }
+  html:root body .metronet-reglas :is(th, td) { font-size: 11px; padding: 8px 4px; letter-spacing: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .metronet-reglas__hoja span { animation: none; }

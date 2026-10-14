@@ -165,7 +165,8 @@ function aplicarConfiguracionPredeterminada(configuracion) {
 async function abrirDiseno(idDiseno) {
   const version = ++versionDiseno;
   try {
-    if (String(disenoActual?.simulacion?.idDiseno) !== String(idDiseno)) duracionAplicada = null;
+    const nuevoDiseno = String(disenoActual?.simulacion?.idDiseno) !== String(idDiseno);
+    if (nuevoDiseno) duracionAplicada = null;
     cerrarDefinicion();
     errorAyuda = null;
     panelAyuda?.actualizar({});
@@ -181,6 +182,9 @@ async function abrirDiseno(idDiseno) {
     if (version !== versionDiseno || !paginaActiva) return;
     disenoActual = diseno;
     vinculoPendiente = null;
+    // Mostrar desde el inicio los valores de una línea, sin mezclar sus distancias.
+    if (nuevoDiseno) unidadSeleccionada = esModoLibre(diseno) && diseno.unidadesMetro?.length
+      ? String(diseno.unidadesMetro[0].idTren) : 'todas';
     const horas = document.getElementById('duracionSimulacion');
     horas.step = esModoLibre(diseno) ? 'any' : '1';
     horas.min = esModoLibre(diseno) ? '0.00000001' : '1';
@@ -328,7 +332,17 @@ function obtenerRotuloNivel() {
   return Number.isInteger(numero) ? `Nivel ${numero}` : resumen.nombre || 'Nivel actual';
 }
 
-function seleccionarUnidad(id) {
+async function seleccionarUnidad(id) {
+  if (guardandoVelocidad) return;
+  if (id === unidadSeleccionada) return;
+  if (esModoLibre(disenoActual) && vinculoPendiente) {
+    const { referencia, valor } = vinculoPendiente;
+    if (!await guardarVinculoLibre(referencia, valor)) {
+      controlUnidades?.seleccionar(unidadSeleccionada);
+      actualizarCampoDuracion();
+      return;
+    }
+  }
   vinculoPendiente = null;
   unidadSeleccionada = id;
   controlUnidades?.seleccionar(id);

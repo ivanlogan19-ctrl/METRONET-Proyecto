@@ -11,12 +11,22 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  const vista=page.frameLocator('#pantalla-metronet');const frame=()=>page.frames().find(f=>f.parentFrame());
  await page.goto(BASE+'/login.html');await vista.locator('#email').fill('vinculo-browser@example.test');await vista.locator('#password').fill('VinculoQA!7');await vista.locator('#loginButton').click();
  await vista.locator('[data-continuar-bienvenida]').click();await vista.locator('#accionesInicio[aria-busy="false"]').waitFor();
+ // Consulta de reglas desde la sesión real: misma navegación y API sin respuestas preparadas.
+ await vista.getByRole('link',{name:'Reglas',exact:true}).click();
+ await vista.getByRole('heading',{name:'Reglas del juego',exact:true}).waitFor();
+ for(const tema of ['Puntuación','Cómo aprobar','Acciones','Modo Libre','Ranking']){
+  await vista.getByRole('tab',{name:tema,exact:true}).click();
+  assert.equal(await vista.getByRole('tabpanel').count(),1);
+  assert.equal(await frame().evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ }
+ await vista.getByRole('link',{name:'Inicio',exact:true}).click();
+ await vista.locator('#accionesInicio[aria-busy="false"]').waitFor();
  const token=await frame().evaluate(()=>JSON.parse(localStorage.getItem('sesionUsuario')).token);
  const headers={Authorization:`Bearer ${token}`};
  async function req(method,path,data,expected=200){const r=await context.request.fetch(API+path,{method,headers,data});assert.equal(r.status(),expected,await r.text());return r.status()===200&&r.headers()['content-type']?.includes('json')?r.json():null;}
  const creada=await req('POST','/api/simulaciones',{nombre:'Vinculo de prueba'});const id=creada.idDiseno,ruta='/api/simulaciones/'+id;
- for(const [nombre,x]of[['A',660],['B',670],['C',690]])await req('POST',ruta+'/estaciones',{nombre,posicionX:x,posicionY:460});
- await req('POST',ruta+'/lineas',{nombre:'L01',estaciones:['A','B']});
+ for(const [nombre,x]of[['A',660],['B',670],['C',690],['D',675]])await req('POST',ruta+'/estaciones',{nombre,posicionX:x,posicionY:460});
+ await req('POST',ruta+'/lineas',{nombre:'L01',estaciones:['A','B','D']});
  await req('POST',ruta+'/lineas',{nombre:'L02',estaciones:['B','C']});
  const u1=await req('POST',ruta+'/unidades',{nombreLinea:'L01',capacidad:300,velocidadPromedio:4});
  await req('POST',ruta+'/unidades',{nombreLinea:'L02',capacidad:300,velocidadPromedio:4});
@@ -34,10 +44,30 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
   await vista.locator('#duracionSimulacion').waitFor();
  };
  await abrir();
+ assert.equal(await vista.locator('#unidadCirculacion').inputValue(),String(u1.idTren),'Modo Libre abre con una línea concreta y sus valores calculados');
+ assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'4');
+ assert.ok(Math.abs(Number(await vista.locator('#duracionSimulacion').inputValue())-km('L01')/4)<1e-7);
  assert.equal(await vista.locator('.simulacion-selector-metros__opciones button').count(),3,'Una opción por línea y Todas las líneas');
  assert.equal(await vista.locator('#tituloConfiguracionMetros').textContent(),'Detalle de líneas');
  assert.equal(await vista.locator('.simulacion-configuracion-metros__lista li').count(),2,'Una configuración por línea aunque tenga varios metros');
  const esperarGuardado=async()=>{await vista.getByText('Velocidad y duración guardadas.',{exact:true}).waitFor({state:'attached'});await vista.locator('#velocidadUnidad:not(:disabled)').waitFor();};
+ const elegirLinea=async tren=>{
+  await vista.locator('.simulacion-selector-metros summary').click();
+  await vista.locator('.simulacion-selector-metros__opciones [data-metro="'+tren+'"]').click();
+  await frame().waitForFunction(valor=>document.querySelector('#unidadCirculacion')?.value===valor && !document.querySelector('#velocidadUnidad')?.matches(':disabled'),String(tren));
+ };
+ // Cambiar de línea aplica el parámetro pendiente a la línea de origen, nunca a la de destino.
+ await vista.locator('#velocidadUnidad').fill('6');
+ await elegirLinea(d.unidadesMetro[1].idTren);
+ d=await leer();
+ assert.ok(d.unidadesMetro.filter(u=>u.nombreLinea==='L01').every(u=>u.velocidadPromedio===6),'Cambiar de línea conserva la UV elegida');
+ assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'4','La línea de destino conserva su velocidad');
+ await vista.locator('#duracionSimulacion').fill('2');
+ await elegirLinea(u1.idTren);
+ d=await leer();
+ assert.equal(d.unidadesMetro[1].duracionUt,2,'Cambiar de línea conserva la UT elegida');
+ assert.ok(Math.abs(d.unidadesMetro[1].velocidadPromedio-km('L02')/2)<1e-7);
+ assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'6');
  // La selección de línea cambia sus dos metros, sin modificar la otra línea.
  await vista.locator('.simulacion-selector-metros summary').click();
  await vista.locator('.simulacion-selector-metros__opciones [data-metro="'+u1.idTren+'"]').click();

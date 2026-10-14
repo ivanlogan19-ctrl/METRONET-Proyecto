@@ -199,7 +199,12 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
   });
-  selector.addEventListener('change', () => { seleccionar(selector.value); opciones.alSeleccionar?.(selector.value); });
+  selector.addEventListener('change', () => {
+    // El coordinador puede guardar el cálculo pendiente de la línea anterior
+    // antes de reemplazar los valores visibles por los de la nueva selección.
+    if (opciones.alSeleccionar) opciones.alSeleccionar(selector.value);
+    else seleccionar(selector.value);
+  });
   let guardando = false;
   contenedor.querySelector('form').addEventListener('submit', async evento => {
     evento.preventDefault();

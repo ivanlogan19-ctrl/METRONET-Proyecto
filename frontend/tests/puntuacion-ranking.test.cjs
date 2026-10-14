@@ -59,10 +59,11 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
  }});
 
  const campo=pagina.getByRole('spinbutton',{name:'Velocidad en UV',exact:true});await campo.waitFor();
+ await pagina.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
  assert.equal(await pagina.locator('.simulacion-grupo-metros').isVisible(),true);
  assert.ok(await campo.evaluate(e=>e.getBoundingClientRect().height>=40));
  assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
- assert.equal(await campo.isDisabled(),!resuelta);
+ assert.equal(await campo.isDisabled(),false,'UV permanece disponible al construir y probar la red');
  assert.equal(await campo.inputValue(),'90');
  assert.match(await pagina.locator('.simulacion-ritmo').innerText(),/Ritmo visual/);
  if(resuelta){
@@ -96,13 +97,17 @@ for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) tes
   const path=new URL(req.url()).pathname;
   if(path==='/api/simulaciones')return {json:[red.simulacion]};
   if(path==='/api/simulaciones/77')return {json:red};
+  if(path==='/api/simulaciones/77/unidades/1' && req.method()==='PATCH'){
+   Object.assign(red.unidadesMetro[0],req.postDataJSON());return {status:204};
+  }
   if(path.endsWith('/desempeno'))return {json:desempeno};
   if(path.endsWith('/consigna'))return {json:{estadoGlobal:completado?'LISTO':'PARCIAL',condiciones:[],referenciasObjetivo:[]}};
   if(path.endsWith('/ejecutar')){red.resultados=[resultado];return {json:resultado};}
   if(path.endsWith('/evaluar'))return {json:{completado,puntaje:puntos,progreso:completado ? 100 : 75,desempeno,mensaje:desempeno.explicacion}};
  }});
 
- assert.equal(await pagina.locator('.metronet-recorrido').count(),0,'Nivel 6 reutiliza herramientas, sin repetir el tutorial completo');
+ await pagina.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+ assert.equal(await pagina.locator('dialog.metronet-recorrido[open]').count(),0);
  await pagina.locator('#duracionSimulacion').fill('1');
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
