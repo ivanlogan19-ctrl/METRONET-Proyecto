@@ -1,4 +1,4 @@
-import { esModoLibre, calcularVinculo, seleccionarUnidades, representantesLineas } from './VinculoUvUtLibre.js';
+import { esModoLibre, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado } from './VinculoUvUtLibre.js';
 import { escenarioCampana, funcionesCampana } from '../educacion/FuncionesCampana.js';
 import { abrirTutorialSimulacion, crearPanelTutorialSimulacion, presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
 import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
@@ -113,11 +113,15 @@ async function inicializar() {
   document.querySelectorAll('[data-paso-horas]').forEach(boton => boton.addEventListener('click', () => {
     const input = document.getElementById('duracionSimulacion');
     if (input.disabled) return;
-    input.value = String(Math.max(esModoLibre(disenoActual) ? 0.00000001 : 1, Number(input.value) + Number(boton.dataset.pasoHoras)));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
+    if (esModoLibre(disenoActual) && input.value === '') { input.focus(); return; }
+    const siguiente = esModoLibre(disenoActual)
+      ? desplazarValorVinculado(Number(input.value), Number(boton.dataset.pasoHoras))
+      : Math.max(1, Number(input.value) + Number(boton.dataset.pasoHoras));
+    if (siguiente == null) return;
+    input.value = String(siguiente);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
   }));
   document.getElementById('duracionSimulacion').addEventListener('input', evento => previsualizarVinculo('UT', Number(evento.target.value)));
-  document.getElementById('duracionSimulacion').addEventListener('change', evento => previsualizarVinculo('UT', Number(evento.target.value)));
   document.getElementById('aplicarUnidadTiempo').addEventListener('click', guardarDuraciones);
   panelTutorialSimulacion = crearPanelTutorialSimulacion(document.getElementById('tutorialPantallaSimulacion'), () => {
     tutorialSimulacion?.terminar(false);
@@ -353,6 +357,11 @@ function previsualizarVinculo(referencia, valor) {
   const valores = [...new Set((calculadas ?? []).map(u => referencia === 'UV' ? u.duracionUt : u.velocidadPromedio))];
   campo.value = valores.length === 1 ? String(valores[0]) : '';
   campo.placeholder = valores.length > 1 ? 'MIXTO' : '—';
+  // El campo calculado puede ser MIXTO: no es una duración/velocidad faltante.
+  campo.required = valores.length <= 1;
+  document.getElementById(referencia === 'UV' ? 'velocidadUnidad' : 'duracionSimulacion').required = true;
+  const mixto = document.querySelector('[data-velocidad-mixta]');
+  if (mixto) mixto.hidden = referencia === 'UV' || valores.length <= 1;
 }
 
 async function guardarVinculoLibre(referencia, valor) {
@@ -543,7 +552,8 @@ function detenerSimulacion() {
 async function reiniciarSimulacion() {
   if (estaMantenimientoActivo(sesion)) return;
   if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
-  if (document.getElementById('duracionSimulacion').value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(document.getElementById('duracionSimulacion').value))) {
+  if ((esModoLibre(disenoActual) && vinculoPendiente) ||
+      (document.getElementById('duracionSimulacion').value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(document.getElementById('duracionSimulacion').value)))) {
     await ejecutarSimulacion({ preventDefault() {} });
     return;
   }

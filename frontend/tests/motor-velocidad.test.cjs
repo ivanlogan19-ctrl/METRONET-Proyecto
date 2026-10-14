@@ -172,3 +172,12 @@ test('Vínculo por línea calcula tiempos y velocidades diferentes sin usar el t
   assert.equal(calcularVinculo({tramos:[]},unidades,'UV',8),null);
   assert.equal(calcularVinculo({tramos:[...diseno.tramos,{nombreLinea:'A',estacionA:'x',estacionB:'y',distanciaKm:3}]},unidades,'UV',8),null);
 });
+
+test('Los pasos fraccionarios no saltan casi a cero ni pierden precisión al sumar',async()=>{
+  const {desplazarValorVinculado}=await import(url(fuente('VinculoUvUtLibre.js')));
+  assert.equal(desplazarValorVinculado(0.3,-1),0.2);
+  assert.equal(desplazarValorVinculado(0.1,-1),0.09);
+  assert.equal(desplazarValorVinculado(1.00000001,-1),0.90000001);
+  assert.equal(desplazarValorVinculado(1.33928041,1),2.33928041);
+  assert.equal(desplazarValorVinculado(0,-1),null);
+});

@@ -9,6 +9,14 @@ export function seleccionarUnidades(unidades, id, porLinea = false) {
 export function representantesLineas(unidades) {
   return unidades.filter((u, i) => unidades.findIndex(v => v.nombreLinea === u.nombreLinea) === i);
 }
+// Pasos decimales para recorridos cortos, sin llevar una duración a casi cero
+// ni enviar la cola binaria de una suma (por ejemplo, 1.3392804099999999).
+export function desplazarValorVinculado(valor, direccion) {
+  if (!Number.isFinite(valor) || valor <= 0) return null;
+  let paso = Math.min(1, 10 ** Math.floor(Math.log10(valor)));
+  if (direccion < 0 && valor - paso < paso / 10) paso /= 10;
+  return Math.max(0.00000001, Number((valor + direccion * paso).toFixed(8)));
+}
 export function calcularVinculo(diseno, unidades, referencia, valor) {
   if (!Number.isFinite(valor) || valor <= 0) return null;
   const resultados = unidades.map(u => {

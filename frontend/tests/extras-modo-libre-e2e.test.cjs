@@ -45,10 +45,21 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   const icono=vista.getByRole('button',{name:'Extras de Modo Libre',exact:true});
   const cajas=await frame().evaluate(()=>['.metronet-aprender-acceso','.metronet-extras-acceso'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top};}));
   assert.ok(cajas[1].left>=cajas[0].right && Math.abs(cajas[1].top-cajas[0].top)<2,'Icono propio junto a Aprender');
+  const medirIcono=()=>icono.evaluate(e=>[e,e.querySelector('svg')].map(n=>{const r=n.getBoundingClientRect();return [r.width,r.height];}));
+  const medidasEditor=await medirIcono(), urlEditor=frame().url();
+  await frame().goto(BASE+'/simulacion.html?idDiseno='+primerDiseno);
+  await icono.waitFor();
+  const omitir=vista.getByRole('button',{name:'Comenzar directamente',exact:true});
+  if(await omitir.isVisible())await omitir.click();
+  assert.deepEqual(await medirIcono(),medidasEditor,'Misma caja y pictograma de Extras en edición y simulación');
+  await frame().goto(urlEditor);
   await icono.click();
   await vista.getByRole('heading',{name:'Calles y avenidas',exact:true}).waitFor();
+  await page.mouse.move(0,0);
+  assert.equal(await vista.getByRole('button',{name:'Cerrar tarjetas',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(255, 119, 119)');
   await vista.getByRole('button',{name:'Siguiente →',exact:true}).click();
   await vista.getByRole('heading',{name:'Densidad de población',exact:true}).waitFor();
+  assert.equal(await vista.getByRole('button',{name:'← Anterior',exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(255, 208, 120)');
   await vista.getByRole('button',{name:'← Anterior',exact:true}).click();
   await vista.getByRole('heading',{name:'Calles y avenidas',exact:true}).waitFor();
   await vista.getByRole('button',{name:'Siguiente →',exact:true}).click();
@@ -137,6 +148,7 @@ test('Primera entrada: bienvenida, siete tarjetas y premio antes del tutorial',{
   await vista.getByRole('button',{name:'Ver las 7 tarjetas',exact:true}).click();
   for(const titulo of ['Calles y avenidas','Densidad de población','Tráfico histórico','Desplazamientos','Horarios','Cobertura','Diseño y simulación']) {
     await vista.locator('.metronet-extras').getByRole('heading',{name:titulo,exact:true}).waitFor();
+    assert.equal(await vista.locator('#tituloExtras').evaluate(e=>getComputedStyle(e).boxShadow),'none','Título sin barra azul');
     assert.equal(await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).count(),0,'No adelantar el tutorial');
     assert.equal(await vista.locator('dialog[open]').count(),1);
     await vista.getByRole('button',{name:titulo==='Diseño y simulación'?'Finalizar recorrido':'Siguiente →',exact:true}).click();

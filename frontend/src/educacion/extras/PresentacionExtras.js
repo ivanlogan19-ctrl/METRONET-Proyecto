@@ -86,12 +86,12 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       textos.append(titulo(tarjeta.titulo),nodo('p',tarjeta.subtitulo,'metronet-extras__subtitulo'),nodo('p',tarjeta.texto),practica,nodo('p',tarjeta.nota,'metronet-extras__nota'));
       cuerpo.append(figura(tarjeta.id),textos);
       const pie=nodo('footer');
-      const anterior=boton('← Anterior',()=>avanzar(indice-1)); anterior.disabled=indice===0;
+      const anterior=boton('← Anterior',()=>avanzar(indice-1),'metronet-extras__anterior'); anterior.disabled=indice===0;
       const puntos=nodo('div','','metronet-extras__puntos'); puntos.setAttribute('aria-label',`Tarjeta ${indice+1} de 7`);
       TARJETAS_EXTRAS.forEach((_,i)=>{const e=nodo('span'); if(i===indice)e.setAttribute('aria-current','step');puntos.append(e);});
       pie.append(anterior,puntos,boton(indice===6?'Finalizar recorrido':'Siguiente →',()=>avanzar(indice+1),'metronet-boton--exito'));
       const estado=nodo('p','','metronet-extras__estado'); estado.dataset.extrasEstado='';estado.setAttribute('role','status');
-      dialogo.replaceChildren(encabezado,cuerpo,pie,boton(bienvenida?'Saltar e ir a construir':'Cerrar tarjetas',cerrar,'metronet-extras__saltar'),estado);
+      dialogo.replaceChildren(encabezado,cuerpo,pie,boton(bienvenida?'Saltar e ir a construir':'Cerrar tarjetas',cerrar,'metronet-extras__saltar metronet-boton--peligro'),estado);
       enfocar();
     }
     function mostrarBienvenida() {
