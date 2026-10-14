@@ -192,10 +192,10 @@ export default class PanelAyudaContextual {
     this.boton.setAttribute('aria-pressed', String(this.ampliada));
   }
 
-  async presentarExtras() {
+  async presentarExtras(contexto) {
     this.controlExtras?.abort();
     this.controlExtras = new AbortController();
-    try { await ofrecerExtras({signal:this.controlExtras.signal}); }
+    try { await ofrecerExtras({...contexto,signal:this.controlExtras.signal}); }
     catch { /* No impedir construir cuando no está disponible el material. */ }
   }
 

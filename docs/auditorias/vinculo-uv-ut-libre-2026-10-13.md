@@ -11,7 +11,7 @@
 
 Al elegir UV, UT = km de la línea / UV. Al elegir UT, UV = km de la línea / UT. El servidor usa DistanciasRedService (la misma cartografía y distancias geográficas de la regla). No usa píxeles, el total de otras líneas ni tráfico para alterar la velocidad.
 
-Cada metro guarda su última referencia UV o UT. Al cambiar geometría o asignación se recalcula el valor dependiente. Todos los metros aplica el valor elegido al conjunto, calculando el dependiente por línea; la pantalla muestra MIXTO si corresponde. La selección individual conserva los otros metros.
+En la primera versión (commit 3e8051a), cada metro guardaba su última referencia UV o UT. Al cambiar geometría o asignación se recalcula el valor dependiente. Todos los metros aplica el valor elegido al conjunto, calculando el dependiente por línea; la pantalla muestra MIXTO si corresponde. La selección individual conserva los otros metros.
 
 El cambio se previsualiza al escribir y se persiste con los botones existentes de guardar o al iniciar la simulación. No se añadieron botones, iconos ni recuadros. Las líneas incompletas/desconectadas/bifurcadas no reciben una duración inventada; la validación estructural impide simular redes inválidas. Los GET no escriben datos.
 
@@ -76,3 +76,31 @@ Validación de esta ampliación: frontend/tests/reglas.test.cjs, 7/7 casos en Ch
 - `frontend/src/simulacion/VinculoUvUtLibre.js`
 - `frontend/tests/vinculo-uv-ut-e2e.test.cjs`
 - `docs/auditorias/vinculo-uv-ut-libre-2026-10-13.md`
+
+
+## Aclaración adoptada: configuración común por línea
+
+Decisión explícita posterior del usuario: «Una configuración común por línea». IMPLEMENTADO sólo en Modo Libre: todos los metros de una línea comparten UV, UT y su última referencia. Cada línea usa su propia longitud; cambiar una no cambia las otras. El selector existente ofrece una opción por línea y «Todas las líneas», sin controles adicionales. Las opciones de niveles 1–10 conservan su funcionamiento por metro.
+
+El servidor propaga la configuración dentro de la línea en la misma transacción. Los metros nuevos heredan la configuración existente y los reasignados heredan la de destino. La capacidad permanece individual. Cambiar la geometría recalcula el valor dependiente. En diseños anteriores con valores distintos dentro de una línea se toma el metro de menor id como referencia común; el siguiente cambio o ejecución la persiste. Los GET no escriben y las instantáneas históricas no se alteran.
+
+Persistencia: se reutilizan los campos de metro de la migración 023; sin nuevas tablas, columnas ni migraciones. Los contratos y rutas REST existentes se conservan, con alcance de actualización por línea únicamente en Modo Libre. Reglas, Administración y tutorial explican este alcance. El documento académico no fue editado.
+
+### Verificación de este ajuste y la corrección de Extras
+
+- RED: Chrome con API y PostgreSQL reprodujo que un metro nuevo recibía 9 UV en una línea de 4 UV y que un diseño nuevo no ofrecía Extras. Registro `/tmp/metronet-lineas-extras-red.log`.
+- `METRONET_E2E_EXTRAS=true ... bash backend/scripts/probar-postgres.sh -Dtest=ExtrasModoLibrePostgresTest,VinculoUvUtLibrePostgresTest,CampanaPostgresTest,VinculoUvUtLibreTest,DistanciasRedServiceTest,ParametrosSimulacionTest,SimulacionServiceEstadoTest,EscalaSimulacionPostgresTest -DfailIfNoTests=true`: **46 pruebas, 0 fallos, 0 errores, 0 omitidas; salida 0**. Registro `/tmp/metronet-lineas-extras-validado.log`.
+- Las pruebas anteriores incluyen **3 recorridos Chrome + API HTTP real + PostgreSQL temporal real**: bienvenida antes del tutorial, borrado/recreación, campaña nueva, persistencia de siete visitas y premio único; dos metros en L01 y otro en L02, configuración común, independencia entre líneas, cambio de línea, herencia, concurrencia, recarga, cambio geográfico y ejecución fraccionaria. Registros `/tmp/metronet-extras-browser.log` y `/tmp/metronet-vinculo-browser.log`.
+- La prueba temporal de campaña ahora crea el registro padre de cada diseño, antes de sus intentos: permite comprobar el bloqueo transaccional sin depender de una referencia inexistente en el fixture. Las reglas de los niveles no se modifican.
+- `node --test frontend/tests/motor-velocidad.test.cjs frontend/tests/criterio-uv-ut.test.cjs frontend/tests/reglas.test.cjs`: **24/24, salida 0**. Registro `/tmp/metronet-lineas-front.log`. Los controles aislados usan respuestas preparadas; las tres pruebas integradas anteriores usan el servidor real.
+- `npm --prefix frontend run build`: **salida 0**, con el aviso conocido de tamaño del paquete. Registro `/tmp/metronet-lineas-build.log`.
+- Arranque local actualizado con `npm start`; backend conectado a PostgreSQL 17.10. Registro `/tmp/metronet-arranque-lineas-extras.log`.
+- Límites: no se ejecutó la totalidad de la suite histórica ni una partida manual de cada nivel. La campaña tiene regresión de servidor/PostgreSQL. Las partidas de prueba usan una base temporal que se elimina, no los diseños personales del usuario. No se verificaron otros navegadores.
+
+### Archivos de esta entrega
+
+- Backend: `service/SimulacionService.java`, `service/VinculoUvUtLibre.java`.
+- Pruebas backend: `configuracion/CampanaPostgresTest.java`, `configuracion/VinculoUvUtLibrePostgresTest.java`.
+- Frontend: `admin.html`, `reglas.html`, `src/educacion/PanelAyudaContextual.js`, `src/educacion/TutorialSimulacion.js`, `src/educacion/extras/PresentacionExtras.js`, `src/mapa/controles/EditorRedMetro.js`, `src/simulacion/PanelDesempeno.js`, `src/simulacion/VinculoUvUtLibre.js`, `src/simulacion/simulacion.js`.
+- Pruebas frontend: `tests/extras-modo-libre-e2e.test.cjs`, `tests/vinculo-uv-ut-e2e.test.cjs`.
+- Trazabilidad: este archivo y `docs/auditorias/extras-modo-libre-2026-10-13.md`.

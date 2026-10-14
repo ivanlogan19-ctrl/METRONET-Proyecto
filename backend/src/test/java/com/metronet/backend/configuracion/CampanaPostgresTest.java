@@ -245,6 +245,7 @@ class CampanaPostgresTest {
                 for (int nivel = 1; nivel <= 10; nivel++) {
                     int idEscenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=?", Integer.class, nivel);
                     var reglas = mapper.readTree(jdbc.queryForObject("SELECT reglas_exito::text FROM escenario WHERE numero=?", String.class, nivel));
+                    jdbc.update("INSERT INTO diseno(id_diseno) VALUES (?)", nivel);
                     jdbc.update("INSERT INTO intento VALUES (?,7,?,?,1,'EN_DESARROLLO',0,NULL,NULL)", nivel, idEscenario, nivel);
                     assertEquals(nivel, juego.iniciarEscenario(7, idEscenario).idDiseno(), "Reanudar conserva diseño");
                     assertFalse(juego.evaluarEscenario(7, nivel).completado());

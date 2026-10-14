@@ -30,8 +30,9 @@ const RESUMEN = [
 
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Cada línea tiene su propia UV y UT, compartidas por todos sus metros. Elegí una línea para ajustarla sin cambiar las otras, o Todas las líneas para aplicar el mismo valor al conjunto.'],
   ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'En Modo Libre, al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
-  ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. En Todos los metros, una misma velocidad produce tiempos distintos si las líneas tienen diferente longitud.'],
+  ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. En Todas las líneas, una misma velocidad produce tiempos distintos si las líneas tienen diferente longitud.'],
   ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
 
   ['.simulacion-horarios', 'Horarios de la simulación', 'Inicio es la hora elegida para el escenario. Actual avanza con la ejecución y Fin indica hasta cuándo se simula según la mayor duración UT de tus metros.'],

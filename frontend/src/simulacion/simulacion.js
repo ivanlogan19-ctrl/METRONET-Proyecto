@@ -1,4 +1,4 @@
-import { esModoLibre, calcularVinculo } from './VinculoUvUtLibre.js';
+import { esModoLibre, calcularVinculo, seleccionarUnidades, representantesLineas } from './VinculoUvUtLibre.js';
 import { escenarioCampana, funcionesCampana } from '../educacion/FuncionesCampana.js';
 import { abrirTutorialSimulacion, crearPanelTutorialSimulacion, presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
 import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
@@ -335,7 +335,7 @@ function seleccionarUnidad(id) {
 }
 
 function unidadesElegidas() {
-  return (disenoActual?.unidadesMetro ?? []).filter(u => unidadSeleccionada === 'todas' || String(u.idTren) === unidadSeleccionada);
+  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, esModoLibre(disenoActual));
 }
 function actualizarCampoDuracion() {
   const input = document.getElementById('duracionSimulacion');
@@ -357,7 +357,7 @@ function previsualizarVinculo(referencia, valor) {
 
 async function guardarVinculoLibre(referencia, valor) {
   if (!disenoActual || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return false;
-  const unidades = unidadesElegidas();
+  const unidades = representantesLineas(unidadesElegidas());
   if (!Number.isFinite(valor) || valor <= 0 || !unidades.length) return false;
   const id = disenoActual.simulacion.idDiseno, version = versionDiseno;
   const vigente = () => paginaActiva && versionDiseno === version && disenoActual?.simulacion.idDiseno === id;
@@ -376,7 +376,7 @@ async function guardarVinculoLibre(referencia, valor) {
   finally {
     if (vigente()) {
       const recargado = await abrirDiseno(id);
-      if (recargado) mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}` : 'Velocidad y duración guardadas.', fallo ? 'error' : 'exito');
+      if (recargado) mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} líneas. ${fallo.message}` : 'Velocidad y duración guardadas.', fallo ? 'error' : 'exito');
     }
     guardandoVelocidad = false;
     if (paginaActiva) actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());

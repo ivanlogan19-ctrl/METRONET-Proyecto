@@ -64,3 +64,14 @@ Las cuentas de prueba se crearon en PostgreSQL temporal, no en la base personal.
 - Trazabilidad: este informe. Los cambios previos de música, Inicio y Administración permanecen separados de este alcance.
 
 Durante la regresión de construcción se detectó que actualizar una red después de añadir elementos volvía a solicitar el ingreso a Extras. Se limitó la oferta al cambio de diseño; las actualizaciones de elementos ya no consultan ese ingreso.
+
+
+## Corrección: bienvenida en cada red libre nueva
+
+Solicitud del usuario: volver a ofrecer las siete tarjetas tras reiniciar o borrar y empezar Modo Libre. Causa IMPLEMENTADA anterior: `bienvenidaVista`, persistida por cuenta, suprimía la oferta en todos los diseños futuros.
+
+Ahora la oferta se recuerda por jugador y diseño en el navegador, como el tutorial. Cada diseño nuevo o generado tras reiniciar/borrar vuelve a mostrar la bienvenida. Reanudar el mismo diseño no repite una oferta ya aceptada u omitida. En otro navegador, o al limpiar sus preferencias, puede volver a ofrecerse; el progreso de tarjetas y el premio siguen persistidos por cuenta en PostgreSQL, no se borran ni duplican. Los diseños existentes sin esta preferencia recibirán la oferta una vez.
+
+El editor espera a que terminen las tarjetas y la celebración antes del tutorial. Los fallos del material no bloquean la construcción. Sin cambios de esquema ni de endpoints de Extras.
+
+Validación: `ExtrasModoLibrePostgresTest`, 2 casos aprobados, incluidos 2 recorridos Chrome reales: omisión, reintento de guardado, siete visitas, premio único, bienvenida en redes nuevas/recreadas y tras reinicio, reanudación sin repetir y orden previo al tutorial. Parte de la ejecución de 46 pruebas con salida 0 registrada en `/tmp/metronet-lineas-extras-validado.log`. Archivos y límites completos en `vinculo-uv-ut-libre-2026-10-13.md`, sección «Aclaración adoptada».

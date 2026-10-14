@@ -27,6 +27,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   await vista.getByRole('link',{name:'Inicio',exact:true}).first().click();
   await vista.locator('.metronet-inicio__tarjeta--crear button').click();
   await vista.getByRole('heading',{name:'Tu próxima red empieza acá',exact:true}).waitFor();
+  const primerDiseno=Number(new URL(frame().url()).searchParams.get('idDiseno'));
   assert.equal(await vista.locator('dialog[open]').count(),1,'La bienvenida no se superpone al tutorial');
   for(const [width,height] of [[1440,900],[1280,720],[390,844]]) {
     await page.setViewportSize({width,height});
@@ -88,6 +89,34 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   assert.equal(await vista.locator('.ranking-trofeo').count(),6);
   await frame().goto(BASE+'/aprendizaje.html');
   await vista.locator('#extrasAprendizaje').getByText('7 tarjetas disponibles · 7 de 7 recorridas').waitFor();
+  // Cada diseño nuevo/recreado vuelve a ofrecer Extras, conservando premio y progreso.
+  async function solicitar(method,path,data) {
+    const r=await context.request.fetch(API+path,{method,headers,data});
+    assert.ok(r.ok(),await r.text());
+    return r.headers()['content-type']?.includes('json')?r.json():null;
+  }
+  const catalogo=await solicitar('GET','/api/juego/escenarios');
+  const escenarioLibre=catalogo.find(e=>e.numero===null);
+  await solicitar('DELETE','/api/simulaciones/'+primerDiseno);
+  for(const motivo of ['nuevo','borrado','reiniciado']) {
+    if(motivo==='reiniciado') await solicitar('POST','/api/juego/recorrido/reiniciar',{});
+    const libre=await solicitar('POST','/api/juego/escenarios/'+escenarioLibre.idEscenario+'/iniciar',{});
+    const url=BASE+'/?idDiseno='+libre.idDiseno+'&idEscenario='+libre.idEscenario+'&idIntento='+libre.idIntento;
+    await frame().goto(url);
+    await vista.getByRole('heading',{name:'Tu próxima red empieza acá',exact:true}).waitFor();
+    assert.equal(await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).count(),0);
+    await vista.getByRole('button',{name:'Ver las 7 tarjetas',exact:true}).click();
+    await vista.getByRole('heading',{name:'Calles y avenidas',exact:true}).waitFor();
+    await vista.getByRole('button',{name:'Saltar e ir a construir',exact:true}).click();
+    await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).click();
+    await vista.locator('[data-recorrido-omitir]').click();
+    await frame().goto(url);
+    await vista.getByRole('button',{name:'Extras de Modo Libre',exact:true}).waitFor();
+    assert.equal(await vista.locator('.metronet-extras').count(),0,'Reabrir el mismo diseño no repite la bienvenida');
+    assert.equal((await estado()).premioObtenido,true);
+    assert.equal((await estado()).visitadas.length,7);
+    if(motivo!=='borrado') await solicitar('DELETE','/api/simulaciones/'+libre.idDiseno);
+  }
   assert.deepEqual(errores,[]);
 });
 

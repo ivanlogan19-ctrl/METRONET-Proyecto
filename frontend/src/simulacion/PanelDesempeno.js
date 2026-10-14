@@ -1,3 +1,4 @@
+import { seleccionarUnidades, representantesLineas } from './VinculoUvUtLibre.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { formatearVelocidad } from './EscalaSimulacion.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
@@ -37,8 +38,14 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     </form>
     </section>`;
   const unidades = diseno.unidadesMetro ?? [];
+  const seleccionables = opciones.vinculoLibre ? representantesLineas(unidades) : unidades;
+  const etiquetaTodas = opciones.vinculoLibre ? 'Todas las líneas' : 'Todos los metros';
   const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
-  if (opciones.vinculoLibre) { input.step = 'any'; input.min = '0.00000001'; }
+  if (opciones.vinculoLibre) {
+    input.step = 'any'; input.min = '0.00000001';
+    selector.setAttribute('aria-label','Línea');
+    contenedor.querySelector('.simulacion-selector-metros__opciones').setAttribute('aria-label','Elegir línea');
+  }
   input.addEventListener('input', () => opciones.alCambiarVelocidad?.(Number(input.value)));
   const boton = contenedor.querySelector('button[type="submit"]'), campo = contenedor.querySelector('fieldset');
   const mixto = contenedor.querySelector('[data-velocidad-mixta]');
@@ -82,10 +89,10 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       return fila;
     }));
     listaResumen.querySelectorAll('li').forEach(fila => {
-      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && fila.dataset.metro === selector.value);
+      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre).some(u => String(u.idTren) === fila.dataset.metro));
     });
   }
-  selector.replaceChildren(new Option('Todos los metros', 'todas'), ...unidades.map(u => new Option(`${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
+  selector.replaceChildren(new Option(etiquetaTodas, 'todas'), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? u.nombreLinea : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
   const desplegable = contenedor.querySelector('.simulacion-selector-metros');
   const acceso = desplegable.querySelector('summary');
   const lista = desplegable.querySelector('.simulacion-selector-metros__opciones');
@@ -104,7 +111,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     return control;
   });
   function actualizarMenu() {
-    acceso.querySelector('[data-seleccion-metro]').textContent = selector.selectedOptions[0]?.textContent ?? 'Todos los metros';
+    acceso.querySelector('[data-seleccion-metro]').textContent = selector.selectedOptions[0]?.textContent ?? etiquetaTodas;
     opcionesMetro.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.metro === selector.value)));
   }
   function posicionarMenu() {
@@ -158,12 +165,13 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   input.disabled = boton.disabled = !permitidas;
   campo.disabled = opciones.bloqueado === true;
   configurarBotonIcono(boton, 'guardar', 'Aplicar velocidad');
-  const elegidas = () => selector.value === 'todas' ? unidades : unidades.filter(u => String(u.idTren) === selector.value);
+  const elegidas = () => seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre);
   function seleccionar(id) {
-    selector.value = unidades.some(u => String(u.idTren) === id) ? id : 'todas';
+    const elegida = seleccionarUnidades(unidades, id, opciones.vinculoLibre)[0];
+    selector.value = id !== 'todas' && elegida ? String(elegida.idTren) : 'todas';
     actualizarMenu();
     listaResumen.querySelectorAll('li').forEach(fila => {
-      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && fila.dataset.metro === selector.value);
+      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre).some(u => String(u.idTren) === fila.dataset.metro));
     });
     const velocidades = [...new Set(elegidas().map(u => Number(u.velocidadPromedio)))];
     const valorMixto = velocidades.length > 1;

@@ -45,7 +45,8 @@ class VinculoUvUtLibrePostgresTest {
         System.out.println(Files.readString(salida));
         assertTrue(termino);assertEquals(0,ejecucion.exitValue());
         var filas=jdbc.queryForList("SELECT m.velocidad_promedio,m.duracion_ut,m.referencia_uv_ut FROM metro m JOIN intento i USING(id_diseno) JOIN usuario u USING(id_usuario) WHERE u.email='vinculo-browser@example.test' ORDER BY m.id_tren");
-        assertEquals(2,filas.size());
+        assertEquals(3,filas.size());
+        assertEquals(filas.get(0),filas.get(2));
         assertEquals("UT",filas.get(0).get("referencia_uv_ut"));
         assertEquals(1.5,((Number)filas.get(0).get("duracion_ut")).doubleValue());
         assertNotEquals(filas.get(0).get("velocidad_promedio"),filas.get(1).get("velocidad_promedio"));

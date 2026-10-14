@@ -68,28 +68,61 @@ public class VinculoUvUtLibre {
         });
         return km;
     }
+    private record Configuracion(String linea, BigDecimal uv, Double ut, String referencia) {}
+
+    /** Serializa las modificaciones de una red libre antes de actualizar sus unidades. */
+    public void bloquear(int diseno) {
+        if (aplica(diseno)) jdbc.queryForObject("SELECT id_diseno FROM diseno WHERE id_diseno=? FOR UPDATE", Integer.class, diseno);
+    }
+
+    private Map<String, Configuracion> configuraciones(int diseno) {
+        Map<String, Configuracion> resultado = new LinkedHashMap<>();
+        // Compatibilidad con diseños anteriores: el primer metro es la referencia de su línea.
+        jdbc.query("SELECT nombre_linea,velocidad_promedio,duracion_ut,referencia_uv_ut FROM metro WHERE id_diseno=? ORDER BY id_tren", r -> {
+            var ut = r.getBigDecimal(3);
+            var c = new Configuracion(r.getString(1), r.getBigDecimal(2), ut == null ? null : ut.doubleValue(), r.getString(4));
+            resultado.putIfAbsent(c.linea(), c);
+        }, diseno);
+        return resultado;
+    }
+
+    /** Tras editar un metro, el parámetro elegido gobierna todos los de su línea. */
+    public void compartir(int diseno, int tren, String referencia, boolean cambioDeLinea) {
+        var filas = jdbc.query("SELECT nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? AND id_tren=?",
+            (r,n) -> new Configuracion(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3) == null ? null : r.getBigDecimal(3).doubleValue(), referencia), diseno, tren);
+        var elegida = filas.getFirst();
+        if (cambioDeLinea) {
+            // Al reasignar, hereda la línea de destino sin alterar los metros que ya estaban allí.
+            var destino = jdbc.query("SELECT nombre_linea,velocidad_promedio,duracion_ut,referencia_uv_ut FROM metro WHERE id_diseno=? AND nombre_linea=? AND id_tren<>? ORDER BY id_tren LIMIT 1",
+                (r,n) -> new Configuracion(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3) == null ? null : r.getBigDecimal(3).doubleValue(), r.getString(4)), diseno, elegida.linea(), tren);
+            if (!destino.isEmpty()) elegida = destino.getFirst();
+        }
+        guardarLinea(diseno, elegida);
+    }
+
+    private void guardarLinea(int diseno, Configuracion c) {
+        jdbc.update("UPDATE metro SET velocidad_promedio=?,duracion_ut=?,referencia_uv_ut=? WHERE id_diseno=? AND nombre_linea=?",
+            c.uv(), c.ut(), c.referencia(), diseno, c.linea());
+    }
+
     public List<UnidadMetroSimulacionResponse> resolver(int diseno, List<UnidadMetroSimulacionResponse> unidades) {
         if (!aplica(diseno)) return unidades;
         var km = longitudesValidas(diseno);
-        Map<Integer, String> referencias = new HashMap<>();
-        jdbc.query("SELECT id_tren,referencia_uv_ut FROM metro WHERE id_diseno=?", r -> {
-            referencias.put(r.getInt(1), r.getString(2));
-        }, diseno);
+        var porLinea = configuraciones(diseno);
         return unidades.stream().map(u -> {
-            var v = calcular(km.getOrDefault(u.nombreLinea(), 0d), u.velocidadPromedio(), u.duracionUt(), referencias.get(u.idTren()));
+            var c = porLinea.get(u.nombreLinea());
+            var v = calcular(km.getOrDefault(u.nombreLinea(), 0d), c.uv(), c.ut(), c.referencia());
             return new UnidadMetroSimulacionResponse(u.idTren(), u.nombreLinea(), u.capacidad(), v.uv(), v.ut());
         }).toList();
     }
     public void recalcular(int diseno) {
         if (!aplica(diseno)) return;
+        bloquear(diseno);
         var km = longitudesValidas(diseno);
-        var cambios = jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio,duracion_ut,referencia_uv_ut FROM metro WHERE id_diseno=? ORDER BY id_tren FOR UPDATE",
-            (r, n) -> new Object[]{r.getInt(1), r.getString(2), r.getBigDecimal(3), (r.getBigDecimal(4) == null ? null : r.getBigDecimal(4).doubleValue()), r.getString(5)}, diseno);
-        for (var u : cambios) {
-            // Si se está editando una línea incompleta, conservar la referencia; no inventar una duración.
-            if (!km.containsKey((String) u[1])) continue;
-            var v = calcular(km.get((String) u[1]), (BigDecimal) u[2], (Double) u[3], (String) u[4]);
-            jdbc.update("UPDATE metro SET velocidad_promedio=?,duracion_ut=? WHERE id_diseno=? AND id_tren=?", v.uv(), v.ut(), diseno, u[0]);
+        for (var c : configuraciones(diseno).values()) {
+            // Conservar la referencia mientras se construye una línea incompleta.
+            var v = km.containsKey(c.linea()) ? calcular(km.get(c.linea()), c.uv(), c.ut(), c.referencia()) : new Valores(c.uv(), c.ut());
+            guardarLinea(diseno, new Configuracion(c.linea(), v.uv(), v.ut(), c.referencia()));
         }
     }
 }

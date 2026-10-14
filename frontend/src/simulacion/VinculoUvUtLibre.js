@@ -1,5 +1,14 @@
 // Previsualización en los controles existentes. El servidor recalcula y valida al guardar.
 export const esModoLibre = diseno => ['LIBRE', 'EDICION_LIBRE'].includes(diseno?.simulacion?.modo);
+// El identificador existente selecciona la línea del metro en Modo Libre.
+export function seleccionarUnidades(unidades, id, porLinea = false) {
+  if (id === 'todas') return unidades;
+  const elegida = unidades.find(u => String(u.idTren) === String(id));
+  return elegida ? unidades.filter(u => porLinea ? u.nombreLinea === elegida.nombreLinea : u.idTren === elegida.idTren) : [];
+}
+export function representantesLineas(unidades) {
+  return unidades.filter((u, i) => unidades.findIndex(v => v.nombreLinea === u.nombreLinea) === i);
+}
 export function calcularVinculo(diseno, unidades, referencia, valor) {
   if (!Number.isFinite(valor) || valor <= 0) return null;
   const resultados = unidades.map(u => {

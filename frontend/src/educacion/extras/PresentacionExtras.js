@@ -8,13 +8,17 @@ const nodo = (tag,texto='',clase='') => { const e=document.createElement(tag); e
 const boton = (texto,accion,clase='') => { const e=nodo('button',texto,clase); e.type='button'; e.addEventListener('click',accion); return e; };
 const figura = id => { const e=nodo('div','','metronet-extras__imagen'); e.innerHTML=ilustracionExtra(id); return e; };
 
-export async function ofrecerExtras({signal}={}) {
-  const estado=await solicitarExtras('/ingreso','POST',signal);
-  if (signal?.aborted || estado.bienvenidaVista) return;
-  await abrirExtras({bienvenida:true,signal});
+export async function ofrecerExtras({signal,idDiseno,idUsuario}={}) {
+  await solicitarExtras('/ingreso','POST',signal);
+  if (signal?.aborted) return;
+  // La oferta pertenece a esta red; las visitas y el premio siguen perteneciendo a la cuenta.
+  const clave=idDiseno && idUsuario ? `metronet:extras-bienvenida:v1:${idUsuario}:${idDiseno}` : null;
+  try { if(clave && localStorage.getItem(clave)) return; } catch { /* Preferencia opcional. */ }
+  const registrar=()=>{try { if(clave)localStorage.setItem(clave,'ofrecida'); } catch { /* No bloquear el juego. */ }};
+  await abrirExtras({bienvenida:true,signal,alElegirBienvenida:registrar});
 }
 
-export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualizar}={}) {
+export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualizar,alElegirBienvenida}={}) {
   if (signal?.aborted) return Promise.resolve();
   if (abierta) return abierta;
   abierta=new Promise(resolve => {
@@ -44,6 +48,7 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       // El fallo de guardado no impide construir ni consultar el material.
       try { await solicitarExtras('/bienvenida','PUT',peticiones.signal); } catch { /* Puede volver a ofrecerse si no se pudo guardar. */ }
       if(cerrado) return;
+      alElegirBienvenida?.();
       if(ver) mostrarTarjeta(); else cerrar();
     }
     async function avanzar(destino) {

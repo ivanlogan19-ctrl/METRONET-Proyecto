@@ -300,6 +300,8 @@ public class SimulacionService {
             VALUES (?, ?, ?, ?) RETURNING id_tren
             """, Integer.class, idDiseno, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio());
         marcarEnDiseno(idUsuario, idDiseno);
+        if (vinculoLibre.aplica(idDiseno)) return vinculoLibre.resolver(idDiseno, listarUnidades(idDiseno)).stream()
+            .filter(u -> u.idTren().equals(idTren)).findFirst().orElseThrow();
         return new UnidadMetroSimulacionResponse(idTren, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio());
     }
 
@@ -316,6 +318,8 @@ public class SimulacionService {
     public void actualizarUnidadMetro(Integer idUsuario, Integer idDiseno, Integer idTren, ActualizarUnidadMetroRequest solicitud) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         boolean libre = vinculoLibre.aplica(idDiseno);
+        String lineaAnterior = libre ? jdbcTemplate.query("SELECT nombre_linea FROM metro WHERE id_diseno=? AND id_tren=?",
+            (rs,n) -> rs.getString(1), idDiseno, idTren).stream().findFirst().orElse(null) : null;
         String nombreLinea = nombreValido(solicitud == null ? null : solicitud.nombreLinea(), "Elegí la línea de la unidad");
         if (!existeLinea(idDiseno, nombreLinea)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea seleccionada no existe");
         if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !(libre ? VinculoUvUtLibre.velocidadValida(solicitud.velocidadPromedio()) : ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio()))) {
@@ -340,7 +344,7 @@ public class SimulacionService {
             """, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio(), solicitud.duracionUt(), idDiseno, idTren) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la unidad de metro solicitada");
         }
-        if (libre) jdbcTemplate.update("UPDATE metro SET referencia_uv_ut=? WHERE id_diseno=? AND id_tren=?", referencia, idDiseno, idTren);
+        if (libre) vinculoLibre.compartir(idDiseno, idTren, referencia, !nombreLinea.equals(lineaAnterior));
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
@@ -534,12 +538,14 @@ public class SimulacionService {
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
+    @Transactional
     public void crearTramo(Integer idUsuario, Integer idDiseno, ActualizarTramoRequest solicitud) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         disenoAdministracionService.crearTramo(idDiseno, solicitud);
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
+    @Transactional
     public void actualizarTramo(
         Integer idUsuario,
         Integer idDiseno,
@@ -704,6 +710,7 @@ public class SimulacionService {
     private SimulacionResumenResponse obtenerResumenParaEdicion(Integer idUsuario, Integer idDiseno) {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
         disenoAdministracionService.verificarDisenoEditable(idDiseno);
+        vinculoLibre.bloquear(idDiseno);
         return resumen;
     }
 
