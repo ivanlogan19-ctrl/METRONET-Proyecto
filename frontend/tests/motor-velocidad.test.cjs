@@ -154,3 +154,21 @@ test('Reloj territorial comparte UT máxima e ignora cambios de UV; pausa y rein
   const rapido=new Motor(datos); rapido.iniciar({duracion:6,ahora:0});
   assert.equal(rapido.actualizar(4500).tiempoTranscurrido,1.5);
 });
+test('Modo Libre conserva UT fraccionarias y llega en 1,5 UT a 8 UV sobre 12 km', async () => {
+  const Motor=await cargar(), datos=red([8]);
+  datos.tramos=datos.tramos.slice(0,12);datos.unidadesMetro[0].duracionUt=1.5;
+  const motor=new Motor(datos);motor.iniciar({duracion:1.5,ahora:0});
+  const mitad=motor.actualizar(2500);
+  assert.equal(mitad.duracion,1.5);assert.equal(mitad.unidades[0].distanciaRecorridaKm,6);
+  const fin=motor.actualizar(5000);assert.equal(fin.unidades[0].distanciaRecorridaKm,12);
+  assert.equal(fin.unidades[0].utLlegada,1.5);
+});
+test('Vínculo por línea calcula tiempos y velocidades diferentes sin usar el total de la red',async()=>{
+  const {calcularVinculo}=await import(url(fuente('VinculoUvUtLibre.js')));
+  const diseno={tramos:[{nombreLinea:'A',estacionA:'a',estacionB:'b',distanciaKm:12},{nombreLinea:'B',estacionA:'b',estacionB:'c',distanciaKm:18}]};
+  const unidades=[{nombreLinea:'A'},{nombreLinea:'B'}];
+  assert.deepEqual(calcularVinculo(diseno,unidades,'UV',8).map(u=>u.duracionUt),[1.5,2.25]);
+  assert.deepEqual(calcularVinculo(diseno,unidades,'UT',1.5).map(u=>u.velocidadPromedio),[8,12]);
+  assert.equal(calcularVinculo({tramos:[]},unidades,'UV',8),null);
+  assert.equal(calcularVinculo({tramos:[...diseno.tramos,{nombreLinea:'A',estacionA:'x',estacionB:'y',distanciaKm:3}]},unidades,'UV',8),null);
+});

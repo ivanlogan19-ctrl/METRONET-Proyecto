@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public record ResultadoSimulacionResponse(
     Integer idSimulacion,
     BigDecimal velocidad,
-    Integer duracion,
+    Double duracion,
     String estado,
     Integer puntaje,
     String comentarios,
@@ -16,13 +16,13 @@ public record ResultadoSimulacionResponse(
     com.metronet.backend.service.CriterioUvUtService.Resultado resultadoUvUt,
     com.metronet.backend.service.PoliticaPuntuacion.Registro registroPuntuacion
 ) {
-    public ResultadoSimulacionResponse(Integer idSimulacion, BigDecimal velocidad, Integer duracion, String estado,
+    public ResultadoSimulacionResponse(Integer idSimulacion, BigDecimal velocidad, Double duracion, String estado,
             Integer puntaje, String comentarios, LocalDateTime fechaEjecucion, String escala,
             java.util.List<DesempenoNivelResponse.MedicionUnidad> unidades,
             com.metronet.backend.service.CriterioUvUtService.Resultado resultadoUvUt) {
         this(idSimulacion, velocidad, duracion, estado, puntaje, comentarios, fechaEjecucion, escala, unidades, resultadoUvUt, null);
     }
-    public ResultadoSimulacionResponse(Integer idSimulacion, BigDecimal velocidad, Integer duracion, String estado,
+    public ResultadoSimulacionResponse(Integer idSimulacion, BigDecimal velocidad, Double duracion, String estado,
             Integer puntaje, String comentarios, LocalDateTime fechaEjecucion, String escala,
             java.util.List<DesempenoNivelResponse.MedicionUnidad> unidades) {
         this(idSimulacion, velocidad, duracion, estado, puntaje, comentarios, fechaEjecucion, escala, unidades, null);

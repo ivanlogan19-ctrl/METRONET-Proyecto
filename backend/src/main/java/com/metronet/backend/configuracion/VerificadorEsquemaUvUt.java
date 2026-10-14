@@ -26,6 +26,8 @@ public class VerificadorEsquemaUvUt {
             }
             if (jdbc.queryForObject("SELECT to_regclass('aprendizaje_extra_visita')::text", String.class) == null)
                 throw new IllegalStateException("Falta aplicar 022_extras_modo_libre.sql antes de iniciar METRONET");
+            if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='referencia_uv_ut')", Boolean.class)))
+                throw new IllegalStateException("Falta aplicar 023_vinculo_uv_ut_libre.sql antes de iniciar METRONET");
             Boolean columnaUt = jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='duracion_ut')", Boolean.class);
             if (!Boolean.TRUE.equals(columnaUt)) throw new IllegalStateException("Falta aplicar 021_duracion_por_metro.sql antes de iniciar METRONET");
             Boolean disparador = jdbc.queryForObject("""

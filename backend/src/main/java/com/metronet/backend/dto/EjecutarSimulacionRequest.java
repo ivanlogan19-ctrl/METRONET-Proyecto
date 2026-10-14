@@ -1,7 +1,9 @@
 package com.metronet.backend.dto;
-
 import java.math.BigDecimal;
-
-/** velocidad es el ritmo visual ×; duracion es el respaldo UT entero para metros sin duración individual. */
+/** El Service permite UT fraccionarias únicamente en Modo Libre. */
 public record EjecutarSimulacionRequest(BigDecimal velocidad,
-    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = HorasSimuladasDeserializer.class) Integer duracion) {}
+ @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = HorasSimuladasDeserializer.class) Double duracion) {
+ public EjecutarSimulacionRequest(BigDecimal velocidad, Number duracion) {
+  this(velocidad, duracion == null ? null : duracion.doubleValue());
+ }
+}

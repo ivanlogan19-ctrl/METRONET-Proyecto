@@ -107,7 +107,7 @@ export default class MotorSimulacion {
       identificador: `M-${numeroMetroEnRed(unidad.idTren, this.obtenerUnidadesMetro()) ?? '—'}`,
       nombreLinea: unidad.nombreLinea,
       velocidadUV: Number(unidad.velocidadPromedio) || 0,
-      duracionUt: Number.isInteger(unidad.duracionUt) && unidad.duracionUt > 0 ? unidad.duracionUt : null,
+      duracionUt: Number.isFinite(unidad.duracionUt) && unidad.duracionUt > 0 ? unidad.duracionUt : null,
       ruta: construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea),
     }));
   }

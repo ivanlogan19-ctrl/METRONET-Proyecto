@@ -26,6 +26,7 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
     ] };
   const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
     const ruta = new URL(req.url()).pathname;
+    if (ruta === '/api/simulaciones/77/unidades/1' && req.method() === 'PATCH') { Object.assign(red.unidadesMetro[0], req.postDataJSON()); return { json: {} }; }
     if (ruta === '/api/simulaciones/77') return { json: red };
     if (ruta.endsWith('/desempeno')) return { json: { puntajeMaximo: 100, redResuelta: true, unidades: [],
       configuracionUvUt: {version:1,limiteUt:2,presupuestoUv:6.5}, resultadoUvUt } };
@@ -36,6 +37,7 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '2');
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');
+  if (await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).isVisible()) await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
   await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
   assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /Metro 1\s+Línea\s+Principal\s+UV actual\s+4,5 UV\s+UT actual\s+2 UT/s);
   await p.locator('#duracionSimulacion').fill('3');

@@ -199,10 +199,10 @@ public class PuntuacionService {
                 (SELECT COUNT(*) FROM tramo t WHERE t.id_diseno=m.id_diseno AND t.nombre_linea=m.nombre_linea) tramos
             FROM metro m WHERE m.id_diseno=? ORDER BY m.id_tren
             """, (r, fila) -> new MedicionUnidad(r.getInt("id_tren"), r.getString("nombre_linea"),
-                r.getDouble("velocidad_promedio"), r.getInt("tramos"), r.getObject("duracion_ut", Integer.class), longitudes.getOrDefault(r.getString("nombre_linea"), 0d), null, null), idDiseno);
+                r.getDouble("velocidad_promedio"), r.getInt("tramos"), (r.getBigDecimal("duracion_ut") == null ? null : r.getBigDecimal("duracion_ut").doubleValue()), longitudes.getOrDefault(r.getString("nombre_linea"), 0d), null, null), idDiseno);
     }
 
-    public String marcaDidactica(int idDiseno, int duracionGlobal) {
+    public String marcaDidactica(int idDiseno, double duracionGlobal) {
         var unidades = medirUnidades(idDiseno).stream().map(u -> new MedicionUnidad(u.idTren(), u.linea(), u.velocidad(), u.tramos(), u.tiempoEfectivo(duracionGlobal), u.distanciaKm(),
             Math.min(u.distanciaKm(), u.velocidad() * u.tiempoEfectivo(duracionGlobal)),
             u.velocidad() > 0 ? u.distanciaKm() / u.velocidad() : null)).toList();

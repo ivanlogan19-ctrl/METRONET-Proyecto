@@ -38,6 +38,8 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     </section>`;
   const unidades = diseno.unidadesMetro ?? [];
   const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
+  if (opciones.vinculoLibre) { input.step = 'any'; input.min = '0.00000001'; }
+  input.addEventListener('input', () => opciones.alCambiarVelocidad?.(Number(input.value)));
   const boton = contenedor.querySelector('button[type="submit"]'), campo = contenedor.querySelector('fieldset');
   const mixto = contenedor.querySelector('[data-velocidad-mixta]');
   const resumen = contenedor.querySelector('.simulacion-configuracion-metros');
@@ -51,7 +53,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   resumen.hidden = unidades.length === 0;
   function actualizarTiempo(duracionGlobal) {
     const unidad = 'UT';
-    const tiempo = Number.isInteger(Number(duracionGlobal)) && Number(duracionGlobal) > 0
+    const tiempo = Number.isFinite(Number(duracionGlobal)) && Number(duracionGlobal) > 0
       ? `${duracionGlobal} ${unidad}` : `— ${unidad}`;
     listaResumen.replaceChildren(...unidades.map(metro => {
       const fila = document.createElement('li');
@@ -67,7 +69,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       const velocidad = Number(metro.velocidadPromedio);
       for (const [etiqueta, valor] of [
         ['UV actual', Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'],
-        ['UT actual', metro.duracionUt != null ? `${metro.duracionUt} UT` : tiempo],
+        ['UT actual', metro.duracionUt != null ? `${metro.duracionUt} UT` : opciones.vinculoLibre ? '— UT' : tiempo],
       ]) {
         const termino = document.createElement('dt');
         const dato = document.createElement('dd');
@@ -177,6 +179,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       // MIXTO no se reemplaza por un promedio inventado.
       if (input.value === '') { input.focus(); return; }
       input.value = String(Math.min(9999.99, Math.max(0.01, Math.round((Number(input.value) + Number(control.dataset.pasoUv)) * 100) / 100)));
+      input.dispatchEvent(new Event('input', { bubbles: true }));
     });
   });
   selector.addEventListener('change', () => { seleccionar(selector.value); opciones.alSeleccionar?.(selector.value); });

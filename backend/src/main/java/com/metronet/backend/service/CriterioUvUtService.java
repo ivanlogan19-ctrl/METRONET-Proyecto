@@ -110,7 +110,7 @@ public class CriterioUvUtService {
         Map<String, Integer> longitudes = longitudes(idDiseno);
         Map<String, Double> kilometros = distancias.porLinea(idDiseno);
         List<Metro> metros = jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? ORDER BY id_tren",
-            (r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3), r.getObject(4, Integer.class)), idDiseno);
+            (r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3), (r.getBigDecimal(4) == null ? null : r.getBigDecimal(4).intValueExact())), idDiseno);
         Set<String> atendidas = new HashSet<>();
         BigDecimal suma = BigDecimal.ZERO;
         int tiempoTotal = metros.stream().mapToInt(m -> m.duracion() == null ? utEjecutadas : m.duracion()).max().orElse(utEjecutadas);

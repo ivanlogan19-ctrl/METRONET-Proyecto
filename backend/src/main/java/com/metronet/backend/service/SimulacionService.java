@@ -46,6 +46,7 @@ public class SimulacionService {
     private final JuegoEducativoService juegoEducativoService;
     private final CriterioUvUtService criterioUvUt;
     private final DistanciasRedService distancias;
+    private final VinculoUvUtLibre vinculoLibre;
 
     public SimulacionService(
         JdbcTemplate jdbcTemplate,
@@ -77,6 +78,7 @@ public class SimulacionService {
         ObjetivosPuntosInteresService objetivosPuntosInteresService, JuegoEducativoService juegoEducativoService,
         RestriccionesGeograficasService restriccionesGeograficas, CriterioUvUtService criterioUvUt, DistanciasRedService distancias) {
         this.distancias = distancias;
+        this.vinculoLibre = new VinculoUvUtLibre(jdbcTemplate, distancias);
         this.jdbcTemplate = jdbcTemplate;
         this.restriccionesGeograficas = restriccionesGeograficas;
         this.disenoAdministracionService = disenoAdministracionService;
@@ -162,8 +164,8 @@ public class SimulacionService {
             SELECT ?, nombre_linea, nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?
             """, idDisenoNuevo, idDisenoBase);
         jdbcTemplate.update("""
-            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio, duracion_ut)
-            SELECT ?, nombre_linea, capacidad, velocidad_promedio, duracion_ut FROM metro WHERE id_diseno = ? ORDER BY id_tren
+            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio, duracion_ut, referencia_uv_ut)
+            SELECT ?, nombre_linea, capacidad, velocidad_promedio, duracion_ut, referencia_uv_ut FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, idDisenoNuevo, idDisenoBase);
         jdbcTemplate.update("""
             INSERT INTO intento (id_usuario, id_escenario, id_diseno, estado, puntaje)
@@ -185,7 +187,7 @@ public class SimulacionService {
             (resultado, fila) -> new LineaSimulacionResponse(resultado.getString("nombre")), idDiseno
         );
         List<TramoSimulacionResponse> tramos = distancias.tramos(idDiseno);
-        List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
+        List<UnidadMetroSimulacionResponse> unidadesMetro = vinculoLibre.resolver(idDiseno, listarUnidades(idDiseno));
         List<ResultadoSimulacionResponse> resultados = listarResultados(idUsuario, idDiseno);
         PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
             estadoPermiteSimular(simulacion.estado()), unidadesMetro, idDiseno
@@ -281,6 +283,7 @@ public class SimulacionService {
         return obtenerResumen(idUsuario, idDiseno);
     }
 
+    @Transactional
     public UnidadMetroSimulacionResponse crearUnidadMetro(
         Integer idUsuario,
         Integer idDiseno,
@@ -300,6 +303,7 @@ public class SimulacionService {
         return new UnidadMetroSimulacionResponse(idTren, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio());
     }
 
+    @Transactional
     public void eliminarUnidadMetro(Integer idUsuario, Integer idDiseno, Integer idTren) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         if (jdbcTemplate.update("DELETE FROM metro WHERE id_diseno = ? AND id_tren = ?", idDiseno, idTren) == 0) {
@@ -308,21 +312,35 @@ public class SimulacionService {
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
+    @Transactional
     public void actualizarUnidadMetro(Integer idUsuario, Integer idDiseno, Integer idTren, ActualizarUnidadMetroRequest solicitud) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
+        boolean libre = vinculoLibre.aplica(idDiseno);
         String nombreLinea = nombreValido(solicitud == null ? null : solicitud.nombreLinea(), "Elegí la línea de la unidad");
         if (!existeLinea(idDiseno, nombreLinea)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea seleccionada no existe");
-        if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
+        if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !(libre ? VinculoUvUtLibre.velocidadValida(solicitud.velocidadPromedio()) : ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
         }
-        if (solicitud.duracionUt() != null && solicitud.duracionUt() <= 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "UT debe ser un entero mayor que cero");
+        if (solicitud.duracionUt() != null && (!VinculoUvUtLibre.tiempoValido(solicitud.duracionUt()) || (!libre && solicitud.duracionUt() != Math.rint(solicitud.duracionUt()))))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, libre ? "UT debe ser positivo y tener hasta ocho decimales" : "UT debe ser un entero mayor que cero");
+        String referencia = solicitud.parametroReferencia() != null ? solicitud.parametroReferencia() : solicitud.duracionUt() != null ? "UT" : "UV";
+        if (libre && solicitud.parametroReferencia() == null && solicitud.duracionUt() == null) {
+            var anteriores = jdbcTemplate.query("SELECT velocidad_promedio,referencia_uv_ut FROM metro WHERE id_diseno=? AND id_tren=?",
+                (rs, n) -> new Object[]{rs.getBigDecimal(1), rs.getString(2)}, idDiseno, idTren);
+            if (!anteriores.isEmpty() && ((BigDecimal) anteriores.getFirst()[0]).compareTo(solicitud.velocidadPromedio()) == 0)
+                referencia = (String) anteriores.getFirst()[1];
+        }
+        if (libre && !java.util.Set.of("UV", "UT").contains(referencia))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La referencia debe ser UV o UT");
+        if (libre && "UT".equals(solicitud.parametroReferencia()) && solicitud.duracionUt() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indicá la duración UT");
         if (jdbcTemplate.update("""
             UPDATE metro SET nombre_linea = ?, capacidad = ?, velocidad_promedio = ?, duracion_ut = COALESCE(?, duracion_ut)
             WHERE id_diseno = ? AND id_tren = ?
             """, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio(), solicitud.duracionUt(), idDiseno, idTren) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la unidad de metro solicitada");
         }
+        if (libre) jdbcTemplate.update("UPDATE metro SET referencia_uv_ut=? WHERE id_diseno=? AND id_tren=?", referencia, idDiseno, idTren);
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
@@ -358,14 +376,15 @@ public class SimulacionService {
         SimulacionResumenResponse resumen = obtenerResumen(idUsuario, idDiseno);
         Integer idIntento = jdbcTemplate.queryForObject("SELECT id_intento FROM intento WHERE id_usuario = ? AND id_diseno = ?", Integer.class, idUsuario, idDiseno);
         boolean uvUt = criterioUvUt.configuracionIntento(idIntento) != null;
-        ParametrosSimulacion.validar(solicitud, uvUt);
+        ParametrosSimulacion.validar(solicitud, uvUt, vinculoLibre.aplica(idDiseno));
+        vinculoLibre.recalcular(idDiseno);
         ValidacionDisenoResponse estructura = evaluarDiseno(resumen, idDiseno);
         if (!estructura.valido()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(" ", estructura.observaciones()));
         }
-        List<UnidadMetroSimulacionResponse> unidadesMetro = listarUnidades(idDiseno);
+        List<UnidadMetroSimulacionResponse> unidadesMetro = vinculoLibre.resolver(idDiseno, listarUnidades(idDiseno));
         int unidades = unidadesMetro.size();
-        int duracion = unidadesMetro.stream().mapToInt(u -> u.duracionUt() == null ? solicitud.duracion() : u.duracionUt()).max().orElse(solicitud.duracion());
+        double duracion = unidadesMetro.stream().mapToDouble(u -> u.duracionUt() == null ? solicitud.duracion() : u.duracionUt()).max().orElse(solicitud.duracion());
         PreparacionSimulacion preparacion = evaluarPreparacionSimulacion(
             estadoPermiteSimular(resumen.estado()), unidadesMetro, idDiseno
         );
@@ -389,7 +408,7 @@ public class SimulacionService {
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
             """, Integer.class, idIntento, solicitud.velocidad(), duracion, comentarios, puntaje);
-        criterioUvUt.registrar(idIntento, idDiseno, idSimulacion, solicitud.duracion());
+        if (!vinculoLibre.aplica(idDiseno)) criterioUvUt.registrar(idIntento, idDiseno, idSimulacion, solicitud.duracion().intValue());
         if (progresivo) {
             juegoEducativoService.registrarPuntuacionSimulacion(idUsuario, idDiseno, idSimulacion);
             var desempeno = juegoEducativoService.obtenerDesempeno(idUsuario, idDiseno);
@@ -452,6 +471,7 @@ public class SimulacionService {
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
+    @Transactional
     public void eliminarEstacion(Integer idUsuario, Integer idDiseno, String nombreEstacion) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         if (jdbcTemplate.update("DELETE FROM estacion WHERE id_diseno = ? AND nombre = ?", idDiseno, nombreEstacion) == 0) {
@@ -505,6 +525,7 @@ public class SimulacionService {
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
+    @Transactional
     public void eliminarLinea(Integer idUsuario, Integer idDiseno, String nombreLinea) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         if (jdbcTemplate.update("DELETE FROM linea WHERE id_diseno = ? AND nombre = ?", idDiseno, nombreLinea) == 0) {
@@ -534,6 +555,7 @@ public class SimulacionService {
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
+    @Transactional
     public void eliminarTramo(
         Integer idUsuario,
         Integer idDiseno,
@@ -798,7 +820,7 @@ public class SimulacionService {
             SELECT id_tren, nombre_linea, capacidad, velocidad_promedio, duracion_ut
             FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, (resultado, fila) -> new UnidadMetroSimulacionResponse(
-                resultado.getInt("id_tren"), resultado.getString("nombre_linea"), resultado.getInt("capacidad"), resultado.getBigDecimal("velocidad_promedio"), resultado.getObject("duracion_ut", Integer.class)
+                resultado.getInt("id_tren"), resultado.getString("nombre_linea"), resultado.getInt("capacidad"), resultado.getBigDecimal("velocidad_promedio"), (resultado.getBigDecimal("duracion_ut") == null ? null : resultado.getBigDecimal("duracion_ut").doubleValue())
             ), idDiseno);
     }
 
@@ -817,7 +839,7 @@ public class SimulacionService {
         return new ResultadoSimulacionResponse(
             resultado.getInt("id_simulacion"),
             resultado.getBigDecimal("velocidad"),
-            resultado.getInt("duracion"),
+            (resultado.getBigDecimal("duracion") == null ? null : resultado.getBigDecimal("duracion").doubleValue()),
             resultado.getString("estado"),
             resultado.getInt("puntaje"),
             PuntuacionService.comentarioVisible(resultado.getString("comentarios")),
@@ -848,6 +870,7 @@ public class SimulacionService {
     }
 
     private void marcarEnDiseno(Integer idUsuario, Integer idDiseno) {
+        vinculoLibre.recalcular(idDiseno);
         jdbcTemplate.update("UPDATE intento SET estado = 'EN_DISENO' WHERE id_usuario = ? AND id_diseno = ?", idUsuario, idDiseno);
     }
 

@@ -368,7 +368,7 @@ public class JuegoEducativoService {
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
 
-    public String marcaRedSimulada(Integer idDiseno, int duracion) { return puntuacion.marcaDidactica(idDiseno, duracion); }
+    public String marcaRedSimulada(Integer idDiseno, double duracion) { return puntuacion.marcaDidactica(idDiseno, duracion); }
     public String marcaRedSimulada(Integer idDiseno) { return puntuacion.marcaDidactica(idDiseno); }
 
     public boolean esDisenoProgresivo(Integer idUsuario, Integer idDiseno) {

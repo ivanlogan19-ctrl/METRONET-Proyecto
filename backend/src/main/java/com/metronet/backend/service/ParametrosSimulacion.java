@@ -15,8 +15,14 @@ public final class ParametrosSimulacion {
     }
 
     public static void validar(EjecutarSimulacionRequest solicitud, boolean escalaUt) {
+        validar(solicitud, escalaUt, false);
+    }
+
+    public static void validar(EjecutarSimulacionRequest solicitud, boolean escalaUt, boolean libre) {
         if (solicitud == null || solicitud.velocidad() == null || !RITMOS.contains(solicitud.velocidad().stripTrailingZeros())
-            || solicitud.duracion() == null || solicitud.duracion() <= 0) {
+            || solicitud.duracion() == null || !Double.isFinite(solicitud.duracion()) || solicitud.duracion() <= 0
+            || (libre && !VinculoUvUtLibre.tiempoValido(solicitud.duracion()))
+            || (!libre && solicitud.duracion() != Math.rint(solicitud.duracion()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de 0.5×, 1×, 2× o 4× y "
                 + (escalaUt ? "UT enteras mayores que cero" : "horas simuladas enteras mayores que cero"));
         }

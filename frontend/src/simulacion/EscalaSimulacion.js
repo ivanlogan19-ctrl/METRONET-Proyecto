@@ -14,4 +14,4 @@ export const formatearRitmo = valor => `${numero(valor)}×`;
 export const duracionVisual = horas => Math.min(VENTANA_MAXIMA_MS, Math.max(VENTANA_MINIMA_MS, horas * MILISEGUNDOS_POR_HORA));
 // Kilómetros disponibles; el motor limita el avance al final del trazado.
 export const avanceEnKilometros = (uv, ut) => uv * ut;
-export const normalizarHoras = valor => Number.isInteger(Number(valor)) && Number(valor) > 0 ? Number(valor) : HORAS_INICIALES;
+export const normalizarHoras = valor => Number.isFinite(Number(valor)) && Number(valor) > 0 ? Number(valor) : HORAS_INICIALES;
