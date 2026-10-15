@@ -67,6 +67,17 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
   await frame().getByRole('button',{name:'Experiencia de juego',exact:true}).click();
   await frame().locator('[data-editar-nivel="10"]').waitFor();
   const get=async ruta=>{const r=await fetch(api+`/api/admin/niveles${ruta}`,{headers:{Authorization:`Bearer ${sesion.token}`}});assert.equal(r.status,200);return r.json();};
+  await t.test('La tabla muestra los diez niveles y las versiones persistidas',async()=>{
+    const niveles=await get('');
+    const tabla=frame().getByRole('table',{name:'Niveles de la experiencia de juego'});
+    assert.equal(await tabla.locator('tbody tr').count(),10);
+    for(const nivel of niveles) {
+      const fila=tabla.getByRole('row').filter({has:frame().locator(`[data-editar-nivel="${nivel.numero}"]`)});
+      assert.match(await fila.textContent(),new RegExp(`Publicada v${nivel.versionPublicada}.*Revisión ${nivel.revisionBorrador}`));
+    }
+    const caja=await tabla.boundingBox();assert(caja.y+caja.height<=900,'Los diez niveles se ven sin desplazar la página');
+    await page.screenshot({path:path.join(evidencias,'lista-niveles.png')});
+  });
   async function abrir(n){await frame().locator(`[data-editar-nivel="${n}"]`).click();await frame().locator('[data-editor-nivel]').waitFor();}
   async function tab(nombre){await frame().getByRole('tab',{name:nombre,exact:true}).click();}
   async function salir(){await frame().getByRole('button',{name:'Volver a los niveles para editar',exact:true}).click();await frame().locator('[data-editar-nivel="10"]').waitFor();}

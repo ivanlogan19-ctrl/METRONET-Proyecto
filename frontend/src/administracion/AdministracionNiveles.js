@@ -52,17 +52,24 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       const editor=crear('div','','admin-niveles__editor');editor.dataset.editorNivel='';
       contenedor.replaceChildren(editor);pintarEditor();return;
     }
-    const tabla=crear('div','','admin-niveles__lista');
+    const tabla=crear('table','','admin-niveles__lista');
+    tabla.setAttribute('aria-label','Niveles de la experiencia de juego');
+    const cabecera=tabla.createTHead().insertRow();
+    for(const titulo of ['Nivel','Nombre','Publicación','Borrador','Acción']) {
+      const celda=crear('th',titulo);celda.scope='col';cabecera.append(celda);
+    }
+    const cuerpo=tabla.createTBody();
     for(const nivel of lista) {
-      const fila=crear('article','','admin-niveles__fila');
-      const cuerpo=crear('div','','admin-niveles__coche');
-      cuerpo.append(crear('strong',`Nivel ${nivel.numero} · ${nombreCorto(nivel.numero,nivel.nombre)}`),
-        crear('span',`Publicada v${nivel.versionPublicada} · Borrador revisión ${nivel.revisionBorrador}`));
+      const fila=cuerpo.insertRow();
+      fila.insertCell().append(crear('span',String(nivel.numero).padStart(2,'0'),'admin-niveles__numero'));
+      const nombre=crear('th',nombreCorto(nivel.numero,nivel.nombre));
+      nombre.scope='row';nombre.id=`nombre-nivel-${nivel.numero}`;fila.append(nombre);
+      fila.insertCell().append(crear('span',`Publicada v${nivel.versionPublicada}`,'admin-niveles__publicacion'));
+      fila.insertCell().append(crear('span',`Revisión ${nivel.revisionBorrador}`,'admin-niveles__revision'));
       const boton=crear('button','Editar','admin-secundario metronet-boton--advertencia'); boton.type='button';
       boton.dataset.editarNivel=String(nivel.numero);
-      boton.addEventListener('click',()=>abrir(nivel.numero)); cuerpo.append(boton);
-      const ruedas=crear('span','','admin-niveles__rodaje'); ruedas.setAttribute('aria-hidden','true');
-      fila.append(cuerpo,ruedas); tabla.append(fila);
+      boton.setAttribute('aria-describedby',nombre.id);
+      boton.addEventListener('click',()=>abrir(nivel.numero));fila.insertCell().append(boton);
     }
     contenedor.replaceChildren(tabla);
   }

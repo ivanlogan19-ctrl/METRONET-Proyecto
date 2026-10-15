@@ -702,7 +702,6 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
 
 .admin-niveles,
 .admin-niveles__editor,
-.admin-niveles__lista,
 .admin-niveles__tarjetas,
 .admin-niveles__tablas-red {
   display: grid;
@@ -710,7 +709,6 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
   min-width: 0;
 }
 
-.admin-niveles__fila,
 .admin-niveles__cabecera,
 .admin-niveles__seccion,
 .admin-niveles__vista,
@@ -723,67 +721,89 @@ html:root body .admin-criterio-uv-ut .admin-guardar:not(:disabled) {
   background: var(--panel);
 }
 
-.admin-niveles__fila {
-  display: grid;
-  grid-template-rows: 1fr 18px;
-  padding: 0;
-  border: 0;
-  background: none;
+/* La lista comparte las columnas, sin modificar los paneles del editor. */
+html:root body #vista-niveles:not(.admin-vista--editando) {
+  padding-top: 16px;
+  gap: 14px;
 }
-.admin-niveles__lista {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
-  gap: var(--space-lg, 24px) var(--space-md, 16px);
+html:root body #vista-niveles:not(.admin-vista--editando) > h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
 }
-/* El contorno decorativo no recorta el contenido ni el foco del botón. */
-.admin-niveles__coche {
-  --contorno-vagon: polygon(0 24px, 8px 24px, 8px 8px, 24px 8px, 24px 0,
-    calc(100% - 32px) 0, calc(100% - 32px) 8px, calc(100% - 16px) 8px,
-    calc(100% - 16px) 24px, 100% 24px, 100% calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%,
-    8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px));
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--space-sm, 12px);
-  min-width: 0;
-  padding: 50px 20px 18px;
+#vista-niveles > .admin-mensaje:empty { display: none; }
+html:root body .admin-niveles__lista {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 1px solid var(--info-active);
+  background: var(--panel);
+  font: 400 14px/1.35 var(--font-ui);
 }
-.admin-niveles__coche::before,
-.admin-niveles__coche::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  clip-path: var(--contorno-vagon);
+html:root body .admin-niveles__lista :is(th, td) {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  vertical-align: middle;
+  text-align: center;
 }
-.admin-niveles__coche::before { inset: 0; background: var(--border-active); }
-.admin-niveles__coche::after {
-  inset: 2px;
-  background:
-    repeating-linear-gradient(90deg, var(--panel-elevated) 0 24px, var(--panel) 24px 32px) 24px 16px / calc(100% - 48px) 14px no-repeat,
-    linear-gradient(var(--info-active), var(--info-active)) 0 calc(100% - 7px) / 100% 3px no-repeat,
-    var(--panel);
+html:root body .admin-niveles__lista thead th {
+  height: 42px;
+  color: var(--text-primary);
+  background: var(--panel-elevated);
+  font: inherit;
 }
-.admin-niveles__rodaje {
-  display: flex;
-  justify-content: space-between;
-  margin-inline: 36px;
-  border-top: 4px solid var(--border);
+.admin-niveles__lista thead th:nth-child(1) { width: 9%; }
+.admin-niveles__lista thead th:nth-child(2) { width: 37%; }
+.admin-niveles__lista thead th:nth-child(3) { width: 21%; }
+.admin-niveles__lista thead th:nth-child(4) { width: 19%; }
+.admin-niveles__lista thead th:nth-child(5) { width: 14%; }
+html:root body .admin-niveles__lista tbody th {
+  color: var(--text-primary);
+  background: transparent;
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
 }
-.admin-niveles__rodaje::before,
-.admin-niveles__rodaje::after {
-  content: '';
-  width: 42px;
-  height: 14px;
-  background: var(--border-active);
-  box-shadow: inset 0 4px var(--bg-primary), inset 0 -4px var(--bg-primary), inset 16px 0 var(--bg-secondary), inset -16px 0 var(--bg-secondary);
-  clip-path: polygon(0 0, 100% 0, 100% 8px, calc(100% - 6px) 8px,
-    calc(100% - 6px) 100%, 6px 100%, 6px 8px, 0 8px);
+html:root body .admin-niveles__lista :is(thead th:nth-child(2), tbody th) { text-align: left; }
+.admin-niveles__numero {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 32px;
+  border: 1px solid var(--info-active);
+  background: var(--bg-secondary);
 }
-
-.admin-niveles__fila span { color: var(--text-secondary); }
-.admin-niveles__fila button { justify-self: end; }
+.admin-niveles__publicacion,
+.admin-niveles__revision { display: inline-flex; align-items: center; gap: 8px; }
+.admin-niveles__publicacion { color: var(--success, #6ee0b5); }
+.admin-niveles__revision { color: var(--text-secondary); }
+.admin-niveles__publicacion::before,
+.admin-niveles__revision::before { content: ''; width: 8px; height: 8px; flex: 0 0 8px; background: currentColor; }
+html:root body .admin-niveles__lista .admin-secundario {
+  width: 100%;
+  max-width: 120px;
+  min-height: 34px;
+  padding: 6px 10px;
+  font: 700 13px/1.4 var(--font-ui);
+}
+.admin-niveles__lista tbody tr:focus-within { outline: 2px solid var(--info-active); outline-offset: -2px; }
+@media (min-width: 1000px) and (max-height: 800px) {
+  html:root body .admin-contenido:has(#vista-niveles.activa:not(.admin-vista--editando)) { padding-bottom: 16px; }
+  html:root body #vista-niveles:not(.admin-vista--editando) { padding-top: 12px; gap: 10px; }
+  html:root body .admin-niveles__lista :is(th, td) { padding-block: 3px; }
+  html:root body .admin-niveles__lista thead th { height: 36px; }
+}
+@media (max-width: 1100px) {
+  html:root body .admin-niveles__lista { font-size: 12px; }
+  html:root body .admin-niveles__lista :is(th, td) { padding-inline: 6px; }
+  .admin-niveles__publicacion, .admin-niveles__revision { gap: 4px; }
+}
+@media (max-width: 720px) {
+  /* En pantallas angostas se puede recorrer la tabla sin desbordar la página. */
+  #vista-niveles:not(.admin-vista--editando) .admin-niveles { overflow-x: auto; }
+  html:root body .admin-niveles__lista { min-width: 680px; }
+}
 .admin-niveles__cabecera h2 { margin: 0 0 var(--space-xs, 8px); }
 .admin-niveles__cabecera p { margin: .25rem 0; }
 .admin-niveles__seccion > summary { cursor: pointer; font-weight: 700; }
