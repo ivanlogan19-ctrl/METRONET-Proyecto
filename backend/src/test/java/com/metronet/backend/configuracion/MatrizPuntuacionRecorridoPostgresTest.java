@@ -108,7 +108,9 @@ class MatrizPuntuacionRecorridoPostgresTest {
                 for (int i=0; i<unidades.size(); i++) {
                     var unidad = unidades.get(i);
                     simulaciones.actualizarUnidadMetro(jugador, diseno, unidad.idTren(), new ActualizarUnidadMetroRequest(
-                        unidad.nombreLinea(), unidad.capacidad(), paso.path("unidades").get(i).path("uv").decimalValue()));
+                        unidad.nombreLinea(), unidad.capacidad(), paso.path("unidades").get(i).path("uv").decimalValue(),
+                        "UT".equals(paso.path("parametroReferencia").asText()) ? paso.path("duracion").asDouble() : null,
+                        paso.path("parametroReferencia").asText("UV")));
                 }
                 simulaciones.validarDiseno(jugador, diseno);
                 var resultado = ejecutar(jugador, diseno, paso.path("duracion").asInt());

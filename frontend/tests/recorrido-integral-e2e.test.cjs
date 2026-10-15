@@ -229,7 +229,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    if(nivel.numero===3){assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();}
    if(nivel.numero===4){
     assert.equal(resultado.listo,false);await aplicarUv(5);resultado=await ejecutar();
-    assert.equal(resultado.listo,false);await aplicarUv(3,true);resultado=await ejecutar();
+    assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();
    }
    if(nivel.numero===8){assert.equal(resultado.listo,false);await aplicarUv(3,true);resultado=await ejecutar();}
    if([9,10].includes(nivel.numero)){assert.equal(resultado.listo,false);await aplicarUv(6);await horas(8);resultado=await ejecutar();}

@@ -11,19 +11,19 @@ const PASOS = [
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
-  ['.simulacion-selector-metros > summary', 'Elegir metros', 'Seleccioná Todos los metros para aplicar UV o UT a todos, o elegí uno para ajustar solo esa unidad.'],
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Seleccioná Todas las líneas para aplicar UV o UT al conjunto, o elegí una línea para ajustar sus metros.'],
   ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para consultar la UV y la UT guardadas de cada metro. No modifica la red.'],
-  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá el metro seleccionado o todos los metros y guardá el valor.'],
+  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá la línea seleccionada o todas las líneas. Su UT se calcula según la distancia; guardá el valor.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
-  ['#seccionConfiguracion', 'Duración simulada · UT', '1 UT equivale a una hora del escenario. A 4 UV durante 2 UT, el metro puede recorrer 8 km. Confirmá la duración con el disquete.'],
-  ['#aplicarUnidadTiempo', 'Aplicar duración', 'Confirmá la duración UT antes del próximo recorrido. Podés cambiarla sin iniciar la simulación.'],
+  ['#seccionConfiguracion', 'Duración simulada · UT', '1 UT equivale a una hora del escenario. Al elegir UT, la UV se calcula para completar los kilómetros de la línea. Confirmá la duración con el disquete.'],
+  ['#aplicarUnidadTiempo', 'Aplicar duración', 'Confirmá la duración UT antes del próximo recorrido. Al cambiarla se recalcula UV para la distancia de la línea.'],
   ['.simulacion-accesos-titulo', 'Sonido y salida', 'Desde esta fila podés controlar el sonido, repetir el tutorial o volver a Edición.'],
 ];
 
 const RESUMEN = [
   ['territorio', 'Recorré el mapa y ajustá la vista.'],
   ['play', 'Iniciá, pausá o detené el recorrido.'],
-  ['metros', 'Elegí todos los metros o una unidad.'],
+  ['metros', 'Elegí todas las líneas o una línea.'],
   ['velocidad', 'Ajustá y aplicá la velocidad UV.'],
   ['reloj', 'Ajustá y aplicá la duración UT.'],
 ];
@@ -31,7 +31,7 @@ const RESUMEN = [
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
   ['.simulacion-selector-metros > summary', 'Elegir línea', 'Cada línea tiene su propia UV y UT, compartidas por todos sus metros. Elegí una línea para ajustarla sin cambiar las otras, o Todas las líneas para aplicar el mismo valor al conjunto.'],
-  ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'En Modo Libre, al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
+  ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'Al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
   ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. En Todas las líneas, una misma velocidad produce tiempos distintos si las líneas tienen diferente longitud.'],
   ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
 
@@ -126,14 +126,15 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
 export function pasosSimulacion(numero, escenario, pendientes) {
   const nuevas = pendientes ?? funcionesIntroducidas(numero, escenario);
   const ejecucion = ['#formularioEjecucion', 'Observá el recorrido', 'Pulsá Play y esperá a que termine la ejecución. Pausar o detener no completa este paso.', 'ejecucion'];
-  const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Mantené la misma duración UT para observar el efecto de la velocidad.', 'velocidad'];
-  const duracion = ['#seccionConfiguracion', 'Cambiá duración UT', 'Aumentá o reducí la duración UT y aplicala. La velocidad UV se conserva.', 'duracion'];
+  const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Observá la UT calculada según la distancia de esa línea.', 'velocidad'];
+  const duracion = ['#seccionConfiguracion', 'Cambiá duración UT', 'Aumentá o reducí la duración UT y aplicala. La velocidad UV se calcula automáticamente para completar esa distancia.', 'duracion'];
+  if (numero === 4) return [ejecucion, velocidad, ejecucion, duracion, ejecucion];
   if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[8]], ejecucion, velocidad, ejecucion];
   if (nuevas.includes('simulacion.duracion')) return [[...PASOS[10]], ejecucion, duracion, ejecucion];
   if (nuevas.includes('simulacion.global') || nuevas.includes('simulacion.individual')) return [PASOS[6], ejecucion,
-    ['.simulacion-parametro-velocidad', 'Ajuste global', 'Elegí Todos los metros, aplicá una misma UV nueva al conjunto y conservá la duración UT.', 'velocidad-global'], ejecucion,
-    ['.simulacion-selector-metros', 'Elegí una unidad', 'Seleccioná un Metro concreto en el selector.', 'unidad-individual'],
-    ['.simulacion-parametro-velocidad', 'Ajuste individual', 'Cambiá y aplicá solo la UV de la unidad elegida. Las otras unidades conservan su valor.', 'velocidad-individual'], ejecucion];
+    ['.simulacion-parametro-velocidad', 'Ajuste global', 'Elegí Todas las líneas, aplicá una misma UV nueva al conjunto y observá la UT calculada para cada línea.', 'velocidad-global'], ejecucion,
+    ['.simulacion-selector-metros', 'Elegí una línea', 'Seleccioná una línea concreta en el selector.', 'unidad-individual'],
+    ['.simulacion-parametro-velocidad', 'Ajuste individual', 'Cambiá y aplicá la UV de esa línea. Su UT se calcula sola; las otras líneas conservan sus valores.', 'velocidad-individual'], ejecucion];
   if (nuevas.includes('simulacion.combinacion')) return [['#formularioEjecucion', 'Comparar A y B', 'Compararemos ejecuciones de la misma red. Cambiar controles sin volver a ejecutar no alcanza.'],
     ejecucion, velocidad, duracion, ejecucion];
   if (numero !== 1 && Number.isInteger(numero)) return [];
@@ -181,7 +182,7 @@ export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroN
     });
     return { notificar: evento => recorrido?.notificar(evento), terminar: (...args) => { oferta.terminar(); recorrido?.terminar(...args); } };
   }
-  const prefijo = `metronet:tutorial-pantalla-simulacion:v5:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
+  const prefijo = `metronet:tutorial-pantalla-simulacion:v6:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
   const clave = `${prefijo}${numeroNivel ?? 'libre'}:${idDiseno ?? 'actual'}`;
   const primeraVisita = `${prefijo}primera-visita`;
   let conocido = false;
@@ -190,7 +191,7 @@ export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroN
     if (localStorage.getItem(clave)) return null;
   } catch { /* La guía sigue disponible sin almacenamiento. */ }
   const pendientes = funcionesIntroducidas(numeroNivel, escenario).filter(clave => clave.startsWith('simulacion.'));
-  if (conocido && numeroNivel !== 1 && (!Number.isInteger(numeroNivel) || !pendientes.length)) return null;
+  if (conocido && numeroNivel !== 1 && numeroNivel !== 4 && (!Number.isInteger(numeroNivel) || !pendientes.length)) return null;
   const registrar = (completado, motivo) => {
     if (completado || motivo === 'omitido') try {
       localStorage.setItem(clave, completado ? 'presentado' : 'omitido');

@@ -62,7 +62,7 @@ class EscalaSimulacionPostgresTest {
             ? auth.iniciarSesionAdministrador(new LoginAdministradorRequest(identificador, "Clave1!")).token()
             : auth.iniciarSesion(new LoginRequest(u.getEmail(), "Clave1!")).token());
         int id = enviar("/api/simulaciones", "{\"nombre\":\"Escala didáctica\"}", token).path("idDiseno").asInt();
-        // Regresión de niveles: sus parámetros continúan independientes.
+        // Regresión de escenarios personalizados posteriores a los diez niveles: conservan su contrato anterior.
         jdbc.update("UPDATE escenario SET modo='NIVEL',numero=(SELECT COALESCE(MAX(numero),0)+1 FROM escenario) WHERE id_escenario=(SELECT id_escenario FROM intento WHERE id_diseno=?)", id);
         String ruta = "/api/simulaciones/" + id;
         enviar(ruta + "/estaciones", "{\"nombre\":\"A\",\"posicionX\":660,\"posicionY\":460}", token);
@@ -107,7 +107,7 @@ class EscalaSimulacionPostgresTest {
         usuarios.saveAndFlush(u);
         String token = "Bearer " + auth.iniciarSesionAdministrador(new LoginAdministradorRequest(identificador, "Clave1!")).token();
         int id = enviar("/api/simulaciones", "{\"nombre\":\"UT por metro\"}", token).path("idDiseno").asInt();
-        // Regresión de niveles: sus parámetros continúan independientes.
+        // Regresión de escenarios personalizados posteriores a los diez niveles: conservan su contrato anterior.
         jdbc.update("UPDATE escenario SET modo='NIVEL',numero=(SELECT COALESCE(MAX(numero),0)+1 FROM escenario) WHERE id_escenario=(SELECT id_escenario FROM intento WHERE id_diseno=?)", id);
         String ruta = "/api/simulaciones/" + id;
         enviar(ruta + "/estaciones", "{\"nombre\":\"A\",\"posicionX\":660,\"posicionY\":460}", token);

@@ -36,7 +36,7 @@ export const claveAprendizajeTutorial = clave => clave === 'editor.poi' ? 'edito
 export function describirFunciones(funciones) {
   const nombres = { 'editor.extender':'extender recorridos con Conexión', 'editor.poi':'buscar puntos de interés y usar sus categorías, barrios y zonas',
     'editor.transbordo':'conectar líneas con una estación de transbordo', 'simulacion.velocidad':'comparar velocidades UV',
-    'simulacion.duracion':'comparar duraciones UT', 'simulacion.global':'ajustar todas las unidades',
-    'simulacion.individual':'ajustar una sola unidad', 'simulacion.combinacion':'comparar UV y UT juntas' };
+    'simulacion.duracion':'comparar duraciones UT', 'simulacion.global':'ajustar todas las líneas',
+    'simulacion.individual':'ajustar una sola línea', 'simulacion.combinacion':'comparar UV y UT juntas' };
   return funciones.map(c => nombres[c] ?? c).join(' y ');
 }

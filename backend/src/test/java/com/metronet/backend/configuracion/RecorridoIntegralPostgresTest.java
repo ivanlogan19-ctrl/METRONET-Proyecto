@@ -59,9 +59,11 @@ class RecorridoIntegralPostgresTest {
                 estaciones.get(t.path("a").asText()),estaciones.get(t.path("b").asText())),Double::sum);
             for (var ejecucion : red.path("ejecuciones")) {
                 for (int i=0;i<red.path("unidades").size();i++) {
-                    double alcance = ejecucion.path("unidades").get(i).path("uv").asDouble()*ejecucion.path("duracion").asDouble();
                     double longitud = km.get(red.path("unidades").get(i).path("linea").asText());
-                    assertTrue(alcance>=longitud,"Nivel "+publicada.numero()+": alcanza "+alcance+" km, necesita "+longitud);
+                    var calculo = VinculoUvUtLibre.calcular(longitud, ejecucion.path("unidades").get(i).path("uv").decimalValue(),
+                        ejecucion.path("duracion").asDouble(), ejecucion.path("parametroReferencia").asText("UV"));
+                    assertTrue(calculo.uv().doubleValue() * calculo.ut() + 1e-7 >= longitud,
+                        "Nivel " + publicada.numero() + ": el cálculo proporcional completa el recorrido");
                 }
             }
             var puntos = reglas.path("puntosInteresObjetivo");
@@ -114,6 +116,28 @@ class RecorridoIntegralPostgresTest {
         assertEquals(actual.redReferencia(),nueva.redReferencia());
         assertEquals(actual.tarjetas(),nueva.tarjetas());
         assertEquals(c.path("desafio"),nueva.contenido().path("desafio"));
+        assertTrue(recorrido.publicar(admin).isEmpty());
+    }
+
+    @Test void adaptaLaConsignaActivaAnteriorSinTocarLaCampanaCompletada() throws Exception {
+        int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Actualización QA','actualizacion-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
+        int otro=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Histórico QA','historia-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
+        recorrido.publicar(admin);
+        int escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=4",Integer.class);
+        // Fixture de la versión anterior, sin ejecutar sus reglas con el motor nuevo.
+        jdbc.update("UPDATE nivel_publicacion SET contenido=jsonb_set(contenido,'{desafio,recorrido}',to_jsonb('integral-2026-10-objetivos-reales-km-v3'::text)) WHERE id_escenario=?",escenario);
+        var completo=juego.iniciarEscenario(otro,escenario);
+        jdbc.update("UPDATE intento SET estado='COMPLETADO',puntaje=80,fecha_finalizacion=now() WHERE id_intento=?",completo.idIntento());
+        var historia=contenido.deIntento(completo.idIntento(),otro);
+        var activo=juego.iniciarEscenario(admin,escenario);
+        long versionAnterior=contenido.deIntento(activo.idIntento(),admin).idNivelPublicacion();
+        recorrido.publicar(admin);
+        assertEquals(historia,contenido.deIntento(completo.idIntento(),otro));
+        assertEquals(80,jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=?",Integer.class,completo.idIntento()));
+        assertNotEquals(versionAnterior,contenido.deIntento(activo.idIntento(),admin).idNivelPublicacion());
+        assertEquals(RecorridoIntegralService.VERSION,contenido.deIntento(activo.idIntento(),admin).desafio().path("recorrido").asText());
+        assertEquals(jdbc.queryForObject("SELECT reglas_exito::text FROM escenario WHERE id_escenario=?",String.class,escenario),
+            jdbc.queryForObject("SELECT reglas_exito::text FROM intento_catalogo_v1 WHERE id_intento=?",String.class,activo.idIntento()));
         assertTrue(recorrido.publicar(admin).isEmpty());
     }
 

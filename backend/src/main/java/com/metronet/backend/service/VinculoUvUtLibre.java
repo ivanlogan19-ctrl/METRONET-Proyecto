@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Regla de Modo Libre. Reutiliza las mismas distancias que la regla y el motor. */
+/** Vínculo por línea para Modo Libre y niveles 1–10. Conserva el nombre por compatibilidad. */
 public class VinculoUvUtLibre {
     private final JdbcTemplate jdbc;
     private final DistanciasRedService distancias;
@@ -16,11 +16,10 @@ public class VinculoUvUtLibre {
         this.jdbc = jdbc; this.distancias = distancias;
     }
     public boolean aplica(int diseno) {
-        // Modo Libre también pertenece al catálogo progresivo de la campaña.
-        // Su modo, no esa pertenencia, determina el cálculo automático.
+        // La extensión aprobada incluye los diez niveles, sin alterar escenarios externos.
         return Boolean.TRUE.equals(jdbc.queryForObject("""
             SELECT EXISTS(SELECT 1 FROM intento i JOIN escenario e ON e.id_escenario=i.id_escenario
-             WHERE i.id_diseno=? AND e.modo IN ('LIBRE','EDICION_LIBRE'))
+             WHERE i.id_diseno=? AND (e.modo IN ('LIBRE','EDICION_LIBRE') OR (e.modo='NIVEL' AND e.numero BETWEEN 1 AND 10)))
             """, Boolean.class, diseno));
     }
     public record Valores(BigDecimal uv, Double ut) {}

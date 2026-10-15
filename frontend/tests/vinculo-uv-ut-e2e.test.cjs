@@ -14,7 +14,7 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  // Consulta de reglas desde la sesión real: misma navegación y API sin respuestas preparadas.
  await vista.getByRole('link',{name:'Reglas',exact:true}).click();
  await vista.getByRole('heading',{name:'Reglas del juego',exact:true}).waitFor();
- for(const tema of ['Puntuación','Cómo aprobar','Acciones','Modo Libre','Ranking']){
+ for(const tema of ['Puntuación','Cómo aprobar','Acciones','Velocidad y tiempo','Ranking']){
   await vista.getByRole('tab',{name:tema,exact:true}).click();
   assert.equal(await vista.getByRole('tabpanel').count(),1);
   assert.equal(await frame().evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

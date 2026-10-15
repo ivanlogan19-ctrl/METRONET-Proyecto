@@ -24,7 +24,7 @@ public final class ParametrosSimulacion {
             || (libre && !VinculoUvUtLibre.tiempoValido(solicitud.duracion()))
             || (!libre && solicitud.duracion() != Math.rint(solicitud.duracion()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí un ritmo de 0.5×, 1×, 2× o 4× y "
-                + (escalaUt ? "UT enteras mayores que cero" : "horas simuladas enteras mayores que cero"));
+                + (libre ? "UT mayores que cero, con hasta ocho decimales" : escalaUt ? "UT enteras mayores que cero" : "horas simuladas enteras mayores que cero"));
         }
     }
 

@@ -44,7 +44,7 @@ test('Simulación incremental exige eventos, y la ayuda manual sigue disponible 
  const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
  await p.evaluate(async()=>{
   const {abrirTutorialSimulacion,presentarTutorialSimulacion}=await import('/src/educacion/TutorialSimulacion.js');
-  localStorage.setItem("metronet:tutorial-pantalla-simulacion:v5:7:1:primera-visita","presentado");
+  localStorage.setItem("metronet:tutorial-pantalla-simulacion:v6:7:1:primera-visita","presentado");
   window.autoReutilizacion=presentarTutorialSimulacion({numeroNivel:6,idUsuario:7});
   window.guia=abrirTutorialSimulacion(()=>{},6);
  });
@@ -169,7 +169,7 @@ test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan
    poi:e.objetivoTutorialPoi(6).id,poiInicial:e.objetivoTutorialPoi(1),
    pasosPoi:e.pasosPracticosEditor(6).map(p=>p[3]).filter(Boolean)};
  });
- assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender','simulacion.velocidad'],['simulacion.duracion'],['simulacion.global','simulacion.individual'],[],['editor.poi'],['editor.transbordo'],[],['simulacion.combinacion'],[]]);
+ assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender','simulacion.velocidad'],['simulacion.duracion'],[],[],['editor.poi'],['editor.transbordo'],['simulacion.individual'],['simulacion.combinacion'],[]]);
  assert.equal(estado.conocida,false);assert.equal(estado.inicialOtraCuenta,'Nueva funcionalidad');assert.equal(estado.ajena,0);
  assert.equal(estado.poi,33);assert.equal(estado.poiInicial,undefined);
  assert.deepEqual(estado.pasosPoi,['poi-abierto','poi-categoria','barrios-abiertos','barrio-seleccionado','barrios-cerrados','zonas-abiertas','zona-seleccionada','zonas-cerradas','buscador-abierto','poi-buscado','poi-localizado','poi-fijado','poi-ficha-cerrada','poi-cubierto']);
@@ -181,7 +181,7 @@ test('Simulación ofrece cada función nueva una vez por partida y la repite en 
   const r=await import('/src/educacion/FuncionesCampana.js');
   r.registrarFuncionesEnsenadas(7,['simulacion.inicial.v2']);
  });
- for (const numero of [2,3,4,9]) {
+ for (const numero of [2,3,4,8,9]) {
   await p.evaluate(async numero=>{
    const s=await import('/src/educacion/TutorialSimulacion.js');
    window.ofertaPrueba=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:numero,repetido:true});

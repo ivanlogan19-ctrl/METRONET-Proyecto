@@ -83,7 +83,7 @@ public class ValidacionPublicacionNivelService {
             if (pasos.isArray()) for (JsonNode paso : pasos) {
                 aplicarPaso(diseno,paso);
                 simulaciones.ejecutarSimulacion(idAdmin,diseno,new EjecutarSimulacionRequest(
-                    decimal(paso.path("velocidad"),"velocidad visual"),entero(paso.path("duracion"),"duración")));
+                    decimal(paso.path("velocidad"),"velocidad visual"),decimal(paso.path("duracion"),"duración").doubleValue()));
             }
             Usuario admin = new Usuario(); admin.setIdUsuario(idAdmin); admin.setRol(Rol.ADMIN);
             var consigna = juego.obtenerConsigna(admin,diseno);
@@ -155,8 +155,10 @@ public class ValidacionPublicacionNivelService {
         if (!unidades.isArray()) throw invalido("Cada ejecución debe indicar UV por unidad");
         List<Integer> ids = jdbc.queryForList("SELECT id_tren FROM metro WHERE id_diseno=? ORDER BY id_tren",Integer.class,diseno);
         if (unidades.size() != ids.size()) throw invalido("La ejecución debe incluir todas las unidades");
-        for (int i=0;i<ids.size();i++) jdbc.update("UPDATE metro SET velocidad_promedio=? WHERE id_tren=?",
-            decimal(unidades.get(i).path("uv"),"UV"),ids.get(i));
+        String referencia = paso.path("parametroReferencia").asText("UV");
+        if (!java.util.Set.of("UV", "UT").contains(referencia)) throw invalido("Referencia UV/UT inválida");
+        for (int i=0;i<ids.size();i++) jdbc.update("UPDATE metro SET velocidad_promedio=?,duracion_ut=?,referencia_uv_ut=? WHERE id_tren=?",
+            decimal(unidades.get(i).path("uv"),"UV"), "UT".equals(referencia) ? decimal(paso.path("duracion"),"UT") : null, referencia, ids.get(i));
     }
 
     private String texto(JsonNode nodo,String campo) {

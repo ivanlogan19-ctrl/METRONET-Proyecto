@@ -1,6 +1,7 @@
 // Previsualización en los controles existentes. El servidor recalcula y valida al guardar.
 export const esModoLibre = diseno => ['LIBRE', 'EDICION_LIBRE'].includes(diseno?.simulacion?.modo);
-export const velocidadInicial = diseno => esModoLibre(diseno) ? 1 : 4;
+export const usaVinculoPorLinea = diseno => diseno?.vinculoUvUtPorLinea ?? (esModoLibre(diseno) || diseno?.simulacion?.modo === 'NIVEL');
+export const velocidadInicial = diseno => usaVinculoPorLinea(diseno) ? 1 : 4;
 // Sólo presentación: el estado y los kilómetros conservan su precisión original.
 export const valorVisible = valor => String(Number(Number(valor).toFixed(2)));
 // El identificador existente selecciona la línea del metro en Modo Libre.

@@ -15,7 +15,7 @@ for (const administrador of [false, true]) for (const [width, height] of [[1440,
     await p.waitForLoadState('domcontentloaded');
     await p.getByRole('heading', { name: 'Reglas del juego', exact: true }).waitFor();
     assert.equal(await p.getByRole('tab').count(), 5);
-    for (const nombre of ['Puntuación', 'Cómo aprobar', 'Acciones', 'Modo Libre', 'Ranking']) {
+    for (const nombre of ['Puntuación', 'Cómo aprobar', 'Acciones', 'Velocidad y tiempo', 'Ranking']) {
       await p.getByRole('tab', { name: nombre, exact: true }).click();
       assert.equal(await p.getByRole('tabpanel').count(), 1, 'Sólo se expone el tema elegido');
       assert.equal(await p.getByRole('tab', { name: nombre, exact: true }).getAttribute('aria-selected'), 'true');
@@ -70,7 +70,7 @@ test('Las pestañas permiten recorrer todos los temas por teclado y entrar al co
   }
   await p.keyboard.press('Tab');
   assert.equal(await p.getByRole('tabpanel').evaluate(n => n === document.activeElement), true);
-  await p.getByRole('tab', { name: 'Modo Libre', exact: true }).click();
+  await p.getByRole('tab', { name: 'Velocidad y tiempo', exact: true }).click();
   await p.locator('#panelLibre summary').click();
   assert.match(await p.getByRole('tabpanel').innerText(), /Mixto/);
   await p.getByRole('tab', { name: 'Ranking', exact: true }).click();

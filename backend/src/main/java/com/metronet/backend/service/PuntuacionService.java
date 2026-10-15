@@ -65,7 +65,7 @@ public class PuntuacionService {
         }
         if (!requiereSimulacion && aprendizaje.isMissingNode()) return condiciones;
         var ejecuciones = jdbc.query("SELECT duracion, comentarios FROM simulacion WHERE id_intento=? ORDER BY id_simulacion",
-            (r, fila) -> new Ejecucion(r.getInt("duracion"), r.getString("comentarios"), RegistroSimulacionDidactica.leer(r.getString("comentarios"))), idIntento);
+            (r, fila) -> new Ejecucion(r.getDouble("duracion"), r.getString("comentarios"), RegistroSimulacionDidactica.leer(r.getString("comentarios"))), idIntento);
         Set<String> realizadas = new HashSet<>();
         String estructuraActual = marcaEstructura(idDiseno);
         for (int i = 1; i < ejecuciones.size(); i++) {
@@ -82,6 +82,10 @@ public class PuntuacionService {
             Map<Integer, MedicionUnidad> previas = new HashMap<>();
             antes.forEach(u -> previas.put(u.idTren(), u));
             boolean horas = despues.stream().anyMatch(u -> u.tiempoEfectivo(actual.duracion) != previas.get(u.idTren()).tiempoEfectivo(anterior.duracion));
+            if (actual.registro.esVinculada()) {
+                realizadas.addAll(ComparacionLineasVinculadas.evaluar(anterior.registro, actual.registro));
+                continue;
+            }
             if (cambios > 0 && !horas) realizadas.add("velocidad");
             if (horas && cambios == 0) realizadas.add("duracion");
             if (despues.size() > 1 && cambios == 1 && !horas) realizadas.add("individual");
@@ -90,11 +94,11 @@ public class PuntuacionService {
             if (cambios > 0 && horas) realizadas.add("combinacion");
         }
         Map<String, String> textos = Map.of(
-            "velocidad", "Cambiar UV, mantener horas y volver a ejecutar",
-            "duracion", "Cambiar horas, mantener UV y volver a ejecutar",
-            "individual", "Cambiar solo un metro, mantener horas y volver a ejecutar",
-            "global", "Cambiar todos los metros a una misma UV, mantener horas y volver a ejecutar",
-            "combinacion", "Cambiar UV y horas y volver a ejecutar");
+            "velocidad", "Cambiar UV de la línea y simular su UT calculada",
+            "duracion", "Cambiar UT de la línea y simular su UV calculada",
+            "individual", "Cambiar UV de una línea y simular sin modificar las demás",
+            "global", "Aplicar una misma UV a todas las líneas y simular sus tiempos",
+            "combinacion", "Comparar dos configuraciones proporcionales de la misma red");
         for (String clave : List.of("velocidad", "duracion", "individual", "global", "combinacion")) {
             if (!aprendizaje.path(clave).asBoolean()) continue;
             boolean cumplida = realizadas.contains(clave);
@@ -102,7 +106,7 @@ public class PuntuacionService {
                 escalaUt ? textos.get(clave).replace("horas", "UT") : textos.get(clave), cumplida ? 1 : 0, 1, cumplida));
         }
         if (requiereSimulacion) {
-            boolean actual = escalaUt ? simulacionVigenteUvUt(idIntento, idDiseno)
+            boolean actual = escalaUt && !new VinculoUvUtLibre(jdbc, distancias).aplica(idDiseno) ? simulacionVigenteUvUt(idIntento, idDiseno)
                 : !ejecuciones.isEmpty() && ejecuciones.getLast().registro != null
                     && ejecuciones.getLast().comentarios.endsWith(marcaRed(idDiseno));
             condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y sus UV/UT actuales", actual ? 1 : 0, 1, actual));
@@ -110,7 +114,7 @@ public class PuntuacionService {
         return condiciones;
     }
 
-    private record Ejecucion(int duracion, String comentarios, RegistroSimulacionDidactica registro) {}
+    private record Ejecucion(double duracion, String comentarios, RegistroSimulacionDidactica registro) {}
 
     public DesempenoNivelResponse calcular(int idDiseno, String reglas, List<CondicionConsignaResponse> condiciones) {
         JsonNode c = configuracion(reglas);
@@ -184,7 +188,7 @@ public class PuntuacionService {
             .filter(r -> politica.version().equals(r.version())).toList();
         int numero = (int) registros.stream().filter(r -> r.idSimulacion() <= idSimulacion).count();
         var evaluacion = politica.evaluar(condiciones, anteriores, numero, excesosOperacion);
-        var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion, actual.registro().escala());
+        var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion, actual.registro().escala(), actual.registro().referencias());
         // Conserva exactamente la huella evaluada, al final, como esperan los lectores existentes.
         String huella = actual.comentarios().substring(actual.comentarios().lastIndexOf(MARCA));
         jdbc.update("UPDATE simulacion SET comentarios=?,puntaje=? WHERE id_simulacion=?",
@@ -206,7 +210,14 @@ public class PuntuacionService {
         var unidades = medirUnidades(idDiseno).stream().map(u -> new MedicionUnidad(u.idTren(), u.linea(), u.velocidad(), u.tramos(), u.tiempoEfectivo(duracionGlobal), u.distanciaKm(),
             Math.min(u.distanciaKm(), u.velocidad() * u.tiempoEfectivo(duracionGlobal)),
             u.velocidad() > 0 ? u.distanciaKm() / u.velocidad() : null)).toList();
-        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), unidades, null, RegistroSimulacionDidactica.ESCALA_FISICA).codificar() + marcaRed(idDiseno);
+        var referencias = new java.util.LinkedHashMap<String, String>();
+        boolean vinculada = new VinculoUvUtLibre(jdbc, distancias).aplica(idDiseno);
+        if (vinculada) jdbc.query("SELECT DISTINCT nombre_linea,referencia_uv_ut FROM metro WHERE id_diseno=?", r -> {
+            referencias.put(r.getString(1), r.getString(2));
+        }, idDiseno);
+        return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), unidades, null,
+            vinculada ? RegistroSimulacionDidactica.ESCALA_VINCULADA : RegistroSimulacionDidactica.ESCALA_FISICA,
+            vinculada ? referencias : null).codificar() + marcaRed(idDiseno);
     }
 
     public String marcaDidactica(int idDiseno) {

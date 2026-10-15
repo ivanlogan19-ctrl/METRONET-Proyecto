@@ -195,7 +195,7 @@ public class SimulacionService {
 
         return new SimulacionDetalleResponse(
             simulacion, estaciones, lineas, tramos, unidadesMetro, resultados,
-            preparacion.preparado(), preparacion.observaciones(), restriccionesGeograficas.obtenerConfiguracion(idDiseno)
+            preparacion.preparado(), preparacion.observaciones(), restriccionesGeograficas.obtenerConfiguracion(idDiseno), vinculoLibre.aplica(idDiseno)
         );
     }
 
@@ -407,7 +407,7 @@ public class SimulacionService {
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + duracion
             + " UT." + " La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
         boolean progresivo = juegoEducativoService.esDisenoProgresivo(idUsuario, idDiseno);
-        comentarios += juegoEducativoService.marcaRedSimulada(idDiseno, solicitud.duracion());
+        comentarios += juegoEducativoService.marcaRedSimulada(idDiseno, duracion);
         Integer idSimulacion = jdbcTemplate.queryForObject("""
             INSERT INTO simulacion (id_intento, velocidad, duracion, comentarios, estado, puntaje)
             VALUES (?, ?, ?, ?, 'COMPLETADA', ?) RETURNING id_simulacion
@@ -851,7 +851,7 @@ public class SimulacionService {
             resultado.getInt("puntaje"),
             PuntuacionService.comentarioVisible(resultado.getString("comentarios")),
             resultado.getTimestamp("fecha_ejecucion").toLocalDateTime(),
-            registro != null && registro.esFisica() ? RegistroSimulacionDidactica.ESCALA_FISICA
+            registro != null && registro.esFisica() ? registro.escala()
                 : uvUt != null ? "UV_UT_V2" : registro == null ? "HISTORICA" : "UV_H_V1",
             registro == null ? List.of() : registro.unidades(),
             uvUt, registro == null ? null : registro.puntuacion()

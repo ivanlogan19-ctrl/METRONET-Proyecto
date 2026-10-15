@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
 @Service
 public class RecorridoIntegralService {
-    public static final String VERSION = "integral-2026-10-objetivos-reales-km-v3";
+    public static final String VERSION = "integral-2026-10-lineas-automaticas-v4";
     private final AdministracionNivelesService borradores;
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
@@ -72,10 +72,44 @@ public class RecorridoIntegralService {
             reglas.set("puntuacion", politica);
             var guardado=borradores.guardar(numero,new EdicionNivelRequest(previo.versionBase(),previo.revision(),
                 desafio,reglas,nivel.path("herramientasHabilitadas"),mapper.nullNode(),
-                referencia(nivel),ayudas,previo.tarjetas()),idAdmin);
+                referencia(nivel),ayudas,tarjetasActualizadas(previo.tarjetas(), nivel)),idAdmin);
             resultado.add(publicarValidado(numero, guardado, idAdmin));
         }
+        adaptarIntentosEnCurso();
         return resultado;
+    }
+
+    /** Adopción explícita del cambio aprobado en intentos activos del recorrido anterior.
+     * Las publicaciones, ejecuciones y campañas completadas conservan su historia. */
+    private void adaptarIntentosEnCurso() {
+        var intentos = jdbc.queryForList("""
+            SELECT i.id_intento, nueva.id_nivel_publicacion
+            FROM intento i JOIN nivel_publicacion anterior ON anterior.id_nivel_publicacion=i.id_nivel_publicacion
+            JOIN nivel_publicacion nueva ON nueva.id_escenario=i.id_escenario
+            WHERE anterior.contenido->'desafio'->>'recorrido'='integral-2026-10-objetivos-reales-km-v3'
+              AND nueva.contenido->'desafio'->>'recorrido'=?
+              AND nueva.numero_version=(SELECT MAX(p.numero_version) FROM nivel_publicacion p WHERE p.id_escenario=i.id_escenario)
+              AND i.estado<>'COMPLETADO' AND i.fecha_finalizacion IS NULL
+              AND i.numero_campana=(SELECT MAX(j.numero_campana) FROM intento j WHERE j.id_usuario=i.id_usuario)
+              AND NOT EXISTS (SELECT 1 FROM intento_uv_ut v WHERE v.id_intento=i.id_intento)
+            FOR UPDATE OF i
+            """, VERSION);
+        for (var intento : intentos) {
+            jdbc.update("UPDATE intento SET id_nivel_publicacion=? WHERE id_intento=?",
+                intento.get("id_nivel_publicacion"), intento.get("id_intento"));
+            jdbc.update("""
+                UPDATE intento_catalogo_v1 h SET reglas_exito=p.contenido->'reglasExito',
+                  herramientas_habilitadas=p.contenido->'herramientasHabilitadas',
+                  objetivo=p.contenido->'desafio'->>'objetivo', instrucciones=p.contenido->'desafio'->>'instrucciones'
+                FROM nivel_publicacion p WHERE h.id_intento=? AND p.id_nivel_publicacion=?
+                """, intento.get("id_intento"), intento.get("id_nivel_publicacion"));
+        }
+    }
+
+    private JsonNode tarjetasActualizadas(JsonNode anteriores, JsonNode nivel) {
+        JsonNode tarjetas = anteriores.deepCopy();
+        ((ObjectNode) tarjetas.get(tarjetas.size()-1)).put("aprendizaje", nivel.path("transicion").path("aprendizaje").asText());
+        return tarjetas;
     }
 
     private PublicacionNivelService.Publicada publicarValidado(int numero, AdministracionNivelesService.Borrador guardado, int idAdmin) {
@@ -111,8 +145,8 @@ public class RecorridoIntegralService {
         var ejecuciones=red.putArray("ejecuciones");
         paso(ejecuciones,6,metros,4,4);
         if (numero==2) paso(ejecuciones,6,metros,5,5);
-        if (numero==3) paso(ejecuciones,8,metros,4,4);
-        if (numero==4) { paso(ejecuciones,6,metros,5,5); paso(ejecuciones,6,metros,3,5); }
+        if (numero==3) { paso(ejecuciones,8,metros,4,4); ((ObjectNode)ejecuciones.get(ejecuciones.size()-1)).put("parametroReferencia","UT"); }
+        if (numero==4) { paso(ejecuciones,6,metros,5,5); paso(ejecuciones,8,metros,5,5); ((ObjectNode)ejecuciones.get(ejecuciones.size()-1)).put("parametroReferencia","UT"); }
         if (numero==8) paso(ejecuciones,6,metros,3,4);
         if (numero==9 || numero==10) paso(ejecuciones,8,metros,6,6);
         return red;

@@ -13,7 +13,7 @@ class VinculoUvUtLibreTest {
   assertTrue(inversa.uv().multiply(new BigDecimal("3")).compareTo(BigDecimal.ONE)>=0);
   assertNull(VinculoUvUtLibre.calcular(0,BigDecimal.ONE,2d,"UT").ut());
  }
- @Test void tiemposFraccionariosSoloEnModoLibre() {
+ @Test void tiemposFraccionariosConVinculoAutomatico() {
   var solicitud = new com.metronet.backend.dto.EjecutarSimulacionRequest(BigDecimal.ONE,1.5);
   assertThrows(org.springframework.web.server.ResponseStatusException.class,()->ParametrosSimulacion.validar(solicitud,false,false));
   assertDoesNotThrow(()->ParametrosSimulacion.validar(solicitud,false,true));

@@ -44,7 +44,7 @@ public class CriterioUvUtService {
         }
     }
     public record Resultado(int version, String huellaProblema, String huellaEjecucion, int limiteUt,
-                            BigDecimal presupuestoUv, int utEjecutadas, BigDecimal sumaUv,
+                            BigDecimal presupuestoUv, double utEjecutadas, BigDecimal sumaUv,
                             boolean completo, List<Unidad> unidades, BigDecimal mejorUv) {}
 
     public Configuracion configuracionIntento(int idIntento) {
@@ -144,6 +144,14 @@ public class CriterioUvUtService {
     }
 
     public Resultado ultimo(int idIntento, int idDiseno) {
+        if (new VinculoUvUtLibre(jdbc, distancias).aplica(idDiseno)) {
+            var ultima = jdbc.query("SELECT id_simulacion FROM simulacion WHERE id_intento=? ORDER BY id_simulacion DESC LIMIT 1",
+                (r,n) -> r.getInt(1), idIntento);
+            if (!ultima.isEmpty()) {
+                var resultado = resultadoVinculado(ultima.getFirst(), true);
+                if (resultado != null) return resultado;
+            }
+        }
         Configuracion c = configuracionIntento(idIntento);
         if (c == null) return null;
         String problema = puntuacion.marcaProblemaUvUt(idDiseno);
@@ -168,6 +176,8 @@ public class CriterioUvUtService {
     }
 
     public Resultado resultadoDeSimulacion(int idSimulacion) {
+        var vinculado = resultadoVinculado(idSimulacion, false);
+        if (vinculado != null) return vinculado;
         return jdbc.query("""
             SELECT r.version,r.huella_problema,r.huella_ejecucion,r.limite_ut,r.presupuesto_uv,r.ut_ejecutadas,r.suma_uv,r.completo,r.unidades::text,
               (SELECT MIN(r2.suma_uv) FROM resultado_uv_ut r2 JOIN simulacion s2 ON s2.id_simulacion=r2.id_simulacion
@@ -181,6 +191,29 @@ public class CriterioUvUtService {
                         r.getInt(6), r.getBigDecimal(7), r.getBoolean(8), mapper.readValue(r.getString(9), tipo), r.getBigDecimal(10));
                 } catch (Exception error) { throw new IllegalStateException("Resultado UV/UT ilegible", error); }
             }, idSimulacion).stream().findFirst().orElse(null);
+    }
+
+    // Los nuevos tiempos fraccionarios se leen de la instantánea JSON existente.
+    // No se truncan ni se reescriben las filas enteras de resultados históricos.
+    private Resultado resultadoVinculado(int idSimulacion, boolean exigirVigencia) {
+        return jdbc.query("SELECT s.id_intento,i.id_diseno,s.comentarios FROM simulacion s JOIN intento i USING(id_intento) WHERE s.id_simulacion=?",
+            (r,n) -> {
+                var registro = RegistroSimulacionDidactica.leer(r.getString(3));
+                if (registro == null || !registro.esVinculada()) return null;
+                var c = configuracionIntento(r.getInt(1));
+                if (c == null) return null;
+                var unidades = registro.unidades();
+                double tiempo = unidades.stream().mapToDouble(u -> u.tiempoEfectivo(0)).max().orElse(0);
+                BigDecimal suma = unidades.stream().map(u -> BigDecimal.valueOf(u.velocidad())).reduce(BigDecimal.ZERO, BigDecimal::add);
+                boolean completa = !unidades.isEmpty() && tiempo <= c.limiteUt() && suma.compareTo(c.presupuestoUv()) <= 0
+                    && (!exigirVigencia || r.getString(3).endsWith(puntuacion.marcaRed(r.getInt(2))));
+                var detalle = unidades.stream().map(u -> new Unidad(u.idTren(), u.linea(), u.tramos(), BigDecimal.valueOf(u.velocidad()),
+                    BigDecimal.valueOf(u.utLlegada() == null ? 0 : u.utLlegada()),
+                    u.distanciaKm() != null && u.distanciaRecorridaKm() != null && u.distanciaRecorridaKm() + 1e-7 >= u.distanciaKm(), u.distanciaKm())).toList();
+                completa &= detalle.stream().allMatch(Unidad::termino);
+                return new Resultado(c.version(), registro.estructura(), puntuacion.marcaRed(r.getInt(2)), c.limiteUt(), c.presupuestoUv(),
+                    tiempo, suma, completa, detalle, completa ? suma : null);
+            }, idSimulacion).stream().filter(java.util.Objects::nonNull).findFirst().orElse(null);
     }
 
     /** Límites de la ejecución guardada; no se deducen de un objetivo genérico incumplido. */

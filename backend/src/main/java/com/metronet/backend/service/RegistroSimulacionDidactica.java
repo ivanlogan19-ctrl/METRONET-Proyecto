@@ -6,7 +6,10 @@ import java.util.Base64;
 import java.util.List;
 
 /** Instantánea versionada en comentarios, junto a la huella existente. No convierte históricos. */
-public record RegistroSimulacionDidactica(String estructura, List<MedicionUnidad> unidades, PoliticaPuntuacion.Registro puntuacion, String escala) {
+public record RegistroSimulacionDidactica(String estructura, List<MedicionUnidad> unidades, PoliticaPuntuacion.Registro puntuacion, String escala, java.util.Map<String, String> referencias) {
+    public RegistroSimulacionDidactica(String estructura, List<MedicionUnidad> unidades, PoliticaPuntuacion.Registro puntuacion, String escala) {
+        this(estructura, unidades, puntuacion, escala, null);
+    }
     public RegistroSimulacionDidactica(String estructura, List<MedicionUnidad> unidades, PoliticaPuntuacion.Registro puntuacion) {
         this(estructura, unidades, puntuacion, null);
     }
@@ -17,7 +20,9 @@ public record RegistroSimulacionDidactica(String estructura, List<MedicionUnidad
     public static final String MARCA_V2 = " [METRONET-UV-H-v2:";
     public static final String MARCA_V3 = " [METRONET-UV-KM-v3:";
     public static final String ESCALA_FISICA = "UV_KM_UT_V3";
-    public boolean esFisica() { return ESCALA_FISICA.equals(escala); }
+    public static final String ESCALA_VINCULADA = "UV_KM_UT_LINEA_V4";
+    public boolean esVinculada() { return ESCALA_VINCULADA.equals(escala); }
+    public boolean esFisica() { return ESCALA_FISICA.equals(escala) || esVinculada(); }
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public String codificar() {

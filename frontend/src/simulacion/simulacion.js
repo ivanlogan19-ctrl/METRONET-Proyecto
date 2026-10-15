@@ -1,4 +1,4 @@
-import { esModoLibre, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
+import { usaVinculoPorLinea, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
 import { escenarioCampana, funcionesCampana } from '../educacion/FuncionesCampana.js';
 import { abrirTutorialSimulacion, crearPanelTutorialSimulacion, presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
 import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
@@ -113,8 +113,8 @@ async function inicializar() {
   document.querySelectorAll('[data-paso-horas]').forEach(boton => boton.addEventListener('click', () => {
     const input = document.getElementById('duracionSimulacion');
     if (input.disabled) return;
-    if (esModoLibre(disenoActual) && input.value === '') { input.focus(); return; }
-    const siguiente = esModoLibre(disenoActual)
+    if (usaVinculoPorLinea(disenoActual) && input.value === '') { input.focus(); return; }
+    const siguiente = usaVinculoPorLinea(disenoActual)
       ? desplazarValorVinculado(Number(input.value), Number(boton.dataset.pasoHoras))
       : Math.max(1, Number(input.value) + Number(boton.dataset.pasoHoras));
     if (siguiente == null) return;
@@ -123,7 +123,7 @@ async function inicializar() {
   }));
   document.getElementById('duracionSimulacion').addEventListener('input', evento => {
     const input = evento.target;
-    if (esModoLibre(disenoActual) && input.value !== '' && Number(input.value) !== Number(valorVisible(input.value))) input.value = valorVisible(input.value);
+    if (usaVinculoPorLinea(disenoActual) && input.value !== '' && Number(input.value) !== Number(valorVisible(input.value))) input.value = valorVisible(input.value);
     previsualizarVinculo('UT', Number(evento.target.value));
   });
   document.getElementById('aplicarUnidadTiempo').addEventListener('click', guardarDuraciones);
@@ -187,12 +187,12 @@ async function abrirDiseno(idDiseno) {
     disenoActual = diseno;
     vinculoPendiente = null;
     // Mostrar desde el inicio los valores de una línea, sin mezclar sus distancias.
-    if (nuevoDiseno) unidadSeleccionada = esModoLibre(diseno) && diseno.unidadesMetro?.length
+    if (nuevoDiseno) unidadSeleccionada = usaVinculoPorLinea(diseno) && diseno.unidadesMetro?.length
       ? String(diseno.unidadesMetro[0].idTren) : 'todas';
     const horas = document.getElementById('duracionSimulacion');
-    horas.step = esModoLibre(diseno) ? 'any' : '1';
-    horas.min = esModoLibre(diseno) ? '0' : '1';
-    if (esModoLibre(diseno)) duracionAplicada = Math.max(0, ...(diseno.unidadesMetro ?? []).map(u => u.duracionUt ?? 0)) || 6;
+    horas.step = usaVinculoPorLinea(diseno) ? 'any' : '1';
+    horas.min = usaVinculoPorLinea(diseno) ? '0' : '1';
+    if (usaVinculoPorLinea(diseno)) duracionAplicada = Math.max(0, ...(diseno.unidadesMetro ?? []).map(u => u.duracionUt ?? 0)) || 6;
     configuracionUvUt = null;
     const contexto = obtenerContextoDiseno(idDiseno);
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
@@ -318,7 +318,7 @@ async function actualizarDesempeno(idDiseno) {
   if (!disenoActual.unidadesMetro?.some(u => String(u.idTren) === unidadSeleccionada)) unidadSeleccionada = 'todas';
   controlUnidades = renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, guardarVelocidades, {
     seleccion: unidadSeleccionada, alSeleccionar: seleccionarUnidad,
-    vinculoLibre: esModoLibre(disenoActual), alCambiarVelocidad: valor => previsualizarVinculo('UV', valor),
+    vinculoLibre: usaVinculoPorLinea(disenoActual), alCambiarVelocidad: valor => previsualizarVinculo('UV', valor),
     nivel: obtenerRotuloNivel(),
     duracionGlobal: duracionAplicada, unidadTiempo: 'UT',
     bloqueado: guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado),
@@ -339,7 +339,7 @@ function obtenerRotuloNivel() {
 async function seleccionarUnidad(id) {
   if (guardandoVelocidad) return;
   if (id === unidadSeleccionada) return;
-  if (esModoLibre(disenoActual) && vinculoPendiente) {
+  if (usaVinculoPorLinea(disenoActual) && vinculoPendiente) {
     const { referencia, valor } = vinculoPendiente;
     if (!await guardarVinculoLibre(referencia, valor)) {
       controlUnidades?.seleccionar(unidadSeleccionada);
@@ -357,17 +357,17 @@ async function seleccionarUnidad(id) {
 }
 
 function unidadesElegidas() {
-  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, esModoLibre(disenoActual));
+  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual));
 }
 function actualizarCampoDuracion() {
   const input = document.getElementById('duracionSimulacion');
-  const valores = [...new Set(unidadesElegidas().map(u => esModoLibre(disenoActual) ? u.duracionUt : u.duracionUt ?? duracionAplicada ?? 6))];
-  input.value = valores.length === 1 && valores[0] != null ? (esModoLibre(disenoActual) ? valorVisible(valores[0]) : String(valores[0])) : '';
+  const valores = [...new Set(unidadesElegidas().map(u => usaVinculoPorLinea(disenoActual) ? u.duracionUt : u.duracionUt ?? duracionAplicada ?? 6))];
+  input.value = valores.length === 1 && valores[0] != null ? (usaVinculoPorLinea(disenoActual) ? valorVisible(valores[0]) : String(valores[0])) : '';
   input.placeholder = valores.length > 1 ? 'MIXTO' : '';
   input.required = valores.length <= 1;
 }
 function previsualizarVinculo(referencia, valor) {
-  if (!esModoLibre(disenoActual)) return;
+  if (!usaVinculoPorLinea(disenoActual)) return;
   vinculoPendiente = { referencia, valor };
   const calculadas = calcularVinculo(disenoActual, unidadesElegidas(), referencia, valor);
   const campo = document.getElementById(referencia === 'UV' ? 'duracionSimulacion' : 'velocidadUnidad');
@@ -414,11 +414,15 @@ async function guardarVinculoLibre(referencia, valor) {
     guardandoVelocidad = false;
     if (paginaActiva) actualizarPanelTiempoReal(estadoMotor ?? crearEstadoInicial());
   }
+  if (!fallo && actualizadas === unidades.length) {
+    tutorialSimulacion?.notificar(referencia === 'UT' ? 'duracion' : 'velocidad');
+    if (referencia === 'UV') tutorialSimulacion?.notificar(unidadSeleccionada === 'todas' ? 'velocidad-global' : 'velocidad-individual');
+  }
   return !fallo && actualizadas === unidades.length;
 }
 
 async function guardarDuraciones() {
-  if (esModoLibre(disenoActual)) return guardarVinculoLibre(vinculoPendiente?.referencia ?? 'UT', vinculoPendiente?.valor ?? Number(document.getElementById('duracionSimulacion').value));
+  if (usaVinculoPorLinea(disenoActual)) return guardarVinculoLibre(vinculoPendiente?.referencia ?? 'UT', vinculoPendiente?.valor ?? Number(document.getElementById('duracionSimulacion').value));
   if (!disenoActual || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return false;
   const input = document.getElementById('duracionSimulacion');
   const duracion = Number(input.value);
@@ -469,7 +473,7 @@ function actualizarFichaUnidad() {
 }
 
 async function guardarVelocidades(unidades, velocidadPromedio) {
-  if (esModoLibre(disenoActual)) return guardarVinculoLibre(vinculoPendiente?.referencia ?? 'UV', vinculoPendiente?.valor ?? velocidadPromedio);
+  if (usaVinculoPorLinea(disenoActual)) return guardarVinculoLibre(vinculoPendiente?.referencia ?? 'UV', vinculoPendiente?.valor ?? velocidadPromedio);
   if (guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return;
   const id = disenoActual.simulacion.idDiseno, version = versionDiseno;
   const vigente = () => paginaActiva && versionDiseno === version && disenoActual?.simulacion.idDiseno === id;
@@ -516,15 +520,15 @@ function obtenerEstadoEjecucion() {
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
   if (!disenoActual || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return;
-  if (esModoLibre(disenoActual) && vinculoPendiente && !await guardarVinculoLibre(vinculoPendiente.referencia, vinculoPendiente.valor)) return;
+  if (usaVinculoPorLinea(disenoActual) && vinculoPendiente && !await guardarVinculoLibre(vinculoPendiente.referencia, vinculoPendiente.valor)) return;
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
   const input = document.getElementById('duracionSimulacion');
-  if (!esModoLibre(disenoActual) && input.value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(input.value))) {
+  if (!usaVinculoPorLinea(disenoActual) && input.value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(input.value))) {
     if (!await guardarDuraciones()) return;
   }
   const duracion = duracionAplicada ?? 6;
-  if (!VELOCIDADES_SIMULACION.has(velocidad) || (!Number.isFinite(duracion) || (!esModoLibre(disenoActual) && !Number.isInteger(duracion))) || duracion <= 0) {
-    mostrarMensaje('Elegí una duración UT entera mayor que cero.', 'error');
+  if (!VELOCIDADES_SIMULACION.has(velocidad) || (!Number.isFinite(duracion) || (!usaVinculoPorLinea(disenoActual) && !Number.isInteger(duracion))) || duracion <= 0) {
+    mostrarMensaje(usaVinculoPorLinea(disenoActual) ? 'Elegí una duración UT mayor que cero.' : 'Elegí una duración UT entera mayor que cero.', 'error');
     return;
   }
   preparacionEnCurso = true;
@@ -576,8 +580,8 @@ function detenerSimulacion() {
 async function reiniciarSimulacion() {
   if (estaMantenimientoActivo(sesion)) return;
   if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
-  if ((esModoLibre(disenoActual) && vinculoPendiente) ||
-      (!esModoLibre(disenoActual) && document.getElementById('duracionSimulacion').value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(document.getElementById('duracionSimulacion').value)))) {
+  if ((usaVinculoPorLinea(disenoActual) && vinculoPendiente) ||
+      (!usaVinculoPorLinea(disenoActual) && document.getElementById('duracionSimulacion').value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(document.getElementById('duracionSimulacion').value)))) {
     await ejecutarSimulacion({ preventDefault() {} });
     return;
   }

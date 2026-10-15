@@ -17,7 +17,7 @@ test('La previsualización coincide con división decimal y techo a ocho decimal
 test('Modo Libre comienza en 1 UV; mostrar dos decimales no altera el cálculo preciso', async () => {
   const { velocidadInicial, valorVisible, calcularVinculo } = await cargar();
   for (const modo of ['LIBRE', 'EDICION_LIBRE']) assert.equal(velocidadInicial({ simulacion: { modo } }), 1);
-  assert.equal(velocidadInicial({ simulacion: { modo: 'NIVEL' } }), 4);
+  assert.equal(velocidadInicial({ simulacion: { modo: 'NIVEL' } }), 1);
   const unidad = calcularVinculo({ tramos: [{ nombreLinea:'L', estacionA:'A', estacionB:'B', distanciaKm:1 }] }, [{nombreLinea:'L'}], 'UV', 3)[0];
   assert.equal(valorVisible(unidad.duracionUt), '0.33');
   assert.equal(unidad.duracionUt, .33333334);
