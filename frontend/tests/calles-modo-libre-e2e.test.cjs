@@ -458,7 +458,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await frame().waitForFunction(() => window.escenaSimulacionPrueba?.capasLibre);
     await frame().getByRole('heading', {name:'Simulación de Modo Libre',exact:true}).waitFor();
     await frame().getByRole('button', {name:'Recorrer las funciones',exact:true}).click();
-    for (const titulo of ['Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+    for (const titulo of ['Elegir línea', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
       await frame().locator('.metronet-recorrido').getByRole('heading',{name:titulo,exact:true}).waitFor();
       const cartel = await frame().locator('.metronet-recorrido').boundingBox();
       const ventana = await frame().evaluate(()=>({width:innerWidth,height:innerHeight}));

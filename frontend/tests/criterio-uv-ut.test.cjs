@@ -33,7 +33,9 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   }});
   t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores, []); });
   const p = vista.pagina;
-  await p.locator('#duracionSimulacion').waitFor();
+  // La duración existe en el HTML antes de recibir el desempeño del nivel.
+  // El panel de velocidad se crea después de aplicar esa configuración.
+  await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '2');
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');

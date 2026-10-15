@@ -180,4 +180,5 @@ test('Los pasos fraccionarios no saltan casi a cero ni pierden precisión al sum
   assert.equal(desplazarValorVinculado(1.00000001,-1),0.90000001);
   assert.equal(desplazarValorVinculado(1.33928041,1),2.33928041);
   assert.equal(desplazarValorVinculado(0,-1),null);
+  assert.equal(desplazarValorVinculado(0,1),0.01);
 });

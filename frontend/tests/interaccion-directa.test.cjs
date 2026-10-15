@@ -53,8 +53,10 @@ test('transbordo surge de dos líneas conectadas en una estación sin edición d
  assert.equal(solicitudes.length,0);
 });
 
-test('líneas superpuestas requieren elegir destino del metro',async t=>{
- const {pagina:p,solicitudes}=await abrir(t,{lineas:[{nombre:'Azul'},{nombre:'Rosa'}],tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Rosa',estacionA:'Centro',estacionB:'Parque'}]});
+test('líneas superpuestas requieren elegir destino del metro; la nueva línea libre comienza en 1 UV',async t=>{
+ const {pagina:p,solicitudes,diseno}=await abrir(t,{lineas:[{nombre:'Azul'},{nombre:'Rosa'}],tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Rosa',estacionA:'Centro',estacionB:'Parque'}]});
+ diseno.simulacion.modo='EDICION_LIBRE';
+ await p.evaluate(()=>{editorPrueba.disenoActual.simulacion.modo='EDICION_LIBRE';});
  await herramienta(p,'metros');await clic(p,640,465);assert.equal(solicitudes.length,0);
  assert.equal(await p.locator('[data-linea-unidad], [data-agregar-unidad]').count(),0);
  await herramienta(p,'seleccion');
@@ -64,6 +66,7 @@ test('líneas superpuestas requieren elegir destino del metro',async t=>{
  await p.getByRole('button',{name:'Crear metro en Rosa',exact:true}).click();
  await p.waitForFunction(()=>editorPrueba.disenoActual.unidadesMetro.length===2);
  assert.equal(solicitudes[0].datos.nombreLinea,'Rosa');
+ assert.equal(solicitudes[0].datos.velocidadPromedio,1);
 });
 
 test('guardar avance incompleto valida, persiste y no confunde consigna con error',async t=>{

@@ -107,10 +107,21 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
   test(`Extras ${width}×${height}: siete tarjetas, regreso y guardado lento conservan cuadro y controles`, { timeout: 60000 }, async t => {
     const { pagina, pendientes, visitas } = await abrir(t, { width, height });
     const inicial = await medir(pagina);
+    if (width > 700) {
+      assert.ok(inicial.cuadro.height <= 660, 'Marco compacto, sin un bloque vacío inferior');
+      assert.equal(inicial.cerrar.y, inicial.siguiente.y, 'Salir y avanzar quedan en la misma fila');
+      assert.equal(inicial.anterior.height, inicial.siguiente.height, 'Botones del mismo alto');
+      assert.ok(inicial.anterior.width <= 220, 'Los botones no ocupan todo el ancho de la tarjeta');
+      assert.equal(inicial.anterior.width, inicial.cerrar.width, 'Los tres botones tienen el mismo ancho');
+      assert.equal(inicial.cerrar.width, inicial.siguiente.width);
+      assert.equal(inicial.cerrar.x - inicial.anterior.x - inicial.anterior.width,
+        inicial.siguiente.x - inicial.cerrar.x - inicial.cerrar.width, 'Separación uniforme');
+    }
     for (const destino of [1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0]) {
       const origen = titulos.indexOf(await pagina.locator('#tituloExtras').textContent());
       await pagina.getByRole('button', { name: destino > origen ? 'Siguiente →' : '← Anterior', exact: true }).click();
-      await pagina.getByText('Guardando recorrido…', { exact: true }).waitFor();
+      await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
+      assert.equal(await pagina.locator('[data-extras-estado]').textContent(), '', 'El guardado normal no muestra un cartel entre tarjetas');
       // La petición permanece sin resolver durante varios frames visibles.
       await pagina.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       estable(await medir(pagina), inicial, `${origen + 1} → ${destino + 1}, guardando`);
@@ -140,17 +151,17 @@ test('Extras: el error conserva el cuadro, permite reintentar y cerrar mientras 
   const { pagina, pendientes } = await abrir(t, { width: 1280, height: 720 });
   const inicial = await medir(pagina);
   await pagina.getByRole('button', { name: 'Siguiente →', exact: true }).click();
-  await pagina.getByText('Guardando recorrido…', { exact: true }).waitFor();
+  await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
   pendientes.shift()(500);
   await pagina.locator('[data-extras-estado]').getByText(/reintentar/).waitFor();
   estable(await medir(pagina), inicial, 'error de guardado');
   assert.ok(await pagina.locator('[data-extras-estado]').evaluate(e => e.scrollHeight <= e.clientHeight + 1), 'El mensaje de reintento se ve completo');
   await pagina.getByRole('button', { name: 'Siguiente →', exact: true }).click();
-  await pagina.getByText('Guardando recorrido…', { exact: true }).waitFor();
+  await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
   pendientes.shift()(200);
   await pagina.getByRole('heading', { name: titulos[1], exact: true }).waitFor();
   await pagina.getByRole('button', { name: 'Siguiente →', exact: true }).click();
-  await pagina.getByText('Guardando recorrido…', { exact: true }).waitFor();
+  await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
   await pagina.getByRole('button', { name: 'Cerrar tarjetas', exact: true }).click();
   await pagina.waitForFunction(() => window.extrasCerrados);
   pendientes.shift()(200);

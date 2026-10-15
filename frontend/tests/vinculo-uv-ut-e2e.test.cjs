@@ -24,7 +24,9 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  const token=await frame().evaluate(()=>JSON.parse(localStorage.getItem('sesionUsuario')).token);
  const headers={Authorization:`Bearer ${token}`};
  async function req(method,path,data,expected=200){const r=await context.request.fetch(API+path,{method,headers,data});assert.equal(r.status(),expected,await r.text());return r.status()===200&&r.headers()['content-type']?.includes('json')?r.json():null;}
- const creada=await req('POST','/api/simulaciones',{nombre:'Vinculo de prueba'});const id=creada.idDiseno,ruta='/api/simulaciones/'+id;
+ const catalogo=await req('GET','/api/juego/escenarios');
+ const libre=catalogo.find(e=>e.numero===null);
+ const creada=await req('POST','/api/juego/escenarios/'+libre.idEscenario+'/iniciar',{});const id=creada.idDiseno,ruta='/api/simulaciones/'+id;
  for(const [nombre,x]of[['A',660],['B',670],['C',690],['D',675]])await req('POST',ruta+'/estaciones',{nombre,posicionX:x,posicionY:460});
  await req('POST',ruta+'/lineas',{nombre:'L01',estaciones:['A','B','D']});
  await req('POST',ruta+'/lineas',{nombre:'L02',estaciones:['B','C']});
@@ -46,7 +48,7 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  await abrir();
  assert.equal(await vista.locator('#unidadCirculacion').inputValue(),String(u1.idTren),'Modo Libre abre con una línea concreta y sus valores calculados');
  assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'4');
- assert.ok(Math.abs(Number(await vista.locator('#duracionSimulacion').inputValue())-km('L01')/4)<1e-7);
+ assert.equal(Number(await vista.locator('#duracionSimulacion').inputValue()), Number((km('L01')/4).toFixed(2)));
  assert.equal(await vista.locator('.simulacion-selector-metros__opciones button').count(),3,'Una opción por línea y Todas las líneas');
  assert.equal(await vista.locator('#tituloConfiguracionMetros').textContent(),'Detalle de líneas');
  assert.equal(await vista.locator('.simulacion-configuracion-metros__lista li').count(),2,'Una configuración por línea aunque tenga varios metros');
@@ -79,16 +81,34 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  const velocidadCalculada=Number(await vista.locator('#velocidadUnidad').inputValue());
  assert.ok(tiempoReducido>0 && tiempoReducido<tiempoInicial);
  assert.ok(velocidadCalculada<=9999.99,'Reducir UT no genera una UV imposible de guardar');
- assert.ok(Math.abs(velocidadCalculada*tiempoReducido-km('L01'))<1e-6);
+ assert.equal(velocidadCalculada, Number((km('L01')/tiempoReducido).toFixed(2)));
+ for (const selector of ['#velocidadUnidad', '#duracionSimulacion']) {
+  await vista.locator(selector).fill('');
+  await vista.locator(selector).pressSequentially('1.25');
+  assert.equal(await vista.locator(selector).inputValue(),'1.25','Escribir el separador decimal no lo borra');
+ }
  await vista.locator('#duracionSimulacion').fill('1.33928041');
  await vista.getByRole('button',{name:'Aumentar duración',exact:true}).click();
- assert.equal(await vista.locator('#duracionSimulacion').inputValue(),'2.33928041','El paso conserva los ocho decimales válidos');
+ assert.equal(await vista.locator('#duracionSimulacion').inputValue(),'2.34','Los controles muestran como máximo dos decimales');
+ const uvAntesGuardar=await vista.locator('#velocidadUnidad').inputValue();
  await vista.locator('.simulacion-parametro-velocidad button[type="submit"]').click();await esperarGuardado();
- d=await leer();assert.ok(d.unidadesMetro.filter(u=>u.nombreLinea==='L01').every(u=>u.duracionUt===2.33928041));
+ assert.equal(await vista.locator('#velocidadUnidad').inputValue(),uvAntesGuardar,'La UV calculada no cambia al guardar UT');
+ d=await leer();assert.ok(d.unidadesMetro.filter(u=>u.nombreLinea==='L01').every(u=>u.duracionUt===2.34));
  assert.equal(d.unidadesMetro[1].duracionUt,otroAntes);
+ // Guardar otra vez sin editar no debe convertir el valor calculado en referencia.
+ const antesDeRepetir = [await vista.locator('#velocidadUnidad').inputValue(), await vista.locator('#duracionSimulacion').inputValue()];
+ for (const selector of ['.simulacion-parametro-velocidad button[type="submit"]', '#aplicarUnidadTiempo']) {
+  await vista.locator(selector).click(); await esperarGuardado();
+  assert.deepEqual([await vista.locator('#velocidadUnidad').inputValue(), await vista.locator('#duracionSimulacion').inputValue()], antesDeRepetir,
+   'Guardar sin editar conserva UV y UT exactamente');
+ }
  await vista.locator('#velocidadUnidad').fill('6');
- assert.ok(Math.abs(Number(await vista.locator('#duracionSimulacion').inputValue())-km('L01')/6)<1e-7);
+ assert.equal(Number(await vista.locator('#duracionSimulacion').inputValue()), Number((km('L01')/6).toFixed(2)));
+ const utAntesGuardar=await vista.locator('#duracionSimulacion').inputValue();
  await vista.locator('.simulacion-parametro-velocidad button[type="submit"]').click();await esperarGuardado();
+ assert.equal(await vista.locator('#duracionSimulacion').inputValue(),utAntesGuardar,'La UT calculada no cambia al guardar UV');
+ await vista.locator('#aplicarUnidadTiempo').click();await esperarGuardado();
+ assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'6','Guardar el campo dependiente no altera la UV elegida');
  d=await leer();assert.equal(d.unidadesMetro.find(u=>u.idTren===u3.idTren).velocidadPromedio,6);assert.equal(d.unidadesMetro[0].velocidadPromedio,6);assert.equal(d.unidadesMetro[1].duracionUt,otroAntes);
  await vista.locator('.simulacion-selector-metros summary').click();
  await vista.locator('.simulacion-selector-metros__opciones [data-metro="todas"]').click();

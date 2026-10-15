@@ -356,7 +356,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-  for (const titulo of ['Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+  for (const titulo of ['Elegir línea', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     assert.equal(await p.locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0, 'La guía no activa capas');
     await p.locator('[data-recorrido-siguiente]').click();
@@ -369,7 +369,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   assert.deepEqual(await p.evaluate(() => Object.keys(localStorage).filter(c => c.includes('tutorial-pantalla-simulacion'))), []);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
-  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Distancias de la red', exact: true }).waitFor();
+  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Elegir línea', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Omitir', exact: true }).click();
   await p.goto(new URL('/simulacion.html?idDiseno=78', p.url()).href);
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
@@ -398,6 +398,10 @@ test('Regla: total por red y línea, teclado y distancias ausentes sin valores i
   const p=v.pagina;
   await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
   const regla=p.locator('[data-medicion-distancias]');
+  // Modo Libre comienza seleccionando la primera línea; el total de red
+  // corresponde a la selección explícita de todas las líneas.
+  await p.locator('.simulacion-selector-metros > summary').click();
+  await p.locator('button[data-metro="todas"]').click();
   await regla.focus(); await p.keyboard.press('Enter');
   await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Red · 5,9 km');
   await p.locator('.simulacion-selector-metros > summary').click();
@@ -407,6 +411,8 @@ test('Regla: total por red y línea, teclado y distancias ausentes sin valores i
   assert.equal(await p.locator('.metronet-mediciones').isVisible(),false);
   distancia=null;
   await p.reload();
+  await p.locator('.simulacion-selector-metros > summary').click();
+  await p.locator('button[data-metro="todas"]').click();
   await p.getByRole('button',{name:'Mostrar distancias en kilómetros',exact:true}).click();
   assert.equal(await p.locator('.metronet-mediciones__tramo').count(),1);
   assert.equal(await p.locator('.metronet-mediciones__total').isVisible(),false,'No sumar una red incompleta');

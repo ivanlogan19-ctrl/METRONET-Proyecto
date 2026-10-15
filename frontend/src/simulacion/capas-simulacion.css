@@ -56,7 +56,7 @@ html:root body.simulacion-pagina .simulacion-capas > input { width:calc(100% - 1
   body.simulacion-libre-territorio #instrumentosSimulacion .simulacion-horarios {
     order:1; flex:1 1 108px; min-height:100px; grid-template-rows:24px minmax(44px,1fr) 7px;
   }
-  .simulacion-horarios__valores { align-self:center; }
+  .simulacion-horarios__valores { align-self:center; height:100%; max-height:96px; }
   .simulacion-libre-territorio .simulacion-grupo-metros { order:2; }
   .simulacion-libre-territorio .simulacion-grupo-velocidad { order:3; }
   .simulacion-libre-territorio #seccionConfiguracion { order:4; }
@@ -72,20 +72,20 @@ html:root body.simulacion-pagina .simulacion-capas > input { width:calc(100% - 1
 }
 
 /* Relojes con la misma caja y línea de base; Inicio conserva edición por teclado. */
-html:root body.simulacion-pagina .simulacion-horarios__valores > div { gap:4px; grid-template-rows:14px 36px; }
+html:root body.simulacion-pagina .simulacion-horarios__valores > div { gap:4px; grid-template-rows:14px minmax(36px,1fr); height:100%; }
 html:root body.simulacion-pagina .simulacion-horarios__valores label { margin:0; }
 html:root body.simulacion-pagina .simulacion-horarios__valores :is(output,.simulacion-horarios__inicio) {
-  box-sizing:border-box; height:36px; min-height:36px; border:1px solid var(--border-active);
+  box-sizing:border-box; height:100%; min-height:36px; border:1px solid var(--border-active);
   background:var(--background); color:var(--text-primary); margin:0; padding:0;
 }
-html:root body.simulacion-pagina .simulacion-horarios__valores output { display:flex; flex-wrap:wrap; align-content:center; align-items:center; justify-content:center; font:10px/1.3 var(--font-arcade); }
+html:root body.simulacion-pagina .simulacion-horarios__valores output { display:flex; flex-wrap:wrap; align-content:center; align-items:center; justify-content:center; font:13px/1.3 var(--font-arcade); }
 html:root body.simulacion-pagina .simulacion-horarios__valores output[data-hora-actual] { color:var(--info-active); border-color:var(--info-active); }
 .simulacion-horarios__inicio { display:grid; grid-template-columns:minmax(0,1fr) 12px; align-items:center; }
-html:root body.simulacion-pagina .simulacion-horarios__inicio input { border:0; box-shadow:none; background:transparent; color:var(--text-primary); padding:0; margin:0; height:28px; font:10px/1.3 var(--font-arcade); }
+html:root body.simulacion-pagina .simulacion-horarios__inicio input { border:0; box-shadow:none; background:transparent; color:var(--text-primary); padding:0; margin:0; height:100%; font:13px/1.3 var(--font-arcade); }
 .simulacion-horarios__inicio input::-webkit-datetime-edit { padding:0; }
-.simulacion-horarios__flechas { display:grid; grid-template-rows:14px 14px; }
+.simulacion-horarios__flechas { display:grid; grid-template-rows:1fr 1fr; height:100%; }
 html:root body.simulacion-pagina #instrumentosSimulacion .simulacion-horarios__flechas button {
-  width:12px; min-width:12px; height:14px; min-height:14px; padding:0; margin:0;
+  width:12px; min-width:12px; height:100%; min-height:14px; padding:0; margin:0;
   border:0; background:transparent; color:var(--info-active); box-shadow:none; font:12px/1 monospace;
 }
 .simulacion-horarios__flechas button:disabled { opacity:.35; }
@@ -94,4 +94,4 @@ html:root body.simulacion-pagina #instrumentosSimulacion .simulacion-horarios__f
 .simulacion-horarios progress::-webkit-progress-value { background:var(--info-active); }
 .simulacion-horarios progress::-moz-progress-bar { background:var(--info-active); }
 
-.simulacion-horarios__dia { flex-basis:100%; font-size:6px; line-height:1.2; }
+.simulacion-horarios__dia { flex-basis:100%; font-size:8px; line-height:1.2; }

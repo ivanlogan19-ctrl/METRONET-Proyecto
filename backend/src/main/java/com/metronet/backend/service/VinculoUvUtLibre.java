@@ -16,9 +16,11 @@ public class VinculoUvUtLibre {
         this.jdbc = jdbc; this.distancias = distancias;
     }
     public boolean aplica(int diseno) {
+        // Modo Libre también pertenece al catálogo progresivo de la campaña.
+        // Su modo, no esa pertenencia, determina el cálculo automático.
         return Boolean.TRUE.equals(jdbc.queryForObject("""
             SELECT EXISTS(SELECT 1 FROM intento i JOIN escenario e ON e.id_escenario=i.id_escenario
-             WHERE i.id_diseno=? AND e.modo IN ('LIBRE','EDICION_LIBRE') AND NOT COALESCE(e.progresivo,FALSE))
+             WHERE i.id_diseno=? AND e.modo IN ('LIBRE','EDICION_LIBRE'))
             """, Boolean.class, diseno));
     }
     public record Valores(BigDecimal uv, Double ut) {}

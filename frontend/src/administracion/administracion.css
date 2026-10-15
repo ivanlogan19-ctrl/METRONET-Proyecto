@@ -85,7 +85,7 @@ body.metronet-pagina-administracion .metronet-navegacion {
 .admin-senal-ferroviaria {
   position: fixed;
   left: var(--admin-lateral-padding);
-  bottom: var(--space-lg);
+  bottom: var(--space-xs, 8px);
   width: calc(var(--admin-menu-width) - 2 * var(--admin-lateral-padding));
   height: min(360px, calc(100svh - 420px));
   pointer-events: none;

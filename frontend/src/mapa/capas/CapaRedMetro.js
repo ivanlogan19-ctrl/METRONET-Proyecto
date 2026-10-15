@@ -52,6 +52,7 @@ export default class CapaRedMetro {
     this.estadoUnidadesSimulacion = [];
     this.mostrarUnidadesEstaticas = true;
     this.zoomElementosGraficos = null;
+    this.rotacionElementosGraficos = null;
     this.manejadorPostUpdate = () => this.actualizarEscalaElementosGraficos();
   }
 
@@ -429,10 +430,19 @@ export default class CapaRedMetro {
     }).setOrigin(0, 0.5);
   }
 
-  orientarMetro(contenedor, punto) {
-    const angulo = Number.isFinite(punto?.angulo) ? punto.angulo : 0;
-    contenedor.setPosition(punto.x, punto.y);
-    contenedor.setRotation(angulo);
+  orientarMetro(contenedor, punto = null) {
+    if (punto) {
+      contenedor.anguloRecorrido = Number.isFinite(punto.angulo) ? punto.angulo : 0;
+      contenedor.setPosition(punto.x, punto.y);
+    }
+    const rotacionCamara = this.escena.cameras?.main?.rotation ?? 0;
+    const angulo = (contenedor.anguloRecorrido ?? 0) + rotacionCamara;
+    let anguloVisible = Math.atan2(Math.sin(angulo), Math.cos(angulo));
+    // Mantener el dibujo paralelo al tramo, con las ruedas abajo en pantalla.
+    // El ángulo del recorrido se conserva para los próximos giros de cámara.
+    if (anguloVisible > Math.PI / 2) anguloVisible -= Math.PI;
+    if (anguloVisible < -Math.PI / 2) anguloVisible += Math.PI;
+    contenedor.setRotation(anguloVisible - rotacionCamara);
   }
 
   // Guía temporal: nunca agrega tramos al diseño ni decide su validez de negocio.
@@ -577,6 +587,7 @@ export default class CapaRedMetro {
     const inicio = [...adyacencias.entries()].find(([, conexiones]) => conexiones.length === 1)?.[0] ?? tramos[0].estacionA;
     const visitados = new Set();
     const nombresRuta = [inicio];
+    const distanciasRuta = [0];
     let actual = inicio;
     while (visitados.size < tramos.length) {
       const siguiente = (adyacencias.get(actual) ?? []).find((conexion) => !visitados.has(conexion.indice));
@@ -584,8 +595,12 @@ export default class CapaRedMetro {
       visitados.add(siguiente.indice);
       actual = siguiente.nombre;
       nombresRuta.push(actual);
+      distanciasRuta.push(Number(tramos[siguiente.indice].distanciaKm));
     }
-    const ruta = nombresRuta.map((nombre) => estaciones.get(nombre)).filter(Boolean);
+    const ruta = nombresRuta.map((nombre, indice) => {
+      const estacion = estaciones.get(nombre);
+      return estacion ? { ...estacion, distanciaDesdeAnteriorKm: distanciasRuta[indice] } : null;
+    }).filter(Boolean);
     this.rutasPorLinea.set(nombreLinea, ruta);
     return ruta;
   }
@@ -606,7 +621,7 @@ export default class CapaRedMetro {
     const { puntos, segmentos, longitudTotal } = trazado;
     if (puntos.length === 1) return { ...puntos[0], angulo: 0 };
     if (longitudTotal === 0) return { ...puntos[0], angulo: 0 };
-    let distanciaPendiente = Phaser.Math.Clamp(progreso, 0, 0.999999) * longitudTotal;
+    let distanciaPendiente = Phaser.Math.Clamp(progreso, 0, 1) * longitudTotal;
     for (const segmento of segmentos) {
       if (distanciaPendiente <= segmento.longitud) {
         const avance = segmento.longitud === 0 ? 0 : distanciaPendiente / segmento.longitud;
@@ -629,9 +644,14 @@ export default class CapaRedMetro {
     const puntos = ruta.map(estacion => this.convertirPosicion(estacion.posicionX, estacion.posicionY));
     const segmentos = [];
     let longitudTotal = 0;
+    // El motor y el dibujo deben repartir el avance con los mismos kilómetros.
+    // En edición puede faltar aún la distancia: conservar entonces el reparto visual.
+    const usarKilometros = ruta.slice(1).every(estacion =>
+      Number.isFinite(estacion.distanciaDesdeAnteriorKm) && estacion.distanciaDesdeAnteriorKm >= 0);
     for (let indice = 0; indice < puntos.length - 1; indice += 1) {
       const origen = puntos[indice], destino = puntos[indice + 1];
-      const longitud = Phaser.Math.Distance.Between(origen.x, origen.y, destino.x, destino.y);
+      const longitud = usarKilometros ? ruta[indice + 1].distanciaDesdeAnteriorKm
+        : Phaser.Math.Distance.Between(origen.x, origen.y, destino.x, destino.y);
       segmentos.push({ origen, destino, longitud });
       longitudTotal += longitud;
     }
@@ -688,8 +708,7 @@ export default class CapaRedMetro {
         this.unidadesSimulacion.set(clave, tren);
         requiereActualizarEscala = true;
       }
-      tren.setPosition(punto.x, punto.y);
-      tren.setRotation(punto.angulo);
+      this.orientarMetro(tren, punto);
     });
     this.unidadesSimulacion.forEach((tren, clave) => {
       if (clavesVigentes.has(clave)) return;
@@ -715,14 +734,20 @@ export default class CapaRedMetro {
 
   actualizarEscalaElementosGraficos(forzar = false) {
     const zoom = this.escena.cameras?.main?.zoom ?? 1;
-    if (!forzar && this.zoomElementosGraficos === zoom) return;
+    const rotacion = this.escena.cameras?.main?.rotation ?? 0;
+    if (!forzar && this.zoomElementosGraficos === zoom && this.rotacionElementosGraficos === rotacion) return;
     const escala = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.125, 1);
     const escalaMetro = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.2, 1);
     this.etiquetasEstaciones.forEach((etiqueta) => etiqueta.setScale(escala));
     this.marcadoresEstaciones.forEach((marcador) => marcador.setScale(Phaser.Math.Clamp(escala, ESCALA_MINIMA_MARCADOR, 1)));
-    this.unidadesEstaticas.forEach((unidad) => unidad.setScale(escalaMetro));
-    this.unidadesSimulacion.forEach((unidad) => unidad.setScale(escalaMetro));
+    const actualizarMetro = (unidad) => {
+      unidad.setScale(escalaMetro);
+      this.orientarMetro(unidad);
+    };
+    this.unidadesEstaticas.forEach(actualizarMetro);
+    this.unidadesSimulacion.forEach(actualizarMetro);
     this.zoomElementosGraficos = zoom;
+    this.rotacionElementosGraficos = rotacion;
   }
 
   crearLineasPorEstacion() {
@@ -782,6 +807,7 @@ export default class CapaRedMetro {
     this.marcadoresEstaciones = [];
     this.unidadesEstaticas = [];
     this.zoomElementosGraficos = null;
+    this.rotacionElementosGraficos = null;
   }
 
   eliminarUnidadesSimulacion() {

@@ -55,7 +55,8 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       if(ocupado) return;
       ocupado=true;
       const estadoTexto=dialogo.querySelector('[data-extras-estado]');
-      estadoTexto.textContent='Guardando recorrido…';
+      estadoTexto.textContent='';
+      dialogo.setAttribute('aria-busy','true');
       try {
         await asegurarIngreso();
         const estado=await solicitarExtras(`/tarjetas/${TARJETAS_EXTRAS[indice].id}`,'PUT',
@@ -75,7 +76,7 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
         }
       } catch(error) {
         if(!cerrado) estadoTexto.textContent=error.message.replace(/[.\s]+$/, '')+'. Volvé a pulsar para reintentar o salí sin guardar.';
-      } finally {ocupado=false;}
+      } finally {ocupado=false;dialogo.removeAttribute('aria-busy');}
     }
     function mostrarTarjeta() {
       dialogo.classList.add('metronet-extras--tarjetas');
@@ -90,9 +91,10 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       const anterior=boton('← Anterior',()=>avanzar(indice-1),'metronet-extras__anterior'); anterior.disabled=indice===0;
       const puntos=nodo('div','','metronet-extras__puntos'); puntos.setAttribute('aria-label',`Tarjeta ${indice+1} de 7`);
       TARJETAS_EXTRAS.forEach((_,i)=>{const e=nodo('span'); if(i===indice)e.setAttribute('aria-current','step');puntos.append(e);});
-      pie.append(anterior,puntos,boton(indice===6?'Finalizar recorrido':'Siguiente →',()=>avanzar(indice+1),'metronet-boton--exito'));
+      encabezado.insertBefore(puntos,encabezado.lastChild);
+      pie.append(anterior,boton(bienvenida?'Saltar e ir a construir':'Cerrar tarjetas',cerrar,'metronet-extras__saltar metronet-boton--peligro'),boton(indice===6?'Finalizar recorrido':'Siguiente →',()=>avanzar(indice+1),'metronet-boton--exito'));
       const estado=nodo('p','','metronet-extras__estado'); estado.dataset.extrasEstado='';estado.setAttribute('role','status');
-      dialogo.replaceChildren(encabezado,cuerpo,pie,boton(bienvenida?'Saltar e ir a construir':'Cerrar tarjetas',cerrar,'metronet-extras__saltar metronet-boton--peligro'),estado);
+      dialogo.replaceChildren(encabezado,cuerpo,pie,estado);
       enfocar();
     }
     function mostrarBienvenida() {
