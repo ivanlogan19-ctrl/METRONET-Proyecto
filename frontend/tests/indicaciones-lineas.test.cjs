@@ -41,3 +41,21 @@ test('Las reglas publicadas personalizadas gobiernan el detalle, no el número d
  assert.deepEqual(reglas,copia);
  assert.deepEqual(indicacionesLineas(condicionesParaIndicaciones()),[]);
 });
+
+test('Los pedidos por línea ocupan las metas existentes sin alterar contadores ni estrellas',async()=>{
+ const {metasConLineas}=await cargar();
+ const condiciones=[
+  {clave:'minimoEstaciones',texto:'Ubicar 7 estaciones',actual:0,requerido:7,completado:false},
+  {clave:'minimoMetros',texto:'Asignar 3 metros',actual:3,requerido:3,completado:true},
+  {clave:'minimoTransbordos',texto:'Compartir una estación',actual:0,requerido:1,completado:false},
+  {clave:'aprendizajeSimulacion:combinacion',texto:'Comparar dos ejecuciones',actual:0,requerido:1,completado:false},
+  {clave:'simulacionActual',texto:'Simular red actual',actual:0,requerido:1,completado:false},
+ ];
+ const copia=structuredClone(condiciones);
+ const metas=metasConLineas(condiciones);
+ assert.equal(metas.length,5);
+ assert.equal(metas[2].texto,'Línea 1 y Línea 2: 1 transbordo');
+ assert.equal(metas[3].texto,'Línea 1 o Línea 2: comparar UV/UT');
+ assert.deepEqual(metas.map(({texto,...estado})=>estado),condiciones.map(({texto,...estado})=>estado));
+ assert.deepEqual(condiciones,copia);
+});

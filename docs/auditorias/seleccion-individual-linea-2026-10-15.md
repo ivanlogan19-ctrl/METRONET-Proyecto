@@ -64,3 +64,17 @@ Validación de cierre:
 
 - Chrome de cierre: `indicaciones-lineas-browser`, `carga-compacta`, `seleccion-linea`, `tutorial-recorrido-integral` y `reglas`: 49/49, salida 0. API simulada para estas suites; incluye los diez carteles publicados, nombres reales en editor y selección independiente. Log `/tmp/metronet-lineas-final-browser.log`.
 - `git diff --check`: salida 0 antes del commit.
+
+## Corrección del límite de metas — 15/10/2026
+
+- DEFINIDO: máximo cinco metas en todos los niveles; niveles 6–10 con tres POI adicionales, separados. Una configuración UV/UT común a todos los metros de cada línea.
+- Causa del desborde: la separación de condiciones `poi:` sólo reconocía la publicación v2. La v4 mostraba también esos tres requisitos dentro de Metas. Además, el bloque de aclaraciones añadido debajo aumentaba el contenido del panel.
+- IMPLEMENTADO: la separación reconoce la campaña integral sin fijar una versión. Se elimina el bloque adicional del editor. `metasConLineas` integra los nombres directamente en las filas existentes y conserva claves, contadores y estado de cumplimiento; los tres POI siguen visibles en Lugares a conectar.
+- Se revisaron las consignas vigentes: las comparaciones se realizan entre ejecuciones y por línea, nunca exigiendo dos configuraciones simultáneas a metros de una misma línea. El servidor ya comparte UV/UT por línea; no se cambió esa regla ni la evaluación.
+- Archivos: `EditorRedMetro.js`, `IndicacionesLineas.mjs`, pruebas `niveles-cinco-metas.test.cjs`, `indicaciones-lineas-browser.test.cjs`, `indicaciones-lineas.test.cjs` y esta auditoría.
+- Chrome: 43/43, salida 0 (`niveles-cinco-metas` e `indicaciones-lineas-browser`). Los diez niveles muestran exactamente cinco metas; 6–10 muestran tres POI separados. Se comprobaron 1440×900, 1280×720 y 390×844, límites del panel y estabilidad durante actualización. API simulada.
+- Unitarias: 8/8, salida 0 (`indicaciones-lineas` y `objetivos-compactos`).
+- PostgreSQL temporal: 15/15, salida 0 (`VinculoUvUtNivelesPostgresTest` y `ComparacionLineasVinculadasTest`). Diez casos verifican compartir valores entre metros de una línea, preservar otra línea, guardar precisión y completar distancia/tiempo; cinco prueban la comparación didáctica.
+- Build frontend y `git diff --check`: salida 0. Persiste la advertencia de tamaño del paquete Administración.
+- Sin cambios de esquema, endpoints, base de usuarios ni documento académico. No se repitió la finalización completa de los diez niveles con premios. Logs `/tmp/metronet-cinco-metas-{fix,postgres,build}.log`.
+- La publicación remota continúa pendiente: la revisión automática exige confirmación explícita del usuario para publicar en el repositorio público. No se reintentó el push sin esa confirmación.

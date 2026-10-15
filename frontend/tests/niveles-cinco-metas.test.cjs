@@ -16,11 +16,12 @@ function consigna(n){
  if(r.requiereMetroPorLinea) agregar('requiereMetroPorLinea','Asignar al menos un Metro a cada línea');
  if(r.areasObjetivo) agregar('areaObjetivo:0','Estación en AGUADA');
  for(const practica of Object.keys(r.aprendizajeSimulacion||{})) agregar(`aprendizajeSimulacion:${practica}`,`Comparar ${practica}`);
+ for(const poi of r.puntosInteresObjetivo||[]) agregar(`poi:${poi.idPunto}`,`Conectar ${puntos.find(p=>p.id===poi.idPunto).nombre}`);
  agregar('simulacionActual','Simular la red y UV actuales');
  return {condiciones,estadoGlobal:'PARCIAL',referenciasObjetivo:(r.puntosInteresObjetivo||[]).map(o=>({...o,nombrePunto:puntos.find(p=>p.id===o.idPunto).nombre,cubierto:false}))};
 }
 for(const [width,height] of [[1440,900],[1280,720],[390,844]]) for(const nivel of niveles) test(`N${nivel.numero} ${width}×${height}: cinco metas, lugares y límites iguales`,async t=>{
- const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-objetivos-reales-v2'},primeraPasada:false,novedadPresentada:true,viewport:{width,height},consigna:()=>consigna(nivel)});
+ const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-lineas-automaticas-v4'},primeraPasada:false,novedadPresentada:true,viewport:{width,height},consigna:()=>consigna(nivel)});
  t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});const p=v.pagina;
  assert.equal(await p.locator('.metronet-consigna__lista-breve > li').count(),5);
  assert.equal(await p.locator('.metronet-consigna__lista-referencias > li').count(),nivel.numero<6?0:3);
@@ -35,7 +36,7 @@ for(const [width,height] of [[1440,900],[1280,720],[390,844]]) for(const nivel o
 });
 
 for(const nivel of niveles) test(`N${nivel.numero}: crear una estación conserva las metas mientras se actualizan`,async t=>{
- const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-objetivos-reales-v2'},viewport:{width:1280,height:720},consigna:()=>consigna(nivel)});
+ const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-lineas-automaticas-v4'},viewport:{width:1280,height:720},consigna:()=>consigna(nivel)});
  t.after(()=>v.contexto.close());const p=v.pagina;
  const medir=()=>p.evaluate(()=>{
   const caja=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};

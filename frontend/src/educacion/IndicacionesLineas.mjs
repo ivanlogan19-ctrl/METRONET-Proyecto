@@ -59,3 +59,21 @@ export function crearIndicacionesLineas(grupos) {
   }
   return contenedor;
 }
+
+
+// Cambia sólo la etiqueta: mantiene la clave, el contador y la evaluación recibida.
+export function metasConLineas(condiciones, lineas = []) {
+  const grupos = indicacionesLineas(condiciones, lineas);
+  return condiciones.map(condicion => {
+    const grupo = grupos.find(g => g.clave === condicion.clave);
+    if (!grupo) return condicion;
+    const nombres = grupo.filas.map(fila => fila.slice(0, fila.indexOf(':')));
+    let texto;
+    if (condicion.clave === 'minimoLineas') texto = nombres.map(n => `${n}: construir`).join(' · ');
+    if (condicion.clave === 'minimoTransbordos') texto = `${nombres.join(' y ')}: ${condicion.requerido} transbordo${condicion.requerido === 1 ? '' : 's'}`;
+    if (condicion.clave === 'aprendizajeSimulacion:individual') texto = `${nombres.join(' o ')}: cambiar UV y simular`;
+    if (condicion.clave === 'aprendizajeSimulacion:combinacion') texto = `${nombres.join(' o ')}: comparar UV/UT`;
+    if (condicion.clave === 'requiereMetroPorLinea') texto = nombres.map(n => `${n}: asignar un metro`).join(' · ');
+    return texto ? { ...condicion, texto } : condicion;
+  });
+}

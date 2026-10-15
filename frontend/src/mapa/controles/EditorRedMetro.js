@@ -1,4 +1,4 @@
-import { indicacionesLineas, crearIndicacionesLineas } from '../../educacion/IndicacionesLineas.mjs';
+import { metasConLineas } from '../../educacion/IndicacionesLineas.mjs';
 import '../../educacion/indicaciones-lineas.css';
 import CreacionDirecta from './CreacionDirecta.js';
 import PanelCalles from './PanelCalles.js';
@@ -849,9 +849,9 @@ export default class EditorRedMetro {
     const detalleDisponible = ['disponible', 'cargando'].includes(this.estadoConsigna) && Boolean(consignaActual);
     consigna.setAttribute('aria-busy', String(this.estadoConsigna === 'cargando'));
     const condiciones = detalleDisponible
-      ? (escenario?.recorrido === 'integral-2026-10-objetivos-reales-v2'
+      ? metasConLineas(escenario?.recorrido?.startsWith('integral-2026-10')
         ? consignaActual.condiciones.filter(c => !c.clave.startsWith('poi:'))
-        : objetivosCompactos(consignaActual.condiciones, escenario?.numero)) : [];
+        : objetivosCompactos(consignaActual.condiciones, escenario?.numero), this.disenoActual?.lineas ?? []) : [];
     const referencias = detalleDisponible ? this.obtenerReferenciasObjetivoConsigna() : [];
     const esNivel = Number.isInteger(escenario?.numero);
     this.contenedorObjetivos?.classList.toggle('metronet-objetivos-panel--nivel', esNivel);
@@ -890,8 +890,6 @@ export default class EditorRedMetro {
       condiciones
         .forEach(condicion => listaBreve.append(this.crearElementoCondicionConsigna(condicion)));
       resumenActivo.append(listaBreve);
-      const indicaciones = indicacionesLineas(consignaActual.condiciones, this.disenoActual?.lineas ?? []);
-      if (indicaciones.length) resumenActivo.append(crearIndicacionesLineas(indicaciones));
     } else if (esNivel && escenario.objetivo) {
       const listaBreve = document.createElement('ul');
       listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';

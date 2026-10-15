@@ -21,13 +21,10 @@ for(const width of [1366,390])test(`N8: entrada y metas nombran ambas líneas si
   consigna:()=>({estadoGlobal:'PARCIAL',progreso:20,condiciones,referenciasObjetivo:[]})});
  t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});
  const p=v.pagina;
- const detalle=p.locator('.metronet-consigna__resumen-activo .metronet-indicaciones-lineas');
- await detalle.waitFor();
- assert.deepEqual(await detalle.locator('[data-indicacion-lineas="minimoLineas"] p').allTextContents(),['Norte: creada.','Costa: creada.']);
- const practica=detalle.locator('[data-indicacion-lineas="aprendizajeSimulacion:individual"]');
- assert.match(await practica.innerText(),/Elegí sólo una línea/);
- assert.match(await practica.innerText(),/Norte: cambiar manualmente UV/);
- assert.match(await practica.innerText(),/Costa: cambiar manualmente UV/);
+ const metas=p.locator('.metronet-consigna__lista-breve');
+ assert.match(await metas.innerText(),/Norte: construir · Costa: construir/);
+ assert.match(await metas.innerText(),/Norte o Costa: cambiar UV y simular/);
+ assert.equal(await p.locator('.metronet-consigna__resumen-activo .metronet-indicaciones-lineas').count(),0);
  assert.equal(await p.locator('.metronet-consigna__lista-breve > li').count(),5,'No se agregan criterios ni se altera el progreso');
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await p.evaluate(async nivel=>{
@@ -40,7 +37,7 @@ for(const width of [1366,390])test(`N8: entrada y metas nombran ambas líneas si
  assert.deepEqual(await intro.locator('[data-indicacion-lineas="minimoLineas"] p').allTextContents(),[
   'Línea 1: construí su recorrido.','Línea 2: construí su recorrido.'
  ]);
- assert.equal(await intro.locator('[data-indicacion-lineas="aprendizajeSimulacion:individual"] strong').textContent(),await practica.locator('strong').textContent());
+ assert.match(await intro.innerText(),/Elegí sólo una línea/);
  assert.equal(await p.locator('.metronet-viaje').evaluate(e=>e.scrollWidth>e.clientWidth+1),false);
  await p.evaluate(()=>introLineas.cerrar());
  assert.equal(v.solicitudes.length,0,'Las aclaraciones no escriben progreso ni redes');
