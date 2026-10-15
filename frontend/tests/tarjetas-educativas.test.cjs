@@ -288,13 +288,13 @@ test('Aprender recorre las siete tarjetas del nivel sin alterar la siguiente ent
   assert.equal(new Set(imagenes).size,7);
   assert.equal(await dialogo.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'),inicial);
   assert.equal(await page.evaluate(() => localStorage.getItem('metronet:educacion:usadas:1')),await page.evaluate(() => window.cicloAntesDeAprender));
-  await page.getByRole('button', { name:'Volver', exact:true }).click();
+  await page.getByRole('button', { name:'Cerrar', exact:true }).click();
   assert.equal(await page.locator('dialog[open]').count(), 0);
   assert.equal(await page.locator('.metronet-hud > summary').evaluate(e => e === document.activeElement), true);
   await page.locator('.metronet-hud > summary').click();
   await page.getByRole('button', { name:'Tarjeta educativa del nivel' }).evaluate(button => button.click());
   assert.equal(await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'),inicial);
-  await page.getByRole('button', { name:'Volver', exact:true }).click();
+  await page.getByRole('button', { name:'Cerrar', exact:true }).click();
   const siguiente = await page.evaluate(async () => (await import('/src/educacion/TarjetasEducativasNivel.js')).seleccionarTarjetaEducativa(1).id);
   assert.notEqual(siguiente,inicial);
   await page.evaluate(() => ayudaPrueba.eliminar());
@@ -326,13 +326,17 @@ for (const width of [320, 375, 1440]) test(`tarjeta ${width}px: controles visibl
     window.viaje = crearPreparacionNivel(level);
     viaje.marcarDatosListos();
   }, niveles[9]);
-  await page.getByRole('button', { name:'Jugar' }).click();
+  await page.getByRole('button', { name:'Iniciar nivel' }).click();
   await page.locator('.metronet-viaje .metronet-tarjeta-educativa').waitFor({ state: 'visible' });
   const measured = await page.locator('.metronet-viaje').evaluate(d => {
     const box = d.getBoundingClientRect(), img = d.querySelector('img'), action = d.querySelector('.metronet-tarjeta-educativa__acciones button').getBoundingClientRect();
     return { width:box.width, height:box.height, scrollWidth:d.scrollWidth, clientWidth:d.clientWidth,
       ratio:img.getBoundingClientRect().width/img.getBoundingClientRect().height, actionWidth:action.width, actionHeight:action.height };
   });
+  if (width === 1440) {
+    const pista = await page.locator('.metronet-tarjeta-educativa__pie small').evaluate(e => ({ alto:e.getBoundingClientRect().height, linea:parseFloat(getComputedStyle(e).lineHeight) }));
+    assert.ok(pista.alto <= pista.linea + 1, 'El recordatorio ocupa una sola línea');
+  }
   assert.ok(measured.width <= width && measured.height <= 800);
   assert.ok(measured.scrollWidth <= measured.clientWidth);
   assert.ok(Math.abs(measured.ratio - 720/246) < .05);

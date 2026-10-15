@@ -1,3 +1,4 @@
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { CONFIGURACION_TRANSICION, MENSAJES_TRANSICION } from './ConfiguracionTransicion.js';
 import { crearPresentacionMusicalNivel } from './PresentacionMusicalNivel.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
@@ -59,13 +60,13 @@ export function mostrarTransicionNivel(anterior, siguiente, {
   resumenTitulo.tabIndex = -1;
   const totales = texto('p', '');
   const posicion = texto('p', '');
-  const clasificacion = texto('button', 'Ver desempeño y ranking', 'metronet-boton--primario'); clasificacion.type = 'button';
+  const clasificacion = texto('button', 'Ver desempeño y ranking', 'metronet-boton--primario'); clasificacion.type = 'button';configurarAccion(clasificacion,'abrir',{conservarTexto:true});
   cierre.append(resumenTitulo, totales, posicion, clasificacion);
   const acciones = texto('footer', '', 'metronet-victoria__acciones');
-  const seleccionar = texto('button', 'Seleccionar nivel'); seleccionar.type = 'button';
-  const jugar = texto('button', puedeJugar ? MENSAJES_TRANSICION.accion : final ? 'Ver resumen' : 'Elegir nivel',
+  const seleccionar = texto('button', 'Seleccionar nivel'); seleccionar.type = 'button';configurarAccion(seleccionar,'abrir',{conservarTexto:true});
+  const jugar = texto('button', siguiente ? MENSAJES_TRANSICION.accionSiguiente : modoLibre ? MENSAJES_TRANSICION.accionLibre : final ? 'Ver resumen' : 'Elegir nivel',
     puedeJugar ? 'metronet-boton--exito metronet-boton--destacado' : 'metronet-boton--primario');
-  jugar.type = 'button';
+  jugar.type = 'button';configurarAccion(jugar,puedeJugar?(siguiente?'continuar':'iniciar'):'abrir',{conservarTexto:true});
   jugar.hidden = !puedeJugar && !final;
   seleccionar.classList.toggle('metronet-boton--primario', !puedeJugar && !final);
   acciones.append(estado, seleccionar, jugar);

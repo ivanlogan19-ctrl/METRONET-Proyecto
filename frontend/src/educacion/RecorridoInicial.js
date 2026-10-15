@@ -1,3 +1,4 @@
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { PASOS_CALLES } from './TutorialCalles.js';
 const PASOS_INTEGRAL = [
@@ -43,8 +44,10 @@ export default class RecorridoInicial {
     this.dialogo.className = 'metronet-recorrido';
     this.dialogo.setAttribute('aria-labelledby', 'recorrido-titulo');
     this.dialogo.innerHTML = '<div class="metronet-recorrido__marca" aria-hidden="true"></div><p data-recorrido-progreso></p><header class="metronet-recorrido__cabecera"><span data-recorrido-icono aria-hidden="true"></span><h2 id="recorrido-titulo"></h2></header><p data-recorrido-texto></p><div class="metronet-recorrido__acciones"><button type="button" data-recorrido-omitir>Omitir</button><button type="button" data-recorrido-siguiente>Siguiente</button></div>';
-    configurarBotonIcono(this.dialogo.querySelector('[data-recorrido-omitir]'), 'cancelar', 'Omitir');
-    configurarBotonIcono(this.dialogo.querySelector('[data-recorrido-siguiente]'), 'play', 'Siguiente');
+    configurarBotonIcono(this.dialogo.querySelector('[data-recorrido-omitir]'), 'cancelar', 'Salir del tutorial');
+    configurarBotonIcono(this.dialogo.querySelector('[data-recorrido-siguiente]'), 'horaSiguiente', 'Siguiente');
+    configurarAccion(this.dialogo.querySelector('[data-recorrido-siguiente]'),'siguiente',{icono:true});
+    configurarAccion(this.dialogo.querySelector('[data-recorrido-omitir]'),'salirTutorial',{icono:true});
     document.body.append(this.dialogo);
     this.dialogo.addEventListener('cancel', e => { e.preventDefault(); this.terminar(true, false, 'omitido'); });
     this.dialogo.querySelector('[data-recorrido-omitir]').addEventListener('click', () => this.terminar(true, false, 'omitido'));

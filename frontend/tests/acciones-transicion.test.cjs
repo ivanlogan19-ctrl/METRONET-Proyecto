@@ -29,9 +29,9 @@ for(const tipo of ['intro','outro'])for(const fase of ['viaje','cartel'])test(`$
  },tipo);
  await p.waitForFunction(()=>audioInicial.currentTime>.1&&!audioInicial.paused);
  assert.equal(await p.getByRole('button',{name:'Leer sin prisa'}).count(),0);
- assert.equal(await p.locator(tipo==='intro'?'.metronet-viaje__estado':'.metronet-victoria__estado').textContent(),'Entrarás al terminar el recorrido. Pulsá Jugar para comenzar ahora.');
+ assert.equal(await p.locator(tipo==='intro'?'.metronet-viaje__estado':'.metronet-victoria__estado').textContent(),'Entrarás al terminar el recorrido. Podés comenzar ahora con el botón.');
  if(fase==='cartel'){
-  await p.getByRole('button',{name:'Jugar',exact:true}).focus();
+  await p.getByRole('button',{name:tipo==='intro'?'Iniciar nivel':'Continuar nivel',exact:true}).focus();
   const pie=p.locator(tipo==='intro'?'.metronet-viaje__pie':'.metronet-victoria__acciones');
   if(tipo==='intro'){
    await p.locator('.metronet-cartel-transicion:not([hidden])').waitFor({timeout:15000});
@@ -49,7 +49,7 @@ for(const tipo of ['intro','outro'])for(const fase of ['viaje','cartel'])test(`$
   await p.waitForFunction(()=>continuaciones===1);
  }else{
   const inicio=Date.now();
-  const boton=p.getByRole('button',{name:'Jugar',exact:true});
+  const boton=p.getByRole('button',{name:tipo==='intro'?'Iniciar nivel':'Continuar nivel',exact:true});
   await boton.focus();await p.keyboard.press('Enter');
   await p.evaluate(()=>fin);
   assert.ok(Date.now()-inicio<1800,'No esperar los 15 s después de pulsar Jugar');
@@ -61,7 +61,7 @@ for(const tipo of ['intro','outro'])for(const fase of ['viaje','cartel'])test(`$
 test('Jugar espera los datos reales y un doble clic no duplica la entrada',async t=>{
  const p=await abrir(t);
  await p.evaluate(()=>{window.intro=crearIntro({numero:1});window.continuaciones=0;intro.finalizada.then(()=>continuaciones++);});
- const jugar=p.getByRole('button',{name:'Jugar',exact:true});
+ const jugar=p.getByRole('button',{name:'Iniciar nivel',exact:true});
  assert.equal(await jugar.isDisabled(),true);
  await jugar.evaluate(b=>b.click());
  assert.equal(await p.evaluate(()=>continuaciones),0);
@@ -75,7 +75,7 @@ test('Jugar espera los datos reales y un doble clic no duplica la entrada',async
 for(const modoLibre of [null,{numero:null,idEscenario:11}])test(`Final de recorrido: ${modoLibre?'Jugar abre Modo Libre':'Ver resumen conserva resultados'}`,async t=>{
  const p=await abrir(t);
  await p.evaluate(modoLibre=>{window.accion=undefined;window.fin=crearOutro({numero:10},null,{final:true,modoLibre,puntaje:95}).then(a=>{accion=a;});window.audioInicial=g.audio;},modoLibre);
- await p.getByRole('button',{name:modoLibre?'Jugar':'Ver resumen',exact:true}).click();
+ await p.getByRole('button',{name:modoLibre?'Iniciar Modo Libre':'Ver resumen',exact:true}).click();
  if(modoLibre){await p.evaluate(()=>fin);assert.equal(await p.evaluate(()=>accion),'modoLibre');}
  else{
   assert.equal(await p.locator('.metronet-victoria__resumen').isVisible(),true);
@@ -95,14 +95,14 @@ for(const [width,height]of [[375,667],[320,568]])test(`Acciones visibles solo du
    else window.fin=crearOutro({numero:1,nombre:'Primera red'},{numero:2,objetivo:'Explorá cómo las estaciones forman un recorrido continuo.'},{puntaje:95});
   },tipo);
   await p.clock.runFor(700);
-  const boton=p.getByRole('button',{name:'Jugar',exact:true});
+  const boton=p.getByRole('button',{name:tipo==='intro'?'Iniciar nivel':'Continuar nivel',exact:true});
   const rect=await boton.boundingBox();
   assert.ok(rect.y>=0&&rect.y+rect.height<=height,'Jugar visible durante la animación sin scroll previo');
   assert.ok(rect.height>=44&&rect.x>=0&&rect.x+rect.width<=width);
-  await p.clock.runFor(8000);
+  await p.clock.runFor(tipo==='intro'?3000:8000);
   assert.equal(await p.locator('.metronet-cartel-transicion').isVisible(),false);
   assert.equal(await boton.isVisible(),true,'Jugar sigue visible durante el viaje');
-  await p.clock.runFor(2500);
+  await p.clock.runFor(tipo==='intro'?1500:2500);
   if(tipo==='intro'){
    assert.equal(await p.locator('.metronet-cartel-transicion').isVisible(),true);
    assert.equal(await p.locator('.metronet-viaje__pie').isVisible(),false);

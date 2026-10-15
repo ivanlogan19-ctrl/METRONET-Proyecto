@@ -44,7 +44,8 @@ test('Administrador: todos disponibles sin fingir completados y ranking no compe
  assert.equal(await pagina.getByRole('button',{name:'Comenzar',exact:true}).count(),10);
  assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--disponible').count(),11);
  await pagina.goto(`${BASE}/ranking.html`);
- await pagina.getByText(/Esta cuenta no participa en el ranking/).waitFor();
+ await pagina.locator('#resumenPersonalRanking[hidden]').waitFor({state:'attached'});
+ assert.equal(await pagina.locator('#resumenPuntaje').textContent(),'');
 });
 for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta}, UV, horas simuladas y guardado mediante API existente`,async t=>{
  let velocidad=90;

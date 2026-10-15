@@ -337,6 +337,16 @@ html:root body input[type='radio']::before { border-radius: 50%; }
 html:root body :is(input[type='checkbox'], input[type='radio']):checked::before { visibility: visible; }
 html:root body :is(input, select, textarea):user-invalid { border-color: var(--danger); }
 html:root body .metronet-dialogo-sistema { width: min(92vw, 540px); max-height: 90svh; padding: 0; }
+html:root body dialog.metronet-dialogo-sistema--peligro {
+  background: #781e32;
+  border-color: var(--danger);
+  color: #fff;
+}
+html:root body dialog.metronet-dialogo-sistema--peligro :is(h2,p) {
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+}
 .metronet-dialogo-sistema form { display: grid; gap: var(--space-md); padding: var(--space-lg); }
 .metronet-dialogo-sistema :is(h2, p) { margin: 0; }
 .metronet-dialogo-sistema p { line-height: 1.6; }

@@ -1,3 +1,4 @@
+import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
 import './resultado-nivel.css';
 
 let cerrarResultadoActivo;
@@ -19,14 +20,13 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
   const cabecera = texto('header', '', 'metronet-resultado-nivel__cabecera');
   const titulo = texto('h2', 'Nivel completado');
   titulo.id = 'tituloResultadoNivel'; titulo.tabIndex = -1;
-  cabecera.append(texto('p', nivel.numero ? `RESULTADO // NIVEL ${String(nivel.numero).padStart(2, '0')}` : 'RESULTADO DEL RECORRIDO', 'metronet-resultado-nivel__etiqueta'),
-    titulo, texto('p', nivel.nombre || 'Tu red', 'metronet-resultado-nivel__nivel'));
+  cabecera.append(titulo, texto('p', nivel.nombre || 'Tu red', 'metronet-resultado-nivel__nivel'));
   const premio = texto('section', '', 'metronet-resultado-nivel__premio');
   const marcador = texto('p', '', 'metronet-resultado-nivel__puntos');
   if (Number.isFinite(puntos)) {
     marcador.append(texto('span', 'Ganaste'), texto('strong', puntos), texto('span', 'puntos'));
   } else marcador.textContent = 'Tu resultado quedó registrado.';
-  premio.append(marcador, texto('p', 'Toda la consigna cumplida', 'metronet-resultado-nivel__aprobado'));
+  premio.append(marcador);
   if (Number.isFinite(puntos) && Number.isFinite(mejorPuntajeAnterior) && puntos > mejorPuntajeAnterior)
     premio.append(texto('p', 'Nuevo récord personal', 'metronet-resultado-nivel__record'));
   dialogo.append(cabecera, premio);
@@ -77,7 +77,7 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
   dialogo.append(cuenta);
   const pie = texto('footer', '', 'metronet-resultado-nivel__acciones');
   const continuar = texto('button', 'Continuar', 'metronet-boton--exito metronet-boton--destacado');
-  continuar.type = 'button'; pie.append(continuar); dialogo.append(pie);
+  continuar.type = 'button';configurarAccion(continuar,'continuar'); pie.append(continuar); dialogo.append(pie);
   return new Promise(resolve => {
     let cerrado = false;
     const observador = new MutationObserver(() => { if (!dialogo.isConnected) cancelar(); });

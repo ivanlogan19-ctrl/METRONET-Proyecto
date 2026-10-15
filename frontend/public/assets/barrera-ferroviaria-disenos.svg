@@ -9,11 +9,7 @@
       <path d="M0 8h59v14H0z" fill="#d6ad52"/>
     </pattern>
   </defs>
-  <style>
-    .brazo { transform-origin: 55px 513px; transform: rotate(-56deg); animation: bajar 2.6s ease-in-out forwards; }
-    @keyframes bajar { to { transform: rotate(0deg); } }
-    @media (prefers-reduced-motion: reduce) { .brazo { animation: none; transform: rotate(0deg); } }
-  </style>
+
   <path d="M11 746h87v14H11z" fill="#071326"/>
   <path d="M25 568h59v178H25z" fill="url(#poste)" stroke="#071326" stroke-width="6"/>
   <path d="M19 476h72v89H19z" fill="#152840" stroke="#071326" stroke-width="7"/>

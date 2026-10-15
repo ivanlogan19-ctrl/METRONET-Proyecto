@@ -1,5 +1,6 @@
 @import './componentes.css';
 @import './titulos.css';
+@import '../interfaz/pestanas.css';
 
 /* METRONET: consola de tránsito. Composición de módulos sobre la biblioteca base. */
 html:root body { font-family: var(--font-ui); }
@@ -8,9 +9,9 @@ html:root body :is(.eyebrow, .metronet-inicio__etiqueta, .metronet-inicio__tarje
   color: var(--info-active); font-family: var(--font-tecnica); font-size: var(--font-size-small); letter-spacing: .12em; text-transform: uppercase;
 }
 /* El patrón queda detrás de superficies opacas, nunca encima de mapas o campos. */
-html:root body :is(.auth-page, .perfil-pagina), html:root body.metronet-pagina-navegable {
+html:root body :is(.auth-page, .perfil-pagina), html:root body.metronet-pagina-navegable:not(.metronet-pagina-editor):not(.simulacion-pagina) {
   background-color: var(--bg-primary);
-  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-image: var(--grid-image);
   background-size: var(--grid-size) var(--grid-size);
 }
 html:root :is(.admin-aplicacion, .admin-contenido) { background: transparent; }

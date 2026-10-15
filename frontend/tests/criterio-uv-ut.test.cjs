@@ -93,8 +93,7 @@ test('Admin guarda UV/UT en borrador y publica la versión completa tras validar
   await p.getByText('Cada tarjeta necesita una URL HTTP(S) con host válido para su fuente.').waitFor();
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/borrador')&&s.method==='PUT').length,0);
   await fuente.fill(urlOriginal);
-  await p.getByRole('tab',{name:'UV / UT',exact:true}).click();
-  await p.getByLabel('Presupuesto UV').fill('7');
+  assert.equal(await p.getByRole('tab',{name:'UV / UT',exact:true}).count(),0);
   const publicar = p.getByRole('button',{name:'Publicar versión'});
   assert.equal(await publicar.isDisabled(),true);
   await p.getByRole('button',{name:'Guardar cambios del nivel'}).click();

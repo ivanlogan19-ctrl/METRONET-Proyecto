@@ -10,15 +10,15 @@
     <title>Niveles · METRONET</title>
     <link rel="stylesheet" href="/src/estilos/metronet.css" />
     <link rel="stylesheet" href="/src/estilos/retro.css" />
+    <link rel="stylesheet" href="/src/navegacion/escenarios.css" />
 
   <script type="module" blocking="render" src="/src/navegacion/escenarios.js"></script>
 </head>
-  <body class="metronet-pagina-navegable">
+  <body class="metronet-pagina-navegable metronet-pagina-niveles">
     <div data-navegacion-global></div>
     <main class="metronet-escenarios-pagina" aria-labelledby="tituloEscenarios">
       <header class="metronet-escenarios-pagina__encabezado">
         <div>
-          <p class="metronet-inicio__etiqueta">Juego didáctico de simulación de red de metro</p>
           <h1 id="tituloEscenarios">Niveles</h1>
           <div class="metronet-escenarios-pagina__presentacion">
             <p>Ari, Sol y Dani estudian Logística y aprenden a diseñar una red de metro hipotética para Montevideo. Ari trabaja el trazado, Sol la cobertura y Dani la operación.</p>
@@ -32,33 +32,21 @@
         </div>
       </header>
       <section class="metronet-escenarios-pagina__desafios" aria-labelledby="tituloDesafios">
-        <div class="metronet-escenarios-pagina__seccion-cabecera">
-          <div>
-            <h2 id="tituloDesafios">Empezá tu aventura</h2>
-          </div>
-          <p>Elegí un nivel para seguir la historia de Ari, Sol y Dani.</p>
-        </div>
         <p id="mensajeEscenarios" class="metronet-inicio__mensaje" role="status" aria-live="polite"></p>
         <p id="estadoCargaEscenarios" class="metronet-escenarios-pagina__estado-carga" role="status" aria-live="polite">Cargando niveles…</p>
         <section id="listaEscenarios" class="metronet-escenarios-pagina__lista" aria-live="polite" aria-busy="true"></section>
       </section>
-      <section class="metronet-escenarios-pagina__reinicio" aria-labelledby="tituloReinicioEscenarios">
-        <div class="metronet-escenarios-pagina__seccion-cabecera">
-          <div><h2 id="tituloReinicioEscenarios">Reiniciar recorrido</h2></div>
-        </div>
-        <p class="metronet-escenarios-pagina__explicacion-reinicio">Volvés a empezar desde el Nivel 1. Se conservan tus intentos, diseños, simulaciones y puntajes anteriores. Si ya completaste una campaña, el Modo Libre sigue desbloqueado.</p>
-        <button id="botonReiniciarRecorrido" class="metronet-escenarios-pagina__reiniciar" type="button" hidden>Reiniciar recorrido</button>
-      </section>
+      <button id="botonReiniciarRecorrido" class="metronet-escenarios-pagina__reiniciar" type="button" data-accion-ui="reiniciar" data-categoria-accion="peligro" hidden>Reiniciar recorrido</button>
     </main>
-    <dialog id="dialogoReiniciarRecorrido" class="metronet-dialogo-cambios metronet-escenarios-pagina__dialogo-reinicio" aria-labelledby="tituloReiniciarRecorrido">
+    <dialog id="dialogoReiniciarRecorrido" class="metronet-dialogo-cambios metronet-dialogo-sistema--peligro metronet-escenarios-pagina__dialogo-reinicio" aria-labelledby="tituloReiniciarRecorrido">
       <section class="metronet-dialogo-cambios__contenido">
         <p class="metronet-inicio__etiqueta">Confirmación</p>
         <h2 id="tituloReiniciarRecorrido">¿Reiniciar recorrido?</h2>
         <p>Vas a comenzar nuevamente desde el Nivel 1. Los intentos, diseños, simulaciones y puntajes anteriores se conservarán.</p>
         <p>El Modo Libre seguirá desbloqueado solamente si ya completaste una campaña anteriormente.</p>
         <div class="metronet-dialogo-cambios__acciones">
-          <button type="button" data-cancelar-reinicio>Cancelar</button>
-          <button type="button" data-confirmar-reinicio data-accion-salir>Reiniciar recorrido</button>
+          <button type="button" data-cancelar-reinicio data-accion-ui="cancelar" data-categoria-accion="principal">Cancelar</button>
+          <button type="button" data-confirmar-reinicio data-accion-ui="reiniciar" data-categoria-accion="peligro">Reiniciar recorrido</button>
         </div>
       </section>
     </dialog>

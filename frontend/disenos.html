@@ -14,30 +14,44 @@
   <script type="module" blocking="render" src="/src/navegacion/disenos.js"></script>
 </head>
 <body class="metronet-pagina-navegable metronet-pagina-disenos">
-  <img class="metronet-disenos__barrera metronet-disenos__barrera--izquierda" src="/assets/barrera-ferroviaria-disenos.svg" alt="" aria-hidden="true" width="800" height="760" />
-  <img class="metronet-disenos__barrera metronet-disenos__barrera--derecha" src="/assets/barrera-ferroviaria-disenos.svg" alt="" aria-hidden="true" width="800" height="760" />
   <div data-navegacion-global></div>
   <main class="metronet-disenos" aria-labelledby="tituloDisenos">
     <h1 id="tituloDisenos">Mis diseños</h1>
-    <section class="metronet-disenos__campana" aria-labelledby="tituloDisenosCampana">
-      <h2 id="tituloDisenosCampana">Diseños de los niveles de campaña</h2>
-      <p id="mensajeDisenos" role="status" aria-live="polite">Cargando diseños…</p>
-      <button id="reintentarDisenos" type="button" hidden>Volver a cargar</button>
+    <div class="metronet-disenos__pestanas metronet-pestanas" role="tablist" aria-label="Tipo de diseño">
+      <button id="pestanaDisenosCampana" type="button" role="tab" aria-selected="true" aria-controls="panelDisenosCampana" data-grupo="campana">Diseño de los niveles · 0</button>
+      <button id="pestanaDisenosLibres" type="button" role="tab" aria-selected="false" aria-controls="panelDisenosLibres" tabindex="-1" data-grupo="libres">Modo Libre · 0</button>
+    </div>
+    <p id="mensajeDisenos" role="status" aria-live="polite">Cargando diseños…</p>
+    <button id="reintentarDisenos" type="button" hidden data-accion-ui="reintentar" data-categoria-accion="principal">Reintentar</button>
+    <section id="panelDisenosCampana" role="tabpanel" aria-labelledby="pestanaDisenosCampana">
+      <div class="metronet-disenos__resumen">
+        <p id="resumenDisenosCampana"></p>
+        <a href="/escenarios.html">Ir a niveles →</a>
+      </div>
+      <p id="vacioDisenosCampana" hidden>Todavía no hay diseños de niveles guardados.</p>
       <ul id="listaMisDisenos" class="metronet-disenos__lista" aria-label="Diseños guardados" aria-busy="true"></ul>
     </section>
-    <section class="metronet-disenos__acceso-libre" aria-labelledby="tituloDisenoLibre">
-      <h2 id="tituloDisenoLibre">Modo Libre</h2>
+    <section id="panelDisenosLibres" role="tabpanel" aria-labelledby="pestanaDisenosLibres" hidden>
+      <div class="metronet-disenos__resumen">
+        <p id="resumenDisenosLibres"></p>
+        <button id="irDisenoLibre" class="metronet-disenos__acceso" type="button" aria-describedby="explicacionDisenoLibre" disabled>Ir a diseño libre →</button>
+      </div>
       <p id="explicacionDisenoLibre">Completá los 10 niveles de la campaña para desbloquear el Modo Libre.</p>
-      <button id="irDisenoLibre" class="metronet-boton--primario metronet-disenos__libre" type="button" aria-describedby="explicacionDisenoLibre" disabled>Ir a diseño libre</button>
+      <p id="vacioDisenosLibres" hidden>Todavía no hay diseños libres guardados.</p>
       <ul id="listaDisenosLibres" class="metronet-disenos__lista" aria-label="Diseños libres guardados" aria-busy="true"></ul>
     </section>
+    <nav class="metronet-disenos__paginacion" aria-label="Páginas de diseños">
+      <button id="paginaDisenosAnterior" type="button" disabled>← Anterior</button>
+      <span id="paginaDisenosActual" role="status" aria-live="polite">Página 1 de 1</span>
+      <button id="paginaDisenosSiguiente" type="button" disabled>Siguiente →</button>
+    </nav>
   </main>
   <dialog id="confirmarEliminarDiseno" class="metronet-dialogo-eliminar" aria-labelledby="tituloEliminarDiseno">
     <form method="dialog" class="metronet-dialogo-eliminar__contenido">
       <h2 id="tituloEliminarDiseno">Eliminar diseño</h2>
       <p id="nombreEliminarDiseno"></p>
       <p id="alcanceEliminarDiseno">Se borrará este diseño. No se puede deshacer.</p>
-      <div class="metronet-dialogo-eliminar__acciones"><button value="cancelar">Cancelar</button><button value="eliminar" class="metronet-boton--peligro">Eliminar</button></div>
+      <div class="metronet-dialogo-eliminar__acciones"><button value="cancelar" data-accion-ui="cancelar" data-categoria-accion="principal">Cancelar</button><button value="eliminar" class="metronet-boton--peligro" data-accion-ui="eliminar" data-categoria-accion="peligro">Eliminar</button></div>
     </form>
   </dialog>
 </body>

@@ -1,5 +1,6 @@
+import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
 // La oferta comparte tamaño, tipografía y acciones con la presentación inicial.
-export function ofrecerTutorial({ titulo = 'Nueva funcionalidad', descripcion, inicial = false, bienvenidaLibre = false, textoAceptar, textoOmitir = 'Comenzar directamente', alAceptar, alOmitir = () => {} }) {
+export function ofrecerTutorial({ titulo = 'Nueva funcionalidad', descripcion, inicial = false, bienvenidaLibre = false, textoAceptar, textoOmitir = 'Continuar', alAceptar, alOmitir = () => {} }) {
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-recorrido';
   dialogo.setAttribute('data-oferta-tutorial', '');
@@ -11,9 +12,9 @@ export function ofrecerTutorial({ titulo = 'Nueva funcionalidad', descripcion, i
   });
   const acciones = document.createElement('div'); acciones.className = 'metronet-recorrido__acciones';
   const cerrar = () => { if (dialogo.open) dialogo.close(); dialogo.remove(); };
-  for (const [etiqueta, accion] of [[textoAceptar ?? (inicial ? 'Mostrar tutorial' : 'Hacer el tutorial'), alAceptar], [textoOmitir, alOmitir]]) {
-    const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = etiqueta;
-    boton.addEventListener('click', () => { cerrar(); accion(); }); acciones.append(boton);
+  for (const [etiqueta, accion] of [[textoAceptar ?? 'Iniciar tutorial', alAceptar], [textoOmitir, alOmitir]]) {
+    const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = etiqueta; configurarAccion(boton,accion===alAceptar?'iniciarTutorial':'continuar',{conservarTexto:true});
+    boton.addEventListener('click', () => { cerrar(); accion(); }); accion===alOmitir?acciones.prepend(boton):acciones.append(boton);
   }
   dialogo.addEventListener('cancel', e => { e.preventDefault(); cerrar(); alOmitir(); });
   dialogo.append(encabezado, ...parrafos, acciones); document.body.append(dialogo); dialogo.showModal();

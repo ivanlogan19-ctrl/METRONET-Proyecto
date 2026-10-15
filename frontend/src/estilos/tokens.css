@@ -105,6 +105,7 @@
   --motion-easing: ease-out;
   --grid-color: rgb(72 180 255 / .035);
   --grid-size: 40px;
+  --grid-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   --font-size-h1: clamp(24px, 3vw, 32px);
   --font-size-h2: clamp(18px, 2vw, 22px);
   --font-size-h3: 15px;

@@ -63,8 +63,8 @@
               </div>
             </div>
             <div class="perfil-acciones">
-              <button id="guardarDatosPersonales" class="primary-button" type="submit">
-                <span class="button-text">Guardar datos</span><span class="button-loader" aria-hidden="true"></span>
+              <button id="guardarDatosPersonales" class="primary-button" type="submit" data-accion-ui="enviar" data-categoria-accion="principal">
+                <span class="button-text">Guardar</span><span class="button-loader" aria-hidden="true"></span>
               </button>
             </div>
           </form>
@@ -105,8 +105,8 @@
               </div>
             </div>
             <div class="perfil-acciones">
-              <button id="guardarCorreo" class="primary-button" type="submit">
-                <span class="button-text">Actualizar correo</span><span class="button-loader" aria-hidden="true"></span>
+              <button id="guardarCorreo" class="primary-button" type="submit" data-accion-ui="enviar" data-categoria-accion="principal">
+                <span class="button-text">Guardar</span><span class="button-loader" aria-hidden="true"></span>
               </button>
             </div>
           </form>
@@ -180,15 +180,15 @@
               </div>
             </div>
             <div class="perfil-acciones">
-              <button id="guardarContrasena" class="primary-button" type="submit">
-                <span class="button-text">Guardar contraseña</span>
+              <button id="guardarContrasena" class="primary-button" type="submit" data-accion-ui="guardar" data-categoria-accion="principal">
+                <span class="button-text">Guardar</span>
                 <span class="button-loader" aria-hidden="true"></span>
               </button>
             </div>
           </form>
         </section>
         <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
-        <p class="perfil-volver"><a href="/inicio.html" data-volver-perfil>Volver a Inicio</a></p>
+        <p class="perfil-volver"><a href="/inicio.html" data-volver-perfil data-accion-ui="volver" data-categoria-accion="secundaria">Volver a Inicio</a></p>
       </section>
     </main>
 

@@ -1,3 +1,4 @@
+import '../estilos/colores-capas.css';
 import PanelDesplazamientos from './PanelDesplazamientos.js';
 import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 import '../estilos/calles.css';

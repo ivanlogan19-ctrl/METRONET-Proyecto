@@ -70,7 +70,13 @@ html:root body .metronet-poi > summary.metronet-boton-icono {
   --boton-texto:var(--warning);
   color:var(--warning);
 }
-.metronet-poi > summary.metronet-boton-icono > .metronet-icono { color:var(--warning); }
+html:root body .metronet-poi > summary.metronet-boton-icono {
+  background:var(--warning); border-color:var(--warning); color:var(--primary-ink);
+}
+html:root body .metronet-poi > summary.metronet-boton-icono > .metronet-icono { color:var(--primary-ink); }
+html:root body .metronet-poi > summary.metronet-boton-icono:hover {
+  background:color-mix(in srgb, var(--warning) 80%, white);
+}
 
 html:root body .metronet-poi__zoom .metronet-control-zoom-boton { width:44px; min-width:44px; height:44px; min-height:44px; padding:0; }
 .metronet-capas-activas span { border:1px solid var(--referencia-color); box-sizing:border-box; }

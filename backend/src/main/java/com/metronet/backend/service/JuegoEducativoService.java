@@ -632,6 +632,7 @@ public class JuegoEducativoService {
         objetivosVigentes = ObjetivosAvanzados.reducir(intento.numero() == null ? 0 : intento.numero(),
             configuracionUt != null, reglas, objetivosVigentes,
             condicionesGeograficasService::zonaIncluyeBarrio);
+        objetivosVigentes = TextosMetasNivel.aplicar(reglas, objetivosVigentes);
         int progreso = PuntuacionService.normalizar(objetivosVigentes);
         boolean completado = !objetivosVigentes.isEmpty() && objetivosVigentes.stream().allMatch(CondicionConsignaResponse::completado);
         return new EvaluacionCondiciones(

@@ -5,5 +5,10 @@ public record CondicionConsignaResponse(
     String texto,
     Integer actual,
     Integer requerido,
-    boolean completado
-) {}
+    boolean completado,
+    boolean textoPersonalizado
+) {
+    public CondicionConsignaResponse(String clave, String texto, Integer actual, Integer requerido, boolean completado) {
+        this(clave, texto, actual, requerido, completado, false);
+    }
+}

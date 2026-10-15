@@ -1,0 +1,104 @@
+/* Contrato único de acciones generales. Atributos explícitos, sin afectar toolbar/UV/UT. */
+:root {
+  --button-height-sm: 32px;
+  --button-height-md: 40px;
+  --button-height-lg: 48px;
+  --icon-button-size: 32px;
+  --button-padding-x: 12px;
+  --button-gap: 8px;
+  --action-primary: var(--success);
+  --action-secondary: var(--warning);
+  --action-danger: var(--danger);
+  --action-start: #48e860;
+  --action-start-border: #6df57d;
+  --action-start-hover: #78f68c;
+}
+/* La prioridad pertenece al contrato, por encima de las variantes antiguas de cada pantalla. */
+html:root body [data-accion-ui] {
+  --accion-fondo: var(--action-secondary);
+  --accion-texto: var(--primary-ink);
+  --accion-borde: var(--warning);
+  --accion-hover: color-mix(in srgb, var(--warning) 80%, white);
+  display: inline-flex; align-items: center !important; justify-content: center !important;
+  gap: var(--button-gap) !important;
+  height: var(--button-height-md) !important; min-height: var(--button-height-md) !important;
+  width: auto; min-width: 100px; max-width: 100%; flex: 0 0 auto;
+  padding: 6px var(--button-padding-x) !important;
+  font: 400 12px/1.3 var(--control-fuente) !important;
+  color: var(--accion-texto) !important; background: var(--accion-fondo) !important;
+  border: 1px solid var(--accion-borde) !important;
+  border-radius: var(--radius-control) !important;
+  box-shadow: var(--control-relieve); text-decoration: none;
+  white-space: nowrap !important; translate: none !important; transform: none !important;
+}
+html:root body [data-categoria-accion='principal'] {
+  --accion-fondo: var(--action-primary); --accion-texto: var(--primary-ink);
+  --accion-borde: var(--success); --accion-hover: color-mix(in srgb, var(--success) 80%, white);
+}
+html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta-pie > a[data-accion-ui] {
+  --accion-fondo: #79caff;
+  --accion-borde: #79caff;
+  --accion-hover: color-mix(in srgb, #79caff 80%, white);
+}
+/* Inicio de sesión conserva el azul solicitado para esta pantalla. */
+html:root body #loginButton[data-accion-ui],
+html:root body #loginAdminButton[data-accion-ui],
+html:root body #botonRecuperar[data-accion-ui],
+html:root body #registroButton[data-accion-ui],
+html:root body.metronet-pagina-inicio .metronet-inicio__accesos [data-accion-ui] {
+  --accion-fondo: var(--primary); --accion-borde: var(--primary-border);
+  --accion-hover: var(--primary-hover);
+}
+html:root body [data-categoria-accion='peligro'] {
+  --accion-fondo: var(--action-danger); --accion-texto: var(--primary-ink);
+  --accion-borde: var(--danger); --accion-hover: var(--control-peligro-hover);
+}
+html:root body [data-accion-ui]:not(:disabled):hover { background: var(--accion-hover) !important; }
+html:root body [data-accion-ui]:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 3px; }
+html:root body [data-accion-ui]:disabled { background: var(--accion-fondo) !important; color: var(--accion-texto) !important; border-color: var(--accion-borde) !important; opacity: .5 !important; cursor: not-allowed !important; }
+html:root body [data-tamano-accion='pequeno'] { height: var(--button-height-sm) !important; min-height: var(--button-height-sm) !important; font-size: 11px !important; }
+html:root body [data-tamano-accion='grande'] { height: var(--button-height-lg) !important; min-height: var(--button-height-lg) !important; }
+html:root body [data-tamano-accion='icono'] {
+  width: var(--icon-button-size) !important; min-width: var(--icon-button-size) !important;
+  height: var(--icon-button-size) !important; min-height: var(--icon-button-size) !important;
+  padding: 5px !important; flex: 0 0 var(--icon-button-size) !important;
+}
+html:root body [data-accion-ui] > svg { width: 20px !important; height: 20px !important; flex: 0 0 20px !important; }
+.acciones-tarjeta { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--button-gap); }
+@media(pointer:coarse) {
+  html:root body [data-accion-ui] { min-height: 44px !important; height: auto !important; }
+  html:root body [data-tamano-accion='icono'] { width: 44px !important; min-width: 44px !important; flex-basis: 44px !important; }
+}
+/* El contrato visual no debe volver visibles acciones ocultas por el flujo. */
+html:root body [data-accion-ui][hidden] { display: none !important; }
+
+/* Los inicios del juego comparten el verde de Inicio; el tutorial conserva su amarillo. */
+html:root body :is([data-accion-ui='iniciar'], button[aria-label='Iniciar simulación'], button[data-finalizar-red]) {
+  --accion-fondo: var(--action-start) !important;
+  --accion-borde: var(--action-start-border) !important;
+  --accion-hover: var(--action-start-hover) !important;
+  --accion-texto: #071221 !important;
+  background: var(--action-start) !important;
+  border-color: var(--action-start-border) !important;
+  color: #071221 !important;
+}
+html:root body :is([data-accion-ui='iniciar'], button[aria-label='Iniciar simulación'], button[data-finalizar-red]):not(:disabled):hover {
+  background: var(--action-start-hover) !important;
+}
+
+/* La acción indica si la contraseña se puede mostrar o volver a ocultar. */
+html:root body button.toggle-password {
+  --boton-fondo: color-mix(in srgb, var(--success) 70%, white);
+  --boton-hover: color-mix(in srgb, var(--success) 55%, white);
+  --boton-borde: var(--success);
+  --boton-texto: var(--primary-ink);
+  background: var(--boton-fondo); color: var(--boton-texto); border-color: var(--boton-borde);
+}
+html:root body button.toggle-password[aria-pressed='true'] {
+  --boton-fondo: color-mix(in srgb, var(--danger) 70%, white);
+  --boton-hover: color-mix(in srgb, var(--danger) 55%, white);
+  --boton-borde: var(--danger);
+  --boton-texto: var(--primary-ink);
+  box-shadow: var(--control-relieve);
+}
+html:root body button.toggle-password:hover { background: var(--boton-hover); }

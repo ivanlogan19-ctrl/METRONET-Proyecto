@@ -74,9 +74,9 @@ function crearDialogoCambios() {
       <h2 id="tituloRevisionPendiente">Revisión pendiente</h2>
       <p>Tus cambios ya están guardados.<br>Podés revisar la red antes de salir.</p>
       <div class="metronet-dialogo-cambios__acciones">
-        <button value="guardar" type="submit" data-accion-guardar>Guardar y continuar</button>
-        <button value="salir" type="submit" data-accion-salir>Continuar sin revisar</button>
-        <button value="cancelar" type="submit">Cancelar</button>
+        <button data-accion-ui="guardarContinuar" data-categoria-accion="principal" value="guardar" type="submit" data-accion-guardar>Guardar y continuar</button>
+        <button data-accion-ui="continuarSinGuardar" data-categoria-accion="secundaria" value="salir" type="submit" data-accion-salir>Continuar sin revisar</button>
+        <button data-accion-ui="cancelar" data-categoria-accion="peligro" value="cancelar" type="submit">Cancelar</button>
       </div>
     </form>`;
   document.body.append(dialogo);
@@ -209,7 +209,7 @@ export function inicializarNavegacion({ actual, etapa } = {}) {
   const botonCerrar = document.createElement('button');
   botonCerrar.type = 'button';
   botonCerrar.textContent = 'Cerrar sesión';
-  botonCerrar.className = 'metronet-boton--peligro';
+  botonCerrar.dataset.accionUi='cerrarSesion';botonCerrar.dataset.categoriaAccion='peligro';
   botonCerrar.addEventListener('click', () => cerrarSesion(sesion));
   menuUsuario.append(botonCerrar);
   usuario.append(menuUsuario);

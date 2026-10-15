@@ -43,8 +43,8 @@ html:root body .metronet-tarjeta-educativa__fuente { margin: 0; color: var(--tex
 .metronet-tarjeta-educativa__fuente a { color: var(--border-active); text-underline-offset: 3px; }
 .metronet-tarjeta-educativa__fuente a:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
 .metronet-hud__opciones { flex-wrap: wrap; }
-.metronet-tarjeta-educativa__pie { display: flex; justify-content: space-between; align-items: end; gap: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
-.metronet-tarjeta-educativa__pie small { max-width: 300px; color: var(--text-secondary); font: 400 11px/1.5 var(--font-ui); }
+.metronet-tarjeta-educativa__pie { flex-wrap:wrap; display: flex; justify-content: space-between; align-items: end; gap: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.metronet-tarjeta-educativa__pie small { max-width: none; flex-shrink: 0; white-space: nowrap; color: var(--text-secondary); font: 400 11px/1.5 var(--font-ui); }
 .metronet-tarjeta-educativa__acciones { display: flex; gap: 9px; flex: none; }
 html:root body .metronet-tarjeta-educativa__acciones button { min-height: 44px; }
 @media (min-width: 900px) {
@@ -65,6 +65,7 @@ html:root body .metronet-tarjeta-educativa__acciones button { min-height: 44px; 
   html:root body .metronet-tarjeta-educativa__aprendizaje { font-size: 12px; padding: 10px; }
   .metronet-tarjeta-educativa__aprendizaje strong { display: block; margin-bottom: 3px; font-size: 10px; }
   .metronet-tarjeta-educativa__pie { display: grid; gap: 11px; padding-top: 11px; }
+  .metronet-tarjeta-educativa__pie small { white-space: normal; }
   .metronet-tarjeta-educativa__acciones { display: grid; grid-template-columns: 1fr; }
   html:root body .metronet-tarjeta-educativa__acciones button { min-width: 0; padding: 6px; font-size: 11px; }
 }

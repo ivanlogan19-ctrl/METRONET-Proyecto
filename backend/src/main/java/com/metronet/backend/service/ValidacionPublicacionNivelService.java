@@ -88,6 +88,9 @@ public class ValidacionPublicacionNivelService {
             Usuario admin = new Usuario(); admin.setIdUsuario(idAdmin); admin.setRol(Rol.ADMIN);
             var consigna = juego.obtenerConsigna(admin,diseno);
             var resultado = juego.evaluarEscenario(idAdmin,diseno);
+            if (contenido.path("reglasExito").has("textosMetas")
+                && consigna.condiciones().stream().filter(c -> !c.clave().startsWith("poi:")).count() > 5)
+                return new Diagnostico(false, consigna.condiciones(), "La evaluación genera más de cinco metas. Revisá las reglas del nivel.", huella(contenido,red,tarjetas));
             boolean viable = resultado.completado();
             String mensaje = viable ? "La red y la secuencia de referencia satisfacen la consigna"
                 : "La referencia no satisface: " + consigna.condiciones().stream()

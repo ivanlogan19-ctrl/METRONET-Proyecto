@@ -82,7 +82,7 @@ export function continuarConBienvenida(sesion) {
       cobertura.setAttribute('aria-label', 'Bienvenido a METRONET');
       cobertura.tabIndex = -1;
       // Cobertura mínima inmediata, incluso si falla la descarga del módulo visual/CSS.
-      Object.assign(cobertura.style, { position: 'fixed', inset: '0', zIndex: '2000', overflow: 'auto', backgroundColor: '#060c1c', color: '#edf5ff' });
+      Object.assign(cobertura.style, { position: 'fixed', inset: '0', zIndex: '2000', overflow: 'auto', backgroundColor: 'var(--bg-primary, #060c1c)', color: '#edf5ff' });
       const titulo = document.createElement('h1');
       titulo.textContent = 'Bienvenido a METRONET';
       cobertura.append(titulo);

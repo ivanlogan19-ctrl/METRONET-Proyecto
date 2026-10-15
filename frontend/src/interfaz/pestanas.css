@@ -1,0 +1,24 @@
+/* Estilo compartido por Reglas, Ranking y el editor administrativo de niveles. */
+html:root body .metronet-pestanas button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px;
+  font: 400 13px/1.4 var(--font-arcade);
+  white-space: normal;
+}
+html:root body .metronet-navegacion .metronet-navegacion__enlace.activo,
+html:root body .metronet-navegacion .metronet-navegacion__usuario > summary,
+html:root body .metronet-bienvenida [data-continuar-bienvenida],
+html:root body .metronet-pestanas button[aria-pressed='true'],
+html:root body .metronet-pestanas button[aria-pressed='true']:is(:hover, :active, :focus),
+html:root body .metronet-pestanas button[aria-selected='true'],
+html:root body .metronet-pestanas button[aria-selected='true']:is(:hover, :active, :focus) {
+  --boton-fondo: var(--info-active);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--info-active);
+  --boton-hover: var(--info-active);
+  background-color: var(--info-active);
+  border-color: var(--info-active);
+  color: var(--primary-ink);
+  box-shadow: inset 0 0 0 2px var(--text-primary), 0 0 0 1px var(--info-active);
+}

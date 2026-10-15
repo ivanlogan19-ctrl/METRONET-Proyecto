@@ -22,7 +22,7 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
  const cajas=await Promise.all(botones.map(b=>b.boundingBox()));
  assert.ok(cajas[1].y-cajas[0].y-cajas[0].height>=10,'Opciones separadas');
  assert.equal(cajas[0].width,cajas[1].width);
- await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).click();
+ await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
  await p.locator('.metronet-recorrido').waitFor();
  const titulos=[];
  while(await p.locator('.metronet-recorrido [data-recorrido-siguiente]:visible').count()) {
@@ -73,7 +73,7 @@ for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial autom
  if(titulo) {
   await p.locator('.metronet-recorrido').waitFor();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Nueva funcionalidad');
-  await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).click();
+  await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),titulo);
   assert.equal(await p.locator('[data-recorrido-omitir]').evaluate(e=>e.getBoundingClientRect().width),24);
   await p.keyboard.press('Escape');
@@ -84,7 +84,7 @@ for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial autom
 test('N1 permite comenzar directamente y sigue aceptando estaciones', async t => {
  const v=await abrirEditor(browser,{escenario:{...catalogo[0],idEscenario:1,recorrido:'integral-2026-10-objetivos-reales-v2'},ofrecerRecorrido:true,estaciones:[],lineas:[],tramos:[]});
  t.after(()=>v.contexto.close());const p=v.pagina;
- await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+ await p.getByRole('button',{name:'Continuar',exact:true}).click();
  assert.equal(await p.locator('.metronet-recorrido').count(),0);
  await p.locator('[data-elegir-herramienta="estaciones"]').click();
  const canvas=await p.locator('#metronet-mapa canvas').boundingBox();
@@ -97,7 +97,7 @@ test('N6 ofrece el tutorial una vez por diseño y vuelve a ofrecerlo al empezar 
  const nivel=catalogo[5];
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:6,recorrido:'integral-2026-10-objetivos-reales-v2'},primeraPasada:false,ofrecerRecorrido:true});
  t.after(()=>v.contexto.close());const p=v.pagina;
- await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).click();
+ await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
  assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Puntos de interés de Montevideo');
  await p.reload();
  await p.waitForFunction(()=>window.juegoPrueba?.scene.getScene('MapaScene')?.editorRedMetro?.panelTutorial?.contexto?.diseno?.simulacion?.idDiseno===77);
@@ -107,8 +107,8 @@ test('N6 ofrece el tutorial una vez por diseño y vuelve a ofrecerlo al empezar 
   const contexto=panel.contexto;
   panel.actualizar({...contexto,diseno:{...contexto.diseno,simulacion:{...contexto.diseno.simulacion,idDiseno:78}}});
  });
- await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).waitFor();
- await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+ await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).waitFor();
+ await p.getByRole('button',{name:'Continuar',exact:true}).click();
  assert.deepEqual(v.errores,[]);
 });
 
@@ -117,7 +117,7 @@ test('N6: el paseo enseña categorías, barrios, zonas, búsqueda y mantener vis
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:6,recorrido:'integral-2026-10-objetivos-reales-v2'},ofrecerRecorrido:true,consigna:()=>({condiciones:[],referenciasObjetivo:nivel.reglasExito.puntosInteresObjetivo.map(p=>({...p,nombre:`Referencia ${p.idPunto}`}))})});
  t.after(()=>v.contexto.close()); const p=v.pagina;
  const titulo=async texto=>{try {await p.waitForFunction(texto=>document.querySelector('.metronet-recorrido h2')?.textContent===texto,texto,{timeout:5000});}catch(e){throw new Error(`Esperado: ${texto}; actual: ${await p.locator('.metronet-recorrido').innerText()}`);}};
- await p.getByRole('button',{name:'Hacer el tutorial',exact:true}).click();
+ await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
  await p.locator('.metronet-poi>summary').click();
  await titulo('Probá una categoría');
  await p.locator('.metronet-poi__categorias button').first().click();
@@ -187,7 +187,7 @@ test('Simulación ofrece cada función nueva una vez por partida y la repite en 
    window.ofertaPrueba=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:numero,repetido:true});
   },numero);
   assert.equal(await p.locator('[data-oferta-tutorial] h2').textContent(),'Nueva funcionalidad');
-  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  await p.getByRole('button',{name:'Continuar',exact:true}).click();
   assert.equal(await p.evaluate(async numero=>{
    const s=await import('/src/educacion/TutorialSimulacion.js');
    return s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:numero})===null;

@@ -1,10 +1,10 @@
+import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
 import { condicionesParaIndicaciones, indicacionesLineas, crearIndicacionesLineas } from './IndicacionesLineas.mjs';
 import './indicaciones-lineas.css';
 import { obtenerContenidoNivel } from './ContenidoPreparacion.js';
 import { crearPresentacionMusicalNivel } from './PresentacionMusicalNivel.js';
 import { seleccionarMensajeTransicion } from './MensajesTransicion.js';
 import { CONFIGURACION_TRANSICION, MENSAJES_TRANSICION } from './ConfiguracionTransicion.js';
-import { crearLogoMetronet } from '../componentes/LogoMetronet.js';
 import { crearRecorridoNivel } from './RecorridoNivel.js';
 import { seleccionarTarjetaEducativa, tarjetaEducativaActual } from './TarjetasEducativasNivel.js';
 import { crearTarjetaEducativaNivel } from './TarjetaEducativaNivel.js';
@@ -44,7 +44,7 @@ export function crearPreparacionNivel(escenario) {
   titulo.id = 'tituloPreparacionNivel';
   titulo.tabIndex = -1;
   identidad.append(texto('span', `NIVEL ${escenario.numero}`, 'metronet-viaje__nivel'), titulo);
-  cabecera.append(crearLogoMetronet(), identidad);
+  cabecera.append(identidad);
   const animacion = crearRecorridoNivel({ variante: 'intro' });
   const recorrido = animacion.elemento;
   recorrido.classList.add('metronet-viaje__recorrido');
@@ -61,9 +61,6 @@ export function crearPreparacionNivel(escenario) {
   dato.className = 'metronet-viaje__dato';
   dato.dataset.mensajeId = mensaje.id;
   dato.append(texto('h3', mensaje.categoria), texto('p', mensaje.texto));
-  const consigna = document.createElement('section');
-  consigna.className = 'metronet-viaje__consigna';
-  consigna.append(texto('h3', 'Próximo desafío'), texto('p', escenario.objetivo || contenido?.objetivo || 'Explorá el mapa y revisá la consigna completa dentro del nivel.'));
   const reglas = escenario.contenidoPublicado?.reglasExito ?? escenario.reglasExito;
   const indicaciones = contenido?.recorrido?.startsWith('integral-2026-10')
     ? indicacionesLineas(condicionesParaIndicaciones(reglas)) : [];
@@ -72,19 +69,19 @@ export function crearPreparacionNivel(escenario) {
   contexto.append(dato);
   if (indicaciones.length) {
     dialogo.classList.add('metronet-viaje--lineas');
-    contexto.append(crearIndicacionesLineas(indicaciones));
+    dato.append(crearIndicacionesLineas(indicaciones));
   }
   const informacion = document.createElement('div');
   informacion.className = 'metronet-viaje__informacion';
-  informacion.append(contexto, consigna);
+  informacion.append(contexto);
   const estado = texto('p', MENSAJES_TRANSICION.entrada, 'metronet-viaje__estado');
   estado.setAttribute('role', 'status');
   const acciones = document.createElement('div');
   acciones.className = 'metronet-dialogo-cambios__acciones';
   const volver = texto('button', 'Volver', 'metronet-boton--peligro-secundario');
-  volver.type = 'button';
+  volver.type = 'button';configurarAccion(volver,'volver');
   const jugar = texto('button', MENSAJES_TRANSICION.accion, 'metronet-boton--exito metronet-boton--destacado');
-  jugar.type = 'button';
+  jugar.type = 'button';configurarAccion(jugar,'iniciar',{conservarTexto:true});
   jugar.disabled = true;
   jugar.title = 'Esperando los datos del nivel';
   acciones.append(volver, jugar);

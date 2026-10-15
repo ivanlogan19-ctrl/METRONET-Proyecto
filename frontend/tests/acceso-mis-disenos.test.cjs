@@ -61,8 +61,9 @@ test('Error consultando progreso conserva listado; reintentar comprueba el desbl
   await p.locator('#listaMisDisenos[aria-busy=false]').waitFor();
   assert.equal(await p.locator('#listaMisDisenos > li').count(), 1);
   assert.equal(await p.locator('#irDisenoLibre').isDisabled(), true);
-  assert.equal(await p.getByRole('button', { name: 'Volver a cargar' }).isVisible(), true);
+  assert.equal(await p.locator('#reintentarDisenos').isVisible(), true);
   disponible = true;
-  await p.getByRole('button', { name: 'Volver a cargar' }).click();
+  await p.locator('#reintentarDisenos').click();
+  await p.locator('#pestanaDisenosLibres').click();
   await p.locator('#irDisenoLibre:not(:disabled)').waitFor();
 });

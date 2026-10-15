@@ -816,7 +816,7 @@ function mostrarMensaje(texto, tipo = '') {
   else if (tipo === 'exito') errorAyuda = null;
   actualizarAyuda();
   const mensaje = document.getElementById('mensajeSimulacion');
-  mensaje.textContent = texto;
+  mensaje.textContent = tipo === 'error' || tipo === 'advertencia' ? texto : '';
   mensaje.className = `simulacion-mensaje ${tipo}`;
   if (tipo === 'error') mensaje.scrollIntoView({ block: 'nearest' });
 }

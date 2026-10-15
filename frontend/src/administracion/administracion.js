@@ -35,6 +35,9 @@ function inicializarInformacionJugador() {
   document.querySelectorAll('.admin-vista').forEach(vista => {
     if (!permitidas.has(vista.id.replace('vista-', ''))) vista.remove();
   });
+  document.querySelectorAll('.admin-menu-grupo').forEach(grupo => {
+    if (!grupo.querySelector('.admin-enlace')) grupo.remove();
+  });
   mostrarVista('unidades');
 }
 
@@ -168,6 +171,7 @@ function mostrarVista(nombreVista) {
 
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
     boton.classList.toggle("activo", boton.dataset.vista === nombreVista);
+    boton.setAttribute("aria-pressed", String(boton.dataset.vista === nombreVista));
   });
 
   document.querySelectorAll(".admin-vista").forEach((vista) => {
@@ -231,11 +235,11 @@ function renderizarUsuarios(usuarios) {
       fila.innerHTML = `
         <td>${escaparHtml(`${usuario.nombre ?? ""} ${usuario.apellido ?? ""}`.trim())}</td>
         <td>${escaparHtml(usuario.email)}</td>
-        <td><select id="rol-${usuario.idUsuario}" class="admin-rol" aria-label="Rol de ${escaparHtml(`${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`.trim())}">${opciones}</select></td>
+        <td><select data-control-general="select" id="rol-${usuario.idUsuario}" class="admin-rol" aria-label="Rol de ${escaparHtml(`${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`.trim())}">${opciones}</select></td>
         <td>
-          <button class="admin-guardar" type="button" data-guardar-rol="${usuario.idUsuario}">Guardar rol</button>
-          <button class="admin-secundario" type="button" data-editar-usuario="${usuario.idUsuario}" data-nombre="${escaparHtml(usuario.nombre)}" data-apellido="${escaparHtml(usuario.apellido ?? "")}" data-email="${escaparHtml(usuario.email)}" data-rol="${usuario.rol}" data-identificador-administrador="${escaparHtml(usuario.identificadorAdministrador ?? usuario.nombre)}">Editar datos</button>
-          <button class="admin-eliminar" type="button" data-eliminar-usuario="${usuario.idUsuario}" data-nombre-usuario="${escaparHtml(`${usuario.nombre ?? ""} ${usuario.apellido ?? ""}`.trim())}">Eliminar usuario</button>
+          <button class="admin-guardar" type="button" data-guardar-rol="${usuario.idUsuario}" data-accion-ui="guardar" data-categoria-accion="principal">Guardar</button>
+          <button class="admin-secundario" type="button" data-editar-usuario="${usuario.idUsuario}" data-nombre="${escaparHtml(usuario.nombre)}" data-apellido="${escaparHtml(usuario.apellido ?? "")}" data-email="${escaparHtml(usuario.email)}" data-rol="${usuario.rol}" data-identificador-administrador="${escaparHtml(usuario.identificadorAdministrador ?? usuario.nombre)}" data-accion-ui="editar" data-categoria-accion="secundaria">Editar</button>
+          <button class="admin-eliminar" type="button" data-eliminar-usuario="${usuario.idUsuario}" data-nombre-usuario="${escaparHtml(`${usuario.nombre ?? ""} ${usuario.apellido ?? ""}`.trim())}" data-accion-ui="eliminar" data-categoria-accion="peligro">Eliminar</button>
         </td>
       `;
 
@@ -307,7 +311,7 @@ function renderizarDisenos(disenos) {
     correo.textContent = grupo.correo;
     identidad.append(nombre, correo);
     const cantidad = document.createElement('span');
-    cantidad.textContent = `Número de diseños registrados: ${grupo.disenos.length}`;
+    cantidad.textContent = `Diseños · ${grupo.disenos.length}`;
     cabecera.append(identidad, cantidad);
     const tarjetas = document.createElement('div');
     tarjetas.className = 'admin-jugador-disenos__tarjetas';
@@ -323,8 +327,8 @@ function renderizarDisenos(disenos) {
           <p>${escaparHtml(actividad)}</p>
         </div>
         <div class="admin-acciones-linea">
-          <button class="admin-guardar" type="button" data-ver-diseno="${diseno.idDiseno}">Abrir diseño</button>
-          <button class="admin-eliminar" type="button" data-eliminar-diseno="${diseno.idDiseno}">Eliminar</button>
+          <button class="admin-guardar" type="button" data-ver-diseno="${diseno.idDiseno}" data-accion-ui="abrir" data-categoria-accion="principal">Abrir</button>
+          <button class="admin-eliminar" type="button" data-eliminar-diseno="${diseno.idDiseno}" data-accion-ui="eliminar" data-categoria-accion="peligro">Eliminar</button>
         </div>
       `;
 
@@ -364,7 +368,7 @@ function normalizarTexto(valor) {
 }
 
 async function eliminarDisenoAdministrador(idDiseno, token) {
-  if (!await confirmarSistema(`¿Eliminar definitivamente el diseño #${idDiseno}? También se borrarán sus elementos, intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar. Esta acción no se puede deshacer.`)) return;
+  if (!await confirmarSistema(`¿Eliminar definitivamente el diseño #${idDiseno}? También se borrarán sus elementos, intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar. Esta acción no se puede deshacer.`, { cancelarSeguro: true, peligro: true })) return;
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` },
@@ -372,7 +376,7 @@ async function eliminarDisenoAdministrador(idDiseno, token) {
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible eliminar el diseño."));
     disenosDisponibles = disenosDisponibles.filter(diseno => String(diseno.idDiseno) !== String(idDiseno));
     filtrarDisenos();
-    mostrarMensajeDisenos("Diseño eliminado correctamente.");
+    mostrarMensajeDisenos("");
   } catch (error) { mostrarMensajeDisenos(error.message, "error"); }
 }
 
@@ -406,7 +410,7 @@ function renderizarDetalleDiseno(detalle) {
         <h3>Diseño #${diseno.idDiseno}</h3>
         <p>Jugador: ${escaparHtml(diseno.propietario)} · ${escaparHtml(diseno.correoPropietario ?? "Sin correo")}</p>
       </div>
-      <button class="admin-secundario" type="button" data-accion-diseno="cerrar" data-id-diseno="${diseno.idDiseno}">Cerrar detalle</button>
+      <button class="admin-secundario" type="button" data-accion-diseno="cerrar" data-id-diseno="${diseno.idDiseno}" data-accion-ui="cerrar" data-categoria-accion="peligro">Cerrar</button>
     </div>
     ${crearTablaElementos("Líneas de metro", lineas, (linea) => `
       <tr><td>${escaparHtml(linea.nombre)}</td><td>${linea.modificable ? "Sí" : "No"}</td><td>${botonesAccion("linea", diseno.idDiseno, { nombre: linea.nombre })}</td></tr>`)}
@@ -447,8 +451,8 @@ function botonesAccion(tipo, idDiseno, datos) {
     .join(" ");
 
   return `
-    <button class="admin-secundario" type="button" data-accion-diseno="editar-${tipo}" data-id-diseno="${idDiseno}" ${atributos}>Modificar</button>
-    <button class="admin-eliminar" type="button" data-accion-diseno="eliminar-${tipo}" data-id-diseno="${idDiseno}" ${atributos}>Eliminar</button>
+    <button class="admin-secundario" type="button" data-accion-diseno="editar-${tipo}" data-id-diseno="${idDiseno}" ${atributos} data-accion-ui="editar" data-categoria-accion="secundaria">Editar</button>
+    <button class="admin-eliminar" type="button" data-accion-diseno="eliminar-${tipo}" data-id-diseno="${idDiseno}" ${atributos} data-accion-ui="eliminar" data-categoria-accion="peligro">Eliminar</button>
   `;
 }
 
@@ -546,7 +550,7 @@ async function ejecutarAccionDiseno(boton, token) {
   try {
     const respuesta = await fetch(url, opciones);
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible guardar el cambio."));
-    mostrarMensajeDisenos("Diseño actualizado correctamente.");
+    mostrarMensajeDisenos("");
     cargarDetalleDiseno(idDiseno, token);
   } catch (error) {
     mostrarMensajeDisenos(error.message, "error");
@@ -607,7 +611,7 @@ async function crearElementoDiseno(boton, token) {
       body: JSON.stringify(cuerpo),
     });
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible crear el elemento."));
-    mostrarMensajeDisenos("Elemento creado correctamente.");
+    mostrarMensajeDisenos("");
     cargarDetalleDiseno(idDiseno, token);
   } catch (error) {
     mostrarMensajeDisenos(error.message, "error");
@@ -671,13 +675,13 @@ function crearCampoConfiguracion(configuracion) {
       : configuracion.descripcion;
     const atributos = `class="admin-configuracion-valor" id="configuracion-${escaparHtml(configuracion.clave)}" aria-label="Valor de ${escaparHtml(titulo)}"`;
     const campo = esMantenimiento
-      ? `<select ${atributos}>${["activado", "desactivado"].includes(modo) ? "" : '<option value="" selected disabled>Seleccioná un estado</option>'}${["desactivado", "activado"].map(valor => `<option value="${valor}" ${modo === valor ? "selected" : ""}>${valor.toUpperCase()}</option>`).join("")}</select>`
-      : `<input ${atributos} type="text" value="${escaparHtml(configuracion.valor)}" />`;
+      ? `<select data-control-general="select" ${atributos}>${["activado", "desactivado"].includes(modo) ? "" : '<option value="" selected disabled>Seleccioná un estado</option>'}${["desactivado", "activado"].map(valor => `<option value="${valor}" ${modo === valor ? "selected" : ""}>${valor.toUpperCase()}</option>`).join("")}</select>`
+      : `<input ${/^[-+]?\d+(?:[.,]\d+)?$/.test(String(configuracion.valor).trim()) ? 'data-control-general="numero"' : ''} ${atributos} type="text" value="${escaparHtml(configuracion.valor)}" />`;
     elemento.className = `admin-configuracion-item${esMantenimiento ? ' admin-configuracion-item--mantenimiento' : ''}`;
     elemento.innerHTML = `
       <div class="admin-configuracion-descripcion"><h3>${esMantenimiento ? 'Modo de mantenimiento' : escaparHtml(titulo)}</h3><p>${escaparHtml(descripcion)}</p></div>
       <div class="admin-campo-configuracion">${esMantenimiento ? `<label for="configuracion-${escaparHtml(configuracion.clave)}">Estado</label><span class="admin-mantenimiento-indicador" aria-hidden="true"></span>` : ''}${campo}</div>
-      <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}">Guardar</button>
+      <button class="admin-guardar" type="button" data-guardar-configuracion="${escaparHtml(configuracion.clave)}" data-accion-ui="guardar" data-categoria-accion="principal">Guardar</button>
     `;
     return elemento;
 }
@@ -694,7 +698,7 @@ async function guardarConfiguracion(clave, token) {
       body: JSON.stringify({ valor }),
     });
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible guardar la configuración."));
-    mostrarMensajeConfiguracion("Configuración actualizada correctamente.");
+    mostrarMensajeConfiguracion("");
   } catch (error) {
     mostrarMensajeConfiguracion(error.message, "error");
   }
@@ -735,7 +739,7 @@ function renderizarActividad(actividades) {
       <td>${escaparHtml(actividad.administrador)}</td>
       <td>${escaparHtml(actividad.accion)}</td>
       <td>${escaparHtml(actividad.detalle)}</td>
-      <td><button class="admin-eliminar" type="button" data-borrar-actividad="${actividad.idActividad}" ${borrandoActividad ? 'disabled' : ''}>Borrar</button></td>
+      <td><button class="admin-eliminar" type="button" data-borrar-actividad="${actividad.idActividad}" ${borrandoActividad ? 'disabled' : ''} data-accion-ui="eliminar" data-categoria-accion="peligro">Eliminar</button></td>
     `;
     return fila;
   }) : [crearFilaVacia("Todavía no hay actividad registrada.", 5)]));
@@ -747,9 +751,9 @@ async function borrarActividad(idActividad, token) {
   const una = Number.isInteger(idActividad) && idActividad > 0;
   if (una && !actividadesDisponibles.some(actividad => actividad.idActividad === idActividad)) return;
   const pregunta = una
-    ? '¿Borrar esta entrada del registro de actividad? Esta acción no se puede deshacer.'
-    : '¿Borrar todo el registro de actividad de administradores? Esta acción no se puede deshacer.';
-  if (!await confirmarSistema(pregunta)) return;
+    ? '¿Eliminar esta entrada del registro de actividad? Esta acción no se puede deshacer.'
+    : '¿Eliminar todo el registro de actividad de administradores? Esta acción no se puede deshacer.';
+  if (!await confirmarSistema(pregunta, { cancelarSeguro: true, peligro: true })) return;
   borrandoActividad = true;
   document.getElementById('borrarTodasActividades').disabled = true;
   document.querySelectorAll('[data-borrar-actividad]').forEach(boton => { boton.disabled = true; });
@@ -760,7 +764,7 @@ async function borrarActividad(idActividad, token) {
     if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, 'No fue posible borrar el registro de actividad.'));
     actividadesDisponibles = una ? actividadesDisponibles.filter(actividad => actividad.idActividad !== idActividad) : [];
     renderizarActividad(actividadesDisponibles);
-    mostrarMensajeActividad(una ? 'Entrada de actividad borrada.' : 'Registro de actividad borrado.');
+
   } catch (error) {
     mostrarMensajeActividad(error.message, 'error');
   } finally {
@@ -811,7 +815,7 @@ async function eliminarUsuario(idUsuario, nombreUsuario, token) {
       );
     }
 
-    mostrarMensaje("Usuario eliminado correctamente.");
+    mostrarMensaje("");
     cargarUsuarios(token);
   } catch (error) {
     mostrarMensaje(error.message, "error");
@@ -847,7 +851,7 @@ async function actualizarRol(idUsuario, token) {
       );
     }
 
-    mostrarMensaje("Rol actualizado correctamente.");
+    mostrarMensaje("");
   } catch (error) {
     mostrarMensaje(error.message, "error");
   }
@@ -931,11 +935,11 @@ async function guardarUsuarioEditado(evento, token) {
     actualizarSesionAdministradorSiCorresponde(usuarioActualizado);
     cerrarEditorUsuario();
     if (nuevaContrasena && Number(idUsuario) === sesion?.usuario?.idUsuario) {
-      mostrarMensaje("Contraseña actualizada. Iniciá sesión nuevamente para continuar.");
+      mostrarMensaje("");
       window.setTimeout(cerrarSesionLocal, 900);
       return;
     }
-    mostrarMensaje("Datos del usuario actualizados correctamente.");
+    mostrarMensaje("");
     cargarUsuarios(token);
   } catch (error) {
     mostrarMensajeEditorUsuario(error.message, "error");
@@ -965,7 +969,7 @@ function actualizarSesionAdministradorSiCorresponde(usuarioActualizado) {
 
 function actualizarEtiquetaAdministrador(administrador) {
   const identificador = administrador.identificadorAdministrador || administrador.nombre;
-  document.getElementById("nombreAdministrador").textContent = `${identificador} · Administrador`;
+  document.getElementById("identificadorAdministrador").textContent = identificador;
 }
 
 async function cerrarSesion(token) {

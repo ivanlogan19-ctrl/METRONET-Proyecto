@@ -1,3 +1,4 @@
+import '../mapa/estilos/colores-capas.css';
 import CapaCalles from '../mapa/capas/CapaCalles.js';
 import CapaTrafico from '../mapa/capas/CapaTrafico.js';
 import CapaPoblacion from '../mapa/capas/CapaPoblacion.js';

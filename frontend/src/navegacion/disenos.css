@@ -1,25 +1,38 @@
+@import '../interfaz/pestanas.css';
 body.metronet-pagina-disenos {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
 }
-.metronet-disenos { position: relative; z-index: 1; max-width:1100px; margin:auto; padding:clamp(12px,1.8vw,20px) clamp(14px,3vw,32px) clamp(14px,3vw,32px); }
-.metronet-disenos__barrera { position: fixed; z-index: 0; bottom: 0; width: 50vw; height: auto; opacity: .76; pointer-events: none; image-rendering: pixelated; }
-.metronet-disenos__barrera--izquierda { left: 0; }
-.metronet-disenos__barrera--derecha { right: 0; transform: scaleX(-1); }
-.metronet-pagina-disenos:has(#listaMisDisenos[aria-busy='false']:empty):has(#listaDisenosLibres:empty) .metronet-disenos__barrera { opacity: .92; }
-.metronet-pagina-disenos:has(#listaMisDisenos[aria-busy='false']:empty):has(#listaDisenosLibres:empty) .metronet-disenos__acceso-libre { margin-top: 110px; }
-@media (max-width: 1150px) { .metronet-disenos__barrera { opacity: .28; } }
-.metronet-disenos__campana { margin: 20px 0 12px; }
-.metronet-disenos__acceso-libre { margin: 20px 0 12px; }
-.metronet-disenos :is(.metronet-disenos__campana, .metronet-disenos__acceso-libre) h2 { margin: 0 0 12px; }
-.metronet-disenos__acceso-libre p { margin: 0 0 12px; color: var(--text-secondary); }
-.metronet-disenos__libre { margin: 0; }
-.metronet-disenos__lista { list-style:none; padding:0; display:grid; gap:8px; }
-.metronet-disenos__lista li { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:12px; border:1px solid var(--border-active); background:var(--panel); }
-.metronet-disenos__lista strong { overflow-wrap:anywhere; }
-.metronet-disenos__lista li > div:first-child { min-width:0; overflow-wrap:anywhere; }
-.metronet-disenos__lista small { display:block; color:var(--text-secondary); margin-top:6px; }
+.metronet-disenos { position:relative; z-index:1; width:min(calc(100% - 48px),1280px); max-width:none; margin:auto; padding:18px 0; display:grid; gap:12px; }
+html:root body .metronet-disenos h1 { margin:0; padding:10px 16px; font-size:28px; text-align:center; }
+.metronet-disenos__pestanas { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+html:root body .metronet-disenos__pestanas button { font-size:14px; }
+.metronet-disenos__resumen { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:30px; margin-bottom:12px; }
+html:root body .metronet-disenos p { margin:0; font:12px/1.5 var(--font-arcade); color:var(--text-secondary); }
+html:root body .metronet-disenos__resumen :is(a, button) { font:12px/1.3 var(--font-arcade); color:var(--info-active); }
+html:root body button.metronet-disenos__acceso { background:none; border:0; box-shadow:none; padding:4px 0; min-height:30px; text-decoration:underline; }
+.metronet-disenos__lista { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.metronet-disenos__lista li { min-width:0; padding:15px; border:1px solid #52718f; background:var(--panel); display:grid; grid-template-rows:auto 1fr auto; gap:10px; min-height:150px; }
+.metronet-disenos__cabecera { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.metronet-disenos__nivel { font:12px/1.4 var(--font-arcade); color:#80caff; }
+.metronet-disenos__estado { font:10px/1.4 var(--font-arcade); padding:3px 6px; border:1px solid var(--warning); color:var(--warning); text-align:center; }
+.metronet-disenos__estado--listo { color:var(--success); border-color:var(--success); }
+html:root body .metronet-disenos__lista strong { font:16px/1.35 var(--font-arcade); overflow-wrap:anywhere; align-self:start; }
+.metronet-disenos__pie-tarjeta { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+html:root body .metronet-disenos__lista small { min-width:0; font:10px/1.4 var(--font-arcade); color:var(--text-secondary); overflow-wrap:anywhere; }
 .metronet-disenos__acciones { display:flex; gap:8px; flex-shrink:0; }
+.metronet-disenos__paginacion { display:flex; justify-content:center; align-items:center; gap:20px; padding-top:8px; }
+html:root body .metronet-disenos__paginacion button { min-height:36px; padding:6px 16px; font:12px/1.3 var(--font-arcade); }
+.metronet-disenos__paginacion span { font:12px/1.4 var(--font-arcade); text-align:center; }
+@media(max-width:1049px) { .metronet-disenos__lista { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:699px) {
+  .metronet-disenos { width:calc(100% - 24px); padding:12px 0; gap:10px; }
+  .metronet-disenos__lista { grid-template-columns:1fr; }
+  html:root body .metronet-disenos h1 { font-size:24px; }
+  html:root body .metronet-disenos__pestanas button { font-size:12px; }
+  .metronet-disenos__paginacion { gap:8px; }
+  html:root body .metronet-disenos__paginacion button { padding:6px 8px; font-size:10px; }
+}
 html:root body .metronet-disenos__acciones .metronet-disenos__accion--editar {
   --boton-fondo: var(--warning); --boton-texto: var(--primary-ink);
   --boton-borde: var(--warning); --boton-hover: color-mix(in srgb, var(--warning) 80%, var(--text-primary));
@@ -33,7 +46,7 @@ html:root body .metronet-disenos__acciones button.metronet-boton--peligro:disabl
   border-color: var(--danger) !important;
   background-color: var(--danger-surface) !important;
 }
-@media(max-width:480px) { .metronet-disenos__lista li { align-items:start; flex-direction:column; } }
+
 
 /* Confirmación breve, con una única jerarquía de peligro. */
 html:root body #confirmarEliminarDiseno { width:min(420px, calc(100vw - 24px)); max-width:420px; padding:0; border:1px solid var(--danger); background:#291722; color:#ffd5df; }

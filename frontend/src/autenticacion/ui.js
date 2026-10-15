@@ -1,5 +1,6 @@
 export function activarVisibilidadContrasena() {
   document.querySelectorAll('.toggle-password').forEach((boton) => {
+    boton.setAttribute('aria-pressed', String(document.getElementById(boton.dataset.target)?.type === 'text'));
     boton.addEventListener('click', () => {
       const campo = document.getElementById(boton.dataset.target);
 
@@ -10,6 +11,7 @@ export function activarVisibilidadContrasena() {
       const esContrasena = campo.type === 'password';
       campo.type = esContrasena ? 'text' : 'password';
       boton.textContent = esContrasena ? 'Ocultar' : 'Mostrar';
+      boton.setAttribute('aria-pressed', String(esContrasena));
     });
   });
 }
@@ -26,6 +28,7 @@ export function mostrarMensaje(texto, tipo = 'exito') {
 }
 
 export function establecerCarga(boton, cargando) {
+  boton.setAttribute('aria-busy',String(cargando));
   boton.disabled = cargando;
   boton.classList.toggle('cargando', cargando);
 }

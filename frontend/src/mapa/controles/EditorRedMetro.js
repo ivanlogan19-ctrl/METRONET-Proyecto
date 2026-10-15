@@ -818,6 +818,7 @@ export default class EditorRedMetro {
     const condiciones = Array.isArray(consigna?.condiciones) ? consigna.condiciones.map((condicion) => ({
       clave: String(condicion?.clave ?? ''),
       texto: String(condicion?.texto ?? '').trim(),
+      textoPersonalizado: Boolean(condicion?.textoPersonalizado),
       actual: Number(condicion?.actual ?? 0),
       requerido: Number(condicion?.requerido ?? 0),
       completado: Boolean(condicion?.completado),

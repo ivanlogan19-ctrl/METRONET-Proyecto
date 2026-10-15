@@ -23,7 +23,7 @@ html:root body .metronet-victoria button { min-height: 44px; font-size: 13px; }
 @media (max-width: 600px) {
   .metronet-victoria__contenido { gap: 10px; padding: 14px; }
   .metronet-victoria__estaciones { padding: 8px; font-size: 11px; }
-  .metronet-victoria__acciones button { flex: 1; }
+  html:root body .metronet-victoria__acciones button { flex: 1; height: 44px !important; min-height: 44px !important; }
 }
 @media (max-height: 700px) and (max-width: 600px) {
   .metronet-victoria__contenido { gap: 8px; }

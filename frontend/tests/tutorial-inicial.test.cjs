@@ -179,7 +179,7 @@ test('Omitir con Escape, reabrir y cambiar de escenario limpian el recorrido y c
   await p.locator('.metronet-tutorial__panel:popover-open').waitFor();
   await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'),'[data-elegir-herramienta="conexiones"]');
-  assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).count(),0);
+  assert.equal(await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).count(),0);
   assert.equal(await p.locator('.metronet-tutorial').getAttribute('data-paso'),'conexiones');
 });
 
@@ -187,7 +187,7 @@ for (const n of [2,3,4,5,10]) test(`Nivel ${n}: recorrido físico solo para herr
   const { pagina:p } = await abrir(t,n);
   assert.equal(await p.locator('.metronet-tutorial>summary').isVisible(),true);
   assert.equal(await p.locator('[data-hud-vista="tutorial"]').count(),0);
-  assert.equal(await p.getByRole('button',{name:'Mostrar tutorial',exact:true}).count(),0);
+  assert.equal(await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).count(),0);
   const panel = p.locator('.metronet-tutorial');
   const objetivo = {2:'[data-elegir-herramienta="conexiones"]',3:'[data-elegir-herramienta="metros"]',4:'[data-ir-simulacion]'}[n];
   assert.equal(await p.locator('.metronet-recorrido').count(),1);

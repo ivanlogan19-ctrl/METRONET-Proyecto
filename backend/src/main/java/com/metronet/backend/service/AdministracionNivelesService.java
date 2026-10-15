@@ -48,6 +48,7 @@ public class AdministracionNivelesService {
             });
             reglasConocidas.add("requiereMetroPorLinea");
             reglasConocidas.add("requierePoiIndividuales");
+            reglasConocidas.add("textosMetas");
             clavesRegla = Set.copyOf(reglasConocidas);
             clavesHerramienta = Set.copyOf(herramientasConocidas);
         } catch (Exception error) {
@@ -272,6 +273,7 @@ public class AdministracionNivelesService {
                     throw invalido("Área objetivo inválida");
             }
         });
+        TextosMetasNivel.validar(edicion.reglasExito());
         if (edicion.reglasExito().has("maximoEstaciones") && edicion.reglasExito().has("minimoEstaciones")
             && edicion.reglasExito().path("maximoEstaciones").asInt()<edicion.reglasExito().path("minimoEstaciones").asInt())
             throw invalido("El máximo de estaciones debe permitir cumplir el mínimo");

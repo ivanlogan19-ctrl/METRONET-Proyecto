@@ -1,3 +1,4 @@
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { ajustarPanelMapa } from '../interfaz/PanelMapa.js';
 import { obtenerAyudaContextual } from './AyudaContextual.js';
 import { destacarConceptos, cerrarDefinicion } from './glosario/GlosarioContextual.js';
@@ -36,7 +37,7 @@ export default class PanelAyudaContextual {
     this.acceso.setAttribute('aria-controls', id);
     this.acceso.setAttribute('aria-expanded', 'false');
     const cerrar = this.elemento.querySelector('[data-hud-cerrar]');
-    configurarBotonIcono(cerrar, 'cancelar', controles ? 'Cerrar música' : 'Cerrar controles');
+    configurarBotonIcono(cerrar, 'cancelar', controles ? 'Cerrar música' : 'Cerrar controles');configurarAccion(cerrar,'cerrar',{icono:true});
     cerrar.addEventListener('click', () => this.cerrar(true));
     this.opciones = new Map();
     this.tutorial = incluirTutorial ? new PanelTutorialInicial(contenedor) : null;

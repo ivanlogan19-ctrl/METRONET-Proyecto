@@ -1,12 +1,14 @@
+import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
+import { crearEditorMetasNivel } from './EditorMetasNivel.js';
 import catalogo from '../educacion/catalogo-svgs-niveles.json';
 import nivelesIniciales from '../educacion/niveles.json';
 import { crearEditorRedReferenciaNivel } from './EditorRedReferenciaNivel.js';
 import { confirmarSistema } from '../componentes/DialogoSistema.js';
-import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
+import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 
 const nombres = {
   minimoEstaciones:'Mínimo de estaciones', maximoEstaciones:'Máximo de estaciones', minimoLineas:'Mínimo de líneas',
-  minimoTramos:'Mínimo de conexiones', minimoMetros:'Mínimo de unidades', minimoTransbordos:'Mínimo de transbordos',
+  minimoTramos:'Mínimo de conexiones', minimoMetros:'Mínimo de unidades', minimoTransbordos:'Mínimo de conexiones entre líneas',
   transbordosPorConexion:'Contar estaciones compartidas por líneas',
   requiereSimulacion:'Exigir simulación',
   requiereCoberturaPuntosInteres:'Cobertura de lugares objetivo', requiereObjetivosMismaLinea:'Lugares en una misma línea',
@@ -18,19 +20,19 @@ const nombres = {
 const etiqueta = clave => nombres[clave] ?? clave.replace(/([A-Z])/g,' $1').replace(/^./,letra=>letra.toUpperCase());
 const nombreCorto = (numero,nombre) => String(nombre??'').replace(new RegExp(`^Nivel\\s+${numero}\\s*[·:–-]\\s*`,'i'),'');
 const crear = (tag, texto='', clase='') => {
-  const n=document.createElement(tag); n.textContent=texto; if(clase)n.className=clase; return n;
+  const n=document.createElement(tag); n.textContent=texto; if(clase)n.className=clase; if(tag==='button')configurarAccionPorNombre(n,{compacto:true}); return n;
 };
 const copiar = dato => structuredClone(dato);
 // Solo la vista de edición adapta el SVG al cuadro; se guarda la ruta original.
 const imagenAjustada = ruta => `${ruta}#svgView(preserveAspectRatio(none))`;
 // Se conservan en el contrato, pero no se ofrecen como reglas editables.
-const reglasNoEditables = new Set(['puntuacion', 'requiereRedValida']);
+const reglasNoEditables = new Set(['puntuacion', 'requiereRedValida', 'textosMetas']);
 const reglasIniciales = new Map(nivelesIniciales.flatMap(n=>Object.entries(n.reglasExito)));
 
 export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServidor, errorRespuesta }) {
   let lista=[], actual=null, mapa=null, operando=false;
   const plantillasListas=new WeakMap();
-  const anunciar=(texto,tipo='')=>{ mensaje.textContent=texto; mensaje.className=`admin-mensaje ${tipo}`; };
+  const anunciar=(texto,tipo='')=>{ mensaje.textContent=tipo==='exito'?'':texto; mensaje.className=`admin-mensaje ${tipo}`; };
 
   async function pedir(ruta,opciones={}) {
     const respuesta=await fetch(`${urlServidor()}/api/admin/niveles${ruta}`,{
@@ -52,26 +54,22 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       const editor=crear('div','','admin-niveles__editor');editor.dataset.editorNivel='';
       contenedor.replaceChildren(editor);pintarEditor();return;
     }
-    const tabla=crear('table','','admin-niveles__lista');
-    tabla.setAttribute('aria-label','Niveles de la experiencia de juego');
-    const cabecera=tabla.createTHead().insertRow();
-    for(const titulo of ['Nivel','Nombre','Publicación','Borrador','Acción']) {
-      const celda=crear('th',titulo);celda.scope='col';cabecera.append(celda);
-    }
-    const cuerpo=tabla.createTBody();
-    for(const nivel of lista) {
-      const fila=cuerpo.insertRow();
-      fila.insertCell().append(crear('span',String(nivel.numero).padStart(2,'0'),'admin-niveles__numero'));
-      const nombre=crear('th',nombreCorto(nivel.numero,nivel.nombre));
-      nombre.scope='row';nombre.id=`nombre-nivel-${nivel.numero}`;fila.append(nombre);
-      fila.insertCell().append(crear('span',`Publicada v${nivel.versionPublicada}`,'admin-niveles__publicacion'));
-      fila.insertCell().append(crear('span',`Revisión ${nivel.revisionBorrador}`,'admin-niveles__revision'));
+    const tarjetas=crear('ol','','admin-niveles__lista');
+    tarjetas.setAttribute('aria-label','Niveles de la experiencia de juego');
+    tarjetas.setAttribute('role','list');
+    for(const nivel of [...lista].sort((a,b)=>a.numero-b.numero)) {
+      const tarjeta=crear('li','','admin-niveles__tarjeta');
+      tarjeta.append(crear('span',String(nivel.numero).padStart(2,'0'),'admin-niveles__numero'));
+      const nombre=crear('span',nombreCorto(nivel.numero,nivel.nombre),'admin-niveles__nombre');
+      nombre.id=`nombre-nivel-${nivel.numero}`;tarjeta.append(nombre);
       const boton=crear('button','Editar','admin-secundario metronet-boton--advertencia'); boton.type='button';
+      configurarAccion(boton,'editar');
       boton.dataset.editarNivel=String(nivel.numero);
       boton.setAttribute('aria-describedby',nombre.id);
-      boton.addEventListener('click',()=>abrir(nivel.numero));fila.insertCell().append(boton);
+      boton.addEventListener('click',()=>abrir(nivel.numero));tarjeta.append(boton);
+      tarjetas.append(tarjeta);
     }
-    contenedor.replaceChildren(tabla);
+    contenedor.replaceChildren(tarjetas);
   }
 
   async function volverALosNiveles() {
@@ -138,7 +136,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     } else if(typeof valor==='boolean'||tipo==='checkbox') {
       input=crear('input'); input.type='checkbox'; input.checked=Boolean(valor);
     } else if(tipo==='multiline'||(!tipo&&String(valor??'').length>130)) {
-      input=crear('textarea'); input.rows=tipo==='multiline'?4:3; input.value=valor??'';
+      input=crear('textarea'); input.rows=2; input.value=valor??'';
     } else {
       input=crear('input'); input.type=typeof valor==='number'||tipo==='number'?'number':'text';
       if(input.type==='number') input.step='any'; input.value=valor??'';
@@ -158,7 +156,10 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     if(Array.isArray(valor)) {
       const grupo=crear('fieldset','','admin-niveles__lista-valores'); grupo.append(crear('legend',etiqueta(nombre)));
       const lugares=nombre==='puntosInteresObjetivo';
+      const listaCompacta=lugares||nombre==='areasObjetivo';
       if(lugares)grupo.classList.add('admin-niveles__lista-valores--lugares');
+      if(nombre==='areasObjetivo')grupo.classList.add('admin-niveles__lista-valores--areas');
+      if(listaCompacta)grupo.classList.add('admin-niveles__lista-valores--compacta');
       if(valor.length)plantillasListas.set(valor,copiar(valor[0]));
       const plantilla=plantillasListas.get(valor)??reglasIniciales.get(nombre)?.[0];
       let activo=0;
@@ -169,18 +170,22 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       valor.forEach((item,i)=>{
         const fila=crear('div','','admin-niveles__item-valores');
         editarValor(fila,'valor',item,nuevo=>{valor[i]=nuevo;actualizar(valor)},opcionesEdicion);
+        if(nombre==='areasObjetivo') {
+          const minimo=fila.querySelector('[aria-label="Mínimo de estaciones"]');
+          if(minimo)minimo.parentElement.firstChild.textContent='Mín. estaciones';
+        }
         grupo.append(fila);filas.push(fila);
       });
       const acciones=crear('div','','admin-niveles__acciones-lista');
       const quitar=crear('button','Quitar','admin-secundario metronet-boton--peligro metronet-boton--destacado');quitar.type='button';
-      if(lugares)configurarBotonIcono(quitar,'restar','Quitar lugar seleccionado');
+      if(listaCompacta){configurarBotonIcono(quitar,'eliminar',lugares?'Quitar lugar seleccionado':'Quitar zona seleccionada');configurarAccion(quitar,'quitar',{icono:true});}
       quitar.disabled=!valor.length;
       quitar.addEventListener('click',()=>{valor.splice(activo,1);actualizar(valor);alEditar();repintar()});
       acciones.append(quitar);
       if(plantilla!==undefined) {
-        const agregar=crear('button',`Agregar ${etiqueta(nombre).toLowerCase()}`,'admin-secundario metronet-boton--exito metronet-boton--destacado');agregar.type='button';
-        if(lugares)configurarBotonIcono(agregar,'sumar','Agregar lugares objetivo');
-        if(nombre==='areasObjetivo')agregar.classList.replace('metronet-boton--exito','metronet-boton--advertencia');
+        const agregar=crear('button','Agregar','admin-secundario metronet-boton--exito metronet-boton--destacado');agregar.type='button';
+        agregar.setAttribute('aria-label',`Agregar ${etiqueta(nombre).toLowerCase()}`);
+        if(listaCompacta){configurarBotonIcono(agregar,'sumar',lugares?'Agregar lugares objetivo':'Agregar barrios y zonas objetivo');configurarAccion(agregar,'agregar',{icono:true});}
         agregar.addEventListener('click',()=>{valor.push(copiar(valor.at(-1)??plantilla));actualizar(valor);alEditar();repintar()});
         acciones.append(agregar);
       }
@@ -201,31 +206,34 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const editor=contenedor.querySelector('[data-editor-nivel]');
     editor.replaceChildren();
     const cabecera=crear('header','','admin-niveles__cabecera');
-    cabecera.append(crear('h2',`Nivel ${numero} · ${nombreCorto(numero,datos.desafio.nombre)}`),
-      crear('p',`Versión base ${borrador.versionBase} · Revisión ${borrador.revision}`));
+    cabecera.append(crear('h2',`Nivel ${numero} · ${nombreCorto(numero,datos.desafio.nombre)}`));
     const utilidades=crear('div','','admin-niveles__utilidades');
-    const avisoPublicacion=crear('p','Publicá para aplicar','admin-niveles__alcance-publicacion');
-    avisoPublicacion.append(crear('br'),document.createTextNode('todos los cambios.'));
+    const avisoPublicacion=crear('p','Cambios sin publicar','admin-niveles__alcance-publicacion');
+    avisoPublicacion.title='Guardá, previsualizá y publicá para aplicar todos los cambios.';
     cabecera.append(avisoPublicacion);
     const cambios=crear('div','','admin-niveles__cambios');
     cambios.setAttribute('role','group');cambios.setAttribute('aria-label','Cambios del nivel');
     const estado=crear('button','','admin-secundario admin-niveles__estado');estado.type='button';
     estado.dataset.estadoBorrador='';
-    configurarBotonIcono(estado,'guardar','Guardar cambios del nivel');
+    configurarBotonIcono(estado,'guardar','Guardar cambios del nivel');configurarAccion(estado,'guardar',{conservarTexto:true});
+    estado.append(crear('span','Guardar'));estado.classList.add('admin-niveles__accion-texto');
     const textoEstado=crear('span','','admin-niveles__estado-texto');textoEstado.setAttribute('role','status');
     estado.append(textoEstado);actualizarEstadoBorrador(estado);
     estado.addEventListener('click',guardarBorrador);
     const publicar=crear('button','','admin-secundario admin-niveles__publicar');publicar.type='button';publicar.dataset.publicarNivel='';
-    configurarBotonIcono(publicar,'publicar','Publicar versión');
+    configurarBotonIcono(publicar,'publicar','Publicar versión');configurarAccion(publicar,'publicar',{conservarTexto:true});
+    publicar.append(crear('span','Publicar'));publicar.classList.add('admin-niveles__accion-texto');
     publicar.disabled=!actual.vista?.diagnostico?.viable || actual.sucio;
     publicar.addEventListener('click',publicarNivel);
     const previsualizar=crear('button','','admin-secundario');previsualizar.type='button';
-    configurarBotonIcono(previsualizar,'previsualizar','Previsualizar');
+    configurarBotonIcono(previsualizar,'play','Previsualizar');configurarAccion(previsualizar,'previsualizar',{conservarTexto:true});
+    previsualizar.append(crear('span','Previsualizar'));previsualizar.classList.add('admin-niveles__accion-texto','admin-niveles__previsualizar');
     previsualizar.addEventListener('click',previsualizarNivel);
     cambios.append(estado,previsualizar,publicar);
     utilidades.append(cambios);
     const salir=crear('button','','admin-secundario admin-niveles__salir');salir.type='button';
-    configurarBotonIcono(salir,'puertaSalida','Volver a los niveles para editar');
+    configurarBotonIcono(salir,'puertaSalida','Volver a los niveles para editar');configurarAccion(salir,'salir',{conservarTexto:true});
+    salir.append(crear('span','Salir'));salir.classList.add('admin-niveles__accion-texto');
     salir.addEventListener('click',volverALosNiveles);
     const salida=crear('div','','admin-niveles__accion-salida');salida.append(salir);
     utilidades.append(salida);cabecera.append(utilidades);
@@ -236,9 +244,9 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const casilla=crear('input');casilla.type='checkbox';casilla.dataset.confirmacionEditorial='';confirmar.prepend(casilla);
     casilla.checked=actual.confirmacionEditorial;
     casilla.addEventListener('change',()=>{actual.confirmacionEditorial=casilla.checked});
-    acciones.append(confirmar);editor.append(acciones);
+    acciones.append(confirmar);
 
-    const pestanas=crear('div','','admin-niveles__pestanas');
+    const pestanas=crear('div','','admin-niveles__pestanas metronet-pestanas');
     pestanas.setAttribute('role','tablist');pestanas.setAttribute('aria-label','Secciones del nivel');
     const paneles=crear('div','','admin-niveles__paneles');
     editor.append(pestanas,paneles);
@@ -259,18 +267,32 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       const siguiente={ArrowRight:(indice+1)%botones.length,ArrowLeft:(indice+botones.length-1)%botones.length,
         Home:0,End:botones.length-1}[evento.key];
       if(siguiente===undefined)return;
-      evento.preventDefault();mostrarSeccion(botones[siguiente].dataset.seccionNivel);botones[siguiente].focus();
+      const clave=botones[siguiente].dataset.seccionNivel;
+      evento.preventDefault();mostrarSeccion(clave);
+      contenedor.querySelector(`[data-seccion-nivel="${clave}"]`)?.focus();
     });
 
     const desafio=panel('desafio','Desafío');
     const datosBreves=crear('div','','admin-niveles__datos-breves');desafio.append(datosBreves);
-    for(const clave of ['nombre','dificultad','relato','objetivo','instrucciones'])
-      campo(['nombre','dificultad'].includes(clave)?datosBreves:desafio,etiqueta(clave),datos.desafio[clave],valor=>{datos.desafio[clave]=valor},
-        {tipo:['relato','objetivo','instrucciones'].includes(clave)?'multiline':'text'});
+    for(const clave of ['nombre','dificultad','relato','objetivo','instrucciones']) {
+      const opcionesDificultad=[{valor:'Inicial',texto:'Inicial'},{valor:'Intermedio',texto:'Media'},{valor:'Avanzado',texto:'Avanzada'}];
+      const valorActual=clave==='dificultad'
+        ? ({Media:'Intermedio',Avanzada:'Avanzado'}[datos.desafio[clave]]??datos.desafio[clave])
+        : datos.desafio[clave];
+      if(clave==='dificultad' && valorActual && !opcionesDificultad.some(o=>o.valor===valorActual))opcionesDificultad.push({valor:valorActual,texto:valorActual});
+      const entrada=campo(['nombre','dificultad'].includes(clave)?datosBreves:desafio,etiqueta(clave),valorActual,valor=>{datos.desafio[clave]=valor},
+        clave==='dificultad'?{opciones:opcionesDificultad}:{tipo:['relato','objetivo','instrucciones'].includes(clave)?'multiline':'text'});
+      entrada.parentElement.dataset.campoDesafio=clave;
+    }
+
+
+
+    const metas=panel('metas','Metas y POI');
+    crearEditorMetasNivel(metas,datos,{crear,campo,alCambiar:marcarSucio});
 
     const reglas=panel('reglas','Reglas');
     const condiciones=crear('div','','admin-niveles__condiciones');
-    const opciones=crear('div','','admin-niveles__opciones');reglas.append(condiciones,opciones);
+    const opciones=crear('div','','admin-niveles__opciones');reglas.append(condiciones);
     const grupoReglas=(titulo,clase)=>{
       const seccion=crear('section','','admin-niveles__grupo-reglas');
       seccion.setAttribute('aria-label',titulo);
@@ -280,35 +302,39 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     };
     const listadoReglas=grupoReglas('Cantidades de la red','admin-niveles__reglas');
     const reglasCondicion=grupoReglas('Condiciones de funcionamiento','admin-niveles__reglas admin-niveles__reglas--condiciones');
-    const detallesReglas=grupoReglas('Objetivos específicos','admin-niveles__reglas-detalle');
+    const detallesReglas=crear('div','','admin-niveles__reglas-detalle');
+    const reglasCompuestas=[];
     const conocidas=reglasIniciales;
     for(const [clave,valor] of Object.entries(datos.reglasExito)) {
       if(reglasNoEditables.has(clave))continue;
       const fila=crear('div','','admin-niveles__regla');
       fila.dataset.reglaNivel=clave;
+      const pictograma={minimoLineas:'lineas',minimoMetros:'metros',minimoTramos:'conexiones',minimoTransbordos:'conexiones',minimoEstaciones:'estaciones'}[clave];
+      if(pictograma){const icono=crear('span','','admin-niveles__icono-cantidad');icono.innerHTML=iconoRetro(pictograma);fila.append(icono);}
       const compuesta=valor && typeof valor==='object';
       if(compuesta)fila.classList.add('admin-niveles__regla--compuesta');
       if(typeof valor==='boolean')fila.classList.add('admin-niveles__regla--casilla');
       editarValor(fila,clave,valor,nuevo=>{datos.reglasExito[clave]=nuevo});
+      if(clave==='minimoTransbordos')fila.querySelector('label').firstChild.textContent='Mín. conexiones entre líneas';
+      if(clave==='transbordosPorConexion')fila.querySelector('label').firstChild.textContent='Estaciones compartidas';
       const quitar=crear('button','','admin-secundario admin-niveles__quitar-regla'); quitar.type='button';
-      configurarBotonIcono(quitar,'eliminar',clave==='puntosInteresObjetivo'?'Eliminar toda la regla de lugares objetivo':`Quitar ${etiqueta(clave)}`);
+      configurarBotonIcono(quitar,'eliminar',clave==='puntosInteresObjetivo'?'Quitar toda la regla de lugares objetivo':`Quitar ${etiqueta(clave)}`);
+      configurarAccion(quitar,'quitar',{icono:true});
       quitar.addEventListener('click',()=>{delete datos.reglasExito[clave];marcarSucio();pintarEditor()});
       fila.append(quitar);
       if(compuesta) {
-        const detalle=crear('details','','admin-niveles__detalle-regla');
-        detalle.append(crear('summary',etiqueta(clave)),fila);
-        detalle.open=actual.reglaAbierta===clave;
-        detalle.addEventListener('toggle',()=>{if(detalle.open)actual.reglaAbierta=clave});
-        detallesReglas.append(detalle);
+        reglasCompuestas.push(clave);
+        detallesReglas.append(fila);
       } else (typeof valor==='boolean'?reglasCondicion:listadoReglas).append(fila);
     }
-    for(const cuerpo of [listadoReglas,reglasCondicion,detallesReglas])cuerpo.parentElement.hidden=!cuerpo.children.length;
+    for(const cuerpo of [listadoReglas,reglasCondicion])cuerpo.parentElement.hidden=!cuerpo.children.length;
     const opcionesRegla=[...conocidas.keys()].filter(clave=>!reglasNoEditables.has(clave)&&!(clave in datos.reglasExito))
       .map(clave=>({valor:clave,texto:etiqueta(clave)}));
     const nuevaRegla=crear('div','','admin-niveles__agregar-regla');
     let valorRegla;
     const agregarRegla=campo(nuevaRegla,'Regla admitida para agregar',opcionesRegla[0]?.valor,()=>prepararRegla(),
       {opciones:opcionesRegla,edicion:false});
+    agregarRegla.parentElement.firstChild.textContent='';
     const valoresRegla=crear('div','','admin-niveles__valor-nueva-regla');
     const pintarValorRegla=()=>{
       nuevaRegla.querySelector(':scope > .admin-niveles__acciones-lista')?.remove();
@@ -317,17 +343,19 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       valoresRegla.dataset.tipo=Array.isArray(valorRegla)?'lista':typeof valorRegla;
       if(agregarRegla.value)editarValor(valoresRegla,agregarRegla.value,valorRegla,nuevo=>{valorRegla=nuevo},
         {alEditar:()=>{},repintar:pintarValorRegla});
-      if(agregarRegla.value==='areasObjetivo') {
+      // El selector identifica la regla; el campo sólo necesita explicar su valor.
+      const campoSimple=valoresRegla.querySelector(':scope > label');
+      if(campoSimple)campoSimple.firstChild.textContent=typeof valorRegla==='boolean'
+        ?(agregarRegla.value==='transbordosPorConexion'?'Entre líneas':'Activar condición')
+        :typeof valorRegla==='number'?'Cantidad':campoSimple.firstChild.textContent;
+      if(['areasObjetivo','puntosInteresObjetivo'].includes(agregarRegla.value)) {
         const acciones=valoresRegla.querySelector('.admin-niveles__acciones-lista');
-        const agregarArea=acciones.lastElementChild;
-        agregarArea.setAttribute('aria-label',agregarArea.textContent);
-        agregarArea.textContent='Agregar barrio o zona';
         nuevaRegla.append(acciones);
       }
     };
     const prepararRegla=()=>{valorRegla=copiar(conocidas.get(agregarRegla.value));pintarValorRegla()};
     prepararRegla();
-    const botonAgregar=crear('button','Agregar regla admitida','admin-secundario metronet-boton--exito metronet-boton--destacado');botonAgregar.type='button';
+    const botonAgregar=crear('button','Agregar','admin-secundario metronet-boton--exito metronet-boton--destacado');botonAgregar.type='button';botonAgregar.setAttribute('aria-label','Agregar regla admitida');
     botonAgregar.disabled=!agregarRegla.options.length;
     botonAgregar.addEventListener('click',()=>{
       const clave=agregarRegla.value;datos.reglasExito[clave]=copiar(valorRegla);actual.reglaAbierta=clave;marcarSucio();pintarEditor();
@@ -335,10 +363,38 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     nuevaRegla.hidden=!agregarRegla.options.length;
     opciones.hidden=nuevaRegla.hidden;
     nuevaRegla.append(valoresRegla,botonAgregar);opciones.append(nuevaRegla);
-    const herramientas=crear('fieldset','','admin-niveles__herramientas');herramientas.append(crear('legend','Herramientas habilitadas'));
-    for(const [clave,valor] of Object.entries(datos.herramientasHabilitadas))
-      campo(herramientas,etiqueta(clave),valor,nuevo=>{datos.herramientasHabilitadas[clave]=nuevo});
+    const herramientas=crear('section','','admin-niveles__herramientas');
+    herramientas.setAttribute('aria-label','Herramientas habilitadas');
+    herramientas.append(crear('h3','Herramientas habilitadas'));
+    for(const [clave,valor] of Object.entries(datos.herramientasHabilitadas)) {
+      const control=campo(herramientas,etiqueta(clave),valor,nuevo=>{datos.herramientasHabilitadas[clave]=nuevo});
+      const icono=crear('span','','admin-niveles__icono-herramienta');icono.innerHTML=iconoRetro(clave==='simulacion'?'play':clave);control.after(icono);
+    }
     condiciones.append(herramientas);
+
+    // Las reglas configuradas y las nuevas comparten el espacio de edición.
+    // Elegir una regla reemplaza el formulario visible, sin apilar desplegables.
+    const espacioReglas=crear('section','','admin-niveles__espacio-reglas');
+    const encabezadoReglas=crear('div','','admin-niveles__encabezado-reglas');
+    const tituloReglas=crear('h3');encabezadoReglas.append(tituloReglas);
+    const elegidas=reglasCompuestas.map(clave=>({valor:clave,texto:etiqueta(clave)}));
+    if(opcionesRegla.length)elegidas.push({valor:'nueva',texto:'Agregar regla'});
+    const seleccionInicial=reglasCompuestas.includes(actual.reglaAbierta)?actual.reglaAbierta
+      :opcionesRegla.length?'nueva':reglasCompuestas[0];
+    const elegirRegla=campo(encabezadoReglas,'Regla del nivel',seleccionInicial,clave=>{
+      actual.reglaAbierta=clave;mostrarRegla();
+    },{opciones:elegidas,edicion:false});
+    elegirRegla.parentElement.firstChild.textContent='';
+    elegirRegla.parentElement.hidden=elegidas.length<2;
+    const mostrarRegla=()=>{
+      const nueva=elegirRegla.value==='nueva';
+      tituloReglas.textContent=nueva?'Regla admitida para agregar':'Objetivos específicos';
+      opciones.hidden=!nueva;detallesReglas.hidden=nueva;
+      for(const fila of detallesReglas.children)fila.hidden=fila.dataset.reglaNivel!==elegirRegla.value;
+    };
+    espacioReglas.append(encabezadoReglas,detallesReglas,opciones);
+    espacioReglas.hidden=!elegidas.length;reglas.append(espacioReglas);mostrarRegla();
+
 
     const red=panel('red','Red de referencia');
     const redTrabajo=crear('div','','admin-niveles__red-trabajo');
@@ -347,13 +403,6 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     const tablas=crear('div','','admin-niveles__tablas-red');tablas.dataset.tablasRed='';redTrabajo.append(tablas);
     red.append(redTrabajo);
 
-    if(numero>=4) {
-      const criterio=panel('simulacion','UV / UT');
-      for(const clave of ['limiteUt','presupuestoUv'])
-        campo(criterio,clave==='limiteUt'?'Límite UT':'Presupuesto UV',datos.criterioUvUt?.[clave],
-          valor=>{datos.criterioUvUt??={};datos.criterioUvUt[clave]=valor},{tipo:'number'});
-    }
-
     const educacion=panel('tarjetas','Tarjetas');
     const cabeceraTarjeta=crear('div','','admin-niveles__selector-tarjeta');educacion.append(cabeceraTarjeta);
     const selectorTarjeta=campo(cabeceraTarjeta,'Tarjeta de aprendizaje',actual.tarjetaActiva,valor=>{
@@ -361,6 +410,13 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       mostrarTarjeta();
     },{opciones:datos.tarjetas.map((tarjeta,i)=>({valor:i,texto:`${i+1} · ${tarjeta.titulo}`})),edicion:false});
     selectorTarjeta.dataset.selectorTarjeta='';
+    const pasos=crear('div','','admin-niveles__pasos-tarjeta');
+    for(const [texto,paso,icono] of [['Anterior',-1,'horaAnterior'],['Siguiente',1,'horaSiguiente']]) {
+      const b=crear('button');b.type='button';configurarBotonIcono(b,icono,texto);configurarAccion(b,paso<0?'anterior':'siguiente',{icono:true});b.dataset.pasoTarjeta=paso;
+      b.dataset.categoriaAccion='secundaria';
+      b.addEventListener('click',()=>{actual.tarjetaActiva=Math.max(0,Math.min(datos.tarjetas.length-1,actual.tarjetaActiva+paso));mostrarTarjeta()});pasos.append(b);
+    }
+    cabeceraTarjeta.append(pasos);
     const tituloTarjeta=campo(cabeceraTarjeta,'Título',datos.tarjetas[actual.tarjetaActiva].titulo,valor=>{
       datos.tarjetas[actual.tarjetaActiva].titulo=valor;
       selectorTarjeta.options[actual.tarjetaActiva].textContent=`${actual.tarjetaActiva+1} · ${valor}`;
@@ -386,14 +442,14 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       tarjetas.append(ficha);
     });
     // Las ayudas recibidas se preservan al guardar, sin exponer el editor de pistas retirado.
-    educacion.append(tarjetas);mostrarTarjeta();
+    educacion.append(tarjetas,acciones);mostrarTarjeta();
 
     const vista=panel('vista','Vista previa');vista.classList.add('admin-niveles__vista');vista.dataset.vistaPrevia='';
     pintarEsperaVista(vista,'Guardá el borrador y usá «Previsualizar» para revisar el resultado.');
     const historial=panel('historial','Historial');
     const limpieza=crear('div','','admin-niveles__limpieza');
-    const borrar=crear('button','','metronet-boton--peligro');borrar.type='button';
-    configurarBotonIcono(borrar,'eliminar','Borrar registro de versiones');
+    const borrar=crear('button','Borrar historial','metronet-boton--peligro');borrar.type='button';
+    configurarAccion(borrar,'eliminar',{compacto:true,conservarTexto:true});
     borrar.disabled=actual.versiones.length<2;
     borrar.addEventListener('click',borrarHistorialSinUso);limpieza.append(borrar);historial.append(limpieza);
     if(!actual.versiones.length)historial.append(crear('p','Todavía no hay versiones publicadas.'));
@@ -419,7 +475,10 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
   }
 
   function mostrarSeccion(clave) {
+    if(actual.seccionActiva==='metas'&&clave!=='metas'){actual.seccionActiva=clave;pintarEditor();return}
     actual.seccionActiva=clave;
+    if(clave==='metas')crearEditorMetasNivel(contenedor.querySelector('[data-panel-nivel="metas"]'),actual.datos,
+      {crear,campo,alCambiar:marcarSucio});
     for(const boton of contenedor.querySelectorAll('[data-seccion-nivel]')) {
       const activo=boton.dataset.seccionNivel===clave;
       boton.setAttribute('aria-selected',String(activo));boton.tabIndex=activo?0:-1;
@@ -429,6 +488,8 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
   }
 
   function mostrarTarjeta() {
+    const selector=contenedor.querySelector('[data-selector-tarjeta]');if(selector)selector.value=String(actual.tarjetaActiva);
+    for(const b of contenedor.querySelectorAll('[data-paso-tarjeta]'))b.disabled=actual.tarjetaActiva+Number(b.dataset.pasoTarjeta)<0||actual.tarjetaActiva+Number(b.dataset.pasoTarjeta)>=actual.datos.tarjetas.length;
     for(const ficha of contenedor.querySelectorAll('[data-tarjeta-nivel]'))
       ficha.hidden=Number(ficha.dataset.tarjetaNivel)!==actual.tarjetaActiva;
     const titulo=contenedor.querySelector('[data-titulo-tarjeta]');
@@ -437,7 +498,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
 
   function pintarTablasRed() {
     const tablas=contenedor.querySelector('[data-tablas-red]'); if(!tablas||!actual)return;
-    tablas.replaceChildren();
+    tablas.replaceChildren(crear('h3','Elemento seleccionado'));
     const red=actual.datos.redReferencia;
     const plantillas={
       estaciones:()=>({nombre:`E${red.estaciones.length+1}`,x:660,y:460,transbordo:false}),
@@ -458,12 +519,17 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       },{opciones:red[tipo].map((item,i)=>({valor:i,texto:`${i+1} · ${item.nombre??item.linea??titulos[tipo]}`})),edicion:false});
       const i=actual.redIndice,item=red[tipo][i];
       const fila=crear('div','','admin-niveles__grupo');
-        for(const [clave,valor] of Object.entries(item)) editarValor(fila,clave,valor,nuevo=>{item[clave]=nuevo;mapa?.actualizar()});
-        const quitar=crear('button','Quitar','admin-secundario');quitar.type='button';
+        for(const [clave,valor] of Object.entries(item)) {
+          const antes=fila.children.length;editarValor(fila,clave,valor,nuevo=>{item[clave]=nuevo;mapa?.actualizar()});
+          if(fila.children[antes])fila.children[antes].dataset.campoReferencia=clave;
+        }
+        const quitar=crear('button','Quitar','admin-secundario metronet-boton--peligro');quitar.type='button';
         quitar.addEventListener('click',()=>{red[tipo].splice(i,1);marcarSucio();pintarTablasRed();mapa?.actualizar()});
-        fila.append(quitar);tablas.append(fila);
+        const aplicar=crear('button','Aplicar','admin-secundario metronet-boton--advertencia');aplicar.type='button';
+        aplicar.addEventListener('click',()=>{mapa?.actualizar();pintarTablasRed()});
+        const accionesElemento=crear('div','','admin-niveles__acciones-elemento');accionesElemento.append(aplicar,quitar);fila.append(accionesElemento);tablas.append(fila);
     } else tablas.append(crear('p',`Todavía no hay ${titulos[tipo].toLowerCase()}.`));
-      const agregar=crear('button',`Agregar ${titulos[tipo].toLowerCase()}`,'admin-secundario');agregar.type='button';
+      const agregar=crear('button','Agregar','admin-secundario metronet-boton--exito');agregar.type='button';agregar.setAttribute('aria-label',`Agregar ${titulos[tipo].toLowerCase()}`);
       agregar.addEventListener('click',()=>{red[tipo].push(plantillas[tipo]());actual.redIndice=red[tipo].length-1;marcarSucio();pintarTablasRed();mapa?.actualizar()});
       tablas.append(agregar);
   }
@@ -481,7 +547,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       const guardado=await pedir(`/${numero}/borrador`,{method:'PUT',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({...datos,versionBase:borrador.versionBase,revisionEsperada:borrador.revision})});
       actual.borrador=guardado;actual.sucio=actual.edicion!==edicion;actual.vista=null;pintarEditor();
-      anunciar(`Borrador del nivel ${numero} guardado, revisión ${guardado.revision}.${actual.sucio?' Hay cambios posteriores sin guardar.':''}`);
+      anunciar(actual.sucio?'Hay cambios posteriores sin guardar.':'');
     } catch(error){anunciar(error.message,'error')} finally {
       operando=false;botonGuardar.disabled=false;botonGuardar.removeAttribute('aria-busy');
     }
@@ -552,7 +618,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
   async function publicarNivel() {
     if(!actual?.vista?.diagnostico?.viable||actual.sucio||operando)return;
     if(!contenedor.querySelector('[data-confirmacion-editorial]').checked) {
-      anunciar('Confirmá la revisión editorial de textos, fuentes e imágenes.','error');return;
+      anunciar('En Tarjetas, confirmá la revisión de textos, fuentes e imágenes.','error');return;
     }
     operando=true;anunciar('Publicando la versión completa…');
     try {
@@ -562,7 +628,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
           huellaPreview:vista.diagnostico.huella,confirmacionEditorial:true})});
       const numero=actual.numero;
       lista=await pedir('');pintarLista();operando=false;await abrir(numero);
-      anunciar(`Nivel ${numero} publicado como versión ${publicada.version}. Los intentos anteriores conservan su versión.`);
+      anunciar('');
     } catch(error){anunciar(error.message,'error')}finally{operando=false}
   }
 
@@ -572,7 +638,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
     try {
       const numero=actual.numero;
       const versionEsperada=Math.max(...actual.versiones.map(v=>v.version));
-      if(!await confirmarSistema(`¿Eliminar todas las versiones antiguas sin uso del nivel ${numero}? Se conservarán la versión vigente, la del borrador y las vinculadas a partidas. Esta acción no se puede deshacer.`))return;
+      if(!await confirmarSistema(`¿Eliminar todas las versiones antiguas sin uso del nivel ${numero}? Se conservarán la versión vigente, la del borrador y las vinculadas a partidas. Esta acción no se puede deshacer.`,{cancelarSeguro:true,peligro:true}))return;
       const resultado=await pedir(`/${numero}/versiones/sin-uso?versionEsperada=${versionEsperada}`,{method:'DELETE'});
       actual.versiones=await pedir(`/${numero}/versiones`);
       pintarEditor();

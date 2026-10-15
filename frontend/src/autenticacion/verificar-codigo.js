@@ -73,7 +73,7 @@ async function verificarCodigo(evento) {
   try {
     establecerCarga(botonVerificar, true);
     await verificarCodigoRecuperacion(obtenerContextoRecuperacion(), campoCodigo.value);
-    mostrarMensaje('Código verificado. Ahora podés crear una nueva contraseña.');
+    mostrarMensaje('');
 
     window.setTimeout(() => {
       window.location.assign('/nueva-contrasena.html');

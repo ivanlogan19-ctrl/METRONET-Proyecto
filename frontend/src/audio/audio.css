@@ -2,6 +2,24 @@
 .metronet-audio + .metronet-navegacion__usuario { margin-left: 0; }
 .metronet-audio > summary { list-style: none; }
 .metronet-audio > summary::-webkit-details-marker { display: none; }
+html:root body details.metronet-audio > summary.metronet-boton-icono {
+  --boton-fondo: var(--border-active);
+  --boton-texto: var(--primary-ink);
+  --boton-borde: var(--border-active);
+  --boton-hover: var(--border-active);
+  background-color: var(--border-active);
+  color: var(--primary-ink);
+  border-color: var(--border-active);
+  box-shadow: inset 0 0 0 2px var(--text-primary), 0 0 0 1px var(--border-active);
+}
+html:root body .metronet-audio:not(.metronet-audio--autenticacion) > summary.metronet-boton-icono {
+  width: var(--control-height); min-width: var(--control-height); max-width: var(--control-height);
+  height: var(--control-height); min-height: var(--control-height);
+  padding: 7px; flex: 0 0 var(--control-height);
+}
+html:root body .metronet-audio:not(.metronet-audio--autenticacion) > summary.metronet-boton-icono > .metronet-icono {
+  width: 24px; height: 24px; flex: 0 0 24px;
+}
 .metronet-audio--autenticacion { position: relative; width: fit-content; margin: 0 0 4px auto; }
 /* Caja discreta de 30 px dentro del objetivo táctil de 44 px. */
 html:root body .metronet-audio--autenticacion > summary.metronet-boton-icono {
@@ -25,12 +43,12 @@ html:root body .metronet-audio--autenticacion[open] > summary.metronet-boton-ico
   display: grid; gap: 12px; padding: 14px;
   background: var(--panel-elevated); color: var(--text-primary);
   border: 1px solid var(--border-active); box-shadow: var(--shadow-floating);
-  font: 14px/1.5 var(--font-cuerpo, sans-serif); text-align: left;
+  font: 14px/1.5 var(--font-arcade); text-align: left;
   max-height: calc(100svh - var(--audio-panel-superior, 82px) - 12px); overflow: auto;
 }
 .metronet-audio__panel[popover]:not(:popover-open) { display: none; }
 .metronet-audio__panel label { display: block; margin: 0; font: inherit; color: inherit; }
 .metronet-audio__panel input[type='checkbox'] { width: auto; min-height: auto; margin: 0 6px 0 0; accent-color: var(--info-active); }
 .metronet-audio__panel input[type='range'] { display: block; width: 100%; margin: 8px 0 0; padding: 0; accent-color: var(--info-active); }
-.metronet-audio__panel p { margin: 0; color: var(--text-secondary); }
+.metronet-audio__panel p { margin: 0; color: var(--text-secondary); font: inherit; }
 .metronet-audio__panel input:focus-visible { outline: 2px solid var(--border-active); outline-offset: 3px; }

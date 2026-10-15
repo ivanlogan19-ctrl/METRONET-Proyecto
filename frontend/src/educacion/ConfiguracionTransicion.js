@@ -16,6 +16,8 @@ export const CONFIGURACION_TRANSICION = Object.freeze({
 });
 
 export const MENSAJES_TRANSICION = Object.freeze({
-  accion: 'Jugar',
-  entrada: 'Entrarás al terminar el recorrido. Pulsá Jugar para comenzar ahora.',
+  accion: 'Iniciar nivel',
+  accionSiguiente: 'Continuar nivel',
+  accionLibre: 'Iniciar Modo Libre',
+  entrada: 'Entrarás al terminar el recorrido. Podés comenzar ahora con el botón.',
 });

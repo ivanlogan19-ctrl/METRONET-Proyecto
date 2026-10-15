@@ -1268,6 +1268,11 @@ html:root body #metronet-aplicacion .metronet-barra-geografica { min-height:32px
 html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) { width:30px !important; min-width:30px; max-width:30px; height:30px; min-height:30px; padding:4px; }
 html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) > svg.metronet-icono { width:18px; height:18px; min-width:18px; flex:0 0 18px; }
 
+/* Compensación óptica del libro, más denso que los demás pictogramas. */
+html:root body #metronet-aplicacion .metronet-barra-geografica .metronet-aprender-acceso.metronet-boton-icono:not(.metronet-poi__panel *, .metronet-tutorial__panel *) > svg.metronet-icono {
+  width: 16px; height: 16px; min-width: 16px; flex: 0 0 16px;
+}
+
 /* Las cinco metas solas aprovechan la altura que no ocupa la lista de lugares. */
 @media (min-width:701px) {
   html:root body #metronet-aplicacion .metronet-objetivos-panel:not(:has(.metronet-consigna__lista-referencias)) .metronet-consigna__lista-breve { --texto-lateral:clamp(11px, 1.8vh, 16px); }
@@ -1411,3 +1416,36 @@ html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloqu
   width:calc(var(--icono-herramienta) * .72); height:calc(var(--icono-herramienta) * .72);
   flex-basis:calc(var(--icono-herramienta) * .72);
 }
+
+/* Acciones conserva las dimensiones originales del mapa. */
+html:root body #metronet-panel-controles .metronet-editor-finalizar [data-guardar] {
+  --accion-editor-color: var(--warning);
+}
+html:root body #metronet-panel-controles .metronet-editor-finalizar [data-ir-simulacion] {
+  --accion-editor-color: var(--primary);
+}
+html:root body #metronet-panel-controles .metronet-editor-finalizar :is([data-guardar], [data-ir-simulacion]) {
+  background: var(--accion-editor-color) !important;
+  border-color: var(--accion-editor-color) !important;
+  color: var(--primary-ink) !important;
+  --herramienta-color: var(--primary-ink);
+}
+html:root body #metronet-panel-controles .metronet-editor-finalizar :is([data-guardar], [data-ir-simulacion]):not(:disabled):hover {
+  background: color-mix(in srgb, var(--accion-editor-color) 80%, white) !important;
+}
+
+/* Construcción y Edición: el color propio ocupa el botón, con pictograma oscuro. */
+#metronet-panel-controles [data-accion-edicion="mover"] { --herramienta-color: var(--warning); }
+#metronet-panel-controles [data-accion-edicion="eliminar"] { --herramienta-color: var(--danger); }
+html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono {
+  background: var(--herramienta-color) !important;
+  border-color: var(--herramienta-color) !important;
+  color: var(--primary-ink) !important;
+}
+html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono > .metronet-icono {
+  color: var(--primary-ink);
+}
+html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:not(:disabled):hover {
+  background: color-mix(in srgb, var(--herramienta-color) 80%, white) !important;
+}
+html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:disabled { opacity: .5; }

@@ -1,3 +1,4 @@
+import { configurarAccion } from './AccionesInterfaz.js';
 import { trazadoPixel } from './PictogramasMapa.js';
 import './iconos-retro.css';
 import { inicializarAyudasSistema } from '../componentes/AyudasSistema.js';
@@ -15,4 +16,7 @@ export function configurarBotonIcono(boton, nombre, etiqueta) {
   boton.setAttribute('aria-label', etiqueta);
   boton.title = etiqueta;
   boton.innerHTML = iconoRetro(nombre);
+  const acciones = { Cerrar:'cerrar', Anterior:'anterior', Siguiente:'siguiente', Guardar:'guardar', Cancelar:'cancelar' };
+  const accion=acciones[etiqueta] || (etiqueta.startsWith('Cerrar ')?'cerrar':null);
+  if(accion)configurarAccion(boton,accion,{icono:true});
 }

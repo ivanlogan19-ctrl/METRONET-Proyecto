@@ -70,7 +70,7 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     await respuesta.json();
-    mostrarMensaje("Usuario creado. Ahora iniciá sesión para continuar.");
+    mostrarMensaje("");
 
     window.setTimeout(() => {
       window.location.assign("/login.html");

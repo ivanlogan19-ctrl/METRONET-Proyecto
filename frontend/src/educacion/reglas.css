@@ -1,3 +1,4 @@
+@import '../interfaz/pestanas.css';
 /* Reglas: consulta por temas, sobre la tipografía y pictogramas del juego. */
 .metronet-reglas {
   --font-ui: 'Silkscreen', monospace;
@@ -18,10 +19,11 @@
 }
 .metronet-reglas__titulo-fila {
   display: grid;
-  grid-template-columns: 60px minmax(0, 1fr) 60px;
+  grid-template-columns: minmax(0, 1fr);
+  position: relative;
   align-items: center;
   gap: 24px;
-  max-width: 920px;
+  max-width: none;
   margin: auto;
 }
 html:root body .metronet-reglas h1 {
@@ -30,35 +32,10 @@ html:root body .metronet-reglas h1 {
   --titulo-contorno: 0px;
   --titulo-brillo: none;
   margin: 0;
-  padding: 12px;
+  padding: 12px 20px;
+  min-height: 72px;
   border-color: var(--info-active);
   text-align: center;
-}
-.metronet-reglas__hoja {
-  width: 60px;
-  height: 72px;
-  padding: 14px 8px;
-  display: grid;
-  align-content: space-between;
-  border: 2px solid var(--info-active);
-  background: var(--panel);
-  box-shadow: 4px 4px 0 var(--border);
-  color: var(--info-active);
-  pointer-events: none;
-}
-.metronet-reglas__hoja span {
-  height: 4px;
-  background: repeating-linear-gradient(to right, currentColor 0 4px, transparent 4px 6px);
-  animation: metronet-reglas-escribir 700ms steps(7, end) both;
-}
-.metronet-reglas__hoja span:nth-child(2) { width: 76%; animation-delay: 700ms; }
-.metronet-reglas__hoja span:nth-child(3) { width: 90%; animation-delay: 1400ms; }
-.metronet-reglas__hoja span:nth-child(4) { width: 60%; animation-delay: 2100ms; }
-.metronet-reglas__hoja--derecha { color: var(--success); border-color: var(--success); }
-.metronet-reglas__hoja--derecha span { animation-duration: 900ms; }
-@keyframes metronet-reglas-escribir {
-  from { clip-path: inset(0 100% 0 0); }
-  to { clip-path: inset(0 0 0 0); }
 }
 .metronet-reglas p { margin: 8px 0 0; }
 .metronet-reglas__pestanas {
@@ -66,23 +43,6 @@ html:root body .metronet-reglas h1 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   margin: 6px 0 14px;
-}
-html:root body .metronet-reglas__pestanas button {
-  min-width: 0;
-  min-height: 42px;
-  padding: 8px;
-  font: 400 13px/1.4 var(--font-arcade);
-  white-space: normal;
-}
-html:root body .metronet-reglas__pestanas button[aria-selected='true'],
-html:root body .metronet-reglas__pestanas button[aria-selected='true']:is(:hover, :active, :focus) {
-  --boton-fondo: var(--info-active);
-  --boton-texto: var(--primary-ink);
-  --boton-borde: var(--info-active);
-  --boton-hover: var(--info-active);
-  background: var(--info-active);
-  color: var(--primary-ink);
-  box-shadow: inset 0 0 0 2px var(--text-primary), 0 0 0 1px var(--info-active);
 }
 .metronet-reglas__panel { display: grid; gap: 12px; min-width: 0; }
 .metronet-reglas__panel[hidden] { display: none; }
@@ -135,6 +95,7 @@ html:root body .metronet-reglas th { color: var(--info-active); font-size: 12px;
 .metronet-reglas .metronet-reglas__nota { color: var(--text-secondary); font-size: 11px; }
 .metronet-reglas .metronet-reglas__pie { margin: 0; text-align: center; font-size: 11px; color: var(--text-secondary); }
 .metronet-reglas__detalle { font-size: 12px; }
+.metronet-reglas__separador + .metronet-reglas__detalle { margin-top: 10px; }
 .metronet-reglas__detalle summary { cursor: pointer; padding: 8px 0; color: var(--info-active); }
 .metronet-reglas__detalle p { padding-bottom: 6px; }
 .metronet-reglas__centrado { text-align: center; }
@@ -147,6 +108,7 @@ html:root body .metronet-reglas th { color: var(--info-active); font-size: 12px;
 .metronet-reglas [data-icono-regla] { display: inline-flex; color: var(--info-active); flex: 0 0 auto; }
 .metronet-reglas [data-icono-regla] > svg { width: 48px; height: 48px; flex: 0 0 48px; }
 .metronet-reglas [data-icono-regla].metronet-reglas__verde { color: var(--success); }
+.metronet-reglas .metronet-reglas__acciones-red [data-icono-regla='finalizarRed'] { color: var(--action-start); }
 .metronet-reglas [data-icono-regla].metronet-reglas__amarillo { color: var(--warning); }
 .metronet-reglas__aviso { display: flex; gap: 18px; align-items: center; }
 .metronet-reglas__aviso h3 { margin-bottom: 4px; }
@@ -209,6 +171,15 @@ html:root body .metronet-reglas th { color: var(--info-active); font-size: 12px;
   .metronet-reglas__formulas .metronet-reglas__nota { position: absolute; right: 14px; top: 5px; margin: 0; }
   .metronet-reglas__formulas [data-icono-regla] > svg { width: 32px; height: 32px; flex-basis: 32px; }
 }
+/* Aprovecha el ancho para que la explicación abierta no alargue la página. */
+@media (min-width: 901px) {
+  .metronet-reglas #panelLibre { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  #panelLibre > :is(.metronet-reglas__formulas, .metronet-reglas__detalle, aside) { grid-column: 1 / -1; }
+  #panelLibre .metronet-reglas__formulas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #panelLibre .metronet-reglas__formulas .metronet-reglas__nota { position: static; margin: 4px 0 0; }
+  #panelLibre > .metronet-reglas__columnas { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  #panelLibre .metronet-reglas__detalle-columnas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
 @media (max-width: 900px) {
   .metronet-reglas { width: calc(100% - 32px); }
   .metronet-reglas__pestanas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -219,10 +190,8 @@ html:root body .metronet-reglas th { color: var(--info-active); font-size: 12px;
 }
 @media (max-width: 620px) {
   .metronet-reglas { font-size: 12px; padding-top: 10px; }
-  .metronet-reglas__titulo-fila { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 8px; }
-  .metronet-reglas__hoja { width: 32px; height: 44px; padding: 7px 4px; box-shadow: 2px 2px 0 var(--border); }
-  .metronet-reglas__hoja span { height: 2px; }
-  html:root body .metronet-reglas h1 { --titulo-tamano: 18px; padding: 8px; }
+  .metronet-reglas__titulo-fila { gap: 8px; }
+  html:root body .metronet-reglas h1 { --titulo-tamano: 18px; padding: 8px 16px; min-height:56px; }
   .metronet-reglas__titulo-fijo > p { font-size: 11px; }
   .metronet-reglas__pestanas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   html:root body .metronet-reglas__pestanas button { font-size: 12px; }
@@ -236,7 +205,4 @@ html:root body .metronet-reglas th { color: var(--info-active); font-size: 12px;
   .metronet-reglas__formulas strong { font-size: 18px; }
   .metronet-reglas [data-icono-regla] > svg { width: 40px; height: 40px; flex-basis: 40px; }
   html:root body .metronet-reglas :is(th, td) { font-size: 11px; padding: 8px 4px; letter-spacing: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .metronet-reglas__hoja span { animation: none; }
 }

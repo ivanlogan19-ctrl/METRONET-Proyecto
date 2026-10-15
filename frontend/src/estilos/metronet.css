@@ -1,4 +1,6 @@
 @import './tokens.css';
+@import '../interfaz/acciones-interfaz.css';
+@import '../interfaz/controles-generales.css';
 @import '../interfaz/iconos-retro.css';
 
 :root {
@@ -11,16 +13,16 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body { min-height: 100%; background: var(--bg-primary); color: var(--text-primary); }
-body { margin: 0; font-family: var(--font-ui); }
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background-image: var(--grid-image);
+  background-size: var(--grid-size) var(--grid-size);
+}
 /* Inicio comparte la fuente del título de nivel con el resto de sus textos y controles. */
 body.metronet-pagina-inicio {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
-}
-html:root body.metronet-pagina-navegable.metronet-pagina-inicio {
-  background-image: url('/assets/fondo-tunel-ladrillos.png');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
 }
 @media (min-width: 800px) {
   html:root body.metronet-pagina-inicio .metronet-inicio {
@@ -31,10 +33,6 @@ html:root body.metronet-pagina-navegable.metronet-pagina-inicio {
   }
 }
 @media (max-width: 799px) {
-  html:root body.metronet-pagina-navegable.metronet-pagina-inicio {
-    background-size: 100% 100svh;
-    background-attachment: fixed;
-  }
   html:root body.metronet-pagina-inicio .metronet-inicio {
     padding-top: 64px;
   }
@@ -280,6 +278,12 @@ button { cursor: pointer; }
 }
 .metronet-navegacion__menu-usuario .metronet-navegacion__enlace { display: none; }
 .metronet-navegacion__menu-usuario .metronet-navegacion__enlace-perfil { display: inline-flex; }
+html:root body .metronet-navegacion__menu-usuario .metronet-navegacion__enlace-perfil {
+  background: var(--primary); border-color: var(--primary-border); color: var(--primary-ink);
+}
+html:root body .metronet-navegacion__menu-usuario .metronet-navegacion__enlace-perfil:hover {
+  background: color-mix(in srgb, var(--primary) 80%, white);
+}
 .metronet-navegacion__menu-usuario button { width: 100%; justify-content: center; text-align: center; }
 .metronet-flujo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; color: var(--text-disabled); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .metronet-flujo__paso.actual { color: var(--info-active); }
@@ -1027,3 +1031,16 @@ html:root body .metronet-revision-pendiente button { width: 100%; min-height: 40
 html:root body .metronet-revision-pendiente button[data-accion-guardar] { background: var(--success); color: var(--bg-primary); border-color: var(--success); }
 html:root body .metronet-revision-pendiente button[data-accion-salir] { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border); }
 html:root body .metronet-revision-pendiente button[value="cancelar"] { background: var(--bg-secondary); color: var(--danger); border-color: var(--danger); }
+
+html:root body .metronet-escenarios-pagina .metronet-escenarios-pagina__estado--disponible { color: var(--success); border-color: var(--success); }
+
+/* Fondo común de pantallas de acceso y navegación; los mapas conservan su superficie. */
+html:root body:not(.metronet-pagina-editor):not(.simulacion-pagina),
+html:root body :is(.auth-page, .perfil-pagina, .metronet-bienvenida) {
+  background-color: var(--bg-primary);
+  background-image: var(--grid-image);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+html:root body:is(.metronet-pagina-editor, .simulacion-pagina) { background-image: none; }

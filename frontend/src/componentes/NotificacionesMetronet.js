@@ -29,14 +29,14 @@ function obtenerContenedor() {
 }
 
 export function mostrarNotificacion(texto, tipo = 'info', opciones = {}) {
-  if (!texto) return;
+  if (!texto || tipo === 'exito') return;
   if (destinoContextual) { destinoContextual(texto, tipo); return; }
   const tipoNormalizado = normalizarTipo(tipo);
   const notificacion = document.createElement('article');
   const duracion = opciones.duracion ?? DURACIONES_POR_TIPO[tipoNormalizado];
   notificacion.className = `metronet-notificacion metronet-notificacion--${tipoNormalizado}`;
   notificacion.setAttribute('role', tipoNormalizado === 'error' ? 'alert' : 'status');
-  notificacion.innerHTML = '<p></p><button type="button" aria-label="Cerrar notificación">×</button>';
+  notificacion.innerHTML = '<p></p><button type="button" data-accion-ui="cerrar" data-categoria-accion="peligro" data-tamano-accion="icono" title="Cerrar" aria-label="Cerrar notificación">×</button>';
   notificacion.querySelector('p').textContent = texto;
   let temporizador = null;
   const cerrar = () => {

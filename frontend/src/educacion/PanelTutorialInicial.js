@@ -1,3 +1,4 @@
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { ofrecerTutorial } from './OfertaTutorial.js';
 import { claveAprendizajeTutorial, describirFunciones, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
@@ -215,7 +216,7 @@ export default class PanelTutorialInicial {
       } else if (this.contexto.escenario?.numero !== 1 && this.herramientasNuevas.length) this.mostrarNovedades();
       else this.iniciarRecorrido(this.recorrido);
     });
-    configurarBotonIcono(repetir, 'reiniciar', 'Recorrer la pantalla');
+    configurarBotonIcono(repetir, 'reiniciar', 'Iniciar tutorial');configurarAccion(repetir,'iniciarTutorial',{icono:true});
     repetir.className += ' metronet-tutorial__repetir'; contenido.push(repetir);
     this.contenido.replaceChildren(...contenido);
   }

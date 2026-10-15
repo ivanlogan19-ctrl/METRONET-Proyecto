@@ -1,0 +1,27 @@
+/* Misma identidad de capa en Construcción y Simulación de Modo Libre. */
+:is([data-calles-visible], [data-capa-simulacion="calles"]) { --color-capa: #79caff; }
+:is([data-trafico-visible], [data-capa-simulacion="trafico"]) { --color-capa: #ffd078; }
+:is([data-poblacion-visible], [data-capa-simulacion="poblacion"]) { --color-capa: #c7a6ff; }
+:is([data-desplazamientos-visible], [data-capa-simulacion="desplazamientos"]) { --color-capa: #63dbdb; }
+[data-capa-simulacion="cobertura"] { --color-capa: #70e5b1; }
+html:root body :is(.metronet-calles, .simulacion-capas) button:is([data-calles-visible], [data-trafico-visible], [data-poblacion-visible], [data-desplazamientos-visible], [data-capa-simulacion]) {
+  background: color-mix(in srgb, var(--color-capa) 65%, white) !important;
+  border-color: var(--color-capa) !important;
+  color: var(--primary-ink) !important;
+}
+html:root body :is(.metronet-calles, .simulacion-capas) button:is([data-calles-visible], [data-trafico-visible], [data-poblacion-visible], [data-desplazamientos-visible], [data-capa-simulacion])[aria-pressed="true"] {
+  background: var(--color-capa) !important;
+  outline: 2px solid var(--primary-ink);
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 1px var(--color-capa);
+}
+html:root body :is(.metronet-calles, .simulacion-capas) button:is([data-calles-visible], [data-trafico-visible], [data-poblacion-visible], [data-desplazamientos-visible], [data-capa-simulacion]) > .metronet-icono { color: var(--primary-ink); }
+
+:is([data-hora-anterior], [data-hora-siguiente], [data-paso-hora]) { --color-horario: var(--warning); }
+:is([data-hora-reproducir], [data-desplazamientos-animar]) { --color-horario: var(--primary); }
+html:root body :is(.metronet-calles, .simulacion-horarios) button:is([data-hora-anterior], [data-hora-siguiente], [data-hora-reproducir], [data-desplazamientos-animar], [data-paso-hora]) {
+  background: var(--color-horario) !important;
+  border-color: var(--color-horario) !important;
+  color: var(--primary-ink) !important;
+}
+html:root body .metronet-calles button:is([data-hora-anterior], [data-hora-siguiente], [data-hora-reproducir], [data-desplazamientos-animar]) > .metronet-icono { color: var(--primary-ink); }

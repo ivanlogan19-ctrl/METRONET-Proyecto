@@ -29,6 +29,7 @@ async function abrir(t, opciones = {}) {
   return { ...v, quitar: id => { redes = redes.filter(d => d.idDiseno !== id); } };
 }
 async function confirmar(pagina, nombre) {
+  if (nombre === 'Red propia') await pagina.locator('#pestanaDisenosLibres').click();
   await pagina.getByRole('button', { name: `Eliminar diseño: ${nombre}`, exact: true }).click();
   await pagina.locator('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
 }
@@ -38,7 +39,8 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado pro
   assert.equal(await p.locator('[data-diseno]').count(), 2);
   assert.match(await p.locator('[data-diseno="88"]').innerText(), /Otro Jugador/);
   assert.equal(await p.locator('[data-diseno="88"] a').count(), 0);
-  assert.equal(await p.locator('[data-diseno="77"] a').count(), 2);
+  assert.equal(await p.locator('[data-diseno="77"] a').count(), 1);
+  assert.equal(await p.locator('[data-diseno="77"] .metronet-disenos__accion--simular').isDisabled(), true);
   assert.equal(await p.locator('#irDisenoLibre').isEnabled(), true);
   assert.equal(await p.locator('#listaMisDisenos [data-diseno="88"]').count(), 1);
   assert.equal(await p.locator('#listaDisenosLibres [data-diseno="77"]').count(), 1);
@@ -48,13 +50,13 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado pro
   if (width === 1440) await p.locator('#confirmarEliminarDiseno').screenshot({path:'/tmp/eliminar-diseno-compacto.png'});
   await p.getByRole('button', { name: 'Cancelar', exact: true }).click();
   assert.equal(v.solicitudes.filter(s => s.method === 'DELETE').length, 0);
-  await confirmar(p, 'Nivel completado'); await p.getByText('Diseño eliminado.', { exact: true }).waitFor();
+  await confirmar(p, 'Nivel completado'); await p.locator('[data-diseno="88"]').waitFor({state:'detached'});
   assert.equal(await p.locator('[data-diseno="88"]').count(), 0);
   await p.reload(); await p.locator('#listaMisDisenos[aria-busy=false]').waitFor({ state: 'attached' });
   assert.equal(await p.locator('[data-diseno="88"]').count(), 0);
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   if (width === 1440) await p.screenshot({ path: '/tmp/metronet-disenos-admin.png', fullPage: true });
-  await confirmar(p, 'Red propia'); await p.getByText('Diseño eliminado.', { exact: true }).waitFor();
+  await confirmar(p, 'Red propia'); await p.locator('[data-diseno="77"]').waitFor({state:'detached'});
   assert.equal(await p.locator('[data-diseno]').count(), 0);
   assert.deepEqual(v.solicitudes.filter(s => s.method === 'DELETE').map(s => s.path), ['/api/admin/disenos/88', '/api/admin/disenos/77']);
 });
@@ -62,7 +64,7 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado pro
 test('Jugador: conserva endpoint propio y protección de niveles', async t => {
   const v = await abrir(t, { administrador: false }); const p = v.pagina;
   assert.equal(await p.getByRole('button', { name: 'Eliminar diseño: Nivel completado' }).isDisabled(), true);
-  await confirmar(p, 'Red propia'); await p.getByText('Diseño eliminado.', { exact: true }).waitFor();
+  await confirmar(p, 'Red propia'); await p.locator('[data-diseno="77"]').waitFor({state:'detached'});
   assert.equal(v.solicitudes.some(s => s.path.startsWith('/api/admin/disenos')), false);
   assert.deepEqual(v.solicitudes.filter(s => s.method === 'DELETE').map(s => s.path), ['/api/simulaciones/77']);
 });
@@ -98,9 +100,10 @@ test('Una carga antigua no resucita un diseño borrado y el doble submit no dupl
   } }); const p = v.pagina;
   await p.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
   await pendiente;
+  await p.locator('#pestanaDisenosLibres').click();
   await p.getByRole('button', { name: 'Eliminar diseño: Red propia' }).click();
   await p.locator('dialog button[value="eliminar"]').evaluate(b => { b.click(); b.click(); });
-  await p.getByText('Diseño eliminado.', { exact: true }).waitFor();
+  await p.locator('[data-diseno="77"]').waitFor({state:'detached'});
   liberar(); await p.locator('#listaMisDisenos[aria-busy=false]').waitFor({ state: 'attached' });
   assert.equal(await p.locator('[data-diseno="77"]').count(), 0);
   assert.equal(v.solicitudes.filter(s => s.method === 'DELETE').length, 1);
@@ -110,8 +113,8 @@ test('Error de listado administrativo muestra reintento sin reemplazarlo por per
   let falla = true;
   const v = await abrir(t, { responder: req => new URL(req.url()).pathname === '/api/admin/disenos' && falla ? { status: 503, json: { detail: 'Servicio no disponible' } } : null }); const p = v.pagina;
   assert.equal(await p.locator('[data-diseno]').count(), 0);
-  assert.equal(await p.getByRole('button', { name: 'Volver a cargar' }).isVisible(), true);
-  falla = false; await p.getByRole('button', { name: 'Volver a cargar' }).click(); await p.locator('[data-diseno="88"]').waitFor();
+  assert.equal(await p.getByRole('button', { name: 'Reintentar' }).isVisible(), true);
+  falla = false; await p.getByRole('button', { name: 'Reintentar' }).click(); await p.locator('[data-diseno="88"]').waitFor();
   assert.equal(v.solicitudes.some(s => s.path === '/api/simulaciones'), false);
 });
 
@@ -130,8 +133,8 @@ test('Administración: misma advertencia y retirada inmediata sin depender de ot
   await p.locator('[data-vista="disenos"]').click();
   await p.locator('[data-eliminar-diseno="88"]').click();
   assert.match(await p.locator('dialog[open]').innerText(), /intento, puntaje y resultados/);
-  await p.getByRole('button', { name: 'Aceptar', exact: true }).click();
-  await p.getByText('Diseño eliminado correctamente.', { exact: true }).waitFor();
+  await p.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
+  await p.locator('[data-eliminar-diseno="88"]').waitFor({state:'detached'});
   assert.equal(await p.locator('[data-eliminar-diseno="88"]').count(), 0);
   assert.equal(await p.locator('[data-eliminar-diseno="77"]').count(), 1);
 });

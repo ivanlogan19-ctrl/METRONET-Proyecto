@@ -5,7 +5,7 @@ const CUADRO_MS = 1000 / 24;
 const INICIO_TREN = 1400;
 const FIN_TREN = 4700;
 const CANTIDAD_VAGONES = 5;
-const C = Object.freeze({ fondo: '#060c1c', tunel: '#020611', marco: '#26415d', acero: '#afc1db', luz: '#edf5ff', azul: '#299fee', ventana: '#76c7ff', sombra: '#132641', ambar: '#ffd078', verde: '#70e5b1', ciudadLejana: '#0d1b30', ciudadCercana: '#172d46', ventanaCiudad: '#365c73' });
+const C = Object.freeze({ tunel: '#020611', marco: '#26415d', acero: '#afc1db', luz: '#edf5ff', azul: '#299fee', ventana: '#76c7ff', sombra: '#132641', ambar: '#ffd078', verde: '#70e5b1', ciudadLejana: '#0d1b30', ciudadCercana: '#172d46', ventanaCiudad: '#365c73' });
 
 function pintarVagon(ctx, x, y, cabina, cuadro) {
   const r = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
@@ -28,7 +28,7 @@ function pintarVagon(ctx, x, y, cabina, cuadro) {
 }
 
 export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar, obtenerTiempo = () => performance.now() - inicio }) {
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const ctx = canvas.getContext('2d', { alpha: true });
   if (!ctx) throw new Error('La escena ferroviaria no está disponible.');
   let ancho = 0, frame, ultimoCuadro = -Infinity, eliminada = false;
   const r = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
@@ -53,7 +53,7 @@ export function crearEscenaFerroviaria(canvas, { reducido, inicio, alFallar, obt
   }
 
   function dibujar(tiempo) {
-    r(0, 0, ancho, ALTO, C.fondo);
+    ctx.clearRect(0, 0, ancho, ALTO);
     pintarCiudad();
     r(0, 87, ancho, 9, C.tunel);
     // La vía se construye en bloques; no es una barra de carga de backend.

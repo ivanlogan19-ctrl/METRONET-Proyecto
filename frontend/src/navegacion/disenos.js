@@ -1,3 +1,4 @@
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import ClienteDisenos from '../red/ClienteDisenos.js';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { inicializarNavegacion, navegarConCambiosPendientes } from './NavegacionAplicacion.js';
@@ -22,6 +23,13 @@ function iniciar() {
   const dialogo = document.getElementById('confirmarEliminarDiseno');
   let disenos = [], escenarios = [], catalogoDisponible = false, modoLibre = null;
   let cargando = false, operacion = false, recargaPendiente = false, versionListado = 0;
+  let grupoActivo = 'campana';
+  const paginas = { campana: 0, libres: 0 };
+  const capacidadPagina = () => (innerWidth < 700 ? 1 : innerWidth < 1050 ? 2 : 3) * (innerHeight < 650 ? 1 : 2);
+  let porPagina = capacidadPagina();
+  const anterior = document.getElementById('paginaDisenosAnterior');
+  const siguiente = document.getElementById('paginaDisenosSiguiente');
+  const pestanas = [...document.querySelectorAll('[data-grupo]')];
   const estados = { EN_DISENO: 'En diseño', EN_DESARROLLO: 'En desarrollo', GUARDADO: 'Guardado', VALIDADO: 'Validado', COMPLETADO: 'Completado', COMPLETADA: 'Completada' };
   const textoEstado = d => estados[d.estado] ?? d.estado ?? '';
   const protegido = d => !administrador && (!catalogoDisponible || escenarios.some(e => e.idEscenario === d.idEscenario && Number.isInteger(e.numero)));
@@ -39,48 +47,96 @@ function iniciar() {
   function crearFila(d) {
       const fila = document.createElement('li');
       fila.dataset.diseno = d.idDiseno;
-      const identidad = document.createElement('div');
+      const cabecera = document.createElement('div');
+      cabecera.className = 'metronet-disenos__cabecera';
+      const nivel = document.createElement('span');
+      nivel.className = 'metronet-disenos__nivel';
+      const numeroNivel = escenarios.find(e => e.idEscenario === d.idEscenario)?.numero;
+      nivel.textContent = Number.isInteger(numeroNivel) ? `Nivel ${String(numeroNivel).padStart(2, '0')}` : esDisenoLibre(d) ? 'Modo Libre' : 'Diseño';
+      const estado = document.createElement('span');
+      estado.className = 'metronet-disenos__estado';
+      estado.classList.toggle('metronet-disenos__estado--listo', ['VALIDADO', 'COMPLETADO', 'COMPLETADA'].includes(d.estado));
+      estado.textContent = textoEstado(d);
+      cabecera.append(nivel, estado);
       const nombre = document.createElement('strong');
       nombre.textContent = d.nombre;
-      const estado = document.createElement('small');
-      const numeroNivel = escenarios.find(e => e.idEscenario === d.idEscenario)?.numero;
-      estado.textContent = `${textoEstado(d)}${Number.isInteger(numeroNivel) ? ` · Nivel ${numeroNivel}` : ''}`;
-      identidad.append(nombre, estado);
-      if (administrador) {
-        const propietario = document.createElement('small');
-        propietario.textContent = `Propietario: ${d.propietario || 'Sin usuario asignado'}${propio(d) ? ' · Mi diseño' : ''} · #${d.idDiseno}`;
-        identidad.append(propietario);
-      }
+      const pie = document.createElement('div');
+      pie.className = 'metronet-disenos__pie-tarjeta';
+      const propietario = document.createElement('small');
+      propietario.textContent = `${propio(d) ? 'Mi diseño' : d.propietario || 'Sin usuario asignado'} · #${d.idDiseno}`;
+      if (administrador && propio(d)) propietario.title = `Propietario: ${d.propietario || 'Sin usuario asignado'}`;
+      pie.append(propietario);
       const acciones = document.createElement('div');
       acciones.className = 'metronet-disenos__acciones';
       // El editor y el simulador personales conservan sus permisos de propiedad.
       if (propio(d)) for (const [icono, etiqueta, destino] of [['editar', 'Abrir diseño', '/'], ['play', 'Simular diseño', '/simulacion.html']]) {
-        const enlace = document.createElement('a');
-        enlace.className = 'metronet-boton'; enlace.href = ruta(d, destino);
+        const deshabilitado = icono === 'play' && !d.preparadoParaSimular;
+        const enlace = document.createElement(deshabilitado ? 'button' : 'a');
+        enlace.className = 'metronet-boton';
+        if (deshabilitado) {
+          enlace.type = 'button';
+          enlace.disabled = true;
+        } else enlace.href = ruta(d, destino);
         configurarBotonIcono(enlace, icono, `${etiqueta}: ${d.nombre}`);
+        configurarAccion(enlace,icono==='editar'?'abrir':'simular',{icono:true});
+        if (deshabilitado) enlace.title = 'Prepará la red desde Edición para habilitar su simulación.';
         enlace.classList.add(icono === 'editar' ? 'metronet-disenos__accion--editar' : 'metronet-disenos__accion--simular');
         acciones.append(enlace);
       }
       const eliminar = document.createElement('button');
       eliminar.type = 'button';
       configurarBotonIcono(eliminar, 'eliminar', `Eliminar diseño: ${d.nombre}`);
-      eliminar.classList.add('metronet-boton--peligro');
+      eliminar.classList.add('metronet-boton--peligro');configurarAccion(eliminar,'eliminar',{icono:true});
       eliminar.disabled = protegido(d) || operacion;
       eliminar.addEventListener('click', () => confirmarEliminar(d));
       acciones.append(eliminar);
-      fila.append(identidad, acciones);
+      pie.append(acciones);
+      fila.append(cabecera, nombre, pie);
       return fila;
   }
 
   function renderizar() {
-    const deCampana = disenos.filter(d => !esDisenoLibre(d));
-    const libres = disenos.filter(esDisenoLibre);
-    lista.replaceChildren(...deCampana.map(crearFila));
-    listaLibres.replaceChildren(...libres.map(crearFila));
-    mensaje.hidden = deCampana.length > 0;
-    mensaje.textContent = deCampana.length ? '' : disenos.length
-      ? 'Todavía no hay diseños de campaña guardados.' : 'Todavía no hay diseños guardados.';
+    const grupos = { campana: disenos.filter(d => !esDisenoLibre(d)), libres: disenos.filter(esDisenoLibre) };
+    for (const [grupo, redes] of Object.entries(grupos)) {
+      const sufijo = grupo === 'campana' ? 'Campana' : 'Libres';
+      const totalPaginas = Math.max(1, Math.ceil(redes.length / porPagina));
+      paginas[grupo] = Math.min(paginas[grupo], totalPaginas - 1);
+      const desde = paginas[grupo] * porPagina;
+      (grupo === 'campana' ? lista : listaLibres).replaceChildren(...redes.slice(desde, desde + porPagina).map(crearFila));
+      document.getElementById(`panelDisenos${sufijo}`).hidden = grupo !== grupoActivo;
+      document.getElementById(`vacioDisenos${sufijo}`).hidden = redes.length > 0;
+      document.getElementById(`resumenDisenos${sufijo}`).textContent = redes.length
+        ? `Diseños ${desde + 1}–${Math.min(desde + porPagina, redes.length)} de ${redes.length}` : '0 diseños';
+      const pestana = document.getElementById(`pestanaDisenos${sufijo}`);
+      pestana.textContent = `${grupo === 'campana' ? 'Diseño de los niveles' : 'Modo Libre'} · ${redes.length}`;
+      pestana.setAttribute('aria-selected', String(grupo === grupoActivo));
+      pestana.tabIndex = grupo === grupoActivo ? 0 : -1;
+      if (grupo === grupoActivo) {
+        anterior.disabled = paginas[grupo] === 0;
+        siguiente.disabled = paginas[grupo] === totalPaginas - 1;
+        document.getElementById('paginaDisenosActual').textContent = `Página ${paginas[grupo] + 1} de ${totalPaginas}`;
+      }
+    }
   }
+
+  pestanas.forEach((boton, indice) => {
+    boton.addEventListener('click', () => { grupoActivo = boton.dataset.grupo; renderizar(); });
+    boton.addEventListener('keydown', evento => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return;
+      evento.preventDefault();
+      const destino = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestanas.length - 1
+        : (indice + (evento.key === 'ArrowRight' ? 1 : -1) + pestanas.length) % pestanas.length;
+      pestanas[destino].click(); pestanas[destino].focus();
+    });
+  });
+  anterior.addEventListener('click', () => { paginas[grupoActivo]--; renderizar(); });
+  siguiente.addEventListener('click', () => { paginas[grupoActivo]++; renderizar(); });
+  window.addEventListener('resize', () => {
+    const capacidad = capacidadPagina();
+    if (capacidad === porPagina) return;
+    for (const grupo of Object.keys(paginas)) paginas[grupo] = Math.floor(paginas[grupo] * porPagina / capacidad);
+    porPagina = capacidad; renderizar();
+  });
 
   async function cargar() {
     if (cargando || operacion || dialogo.open) { recargaPendiente = true; return; }
@@ -99,10 +155,23 @@ function iniciar() {
       document.getElementById('explicacionDisenoLibre').hidden = Boolean(modoLibre);
       botonLibre.title = modoLibre ? '' : 'Completá los diez niveles para habilitar el diseño libre.';
       if (redes.status === 'fulfilled' && Array.isArray(redes.value)) {
-        disenos = redes.value.map(d => ({ ...d, nombre: d.nombre || `Diseño #${d.idDiseno}` }));
+        const verificadas = await Promise.all(redes.value.map(async d => {
+          let preparadoParaSimular = false;
+          const escenario = escenarios.find(e => e.idEscenario === d.idEscenario);
+          if (propio(d) && ['VALIDADO', 'COMPLETADA', 'COMPLETADO'].includes(d.estado)
+            && escenario?.herramientasHabilitadas?.simulacion !== false) {
+            try {
+              preparadoParaSimular = (await cliente.obtener(d.idDiseno))?.preparadoParaSimular === true;
+            } catch { /* Sin confirmación del servidor, el acceso sigue deshabilitado. */ }
+          }
+          return { ...d, nombre: d.nombre || `Diseño #${d.idDiseno}`, preparadoParaSimular };
+        }));
+        if (version !== versionListado) return;
+        disenos = verificadas;
+        mensaje.hidden = true;
         renderizar();
       } else {
-        disenos = []; lista.replaceChildren(); listaLibres.replaceChildren();
+        disenos = []; renderizar();
         mensaje.hidden = false;
         mensaje.textContent = redes.reason?.message || 'No fue posible cargar los diseños.';
       }
@@ -134,14 +203,14 @@ function iniciar() {
       try {
         await gestion.solicitar(`/${diseno.idDiseno}`, { method: 'DELETE' });
         disenos = disenos.filter(d => d.idDiseno !== diseno.idDiseno);
-        resultado = 'Diseño eliminado.';
+        resultado = '';
       } catch (error) {
         if (error.estadoHttp === 404) {
           disenos = disenos.filter(d => d.idDiseno !== diseno.idDiseno);
           resultado = 'Este diseño ya no existe. Se actualizó la lista.';
         } else resultado = error.message;
       } finally {
-        operacion = false; renderizar(); mensaje.hidden = false; mensaje.textContent = resultado;
+        operacion = false; renderizar(); mensaje.hidden = !resultado; mensaje.textContent = resultado;
         recargarSiPendiente();
       }
     }, { once: true });

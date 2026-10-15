@@ -20,32 +20,24 @@
     <div data-navegacion-global></div>
     <main class="admin-aplicacion">
       <aside class="admin-menu" aria-label="Menú de administración">
-        <nav class="admin-navegacion" aria-label="Módulos de administración">
-          <button
-            class="admin-enlace activo"
-            type="button"
-            data-vista="usuarios"
-          >
-            Usuarios
-          </button>
-          <button class="admin-enlace" type="button" data-vista="disenos">
-            Diseños
-          </button>
-          <button class="admin-enlace" type="button" data-vista="configuracion">
-            Configuración
-          </button>
-          <button class="admin-enlace" type="button" data-vista="niveles">Experiencia de juego</button>
-          <button class="admin-enlace" type="button" data-vista="fuentes">Fuentes del mapa</button>
-          <button class="admin-enlace" type="button" data-vista="unidades">Unidades y equivalencias</button>
-          <button class="admin-enlace" type="button" data-vista="actividad">
-            Actividad
-          </button>
+        <nav class="admin-navegacion metronet-pestanas" aria-label="Módulos de administración">
+          <section class="admin-menu-grupo" aria-labelledby="grupoGestion">
+            <h2 id="grupoGestion">Gestión</h2>
+            <button class="admin-enlace activo" type="button" data-vista="usuarios" aria-pressed="true">Usuarios</button>
+            <button class="admin-enlace" type="button" data-vista="disenos" aria-pressed="false">Diseños</button>
+            <button class="admin-enlace" type="button" data-vista="actividad" aria-pressed="false">Actividad</button>
+          </section>
+          <section class="admin-menu-grupo" aria-labelledby="grupoJuego">
+            <h2 id="grupoJuego">Juego</h2>
+            <button class="admin-enlace" type="button" data-vista="niveles" aria-pressed="false">Experiencia de juego</button>
+            <button class="admin-enlace" type="button" data-vista="fuentes" aria-pressed="false">Fuentes del mapa</button>
+            <button class="admin-enlace" type="button" data-vista="unidades" aria-pressed="false">Unidades y equivalencias</button>
+          </section>
+          <section class="admin-menu-grupo" aria-labelledby="grupoSistema">
+            <h2 id="grupoSistema">Sistema</h2>
+            <button class="admin-enlace" type="button" data-vista="configuracion" aria-pressed="false">Configuración</button>
+          </section>
         </nav>
-        <svg class="admin-senal-ferroviaria" viewBox="0 0 1049 1499" aria-hidden="true" focusable="false">
-          <image href="/assets/senal-ferroviaria-admin.png" width="1049" height="1499" />
-          <path class="admin-senal-ferroviaria__luz admin-senal-ferroviaria__luz--izquierda" d="M317 590h52v12h12v12h12v12h12v48h-12v12h-12v12h-12v12h-52v-12h-12v-12h-12v-12h-12v-48h12v-12h12v-12h12z" />
-          <path class="admin-senal-ferroviaria__luz admin-senal-ferroviaria__luz--derecha" d="M677 590h52v12h12v12h12v12h12v48h-12v12h-12v12h-12v12h-52v-12h-12v-12h-12v-12h-12v-48h12v-12h12v-12h12z" />
-        </svg>
         <div class="admin-menu-pie" hidden>
           <button id="cerrarSesion" class="admin-cerrar-sesion" type="button">
             Cerrar sesión
@@ -65,7 +57,12 @@
             <img id="iconoUnidades" src="/assets/icono-unidades-admin.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
             <img id="iconoNiveles" src="/assets/icono-experiencia-tren-v2.svg" width="96" height="96" alt="" aria-hidden="true" hidden />
           </div>
-          <p id="nombreAdministrador" class="admin-usuario"></p>
+          <p id="nombreAdministrador" class="admin-usuario">
+            <svg class="admin-usuario__credencial" viewBox="0 0 32 28" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+              <path fill="currentColor" fill-rule="evenodd" d="M12 0h8v2h2v3h10v23H0V5h10V2h2zm2 3v4h4V3zM2 7v19h28V7h-8v3H10V7zM8 12h4v2h2v4h-2v2h3v4H5v-4h3v-2H6v-4h2zm10 1h9v2h-9zm0 5h9v2h-9zm0 5h6v2h-6z" />
+            </svg>
+            <span class="admin-usuario__datos"><span id="identificadorAdministrador" class="admin-usuario__equipo"></span><strong class="admin-usuario__cargo">Administrador</strong></span>
+          </p>
         </header>
 
         <section
@@ -87,7 +84,7 @@
             </label>
             <label>
               Rol
-              <select id="filtroRolUsuarios">
+              <select data-control-general="select" id="filtroRolUsuarios">
                 <option value="">Todos los roles</option>
                 <option value="ADMIN">Administrador</option>
                 <option value="JUGADOR">Jugador</option>
@@ -153,12 +150,11 @@
         <section id="vista-actividad" class="admin-vista">
           <div class="admin-actividad-cabecera">
             <h2>Registro de actividad de administradores</h2>
-            <button id="borrarTodasActividades" class="admin-eliminar" type="button" disabled>Borrar todo el registro</button>
           </div>
           <p id="mensajeActividad" class="admin-mensaje" role="status" aria-live="polite"></p>
           <div class="admin-tabla-contenedor">
             <table class="admin-tabla">
-              <thead><tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Detalle</th><th>Borrar</th></tr></thead>
+              <thead><tr><th>Fecha</th><th>Administrador</th><th>Acción</th><th>Detalle</th><th scope="col"><button id="borrarTodasActividades" class="admin-eliminar" type="button" disabled data-accion-ui="eliminarTodo" data-categoria-accion="peligro">Eliminar todo</button></th></tr></thead>
               <tbody id="tablaActividad"></tbody>
             </table>
           </div>
@@ -172,7 +168,7 @@
             <p class="admin-etiqueta">Cuenta registrada</p>
             <h2 id="tituloEditorUsuario">Editar usuario</h2>
           </div>
-          <button id="cerrarEditorUsuario" class="admin-secundario" type="button">Cerrar</button>
+          <button id="cerrarEditorUsuario" class="admin-secundario" type="button" data-accion-ui="cerrar" data-categoria-accion="peligro">Cerrar</button>
         </div>
         <input id="editorIdUsuario" type="hidden" />
         <label for="editorNombre">Nombre</label>
@@ -189,7 +185,7 @@
         <input id="editorContrasena" type="password" autocomplete="new-password" placeholder="Dejar vacía para conservarla" />
         <p class="admin-ayuda">Si cambiás la contraseña: mínimo 6 caracteres, una mayúscula y un carácter especial.</p>
         <p id="mensajeEditorUsuario" class="admin-mensaje" role="status"></p>
-        <button class="admin-guardar" type="submit">Guardar cambios</button>
+        <button class="admin-guardar" type="submit" data-accion-ui="guardar" data-categoria-accion="principal">Guardar</button>
       </form>
     </dialog>
 

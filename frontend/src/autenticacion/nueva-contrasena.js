@@ -53,7 +53,7 @@ async function cambiarContrasena(evento) {
     );
     limpiarContextoRecuperacion();
     formulario.reset();
-    mostrarMensaje('Contraseña actualizada correctamente. Ya podés iniciar sesión.');
+    mostrarMensaje('');
 
     window.setTimeout(() => {
       window.location.replace('/login.html');

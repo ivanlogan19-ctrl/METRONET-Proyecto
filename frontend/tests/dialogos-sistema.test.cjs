@@ -21,7 +21,7 @@ test('Escape y Cancelar preservan usuario y foco; aceptar mantiene DELETE y mues
     await boton.click(); await dialogo.waitFor();
     assert.equal(await dialogo.getByRole('button', { name: 'Cancelar' }).evaluate(e => e === document.activeElement), true);
     await pagina.keyboard.press('Tab');
-    assert.equal(await dialogo.getByRole('button', { name: 'Aceptar' }).evaluate(e => e === document.activeElement), true);
+    assert.equal(await dialogo.getByRole('button', { name: 'Eliminar' }).evaluate(e => e === document.activeElement), true);
     await pagina.keyboard.press('Tab');
     assert.equal(await dialogo.getByRole('button', { name: 'Cancelar' }).evaluate(e => e === document.activeElement), true);
     if (cancelar === 'Escape') await pagina.keyboard.press('Escape');
@@ -30,7 +30,7 @@ test('Escape y Cancelar preservan usuario y foco; aceptar mantiene DELETE y mues
     assert.equal(await boton.evaluate(e => e === document.activeElement), true);
     assert.equal(solicitudes.filter(s => s.method === 'DELETE').length, 0);
   }
-  await boton.click(); await dialogo.getByRole('button', { name: 'Aceptar' }).click();
+  await boton.click(); await dialogo.getByRole('button', { name: 'Eliminar' }).click();
   await pagina.locator('#mensajeAdministracion.error').waitFor();
   assert.deepEqual(solicitudes.filter(s => s.method === 'DELETE').map(s => s.path), ['/api/admin/usuarios/7']);
 });

@@ -1,3 +1,4 @@
+import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
 import { seleccionarTarjetaEducativa, tarjetaEducativaActual, tarjetasDisponibles } from './TarjetasEducativasNivel.js';
 import { gestorMusica } from '../audio/GestorMusica.js';
 import { ajustarIlustracionTarjeta } from './AjustarIlustracionTarjeta.js';
@@ -52,16 +53,16 @@ export function crearTarjetaEducativaNivel(tarjeta, numero, alContinuar, { desde
   const pista = elemento('small', desdeAyuda ? `Tarjeta ${posicion} de ${total} · Nivel ${numero}` : 'Podés volver a leer esta tarjeta desde Ayuda.');
   const acciones = document.createElement('div');
   acciones.className = 'metronet-tarjeta-educativa__acciones';
-  const continuar = elemento('button', desdeAyuda ? 'Volver' : 'Continuar →', desdeAyuda ? 'metronet-boton--primario' : 'metronet-boton--exito metronet-boton--destacado');
-  continuar.type = 'button';
+  const continuar = elemento('button', desdeAyuda ? 'Cerrar' : 'Continuar', desdeAyuda ? 'metronet-boton--primario' : 'metronet-boton--exito metronet-boton--destacado');
+  continuar.type = 'button';configurarAccion(continuar,desdeAyuda?'cerrar':'continuar');
   continuar.addEventListener('click', alContinuar);
   if (desdeAyuda && alSiguiente) {
-    const siguiente = elemento('button', 'Siguiente tarjeta →', 'metronet-boton--exito metronet-boton--destacado');
-    siguiente.type = 'button';
+    const siguiente = elemento('button', 'Siguiente', 'metronet-boton--exito metronet-boton--destacado');
+    siguiente.type = 'button';configurarAccion(siguiente,'siguiente');
     siguiente.addEventListener('click', alSiguiente);
-    acciones.append(siguiente);
+    acciones.append(continuar,siguiente);
   }
-  acciones.append(continuar);
+  if(!continuar.parentElement)acciones.append(continuar);
   pie.append(pista, acciones);
   tarjetaVista.append(cabecera, elemento('p', 'Una idea sobre transporte y planificación de redes.', 'metronet-tarjeta-educativa__subtitulo'), figura,
     elemento('p', tarjeta.texto, 'metronet-tarjeta-educativa__texto'), aprendizaje);
@@ -100,7 +101,7 @@ export function abrirTarjetaEducativaDesdeAyuda(numero, focoAnterior) {
     dialogo.replaceChildren(vista.elemento);
     dialogo.setAttribute('aria-labelledby', vista.titulo.id);
     dialogo.scrollTop = 0;
-    if (enfocarSiguiente) vista.elemento.querySelector('.metronet-tarjeta-educativa__acciones button').focus({ preventScroll: true });
+    if (enfocarSiguiente) vista.elemento.querySelector('[data-accion-ui="siguiente"]').focus({ preventScroll: true });
     return vista;
   }
   const vista = mostrarTarjeta();

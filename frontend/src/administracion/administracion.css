@@ -1,3 +1,4 @@
+@import '../interfaz/pestanas.css';
 body.metronet-pagina-administracion {
   --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-tecnica: var(--font-ui);
@@ -81,31 +82,6 @@ body.metronet-pagina-administracion .metronet-navegacion {
   padding-top: var(--space-xl, 32px);
 }
 
-/* Decoración fija del hueco lateral: no recibe eventos ni participa del layout. */
-.admin-senal-ferroviaria {
-  position: fixed;
-  left: var(--admin-lateral-padding);
-  bottom: var(--space-xs, 8px);
-  width: calc(var(--admin-menu-width) - 2 * var(--admin-lateral-padding));
-  height: min(360px, calc(100svh - 420px));
-  pointer-events: none;
-  user-select: none;
-}
-.admin-senal-ferroviaria image { image-rendering: pixelated; }
-.admin-senal-ferroviaria__luz {
-  fill: #ff414d;
-  mix-blend-mode: screen;
-  animation: admin-senal-alternar 2s steps(1, end) infinite;
-}
-.admin-senal-ferroviaria__luz--derecha { animation-delay: -1s; }
-@keyframes admin-senal-alternar { 0%, 100% { opacity: .55; } 50% { opacity: 0; } }
-@media (max-width: 920px), (max-height: 640px) {
-  .admin-senal-ferroviaria { display: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .admin-senal-ferroviaria__luz { animation: none; opacity: .25; }
-}
-
 .admin-contenido {
   min-width: 0;
   padding: clamp(12px, 1.8vw, 20px) clamp(12px, 1.5vw, 20px) var(--space-2xl, 48px);
@@ -135,12 +111,23 @@ html:root body.metronet-pagina-administracion .admin-encabezado {
 }
 
 html:root body.metronet-pagina-administracion .admin-usuario {
-  padding: 10px 16px;
-  border-color: var(--success);
-  color: var(--primary-ink);
-  background: var(--success);
-  font-size: 15px;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border: 2px solid #8798ae;
+  border-radius: 0;
+  color: #aebdcc;
+  background: #152536;
+  box-shadow: inset 0 0 0 2px #24374a;
+  font-family: var(--font-ui);
+  text-align: left;
 }
+.admin-usuario__credencial { width: 40px; height: 36px; flex: 0 0 40px; }
+.admin-usuario__datos { display: grid; gap: 3px; min-width: 0; padding-left: 14px; border-left: 2px solid #8798ae; }
+.admin-usuario__equipo { font-size: 13px; line-height: 1.3; overflow-wrap: anywhere; }
+.admin-usuario__cargo { color: #edf3fa; font-size: 17px; font-weight: 700; line-height: 1.3; }
 
 .admin-etiqueta {
   margin: 0 0 var(--space-xs, 8px);
@@ -732,77 +719,45 @@ html:root body #vista-niveles:not(.admin-vista--editando) > h2 {
   line-height: 1.5;
 }
 #vista-niveles > .admin-mensaje:empty { display: none; }
+/* Diez niveles: 1–5 a la izquierda, 6–10 a la derecha. */
 html:root body .admin-niveles__lista {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  border: 1px solid var(--info-active);
-  background: var(--panel);
-  font: 400 14px/1.35 var(--font-ui);
+  width: 100%; margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(2,minmax(0,1fr));
+  grid-template-rows: repeat(5,clamp(64px,8.5vh,88px)); grid-auto-flow: column;
+  gap: clamp(10px,1.5vh,18px) 20px;
+  font: 400 clamp(12px,1vw,14px)/1.5 var(--font-arcade);
 }
-html:root body .admin-niveles__lista :is(th, td) {
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  vertical-align: middle;
-  text-align: center;
+html:root body .admin-niveles__tarjeta {
+  min-width: 0; margin: 0; padding: 10px 12px;
+  display: grid; grid-template-columns: 42px minmax(0,1fr) 96px;
+  align-items: center; gap: 14px;
+  border: 1px solid var(--info-active); background: var(--panel);
 }
-html:root body .admin-niveles__lista thead th {
-  height: 42px;
-  color: var(--text-primary);
-  background: var(--panel-elevated);
-  font: inherit;
+html:root body .admin-niveles__nombre {
+  min-width: 0; color: var(--text-primary); font: inherit;
+  text-align: left; overflow-wrap: anywhere;
 }
-.admin-niveles__lista thead th:nth-child(1) { width: 9%; }
-.admin-niveles__lista thead th:nth-child(2) { width: 37%; }
-.admin-niveles__lista thead th:nth-child(3) { width: 21%; }
-.admin-niveles__lista thead th:nth-child(4) { width: 19%; }
-.admin-niveles__lista thead th:nth-child(5) { width: 14%; }
-html:root body .admin-niveles__lista tbody th {
-  color: var(--text-primary);
-  background: transparent;
-  font: inherit;
-  letter-spacing: normal;
-  text-transform: none;
-  overflow-wrap: anywhere;
+html:root body .admin-niveles__numero {
+  display: grid; place-items: center; width: 42px; height: 42px;
+  border: 1px solid var(--info-active); background: var(--info-active);
+  color: var(--primary-ink); font: inherit;
 }
-html:root body .admin-niveles__lista :is(thead th:nth-child(2), tbody th) { text-align: left; }
-.admin-niveles__numero {
-  display: inline-grid;
-  place-items: center;
-  min-width: 34px;
-  min-height: 32px;
-  border: 1px solid var(--info-active);
-  background: var(--bg-secondary);
-}
-.admin-niveles__publicacion,
-.admin-niveles__revision { display: inline-flex; align-items: center; gap: 8px; }
-.admin-niveles__publicacion { color: var(--success, #6ee0b5); }
-.admin-niveles__revision { color: var(--text-secondary); }
-.admin-niveles__publicacion::before,
-.admin-niveles__revision::before { content: ''; width: 8px; height: 8px; flex: 0 0 8px; background: currentColor; }
 html:root body .admin-niveles__lista .admin-secundario {
-  width: 100%;
-  max-width: 120px;
-  min-height: 34px;
-  padding: 6px 10px;
-  font: 700 13px/1.4 var(--font-ui);
+  width: 96px; min-width: 0; max-width: 96px; height: 36px; min-height: 36px;
+  margin: 0; padding: 6px 8px; font: 400 12px/1.4 var(--font-arcade);
 }
-.admin-niveles__lista tbody tr:focus-within { outline: 2px solid var(--info-active); outline-offset: -2px; }
-@media (min-width: 1000px) and (max-height: 800px) {
+.admin-niveles__tarjeta:focus-within { outline: 2px solid var(--warning); outline-offset: 2px; }
+@media (min-width:1000px) and (max-height:800px) {
   html:root body .admin-contenido:has(#vista-niveles.activa:not(.admin-vista--editando)) { padding-bottom: 16px; }
   html:root body #vista-niveles:not(.admin-vista--editando) { padding-top: 12px; gap: 10px; }
-  html:root body .admin-niveles__lista :is(th, td) { padding-block: 3px; }
-  html:root body .admin-niveles__lista thead th { height: 36px; }
 }
-@media (max-width: 1100px) {
-  html:root body .admin-niveles__lista { font-size: 12px; }
-  html:root body .admin-niveles__lista :is(th, td) { padding-inline: 6px; }
-  .admin-niveles__publicacion, .admin-niveles__revision { gap: 4px; }
+@media (max-width:1100px) {
+  html:root body .admin-niveles__tarjeta { grid-template-columns: 34px minmax(0,1fr) 80px; gap: 8px; padding: 8px; }
+  html:root body .admin-niveles__numero { width: 34px; height: 34px; }
+  html:root body .admin-niveles__lista .admin-secundario { width: 80px; max-width: 80px; }
 }
-@media (max-width: 720px) {
-  /* En pantallas angostas se puede recorrer la tabla sin desbordar la página. */
-  #vista-niveles:not(.admin-vista--editando) .admin-niveles { overflow-x: auto; }
-  html:root body .admin-niveles__lista { min-width: 680px; }
+@media (max-width:720px) {
+  html:root body .admin-niveles__lista { grid-template-columns: minmax(0,1fr); grid-template-rows: none; grid-auto-flow: row; grid-auto-rows: minmax(64px,auto); gap: 10px; }
 }
 .admin-niveles__cabecera h2 { margin: 0 0 var(--space-xs, 8px); }
 .admin-niveles__cabecera p { margin: .25rem 0; }
@@ -862,12 +817,6 @@ html:root body button.admin-niveles__publicar:not(:disabled) { --boton-texto: va
   font-size: 11px; line-height: 1.4; text-align: center;
 }
 .admin-niveles__pestanas { display: flex; flex-wrap: wrap; gap: 4px; }
-html:root body .admin-niveles__pestanas button { flex: 1 1 auto; padding: 7px 10px; font-size: 12px; }
-html:root body .admin-niveles__pestanas [aria-selected='true'] {
-  --boton-fondo: var(--lista-seleccion);
-  --boton-borde: var(--info-active);
-  box-shadow: var(--control-presionado), inset 0 -3px var(--info-active);
-}
 .admin-niveles__paneles { min-width: 0; }
 .admin-niveles__panel { min-width: 0; padding: 12px; }
 .admin-niveles__panel > p:first-child { margin-top: 0; }
@@ -876,6 +825,9 @@ html:root body .admin-niveles__pestanas [aria-selected='true'] {
 .admin-niveles__ficha { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
 .admin-niveles__panel--desafio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .admin-niveles__datos-breves { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 180px); gap: 12px; }
+html:root body .admin-niveles__editor .admin-niveles__datos-breves :is(input,select) {
+  height: var(--select-height); min-height: var(--select-height); box-sizing: border-box;
+}
 .admin-niveles__panel .admin-niveles__campo { min-width: 0; margin: 0; font-size: 13px; align-content: start; }
 .admin-niveles__panel textarea { min-height: 112px; }
 .admin-niveles__panel--desafio textarea { min-height: 160px; }
@@ -899,17 +851,27 @@ html:root body .admin-niveles :is(h3, h4)::before { content: none; display: none
 .admin-niveles__regla:not(.admin-niveles__regla--compuesta) { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
 .admin-niveles__regla:not(.admin-niveles__regla--compuesta):not(.admin-niveles__regla--casilla) > label { align-self: stretch; grid-template-rows: minmax(0, 1fr) auto; align-content: stretch; }
 .admin-niveles__regla.admin-niveles__regla--casilla { align-items: center; align-content: center; }
+.admin-niveles__reglas--condiciones .admin-niveles__regla { border: 0; background: transparent; }
 .admin-niveles__regla input[type='number'] { max-width: 112px; }
 html:root body .admin-niveles__reglas .admin-niveles__campo { font-size: 12px; gap: 6px; }
-html:root body .admin-niveles__reglas .admin-niveles__quitar-regla { width: 30px; min-width: 30px; max-width: 30px; height: 32px; min-height: 32px; padding: 3px; }
-html:root body .admin-niveles__reglas .admin-niveles__quitar-regla > svg { width: 22px; height: 22px; flex-basis: 22px; }
+html:root body .admin-niveles__editor .admin-niveles__quitar-regla {
+  --icon-button-size: 28px;
+  max-width: 28px;
+  padding: 3px !important;
+}
+html:root body .admin-niveles__editor .admin-niveles__quitar-regla > svg {
+  width: 16px !important; height: 16px !important; flex-basis: 16px !important;
+}
 .admin-niveles__regla--compuesta { grid-column: 1 / -1; }
 .admin-niveles__agregar-regla { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 8px; margin-top: 12px; min-width: 0; }
 .admin-niveles__agregar-regla > label { width: 100%; }
 .admin-niveles__agregar-regla > .admin-niveles__acciones-lista { width: 100%; }
 html:root body .admin-niveles__panel .admin-niveles__agregar-regla > button { min-height: 32px; height: 32px; padding-block: 5px; }
 .admin-niveles__valor-nueva-regla { min-width: 0; width: 100%; }
-html:root body .admin-niveles__valor-nueva-regla input[type='number'] { width: 100%; text-align: center; }
+html:root body .admin-niveles__valor-nueva-regla input[type='number'] {
+  width: 80px; max-width: 100%; justify-self: center; text-align: center;
+}
+.admin-niveles__valor-nueva-regla[data-tipo='number'] > label { text-align: center; }
 /* Campos y acciones independientes: ninguna lista hereda columnas implícitas. */
 .admin-niveles__seccion :is(.admin-niveles__lista-valores, .admin-niveles__objeto-valores) {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
@@ -984,8 +946,12 @@ html:root body .admin-niveles__panel--tarjetas textarea { height: 100%; resize: 
     min-height: 30px; padding: 5px 8px; text-align: left; justify-content: start;
   }
   html:root body .admin-niveles__agregar-regla > label > select::picker(select) {
-    position-area: bottom span-right; position-try-fallbacks: none;
-    inset: auto; align-self: start; max-block-size: min(248px, calc(100% - 12px)); margin-block: 4px 8px;
+    position-area: bottom span-right;
+    position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+    position-try-order: most-block-size;
+    inset: auto;
+    max-block-size: min(420px, calc(100dvh - 24px));
+    margin-block: 4px;
   }
 }
 .admin-niveles__vista--vacia { display: grid; place-items: center; }
@@ -999,8 +965,9 @@ html:root body .admin-niveles__panel--tarjetas textarea { height: 100%; resize: 
 .admin-niveles__limpieza { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 8px; }
 .admin-niveles__paginas { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 8px; }
 .admin-niveles__pagina > svg { rotate: var(--giro-flecha); }
-html:root body :is(.admin-niveles__paginas .admin-niveles__pagina, .admin-niveles__limpieza > button) { width: 30px; min-width: 30px; max-width: 30px; height: 30px; min-height: 30px; padding: 3px; flex-basis: 30px; }
-html:root body :is(.admin-niveles__paginas .admin-niveles__pagina, .admin-niveles__limpieza > button) > svg { width: 18px; height: 18px; flex-basis: 18px; }
+html:root body .admin-niveles__paginas .admin-niveles__pagina { width: 30px; min-width: 30px; max-width: 30px; height: 30px; min-height: 30px; padding: 3px; flex-basis: 30px; }
+html:root body .admin-niveles__paginas .admin-niveles__pagina > svg { width: 18px; height: 18px; flex-basis: 18px; }
+html:root body .admin-niveles__limpieza > button { width: auto; max-width: 100%; flex: 0 0 auto; }
 .admin-niveles__vista-contenido { min-width: 0; flex: 1; }
 .admin-niveles__vista-consigna { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
 .admin-niveles__vista-tarjeta { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; align-items: center; }
@@ -1079,7 +1046,6 @@ html:root body :is(.admin-niveles__paginas .admin-niveles__pagina, .admin-nivele
   html:root body .admin-niveles__cabecera h2 { padding-block: 0; }
   .admin-niveles__editor { gap: 6px; }
   .admin-niveles__acciones { grid-template-columns: minmax(0, 1fr); padding-block: 6px; gap: 8px; }
-  html:root body .admin-niveles__pestanas button { min-height: 32px; padding-block: 4px; }
   .admin-niveles__panel--reglas { padding-block: 8px; gap: 6px; }
   .admin-niveles__agregar-regla { row-gap: 8px; }
   .admin-niveles__condiciones { gap: 6px; }
@@ -1189,7 +1155,746 @@ html:root body.metronet-pagina-administracion [data-guardar-rol] {
 #vista-unidades .admin-equivalencias p { margin:0; max-width:none; text-align:center; font:9px/1.8 var(--font-arcade); color:var(--text-secondary); }
 @media(max-width:700px) { #vista-unidades :is(th,td) { padding:8px 4px; font-size:8px; } }
 
-html:root body .admin-enlace[data-vista='unidades'] { text-align:left; }
 html:root body .admin-titulo-con-icono:has(#iconoUnidades:not([hidden])) h1 {
   white-space:nowrap; font-size:clamp(12px,2vw,28px);
 }
+
+/* Edición directa: un formulario de meta y hasta tres destinos, sin filas gigantes. */
+.admin-niveles__panel--metas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-content: start; }
+.admin-metas__edicion, .admin-metas__lugares { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.admin-metas__encabezado { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.admin-metas__encabezado h3 { grid-column: 1 / -1; margin: 0; }
+.admin-metas__ayuda { font-size: 12px; line-height: 1.6; color: var(--text-secondary); margin: 0; }
+.admin-metas__fila { display: grid; grid-template-columns: minmax(0, 1fr) 100px; align-items: end; gap: 12px; padding: 12px; border: 1px solid var(--border); }
+.admin-metas__fila > label:first-child, .admin-metas__fila > label:nth-child(2) { grid-column: 1 / -1; }
+.admin-metas__criterio { align-self: center; font-size: 12px; line-height: 1.6; }
+.admin-metas__lugares { border-left: 1px solid var(--border); padding-left: 20px; }
+.admin-metas__lugares h3 { margin: 0; }
+.admin-metas__poi { display: grid; grid-template-columns: minmax(0, 1fr) 140px; align-items: end; gap: 6px 12px; }
+.admin-metas__poi > label:first-child { grid-column: 1 / -1; }
+.admin-metas__avisos { grid-column: 1 / -1; color: var(--warning); font-size: 12px; }
+html:root body .admin-niveles .admin-niveles__panel--metas .admin-niveles__campo :is(input:not([type='checkbox']), select),
+html:root body .admin-niveles__panel--metas button { font: 400 12px/1.4 'Silkscreen', monospace; min-height: 36px; }
+html:root body .admin-niveles__panel--metas select { text-align: left; }
+@media(max-width:900px) {
+  .admin-niveles__panel--metas { grid-template-columns: minmax(0, 1fr); }
+  .admin-metas__lugares { border-left: 0; border-top: 1px solid var(--border); padding: 12px 0 0; }
+}
+
+/* Organización interior aprobada: conserva cabecera, títulos, bordes y recursos. */
+@media (min-width: 1000px) {
+  .admin-niveles__panel--desafio {
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    grid-template-rows: auto minmax(120px, 1fr) minmax(120px, 1fr);
+    gap: 16px;
+  }
+  .admin-niveles__panel--desafio .admin-niveles__datos-breves {
+    grid-template-columns: minmax(0, 1fr) minmax(160px, .3fr);
+  }
+  .admin-niveles__panel--desafio [data-campo-desafio='relato'] { grid-column: 1; grid-row: 2 / 4; }
+  .admin-niveles__panel--desafio [data-campo-desafio='objetivo'] { grid-column: 2; grid-row: 2; }
+  .admin-niveles__panel--desafio [data-campo-desafio='instrucciones'] { grid-column: 2; grid-row: 3; }
+  .admin-niveles__ficha {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-rows: minmax(100px, 2fr) minmax(60px, 1fr) auto;
+    grid-template-areas: 'texto imagen' 'aprendizaje descripcion' 'fuente url';
+    gap: 12px 16px;
+  }
+  .admin-niveles__selector-tarjeta { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 16px; }
+  .admin-niveles__panel--tarjetas .admin-niveles__ficha textarea { min-height: 0; }
+  .admin-niveles__red-trabajo { grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr); gap: 16px; }
+  .admin-niveles__tablas-red { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .admin-niveles__condiciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+  .admin-niveles__condiciones > .admin-niveles__grupo-reglas:first-child { grid-column: 1 / -1; }
+  .admin-niveles__condiciones > .admin-niveles__grupo-reglas:nth-child(2) { grid-column: 2; grid-row: 2; }
+  .admin-niveles__condiciones > .admin-niveles__grupo-reglas:nth-child(3) { grid-column: 1 / -1; grid-row: 3; }
+  html:root body .admin-niveles__panel--reglas .admin-niveles__condiciones > .admin-niveles__herramientas {
+    grid-column: 1; grid-row: 2; grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-self: start; align-content: start; align-items: start; margin: 0; gap: 8px 12px;
+  }
+  .admin-niveles__reglas--condiciones { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+  .admin-metas__encabezado { gap: 8px; }
+  .admin-metas__edicion, .admin-metas__lugares { gap: 10px; }
+  .admin-metas__ayuda { font-size: 11px; line-height: 1.45; }
+  .admin-metas__poi { grid-template-columns: minmax(0, 1fr) auto; }
+  .admin-metas__avisos:empty { display: none; }
+}
+@media (min-width: 1000px) and (max-height: 800px) {
+  .admin-niveles__panel--desafio { gap: 10px 16px; grid-template-rows: auto minmax(90px, 1fr) minmax(90px, 1fr); }
+  .admin-niveles__condiciones { gap: 8px 12px; }
+  .admin-niveles__seccion .admin-niveles__herramientas { gap: 4px 8px; }
+  .admin-niveles__panel--metas { gap: 10px 16px; }
+  .admin-metas__edicion, .admin-metas__lugares { gap: 6px; }
+  .admin-metas__fila { gap: 6px; padding: 8px; }
+  .admin-metas__fila > label:first-child { grid-column: 1; grid-row: 1; }
+  .admin-metas__fila > label:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .admin-metas__fila > label:nth-child(3), .admin-metas__fila > .admin-metas__criterio { grid-column: 2; grid-row: 1; }
+  .admin-metas__fila > button { grid-column: 2; grid-row: 2; }
+  .admin-metas__encabezado { gap: 4px 8px; }
+  .admin-metas__ayuda { line-height: 1.3; }
+  .admin-metas__poi { gap: 4px 8px; }
+  .admin-metas__avisos p { margin: 4px 0; }
+}
+
+/* Referencias aprobadas: marco del editor y contenido, sin alterar la navegación exterior. */
+.admin-niveles__editor { --editor-acento: #4cd9ef; --editor-espacio: clamp(8px, 1.3vh, 16px); }
+.admin-niveles__cabecera { grid-template-columns: minmax(0,1fr) auto; grid-template-rows: auto auto; border: 0; background: transparent; box-shadow: none; padding: 8px 4px 14px; }
+html:root body .admin-niveles__cabecera h2 { font-size: clamp(15px,1.55vw,24px); padding: 0; border: 0; box-shadow: none; background: none; }
+.admin-niveles__cabecera > p:not(.admin-niveles__alcance-publicacion) { grid-row: 2; font-size: 12px; margin: 0; }
+.admin-niveles__cabecera .admin-niveles__alcance-publicacion { grid-column: 1; grid-row: 3; justify-self: start; font-size: 10px; background: transparent; color: var(--warning); border: 1px solid var(--warning); padding: 3px 8px; margin-top: 4px; }
+.admin-niveles__cabecera .admin-niveles__utilidades { grid-column: 2; grid-row: 1 / 4; gap: 8px; }
+.admin-niveles__cambios { gap: 8px; }
+.admin-niveles__accion-salida { padding: 0; border: 0; }
+html:root body .admin-niveles__cabecera .admin-niveles__accion-texto {
+  width: auto; min-width: 100px; max-width: none; height: 44px; min-height: 44px; padding: 8px 10px;
+  flex-basis: auto; gap: 8px; display: inline-flex; align-items: center; justify-content: center;
+  font: 12px/1.3 var(--font-arcade); color: var(--success); border: 2px solid currentColor;
+  background: var(--bg-secondary); box-shadow: none;
+}
+html:root body .admin-niveles__cabecera .admin-niveles__accion-texto > svg { width: 22px; height: 22px; flex-basis: 22px; }
+html:root body .admin-niveles__cabecera .admin-niveles__previsualizar { color: var(--warning); }
+html:root body .admin-niveles__cabecera .admin-niveles__salir { color: var(--danger); }
+html:root body .admin-niveles__cabecera .admin-niveles__accion-texto:disabled { opacity: .45; }
+.admin-niveles__editor .admin-niveles__panel { padding: var(--editor-espacio); }
+html:root body .admin-niveles__editor .admin-niveles__panel .admin-niveles__campo :is(input:not([type='checkbox']),textarea,select) {
+  font-family: 'Silkscreen',monospace; font-size: clamp(11px,.95vw,15px); line-height: 1.45;
+}
+.admin-niveles__nota-desafio, .admin-niveles__nota-reglas, .admin-niveles__nota-red { color: var(--info-active); font: 12px/1.5 var(--font-arcade); }
+.admin-niveles__nota-desafio { grid-column: 1 / -1; margin: 0; padding-top: 16px; border-top: 1px solid var(--border-active); }
+.admin-niveles__nota-reglas { margin: auto 0 0; padding: 10px; border: 1px solid var(--border-active); }
+.admin-niveles__editor .admin-niveles__panel--desafio { grid-template-rows: auto minmax(70px,.6fr) minmax(110px,1.4fr) auto; }
+.admin-niveles__editor .admin-niveles__panel--desafio .admin-niveles__datos-breves { margin-bottom: 8px; }
+.admin-niveles__editor .admin-niveles__panel--desafio [data-campo-desafio='objetivo'] textarea { min-height: 54px; }
+.admin-niveles__editor .admin-niveles__panel--desafio [data-campo-desafio='instrucciones'] { margin-top: 8px; }
+.admin-niveles__editor .admin-niveles__panel--desafio [data-campo-desafio='relato'] { grid-row: 2 / 4; }
+.admin-niveles__selector-tarjeta { position: relative; }
+.admin-niveles__pasos-tarjeta { display: flex; gap: 8px; }
+html:root body .admin-niveles__pasos-tarjeta button { width: 32px; min-width: 32px; height: 32px; min-height: 32px; padding: 6px; }
+.admin-niveles__editor .admin-niveles__panel--tarjetas .admin-niveles__acciones { margin: 0; padding: 8px; flex-shrink: 0; }
+.admin-niveles__editor .admin-niveles__panel--tarjetas .admin-niveles__acciones label { font-size: 11px; }
+.admin-niveles__editor .admin-niveles__tablas-red { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--editor-espacio); padding: 12px; border: 1px solid var(--border-active); }
+.admin-niveles__tablas-red > h3 { grid-column: 1 / -1; }
+.admin-niveles__tablas-red [data-campo-referencia='nombre'] { grid-column: 1 / -1; order: -1; }
+.admin-niveles__tablas-red .admin-niveles__grupo > button { min-width: 0; }
+.admin-niveles__nota-red { grid-column: 1 / -1; border-top: 1px solid var(--border-active); padding-top: 12px; margin: 4px 0 0; }
+.admin-niveles__icono-cantidad { color: var(--text-primary); width: 26px; height: 26px; grid-column: 1; grid-row: 1; align-self: end; margin-bottom: 4px; }
+.admin-niveles__regla:has(.admin-niveles__icono-cantidad) { grid-template-columns: 26px minmax(0,1fr) auto; column-gap: 8px; }
+.admin-niveles__icono-cantidad svg, .admin-niveles__icono-herramienta svg { width: 100%; height: 100%; }
+.admin-niveles__icono-herramienta { width: 20px; height: 20px; order: -1; flex: 0 0 20px; }
+.admin-niveles__editor .admin-niveles__herramientas input { order: -2; }
+
+/* Listas de selección: se ven todas las metas y se edita sólo la elegida. */
+.admin-niveles__editor .admin-niveles__panel--metas { grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: 12px; }
+.admin-niveles__editor :is(.admin-metas__edicion,.admin-metas__lugares) { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border-active); padding: 12px; min-width: 0; }
+.admin-niveles__editor .admin-metas__seleccion { display: grid; gap: 4px; }
+html:root body .admin-niveles__editor .admin-metas__opcion { min-width: 0; width: 100%; min-height: clamp(28px,4.2vh,40px); padding: 5px 10px; font-size: 12px; text-align: left; justify-content: start; box-shadow: none; }
+html:root body .admin-niveles__editor .admin-metas__opcion::before { content:'○'; margin-right: 10px; color: var(--border-active); }
+html:root body .admin-niveles__editor .admin-metas__opcion[aria-pressed='true'] { background: var(--lista-seleccion); border-color: var(--editor-acento); color: var(--editor-acento); }
+html:root body .admin-niveles__editor .admin-metas__opcion[aria-pressed='true']::before { content:'◉'; color: var(--editor-acento); }
+.admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) { display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; padding: 10px 0 0; border: 0; border-top: 1px solid var(--border); }
+.admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) > * { grid-column: auto; grid-row: auto; }
+.admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo { display: grid; grid-template-columns: 120px minmax(0,1fr); align-items: center; gap: 10px; }
+.admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo:has(input[type='number']) input { max-width: 110px; }
+.admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) > button { justify-self: start; }
+.admin-niveles__editor .admin-metas__agregar { display: flex; align-items: end; gap: 8px; }
+.admin-niveles__editor .admin-metas__agregar > label { flex: 1; }
+.admin-niveles__editor .admin-metas__agregar:has(button:disabled) { display: none; }
+.admin-metas__vista { border: 1px solid var(--border-active); padding: 12px; margin-top: auto; }
+.admin-metas__ejemplo { display: flex; justify-content: space-between; gap: 14px; padding-top: 12px; font: 11px/1.5 var(--font-arcade); }
+.admin-metas__ejemplo > :last-child { white-space: nowrap; }
+.admin-niveles__editor .admin-metas__ayuda { margin-top: auto; }
+@media (min-width:1000px) {
+  .admin-niveles__editor .admin-niveles__selector-tarjeta { grid-template-columns: minmax(0,.8fr) auto minmax(0,1.2fr); align-items: end; }
+  .admin-niveles__editor .admin-niveles__herramientas { grid-template-columns: minmax(0,1fr) !important; }
+  .admin-niveles__editor .admin-niveles__condiciones > .admin-niveles__grupo-reglas:first-child { border: 1px solid var(--border-active); padding: 10px; }
+}
+@media (min-width:1000px) and (max-height:800px) {
+  .admin-niveles__editor :is(.admin-metas__edicion,.admin-metas__lugares) { padding: 8px; gap: 5px; }
+  .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) { gap: 5px; padding-top: 6px; }
+  .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo { grid-template-columns: 100px minmax(0,1fr); font-size: 10px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--metas :is(input:not([type='checkbox']),select,button) { min-height: 28px; font-size: 10px; padding-block: 4px; }
+  .admin-metas__vista { padding: 8px; }
+  .admin-metas__ejemplo { padding-top: 6px; }
+  .admin-niveles__nota-reglas { padding: 6px; font-size: 10px; }
+}
+@media (max-width:1100px) {
+  .admin-niveles__cabecera { grid-template-columns: minmax(0,1fr); }
+  .admin-niveles__cabecera .admin-niveles__utilidades { grid-column: 1; grid-row: 4; justify-self: start; flex-wrap: wrap; }
+}
+@media (max-width:999px) {
+  .admin-niveles__editor .admin-niveles__panel--metas { grid-template-columns: minmax(0,1fr); }
+  .admin-niveles__editor .admin-niveles__panel--desafio { grid-template-rows: auto; }
+  .admin-niveles__editor .admin-niveles__panel--desafio [data-campo-desafio] { grid-row: auto; }
+  .admin-niveles__editor .admin-niveles__selector-tarjeta { grid-template-columns: minmax(0,1fr); }
+  .admin-niveles__editor .admin-niveles__tablas-red { grid-template-columns: minmax(0,1fr); }
+}
+
+/* Alturas proporcionadas al espacio disponible del editor. */
+.admin-niveles__cabecera { position: relative; row-gap: 6px; }
+.admin-niveles__cabecera .admin-niveles__alcance-publicacion { grid-row: 2; margin: 0; }
+.admin-niveles__cabecera .admin-niveles__utilidades { grid-row: 1 / 3; }
+html:root body .admin-niveles__cabecera h2::before { display: none; }
+.admin-niveles__editor .admin-niveles__acciones-elemento { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.admin-niveles__tablas-red [data-campo-referencia='transbordo'] { grid-column: 1 / -1; }
+.admin-niveles__editor .admin-metas__lugares > button:disabled { display: none; }
+html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo { grid-template-columns: 100px minmax(0,1fr); }
+html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) > button,
+html:root body .admin-niveles__editor .admin-niveles__tablas-red button { min-height: 32px; height: 32px; padding: 5px 12px; font-size: 11px; }
+@media (min-width:1000px) {
+  .admin-vista--editando > .admin-mensaje { margin: 0; padding: 4px 10px; line-height: 1.4; font-size: 10px; }
+  .admin-niveles__editor .admin-niveles__tablas-red { padding: 10px; gap: 8px; }
+  .admin-niveles__editor .admin-niveles__nota-red { font-size: 10px; padding-top: 8px; }
+  .admin-niveles__editor .admin-niveles__panel--metas { align-content: stretch; grid-template-rows: minmax(0,1fr) auto; }
+  .admin-niveles__editor .admin-metas__lugares { gap: 6px; }
+  html:root body .admin-niveles__editor .admin-metas__poi { gap: 6px; }
+}
+@media (min-width:1000px) and (max-height:800px) {
+  .admin-niveles__editor .admin-niveles__condiciones > .admin-niveles__grupo-reglas:first-child { padding: 6px; }
+  html:root body .admin-niveles__editor .admin-niveles__herramientas { gap: 3px; }
+  .admin-niveles__editor .admin-niveles__nota-reglas { padding: 4px; }
+  html:root body .admin-niveles__editor .admin-niveles__tablas-red .admin-niveles__campo { font-size: 10px; }
+  .admin-niveles__editor .admin-metas__opcion { line-height: 1.1; }
+  html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo { grid-template-columns: 80px minmax(0,1fr); }
+  .admin-niveles__editor .admin-metas__vista { padding: 6px; }
+  .admin-niveles__editor .admin-metas__ejemplo { font-size: 10px; line-height: 1.3; padding-top: 4px; }
+  .admin-niveles__editor .admin-metas__ayuda { font-size: 10px; }
+}
+@media (max-width:1100px) {
+  .admin-niveles__cabecera .admin-niveles__utilidades { grid-row: 3; }
+}
+@media (max-width:600px) {
+  .admin-niveles__cabecera .admin-niveles__alcance-publicacion { grid-row: 3; margin: 0; }
+  .admin-niveles__cabecera .admin-niveles__utilidades { grid-row: 4; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; }
+  .admin-niveles__cabecera .admin-niveles__cambios { display: contents; }
+  html:root body .admin-niveles__cabecera .admin-niveles__accion-texto { width: 100%; min-width: 0; font-size: 10px; padding: 6px; }
+}
+
+/* Una jerarquía y un tamaño común para acciones equivalentes. */
+html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] :is(h3,h4,legend) { font-size: 12px; line-height: 1.4; }
+html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi,.admin-metas__agregar,.admin-niveles__acciones-elemento,.admin-niveles__acciones-lista) > button,
+html:root body .admin-niveles__editor .admin-metas__lugares > button,
+html:root body .admin-niveles__editor .admin-niveles__tablas-red > button,
+html:root body .admin-niveles__editor .admin-niveles__agregar-regla > button {
+  width: 116px; max-width: 100%; height: 32px; min-height: 32px; padding: 5px 10px; font-size: 11px; justify-self: start; align-self: start;
+}
+.admin-niveles__editor .admin-niveles__acciones-elemento { grid-template-columns: repeat(2,116px); }
+@media (min-width:1000px) and (max-height:800px) {
+  html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] :is(h3,h4,legend) { font-size: 11px; }
+}
+.admin-niveles__editor .admin-metas__fila > :is(label,button,h4) { grid-column: 1 / -1; grid-row: auto; }
+@media (min-width:1000px) and (max-height:800px) {
+  html:root body .admin-niveles__editor .admin-niveles__panel--metas .admin-niveles__campo :is(input:not([type='checkbox']),select) { height: 28px; min-height: 28px; padding-block: 3px; line-height: 1.2; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--metas .admin-metas__opcion { height: 28px; min-height: 28px; }
+  .admin-niveles__editor .admin-metas__vista { padding: 5px; }
+  .admin-niveles__editor .admin-metas__edicion, .admin-niveles__editor .admin-metas__lugares { gap: 4px; }
+  .admin-niveles__editor .admin-metas__avisos p { margin: 0; font-size: 10px; line-height: 1.3; }
+}
+@media (min-width:1000px) and (max-height:800px) {
+  .admin-niveles__editor .admin-niveles__panel--metas { padding: 6px; gap: 6px; }
+  .admin-niveles__editor :is(.admin-metas__edicion,.admin-metas__lugares) { padding: 6px; gap: 3px; }
+  .admin-niveles__editor .admin-metas__seleccion { gap: 2px; }
+  html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) { gap: 3px; padding-top: 4px; }
+  .admin-niveles__editor .admin-metas__ayuda { line-height: 1.2; }
+}
+
+/* Campos editoriales: el contenido determina la altura, no el espacio libre del panel. */
+html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] :is(h3,h4,legend,.admin-niveles__campo) {
+  --admin-subtitulo-tamano: 12px;
+}
+html:root body .admin-niveles__editor .admin-niveles__panel :is(textarea) {
+  field-sizing: content; height: auto; min-height: 40px;
+  max-height: min(220px,30svh); resize: vertical; overflow: auto;
+}
+.admin-niveles__editor .admin-niveles__panel--desafio {
+  height: auto; min-height: 0; grid-template-rows: auto auto auto;
+  align-content: start; align-items: start;
+}
+.admin-niveles__editor .admin-niveles__panel--desafio > .admin-niveles__campo--texto,
+.admin-niveles__editor .admin-niveles__ficha .admin-niveles__campo--texto {
+  grid-template-rows: auto auto; align-content: start; align-self: start;
+}
+/* Desafío utiliza el panel completo; ambos campos derechos tienen igual altura. */
+@media (min-width: 1000px) and (min-height: 650px) {
+  .admin-niveles__editor .admin-niveles__panel--desafio {
+    height: 100%;
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+    align-content: stretch;
+    align-items: stretch;
+  }
+  .admin-niveles__editor .admin-niveles__panel--desafio > .admin-niveles__campo--texto {
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: stretch;
+    align-self: stretch;
+    margin: 0;
+    min-height: 0;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--desafio textarea {
+    field-sizing: fixed;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    resize: none;
+  }
+}
+.admin-niveles__editor .admin-niveles__panel--tarjetas { height: auto; min-height: 0; }
+.admin-niveles__editor .admin-niveles__tarjetas { flex: 0 0 auto; }
+.admin-niveles__editor .admin-niveles__ficha { height: auto; grid-template-rows: auto auto auto; align-content: start; align-items: start; }
+.admin-niveles__editor .admin-niveles__ilustracion img { object-fit: contain; height: auto; max-height: min(230px,26svh); flex: none; }
+.admin-niveles__editor .admin-niveles__pasos-tarjeta { align-self: end; gap: var(--button-gap); }
+html:root body .admin-niveles__editor .admin-niveles__pasos-tarjeta button svg { width: 18px; height: 18px; }
+.admin-niveles__editor .admin-niveles__nota-red { color: var(--text-secondary); }
+@media(min-width:1000px) and (max-height:800px) {
+  html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] :is(h3,h4,legend,.admin-niveles__campo) { --admin-subtitulo-tamano: 11px; }
+}
+@media (min-width:1000px) and (max-height:800px) {
+  html:root body .admin-niveles__editor .admin-niveles__panel--tarjetas textarea { max-height: 128px; }
+  .admin-niveles__editor .admin-niveles__ilustracion img { max-height: 112px; }
+  .admin-niveles__editor .admin-niveles__ficha { gap: 8px 12px; }
+}
+@media (min-width:1000px) and (max-height:800px) {
+  .admin-niveles__editor .admin-niveles__ilustracion img { max-height: 100px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--tarjetas [data-campo-tarjeta='aprendizaje'] textarea,
+  html:root body .admin-niveles__editor .admin-niveles__panel--tarjetas [data-campo-tarjeta='descripcionImagen'] textarea { max-height: 64px; }
+}
+
+/* La acción conjunta ocupa la misma columna que las acciones individuales. */
+html:root body.metronet-pagina-administracion #borrarTodasActividades { margin-inline: auto; min-width: 0; }
+#vista-actividad .admin-tabla th:last-child { width: 170px; text-align: center; }
+/* Etiquetas superiores centradas con su selector; etiquetas laterales hacia el campo. */
+html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__condiciones > .admin-niveles__herramientas {
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  justify-self: start;
+  align-self: start;
+  margin-inline: 0;
+  grid-template-columns: repeat(2, minmax(0, max-content)) !important;
+  gap: 8px 16px;
+  padding: 0;
+}
+@media (pointer: coarse) {
+  html:root body .admin-niveles__editor .admin-niveles__quitar-regla { max-width: 44px; }
+}
+/* Los títulos de sección se distinguen de las etiquetas de los campos. */
+.admin-niveles__herramientas > h3 { grid-column: 1 / -1; }
+html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__herramientas {
+  border: 0;
+  padding-top: 0;
+}
+html:root body .admin-niveles__editor .admin-niveles__agregar-regla {
+  grid-template-columns: minmax(0, 1fr) minmax(0, .65fr) 116px;
+  align-items: end;
+  gap: 10px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+html:root body .admin-niveles__editor .admin-niveles__agregar-regla > h3 { grid-column: 1 / -1; grid-row: 1; }
+html:root body .admin-niveles__editor .admin-niveles__agregar-regla > label {
+  grid-column: 1; grid-row: 2; max-width: 420px; align-self: end;
+}
+html:root body .admin-niveles__editor .admin-niveles__agregar-regla > button {
+  grid-column: 3; grid-row: 2; margin: 0; align-self: end;
+  height: var(--select-height); min-height: var(--select-height);
+}
+html:root body .admin-niveles__editor .admin-niveles__valor-nueva-regla {
+  grid-column: 2; grid-row: 2; padding-top: 0;
+}
+html:root body .admin-niveles__editor .admin-niveles__valor-nueva-regla :is(.admin-niveles__campo--casilla,.admin-niveles__objeto-valores) {
+  min-height: var(--select-height); align-items: center;
+}
+html:root body .admin-niveles__editor .admin-niveles__valor-nueva-regla[data-tipo='lista'] {
+  grid-column: 1 / 3; grid-row: 3;
+}
+html:root body .admin-niveles__editor .admin-niveles__agregar-regla > .admin-niveles__acciones-lista {
+  grid-column: 3; grid-row: 3; width: auto; margin: 0;
+  justify-self: center; align-self: end; grid-template-columns: repeat(2, 28px); gap: 12px;
+}
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 16px; max-width: 760px; align-items: end;
+}
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--lugares { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 560px; }
+.admin-niveles__lista-valores--compacta > .admin-niveles__item-valores,
+.admin-niveles__lista-valores--compacta > .admin-niveles__item-valores > .admin-niveles__objeto-valores { display: contents; }
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta .admin-niveles__campo {
+  grid-template-rows: 2lh auto; justify-items: center; text-align: center;
+}
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta .admin-niveles__campo :is(input,select) {
+  width: 100%; max-width: 160px; min-width: 0; text-align: center;
+}
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta .admin-niveles__campo input[type='number'] { max-width: 100px; }
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta .admin-niveles__campo :is(select,input[aria-label='Tipo']) { max-width: 128px; }
+.admin-niveles__panel--reglas .admin-niveles__lista-valores--compacta selectedcontent { white-space: nowrap; }
+html:root body .admin-niveles__editor .admin-niveles__valor-nueva-regla :is(input:not([type='checkbox']),select) {
+  height: var(--select-height); min-height: var(--select-height); box-sizing: border-box;
+}
+html:root body .admin-niveles__editor :is(.admin-niveles__lista-valores--compacta,.admin-niveles__agregar-regla) .admin-niveles__acciones-lista > [data-tamano-accion='icono'] {
+  --icon-button-size: 28px; max-width: 28px; padding: 3px !important;
+}
+html:root body .admin-niveles__editor :is(.admin-niveles__lista-valores--compacta,.admin-niveles__agregar-regla) .admin-niveles__acciones-lista > [data-tamano-accion='icono'] svg {
+  width: 16px !important; height: 16px !important; flex-basis: 16px !important;
+}
+@media (max-width: 720px) {
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla { grid-template-columns: minmax(0,1fr) 116px; }
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla > button { grid-column: 2; }
+  html:root body .admin-niveles__editor .admin-niveles__valor-nueva-regla { grid-column: 1 / -1; grid-row: 3; }
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla > .admin-niveles__acciones-lista { grid-column: 2; grid-row: 4; }
+  html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel h3 {
+  color: var(--text-primary);
+  font-size: calc(var(--admin-subtitulo-tamano, 12px) + 2px);
+  padding-bottom: 5px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid var(--border);
+}
+html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel :is(h4, legend) {
+  color: #8ed8f0;
+  font-size: var(--admin-subtitulo-tamano, 12px);
+  margin-bottom: 4px;
+}
+html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel--metas h4 {
+  font-weight: 700;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+html:root body .admin-niveles__editor .admin-metas__vista { border: 0; padding: 0; }
+.admin-metas__muestra { border: 1px solid var(--border-active); padding: 6px 8px; }
+.admin-metas__muestra > .admin-metas__ejemplo:first-child { padding-top: 0; }
+.admin-niveles__campo:has(> select) { text-align: center; }
+html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo { text-align: right; }
+html:root body .admin-niveles__editor .admin-metas__fila .admin-niveles__campo { text-align: left; }
+html:root body .admin-niveles__editor .admin-metas__poi {
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+html:root body .admin-niveles__editor .admin-metas__poi > * { grid-column: 1 / -1; }
+html:root body .admin-niveles__editor .admin-metas__poi .admin-niveles__campo {
+  grid-template-columns: subgrid;
+  white-space: nowrap;
+}
+html:root body .admin-niveles__editor .admin-metas__fila > button {
+  justify-self: center;
+}
+html:root body .admin-niveles__editor :is(.admin-metas__fila,.admin-metas__poi) .admin-niveles__campo input[type='number'] {
+  width: 80px;
+  max-width: 100%;
+  justify-self: start;
+}
+
+/* Usuarios: ambos filtros forman un conjunto centrado dentro del panel. */
+html:root body #vista-usuarios .admin-filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 320px));
+  justify-content: center;
+  align-items: start;
+  gap: 16px 24px;
+}
+html:root body #vista-usuarios .admin-filtros label {
+  min-width: 0;
+  text-align: center;
+  justify-items: center;
+}
+html:root body #vista-usuarios .admin-filtros input { width: 100%; min-width: 0; }
+@media (max-width: 760px) {
+  html:root body #vista-usuarios .admin-filtros { grid-template-columns: minmax(0, 320px); }
+}
+
+/* La eliminación completa tiene más peso visual que una entrada individual. */
+html:root body #borrarTodasActividades[data-accion-ui] {
+  --accion-fondo: #b42340;
+  --accion-borde: #ed6079;
+  --accion-texto: #ffffff;
+  --accion-hover: #ca304e;
+}
+
+/* El contador y las acciones comparten la misma columna. */
+.admin-jugador-disenos__cabecera,
+.admin-jugador-disenos__tarjetas > article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  column-gap: var(--space-md, 16px);
+}
+.admin-jugador-disenos__cabecera { padding-inline: calc(var(--space-md, 16px) + var(--border-width)); }
+.admin-jugador-disenos__cabecera > span { text-align: center; }
+html:root body .admin-lista-disenos .admin-jugador-disenos__cabecera h3 {
+  font-size: 18px;
+  line-height: 1.4;
+}
+html:root body .admin-lista-disenos .admin-jugador-disenos__tarjetas h4 {
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-secondary);
+  letter-spacing: .02em;
+}
+html:root body .admin-lista-disenos .admin-jugador-disenos__tarjetas h4::before { content: none; }
+.admin-jugador-disenos__tarjetas .admin-acciones-linea { justify-content: center; }
+@media (max-width: 760px) {
+  .admin-jugador-disenos__cabecera,
+  .admin-jugador-disenos__tarjetas > article { grid-template-columns: minmax(0, 1fr); }
+}
+
+.admin-niveles__editor .admin-niveles__pestanas { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1100px) { .admin-niveles__editor .admin-niveles__pestanas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .admin-niveles__editor .admin-niveles__pestanas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Reglas: configuración general y compositor estable, una variante por vez. */
+@media (min-width: 1000px) and (min-height: 650px) {
+  .admin-niveles__editor .admin-niveles__panel--reglas {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .admin-niveles__editor .admin-niveles__condiciones {
+    border: 1px solid var(--border);
+    padding: 10px;
+    grid-template-rows: auto auto auto;
+    gap: 10px 16px;
+  }
+  .admin-niveles__editor .admin-niveles__opciones {
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    padding: 10px;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla {
+    margin: 0;
+    grid-template-rows: auto calc(var(--select-height) + 20px) calc(var(--select-height) + 36px);
+    row-gap: 8px;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla > h3 { width: 100%; }
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla > label { max-width: none; }
+  html:root body .admin-niveles__editor .admin-niveles__valor-nueva-regla[data-tipo='object'] > fieldset {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__condiciones > .admin-niveles__herramientas {
+    padding-block: 0;
+  }
+}
+@media (min-width: 1000px) and (min-height: 650px) and (max-height: 800px) {
+  .admin-niveles__editor .admin-niveles__condiciones,
+  .admin-niveles__editor .admin-niveles__opciones { padding: 4px 6px; gap: 6px 12px; }
+  .admin-niveles__editor .admin-niveles__panel--reglas { gap: 6px; padding-block: 6px; }
+  html:root body .admin-niveles__editor .admin-niveles__agregar-regla { row-gap: 4px; }
+}
+
+html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__agregar-regla > button {
+  --button-height-sm: var(--select-height);
+}
+
+/* Una única superficie para editar reglas existentes o agregar una nueva. */
+.admin-niveles__espacio-reglas {
+  min-width: 0; border: 1px solid var(--border); padding: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.admin-niveles__encabezado-reglas {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(240px,.6fr);
+  gap: 12px; align-items: center;
+}
+.admin-niveles__encabezado-reglas > label { min-width: 0; }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__opciones {
+  padding: 0; border: 0;
+}
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__agregar-regla {
+  grid-template-rows: calc(var(--select-height) + 20px) calc(var(--select-height) + 36px);
+}
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__agregar-regla > :is(label,button),
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__valor-nueva-regla { grid-row: 1; }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__valor-nueva-regla[data-tipo='lista'],
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__agregar-regla > .admin-niveles__acciones-lista { grid-row: 2; }
+.admin-niveles__espacio-reglas .admin-niveles__reglas-detalle { display: block; }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__regla--compuesta {
+  grid-template-columns: minmax(0,1fr) 32px;
+  align-items: end; padding: 8px 0; border: 0;
+}
+.admin-niveles__espacio-reglas .admin-niveles__regla--compuesta > fieldset { grid-column: 1; min-width: 0; }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__regla--compuesta > .admin-niveles__quitar-regla { grid-column: 2; grid-row: 1; align-self: end; }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__lista-valores--compacta {
+  max-width: none; grid-template-columns: repeat(4,minmax(0,1fr));
+}
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__lista-valores--lugares { grid-template-columns: repeat(3,minmax(0,1fr)); }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__lista-valores--compacta > .admin-niveles__acciones-lista {
+  grid-column: 1 / -1; grid-row: 2; justify-self: end;
+  grid-template-columns: repeat(2,28px); gap: 12px;
+}
+@media (min-width:1000px) and (min-height:650px) {
+  .admin-niveles__editor .admin-niveles__espacio-reglas { flex: 0 0 auto; }
+  .admin-niveles__editor .admin-niveles__reglas--condiciones .admin-niveles__regla { padding: 4px 6px; min-height: 32px; }
+  .admin-niveles__editor .admin-niveles__condiciones { grid-template-rows: auto auto; }
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__reglas-detalle { min-height: 144px; }
+}
+@media (min-width:1000px) and (min-height:650px) and (max-height:800px) {
+  .admin-niveles__espacio-reglas { padding: 4px 6px; gap: 4px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas { --select-height: 32px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__condiciones > .admin-niveles__herramientas { gap: 4px 12px; }
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__reglas-detalle { min-height: 128px; }
+}
+.admin-niveles__espacio-reglas { position: relative; }
+.admin-niveles__encabezado-reglas select { anchor-name: --selector-regla-nivel; }
+.admin-niveles__espacio-reglas:has(.admin-niveles__reglas-detalle:not([hidden])) .admin-niveles__encabezado-reglas { padding-right: 40px; }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__regla--compuesta { grid-template-columns: minmax(0,1fr); }
+html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__regla--compuesta > .admin-niveles__quitar-regla { position: absolute; top: 10px; right: 10px; }
+html:root body .admin-niveles__editor .admin-niveles__reglas-detalle .admin-niveles__lista-valores--compacta {
+  grid-template-columns: repeat(4,minmax(0,1fr)) 76px;
+}
+html:root body .admin-niveles__editor .admin-niveles__reglas-detalle .admin-niveles__lista-valores--lugares {
+  grid-template-columns: repeat(3,minmax(0,1fr)) 76px;
+}
+html:root body .admin-niveles__editor .admin-niveles__reglas-detalle .admin-niveles__lista-valores--compacta > .admin-niveles__acciones-lista {
+  grid-column: -2; grid-row: 1; align-self: end;
+}
+@media (min-width:1000px) and (min-height:650px) {
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__reglas-detalle { min-height: 96px; }
+}
+@media (min-width:1000px) and (min-height:650px) and (max-height:800px) {
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__regla--compuesta > .admin-niveles__quitar-regla { top: 6px; right: 6px; }
+}
+
+/* Los nombres necesitan más ancho que los identificadores y las cantidades. */
+html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta input[aria-label='Nombre'] {
+  width: 100%; max-width: 320px;
+}
+html:root body .admin-niveles__editor .admin-niveles__panel--reglas :is(input:not([type='checkbox']),textarea) { text-align: center; }
+html:root body .admin-niveles__editor .admin-niveles__panel--reglas select > button > selectedcontent {
+  margin: 0; padding: 0; text-indent: 0; text-align: center; flex: 1 1 0; min-width: 0;
+}
+html:root body .admin-niveles__editor .admin-niveles__panel--reglas select {
+  text-align: center; text-align-last: center;
+}
+@media (min-width:1000px) and (min-height:650px) and (max-height:800px) {
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__lista-valores--compacta .admin-niveles__campo { grid-template-rows: 1lh auto; }
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__agregar-regla {
+    grid-template-rows: calc(var(--select-height) + 16px) calc(var(--select-height) + 16px);
+  }
+}
+
+/* Tarjetas y mapa comparten el alto disponible, con acciones en su propia fila. */
+@media (min-width:1000px) and (min-height:650px) {
+  .admin-niveles__editor .admin-niveles__panel--tarjetas { height: 100%; min-height: 0; gap: 8px; }
+  .admin-niveles__editor .admin-niveles__tarjetas { flex: 1 1 0; min-height: 0; }
+  .admin-niveles__editor .admin-niveles__ficha {
+    height: 100%; min-height: 0;
+    grid-template-rows: minmax(0,1fr) auto auto;
+    align-items: stretch; align-content: stretch; gap: 8px 16px;
+  }
+  .admin-niveles__editor .admin-niveles__ficha .admin-niveles__campo--texto {
+    grid-template-rows: auto minmax(0,1fr); align-content: stretch; align-self: stretch;
+  }
+  html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel--tarjetas textarea {
+    font-family: monospace; font-size: 14px; line-height: 1.2; letter-spacing: normal; text-transform: none;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--tarjetas textarea {
+    field-sizing: fixed; height: 100%; min-height: 0; max-height: none; resize: none;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--tarjetas :is([data-campo-tarjeta='aprendizaje'],[data-campo-tarjeta='descripcionImagen']) textarea {
+    field-sizing: content; height: auto; min-height: 40px; max-height: 78px;
+  }
+  .admin-niveles__editor .admin-niveles__ilustracion img {
+    height: 0; max-height: none; flex: 1 1 0; object-fit: contain;
+  }
+  .admin-niveles__editor .admin-niveles__panel--tarjetas .admin-niveles__acciones { padding: 6px 8px; }
+  .admin-niveles__editor .admin-niveles__ficha :is([data-campo-tarjeta='fuente'],[data-campo-tarjeta='urlFuente']) {
+    display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: center; gap: 8px;
+  }
+  .admin-niveles__editor .admin-niveles__acciones-elemento { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html:root body .admin-niveles__editor .admin-niveles__acciones-elemento > button,
+  html:root body .admin-niveles__editor .admin-niveles__tablas-red > button { width: 100%; }
+  .admin-niveles__editor .admin-niveles__panel--red .admin-niveles__campo { text-align: center; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--red :is(input,select) { text-align: center; text-align-last: center; }
+  .admin-niveles__editor .admin-niveles__tablas-red { grid-template-rows: auto auto minmax(0,1fr) auto; }
+  .admin-niveles__editor .admin-niveles__tablas-red .admin-niveles__grupo { align-content: center; gap: 16px 12px; }
+}
+html:root body .admin-niveles__editor .admin-niveles__pasos-tarjeta [data-tamano-accion='icono'] {
+  --icon-button-size: 28px; width: 28px; min-width: 28px; max-width: 28px; padding: 4px !important;
+}
+html:root body .admin-niveles__editor .admin-niveles__pasos-tarjeta button svg { width: 14px !important; height: 14px !important; flex-basis: 14px !important; }
+@media (min-width:1000px) {
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__lista-valores--areas {
+    grid-template-columns: minmax(0,.75fr) minmax(0,.75fr) minmax(0,1.6fr) minmax(0,.75fr);
+  }
+  html:root body .admin-niveles__editor .admin-niveles__reglas-detalle .admin-niveles__lista-valores--areas {
+    grid-template-columns: minmax(0,.75fr) minmax(0,.75fr) minmax(0,1.6fr) minmax(0,.75fr) 76px;
+  }
+}
+
+/* La papelera sigue el centro del selector aunque cambie su altura. */
+@supports (top: anchor(center)) {
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas:has(.admin-niveles__encabezado-reglas > label:not([hidden])) .admin-niveles__regla--compuesta > .admin-niveles__quitar-regla {
+    position-anchor: --selector-regla-nivel;
+    top: calc(anchor(center) - 14px);
+  }
+}
+html:root body .admin-niveles__editor .admin-niveles__reglas-detalle .admin-niveles__regla[data-regla-nivel='aprendizajeSimulacion'] {
+  min-height: 96px;
+  align-content: center;
+}
+html:root body .admin-niveles__editor .admin-niveles__regla[data-regla-nivel='aprendizajeSimulacion'] > fieldset {
+  display: flex; justify-content: center; align-items: center; gap: 32px;
+}
+
+/* Aprovechar la pantalla de escritorio con una escala legible, sin cambiar la navegación. */
+@media (min-width:1000px) and (max-width:1399px) and (max-height:800px) {
+  .admin-niveles__editor .admin-niveles__panel--tarjetas { gap: 4px; }
+  .admin-niveles__editor .admin-niveles__ficha { row-gap: 4px; }
+  html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel--tarjetas textarea {
+    font-size: 12px;
+  }
+}
+@media (min-width:1400px) and (min-height:720px) {
+  html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel--reglas {
+    --select-height: 40px;
+    --reglas-texto: 13px;
+    gap: 8px;
+    padding: 8px;
+  }
+  html:root body .admin-niveles .admin-niveles__editor[data-editor-nivel] .admin-niveles__panel--reglas :is(h3,h4,legend,.admin-niveles__campo) {
+    --admin-subtitulo-tamano: var(--reglas-texto);
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__campo { font-size: var(--reglas-texto); }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas :is(input:not([type='checkbox']),select) {
+    height: var(--select-height); min-height: var(--select-height); font-size: 14px;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__condiciones {
+    padding: 8px; gap: 10px 24px;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__reglas--condiciones {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__regla--casilla { min-height: 42px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas .admin-niveles__condiciones > .admin-niveles__herramientas { gap: 12px 16px; }
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas { padding: 8px; gap: 8px; }
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__lista-valores--compacta .admin-niveles__campo { grid-template-rows: 1lh auto; }
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__agregar-regla {
+    grid-template-rows: repeat(2, calc(var(--select-height) + 12px));
+  }
+  html:root body .admin-niveles__editor .admin-niveles__lista-valores--compacta input[aria-label='Nombre'] { max-width: none; }
+}
+html:root body .admin-niveles__cabecera [data-accion-ui='guardar'] {
+  --accion-fondo: var(--primary); --accion-borde: var(--primary-border); --accion-hover: var(--primary-hover);
+}
+@media (min-width:1000px) and (min-height:650px) and (max-height:800px) {
+  html:root body .admin-niveles__editor .admin-niveles__espacio-reglas .admin-niveles__reglas-detalle { min-height: 80px; }
+  html:root body .admin-niveles__editor .admin-niveles__reglas-detalle .admin-niveles__regla[data-regla-nivel='aprendizajeSimulacion'] { min-height: 80px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas:has(.admin-niveles__grupo-reglas:first-child .admin-niveles__regla:nth-child(5)) {
+    --select-height: 32px; --reglas-texto: 12px;
+  }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas:has(.admin-niveles__grupo-reglas:first-child .admin-niveles__regla:nth-child(5)) .admin-niveles__condiciones { gap: 6px 16px; padding: 4px 6px; }
+  html:root body .admin-niveles__editor .admin-niveles__panel--reglas:has(.admin-niveles__grupo-reglas:first-child .admin-niveles__regla:nth-child(5)) .admin-niveles__regla--casilla { min-height: 32px; }
+}
+
+/* Navegación por categorías, con el mismo estado activo que Reglas. */
+html:root body .admin-navegacion { grid-template-columns:1fr; gap:20px; }
+.admin-menu-grupo { display:grid; gap:8px; min-width:0; }
+html:root body .admin-menu-grupo h2 { margin:0 0 2px; padding:0 4px 7px; border:0; border-bottom:1px solid var(--border); background:none; box-shadow:none; color:var(--text-primary); font:400 17px/1.4 var(--font-arcade); }
+html:root body .admin-menu-grupo h2::before, html:root body .admin-menu-grupo h2::after { content:none; }
+html:root body .admin-navegacion .admin-enlace { justify-content:center; text-align:center; min-height:48px; padding:8px; }
+html:root body .admin-navegacion .admin-enlace.activo::before { content:none; }
+@media(max-width:720px) {
+  html:root body .admin-navegacion { grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start; }
+  html:root body .admin-navegacion .admin-enlace { font-size:11px; }
+  html:root body .admin-menu-grupo h2 { font-size:15px; }
+}
+@media(max-width:420px) { html:root body .admin-navegacion { grid-template-columns:1fr; } }

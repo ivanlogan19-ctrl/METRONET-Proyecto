@@ -54,11 +54,13 @@ export default class PanelHerramientasEditor {
     this.grupoEdicion = categorias.get('Edición');
     this.mover = document.createElement('button');
     this.mover.type = 'button';
+    this.mover.dataset.accionEdicion = 'mover';
     configurarBotonIcono(this.mover, 'mover', 'Mover estación seleccionada');
     this.mover.disabled = true;
     this.mover.addEventListener('click', () => this.alAccionEdicion('mover'));
     this.eliminar = document.createElement('button');
     this.eliminar.type = 'button';
+    this.eliminar.dataset.accionEdicion = 'eliminar';
     configurarBotonIcono(this.eliminar, 'eliminar', 'Eliminar elemento seleccionado');
     this.eliminar.disabled = true;
     this.eliminar.addEventListener('click', () => this.alAccionEdicion('eliminar'));

@@ -11,7 +11,7 @@ async function abrirPantalla(navegador,ruta,opciones={}) {
       escenarios:[{idEscenario:42,numero:1,nombre:'Primer recorrido',cantidadIntentosCampana:1,estado:'COMPLETADO',desbloqueado:true,progreso:100}],numeroCampanaActual:1,nivelesCompletados:1,cantidadNiveles:10,
     }};
   }});
-  if (ruta.startsWith('/simulacion.html')) await vista.pagina.getByRole('button', { name: 'Hacer el tutorial', exact: true }).click();
+  if (ruta.startsWith('/simulacion.html')) await vista.pagina.getByRole('button', { name: 'Iniciar tutorial', exact: true }).click();
   return vista;
 }
 let navegador;
@@ -46,9 +46,9 @@ for (const anterior of ['presentado', 'omitido']) test(`Tutorial actualizado: re
   const tutorial = p.locator('.metronet-recorrido');
   await tutorial.waitFor({ timeout: 5000 });
   assert.equal(await tutorial.locator('h2').textContent(), 'Nueva funcionalidad');
-  await tutorial.getByRole('button', { name: 'Hacer el tutorial', exact: true }).click();
+  await tutorial.getByRole('button', { name: 'Iniciar tutorial', exact: true }).click();
   assert.equal(await tutorial.locator('h2').textContent(), 'Mapa de la red');
-  await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
+  await tutorial.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await p.reload();
   await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(), 0, 'La omisión de la versión nueva sí se respeta');
@@ -178,7 +178,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   assert.equal(await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).evaluate(e => getComputedStyle(e).backgroundColor),'rgb(244, 237, 121)');
   await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).click();
   await tutorial.waitFor();
-  await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
+  await tutorial.getByRole('button',{name:'Salir del tutorial',exact:true}).click();
   await tutorial.waitFor({state:'detached'});
   assert.equal(await p.evaluate(() => document.activeElement?.id), 'tutorialPantallaSimulacion', 'Omitir devuelve el foco');
   await p.locator('#tutorialPantallaSimulacion').click();
@@ -191,10 +191,10 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await p.reload(); await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(),0,'No repite en el mismo navegador y campaña');
   campana=2; await p.reload(); await p.locator('#velocidadUnidad').waitFor();
-  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  await p.getByRole('button',{name:'Continuar',exact:true}).click();
   assert.equal(await tutorial.count(),0,'La nueva campaña vuelve a ofrecerlo y respeta omitir');
   disponible=false; campana=3; await p.reload(); await p.locator('#velocidadUnidad').waitFor();
-  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  await p.getByRole('button',{name:'Continuar',exact:true}).click();
   assert.equal(await tutorial.count(),0);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla'}).click();
@@ -205,7 +205,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   await ejecucionManual;
   assert.equal(v.solicitudes.filter(s => s.path.endsWith('/ejecutar')).length, 1,
     'Play ejecuta solamente cuando el usuario lo pulsa durante el tutorial');
-  await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
+  await tutorial.getByRole('button',{name:'Salir del tutorial',exact:true}).click();
   await tutorial.waitFor({state:'detached'});
 });
 
@@ -266,7 +266,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   const p = v.pagina, tutorial = p.locator('.metronet-recorrido');
   await tutorial.waitFor();
   assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
-  await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
+  await tutorial.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await tutorial.waitFor({ state: 'detached' });
   assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v5:7:1:1:77')), 'omitido');
   await p.reload();
@@ -276,7 +276,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla'}).click();
   await tutorial.waitFor();
   assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
-  await tutorial.getByRole('button', { name: 'Omitir', exact: true }).click();
+  await tutorial.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
 });
 
 test('Reiniciar la campaña vuelve a ofrecer el tutorial de Simulación', async t => {
@@ -308,7 +308,7 @@ test('Reiniciar la campaña vuelve a ofrecer el tutorial de Simulación', async 
   await p.goto(`${new URL(p.url()).origin}/simulacion.html?idDiseno=77`);
   await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await guia.locator('h2').textContent(),'Nueva funcionalidad');
-  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  await p.getByRole('button',{name:'Continuar',exact:true}).click();
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
   await guia.waitFor();
@@ -332,7 +332,7 @@ test('Primera visita a simulación: tutorial automático desde cualquier nivel',
       if (corresponde) {
         assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Mapa de la red');
         assert.equal(await p.locator('[data-recorrido-siguiente]').evaluate(e=>e.getBoundingClientRect().width),24);
-        await p.getByRole('button',{name:'Omitir',exact:true}).click();
+        await p.getByRole('button',{name:'Salir del tutorial',exact:true}).click();
         await p.reload();
         await p.waitForFunction(() => document.querySelector('#velocidadUnidad')?.value === '40');
         assert.equal(await p.locator('.metronet-recorrido').count(),0, `No repetir en nivel ${numero}`);
@@ -370,10 +370,10 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
   await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Elegir línea', exact: true }).waitFor();
-  await p.getByRole('button', { name: 'Omitir', exact: true }).click();
+  await p.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await p.goto(new URL('/simulacion.html?idDiseno=78', p.url()).href);
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
-  await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  await p.getByRole('button', { name: 'Continuar', exact: true }).click();
   await p.reload();
   await p.locator('.simulacion-horarios').waitFor();
   await p.waitForTimeout(400);
@@ -396,7 +396,7 @@ test('Regla: total por línea, teclado y distancias ausentes sin valores inventa
   }});
   t.after(()=>v.contexto.close());
   const p=v.pagina;
-  await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  await p.getByRole('button',{name:'Continuar',exact:true}).click();
   const regla=p.locator('[data-medicion-distancias]');
   // La regla muestra la distancia de la línea seleccionada.
   await regla.focus(); await p.keyboard.press('Enter');

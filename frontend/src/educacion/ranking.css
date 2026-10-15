@@ -1,110 +1,91 @@
-body.metronet-pagina-ranking {
-  --font-ui: 'Silkscreen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-tecnica: var(--font-ui);
+@import '../interfaz/pestanas.css';
+.metronet-ranking,.metronet-ranking * { box-sizing:border-box; font-family:'Silkscreen',monospace; }
+html:root body .metronet-ranking { max-width:1280px; width:calc(100% - 48px); margin:22px auto; padding:0; display:grid; gap:16px; }
+html:root body .metronet-ranking > header.ranking-cabecera { margin:0; padding:0; border:0; position:relative; }
+html:root body .ranking-cabecera h1 { margin:0; padding:12px 20px; min-height:88px; display:grid; place-content:center; font-size:28px; text-align:center; }
+.ranking-columnas { display:grid; grid-template-columns:1.15fr 1fr; gap:18px; min-width:0; }
+html:root body .metronet-ranking > .ranking-columnas > section { border:1px solid #6483a3; background:#0d1b30; padding:18px; margin:0; min-width:0; min-height:440px; display:flex; flex-direction:column; gap:13px; box-shadow:none; }
+html:root body .metronet-ranking h2 { font-size:18px; line-height:1.4; border:0; border-bottom:1px solid #375473; padding:0 0 12px; margin:0; background:none; box-shadow:none; }
+html:root body .metronet-ranking :is(h1,h2,h3)::before { display:none; }
+.ranking-tabla-contenedor { flex:1; min-width:0; }
+html:root body .ranking-tabla { border-collapse:collapse; width:100%; table-layout:fixed; margin:0; font-size:13px; }
+html:root body .ranking-tabla :is(th,td) { padding:10px 8px; text-align:center; border:0; border-bottom:1px solid #2a415c; background:transparent; }
+html:root body .ranking-tabla th { color:#76bef0; font-size:11px; }
+.ranking-tabla th:first-child { width:55px; }
+.ranking-tabla th:nth-child(3) { width:105px; }
+.ranking-tabla th:nth-child(4) { width:85px; }
+html:root body .ranking-tabla :is(th,td):nth-child(2) { text-align:left; overflow-wrap:anywhere; }
+html:root body .ranking-tabla td:nth-child(2) { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html:root body .ranking-tabla tr.ranking-propio { background:#15334b; }
+.ranking-destacado td:first-child { color:#ffd078; }
+.ranking-primero td:first-child { font-weight:bold; }
+#estadoRanking td { height:220px; }
+html:root body #mensajeRanking { font-size:13px; line-height:1.6; color:#aabbd3; text-align:center; }
+html:root body #mensajeRanking.error { color:#ffacb4; }
+.ranking-paginacion { display:flex; align-items:center; justify-content:center; gap:18px; font-size:12px; }
+html:root body .ranking-paginacion button { font-size:11px; min-width:0; }
+html:root body .ranking-nota { border:0; padding:0; margin:0; font-size:12px; color:#b0bfd4; line-height:1.5; }
+.ranking-trofeos__cabecera { display:grid; gap:12px; }
+html:root body #resumenTrofeos { margin:0; font-size:12px; line-height:1.5; color:#b0bfd4; }
+.ranking-trofeos__galeria { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+html:root body button.ranking-trofeo { display:grid; justify-items:center; align-content:start; gap:5px; min-width:0; height:110px; min-height:0; border:1px solid #354f6c; background:#0a1627; padding:9px 6px; margin:0; color:#acb8ce; box-shadow:none; white-space:normal; text-align:center; cursor:pointer; }
+html:root body button.ranking-trofeo[aria-pressed='true'] { border-color:#b9a0ee; background:#202641; }
+html:root body button.ranking-trofeo:focus-visible { outline:2px solid #ffd078; outline-offset:2px; }
+.ranking-trofeo__icono { display:block; width:42px; height:42px; }
+.ranking-trofeo__icono svg { display:block; width:100%; height:100%; }
+.ranking-trofeo > span:not(.ranking-trofeo__icono) { font-size:10px; line-height:1.4; min-height:28px; }
+.ranking-trofeo small { font-size:8px; line-height:1.3; color:#a6b8d0; }
+html:root body button.ranking-trofeo--obtenido { color:#ffd078; }
+.ranking-trofeo-detalle { border-top:1px solid #375473; padding-top:12px; display:grid; gap:6px; }
+html:root body .ranking-trofeo-detalle h3 { color:#cbb7ef; font-size:14px; line-height:1.4; margin:0; padding:0; border:0; }
+html:root body .ranking-trofeo-detalle p { font-size:13px; line-height:1.5; color:#c2d0e1; margin:0; }
+html:root body .ranking-personal { display:grid; grid-template-columns:1fr; align-items:center; gap:4px 16px; margin:0; border:1px solid #375473; background:#101d30; padding:12px 16px; }
+html:root body .ranking-personal h2 { font-size:12px; color:#bbccdf; border:0; padding:0; }
+html:root body .ranking-personal p { font-size:12px; line-height:1.5; color:#a4b6cb; margin:0; }
+.ranking-personal > button { grid-column:2; grid-row:1/3; }
+.ranking-vistas { display:flex; gap:8px; }
+html:root body .ranking-vistas button { flex:1; }
+
+.ranking-vista { display:flex; flex-direction:column; gap:12px; flex:1; }
+.ranking-vista[hidden],.ranking-nivel[hidden],html:root body .ranking-personal[hidden] { display:none; }
+.ranking-detalle__resumen { font-size:13px; color:#aabbd3; text-align:center; margin:auto; }
+.ranking-niveles { display:grid; grid-template-columns:1fr; gap:6px; padding:0; margin:0; list-style:none; flex:1; align-content:start; }
+.ranking-nivel { border:1px solid #375473; background:#0a1627; padding:7px 10px; display:grid; grid-template-columns:1.2fr 1fr; gap:12px; align-items:center; }
+.ranking-nivel__encabezado { display:grid; gap:4px; }
+.ranking-nivel__encabezado small { color:#78c5f8; font-size:10px; }
+.ranking-nivel__encabezado strong { font-size:11px; line-height:1.4; }
+.ranking-nivel__resultados { display:flex; gap:10px; justify-content:space-between; }
+.ranking-nivel__resultados > div { display:grid; gap:4px; text-align:center; }
+.ranking-nivel__resultados small { font-size:9px; color:#a6b8d0; }
+.ranking-nivel__resultados :is(strong,span) { font-size:12px; }
+
+@media(min-width:901px) and (max-height:780px) {
+  html:root body .metronet-ranking { margin:14px auto; gap:10px; }
+  html:root body .metronet-ranking > .ranking-columnas > section { min-height:0; padding:10px 14px; gap:8px; }
+  html:root body .metronet-ranking h2 { padding-bottom:8px; font-size:16px; }
+  html:root body .ranking-personal h2 { padding:0; font-size:12px; }
+  html:root body .ranking-tabla :is(th,td) { padding-top:8px; padding-bottom:8px; }
+  #estadoRanking td { height:200px; }
 }
-.metronet-ranking { position: relative; max-width: 1080px; margin: auto; padding: clamp(12px,1.8vw,20px) clamp(14px,3vw,32px) clamp(14px,3vw,32px); }
-.metronet-ranking h1, .metronet-ranking h2 { overflow-wrap: anywhere; }
-.ranking-cabecera { text-align: center; margin-bottom: 24px; }
-html:root body .metronet-ranking > .ranking-cabecera::after { display: none; }
-.ranking-ilustracion {
-  --ranking-personaje-ancho: clamp(72px, calc((100vw - 1080px) / 2 - 28px), 192px);
-  position: fixed;
-  bottom: clamp(12px, 3vh, 28px);
-  width: var(--ranking-personaje-ancho);
-  height: auto;
-  image-rendering: pixelated;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 0 rgb(0 0 0 / .22));
+@media(max-width:900px) {
+  .ranking-columnas { grid-template-columns:1fr; }
+  html:root body .metronet-ranking { width:calc(100% - 24px); }
+  .ranking-personal > button { grid-column:1; grid-row:auto; justify-self:start; }
+  html:root body .ranking-personal { grid-template-columns:1fr; }
+  .ranking-niveles { grid-template-columns:1fr; }
 }
-.ranking-ilustracion--ari { left: max(10px, calc((100vw - 1080px) / 2 - var(--ranking-personaje-ancho) - 10px)); }
-.ranking-ilustracion--sol { right: max(10px, calc((100vw - 1080px) / 2 - var(--ranking-personaje-ancho) - 10px)); }
-@media (max-width: 1259px) {
-  .metronet-ranking { display: grid; grid-template-columns: 1fr 1fr; }
-  .metronet-ranking > :not(.ranking-ilustracion) { grid-column: 1 / -1; }
-  .ranking-ilustracion { position: static; order: 1; width: clamp(64px, 12vw, 100px); max-height: 134px; margin-top: 18px; }
-  .ranking-ilustracion--ari { justify-self: end; }
-  .ranking-ilustracion--sol { justify-self: start; }
+@media(max-width:450px) {
+  html:root body .ranking-cabecera h1 { font-size:22px; }
+  html:root body .metronet-ranking > .ranking-columnas > section { padding:10px; }
+  html:root body .ranking-tabla { font-size:11px; }
+  html:root body .ranking-tabla th { font-size:9px; }
+  .ranking-tabla th:first-child { width:38px; }
+  .ranking-tabla th:nth-child(3) { width:76px; }
+  .ranking-tabla th:nth-child(4) { width:60px; }
+  .ranking-trofeos__galeria { gap:6px; }
+  html:root body button.ranking-trofeo { height:120px; }
+  .ranking-nivel { grid-template-columns:1fr; }
 }
-.ranking-marcador { border: 2px solid var(--border-active); border-top: 4px solid var(--info-active); background: var(--panel); }
-html:root body .ranking-marcador > h2 { margin: 0; padding: 14px 16px; font-size: 16px; background: var(--bg-secondary); border: 0; border-bottom: 1px solid var(--border); box-shadow: none; }
-.ranking-tabla-contenedor { max-width: 100%; overflow-x: auto; }
-.ranking-tabla { border-collapse: collapse; width: 100%; text-align: left; table-layout: fixed; }
-.ranking-tabla th, .ranking-tabla td { padding: 14px 12px; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; vertical-align: middle; }
-.ranking-tabla th { font: 13px/1.5 var(--font-arcade); color: var(--text-secondary); white-space: nowrap; }
-.ranking-tabla th:first-child { width: 12%; }
-.ranking-tabla th:nth-child(2) { width: 43%; }
-.ranking-tabla th:nth-child(3) { width: 27%; }
-.ranking-tabla th:nth-child(4) { width: 18%; }
-.ranking-tabla :is(th,td):nth-child(n+3) { text-align: right; }
-.ranking-clasificacion td { font: 16px/1.5 var(--font-tecnica); font-variant-numeric: tabular-nums; }
-.ranking-clasificacion td:nth-child(2) { font-family: var(--font-ui); font-weight: 700; }
-.ranking-clasificacion td:nth-child(3) { font-family: var(--font-arcade); color: var(--text-primary); }
-.ranking-clasificacion .ranking-destacado td:first-child { color: var(--info-active); font-weight: 700; }
-.ranking-clasificacion .ranking-propio { background: var(--panel-elevated); }
-.ranking-clasificacion .ranking-propio td:first-child { box-shadow: inset 3px 0 var(--success); }
-.ranking-clasificacion .ranking-primero { background: color-mix(in srgb, var(--warning) 12%, var(--panel)); }
-.ranking-clasificacion .ranking-primero td { color: var(--warning); border-bottom-color: color-mix(in srgb, var(--warning) 35%, var(--border)); }
-.ranking-clasificacion .ranking-primero td:first-child { color: var(--warning); box-shadow: inset 4px 0 var(--warning); }
-#estadoRanking td { height: 160px; text-align: center; }
-#estadoRanking p { margin: 0 0 12px; color: var(--text-secondary); font: 15px/1.7 var(--font-arcade); }
-#estadoRanking .error { color: var(--danger); font-family: var(--font-ui); }
-#estadoRanking[hidden] { display: none; }
-.ranking-nota { margin: 0; padding: 12px; color: var(--text-secondary); font-size: 13px; text-align: center; }
-.ranking-personal { padding: 18px 0; }
-html:root body .ranking-personal h2 { margin: 0 0 8px; padding: 0; border: 0; background: none; box-shadow: none; text-shadow: none; font-size: 13px; color: var(--info-active); }
-.ranking-personal p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
-.ranking-trofeos { margin: 12px 0 26px; padding: clamp(18px, 3vw, 28px); border: 2px solid var(--border); background: var(--panel); }
-.ranking-trofeos__cabecera { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
-.ranking-trofeos__cabecera h2 { margin: 0; font-size: 22px; }
-.ranking-trofeos__cabecera > p { margin: 0; color: var(--text-secondary); font-size: 13px; }
-.ranking-trofeos__cabecera > div > p { margin: 0; color: var(--text-secondary); font-size: 13px; }
-.ranking-trofeos__cabecera button { margin-top: 8px; }
-.ranking-trofeos__galeria { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.ranking-trofeo { display: grid; align-content: start; gap: 9px; min-height: 238px; padding: 16px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); }
-.ranking-trofeo--obtenido {
-  border-color: var(--warning);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--warning) 16%, var(--panel)), var(--panel-elevated));
-  color: var(--warning);
-  box-shadow: inset 0 3px var(--warning);
-}
-.ranking-trofeo__icono { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; border: 1px solid currentColor; background: var(--panel); opacity: .65; }
-.ranking-trofeo--obtenido .ranking-trofeo__icono { color: var(--warning); opacity: 1; }
-.ranking-trofeo__icono svg { width: 64px; height: 64px; }
-.ranking-trofeo h3 { margin: 0; color: var(--text-primary); font-size: 15px; line-height: 1.35; }
-.ranking-trofeo > span { color: var(--info-active); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-.ranking-trofeo:not(.ranking-trofeo--obtenido) > span { color: var(--danger); }
-.ranking-trofeo--obtenido :is(h3, span, p) { color: var(--warning); }
-html:root body .ranking-trofeo.ranking-trofeo--obtenido h3 { --titulo-color: var(--warning); color: var(--warning); }
-html:root body .ranking-trofeos .ranking-trofeo.ranking-trofeo--obtenido h3::before { background: var(--warning) !important; }
-.ranking-trofeo p { margin: 0; font-size: 13px; line-height: 1.45; }
-.ranking-detalle { border-top: 1px solid var(--border); }
-.ranking-detalle__resumen { margin: 14px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
-.ranking-niveles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 0; margin: 18px 0; list-style: none; }
-.ranking-nivel { display: grid; gap: 12px; padding: 12px; min-width: 0; border: 1px solid var(--border-active); border-top: 3px solid var(--info-active); background: var(--panel); }
-.ranking-nivel__encabezado { display: grid; gap: 6px; }
-.ranking-nivel__encabezado small { color: var(--info-active); font-size: 11px; }
-.ranking-nivel__encabezado strong { color: var(--text-primary); font-size: 15px; line-height: 1.4; }
-.ranking-nivel__resultados { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.ranking-nivel__resultados > div { display: grid; place-items: center; align-content: center; gap: 6px; padding: 8px; min-width: 0; text-align: center; border: 1px solid var(--border); background: var(--bg-secondary); }
-.ranking-nivel__resultados small { color: var(--text-secondary); font-size: 9px; line-height: 1.5; text-transform: uppercase; }
-.ranking-nivel__resultados > div:first-child :is(small, strong) { color: var(--success); }
-.ranking-nivel__resultados strong { font-size: 13px; line-height: 1.4; }
-.ranking-nivel__resultados span { color: var(--text-primary); font-size: 13px; line-height: 1.5; }
-@media (max-width: 900px) {
-  .ranking-trofeos__galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ranking-niveles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 700px) {
-  .ranking-trofeos__galeria { grid-template-columns: 1fr; }
-  .ranking-niveles { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-  .ranking-tabla th, .ranking-tabla td { padding: 12px 6px; }
-  .ranking-tabla th { font-size: 10px; }
-  .ranking-clasificacion td { font-size: 13px; }
-  .ranking-clasificacion td:nth-child(3) { font-size: 12px; }
-  .ranking-tabla th:first-child { width: 3rem; }
-  .ranking-tabla th:nth-child(2) { width: auto; }
-  .ranking-tabla th:nth-child(3) { width: 30%; }
-  .ranking-tabla th:nth-child(4) { width: 4.5rem; }
-}
+
+html:root body .metronet-ranking > header.ranking-cabecera::after { display:none; }
+html:root body .metronet-ranking :is(h3,th) { font-family:'Silkscreen',monospace; }

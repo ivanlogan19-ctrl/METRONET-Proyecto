@@ -122,7 +122,7 @@ html:root body.simulacion-pagina .simulacion-parametro-velocidad button[type="su
 .simulacion-instrumentos #estadoEjecucion { display: none; }
 .simulacion-instrumentos .simulacion-mensaje:not(.error) { display: none; }
 .simulacion-instrumentos .simulacion-mensaje.error { margin: 0; }
-#resumenCriterioUvUt, .simulacion-ritmo, .simulacion-seguimiento, .simulacion-pagina .metronet-aprender-acceso { display: none !important; }
+#resumenCriterioUvUt, .simulacion-ritmo, .simulacion-seguimiento { display: none !important; }
 .simulacion-pagina { --simulacion-mapa-alto: clamp(400px, calc(100svh - 430px), 560px); }
 html:root body.simulacion-pagina .simulacion-panel-titulo,
 html:root body.simulacion-pagina .simulacion-seccion-titulo,
@@ -756,3 +756,29 @@ html:root body.simulacion-pagina .simulacion-instrumentos :is(.simulacion-select
 html:root body.simulacion-pagina .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono { width: 42px; min-width: 42px; max-width: 42px; }
 
 .simulacion-accesos-titulo [data-contenedor-referencias][hidden] { display:none; }
+
+/* Color de las acciones sin alterar sus dimensiones operacionales. */
+.simulacion-mandos .simulacion-primario { --accion-simulacion-color: var(--primary); }
+.simulacion-mandos #pausarSimulacion { --accion-simulacion-color: var(--warning); }
+html:root body.simulacion-pagina :is(#aplicarUnidadTiempo, .simulacion-parametro-velocidad button[type="submit"]) { --accion-simulacion-color: var(--warning); }
+html:root body.simulacion-pagina :is(.simulacion-mandos button, #aplicarUnidadTiempo, .simulacion-parametro-velocidad button[type="submit"]) {
+  background: var(--accion-simulacion-color) !important;
+  border-color: var(--accion-simulacion-color) !important;
+  color: var(--primary-ink) !important;
+}
+html:root body.simulacion-pagina :is(.simulacion-mandos button, #aplicarUnidadTiempo, .simulacion-parametro-velocidad button[type="submit"]) > .metronet-icono { color: var(--primary-ink); }
+html:root body.simulacion-pagina :is(.simulacion-mandos button, #aplicarUnidadTiempo, .simulacion-parametro-velocidad button[type="submit"]):not(:disabled):hover {
+  background: color-mix(in srgb, var(--accion-simulacion-color) 80%, white) !important;
+}
+
+html:root body.simulacion-pagina :is([data-paso-uv="1"], [data-paso-horas="1"]) { --color-ajuste: var(--success); }
+html:root body.simulacion-pagina :is([data-paso-uv="-1"], [data-paso-horas="-1"]) { --color-ajuste: var(--danger); }
+html:root body.simulacion-pagina :is([data-paso-uv], [data-paso-horas]) {
+  background: var(--color-ajuste) !important;
+  border-color: var(--color-ajuste) !important;
+  color: var(--primary-ink) !important;
+}
+html:root body.simulacion-pagina :is([data-paso-uv], [data-paso-horas]):not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-ajuste) 80%, white) !important;
+}
+html:root body.simulacion-pagina #formularioEjecucion .simulacion-primario { --accion-simulacion-color: var(--primary); }

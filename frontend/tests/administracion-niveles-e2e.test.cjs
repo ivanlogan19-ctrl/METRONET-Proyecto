@@ -67,13 +67,13 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
   await frame().getByRole('button',{name:'Experiencia de juego',exact:true}).click();
   await frame().locator('[data-editar-nivel="10"]').waitFor();
   const get=async ruta=>{const r=await fetch(api+`/api/admin/niveles${ruta}`,{headers:{Authorization:`Bearer ${sesion.token}`}});assert.equal(r.status,200);return r.json();};
-  await t.test('La tabla muestra los diez niveles y las versiones persistidas',async()=>{
+  await t.test('Las tarjetas muestran los diez niveles persistidos',async()=>{
     const niveles=await get('');
-    const tabla=frame().getByRole('table',{name:'Niveles de la experiencia de juego'});
-    assert.equal(await tabla.locator('tbody tr').count(),10);
+    const tabla=frame().getByRole('list',{name:'Niveles de la experiencia de juego'});
+    assert.equal(await tabla.locator('.admin-niveles__tarjeta').count(),10);
     for(const nivel of niveles) {
-      const fila=tabla.getByRole('row').filter({has:frame().locator(`[data-editar-nivel="${nivel.numero}"]`)});
-      assert.match(await fila.textContent(),new RegExp(`Publicada v${nivel.versionPublicada}.*Revisión ${nivel.revisionBorrador}`));
+      const fila=tabla.getByRole('listitem').filter({has:frame().locator(`[data-editar-nivel="${nivel.numero}"]`)});
+      assert.equal(await fila.locator('.admin-niveles__nombre').textContent(),nivel.nombre.replace(/^Nivel\s+\d+\s*[·:–-]\s*/i,''));
     }
     const caja=await tabla.boundingBox();assert(caja.y+caja.height<=900,'Los diez niveles se ven sin desplazar la página');
     await page.screenshot({path:path.join(evidencias,'lista-niveles.png')});
@@ -94,10 +94,12 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     try {
     const antes=await get(`/${n}/borrador`);await abrir(n);
     const relato=`Comprobación aislada del nivel ${n}.`;
-    const desafio={nombre:`Nivel ${n} · Auditoría`,dificultad:'Básico',relato,
+    const desafio={nombre:`Nivel ${n} · Auditoría`,dificultad:'Inicial',relato,
       objetivo:`Objetivo de prueba ${n}.`,instrucciones:`Instrucciones de prueba ${n}.`};
-    for(const [clave,valor] of Object.entries(desafio))
-      await frame().locator('[data-panel-nivel="desafio"]').getByLabel(clave[0].toUpperCase()+clave.slice(1),{exact:true}).fill(valor);
+    for(const [clave,valor] of Object.entries(desafio)) {
+      const campo=frame().locator('[data-panel-nivel="desafio"]').getByLabel(clave[0].toUpperCase()+clave.slice(1),{exact:true});
+      if(clave==='dificultad')await campo.selectOption(valor);else await campo.fill(valor);
+    }
     await tab('Reglas');
     const cantidad=frame().getByLabel('Mínimo de estaciones',{exact:true}).filter({visible:true});
     await cantidad.fill('0');await guardar(n,400);
@@ -105,7 +107,6 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     await cantidad.fill(String(antes.contenido.reglasExito.minimoEstaciones+1));
     const metro=frame().locator('.admin-niveles__herramientas').getByLabel('Metros',{exact:true});
     const habilitado=await metro.isChecked();await metro.setChecked(!habilitado);
-    if(n>=4){await tab('UV / UT');await frame().getByLabel('Límite UT',{exact:true}).fill(String(antes.contenido.criterioUvUt.limiteUt+1));await frame().getByLabel('Presupuesto UV',{exact:true}).fill(String(antes.contenido.criterioUvUt.presupuestoUv+1));}
     await tab('Tarjetas');
     for(let i=0;i<7;i++){
       await frame().getByLabel('Tarjeta de aprendizaje',{exact:true}).selectOption(String(i));
@@ -126,7 +127,7 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     assert.equal(guardado.revision,antes.revision+1);
     assert.equal(guardado.contenido.reglasExito.minimoEstaciones,antes.contenido.reglasExito.minimoEstaciones+1);
     assert.equal(guardado.contenido.herramientasHabilitadas.metros,!habilitado);
-    if(n>=4){assert.equal(guardado.contenido.criterioUvUt.limiteUt,antes.contenido.criterioUvUt.limiteUt+1);assert.equal(guardado.contenido.criterioUvUt.presupuestoUv,antes.contenido.criterioUvUt.presupuestoUv+1);}
+    assert.deepEqual(guardado.contenido.criterioUvUt,antes.contenido.criterioUvUt);
     for(const [clave,valor] of Object.entries(desafio))assert.equal(guardado.contenido.desafio[clave],valor);
     for(let i=0;i<7;i++){
       const ficha=guardado.tarjetas[i],marca=`${n}.${i+1}`;

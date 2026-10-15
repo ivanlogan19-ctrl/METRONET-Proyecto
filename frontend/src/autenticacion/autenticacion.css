@@ -8,9 +8,9 @@ body .auth-page {
   place-items: center;
   min-height: 100svh;
   padding: clamp(24px, 6vw, 72px) clamp(16px, 4vw, 40px);
-  background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--panel-elevated) 68%, transparent), transparent 46%),
-    var(--bg-primary);
+  background-color: var(--bg-primary);
+  background-image: var(--grid-image);
+  background-size: var(--grid-size) var(--grid-size);
 }
 
 body .auth-card {
@@ -214,6 +214,16 @@ body .auth-card .consentimiento input {
 body .auth-card .consentimiento label {
   cursor: pointer;
 }
+
+html:root body #registroForm .consentimiento {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--primary-ink);
+}
+html:root body #registroForm .consentimiento :is(label, a) { color: var(--primary-ink); }
+html:root body #registroForm .consentimiento a { text-decoration: underline; }
+html:root body #registroForm #aceptaDatos { border-color: var(--primary-ink); accent-color: var(--danger); }
+html:root body #registroForm #aceptaDatos::before { background: var(--danger); }
 
 body .auth-card .consentimiento a,
 body .auth-card .privacy-content a {

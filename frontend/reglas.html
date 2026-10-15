@@ -18,13 +18,10 @@
   <main class="metronet-reglas" aria-labelledby="tituloReglas">
     <header class="metronet-reglas__titulo-fijo">
       <div class="metronet-reglas__titulo-fila">
-        <div class="metronet-reglas__hoja" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <h1 id="tituloReglas">Reglas del juego</h1>
-        <div class="metronet-reglas__hoja metronet-reglas__hoja--derecha" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       </div>
-      <p>Consultá las reglas por tema.</p>
     </header>
-    <div class="metronet-reglas__pestanas" role="tablist" aria-label="Temas de las reglas">
+    <div class="metronet-reglas__pestanas metronet-pestanas" role="tablist" aria-label="Temas de las reglas">
       <button type="button" role="tab" id="pestanaPuntuacion" aria-controls="panelPuntuacion" aria-selected="true">Puntuación</button>
       <button type="button" role="tab" id="pestanaAprobacion" aria-controls="panelAprobacion" aria-selected="false" tabindex="-1">Cómo aprobar</button>
       <button type="button" role="tab" id="pestanaAcciones" aria-controls="panelAcciones" aria-selected="false" tabindex="-1">Acciones</button>
@@ -76,7 +73,6 @@
           <li>Pausar o detener la animación.</li>
         </ul>
       </article>
-      <p class="metronet-reglas__pie">Al llegar a 60 puntos, podés seguir practicando sin más descuentos.</p>
     </section>
 
     <section id="panelAprobacion" class="metronet-reglas__panel" role="tabpanel" aria-labelledby="pestanaAprobacion" tabindex="0" hidden>
@@ -140,13 +136,12 @@
         <table><caption>Ejemplo · una línea de 12 km</caption><thead><tr><th scope="col">Distancia</th><th scope="col">Velocidad</th><th scope="col">Duración</th></tr></thead><tbody>
           <tr><td>12 km</td><td>4 UV</td><td>3 UT</td></tr><tr><td>12 km</td><td>6 UV</td><td>2 UT</td></tr><tr><td>12 km</td><td>8 UV</td><td>1,5 UT</td></tr>
         </tbody></table>
-        <p class="metronet-reglas__nota">1,5 UT es una hora y media.</p>
       </article>
       <div class="metronet-reglas__columnas">
         <article class="metronet-reglas__tarjeta"><h3>Cada línea es independiente</h3><p>Sus metros comparten UV y UT según su distancia geográfica. Las demás líneas conservan sus valores.</p></article>
         <article class="metronet-reglas__tarjeta"><h3>Si cambiás el recorrido</h3><p>Se conserva el último valor elegido y se recalcula el otro.</p></article>
       </div>
-      <details class="metronet-reglas__detalle"><summary>Aplicar y consultar los valores de las líneas</summary><p>En los diez niveles y en Modo Libre, seleccioná <strong>una línea por vez</strong>. El ajuste usa su propia distancia y se comparte entre sus metros; las demás líneas conservan sus valores. Los metros nuevos heredan la configuración de su línea.</p><p>Guardá con los controles habituales o iniciá la simulación para aplicar los cambios. Al elegir otra línea, se guarda primero el ajuste pendiente de la anterior. El reloj termina con la mayor duración de tus metros.</p></details>
+      <details class="metronet-reglas__detalle"><summary>Aplicar y consultar los valores de las líneas</summary><div class="metronet-reglas__detalle-columnas"><p>En los diez niveles y en Modo Libre, seleccioná <strong>una línea por vez</strong>. El ajuste usa su propia distancia y se comparte entre sus metros; las demás líneas conservan sus valores. Los metros nuevos heredan la configuración de su línea.</p><p>Guardá con los controles habituales o iniciá la simulación para aplicar los cambios. Al elegir otra línea, se guarda primero el ajuste pendiente de la anterior. El reloj termina con la mayor duración de tus metros.</p></div></details>
       <aside class="metronet-reglas__tarjeta metronet-reglas__tarjeta--advertencia metronet-reglas__aviso"><span class="metronet-reglas__alerta" aria-hidden="true">!</span><p><strong>En los diez niveles y Modo Libre.</strong> UV y UT se calculan por línea. Cada tren acompaña su tiempo.</p></aside>
     </section>
 

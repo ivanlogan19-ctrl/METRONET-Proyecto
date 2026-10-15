@@ -167,30 +167,30 @@ html:root body .perfil-contenedor {
 }
 html:root body .perfil-encabezado { padding:0; border:0; background:none; gap:5px; }
 html:root body .perfil-encabezado h1 { margin:0; font-size:24px; padding:12px; }
-html:root body .perfil-encabezado > p { margin:0; max-width:none; font-size:10px; line-height:1.5; }
+html:root body .perfil-encabezado > p { margin:0; max-width:none; font-size:12px; line-height:1.5; }
 html:root body .perfil-seccion { min-width:0; padding:14px; border:1px solid var(--border); background:var(--panel); display:flex; flex-direction:column; }
 html:root body .perfil-seccion__encabezado { display:block; padding:0; margin:0 0 18px; border:0; }
 html:root body .perfil-seccion__encabezado h2 { margin:-14px -14px 12px; padding:10px 14px; border:0; border-bottom:1px solid var(--border); background:var(--panel-elevated); font-size:12px; line-height:1.5; }
-html:root body .perfil-seccion__encabezado p { margin:0; max-width:none; font-size:9px; line-height:1.6; }
+html:root body .perfil-seccion__encabezado p { margin:0; max-width:none; font-size:12px; line-height:1.6; }
 html:root body .perfil-formulario { width:100%; max-width:none; display:flex; flex-direction:column; flex:1; gap:14px; }
 html:root body .perfil-contenedor .field-group { margin:0; gap:5px; }
-html:root body .perfil-contenedor .field-group label { font-size:9px; line-height:1.5; }
-html:root body .perfil-contenedor .input-wrapper input { width:100%; min-height:36px; height:36px; padding:8px; font-size:10px; letter-spacing:0; }
+html:root body .perfil-contenedor .field-group label { font-size:12px; line-height:1.5; }
+html:root body .perfil-contenedor .input-wrapper input { width:100%; min-height:36px; height:40px; padding:8px; font-size:14px; letter-spacing:0; }
 html:root body .perfil-contenedor .input-wrapper input:is([autocomplete='current-password'],[autocomplete='new-password']) { padding-right:36px; }
 html:root body .perfil-contenedor .toggle-password { top:4px; right:4px; width:28px; height:28px; min-width:0; min-height:0; padding:5px; border:0; box-shadow:none; background:none; font-size:0; transform:none; }
 html:root body .perfil-contenedor .toggle-password::after { content:''; display:block; width:18px; height:18px; background:currentColor; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 3h6v2h2v2h2v2h-2v2h-2v2H5v-2H3V9H1V7h2V5h2zm0 4v2h2v2h2V9h2V7H9V5H7v2z' fill-rule='evenodd'/%3E%3C/svg%3E") center/contain no-repeat; }
-html:root body .perfil-contenedor .requisitos-contrasena { position:static; display:block; visibility:visible; opacity:1; padding:0; margin:0; border:0; box-shadow:none; background:none; color:var(--text-secondary); font-size:8px; line-height:1.6; transform:none; }
+html:root body .perfil-contenedor .requisitos-contrasena { position:static; display:block; visibility:visible; opacity:1; padding:0; margin:0; border:0; box-shadow:none; background:none; color:var(--text-secondary); font-size:10px; line-height:1.6; transform:none; }
 html:root body .perfil-acciones { margin-top:auto; padding-top:2px; min-height:36px; }
 html:root body .perfil-formulario .primary-button { width:100%; min-height:36px; margin:0; padding:8px; font-size:10px; line-height:1.4; }
 html:root body .perfil-seccion--informacion { padding:10px 14px; background:var(--panel); }
 html:root body .perfil-informacion { width:100%; max-width:none; gap:0; grid-template-columns:1fr 1fr; }
 html:root body .perfil-informacion > div { padding:0 14px; border:0; background:none; }
 html:root body .perfil-informacion > div + div { border-left:1px solid var(--border); }
-html:root body .perfil-informacion dt { margin:0 0 4px; color:var(--info-active); font-size:8px; }
-html:root body .perfil-informacion dd { margin:0; font-size:10px; line-height:1.5; }
+html:root body .perfil-informacion dt { margin:0 0 4px; color:var(--info-active); font-size:12px; }
+html:root body .perfil-informacion dd { margin:0; font-size:14px; line-height:1.5; }
 html:root body .perfil-contenedor > .mensaje { margin:0; padding:0; font-size:10px; }
 html:root body .perfil-contenedor > .mensaje:empty { display:none; }
-html:root body .perfil-volver { margin:0; padding:0; font-size:10px; }
+html:root body .perfil-volver { margin:0; padding:0; font-size:10px; border:0; background:transparent; box-shadow:none; }
 @media (min-width:1000px) {
   html:root body .perfil-contenedor { grid-template-columns:repeat(3,minmax(0,1fr)); }
   html:root body .perfil-encabezado,
@@ -199,14 +199,14 @@ html:root body .perfil-volver { margin:0; padding:0; font-size:10px; }
 }
 @media (min-width:1000px) and (max-height:780px) {
   html:root body .perfil-pagina { padding:10px; }
-  html:root body .perfil-contenedor { padding:12px; gap:10px; }
+  html:root body .perfil-contenedor { padding:12px; gap:8px; }
   html:root body .perfil-encabezado h1 { padding:7px 12px; font-size:20px; }
-  html:root body .perfil-formulario { gap:8px; }
-  html:root body .perfil-seccion__encabezado { margin-bottom:10px; }
+  html:root body .perfil-formulario { gap:6px; }
+  html:root body .perfil-seccion__encabezado { margin-bottom:8px; }
   html:root body .perfil-seccion--informacion { padding:7px; }
 }
 /* Los controles globales declaran su propia fuente: el perfil conserva la pixelada. */
 html:root body .perfil-contenedor .field-group label,
 html:root body .perfil-contenedor .input-wrapper input,
 html:root body .perfil-contenedor .perfil-formulario button { font-family:var(--font-arcade); }
-html:root body .perfil-contenedor .perfil-seccion__encabezado h2 { font-size:12px; }
+html:root body .perfil-contenedor .perfil-seccion__encabezado h2 { font-size:16px; }

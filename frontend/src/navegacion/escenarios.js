@@ -1,3 +1,4 @@
+import { configurarAccion, configurarAccionPorNombre, establecerCargaAccion } from '../interfaz/AccionesInterfaz.js';
 import catalogoRecorrido from '../educacion/recorrido-integral.json';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
@@ -16,6 +17,7 @@ const PROTAGONISTAS_NIVEL = Object.freeze(['Ari', 'Sol', 'Dani', 'Sol', 'Ari', '
 const sesion = requerirSesion('/escenarios.html');
 let progresoActual = null;
 let accionEnCurso = false;
+let escenarioSeleccionado = null;
 
 if (sesion) inicializar();
 
@@ -94,7 +96,47 @@ function renderizarReinicio(progreso) {
 function renderizarEscenarios(escenarios) {
   const lista = document.getElementById('listaEscenarios');
   if (!escenarios.length) return renderizarEstadoVacio('Todavía no hay niveles configurados para este recorrido.');
-  lista.replaceChildren(...escenarios.map(crearTarjetaEscenario));
+  const ordenados = [...escenarios].sort((a, b) => (a.numero ?? Infinity) - (b.numero ?? Infinity));
+  const seleccionado = ordenados.find(e => e.idEscenario === escenarioSeleccionado)
+    ?? ordenados.find(e => ESTADOS_EN_CURSO.has(e.estado) && e.numero !== null)
+    ?? ordenados.find(e => e.desbloqueado && e.estado !== 'COMPLETADO') ?? ordenados[0];
+  escenarioSeleccionado = seleccionado.idEscenario;
+  const selector = document.createElement('nav');
+  selector.className = 'metronet-escenarios-pagina__selector';
+  selector.setAttribute('aria-label', 'Elegir nivel');
+  const titulo = document.createElement('h2');
+  titulo.id = 'tituloDesafios';
+  titulo.textContent = 'Elegí un nivel';
+  const opciones = document.createElement('div');
+  opciones.className = 'metronet-escenarios-pagina__opciones';
+  const detalle = document.createElement('div');
+  detalle.className = 'metronet-escenarios-pagina__detalle';
+  const botones = [];
+  for (const escenario of ordenados) {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.dataset.seleccionarEscenario = String(escenario.idEscenario);
+    const estado = obtenerEstadoVisual(escenario);
+    boton.dataset.estado = estado.id;
+    boton.setAttribute('aria-label', `${escenario.numero === null ? 'Modo Libre' : `Nivel ${escenario.numero}`} · ${estado.texto}`);
+    const numero = document.createElement('span');
+    numero.textContent = escenario.numero === null ? 'Modo Libre' : `Nivel ${String(escenario.numero).padStart(2, '0')}`;
+    const marca = document.createElement('small');
+    marca.textContent = estado.texto;
+    boton.append(numero, marca);
+    boton.setAttribute('aria-pressed', String(escenario.idEscenario === escenarioSeleccionado));
+    boton.addEventListener('click', () => {
+      escenarioSeleccionado = escenario.idEscenario;
+      botones.forEach(b => b.setAttribute('aria-pressed', String(b === boton)));
+      detalle.replaceChildren(crearTarjetaEscenario(escenario));
+    });
+    botones.push(boton);
+    if (escenario.numero === null) boton.className = 'metronet-escenarios-pagina__opcion-libre';
+    opciones.append(boton);
+  }
+  selector.append(titulo, opciones, document.getElementById('botonReiniciarRecorrido'));
+  detalle.append(crearTarjetaEscenario(seleccionado));
+  lista.replaceChildren(selector, detalle);
 }
 
 function crearTarjetaEscenario(escenario) {
@@ -135,12 +177,25 @@ function crearTarjetaEscenario(escenario) {
     ? (escenario.desbloqueado ? 'Ya ayudaste a Ari, Sol y Dani a superar los desafíos. Ahora te toca a vos: diseñá, construí y simulá tu propia red de metro. Descubrí nuevas herramientas y poné tus ideas a prueba.' : 'Ayudá a Ari, Sol y Dani a completar los diez niveles para desbloquear el Modo Libre.')
     : obtenerRelatoSeleccion(escenario);
   contenido.append(relato);
+  if (escenario.numero !== null && escenario.objetivo) {
+    const desafio = document.createElement('section');
+    desafio.className = 'metronet-escenarios-pagina__objetivo';
+    desafio.classList.toggle('metronet-escenarios-pagina__objetivo--extenso', escenario.objetivo.length > 280);
+    const tituloDesafio = document.createElement('h3');
+    tituloDesafio.textContent = 'Tu desafío';
+    const texto = document.createElement('p');
+    texto.textContent = escenario.objetivo;
+    desafio.append(tituloDesafio, texto);
+    contenido.append(desafio);
+  }
   const acciones = document.createElement('footer');
   acciones.className = 'metronet-escenarios-pagina__acciones';
   const boton = document.createElement('button');
   boton.type = 'button';
   boton.disabled = !escenario.desbloqueado || accionEnCurso;
   boton.textContent = estado.accion;
+  configurarAccionPorNombre(boton);
+  if (estado.id === 'actual') boton.dataset.categoriaAccion = 'secundaria';
   boton.setAttribute('aria-describedby', titulo.id);
   if (estado.id !== 'bloqueado') {
     boton.addEventListener('click', () => iniciarEscenario(escenario, boton, estado.id === 'completado'));
@@ -153,11 +208,11 @@ function crearTarjetaEscenario(escenario) {
 function obtenerEstadoVisual(escenario) {
   if (!escenario.desbloqueado || escenario.estado === 'BLOQUEADO') return { id: 'bloqueado', texto: 'Bloqueado', accion: 'Bloqueado' };
   if (ESTADOS_EN_CURSO.has(escenario.estado)) return { id: 'actual', texto: 'En curso', accion: 'Continuar' };
-  if (escenario.estado === 'COMPLETADO') return { id: 'completado', texto: 'Completado', accion: 'Volver a jugar' };
+  if (escenario.estado === 'COMPLETADO') return { id: 'completado', texto: 'Completado', accion: 'Repetir' };
   return {
     id: 'disponible',
     texto: escenario.numero === null ? 'Desbloqueado' : 'Disponible',
-    accion: escenario.numero === null ? 'Entrar al Modo Libre' : 'Comenzar',
+    accion: 'Iniciar',
   };
 }
 
@@ -179,6 +234,7 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
   const textoOriginal = boton.textContent;
   let navegando = false;
   boton.disabled = true;
+  establecerCargaAccion(boton,true);
   boton.textContent = 'Preparando…';
   mostrarMensaje(volverAJugar ? 'Creando un nuevo intento…' : 'Preparando el nivel…');
   try {
@@ -208,6 +264,7 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
       accionEnCurso = false;
       boton.disabled = false;
       boton.textContent = textoOriginal;
+      establecerCargaAccion(boton,false);
       boton.focus({ preventScroll: true });
     }
   }
@@ -242,8 +299,9 @@ function configurarDialogoReinicio() {
       } catch { /* La campaña ya se reinició aunque el navegador bloquee el almacenamiento. */ }
       dialogo.close();
       accionEnCurso = false;
+      escenarioSeleccionado = null;
       renderizarPantalla(progresoActual);
-      mostrarMensaje('El recorrido se reinició. Tus intentos, diseños y simulaciones anteriores se conservaron.');
+      mostrarMensaje('');
     } catch (error) {
       mostrarMensaje(error.message, 'error');
     } finally {

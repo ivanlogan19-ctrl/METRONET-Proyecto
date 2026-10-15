@@ -5,6 +5,31 @@ html:root body .metronet-accesos-ayuda button.metronet-aprender-acceso.metronet-
   background: var(--panel-elevated);
 }
 
+/* Los mismos accesos conservan su color en Edición y Simulación. */
+.metronet-aprender-acceso { --color-acceso-ayuda: #79caff; }
+.metronet-extras-acceso { --color-acceso-ayuda: #c7a6ff; }
+.metronet-tutorial > summary,
+#tutorialPantallaSimulacion { --color-acceso-ayuda: var(--warning); }
+.metronet-hud--integrado > summary { --color-acceso-ayuda: #63dbdb; }
+
+html:root body :is(.metronet-aprender-acceso, .metronet-extras-acceso,
+  .metronet-tutorial > summary, #tutorialPantallaSimulacion,
+  .metronet-hud--integrado > summary).metronet-boton-icono {
+  background: var(--color-acceso-ayuda) !important;
+  border-color: var(--color-acceso-ayuda) !important;
+  color: var(--primary-ink) !important;
+}
+html:root body :is(.metronet-aprender-acceso, .metronet-extras-acceso,
+  .metronet-tutorial > summary, #tutorialPantallaSimulacion,
+  .metronet-hud--integrado > summary).metronet-boton-icono > svg {
+  color: var(--primary-ink) !important;
+}
+html:root body :is(.metronet-aprender-acceso, .metronet-extras-acceso,
+  .metronet-tutorial > summary, #tutorialPantallaSimulacion,
+  .metronet-hud--integrado > summary).metronet-boton-icono:hover {
+  background: color-mix(in srgb, var(--color-acceso-ayuda) 80%, white) !important;
+}
+
 .metronet-assist {
   min-width: 0;
   padding: 10px 12px;

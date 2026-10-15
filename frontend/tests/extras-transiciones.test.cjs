@@ -119,7 +119,7 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
     }
     for (const destino of [1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0]) {
       const origen = titulos.indexOf(await pagina.locator('#tituloExtras').textContent());
-      await pagina.getByRole('button', { name: destino > origen ? 'Siguiente →' : '← Anterior', exact: true }).click();
+      await pagina.getByRole('button', { name: destino > origen ? 'Siguiente' : 'Anterior', exact: true }).click();
       await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
       assert.equal(await pagina.locator('[data-extras-estado]').textContent(), '', 'El guardado normal no muestra un cartel entre tarjetas');
       // La petición permanece sin resolver durante varios frames visibles.
@@ -134,7 +134,7 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
       estable(await medir(pagina), inicial, `tarjeta ${destino + 1} tras leer`);
     }
     assert.equal(visitas.length, 12);
-    await pagina.getByRole('button', { name: 'Cerrar tarjetas', exact: true }).click();
+    await pagina.getByRole('button', { name: 'Cerrar', exact: true }).click();
     await pagina.waitForFunction(() => window.extrasCerrados);
   });
 }
@@ -150,19 +150,19 @@ test('Extras: fondo opaco incluso con contenido de carga detrás', async t => {
 test('Extras: el error conserva el cuadro, permite reintentar y cerrar mientras guarda', async t => {
   const { pagina, pendientes } = await abrir(t, { width: 1280, height: 720 });
   const inicial = await medir(pagina);
-  await pagina.getByRole('button', { name: 'Siguiente →', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Siguiente', exact: true }).click();
   await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
   pendientes.shift()(500);
   await pagina.locator('[data-extras-estado]').getByText(/reintentar/).waitFor();
   estable(await medir(pagina), inicial, 'error de guardado');
   assert.ok(await pagina.locator('[data-extras-estado]').evaluate(e => e.scrollHeight <= e.clientHeight + 1), 'El mensaje de reintento se ve completo');
-  await pagina.getByRole('button', { name: 'Siguiente →', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Siguiente', exact: true }).click();
   await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
   pendientes.shift()(200);
   await pagina.getByRole('heading', { name: titulos[1], exact: true }).waitFor();
-  await pagina.getByRole('button', { name: 'Siguiente →', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Siguiente', exact: true }).click();
   await pagina.locator('.metronet-extras[aria-busy="true"]').waitFor();
-  await pagina.getByRole('button', { name: 'Cerrar tarjetas', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Cerrar', exact: true }).click();
   await pagina.waitForFunction(() => window.extrasCerrados);
   pendientes.shift()(200);
   assert.equal(await pagina.locator('.metronet-extras').count(), 0);

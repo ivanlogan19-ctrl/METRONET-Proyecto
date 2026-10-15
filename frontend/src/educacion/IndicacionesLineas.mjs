@@ -65,6 +65,7 @@ export function crearIndicacionesLineas(grupos) {
 export function metasConLineas(condiciones, lineas = []) {
   const grupos = indicacionesLineas(condiciones, lineas);
   return condiciones.map(condicion => {
+    if (condicion.textoPersonalizado) return condicion;
     const grupo = grupos.find(g => g.clave === condicion.clave);
     if (!grupo) return condicion;
     const nombres = grupo.filas.map(fila => fila.slice(0, fila.indexOf(':')));

@@ -106,7 +106,7 @@ async function guardarDatosPersonales() {
       body: JSON.stringify(datos),
     });
     actualizarPerfilGuardado(perfil);
-    mostrarMensaje('Información personal actualizada correctamente.');
+    mostrarMensaje('');
     return true;
   } catch (error) {
     manejarErrorSesion(error);
@@ -130,7 +130,7 @@ async function guardarCorreo() {
       body: JSON.stringify({ email }),
     });
     actualizarPerfilGuardado(perfil);
-    mostrarMensaje('Correo electrónico actualizado correctamente.');
+    mostrarMensaje('');
     return true;
   } catch (error) {
     manejarErrorSesion(error);
@@ -165,7 +165,7 @@ async function guardarContrasena() {
     });
     formularioContrasena.reset();
     eliminarSesiones();
-    mostrarMensaje('Contraseña actualizada correctamente. Iniciá sesión nuevamente para continuar.', 'exito');
+    mostrarMensaje('', 'exito');
     window.setTimeout(() => window.location.replace('/login.html'), 900);
     return false;
   } catch (error) {

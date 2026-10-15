@@ -33,6 +33,17 @@ html:root body .metronet-tutorial__repetir {
   display:block; margin:12px auto 0; min-height:40px;
 }
 .metronet-tutorial__error { color:var(--warning-text, #ffe59b); border-left:2px solid currentColor; padding-left:8px; }
+/* La flecha para iniciar o repetir el tutorial conserva su acento amarillo. */
+html:root body .metronet-tutorial__repetir.metronet-boton-icono {
+  --accion-fondo: var(--panel);
+  --accion-texto: var(--warning);
+  --accion-borde: var(--warning);
+  --accion-hover: var(--panel-elevated);
+  --boton-fondo: var(--panel);
+  --boton-texto: var(--warning);
+  --boton-borde: var(--warning);
+}
+html:root body .metronet-tutorial__repetir > .metronet-icono { color: var(--warning); }
 .metronet-tutorial__herramientas { display:grid; gap:6px; margin:8px 0; }
 .metronet-tutorial__herramientas p { margin:0; padding:5px 0; border-bottom:1px solid var(--tutorial-acento); }
 .metronet-tutorial__herramientas strong { color:var(--tutorial-acento); font-weight:700; }
@@ -50,8 +61,15 @@ dialog[data-oferta-tutorial] .metronet-recorrido__acciones { display: grid; grid
 html:root body dialog[data-oferta-tutorial] .metronet-recorrido__acciones button {
   width: 100%; min-height: 44px; padding: 10px 14px; font: 11px/1.5 var(--font-arcade);
 }
-html:root body dialog[data-oferta-tutorial] .metronet-recorrido__acciones button:last-child {
-  --boton-fondo: var(--panel); --boton-texto: var(--text-primary); --boton-borde: var(--border);
+html:root body dialog[data-oferta-tutorial] .metronet-recorrido__acciones [data-accion-ui] {
+  --accion-fondo: var(--warning);
+  --accion-texto: var(--primary-ink);
+  --accion-borde: var(--warning);
+  --accion-hover: color-mix(in srgb, var(--warning) 80%, white);
+}
+html:root body dialog[data-oferta-tutorial] .metronet-recorrido__acciones [data-accion-ui='continuar'] {
+  --accion-fondo: color-mix(in srgb, var(--warning) 55%, white);
+  --accion-hover: color-mix(in srgb, var(--warning) 40%, white);
 }
 .metronet-recorrido__marca { position:fixed; box-sizing:border-box; pointer-events:none; border:3px solid var(--tutorial-acento); box-shadow:0 0 0 2px var(--bg-primary), 4px 4px 0 var(--shadow-color); }
 .metronet-recorrido__marca[hidden] { display:none; }
@@ -127,3 +145,6 @@ html:root body dialog[data-bienvenida-libre] .metronet-recorrido__acciones butto
 @media (max-width:480px) {
   dialog[data-bienvenida-libre] .metronet-recorrido__acciones { grid-template-columns:1fr; }
 }
+
+/* El acento del título del tutorial se conserva independiente de los botones. */
+html:root body :is(.metronet-tutorial__panel, dialog.metronet-recorrido) :is(h2,h3,h4) { --titulo-color: var(--tutorial-acento); color: var(--tutorial-acento); }

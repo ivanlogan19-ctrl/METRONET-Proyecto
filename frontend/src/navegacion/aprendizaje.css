@@ -3,26 +3,6 @@ body.metronet-pagina-aprendizaje {
   --font-tecnica: var(--font-ui);
 }
 .metronet-aprendizaje { width: min(100% - 32px, 1040px); margin: auto; padding: clamp(12px, 1.8vw, 20px) 0 clamp(30px, 6vw, 72px); }
-@media (min-width: 1100px) {
-  .metronet-aprendizaje {
-    --cruz-ferroviaria-ancho: clamp(108px, 11vw, 170px);
-    --separacion-cruz: clamp(36px, 3vw, 54px);
-    position: relative;
-    width: min(calc(100% - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz) - var(--cruz-ferroviaria-ancho) - var(--separacion-cruz)), 1040px);
-  }
-  .metronet-aprendizaje::before,
-  .metronet-aprendizaje::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    width: var(--cruz-ferroviaria-ancho);
-    aspect-ratio: 200 / 300;
-    background: url('/assets/cruz-ferroviaria-aprendizaje.svg') center / contain no-repeat;
-    pointer-events: none;
-  }
-  .metronet-aprendizaje::before { left: calc(-1 * (var(--cruz-ferroviaria-ancho) + var(--separacion-cruz))); }
-  .metronet-aprendizaje::after { right: calc(-1 * (var(--cruz-ferroviaria-ancho) + var(--separacion-cruz))); }
-}
 .metronet-aprendizaje__cabecera { margin-bottom: 26px; }
 .metronet-aprendizaje__cabecera h1 { margin: 0; }
 .metronet-aprendizaje__cabecera > p:not(.metronet-inicio__etiqueta) { color: var(--text-secondary); line-height: 1.6; }
@@ -117,3 +97,34 @@ html:root body button.metronet-aprendizaje__tarjeta:focus-visible { border-color
 }
 
 #extrasAprendizaje { margin-bottom:20px; --boleto-acento:#c1a6ff; }
+
+/* Biblioteca: un nivel por vez, conservando las siete tarjetas originales. */
+html:root body .metronet-aprendizaje { width:min(calc(100% - 48px),1280px); padding:16px 0; }
+html:root body .metronet-aprendizaje__cabecera { margin-bottom:16px; text-align:center; }
+html:root body .metronet-aprendizaje__cabecera h1 { font-size:28px; padding:12px; }
+html:root body .metronet-aprendizaje__cabecera p { margin:8px 0; font-size:13px; }
+.metronet-aprendizaje__selector { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)) 2fr; gap:8px; margin-bottom:16px; }
+html:root body .metronet-aprendizaje__selector button { min-width:0; min-height:40px; padding:8px 4px; font:14px/1.3 var(--font-arcade); }
+html:root body .metronet-aprendizaje__selector button[aria-pressed="true"] { background:var(--info-active); color:var(--primary-ink); border-color:var(--info-active); }
+html:root body .metronet-aprendizaje__nivel { padding:18px; margin:0; }
+html:root body .metronet-aprendizaje [hidden] { display:none; }
+html:root body .metronet-aprendizaje__nivel h2 { font-size:18px; }
+.metronet-aprendizaje__lista { grid-template-columns:repeat(8,minmax(0,1fr)); gap:16px; margin-top:24px; }
+html:root body button.metronet-aprendizaje__tarjeta { --talon-ancho:58px; grid-column:span 2; min-height:125px; font:14px/1.5 var(--font-arcade); }
+html:root body button.metronet-aprendizaje__tarjeta:nth-child(5) { grid-column:2 / span 2; }
+html:root body button.metronet-aprendizaje__tarjeta:nth-child(6) { grid-column:4 / span 2; }
+html:root body button.metronet-aprendizaje__tarjeta:nth-child(7) { grid-column:6 / span 2; }
+@media(max-width:900px) {
+  .metronet-aprendizaje__selector { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .metronet-aprendizaje__selector button:last-child { grid-column:1 / -1; }
+  .metronet-aprendizaje__lista { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html:root body button.metronet-aprendizaje__tarjeta { grid-column:auto; }
+}
+@media(max-width:550px) {
+  html:root body .metronet-aprendizaje { width:calc(100% - 24px); }
+  .metronet-aprendizaje__lista { grid-template-columns:1fr; }
+}
+
+html:root body .metronet-aprendizaje__tarjeta > span { min-width:0; padding:10px 5px; text-align:center; place-content:center; overflow-wrap:normal; }
+html:root body .metronet-aprendizaje__tarjeta > span.metronet-aprendizaje__recorrida { writing-mode:vertical-rl; transform:none; font-size:10px; letter-spacing:.04em; }
+html:root body .metronet-aprendizaje__volver { --boton-fondo:var(--info-active); --boton-borde:var(--info-active); --boton-texto:var(--primary-ink); background:var(--info-active); border-color:var(--info-active); color:var(--primary-ink); }

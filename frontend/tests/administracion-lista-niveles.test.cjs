@@ -16,34 +16,37 @@ for(const viewport of [{width:1280,height:720},{width:1440,height:900},{width:19
     }});
     t.after(async()=>{await contexto.close();assert.deepEqual(errores,[])});
     const menuAntes=await p.locator('.admin-menu').boundingBox();
-    const senalAntes=await p.locator('.admin-senal-ferroviaria').boundingBox();
+    assert.equal(await p.locator('.admin-senal-ferroviaria').count(),0,'El menú administrativo no lleva ilustración');
     await p.getByRole('button',{name:'Experiencia de juego',exact:true}).click();
-    const tabla=p.getByRole('table',{name:'Niveles de la experiencia de juego'});
+    const tabla=p.getByRole('list',{name:'Niveles de la experiencia de juego'});
     await tabla.getByRole('button',{name:'Editar',exact:true}).nth(9).waitFor();
-    assert.deepEqual(await tabla.locator('thead th').allTextContents(),['Nivel','Nombre','Publicación','Borrador','Acción']);
-    assert.equal(await tabla.locator('tbody tr').count(),10);
+    assert.equal(await tabla.locator('table').count(),0);
+    assert.equal(await tabla.locator('.admin-niveles__tarjeta').count(),10);
     for(let n=1;n<=10;n++) {
-      const fila=tabla.locator('tbody tr').nth(n-1);
-      assert.equal(await fila.locator('th').textContent(),niveles[n-1].nombre.replace(/^Nivel\s+\d+\s*[·:–-]\s*/i,''));
-      assert.match(await fila.textContent(),new RegExp(`Publicada v7.*Revisión ${12+n}`));
-      assert.match(await fila.locator('th').evaluate(el=>getComputedStyle(el).fontFamily),/Silkscreen/);
+      const fila=tabla.locator('.admin-niveles__tarjeta').nth(n-1);
+      assert.equal(await fila.locator('.admin-niveles__nombre').textContent(),niveles[n-1].nombre.replace(/^Nivel\s+\d+\s*[·:–-]\s*/i,''));
+      assert.equal(await fila.locator('.admin-niveles__numero').textContent(),String(n).padStart(2,'0'));
+      assert.match(await fila.locator('.admin-niveles__nombre').evaluate(el=>getComputedStyle(el).fontFamily),/Silkscreen/);
       assert.equal(await fila.getByRole('button',{name:'Editar',exact:true}).getAttribute('data-editar-nivel'),String(n));
     }
     const medidas=await tabla.evaluate(el=>({tabla:el.getBoundingClientRect().toJSON(),
       ancho:document.documentElement.scrollWidth,alto:document.documentElement.scrollHeight,
-      filas:[...el.tBodies[0].rows].map(f=>({celdas:[...f.cells].map(c=>c.getBoundingClientRect().toJSON()),boton:f.querySelector('button').getBoundingClientRect().toJSON()}))}));
+      filas:[...el.children].map(f=>({caja:f.getBoundingClientRect().toJSON(),boton:f.querySelector('button').getBoundingClientRect().toJSON()}))}));
     assert(medidas.ancho<=viewport.width+1,'La tabla no ensancha la página');
     if(viewport.width>=1280) {
       assert(medidas.tabla.bottom<=viewport.height,`Los diez niveles entran: ${medidas.tabla.bottom}/${viewport.height}`);
       assert(medidas.alto<=viewport.height+1,`No hace falta desplazamiento vertical: ${medidas.alto}/${viewport.height}`);
       assert.equal((await p.locator('.admin-menu').boundingBox()).width,menuAntes.width,'El menú conserva su ancho');
-      assert.equal((await p.locator('.admin-senal-ferroviaria').boundingBox()).height,senalAntes.height,'La ilustración conserva su tamaño');
+    }
+    if(viewport.width>=1280) {
+      assert.equal(medidas.filas[0].caja.y,medidas.filas[5].caja.y);
+      assert(medidas.filas[5].caja.x>medidas.filas[0].caja.x);
     }
     const primera=medidas.filas[0];
     for(const fila of medidas.filas) {
       assert.equal(fila.boton.width,primera.boton.width);
       assert.equal(fila.boton.height,primera.boton.height);
-      fila.celdas.forEach((celda,i)=>assert.equal(celda.x,primera.celdas[i].x,'Columnas alineadas'));
+      assert(Math.abs(fila.boton.y+fila.boton.height/2-fila.caja.y-fila.caja.height/2)<1,'Botón centrado verticalmente');
     }
     if(process.env.METRONET_CAPTURAS_ADMIN)
       await p.screenshot({path:`${process.env.METRONET_CAPTURAS_ADMIN}/lista-niveles-${viewport.width}.png`,fullPage:true});

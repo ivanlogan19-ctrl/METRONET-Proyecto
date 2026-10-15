@@ -78,7 +78,7 @@ for (const width of [1440, 390]) test(`Descuentos ${width}: muestra motivos del 
   assert.match(await dialogo.innerText(), /Asignar Metro a cada línea/);
   assert.deepEqual(await dialogo.locator('dd').allTextContents(), ['100', '−10', '−10', '80']);
   assert.equal(await dialogo.evaluate(e => e.scrollWidth > e.clientWidth), false);
-  assert.match(await dialogo.innerText(), /Toda la consigna cumplida/);
+  assert.doesNotMatch(await dialogo.innerText(), /Toda la consigna cumplida|RESULTADO \/\/ NIVEL/);
   await p.screenshot({ path: `/tmp/metronet-puntos-${width}.png` });
   await dialogo.getByRole('button', { name: 'Continuar', exact: true }).click();
   assert.equal(await p.evaluate(() => window.resultadoDescuentos), true);

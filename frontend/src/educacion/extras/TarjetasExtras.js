@@ -1,33 +1,75 @@
 // Material didáctico de las capas existentes; no altera UV, UT ni la simulación.
 export const TARJETAS_EXTRAS = Object.freeze([
-  { id:1, titulo:'Calles y avenidas', subtitulo:'Reconocé el territorio',
-    texto:'Activá las calles y acercá el mapa para reconocer los principales corredores. Usalos como referencia para dibujar tu red.',
-    practica:'Trazá una línea que acompañe una avenida y conecte varios barrios.',
-    nota:'El metro no tiene que seguir obligatoriamente las calles.' },
-  { id:2, titulo:'Densidad de población', subtitulo:'Acercá estaciones a las zonas habitadas',
-    texto:'Los tonos violetas muestran la densidad del Censo 2011. Te ayudan a reconocer zonas donde una estación podría ampliar el acceso a la red.',
-    practica:'Compará dos ubicaciones antes de colocar una estación.',
-    nota:'No representa la población actual ni cuántas personas viajarían.' },
-  { id:3, titulo:'Tráfico histórico', subtitulo:'Identificá corredores con actividad',
-    texto:'Los colores permiten comparar la intensidad histórica de un mismo tramo según la hora. Usalos para estudiar dónde podría servir una alternativa de metro.',
-    practica:'Observá cómo cambia una avenida durante el día.',
-    nota:'Rojo no significa necesariamente congestión. No es tráfico en vivo.' },
-  { id:4, titulo:'Desplazamientos', subtitulo:'Conectá orígenes y destinos',
-    texto:'Las flechas muestran desplazamientos históricos entre zonas. Su dirección y grosor ayudan a reconocer relaciones que tu red podría atender.',
-    practica:'Conectá dos sectores unidos por una flecha destacada.',
-    nota:'La animación no representa la velocidad real de viaje.' },
-  { id:5, titulo:'Horarios', subtitulo:'Mirá cómo cambia la ciudad',
-    texto:'Una red puede responder a necesidades diferentes por la mañana y por la tarde. Cambiá la hora y compará el tráfico y los desplazamientos disponibles.',
-    practica:'Revisá tu trazado en dos horarios diferentes.',
-    nota:'Las fuentes pertenecen a períodos distintos. La población permanece fija.' },
-  { id:6, titulo:'Cobertura', subtitulo:'Revisá hasta dónde llega tu red',
-    texto:'La cobertura marca un radio de 500 metros alrededor de cada estación. Te ayuda a detectar zonas cercanas a la red y espacios que quedan fuera.',
-    practica:'Mové una estación para cubrir otra zona.',
-    nota:'El radio se mide en línea recta, no como recorrido peatonal.' },
-  { id:7, titulo:'Diseño y simulación', subtitulo:'Poné a prueba tus decisiones',
-    texto:'Combiná las capas para elegir el trazado. Después utilizá las distancias, UV y UT para comprobar cuánto recorre cada metro y si alcanza el final.',
-    practica:'Conservá la misma red, horario y duración; cambiá la velocidad y compará.',
-    nota:'Llegar antes y cubrir mejor el territorio son resultados diferentes.' },
+  {
+    "id": 1,
+    "titulo": "Calles y avenidas",
+    "subtitulo": "Orientá el trazado en el territorio",
+    "texto": "La capa de calles muestra referencias viales para ubicar estaciones y reconocer corredores entre barrios.",
+    "aporte": "Te permite relacionar el trazado con la estructura urbana antes de construir estaciones y conexiones en el editor.",
+    "practica": "Activá Calles y acercá el mapa. Identificá una avenida, ubicá estaciones próximas a sectores que querés conectar y compará dos trazados posibles.",
+    "justificacion": "Justificá por qué elegiste ese corredor y qué sectores conecta.",
+    "nota": "Es una referencia cartográfica: no obliga al metro a seguir las calles ni acredita la viabilidad de una obra."
+  },
+  {
+    "id": 2,
+    "titulo": "Densidad de población",
+    "subtitulo": "Fundamentá dónde ubicar estaciones",
+    "texto": "Los tonos violetas representan la densidad del Censo 2011 y permiten comparar la distribución territorial de la población.",
+    "aporte": "Apoya la selección de ubicaciones y la revisión de zonas habitadas que quedan próximas o alejadas de tu red.",
+    "practica": "Activá Población y Cobertura. Compará dos ubicaciones de una estación y observá qué áreas quedan dentro de su radio.",
+    "justificacion": "Explicá qué cambia en el alcance territorial al mover la estación.",
+    "nota": "La densidad histórica no equivale a población actual ni a cantidad de pasajeros del metro."
+  },
+  {
+    "id": 3,
+    "titulo": "Tráfico histórico",
+    "subtitulo": "Observá la variación de un corredor",
+    "texto": "La capa representa la intensidad histórica relativa de cada tramo según la hora seleccionada.",
+    "aporte": "Ayuda a formular una alternativa de trazado en corredores con actividad y a contextualizar la red que vas a simular.",
+    "practica": "Elegí una avenida y compará su color a las 08:00 y a las 18:00. Usá esa observación para argumentar dónde estudiar una conexión.",
+    "justificacion": "Describí la diferencia horaria del mismo tramo; no ordenes avenidas solo por su color.",
+    "nota": "Rojo no significa congestión. La escala es relativa a cada tramo y los datos no son de tráfico en vivo."
+  },
+  {
+    "id": 4,
+    "titulo": "Desplazamientos",
+    "subtitulo": "Relacioná orígenes y destinos",
+    "texto": "Las flechas representan flujos históricos entre zonas; su dirección y grosor ayudan a interpretar relaciones territoriales.",
+    "aporte": "Apoya la elección de sectores a conectar y la comparación entre un enlace directo y un recorrido que pasa por otras estaciones.",
+    "practica": "Seleccioná una hora. Identificá un flujo destacado, ubicá sus zonas de origen y destino y trazá una alternativa que las vincule.",
+    "justificacion": "Justificá qué relación territorial atiende tu propuesta y qué recorrido requiere.",
+    "nota": "Son flujos históricos de referencia: no son pasajeros simulados. La animación no indica velocidad real de viaje."
+  },
+  {
+    "id": 5,
+    "titulo": "Horarios",
+    "subtitulo": "Compará escenarios temporales",
+    "texto": "El control horario permite observar tráfico y desplazamientos en distintas horas. En simulación se muestra inicio, hora actual y fin.",
+    "aporte": "Permite analizar una misma red bajo distintos contextos horarios, sin confundir la hora de las capas con la velocidad del metro.",
+    "practica": "En el mapa, compará 08:00 y 18:00. En simulación, fijá una hora de inicio y mantené la red, la velocidad y la duración para observar el contexto.",
+    "justificacion": "Separá lo que cambia en las capas históricas de lo que cambia en el movimiento de las unidades.",
+    "nota": "La población permanece fija. Las fuentes pertenecen a períodos distintos; cambiar la hora no crea demanda de pasajeros."
+  },
+  {
+    "id": 6,
+    "titulo": "Cobertura",
+    "subtitulo": "Evaluá la proximidad a las estaciones",
+    "texto": "La herramienta dibuja un radio de 500 metros alrededor de cada estación.",
+    "aporte": "Permite detectar áreas próximas a la red, vacíos y superposiciones, y orientar la ubicación o el desplazamiento de estaciones.",
+    "practica": "Activá Cobertura. Compará dos ubicaciones de una estación y revisá qué zonas se incorporan o dejan de quedar dentro del radio.",
+    "justificacion": "Argumentá el equilibrio entre ampliar el área alcanzada y mantener un trazado coherente.",
+    "nota": "El radio se mide en línea recta: no representa caminos peatonales, barreras urbanas ni tiempo real de acceso."
+  },
+  {
+    "id": 7,
+    "titulo": "Diseño y simulación",
+    "subtitulo": "Contrastá una decisión con una prueba",
+    "texto": "El editor permite construir estaciones, líneas y conexiones; la simulación permite observar el recorrido de las unidades con velocidad y duración elegidas.",
+    "aporte": "Vincula una hipótesis de diseño con una prueba controlada: la cobertura territorial y el desempeño del recorrido se evalúan por separado.",
+    "practica": "Guardá la red y ejecutala. Repetí con la misma red, unidades, hora de inicio y duración; modificá solo la velocidad y compará el recorrido alcanzado.",
+    "justificacion": "Registrá la variable modificada y explicá el resultado usando las distancias y las equivalencias de UV y UT del juego.",
+    "nota": "Llegar antes no implica cubrir mejor. La simulación didáctica no certifica demanda, capacidad ni factibilidad de una red real."
+  }
 ]);
 
 const estacion = (x,y) => `<circle cx="${x}" cy="${y}" r="10" fill="#091326" stroke="#70e5b1" stroke-width="5"/>`;
