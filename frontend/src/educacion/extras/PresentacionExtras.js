@@ -78,6 +78,7 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       } finally {ocupado=false;}
     }
     function mostrarTarjeta() {
+      dialogo.classList.add('metronet-extras--tarjetas');
       const tarjeta=TARJETAS_EXTRAS[indice];
       const encabezado=nodo('header'); encabezado.append(nodo('span','Aprendizaje · Extras'),nodo('span',`${indice+1} / 7`));
       const cuerpo=nodo('div','','metronet-extras__cuerpo');

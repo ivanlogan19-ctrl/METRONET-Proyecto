@@ -31,6 +31,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   assert.equal(await vista.locator('dialog[open]').count(),1,'La bienvenida no se superpone al tutorial');
   for(const [width,height] of [[1440,900],[1280,720],[390,844]]) {
     await page.setViewportSize({width,height});
+    await frame().evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.ok(await vista.locator('.metronet-extras').evaluate(e=>e.getBoundingClientRect().right<=innerWidth && e.getBoundingClientRect().bottom<=innerHeight));
     assert.ok(await vista.locator('.metronet-extras').evaluate(e=>[...e.querySelectorAll('*')].every(n=>getComputedStyle(n).fontFamily.includes('Silkscreen'))));
     await page.screenshot({path:`/tmp/metronet-extras-bienvenida-${width}.png`});
@@ -72,6 +73,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   await vista.getByRole('heading',{name:'Tráfico histórico',exact:true}).waitFor();
   for(const [width,height] of [[1440,900],[1280,720],[390,844]]) {
     await page.setViewportSize({width,height});
+    await frame().evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     const medidas=await vista.locator('.metronet-extras').evaluate(e=>({ancho:e.scrollWidth<=e.clientWidth+1,alto:e.scrollHeight<=e.clientHeight+1}));
     assert.ok(medidas.ancho);if(width>700)assert.ok(medidas.alto,'La tarjeta entra sin scroll en escritorio');
     await page.screenshot({path:`/tmp/metronet-extras-tarjeta-${width}.png`});
@@ -146,6 +148,21 @@ test('Primera entrada: bienvenida, siete tarjetas y premio antes del tutorial',{
   await vista.locator('#accionesInicio[aria-busy="false"]').waitFor();
   await vista.locator('.metronet-inicio__tarjeta--crear button').click();
   await vista.getByRole('button',{name:'Ver las 7 tarjetas',exact:true}).click();
+  // El cuadro no debe saltar ni dejar ver la pantalla de carga mientras se
+  // guardan visitas reales o se reemplaza el contenido de las siete tarjetas.
+  await vista.getByRole('heading',{name:'Calles y avenidas',exact:true}).waitFor();
+  await vista.locator('.metronet-extras').evaluate(async dialogo=>{
+    await document.fonts.ready;
+    window.muestrasTransicionExtras=[];
+    const medir=()=>{
+      if(!dialogo.isConnected||!dialogo.open)return;
+      const caja=dialogo.getBoundingClientRect(),pie=dialogo.querySelector('footer').getBoundingClientRect();
+      window.muestrasTransicionExtras.push({x:caja.x,y:caja.y,width:caja.width,height:caja.height,pie:pie.y,
+        fondo:getComputedStyle(dialogo,'::backdrop').backgroundColor});
+      requestAnimationFrame(medir);
+    };
+    medir();
+  });
   for(const titulo of ['Calles y avenidas','Densidad de población','Tráfico histórico','Desplazamientos','Horarios','Cobertura','Diseño y simulación']) {
     await vista.locator('.metronet-extras').getByRole('heading',{name:titulo,exact:true}).waitFor();
     assert.equal(await vista.locator('#tituloExtras').evaluate(e=>getComputedStyle(e).boxShadow),'none','Título sin barra azul');
@@ -154,6 +171,13 @@ test('Primera entrada: bienvenida, siete tarjetas y premio antes del tutorial',{
     await vista.getByRole('button',{name:titulo==='Diseño y simulación'?'Finalizar recorrido':'Siguiente →',exact:true}).click();
   }
   await vista.getByRole('heading',{name:'Cartógrafo de la red',exact:true}).waitFor();
+  const muestras=await page.frames().find(f=>f.parentFrame()).evaluate(()=>window.muestrasTransicionExtras);
+  assert(muestras.length>7,'Se midieron también los cuadros intermedios de las transiciones');
+  for(const clave of ['x','y','width','height','pie']) {
+    const valores=muestras.map(m=>m[clave]);
+    assert(Math.max(...valores)-Math.min(...valores)<=1,`Extras permanece estable en ${clave}`);
+  }
+  assert(muestras.every(m=>/^rgb\(/.test(m.fondo)), 'El fondo de Extras es completamente opaco durante todo el recorrido');
   assert.equal(await vista.locator('dialog[open]').count(),1,'El premio no se superpone al tutorial');
   assert.equal(await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).count(),0);
   await vista.getByRole('button',{name:'Continuar',exact:true}).click();
