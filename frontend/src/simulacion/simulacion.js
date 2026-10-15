@@ -1,4 +1,4 @@
-import { usaVinculoPorLinea, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
+import { normalizarSeleccion, usaVinculoPorLinea, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
 import { escenarioCampana, funcionesCampana } from '../educacion/FuncionesCampana.js';
 import { abrirTutorialSimulacion, crearPanelTutorialSimulacion, presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
 import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
@@ -315,7 +315,7 @@ async function actualizarDesempeno(idDiseno) {
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
   // Las métricas pertenecen al panel. El motor usa estaciones, tramos y UV,
   // ya cargados por abrirDiseno: no recrear la red ni reiniciar su estado aquí.
-  if (!disenoActual.unidadesMetro?.some(u => String(u.idTren) === unidadSeleccionada)) unidadSeleccionada = 'todas';
+  unidadSeleccionada = normalizarSeleccion(disenoActual.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual));
   controlUnidades = renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, guardarVelocidades, {
     seleccion: unidadSeleccionada, alSeleccionar: seleccionarUnidad,
     vinculoLibre: usaVinculoPorLinea(disenoActual), alCambiarVelocidad: valor => previsualizarVinculo('UV', valor),
@@ -338,6 +338,7 @@ function obtenerRotuloNivel() {
 
 async function seleccionarUnidad(id) {
   if (guardandoVelocidad) return;
+  id = normalizarSeleccion(disenoActual?.unidadesMetro ?? [], id, usaVinculoPorLinea(disenoActual));
   if (id === unidadSeleccionada) return;
   if (usaVinculoPorLinea(disenoActual) && vinculoPendiente) {
     const { referencia, valor } = vinculoPendiente;

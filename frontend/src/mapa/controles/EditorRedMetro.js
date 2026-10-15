@@ -1,3 +1,5 @@
+import { indicacionesLineas, crearIndicacionesLineas } from '../../educacion/IndicacionesLineas.mjs';
+import '../../educacion/indicaciones-lineas.css';
 import CreacionDirecta from './CreacionDirecta.js';
 import PanelCalles from './PanelCalles.js';
 import { configurarBotonIcono, iconoRetro } from '../../interfaz/IconosRetro.js';
@@ -888,6 +890,8 @@ export default class EditorRedMetro {
       condiciones
         .forEach(condicion => listaBreve.append(this.crearElementoCondicionConsigna(condicion)));
       resumenActivo.append(listaBreve);
+      const indicaciones = indicacionesLineas(consignaActual.condiciones, this.disenoActual?.lineas ?? []);
+      if (indicaciones.length) resumenActivo.append(crearIndicacionesLineas(indicaciones));
     } else if (esNivel && escenario.objetivo) {
       const listaBreve = document.createElement('ul');
       listaBreve.className = 'metronet-consigna__lista-objetivos metronet-consigna__lista-breve';

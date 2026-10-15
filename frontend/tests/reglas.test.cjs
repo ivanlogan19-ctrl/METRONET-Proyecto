@@ -72,7 +72,8 @@ test('Las pestañas permiten recorrer todos los temas por teclado y entrar al co
   assert.equal(await p.getByRole('tabpanel').evaluate(n => n === document.activeElement), true);
   await p.getByRole('tab', { name: 'Velocidad y tiempo', exact: true }).click();
   await p.locator('#panelLibre summary').click();
-  assert.match(await p.getByRole('tabpanel').innerText(), /Mixto/);
+  assert.match(await p.getByRole('tabpanel').innerText(), /una línea por vez/);
+  assert.doesNotMatch(await p.getByRole('tabpanel').innerText(), /Todas las líneas|Mixto/);
   await p.getByRole('tab', { name: 'Ranking', exact: true }).click();
   assert.equal(await p.getByRole('link', { name: 'Ver niveles', exact: true }).getAttribute('href'), '/escenarios.html');
   assert.equal(await p.getByRole('link', { name: 'Ver ranking', exact: true }).getAttribute('href'), '/ranking.html');

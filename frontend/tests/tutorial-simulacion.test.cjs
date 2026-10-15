@@ -382,7 +382,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   assert.deepEqual(v.errores, []);
 });
 
-test('Regla: total por red y línea, teclado y distancias ausentes sin valores inventados', async t => {
+test('Regla: total por línea, teclado y distancias ausentes sin valores inventados', async t => {
   let modo = 'LIBRE', distancia = 3.5;
   const v = await abrirBase(navegador, '/simulacion.html?idDiseno=77', { responder: req => {
     if (new URL(req.url()).pathname === '/api/simulaciones/77') return {json: {
@@ -398,12 +398,9 @@ test('Regla: total por red y línea, teclado y distancias ausentes sin valores i
   const p=v.pagina;
   await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
   const regla=p.locator('[data-medicion-distancias]');
-  // Modo Libre comienza seleccionando la primera línea; el total de red
-  // corresponde a la selección explícita de todas las líneas.
-  await p.locator('.simulacion-selector-metros > summary').click();
-  await p.locator('button[data-metro="todas"]').click();
+  // La regla muestra la distancia de la línea seleccionada.
   await regla.focus(); await p.keyboard.press('Enter');
-  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Red · 5,9 km');
+  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 01 · 2,4 km');
   await p.locator('.simulacion-selector-metros > summary').click();
   await p.locator('button[data-metro="2"]').click();
   await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 02 · 3,5 km');
@@ -412,7 +409,7 @@ test('Regla: total por red y línea, teclado y distancias ausentes sin valores i
   distancia=null;
   await p.reload();
   await p.locator('.simulacion-selector-metros > summary').click();
-  await p.locator('button[data-metro="todas"]').click();
+  await p.locator('button[data-metro="2"]').click();
   await p.getByRole('button',{name:'Mostrar distancias en kilómetros',exact:true}).click();
   assert.equal(await p.locator('.metronet-mediciones__tramo').count(),1);
   assert.equal(await p.locator('.metronet-mediciones__total').isVisible(),false,'No sumar una red incompleta');

@@ -1,0 +1,18 @@
+.metronet-indicaciones-lineas { display: grid; gap: 10px; margin-top: 10px; min-width: 0; }
+.metronet-indicaciones-lineas section { display: grid; gap: 5px; min-width: 0; }
+.metronet-indicaciones-lineas strong { color: var(--info-active); font-family: var(--font-arcade); font-size: inherit; }
+html:root body .metronet-indicaciones-lineas p { margin: 0; font: inherit; line-height: 1.5; overflow-wrap: anywhere; }
+.metronet-consigna .metronet-indicaciones-lineas { font-family: var(--font-arcade); font-size: 11px; }
+/* Las aclaraciones permanecen dentro del panel; no desplazan las herramientas. */
+html:root body #metronet-aplicacion .metronet-consigna__resumen-activo:has(> .metronet-indicaciones-lineas) {
+  grid-template-rows: auto auto; align-content: start; overflow-y: auto;
+}
+
+.metronet-viaje__contexto { min-width: 0; }
+.metronet-viaje__contexto > .metronet-indicaciones-lineas { font-family: var(--font-arcade); font-size: 15px; }
+
+/* Más ancho para nombrar cada línea sin reducir la ilustración ni la letra. */
+.metronet-viaje.metronet-viaje--lineas { width: min(96vw, 1360px); }
+.metronet-viaje--lineas .metronet-viaje__contenido { padding: 16px; gap: 10px; }
+.metronet-viaje--lineas .metronet-indicaciones-lineas { gap: 8px; }
+.metronet-viaje--lineas .metronet-indicaciones-lineas section { gap: 3px; }

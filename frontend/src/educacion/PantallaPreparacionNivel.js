@@ -1,3 +1,5 @@
+import { condicionesParaIndicaciones, indicacionesLineas, crearIndicacionesLineas } from './IndicacionesLineas.mjs';
+import './indicaciones-lineas.css';
 import { obtenerContenidoNivel } from './ContenidoPreparacion.js';
 import { crearPresentacionMusicalNivel } from './PresentacionMusicalNivel.js';
 import { seleccionarMensajeTransicion } from './MensajesTransicion.js';
@@ -62,9 +64,19 @@ export function crearPreparacionNivel(escenario) {
   const consigna = document.createElement('section');
   consigna.className = 'metronet-viaje__consigna';
   consigna.append(texto('h3', 'Próximo desafío'), texto('p', escenario.objetivo || contenido?.objetivo || 'Explorá el mapa y revisá la consigna completa dentro del nivel.'));
+  const reglas = escenario.contenidoPublicado?.reglasExito ?? escenario.reglasExito;
+  const indicaciones = contenido?.recorrido?.startsWith('integral-2026-10')
+    ? indicacionesLineas(condicionesParaIndicaciones(reglas)) : [];
+  const contexto = document.createElement('div');
+  contexto.className = 'metronet-viaje__contexto';
+  contexto.append(dato);
+  if (indicaciones.length) {
+    dialogo.classList.add('metronet-viaje--lineas');
+    contexto.append(crearIndicacionesLineas(indicaciones));
+  }
   const informacion = document.createElement('div');
   informacion.className = 'metronet-viaje__informacion';
-  informacion.append(dato, consigna);
+  informacion.append(contexto, consigna);
   const estado = texto('p', MENSAJES_TRANSICION.entrada, 'metronet-viaje__estado');
   estado.setAttribute('role', 'status');
   const acciones = document.createElement('div');

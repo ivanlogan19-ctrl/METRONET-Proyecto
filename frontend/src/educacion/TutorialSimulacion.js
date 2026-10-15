@@ -11,9 +11,9 @@ const PASOS = [
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
-  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Seleccioná Todas las líneas para aplicar UV o UT al conjunto, o elegí una línea para ajustar sus metros.'],
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Elegí una línea para ajustar UV y UT según su distancia. Sus metros comparten la configuración; las demás líneas conservan sus valores.'],
   ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para consultar la UV y la UT guardadas de cada metro. No modifica la red.'],
-  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá la línea seleccionada o todas las líneas. Su UT se calcula según la distancia; guardá el valor.'],
+  ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá la línea seleccionada. Su UT se calcula según la distancia; guardá el valor.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
   ['#seccionConfiguracion', 'Duración simulada · UT', '1 UT equivale a una hora del escenario. Al elegir UT, la UV se calcula para completar los kilómetros de la línea. Confirmá la duración con el disquete.'],
   ['#aplicarUnidadTiempo', 'Aplicar duración', 'Confirmá la duración UT antes del próximo recorrido. Al cambiarla se recalcula UV para la distancia de la línea.'],
@@ -23,16 +23,16 @@ const PASOS = [
 const RESUMEN = [
   ['territorio', 'Recorré el mapa y ajustá la vista.'],
   ['play', 'Iniciá, pausá o detené el recorrido.'],
-  ['metros', 'Elegí todas las líneas o una línea.'],
+  ['metros', 'Elegí una línea para consultar y ajustar sus valores.'],
   ['velocidad', 'Ajustá y aplicá la velocidad UV.'],
   ['reloj', 'Ajustá y aplicá la duración UT.'],
 ];
 
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
-  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Cada línea tiene su propia UV y UT, compartidas por todos sus metros. Elegí una línea para ajustarla sin cambiar las otras, o Todas las líneas para aplicar el mismo valor al conjunto.'],
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Cada línea tiene su propia UV y UT, compartidas por todos sus metros. Elegí una línea para ajustarla sin cambiar las otras.'],
   ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'Al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
-  ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. En Todas las líneas, una misma velocidad produce tiempos distintos si las líneas tienen diferente longitud.'],
+  ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. La duración se calcula con la distancia de la línea seleccionada.'],
   ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
 
   ['.simulacion-horarios', 'Horarios de la simulación', 'Inicio es la hora elegida para el escenario. Actual avanza con la ejecución y Fin indica hasta cuándo se simula según la mayor duración UT de tus metros.'],
@@ -132,7 +132,6 @@ export function pasosSimulacion(numero, escenario, pendientes) {
   if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[8]], ejecucion, velocidad, ejecucion];
   if (nuevas.includes('simulacion.duracion')) return [[...PASOS[10]], ejecucion, duracion, ejecucion];
   if (nuevas.includes('simulacion.global') || nuevas.includes('simulacion.individual')) return [PASOS[6], ejecucion,
-    ['.simulacion-parametro-velocidad', 'Ajuste global', 'Elegí Todas las líneas, aplicá una misma UV nueva al conjunto y observá la UT calculada para cada línea.', 'velocidad-global'], ejecucion,
     ['.simulacion-selector-metros', 'Elegí una línea', 'Seleccioná una línea concreta en el selector.', 'unidad-individual'],
     ['.simulacion-parametro-velocidad', 'Ajuste individual', 'Cambiá y aplicá la UV de esa línea. Su UT se calcula sola; las otras líneas conservan sus valores.', 'velocidad-individual'], ejecucion];
   if (nuevas.includes('simulacion.combinacion')) return [['#formularioEjecucion', 'Comparar A y B', 'Compararemos ejecuciones de la misma red. Cambiar controles sin volver a ejecutar no alcanza.'],

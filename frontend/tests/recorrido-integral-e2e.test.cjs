@@ -104,10 +104,10 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
   await presentaciones();
  }
  async function herramienta(clave){await presentaciones();await f().locator(`[data-elegir-herramienta="${clave}"]`).click();}
- async function aplicarUv(valor,individual=false){
+ async function aplicarUv(valor){
   await presentaciones();
-  if(individual){await f().locator('.simulacion-selector-metros > summary').click();await f().locator('.simulacion-selector-metros__opciones button:not([data-metro="todas"])').first().click();}
-  else {await f().locator('.simulacion-selector-metros > summary').click();await f().locator('.simulacion-selector-metros__opciones [data-metro="todas"]').click();}
+  await f().locator('.simulacion-selector-metros > summary').click();
+  await f().locator('.simulacion-selector-metros__opciones button').first().click();
   await f().locator('#velocidadUnidad').fill(String(valor));
   const guardado=pagina.waitForResponse(r=>r.url().includes('/unidades/')&&r.request().method()==='PATCH'&&r.ok());
   await f().locator('.simulacion-parametro-velocidad button[type="submit"]').click();await guardado;

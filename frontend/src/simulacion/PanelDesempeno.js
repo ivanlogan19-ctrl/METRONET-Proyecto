@@ -1,4 +1,4 @@
-import { seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
+import { normalizarSeleccion, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { formatearVelocidad } from './EscalaSimulacion.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
@@ -39,7 +39,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     </section>`;
   const unidades = diseno.unidadesMetro ?? [];
   const seleccionables = opciones.vinculoLibre ? representantesLineas(unidades) : unidades;
-  const etiquetaTodas = opciones.vinculoLibre ? 'Todas las líneas' : 'Todos los metros';
+  const etiquetaVacia = opciones.vinculoLibre ? 'Sin líneas con metros' : 'Todos los metros';
   const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
   if (opciones.vinculoLibre) {
     input.step = 'any'; input.min = '0';
@@ -99,7 +99,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre).some(u => String(u.idTren) === fila.dataset.metro));
     });
   }
-  selector.replaceChildren(new Option(etiquetaTodas, 'todas'), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? u.nombreLinea : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
+  selector.replaceChildren(...(opciones.vinculoLibre ? [] : [new Option(etiquetaVacia, 'todas')]), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? u.nombreLinea : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
   const desplegable = contenedor.querySelector('.simulacion-selector-metros');
   const acceso = desplegable.querySelector('summary');
   const lista = desplegable.querySelector('.simulacion-selector-metros__opciones');
@@ -118,7 +118,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     return control;
   });
   function actualizarMenu() {
-    acceso.querySelector('[data-seleccion-metro]').textContent = selector.selectedOptions[0]?.textContent ?? etiquetaTodas;
+    acceso.querySelector('[data-seleccion-metro]').textContent = selector.selectedOptions[0]?.textContent ?? etiquetaVacia;
     opcionesMetro.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.metro === selector.value)));
   }
   function posicionarMenu() {
@@ -174,8 +174,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   configurarBotonIcono(boton, 'guardar', 'Aplicar velocidad');
   const elegidas = () => seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre);
   function seleccionar(id) {
-    const elegida = seleccionarUnidades(unidades, id, opciones.vinculoLibre)[0];
-    selector.value = id !== 'todas' && elegida ? String(elegida.idTren) : 'todas';
+    selector.value = normalizarSeleccion(unidades, id, opciones.vinculoLibre);
     actualizarMenu();
     listaResumen.querySelectorAll('li').forEach(fila => {
       fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre).some(u => String(u.idTren) === fila.dataset.metro));
