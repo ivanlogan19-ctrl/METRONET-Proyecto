@@ -51,7 +51,7 @@ for (const movimiento of ['no-preference', 'reduce']) test(`Intro y respaldo sin
       const dibujo = await escena.locator('svg path').evaluateAll(paths => paths.map(e => e.getAttribute('d')));
       if (tipo === 'intro') {
         geometria = dibujo;
-        assert.equal(await p.locator('.metronet-viaje__consigna p').textContent(), nivel.objetivo);
+        assert.equal(await p.locator('.metronet-viaje__consigna').count(), 0);
         assert.ok(await p.locator('[data-mensaje-id] p').textContent());
       } else assert.deepEqual(dibujo, geometria, 'Reutiliza toda la geometría original de victoria');
       assert.equal(await escena.count(), 1);
@@ -97,7 +97,7 @@ for (const tipo of ['intro', 'outro']) for (const fallo of ['sinFrames', 'errorF
   }
   assert.equal(await p.evaluate(() => resultado), tipo === 'intro' ? true : 'siguiente');
   if (tipo === 'intro') {
-    assert.equal(await p.locator('.metronet-viaje__consigna p').textContent(), niveles[0].objetivo);
+    assert.equal(await p.locator('.metronet-viaje__consigna').count(), 0);
     await p.evaluate(() => intro.cerrar());
   }
   await p.clock.runFor(5000);
@@ -118,7 +118,7 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: cancelación y repetición
   });
   for (const modo of ['escape', 'popstate', 'pagehide', 'desmontar', 'reemplazar']) {
     await comenzar(p, tipo);
-    await p.clock.runFor(7000); // La cancelación debe ocurrir antes de los 11 s visibles.
+    await p.clock.runFor(3000); // Cancelar antes de la tarjeta de entrada y de la llegada de victoria.
     if (modo === 'escape') await p.keyboard.press('Escape');
     else await p.evaluate(({ modo, tipo }) => {
       if (modo === 'desmontar') document.querySelector('dialog').remove();
@@ -133,16 +133,16 @@ for (const tipo of ['intro', 'outro']) test(`${tipo}: cancelación y repetición
     assert.equal(await p.locator('dialog').count(), 0);
   }
 });
-test('Jugar adelanta la entrada y el resumen final conserva la información', async t => {
+test('Iniciar nivel adelanta la entrada y el resumen final conserva la información', async t => {
   const p = await abrir(t);
   await comenzar(p, 'intro');
   await p.clock.runFor(200);
-  await p.getByRole('button', { name: 'Jugar', exact: true }).press('Enter');
+  await p.getByRole('button', { name: 'Iniciar nivel', exact: true }).press('Enter');
   assert.equal(await p.locator('[role="progressbar"]').getAttribute('aria-valuenow'), '100');
   await p.clock.runFor(1200); // Identificación de 1 s con reloj artificial detenido.
   await p.locator('.metronet-tarjeta-educativa').waitFor();
   assert.equal(await p.evaluate(() => resultado), undefined);
-  await p.getByRole('button', { name: 'Continuar →' }).click();
+  await p.getByRole('button', { name: 'Continuar', exact: true }).click();
   assert.equal(await p.evaluate(() => resultado), true);
   await p.clock.runFor(2000);
   assert.equal(await p.evaluate(() => continuaciones), 1);

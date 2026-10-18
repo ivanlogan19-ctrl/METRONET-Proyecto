@@ -19,8 +19,8 @@ if (sesion) {
   document.getElementById('verPuntosNivel').addEventListener('click', () => mostrarVista(true));
   document.getElementById('nivelAnterior').addEventListener('click', () => cambiarPaginaNiveles(-1));
   document.getElementById('nivelSiguiente').addEventListener('click', () => cambiarPaginaNiveles(1));
-  cargar();
-  cargarTrofeos();
+  Promise.allSettled([cargar(), cargarTrofeos()])
+    .finally(() => document.body.setAttribute('aria-busy', 'false'));
 }
 async function cargar() {
   const mensaje = document.getElementById('mensajeRanking'), boton = document.getElementById('reintentarRanking');

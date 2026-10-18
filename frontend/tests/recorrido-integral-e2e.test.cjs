@@ -37,15 +37,15 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
  await f().locator('#password').fill(process.env.METRONET_E2E_CLAVE);
  await f().locator('#loginButton').click();
  try { await f().getByRole('link',{name:'Niveles',exact:true}).first().click({timeout:30000}); } catch(error) { console.log('LOGIN',pagina.frames().map(f=>f.url()),await f().locator('body').innerText(),errores,fallos); throw error; }
- await f().getByRole('button',{name:'Comenzar',exact:true}).click();
- await f().getByRole('button',{name:'Jugar',exact:true}).click();
+ await f().getByRole('button',{name:'Iniciar',exact:true}).click();
+ await f().getByRole('button',{name:'Iniciar nivel',exact:true}).click();
 
  async function presentaciones() {
   for(let i=0;i<35;i++) {
    const frame=f();
    const tarjeta=frame.locator('dialog[open] .metronet-tarjeta-educativa__acciones button');
    const siguiente=frame.locator('.metronet-recorrido [data-recorrido-siguiente]:visible');
-   const oferta=frame.getByRole('button',{name:'Comenzar directamente',exact:true});
+   const oferta=frame.getByRole('button',{name:'Continuar',exact:true});
    if(await oferta.count()) await oferta.click();
    else if(await tarjeta.count()) await tarjeta.first().click();
    else if(await siguiente.count()) await siguiente.click();
@@ -249,7 +249,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     await f().locator('#loginButton').click();
     await f().getByRole('link',{name:'Niveles',exact:true}).first().click({timeout:30000});
     await f().getByRole('button',{name:'Continuar',exact:true}).click();
-    await f().getByRole('button',{name:'Jugar',exact:true}).click();
+    await f().getByRole('button',{name:'Iniciar nivel',exact:true}).click();
     await editor();
     assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.idDiseno()),idAntes);
     assert.equal((await leerAvance()).progreso.nivelesCompletados,0,'Recargar y retomar no aprueba');
@@ -279,7 +279,6 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     }
     assert.equal(await f().locator('.metronet-victoria').count(),0);
     await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
-    await f().getByRole('button',{name:'Jugar',exact:true}).click();
     const premiosMostrados=[];
     for(let i=0;i<aprobado.trofeosNuevos.length;i++) {
      const dialogo=f().locator('.metronet-premio[open]');

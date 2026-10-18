@@ -48,6 +48,7 @@ test('Aprendizaje usa Educativo al entrar y al leer tarjetas de distintos nivele
   await esperarPista(p, '/audio/educativo-theme.m4a');
   await p.locator(audio).evaluate(a => { window.canalInicial = a; a.currentTime = 3; });
   for (const indice of [0, 9]) {
+    await p.locator(`#selectorAprendizaje [data-nivel="${indice + 1}"]`).click();
     await p.locator('#nivelesAprendizaje .metronet-aprendizaje__nivel').nth(indice).locator('button').first().click();
     assert.equal(await p.locator('#tarjetaAprendizaje').evaluate(d => d.open), true);
     await esperarPista(p, '/audio/educativo-theme.m4a');
@@ -72,7 +73,7 @@ test('Ayuda y posvictoria usan Educativo mientras la tarjeta está visible y res
       await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(false));
       await esperarPista(p, '/audio/educativo-theme.m4a');
     }
-    await p.getByRole('button', { name: 'Volver' }).click();
+    await p.getByRole('button', { name: 'Cerrar', exact: true }).click();
     await esperarPista(p, '/audio/construccion-theme.m4a');
     assert.ok(await p.locator(audio).evaluate(a => a.currentTime >= 3));
     assert.equal(await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.temporales.size), 0);
@@ -82,7 +83,7 @@ test('Ayuda y posvictoria usan Educativo mientras la tarjeta está visible y res
       .presentarTarjetaEducativaTrasVictoria(3);
   });
   await esperarPista(p, '/audio/educativo-theme.m4a');
-  await p.getByRole('button', { name: 'Continuar →' }).click();
+  await p.getByRole('button', { name: 'Continuar', exact: true }).click();
   assert.equal(await p.evaluate(() => tarjetaTrasVictoria), true);
   await esperarPista(p, '/audio/construccion-theme.m4a');
   assert.equal(await p.locator(audio).count(), 1);
@@ -98,7 +99,7 @@ test('Tarjeta de preparación cambia a Educativo y al cerrar recupera menú', as
       .crearPreparacionNivel({ numero: 2, nombre: 'Nivel 2' });
     preparacionMusical.marcarDatosListos();
   });
-  await p.getByRole('button', { name: 'Jugar' }).click();
+  await p.getByRole('button', { name: 'Iniciar nivel' }).click();
   await p.locator('dialog[open] .metronet-tarjeta-educativa').waitFor();
   await esperarPista(p, '/audio/educativo-theme.m4a');
   await p.evaluate(() => preparacionMusical.cerrar());

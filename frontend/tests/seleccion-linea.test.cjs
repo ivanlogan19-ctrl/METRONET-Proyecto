@@ -33,7 +33,7 @@ for (const modo of ['NIVEL', 'LIBRE', 'EDICION_LIBRE']) test(`${modo}: tres lín
   t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});
   const p=v.pagina;
   await p.locator('#velocidadUnidad').waitFor();
-  const omitir=p.getByRole('button',{name:'Comenzar directamente',exact:true});
+  const omitir=p.getByRole('button',{name:'Continuar',exact:true});
   if(await omitir.isVisible())await omitir.click();
   assert.deepEqual(await p.locator('#unidadCirculacion option').allTextContents(),['L1','L2','L3']);
   assert.equal(await p.locator('[data-metro="todas"]').count(),0);

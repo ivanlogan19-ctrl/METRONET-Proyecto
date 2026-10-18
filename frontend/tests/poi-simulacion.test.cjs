@@ -10,6 +10,7 @@ for(const width of [1440,768,390,320]) test(`Simulación ${width}px: mapa y mús
   const {pagina:p,contexto,errores,solicitudes}=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{viewport:{width,height:900}});
   t.after(async()=>{await contexto.close();assert.deepEqual(errores,[]);});
   await p.locator('#visorSimulacion canvas').waitFor();
+  await p.locator('[data-oferta-tutorial]').getByRole('button',{name:'Continuar',exact:true}).click();
   const rect=await p.locator('#visorSimulacion canvas').boundingBox();
   assert.ok(rect.height>=300&&rect.width>=270);
   const peticiones=solicitudes.length;
@@ -44,6 +45,7 @@ test('Simulación: tocar un marcador lo selecciona y abre su ficha',async t=>{
     guardarCategoriasPoi(77, CATEGORIAS_PUNTUALES);
   });
   await p.reload();
+  await p.locator('[data-oferta-tutorial]').getByRole('button',{name:'Continuar',exact:true}).click();
   await p.waitForFunction(()=>window.escenaPoiPrueba?.capaPuntosInteres?.representaciones?.some(representacion=>representacion.contenedor.visible));
   await p.waitForFunction(()=>{
     const escena=window.escenaPoiPrueba;
@@ -72,12 +74,13 @@ test('Simulación: tocar un marcador lo selecciona y abre su ficha',async t=>{
   await p.mouse.click(marcador.x,marcador.y);
   const ficha=p.getByRole('dialog',{name:/Información de/});
   await ficha.waitFor();
-  assert.match(await ficha.innerText(),/REFERENCIA DEL MAPA/);
+  assert.match(await ficha.innerText(),/Estación más cercana:/);
+  assert.equal(await ficha.getByRole('checkbox',{name:'Mantener visible'}).isChecked(),false);
   assert.equal(await ficha.evaluate(e=>e.parentElement.id),'visorSimulacion');
   const seleccionado=await p.evaluate(()=>window.escenaPoiPrueba.capaPuntosInteres.obtenerResumenPuntos().puntoSeleccionado);
   assert.ok(seleccionado?.nombre,'El marcador tocado debe quedar seleccionado');
   assert.equal(await ficha.getAttribute('aria-label'),`Información de ${seleccionado.nombre}`);
-  await ficha.getByRole('button',{name:'Cerrar',exact:true}).click();
+  await ficha.getByRole('button',{name:'Cerrar información',exact:true}).click();
   assert.equal(await ficha.count(),0);
 });
 test('Música accesible también antes de elegir un diseño',async t=>{

@@ -2,6 +2,7 @@
 // Ejecutar antes de 018: PostgreSQL no puede verificar archivos del frontend.
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const crypto = require('node:crypto');
 
 const raiz = path.resolve(__dirname, '..');
@@ -17,7 +18,8 @@ async function verificar() {
     if (!niveles.equals(fs.readFileSync(path.join(backend, 'niveles.json'))))
       throw new Error('El catálogo de niveles del backend difiere del frontend');
   }
-  const fuente = fs.readFileSync(path.join(raiz, 'src/educacion/TarjetasEducativasNivel.js'), 'utf8');
+  const fuente = fs.readFileSync(path.join(raiz, 'src/educacion/TarjetasEducativasNivel.js'), 'utf8')
+    .replace('./catalogo-svgs-niveles.json', pathToFileURL(path.join(raiz, 'src/educacion/catalogo-svgs-niveles.json')).href);
   const modulo = await import(`data:text/javascript;base64,${Buffer.from(fuente).toString('base64')}`);
   const actuales = modulo.tarjetasEducativas;
   if (manifiesto.length !== 10 || actuales.length !== 10) throw new Error('Deben existir diez niveles');

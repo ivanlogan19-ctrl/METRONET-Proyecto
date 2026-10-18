@@ -2,8 +2,10 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
-const fuente = fs.readFileSync(path.join(__dirname, '../src/educacion/TarjetasEducativasNivel.js'), 'utf8');
+const fuente = fs.readFileSync(path.join(__dirname, '../src/educacion/TarjetasEducativasNivel.js'), 'utf8')
+  .replace('./catalogo-svgs-niveles.json', pathToFileURL(path.join(__dirname, '../src/educacion/catalogo-svgs-niveles.json')).href);
 
 async function moduloAislado() {
   const datos = new Map();

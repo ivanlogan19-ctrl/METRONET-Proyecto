@@ -1,4 +1,4 @@
-import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 // Sustituye confirm/prompt nativos sin cambiar valores devueltos ni contratos REST.
 let dialogoActivo = null;
 
@@ -24,10 +24,10 @@ function abrirDialogo({ mensaje, valor, entrada = false, cancelarSeguro = false,
   const acciones = document.createElement('footer');
   const cancelar = document.createElement('button'); cancelar.type = 'submit'; cancelar.value = 'cancelar'; cancelar.textContent = 'Cancelar';
   const aceptar = document.createElement('button'); aceptar.type = 'submit'; aceptar.value = 'aceptar'; aceptar.textContent = 'Confirmar';
-  aceptar.className = /eliminar/i.test(mensaje) ? 'metronet-boton--peligro' : 'metronet-boton--primario';
+  aceptar.className = peligro ? 'metronet-boton--peligro' : 'metronet-boton--primario';
   configurarAccion(cancelar,'cancelar');
   if (cancelarSeguro) cancelar.dataset.categoriaAccion = 'principal';
-  configurarAccion(aceptar,/eliminar/i.test(mensaje)?'eliminar':'confirmar');
+  configurarAccion(aceptar,peligro?'eliminar':'confirmar');
   acciones.append(cancelar, aceptar); form.append(acciones); dialogo.append(form);
   dialogoActivo = dialogo; document.body.append(dialogo);
   return new Promise(resolve => {
@@ -58,5 +58,8 @@ function abrirDialogo({ mensaje, valor, entrada = false, cancelarSeguro = false,
   });
 }
 
-export async function confirmarSistema(mensaje, opciones = {}) { return (await abrirDialogo({ mensaje, cancelarSeguro: opciones.cancelarSeguro, peligro: opciones.peligro })) === true; }
+export async function confirmarSistema(mensaje, opciones = {}) {
+  const peligro = opciones.peligro ?? /eliminar|borrar/i.test(mensaje);
+  return (await abrirDialogo({ mensaje, peligro, cancelarSeguro: opciones.cancelarSeguro ?? peligro })) === true;
+}
 export function pedirDatoSistema(mensaje, valor = '') { return abrirDialogo({ mensaje, valor, entrada: true }); }

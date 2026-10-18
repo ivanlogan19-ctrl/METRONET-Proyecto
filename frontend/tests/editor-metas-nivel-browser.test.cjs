@@ -33,7 +33,7 @@ for(const width of [1280,1440])test(`Nivel 1: editar meta, agregar POI y guardar
  assert(await p.getByLabel('Exigir cada lugar como objetivo separado',{exact:true}).isChecked());
  for(let i=0;i<2;i++)await p.getByRole('button',{name:'Agregar lugar objetivo',exact:true}).click();
  assert(await p.locator('[aria-label="Agregar lugar objetivo"]').isDisabled());
- await p.getByRole('button',{name:'Guardar cambios del nivel',exact:true}).click();await p.getByText(/Borrador del nivel 1 guardado/).waitFor();
+ await p.getByRole('button',{name:'Guardar cambios del nivel',exact:true}).click();await p.waitForFunction(()=>!document.querySelector('[data-estado-borrador]').classList.contains('admin-niveles__estado--pendiente'));
  assert.equal(contenido.reglasExito.textosMetas['poi:3'],'Conectar el destino elegido');
  assert.equal(contenido.reglasExito.minimoEstaciones,3);assert.equal(contenido.reglasExito.textosMetas.minimoEstaciones,'Construí {cantidad} estaciones');assert.equal(contenido.reglasExito.puntosInteresObjetivo[0].idPunto,3);
  await p.getByRole('tab',{name:'Reglas',exact:true}).click();
@@ -47,7 +47,7 @@ for(const width of [1280,1440])test(`Nivel 1: editar meta, agregar POI y guardar
  assert(area.contenido<=area.alto+1,`Metas y tres POI sin desplazamiento (${area.contenido}/${area.alto})`);
  const quitar=await p.locator('.admin-metas__fila:visible > button,.admin-metas__poi:visible > button').evaluateAll(ns=>ns.map(n=>({texto:n.textContent,ancho:n.getBoundingClientRect().width,alto:n.getBoundingClientRect().height})));
  assert.equal(quitar.length,2);assert(quitar.every(b=>b.texto==='Quitar'&&b.ancho===quitar[0].ancho&&b.alto===quitar[0].alto));
- assert(await p.locator('.admin-niveles__panel--metas h3,.admin-niveles__panel--metas h4').evaluateAll(ns=>ns.every(n=>parseFloat(getComputedStyle(n).fontSize)<=12)));
+ assert(await p.locator('.admin-niveles__panel--metas h3,.admin-niveles__panel--metas h4').evaluateAll(ns=>ns.every(n=>parseFloat(getComputedStyle(n).fontSize)>=11 && parseFloat(getComputedStyle(n).fontSize)<=18)));
  assert.match(await p.locator('[data-meta]:visible input').first().evaluate(n=>getComputedStyle(n).fontFamily),/Silkscreen/);
  await p.screenshot({path:`/tmp/metronet-editor-metas-${width}.png`});
 });

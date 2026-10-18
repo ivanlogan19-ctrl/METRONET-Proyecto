@@ -40,6 +40,15 @@ export function guardarSesionAdministrador(sesion) {
   guardarSesion(sesion, CLAVE_SESION_ADMINISTRADOR, CLAVE_SESION_USUARIO);
 }
 
+export async function cerrarSesionRemota(sesion) {
+  if (!sesion?.token) return;
+  const ruta = sesion.usuario?.rol === 'ADMIN' ? '/auth/logout/admin' : '/auth/logout';
+  return fetch(`${window.location.protocol}//${window.location.hostname}:8080${ruta}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${sesion.token}` },
+  });
+}
+
 export function eliminarSesiones() {
   window.localStorage.removeItem(CLAVE_USUARIO);
   window.localStorage.removeItem(CLAVE_SESION_USUARIO);

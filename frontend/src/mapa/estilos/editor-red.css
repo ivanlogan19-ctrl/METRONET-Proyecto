@@ -1,4 +1,4 @@
-body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
+body.metronet-pagina-editor { background: var(--bg-primary); }
 .metronet-pantalla-editor { display: grid; grid-template-rows: var(--navegacion-alto) minmax(0, 1fr); width: 100%; height: 100svh; min-height: 0; }
 .metronet-pantalla-editor #metronet-aplicacion {
   display: grid;
@@ -484,7 +484,7 @@ body.metronet-pagina-editor :is([data-elegir-herramienta], [data-elegir-estacion
   background: var(--panel);
 }
 .metronet-editor-finalizar h3 { margin: 0; color: var(--text-primary); }
-#metronet-panel-controles .metronet-editor-finalizar__acciones { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; }
+#metronet-panel-controles .metronet-editor-finalizar__acciones { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; }
 #metronet-panel-controles .metronet-editor-finalizar__acciones > button { width: 100%; min-width: 0; flex: 0 1 auto; }
 .metronet-editor-finalizar__ayuda { margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
 .metronet-editor-zona-peligro {
@@ -618,10 +618,9 @@ html:root body .metronet-area-mapa > .metronet-mapa-titulo {
 }
 
 /* Herramientas directas: tamaños compartidos, sin desplazamientos por botón. */
-#metronet-panel-controles .metronet-herramientas__barra { display:flex; flex-wrap:wrap; gap:8px; align-items:end; }
+#metronet-panel-controles .metronet-herramientas__barra { display:flex; flex-wrap:wrap; align-items:end; }
 #metronet-panel-controles .metronet-herramientas__barra fieldset { display:flex; flex-wrap:wrap; gap:6px; padding:6px; min-width:0; flex:0 1 auto; }
 #metronet-panel-controles .metronet-herramientas__barra legend { font:11px/1.4 var(--font-tecnica); }
-#metronet-panel-controles .metronet-editor-finalizar__acciones { display:flex !important; flex-wrap:wrap; gap:8px; }
 #metronet-panel-controles .metronet-editor-seleccionado > div { display:flex; flex-wrap:wrap; gap:6px; }
 .metronet-herramientas__opciones:empty { display:none; }
 .metronet-editor-finalizar__ayuda { font:12px/1.45 var(--font-ui); }
@@ -639,17 +638,15 @@ html:root body .metronet-area-mapa > .metronet-mapa-titulo {
 /* La misión queda junto al mapa y fuera del desplazamiento de herramientas. */
 body .metronet-pantalla-editor #metronet-aplicacion {
   grid-template-columns: minmax(0, 1fr) clamp(270px, 22vw, 360px);
-  grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas: 'mapa objetivo' 'mapa herramientas';
 }
 .metronet-area-mapa { grid-area: mapa; }
 .metronet-objetivos-panel { grid-area: objetivo; min-width: 0; }
-.metronet-objetivos-panel[hidden] { display: none; }
 .metronet-referencias-objetivo[hidden] { display: none; }
 .metronet-consigna-externa:empty,
 .metronet-consigna-externa:has(> .metronet-consigna[hidden]) { display: none; }
 #metronet-panel-controles { grid-area: herramientas; min-height: 0; }
-.metronet-objetivos-panel { max-height: min(44svh, 430px); overflow: hidden; }
+.metronet-objetivos-panel { max-height: min(44svh, 430px); }
 .metronet-consigna__resumen-activo { display: grid; gap: 6px; }
 .metronet-consigna__resumen-activo[hidden] { display: none; }
 .metronet-consigna__objetivo-breve {
@@ -971,6 +968,14 @@ html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] butto
   color: var(--boton-texto);
   border-color: var(--boton-borde);
   background: var(--boton-fondo);
+}
+html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] button[value="cancelar"] {
+  background: var(--success);
+  color: var(--primary-ink);
+  border-color: var(--success);
+}
+html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] button[value="cancelar"]:hover {
+  background: color-mix(in srgb, var(--success) 80%, white);
 }
 html:root body dialog.metronet-dialogo-editor[data-variante="eliminacion"] [data-confirmar-eliminar] {
   --boton-fondo: #fff;

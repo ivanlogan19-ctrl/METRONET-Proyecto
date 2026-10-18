@@ -136,10 +136,12 @@ class ImpactoReglasAdministradasPostgresTest {
     void limiteUtYPresupuestoUvAfectanElResultadoDeCadaNivel(int numero) throws Exception {
         escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero=?",Integer.class,numero);
         var criterio=contenido.putObject("criterioUvUt").put("limiteUt",2).put("presupuestoUv",4);
-        ejecuciones("[{\"duracion\":2,\"velocidad\":1,\"unidades\":[{\"uv\":4}]}]");
+        ejecuciones("[{\"duracion\":2,\"velocidad\":1,\"parametroReferencia\":\"UT\",\"unidades\":[{\"uv\":4}]}]");
         assertTrue(condicion("criterioUvUt").completado());
         criterio.put("limiteUt",1);assertFalse(condicion("criterioUvUt").completado());
-        criterio.put("limiteUt",2).put("presupuestoUv",3);assertFalse(condicion("criterioUvUt").completado());
+        criterio.put("limiteUt",2).put("presupuestoUv",3);
+        ejecuciones("[{\"duracion\":2,\"velocidad\":1,\"unidades\":[{\"uv\":4}]}]");
+        assertFalse(condicion("criterioUvUt").completado());
         criterio.put("presupuestoUv",4);assertTrue(evaluar().viable());
     }
 
@@ -148,14 +150,16 @@ class ImpactoReglasAdministradasPostgresTest {
         var claves=List.of("velocidad","duracion","individual","global","combinacion");
         var aprendizaje=reglas().putObject("aprendizajeSimulacion");
         for(int i=0;i<claves.size();i++)aprendizaje.put(claves.get(i),(mascara&(1<<i))!=0);
-        ((com.fasterxml.jackson.databind.node.ArrayNode)red.path("unidades")).addObject().put("linea","Principal").put("capacidad",150).put("uv",4);
+        ((com.fasterxml.jackson.databind.node.ArrayNode)red.path("lineas")).addObject().put("nombre","Segunda");
+        ((com.fasterxml.jackson.databind.node.ArrayNode)red.path("tramos")).addObject().put("linea","Segunda").put("a","A").put("b","C");
+        ((com.fasterxml.jackson.databind.node.ArrayNode)red.path("unidades")).addObject().put("linea","Segunda").put("capacidad",150).put("uv",4);
         var pendientes=evaluar().condiciones().stream().filter(c->c.clave().startsWith("aprendizajeSimulacion:")).toList();
         assertEquals(Integer.bitCount(mascara),pendientes.size());
         assertTrue(pendientes.stream().noneMatch(CondicionConsignaResponse::completado));
         ejecuciones("""
             [{"duracion":6,"velocidad":1,"unidades":[{"uv":4},{"uv":4}]},
              {"duracion":6,"velocidad":1,"unidades":[{"uv":5},{"uv":4}]},
-             {"duracion":8,"velocidad":1,"unidades":[{"uv":5},{"uv":4}]},
+             {"duracion":8,"velocidad":1,"parametroReferencia":"UT","unidades":[{"uv":5},{"uv":4}]},
              {"duracion":8,"velocidad":1,"unidades":[{"uv":6},{"uv":6}]},
              {"duracion":9,"velocidad":1,"unidades":[{"uv":7},{"uv":7}]}]
             """);

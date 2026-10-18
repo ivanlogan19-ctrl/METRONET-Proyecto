@@ -110,8 +110,12 @@ export default class EditorRedMetro {
       hayCambios: () => this.cambiosPendientes,
       guardar: () => this.guardarDiseno(),
     });
-    if (obtenerIdDisenoDeRuta()) this.identificacion = crearIdentificacionNivel(document.querySelector('#metronet-aplicacion'));
-    this.cargarJuego().then(() => this.cargarDisenos(obtenerIdDisenoDeRuta()));
+    const idDiseno = obtenerIdDisenoDeRuta();
+    // El catálogo y la red son lecturas independientes; aplicar la red sí requiere ambos.
+    Promise.all([this.cargarJuego(), idDiseno ? this.clienteDisenos.obtener(idDiseno) : null])
+      .then(([, datosIniciales]) => idDiseno ? this.abrirDiseno(idDiseno, { datosIniciales }) : this.cargarDisenos(null))
+      .catch(error => this.mostrarError(error))
+      .finally(() => document.body.setAttribute('aria-busy', 'false'));
   }
 
   async cargarConfiguracionAplicacion() {
@@ -256,7 +260,7 @@ export default class EditorRedMetro {
     this.cambiarVisibilidadEditor(false);
   }
 
-  async abrirDiseno(idDiseno, { identificar = false } = {}) {
+  async abrirDiseno(idDiseno, { identificar = false, datosIniciales = null } = {}) {
     if (!idDiseno || !this.activo) return false;
     const apertura = ++this.versionApertura;
     const presentarEntrada = identificar || this.disenoActual?.simulacion?.idDiseno !== idDiseno;
@@ -270,7 +274,7 @@ export default class EditorRedMetro {
     }
     try {
       const cambioDeDiseno = this.disenoActual?.simulacion?.idDiseno !== idDiseno;
-      const diseno = await this.clienteDisenos.obtener(idDiseno);
+      const diseno = datosIniciales ?? await this.clienteDisenos.obtener(idDiseno);
       if (apertura !== this.versionApertura || !this.activo) return false;
       this.disenoActual = diseno;
       // Los callbacks de selección/POI consultan la ayuda: deben recibir el
@@ -300,6 +304,7 @@ export default class EditorRedMetro {
       }
       await this.actualizarConsigna();
       if (apertura !== this.versionApertura || !this.activo) return false;
+      document.body.setAttribute('aria-busy', 'false');
       // El cartel identifica la entrada; no agregar un aviso que desplace el
       // mapa y vuelva a cambiar su tamaño al desaparecer unos segundos después.
       if (entrada) {

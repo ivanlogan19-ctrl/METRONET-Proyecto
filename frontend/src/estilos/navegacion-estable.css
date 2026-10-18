@@ -9,9 +9,11 @@
 }
 .metronet-panel-superpuesto[popover]:not(:popover-open) { display: none; }
 
-/* Misma entrada breve para el contenedor y los HTML de respaldo. */
-:is([data-navegacion-contenida], [data-navegacion-documento]) body { animation: metronet-entrada-pagina 180ms linear; }
-@keyframes metronet-entrada-pagina { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  :is([data-navegacion-contenida], [data-navegacion-documento]) body { animation: none; }
+/* La pantalla se revela de una vez al completar su carga inicial. */
+html[data-pantalla-preparando] { background: #060c1c; }
+html[data-pantalla-preparando] body { visibility: hidden; }
+html[data-pantalla-preparando]::after {
+  content: 'Preparando pantalla…'; position: fixed; inset: 0;
+  display: grid; place-items: center; color: #a8bfd6;
+  background: #060c1c; font: 16px/1.5 var(--font-ui, monospace);
 }

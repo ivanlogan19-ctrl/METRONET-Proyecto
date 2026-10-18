@@ -1,7 +1,8 @@
+import { cambiarPantalla } from './CambioPantalla.js';
 import { inicializarAvisoMantenimiento } from '../configuracion/AvisoMantenimiento.js';
 import { comprobarAccesoJugador } from '../configuracion/ControlAccesoMantenimiento.js';
 import { inicializarAyudasSistema } from '../componentes/AyudasSistema.js';
-import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
+import { cerrarSesionRemota, eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta, obtenerContextoRuta } from '../red/ContextoDiseno.js';
 import { gestorMusica } from '../audio/GestorMusica.js';
 import { crearControlMusica } from '../audio/ControlMusica.js';
@@ -119,14 +120,14 @@ export async function navegarConCambiosPendientes(ruta) {
   // El enlace de la pantalla actual no descarta estado ni reinicia el documento.
   if (new URL(ruta, location.href).href === location.href) return;
   const version = ++versionNavegacion;
-  if (!controlCambios?.hayCambios()) return window.location.assign(ruta);
+  if (!controlCambios?.hayCambios()) return cambiarPantalla(ruta);
   const accion = await solicitarConfirmacionCambios();
   if (version !== versionNavegacion) return;
   if (accion === 'salir') {
     // La salida ya fue confirmada en el diálogo del juego.
     window.removeEventListener('beforeunload', registrarAdvertenciaNativa);
     try {
-      window.location.assign(ruta);
+      cambiarPantalla(ruta);
     } catch (error) {
       window.addEventListener('beforeunload', registrarAdvertenciaNativa);
       throw error;
@@ -137,19 +138,15 @@ export async function navegarConCambiosPendientes(ruta) {
   try {
     guardadoSalida ??= Promise.resolve().then(() => controlCambios.guardar()).finally(() => { guardadoSalida = null; });
     const guardado = await guardadoSalida;
-    if (version === versionNavegacion && guardado !== false && !controlCambios?.hayCambios()) window.location.assign(ruta);
+    if (version === versionNavegacion && guardado !== false && !controlCambios?.hayCambios()) cambiarPantalla(ruta);
   } catch {
     // El editor ya informa el error de guardado y conserva la pantalla actual.
   }
 }
 
 async function cerrarSesion(sesion) {
-  const ruta = sesion.usuario?.rol === 'ADMIN' ? '/logout/admin' : '/logout';
   try {
-    await fetch(`${window.location.protocol}//${window.location.hostname}:8080/auth${ruta}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${sesion.token}` },
-    });
+    await cerrarSesionRemota(sesion);
   } finally {
     eliminarSesiones();
     window.location.replace('/login.html');

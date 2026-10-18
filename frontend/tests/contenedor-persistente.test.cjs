@@ -86,7 +86,7 @@ test('Editor y Simulación alternan pistas, recuperan sus posiciones y comparten
   await sonar(p,'construccion'); await p.locator('audio').evaluate(a=>a.currentTime=3);
   await v.evaluate(()=>location.assign('/simulacion.html?idDiseno=77')); await v.locator('#panelSimulacion:not([hidden])').waitFor();
   await sonar(p,'simulacion');
-  if(await v.getByRole('button',{name:'Comenzar directamente',exact:true}).count()) await v.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  if(await v.locator('[data-oferta-tutorial]').count()) await v.locator('[data-oferta-tutorial]').getByRole('button',{name:'Continuar',exact:true}).click();
   await v.locator('#volverEdicion').click(); await v.waitForURL('**/?idDiseno=77*');
   await sonar(p,'construccion');
   assert.ok(await p.locator('audio').evaluate(a=>a.currentTime>=3));
@@ -189,7 +189,7 @@ for(const reducido of [false,true]) test(`Intro y cartel de nivel duran unos 5 s
     if(path.endsWith('/escenarios/1/iniciar'))return{json:{idDiseno:77,idEscenario:1,idIntento:123,numeroCampana:1,mostrarTutorial:true}};
     if(path==='/api/simulaciones/77')return{json:red};
   }});
-  const inicio=Date.now();await v.getByRole('button',{name:'Jugar',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'inicio-nivel');await marcar(p);
+  const inicio=Date.now();await v.getByRole('button',{name:'Iniciar',exact:true}).click();await v.locator('.metronet-viaje').waitFor();await sonar(p,'inicio-nivel');await marcar(p);
   await v.locator('.metronet-viaje .metronet-cartel-transicion:not([hidden])').waitFor();
   const cartel=await p.evaluate(()=>({mismo:audioOriginal===document.querySelector('audio'),eventos:eventosAudio,tiempo:audioOriginal.currentTime}));
   assert.equal(cartel.mismo,true);
@@ -231,8 +231,8 @@ test('JUGADOR accede solo a información del juego y conserva la música del men
 for(const reducido of [false,true]) test(`Entrada contenida breve y navegación informativa repetida sin transición nativa inválida (reducido ${reducido})`,async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/inicio.html',{administrador:false,reducedMotion:reducido?'reduce':'no-preference'});
   const estilo=await v.locator('body').evaluate(e=>{const s=getComputedStyle(e);return{nombre:s.animationName,duracion:s.animationDuration};});
-  assert.equal(estilo.nombre,reducido?'none':'metronet-entrada-pagina');
-  if(!reducido)assert.equal(estilo.duracion,'0.18s');
+  assert.equal(estilo.nombre,'none');
+  assert.equal(estilo.duracion,'0s');
   for(let i=0;i<4;i++){
     await v.evaluate(()=>location.assign('/admin.html'));await v.waitForURL('**/admin.html');await v.locator('#vista-unidades').waitFor();
     assert.equal(await v.locator('link[href="/transiciones-documento.css"]').count(),0);
@@ -241,11 +241,11 @@ for(const reducido of [false,true]) test(`Entrada contenida breve y navegación 
   }
 });
 
-test('Ranking largo: Atrás restaura scroll y la recarga completa vuelve a login',async t=>{
+test('Ranking largo: permanece sin desplazamiento, Atrás vuelve al ranking y recargar vuelve a login',async t=>{
   const {pagina:p,vista:v}=await abrir(t,'/ranking.html',{viewport:{width:1280,height:720},responder:req=>new URL(req.url()).pathname==='/api/juego/ranking'?{json:{jugadores:Array.from({length:40},(_,i)=>({posicion:i+1,jugador:'Jugador '+i,puntajeTotal:1000-i,nivelesCompletados:10})),puntajeTotal:0,puntajeMaximo:1000,tuPosicion:null}}:null});
-  await v.locator('#clasificacionRanking tr').first().waitFor();await v.evaluate(()=>scrollTo(0,600));assert.equal(await v.evaluate(()=>scrollY),600);
+  await v.locator('#clasificacionRanking tr').first().waitFor();await v.evaluate(()=>scrollTo(0,600));assert.equal(await v.evaluate(()=>scrollY),0);
   await v.evaluate(()=>location.assign('/inicio.html'));await v.locator('.metronet-inicio__tarjeta').first().waitFor();
-  await p.goBack();await v.locator('#clasificacionRanking tr').first().waitFor();await v.waitForFunction(()=>scrollY===600);
+  await p.goBack();await v.locator('#clasificacionRanking tr').first().waitFor();assert.equal(await v.evaluate(()=>scrollY),0);
   await p.reload();await p.locator('#pantalla-metronet').waitFor();const f=await(await p.locator('#pantalla-metronet').elementHandle()).contentFrame();
   await f.locator('#loginForm').waitFor();
 });

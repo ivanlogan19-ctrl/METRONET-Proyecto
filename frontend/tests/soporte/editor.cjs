@@ -98,8 +98,8 @@ async function abrirEditor(navegador, opciones = {}) {
   await pagina.waitForFunction(() => editorPrueba.estadoConsigna !== 'cargando');
   if (!opciones.observarIdentificacion) await pagina.waitForFunction(() => !editorPrueba.identificacion);
   await pagina.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  if (!opciones.ofrecerRecorrido && await pagina.getByRole('button', { name:'Comenzar directamente', exact:true }).isVisible()) {
-    await pagina.getByRole('button', { name:'Comenzar directamente', exact:true }).click();
+  if (!opciones.ofrecerRecorrido && await pagina.locator('[data-oferta-tutorial]').getByRole('button', { name:'Continuar', exact:true }).isVisible()) {
+    await pagina.locator('[data-oferta-tutorial]').getByRole('button', { name:'Continuar', exact:true }).click();
   }
   return { contexto, pagina, solicitudes, diseno, errores };
 }

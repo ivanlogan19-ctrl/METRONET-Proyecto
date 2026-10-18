@@ -75,5 +75,5 @@ test('Build publicado: primer render del editor completo y HUD educativo sin ref
   assert.equal(await p.locator('script[type="module"][blocking="render"]').count(),1);
   assert.equal(await p.locator('script[async][blocking="render"]').count(),0);
   await p.keyboard.press('Escape');await p.locator('.metronet-poi>summary').click();
-  const lupa=p.getByRole('button',{name:'Buscar punto de interés',exact:true});assert.deepEqual(await lupa.evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]}),[44,44]);
+  const lupa=p.getByRole('button',{name:'Buscar punto de interés',exact:true});assert.deepEqual(await lupa.evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]}),[26,26]);
 });

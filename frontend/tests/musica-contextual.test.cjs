@@ -210,8 +210,8 @@ test('Mapa → simulación → mapa y refresh recuperan posición, sin reiniciar
   const { pagina: p } = await abrir(t, '/simulacion.html?idDiseno=77', { responder: request => new URL(request.url()).pathname === '/api/juego/escenarios' ? { json: [] } : null });
   await reproduciendo(p, '/audio/simulacion-theme.m4a');
   await p.locator(audio).evaluate(a => { a.currentTime = 3; });
-  if (await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).count())
-    await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  if (await p.getByRole('button', { name: 'Continuar', exact: true }).count())
+    await p.getByRole('button', { name: 'Continuar', exact: true }).click();
   else if (await p.locator('dialog.metronet-recorrido [data-recorrido-omitir]').count())
     await p.locator('dialog.metronet-recorrido [data-recorrido-omitir]').click();
   await p.locator('#volverEdicion').click();

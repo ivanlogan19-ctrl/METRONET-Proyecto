@@ -59,9 +59,8 @@ test('Carteles publicados: los diez niveles conservan consigna, requisitos y acc
   },nivel);
   const dialogo=p.locator('.metronet-viaje');
   assert.equal(await dialogo.locator('.metronet-logo').count(),0);
-  const cajas=await dialogo.locator('.metronet-viaje__dato, .metronet-viaje__consigna').evaluateAll(es=>es.map(e=>({w:e.getBoundingClientRect().width,h:e.getBoundingClientRect().height})));
-  assert.ok(Math.abs(cajas[0].w-cajas[1].w)<=1 && Math.abs(cajas[0].h-cajas[1].h)<=1,`Nivel ${nivel.numero}: cuadros del mismo tamaño`);
-  assert.equal(await dialogo.locator('.metronet-viaje__consigna > p').textContent(),nivel.objetivo);
+  assert.equal(await dialogo.locator('.metronet-viaje__dato').count(),1);
+  assert.equal(await dialogo.locator('.metronet-viaje__consigna').count(),0,'La consigna se consulta al elegir el nivel, sin duplicarla');
   assert.equal(await dialogo.evaluate(e=>e.scrollWidth>e.clientWidth+1),false);
   assert.equal(await dialogo.getByRole('button',{name:'Iniciar nivel',exact:true}).isEnabled(),true);
   if(nivel.numero>=5){

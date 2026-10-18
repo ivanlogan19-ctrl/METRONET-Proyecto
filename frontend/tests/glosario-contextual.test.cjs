@@ -150,12 +150,12 @@ test('Simulación: controles con unidades correctas y consulta sin ejecutar', as
   assert.equal(await p.locator('.simulacion-ritmo').isVisible(), false);
 
   await p.locator('#duracionSimulacion').focus();
-  assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'),'Duración simulada en horas');
-  assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(),'h');
+  assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'),'Duración simulada en UT');
+  assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(),'UT');
   await p.locator('#velocidadUnidad').focus();
   assert.equal(await p.locator('#velocidadUnidad').getAttribute('aria-label'),'Velocidad en UV');
   assert.equal(solicitudes.some(s=>s.method==='POST'),false);
-  assert.equal(await p.locator('#duracionSimulacion').getAttribute('min'),'1');
+  assert.equal(await p.locator('#duracionSimulacion').getAttribute('min'),'0');
   assert.equal(await p.locator('#formularioEjecucion button[type=submit]').isEnabled(),true);
 });
 

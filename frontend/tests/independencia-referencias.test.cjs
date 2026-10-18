@@ -109,7 +109,7 @@ test('Buscar, seleccionar y cerrar POI conserva las otras categorías y sus obje
     let despues = await p.evaluate(() => capturarCapas());
     assert.deepEqual(despues.puntos.filter(r => r.categoria !== 'PATRIMONIO'), antes.puntos.filter(r => r.categoria !== 'PATRIMONIO'));
     assert.deepEqual(despues.indicadores, antes.indicadores);
-    await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await p.getByRole('dialog').getByRole('button', { name: 'Cerrar información', exact: true }).click();
     if (!await p.locator('.metronet-poi').evaluate(e=>e.open)) await p.locator('.metronet-poi>summary').click();
     await p.getByRole('button', { name: 'Buscar punto de interés' }).click();
     await p.getByRole('searchbox').fill(''); await p.keyboard.press('Escape');

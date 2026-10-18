@@ -72,7 +72,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { viewport: { width, height: 900 }, responder: req => {
     const path = new URL(req.url()).pathname;
     if (path === '/api/juego/progreso') return {json:{escenarios:[escenario],numeroCampanaActual:campana,tutorialSimulacionDisponible:disponible}};
-    if (path === '/api/simulaciones/77') return {json:{...red, unidadesMetro:[{idTren:1,nombreLinea:'Línea',capacidad:300,velocidadPromedio:uv}]}};
+    if (path === '/api/simulaciones/77') return {json:{...red, unidadesMetro:[{idTren:1,nombreLinea:'Línea',capacidad:300,velocidadPromedio:uv,duracionUt:2}]}};
     if (path.endsWith('/desempeno')) return {json:{puntajeMaximo:100,redResuelta:true,unidades:[]}};
     if (path.endsWith('/unidades/1')) { uv=req.postDataJSON().velocidadPromedio; return {status:204}; }
     if (path.endsWith('/ejecutar')) return {json:{idSimulacion:1,estado:'COMPLETADA',escala:'UV_H_V1',...req.postDataJSON()}};
@@ -175,7 +175,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
   const panelManual = p.locator('.metronet-tutorial-simulacion:popover-open');
   await panelManual.waitFor();
   assert.equal(await panelManual.getByRole('button').count(),1);
-  assert.equal(await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).evaluate(e => getComputedStyle(e).backgroundColor),'rgb(244, 237, 121)');
+  assert.equal(await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).evaluate(e => getComputedStyle(e.querySelector('svg')).color),'rgb(255, 208, 120)');
   await panelManual.getByRole('button',{name:'Recorrer la pantalla'}).click();
   await tutorial.waitFor();
   await tutorial.getByRole('button',{name:'Salir del tutorial',exact:true}).click();
@@ -268,7 +268,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
   await tutorial.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await tutorial.waitFor({ state: 'detached' });
-  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v5:7:1:1:77')), 'omitido');
+  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v6:7:1:1:77')), 'omitido');
   await p.reload();
   await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(), 0);
@@ -298,12 +298,15 @@ test('Reiniciar la campaña vuelve a ofrecer el tutorial de Simulación', async 
   while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
   assert.equal(await guia.locator('h2').textContent(), '¡Listo para simular!');
   await guia.waitFor({state:'detached',timeout:5000});
-  const clave = 'metronet:tutorial-pantalla-simulacion:v5:7:1:1:77';
+  const clave = 'metronet:tutorial-pantalla-simulacion:v6:7:1:1:77';
   assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
   await p.goto(`${new URL(p.url()).origin}/escenarios.html`);
   await p.locator('#botonReiniciarRecorrido:not([hidden])').click();
-  await p.locator('[data-confirmar-reinicio]').click();
-  await p.waitForFunction(() => document.getElementById('mensajeEscenarios')?.textContent.includes('reinició'));
+  await Promise.all([
+    p.waitForResponse(r => r.url().endsWith('/api/juego/recorrido/reiniciar') && r.ok()),
+    p.locator('[data-confirmar-reinicio]').click(),
+  ]);
+  await p.locator('[data-confirmar-reinicio]').waitFor({state:'hidden'});
   assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
   await p.goto(`${new URL(p.url()).origin}/simulacion.html?idDiseno=77`);
   await p.locator('#velocidadUnidad').waitFor();
@@ -331,7 +334,7 @@ test('Primera visita a simulación: tutorial automático desde cualquier nivel',
       assert.equal(await p.locator('.metronet-recorrido').count(), corresponde ? 1 : 0, `Nivel ${numero}`);
       if (corresponde) {
         assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Mapa de la red');
-        assert.equal(await p.locator('[data-recorrido-siguiente]').evaluate(e=>e.getBoundingClientRect().width),24);
+        assert.equal(await p.locator('[data-recorrido-siguiente]').evaluate(e=>e.getBoundingClientRect().width),32);
         await p.getByRole('button',{name:'Salir del tutorial',exact:true}).click();
         await p.reload();
         await p.waitForFunction(() => document.querySelector('#velocidadUnidad')?.value === '40');

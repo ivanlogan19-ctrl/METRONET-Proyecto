@@ -22,7 +22,7 @@ html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta--crear .metronet
 html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta--crear .metronet-inicio__descripcion { align-self:center; font-size:20px; line-height:1.6; max-width:29ch; }
 html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta-pie { display:grid; grid-template-columns:1fr; gap:10px; }
 html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta-pie > :is(a,button) { display:grid; place-items:center; min-width:0; width:100%; min-height:42px; padding:8px; font:14px/1.4 var(--font-arcade); text-align:center; }
-html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta-pie > a[data-accion-ui] { --accion-fondo:#203858; --accion-borde:#5377a3; --accion-texto:#d6e6ff; --accion-hover:#2a496e; }
+html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta-pie > a[data-accion-ui] { --accion-texto:#d6e6ff; }
 @media(min-width:800px) and (max-height:800px) {
   html:root body.metronet-pagina-inicio .metronet-inicio { padding:12px 0; gap:20px; }
   html:root body.metronet-pagina-inicio .metronet-inicio__tarjeta { min-height:380px; padding:20px; gap:18px; }

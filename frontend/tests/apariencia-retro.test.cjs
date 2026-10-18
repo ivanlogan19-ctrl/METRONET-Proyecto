@@ -39,7 +39,7 @@ async function comprobarMarcaYAnchura(pagina, esperaLogo = true) {
   }
 }
 const rutas = ['/login.html', '/registro.html', '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/admin-login.html', '/privacidad.html', '/inicio.html', '/escenarios.html', '/perfil.html', '/admin.html', '/simulacion.html?idDiseno=77'];
-const rutasSinLogo = new Set(['/escenarios.html', '/perfil.html', '/admin.html', '/simulacion.html']);
+const rutasSinLogo = new Set(['/inicio.html', '/escenarios.html', '/perfil.html', '/admin.html', '/simulacion.html']);
 for (const width of [1440, 390]) {
   for (const ruta of rutas) test(`presentación ${width}px: ${ruta}, marca y navegación aprobadas sin desbordes`, async t => {
     const { pagina } = await preparar(t, ruta, { viewport: { width, height: 1000 } });
@@ -50,7 +50,6 @@ for (const width of [1440, 390]) {
     const { pagina, contexto, errores } = await abrirEditor(navegador, { viewport: { width, height: 1000 } });
     t.after(() => contexto.close());
     await pagina.evaluate(() => document.fonts.ready);
-    if (width < 620) await pagina.locator('[data-panel-edicion-toggle]').click();
     await pagina.locator('[data-elegir-herramienta="estaciones"]').click();
 
     await comprobarMarcaYAnchura(pagina, false);
@@ -85,8 +84,10 @@ test('acceso conserva teclado, visibilidad de contraseña, carga y error', async
 test('perfil y modal administrativo conservan edición, cierre y mensajes', async t => {
   const { pagina, solicitudes } = await preparar(t, '/perfil.html');
   await pagina.locator('#nombre').fill('Ana Editada');
+  const guardado = pagina.waitForResponse(r => r.request().method() === 'PATCH');
   await pagina.locator('#guardarDatosPersonales').click();
-  await pagina.getByText('Información personal actualizada correctamente.').waitFor();
+  assert.equal((await guardado).ok(), true);
+  assert.equal(await pagina.getByText('Información personal actualizada correctamente.').count(), 0);
   assert.ok(solicitudes.some(r => r.method === 'PATCH' && r.body.nombre === 'Ana Editada'));
   const admin = await preparar(t, '/admin.html');
   await admin.pagina.locator('[data-editar-usuario]').first().click();
@@ -98,7 +99,7 @@ test('perfil y modal administrativo conservan edición, cierre y mensajes', asyn
 
 test('movimiento reducido suprime feedback animado y las notificaciones siguen siendo cerrables', async t => {
   const { pagina } = await preparar(t, '/inicio.html', { reducedMotion: 'reduce' });
-  await pagina.evaluate(async () => { const { mostrarNotificacion } = await import('/src/componentes/NotificacionesMetronet.js'); mostrarNotificacion('Diseño guardado', 'exito'); });
+  await pagina.evaluate(async () => { const { mostrarNotificacion } = await import('/src/componentes/NotificacionesMetronet.js'); mostrarNotificacion('No se pudo guardar el diseño.', 'error'); });
   const aviso = pagina.locator('.metronet-notificacion');
   assert.equal(await aviso.evaluate(e => getComputedStyle(e).animationName), 'none');
   await aviso.getByRole('button', { name: 'Cerrar notificación' }).click();

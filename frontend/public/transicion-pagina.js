@@ -15,9 +15,7 @@
       history.replaceState = (...args) => { reemplazar(...args); sincronizar(); };
     }
   } catch { /* El documento independiente conserva su navegación normal. */ }
-  // También el HTML de respaldo usa la entrada CSS breve. Un redirect inmediato
-  // puede abortar un snapshot nativo antes de pagereveal, sin promesa observable.
-  // La animación CSS no interviene en permisos, destinos ni restauración de scroll.
+  // El HTML independiente conserva su ruta de respaldo y continuidad musical.
   if (window === window.top) {
     document.documentElement.dataset.navegacionDocumento = '';
     if (window[Symbol.for('metronet:documento-respaldo')]) window.addEventListener('pagehide', () => {
@@ -26,6 +24,61 @@
       })); } catch { /* El respaldo sigue disponible sin almacenamiento. */ }
     });
   }
+
+  // Presentar cada documento completo, sin desvanecer controles ni conservar
+  // píxeles de la vista anterior. Solo se espera la carga inicial declarada.
+  const raiz = document.documentElement;
+  raiz.dataset.pantallaPreparando = '';
+  let saliendo = false, lista = false, fuentesListas = false, cuadro = 0;
+  const contenedor = window.parent !== window ? window.parent[Symbol.for('metronet:contenedor')] : null;
+  contenedor?.preparar(window, document);
+  function cubrirSalida() {
+    raiz.dataset.pantallaPreparando = '';
+    contenedor?.preparar(window, document);
+    return () => { delete raiz.dataset.pantallaPreparando; contenedor?.presentar(window, document); };
+  }
+  window[Symbol.for('metronet:carga-pantalla')] = Object.freeze({cubrir: cubrirSalida});
+  document.addEventListener('click', evento => {
+    const enlace = evento.target.closest?.('a[href]');
+    if (!enlace || evento.button !== 0 || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey
+      || enlace.hasAttribute('download') || (enlace.target && enlace.target !== '_self')
+      || ['/', '/index.html', '/simulacion.html'].includes(location.pathname)) return;
+    const destino = new URL(enlace.href, location.href);
+    if (destino.origin !== location.origin || destino.pathname + destino.search === location.pathname + location.search) return;
+    queueMicrotask(() => { if (!evento.defaultPrevented) cubrirSalida(); });
+  });
+  const observadorCarga = new MutationObserver(comprobarPantalla);
+  function comprobarPantalla() {
+    if (lista || saliendo || !fuentesListas || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
+    cancelAnimationFrame(cuadro);
+    cuadro = requestAnimationFrame(() => {
+      if (saliendo || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
+      lista = true;
+      observadorCarga.disconnect();
+      delete raiz.dataset.pantallaPreparando;
+      contenedor?.presentar(window, document);
+    });
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    observadorCarga.observe(raiz, {subtree:true, attributes:true, attributeFilter:['aria-busy'], childList:true});
+    document.fonts.ready.finally(() => { fuentesListas = true; comprobarPantalla(); });
+  }, {once:true});
+  window.addEventListener('pagehide', () => {
+    saliendo = true;
+    cancelAnimationFrame(cuadro);
+    contenedor?.preparar(window, document);
+  });
+  window.addEventListener('pageshow', evento => {
+    if (!evento.persisted) return;
+    saliendo = false;
+    if (lista) { delete raiz.dataset.pantallaPreparando; contenedor?.preparar(window, document); contenedor?.presentar(window, document); }
+    else comprobarPantalla();
+  });
+  // Un fallo de un módulo no debe dejar la navegación atrapada tras la cobertura.
+  window.addEventListener('error', () => {
+    raiz.querySelectorAll('[data-carga-inicial]').forEach(e => e.setAttribute('aria-busy', 'false'));
+    comprobarPantalla();
+  });
 
   // La restauración nativa puede ocurrir antes de recibir una tabla asíncrona y
   // quedar limitada por su altura vacía. Guardar por entrada del historial y

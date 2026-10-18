@@ -48,6 +48,7 @@ class JuegoGeograficoIntegracionTest {
         jdbc.execute("CREATE TABLE intento_catalogo_v1(id_intento INT, reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
         jdbc.execute("CREATE TABLE intento_uv_ut(id_intento INT, version INT, limite_ut INT, presupuesto_uv DECIMAL(8,2), reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
         jdbc.execute("CREATE TABLE resultado_uv_ut(id_simulacion INT, version INT, huella_problema VARCHAR, huella_ejecucion VARCHAR, limite_ut INT, presupuesto_uv DECIMAL(8,2), ut_ejecutadas INT, suma_uv DECIMAL(8,2), completo BOOLEAN, unidades VARCHAR)");
+        jdbc.execute("CREATE TABLE aprendizaje_extra_usuario(id_usuario INT PRIMARY KEY REFERENCES usuario(id_usuario), desbloqueado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP, bienvenida_vista BOOLEAN DEFAULT FALSE, premio_obtenido_en TIMESTAMP)");
         jdbc.update("INSERT INTO usuario VALUES (7,1,FALSE)");
         jdbc.execute("ALTER TABLE usuario ADD COLUMN rol VARCHAR DEFAULT 'JUGADOR'");
         jdbc.execute("ALTER TABLE usuario ADD COLUMN nombre VARCHAR(100)");

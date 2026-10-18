@@ -25,16 +25,16 @@ async function abrir(t, ruta, opciones = {}) {
   return vista;
 }
 
-test('Inicio ofrece Jugar para un nivel disponible sin intento', async t => {
+test('Inicio ofrece Iniciar para un nivel disponible sin intento', async t => {
   const disponible = { ...progreso, escenarios: escenarios.map(escenario => escenario.numero === 2 ? { ...escenario, estado: 'DISPONIBLE', progreso: 0 } : escenario) };
   const { pagina } = await abrir(t, '/inicio.html', { progreso: disponible });
-  assert.equal(await pagina.getByRole('button', { name: 'Jugar', exact: true }).count(), 1);
+  assert.equal(await pagina.getByRole('button', { name: 'Iniciar', exact: true }).count(), 1);
   assert.equal(await pagina.getByRole('button', { name: 'Continuar', exact: true }).count(), 0);
 });
 
 for (const [nombre, administrador, estado, etiqueta] of [
-  ['jugador con logro histórico tras reinicio', false, 'DISPONIBLE', 'Jugar en Modo Libre'],
-  ['administrador', true, 'EN_DESARROLLO', 'Continuar en Modo Libre'],
+  ['jugador con logro histórico tras reinicio', false, 'DISPONIBLE', 'Iniciar'],
+  ['administrador', true, 'EN_DESARROLLO', 'Continuar'],
 ]) {
   test(`Inicio abre Modo Libre desbloqueado: ${nombre}`, async t => {
     const desbloqueado = { ...progreso, numeroCampanaActual: 2, campanaCompletadaHistoricamente: !administrador,
@@ -43,8 +43,8 @@ for (const [nombre, administrador, estado, etiqueta] of [
       if (new URL(solicitud.url()).pathname === '/api/juego/escenarios/4/iniciar') return { json: { idDiseno: 77, idEscenario: 4, idIntento: 15, numeroCampanaActual: 2 } };
     } });
     await pagina.route('**/?idDiseno=77*', ruta => ruta.fulfill({ contentType: 'text/html', body: '<h1>Editor de destino</h1>' }));
-    const boton = pagina.getByRole('button', { name: etiqueta, exact: true });
-    assert.equal(await pagina.locator('.metronet-navegacion a[href="/admin.html"]').count() > 0, administrador);
+    const boton = pagina.locator('.metronet-inicio__tarjeta--crear').getByRole('button', { name: etiqueta, exact: true });
+    assert.equal(await pagina.locator('.metronet-navegacion a[href="/admin.html"]').count() > 0, true);
     assert.equal(await boton.isEnabled(), true);
     await boton.click();
     await pagina.waitForURL('**/?idDiseno=77&idEscenario=4&idIntento=15');
@@ -55,23 +55,14 @@ for (const [nombre, administrador, estado, etiqueta] of [
 for (const width of [390, 1440]) {
   test(`Inicio compacto y rutas reales / ${width}`, async t => {
     const { pagina } = await abrir(t, '/inicio.html', { viewport: { width, height: 900 } });
-    assert.equal(await pagina.locator('.metronet-logo__imagen').count(), 1);
-    assert.equal(await pagina.locator('.metronet-inicio__paso').count(), 0);
-    assert.match(await pagina.locator('.metronet-inicio__tarjeta--progreso').innerText(), /1\/3 niveles completados/);
+    assert.equal(await pagina.locator('.metronet-logo__imagen').count(), 0);
+    assert.equal(await pagina.locator('.metronet-inicio__tarjeta').count(), 2);
     assert.equal(await pagina.getByRole('button', { name: 'Continuar', exact: true }).count(), 1);
-    assert.equal(await pagina.locator('.metronet-inicio__tarjeta--continuar h2').textContent(), 'Nivel 2 · Conexiones');
-    assert.equal(await pagina.locator('.metronet-inicio__accesos a').first().getAttribute('href'), '/escenarios.html');
-    assert.equal(await pagina.locator('.metronet-inicio__accesos a').last().getAttribute('href'), '/simulacion.html');
-    const accesos = await pagina.locator('.metronet-inicio__accesos a').evaluateAll(enlaces => enlaces.map(enlace => {
-      const caja = enlace.getBoundingClientRect();
-      return { y: caja.y, width: caja.width, height: caja.height };
-    }));
-    assert.equal(new Set(accesos.map(acceso => acceso.y)).size, 1);
-    assert.ok(Math.max(...accesos.map(acceso => acceso.width)) - Math.min(...accesos.map(acceso => acceso.width)) < 1);
-    assert.equal(new Set(accesos.map(acceso => acceso.height)).size, 1);
-    assert.equal(await pagina.locator('.metronet-inicio__accesos a').nth(1).getAttribute('aria-disabled'), null);
-    assert.equal(await pagina.getByRole('button', { name: /Modo Libre/ }).count(), 0);
-    assert.equal(await pagina.locator('.metronet-navegacion a[href="/admin.html"]').count(), 0);
+    assert.match(await pagina.locator('.metronet-inicio__nivel-actual').innerText(), /Nivel 2/i);
+    assert.equal(await pagina.getByRole('link', { name: 'Ver todos los niveles', exact: true }).getAttribute('href'), '/escenarios.html');
+    assert.equal(await pagina.getByRole('link', { name: 'Abrir mis diseños', exact: true }).getAttribute('href'), '/disenos.html');
+    assert.equal(await pagina.locator('.metronet-inicio a[href="/simulacion.html"]').count(), 0);
+    assert.equal(await pagina.locator('.metronet-inicio__tarjeta--crear button').count(), 0);
     assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   });
 
@@ -90,18 +81,16 @@ for (const width of [390, 1440]) {
     const columnasEquipo = await equipo.evaluate(elemento => getComputedStyle(elemento).gridTemplateColumns.split(' ').length);
     assert.equal(columnasEquipo, 3);
     assert.equal(await pagina.locator('#progresoEscenarios').count(), 0);
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').count(), 4);
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__personaje img').count(), 3);
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().locator('h2').textContent(), 'Nivel 1 · Red inicial');
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').nth(1).getByRole('button', { name: 'Continuar' }).isEnabled(), true);
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').nth(2).getByRole('button', { name: 'Bloqueado' }).isDisabled(), true);
-    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' }).isEnabled(), true);
+    assert.equal(await pagina.locator('[data-seleccionar-escenario]').count(), 4);
+    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta').count(), 1);
+    assert.equal(await pagina.getByRole('button', { name: 'Continuar', exact: true }).isEnabled(), true);
+    await pagina.locator('[data-seleccionar-escenario="3"]').click();
+    assert.equal(await pagina.getByRole('button', { name: 'Bloqueado', exact: true }).isDisabled(), true);
+    await pagina.locator('[data-seleccionar-escenario="1"]').click();
+    assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta h2').textContent(), 'Nivel 1 · Red inicial');
     assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta details').count(), 0);
-    assert.equal(await pagina.getByText('Ver instrucciones y datos').count(), 0);
-    assert.doesNotMatch(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Ubicá dos estaciones y conectalas|Intentos: 2/);
-    assert.match(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Ari define una primera línea/);
-    assert.doesNotMatch(await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().innerText(), /Creá una línea/);
-    const primeraAccion = pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' });
+    assert.match(await pagina.locator('.metronet-escenarios-pagina__objetivo').innerText(), /Creá una línea/);
+    const primeraAccion = pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Repetir' });
     assert.equal(await primeraAccion.isVisible(), true);
     await primeraAccion.scrollIntoViewIfNeeded();
     const cajaAccion = await primeraAccion.boundingBox();
@@ -114,10 +103,10 @@ for (const width of [390, 1440]) {
   });
 }
 
-test('Inicio conserva tres accesos legibles a 320 px', async t => {
+test('Inicio conserva dos accesos legibles a 320 px', async t => {
   const navegadorTactil = { newContext: opciones => navegador.newContext({ ...opciones, hasTouch: true }) };
   const { pagina } = await abrir(t, '/inicio.html', { viewport: { width: 320, height: 740 }, navegadorPrueba: navegadorTactil });
-  const accesos = await pagina.locator('.metronet-inicio__accesos a').evaluateAll(enlaces => enlaces.map(enlace => ({
+  const accesos = await pagina.locator('.metronet-inicio__tarjeta-pie a').evaluateAll(enlaces => enlaces.map(enlace => ({
     texto: enlace.textContent.trim(), y: enlace.getBoundingClientRect().y,
     visible: enlace.getBoundingClientRect().width > 0 && enlace.getBoundingClientRect().height > 0,
     textoDentroDePantalla: (() => { const rango = document.createRange(); rango.selectNodeContents(enlace); return rango.getBoundingClientRect().right <= innerWidth; })(),
@@ -130,18 +119,18 @@ test('Inicio conserva tres accesos legibles a 320 px', async t => {
       return true;
     })(),
   })));
-  assert.equal(accesos.length, 3);
-  assert.equal(new Set(accesos.map(acceso => acceso.y)).size, 1);
-  assert.deepEqual(accesos.map(acceso => acceso.texto), ['Niveles', 'Mis diseños', 'Simulaciones']);
+  assert.equal(accesos.length, 2);
+  assert.equal(new Set(accesos.map(acceso => acceso.y)).size, 2);
+  assert.deepEqual(accesos.map(acceso => acceso.texto), ['Ver todos los niveles', 'Abrir mis diseños']);
   assert.ok(accesos.every(acceso => acceso.visible && acceso.textoDentroDePantalla && acceso.textoSinRecorte), JSON.stringify(accesos));
   assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-  await pagina.route('**/simulacion.html', ruta => ruta.fulfill({ contentType: 'text/html', body: '<h1>Simulaciones</h1>' }));
-  await pagina.getByRole('link', { name: 'Simulaciones' }).tap();
-  await pagina.waitForURL('**/simulacion.html');
+  await pagina.route('**/disenos.html', ruta => ruta.fulfill({ contentType: 'text/html', body: '<h1>Mis diseños</h1>' }));
+  await pagina.getByRole('link', { name: 'Abrir mis diseños' }).tap();
+  await pagina.waitForURL('**/disenos.html');
 });
 
 for (const width of [320, 390, 1440]) {
-  test(`Niveles justifica la introducción y preserva lectura a ${width} px`, async t => {
+  test(`Niveles alinea la introducción y preserva lectura a ${width} px`, async t => {
     const { pagina } = await abrir(t, '/escenarios.html', { viewport: { width, height: width === 320 ? 740 : 844 }, responder: solicitud =>
       new URL(solicitud.url()).pathname === '/api/juego/escenarios/1/volver-a-jugar'
         ? { json: { idDiseno: 77, idEscenario: 1, idIntento: 123 } } : null });
@@ -155,14 +144,15 @@ for (const width of [320, 390, 1440]) {
         diferenciaCentros: Math.abs((titulo.x + titulo.width / 2) - (bloque.x + bloque.width / 2)),
         desborde: document.documentElement.scrollWidth > innerWidth };
     });
-    assert.equal(estilo.intro, 'justify');
+    assert.equal(estilo.intro, 'left');
     assert.equal(estilo.ultima, 'left');
     assert.equal(estilo.guiones, 'auto');
-    assert.equal(estilo.relato, width <= 620 ? 'left' : 'justify');
+    assert.equal(estilo.relato, 'left');
     assert.ok(estilo.diferenciaCentros < 2);
     assert.equal(estilo.desborde, false);
     if (width === 390) {
-      const accion = pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Volver a jugar' });
+      await pagina.locator('[data-seleccionar-escenario="1"]').click();
+      const accion = pagina.locator('.metronet-escenarios-pagina__tarjeta').first().getByRole('button', { name: 'Repetir' });
       assert.equal(await accion.isEnabled(), true);
       await accion.focus();
       assert.equal(await accion.evaluate(elemento => elemento === document.activeElement), true);
@@ -183,7 +173,7 @@ test('Privacidad nombra niveles y actividades propias sin alterar los demás dat
   assert.doesNotMatch(texto, /escenarios/i);
 });
 
-test('Los diez niveles cuentan capítulos distintos y dejan la misión técnica para el editor', async t => {
+test('Los diez niveles muestran capítulos y desafíos propios al seleccionar cada uno', async t => {
   const niveles = require('../src/educacion/niveles.json');
   const campana = { ...progreso, escenarios: niveles.map(nivel => ({
     ...nivel, idEscenario: nivel.numero, desbloqueado: nivel.numero === 1,
@@ -191,25 +181,24 @@ test('Los diez niveles cuentan capítulos distintos y dejan la misión técnica 
   })), cantidadNiveles: 10, nivelesCompletados: 0 };
   const { pagina } = await abrir(t, '/escenarios.html', { progreso: campana });
   const tarjetas = pagina.locator('.metronet-escenarios-pagina__tarjeta');
-  assert.equal(await tarjetas.count(), 10);
-  const relatos = await tarjetas.locator('.metronet-escenarios-pagina__relato').allTextContents();
-  assert.equal(new Set(relatos).size, 10);
-  const imagenes = tarjetas.locator('.metronet-escenarios-pagina__personaje img');
-  await pagina.waitForFunction(() => [...document.querySelectorAll('.metronet-escenarios-pagina__personaje img')].every(imagen => imagen.complete && imagen.naturalWidth === 32));
-  assert.equal(await imagenes.count(), 10);
-  assert.deepEqual(new Set(await imagenes.evaluateAll(nodos => nodos.map(nodo => new URL(nodo.src).pathname))),
-    new Set(['/assets/personajes/ari.svg', '/assets/personajes/sol.svg', '/assets/personajes/dani.svg']));
-  assert.equal(await imagenes.first().getAttribute('alt'), '');
-  assert.match(await tarjetas.first().locator('.metronet-escenarios-pagina__personaje').innerText(), /Ari · Diseño de red/);
-  assert.match(await tarjetas.nth(1).locator('.metronet-escenarios-pagina__personaje').innerText(), /Sol · Cobertura/);
-  assert.match(relatos[0], /Ari.*Sol.*Dani/);
-  assert.match(relatos[9], /presentación final.*red de tres líneas.*propuesta hipotética/);
-  for (const [indice, relato] of relatos.entries()) {
-    assert.notEqual(relato, niveles[indice].objetivo);
-    assert.notEqual(relato, niveles[indice].instrucciones);
+  assert.equal(await pagina.locator('[data-seleccionar-escenario]').count(), 10);
+  const relatos = [], imagenes = [];
+  for (const nivel of niveles) {
+    await pagina.locator(`[data-seleccionar-escenario="${nivel.numero}"]`).click();
+    assert.equal(await tarjetas.count(), 1);
+    relatos.push(await tarjetas.locator('.metronet-escenarios-pagina__relato').innerText());
+    const imagen = tarjetas.locator('.metronet-escenarios-pagina__personaje img');
+    await imagen.evaluate(i => i.decode());
+    assert.equal(await imagen.getAttribute('alt'), '');
+    imagenes.push(await imagen.evaluate(i => new URL(i.src).pathname));
+    assert.equal(await tarjetas.locator('.metronet-escenarios-pagina__objetivo p').innerText(), nivel.objetivo);
+    assert.equal(await tarjetas.getByRole('button', { name: nivel.numero === 1 ? 'Iniciar' : 'Bloqueado', exact: true }).isEnabled(), nivel.numero === 1);
+    assert.notEqual(relatos.at(-1), nivel.instrucciones);
   }
-  assert.equal(await tarjetas.first().getByRole('button', { name: 'Comenzar' }).isEnabled(), true);
-  assert.equal(await tarjetas.nth(1).getByRole('button', { name: 'Bloqueado' }).isDisabled(), true);
+  assert.equal(new Set(relatos).size, 10);
+  assert.deepEqual(new Set(imagenes), new Set(['/assets/personajes/ari.svg', '/assets/personajes/sol.svg', '/assets/personajes/dani.svg']));
+  assert.deepEqual(relatos, require('../src/educacion/recorrido-integral.json').map(nivel => nivel.historia.texto));
+
 });
 
 test('Administración muestra solo mantenimiento y lo guarda mediante API simulada', async t => {
@@ -225,18 +214,20 @@ test('Administración muestra solo mantenimiento y lo guarda mediante API simula
   } });
   await pagina.locator('[data-vista="configuracion"]').click();
   await pagina.locator('.admin-configuracion-item').first().waitFor();
-  assert.equal(await pagina.locator('#tituloVista').textContent(), 'Modo de mantenimiento');
+  assert.equal(await pagina.locator('#tituloVista').textContent(), 'Configuración');
   assert.equal(await pagina.locator('.admin-configuracion-grupo > h2, .admin-configuracion-grupo > p').count(), 0);
   assert.equal(await pagina.locator('.admin-configuracion-item').count(), 1);
-  assert.equal(await pagina.locator('.admin-configuracion-item--mantenimiento h3').count(), 0);
-  assert.equal(await pagina.locator('.admin-configuracion-item--mantenimiento p').evaluate(elemento => getComputedStyle(elemento).textAlign), 'justify');
+  assert.equal(await pagina.locator('.admin-configuracion-item--mantenimiento h3').textContent(), 'Modo de mantenimiento');
+  assert.equal(await pagina.locator('.admin-configuracion-item--mantenimiento p').evaluate(elemento => getComputedStyle(elemento).textAlign), 'left');
   assert.equal(await pagina.locator('#configuracion-modo_mantenimiento').evaluate(elemento => getComputedStyle(elemento).textAlignLast), 'center');
   assert.equal(await pagina.locator('#configuracion-capacidad_unidad, [data-guardar-configuracion="capacidad_unidad"]').count(), 0);
   assert.equal(await pagina.locator('#configuracion-velocidad_simulacion, [data-guardar-configuracion="velocidad_simulacion"]').count(), 0);
   assert.equal(await pagina.locator('#vista-configuracion > h2').count(), 0);
   await pagina.locator('#configuracion-modo_mantenimiento').selectOption('activado');
-  await pagina.locator('[data-guardar-configuracion="modo_mantenimiento"]').click();
-  await pagina.getByText('Configuración actualizada correctamente.').waitFor();
+  await Promise.all([
+    pagina.waitForResponse(r => r.url().endsWith('/api/admin/configuracion/modo_mantenimiento') && r.request().method() === 'PATCH' && r.ok()),
+    pagina.locator('[data-guardar-configuracion="modo_mantenimiento"]').click(),
+  ]);
   assert.equal(valores.get('modo_mantenimiento'), 'activado');
   assert.equal(valores.get('velocidad_simulacion'), '1');
   assert.equal(valores.get('capacidad_unidad'), '300');
@@ -266,11 +257,11 @@ test('Administración oculta capacidad de unidades y conserva el dato interno al
   let dialogo = pagina.locator('.metronet-dialogo-sistema');
   await dialogo.waitFor();
   await dialogo.getByLabel('Línea asignada:').fill('Azul');
-  await dialogo.getByRole('button', { name: 'Aceptar' }).click();
+  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
   dialogo = pagina.locator('.metronet-dialogo-sistema');
   await dialogo.getByLabel('Velocidad promedio (UV):').fill('75');
   const respuestaEdicion = pagina.waitForResponse(respuesta => respuesta.request().method() === 'PATCH' && respuesta.url().endsWith('/unidades/5'));
-  await dialogo.getByRole('button', { name: 'Aceptar' }).click();
+  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
   await respuestaEdicion;
   const edicion = solicitudes.find(s => s.path === '/api/admin/disenos/77/unidades/5' && s.method === 'PATCH');
   assert.ok(edicion);
@@ -280,11 +271,11 @@ test('Administración oculta capacidad de unidades y conserva el dato interno al
   await pagina.locator('[data-crear-diseno="unidad"]').click();
   dialogo = pagina.locator('.metronet-dialogo-sistema');
   await dialogo.getByLabel('Nombre de la línea asignada:').fill('Azul');
-  await dialogo.getByRole('button', { name: 'Aceptar' }).click();
+  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
   dialogo = pagina.locator('.metronet-dialogo-sistema');
   await dialogo.getByLabel('Velocidad (UV):').fill('80');
   const respuestaCreacion = pagina.waitForResponse(respuesta => respuesta.request().method() === 'POST' && respuesta.url().endsWith('/unidades'));
-  await dialogo.getByRole('button', { name: 'Aceptar' }).click();
+  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
   await respuestaCreacion;
   const creacion = solicitudes.find(s => s.path === '/api/admin/disenos/77/unidades' && s.method === 'POST');
   assert.deepEqual(creacion.body, { nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 80 });
@@ -303,7 +294,7 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
     assert.ok(medidas.alto <= height, JSON.stringify(medidas));
     assert.ok(medidas.ancho <= width);
     assert.ok(medidas.contenido <= height);
-    assert.equal(await pagina.getByRole('button', { name: 'Jugar en Modo Libre', exact: true }).isVisible(), true);
+    assert.equal(await pagina.locator('.metronet-inicio__tarjeta--crear').getByRole('button', { name: 'Iniciar', exact: true }).isVisible(), true);
     assert.equal(await pagina.getByRole('button', { name: 'Continuar', exact: true }).isVisible(), true);
   });
 }

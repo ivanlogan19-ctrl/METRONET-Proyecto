@@ -7,7 +7,6 @@ html:root body .admin-aplicacion--consulta .admin-vista { padding-top: 18px; gap
 
 html:root body .admin-configuracion-item--mantenimiento {
   width: min(100%, 860px);
-  margin: 20px auto;
   padding: 24px;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;

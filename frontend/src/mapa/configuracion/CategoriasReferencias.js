@@ -45,4 +45,3 @@ export function describirReferencia(punto) {
   return punto?.tipo && c !== punto.tipo ? `${c} · ${punto.tipo}` : c;
 }
 export function esPoiBuscable(punto) { return Boolean(punto?.nombre); }
-export function obtenerSubcategoriaPoi(punto) { return obtenerCategoriaReferencia(punto) === 'OTROS' ? punto?.tipo || 'Referencia del catálogo' : CATEGORIAS_REFERENCIAS[obtenerCategoriaReferencia(punto)].etiqueta; }

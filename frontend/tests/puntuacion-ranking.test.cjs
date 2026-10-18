@@ -40,9 +40,13 @@ test('Administrador: todos disponibles sin fingir completados y ranking no compe
  const admin={...progreso,campanaCompletada:false,nivelesCompletados:0,modoLibreDesbloqueado:true,escenarios:[...progreso.escenarios.map(n=>({...n,estado:'DISPONIBLE',progreso:0,mejorPuntaje:null,cantidadIntentos:0})),libre]};
  const {pagina}=await abrir(t,'/admin.html',{responder:async req=>req.url().endsWith('/progreso')?{json:admin}:null});
  await pagina.goto(`${BASE}/escenarios.html`);
- await pagina.getByRole('button',{name:'Entrar al Modo Libre',exact:true}).waitFor();
- assert.equal(await pagina.getByRole('button',{name:'Comenzar',exact:true}).count(),10);
- assert.equal(await pagina.locator('.metronet-escenarios-pagina__tarjeta--disponible').count(),11);
+ await pagina.locator('.metronet-escenarios-pagina__tarjeta').first().waitFor();
+ for (const opcion of await pagina.locator('[data-seleccionar-escenario]').all()) {
+  assert.match(await opcion.getAttribute('aria-label'), /Disponible|Desbloqueado/);
+  await opcion.click();
+  assert.equal(await pagina.getByRole('button',{name:'Iniciar',exact:true}).isEnabled(),true);
+ }
+ assert.equal(await pagina.locator('[data-seleccionar-escenario]').count(),11);
  await pagina.goto(`${BASE}/ranking.html`);
  await pagina.locator('#resumenPersonalRanking[hidden]').waitFor({state:'attached'});
  assert.equal(await pagina.locator('#resumenPuntaje').textContent(),'');
@@ -60,7 +64,7 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
  }});
 
  const campo=pagina.getByRole('spinbutton',{name:'Velocidad en UV',exact:true});await campo.waitFor();
- await pagina.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+ await pagina.getByRole('button',{name:'Continuar',exact:true}).click();
  assert.equal(await pagina.locator('.simulacion-grupo-metros').isVisible(),true);
  assert.ok(await campo.evaluate(e=>e.getBoundingClientRect().height>=40));
  assert.equal(await pagina.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -70,7 +74,7 @@ for(const resuelta of [false,true]) test(`Simulación: red resuelta ${resuelta},
  if(resuelta){
   await campo.fill('45');await pagina.getByRole('button',{name:'Aplicar velocidad',exact:true}).click();
   await pagina.waitForFunction(()=>document.getElementById('velocidadUnidad').value==='45' && !document.querySelector('[data-controles-circulacion]').disabled);
-  assert.deepEqual(solicitudes.find(s=>s.method==='PATCH').body,{nombreLinea:'Azul',capacidad:300,velocidadPromedio:45});
+  assert.deepEqual(solicitudes.find(s=>s.method==='PATCH').body,{nombreLinea:'Azul',capacidad:300,velocidadPromedio:45,parametroReferencia:'UV'});
   assert.equal(solicitudes.filter(s=>s.method==='PATCH').length,1); // Preflight al pulsar Simular, sin validación manual adicional.
  }
 });
@@ -93,7 +97,7 @@ test('Cierre global presenta puntos por nivel, máximo y posición sin crear otr
 for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) test(`Simulación finalizada: ${puntos} puntos, consigna ${completado ? 'completa' : 'pendiente'}, aprobación reservada a Finalizar red`,async t=>{
  const desempeno={puntaje:puntos,puntajeMaximo:100,redResuelta:true,velocidadCumplida:true,simulacionActual:true,etapa:'LISTO',explicacion:`${completado ? 4 : 3} de 4 criterios satisfechos.`,unidades:[{idTren:1,linea:'Azul',velocidad:6,tramos:3}]};
  const resultado={idSimulacion:2,puntaje:0,estado:'COMPLETADA',duracion:1,velocidad:1,escala:'UV_H_V1',unidades:[{idTren:1,velocidad:6}],comentarios:'6 UV durante 1 h simulada.'};
- const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
+ const red={simulacion:{idDiseno:77,idEscenario:6,nombre:'Movilidad entre zonas',modo:'NIVEL',estado:'VALIDADO'},estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:60,duracionUt:1}],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[]};
  const {pagina,solicitudes}=await abrir(t,'/simulacion.html?idDiseno=77',{responder:async req=>{
   const path=new URL(req.url()).pathname;
   if(path==='/api/simulaciones')return {json:[red.simulacion]};
@@ -107,13 +111,14 @@ for (const [puntos, completado] of [[100, true], [75, false], [100, false]]) tes
   if(path.endsWith('/evaluar'))return {json:{completado,puntaje:puntos,progreso:completado ? 100 : 75,desempeno,mensaje:desempeno.explicacion}};
  }});
 
- await pagina.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+ await pagina.getByRole('button',{name:'Continuar',exact:true}).click();
  assert.equal(await pagina.locator('dialog.metronet-recorrido[open]').count(),0);
  await pagina.locator('#duracionSimulacion').fill('1');
  assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(), false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.waitForFunction(() => document.querySelector('#estadoTiempoReal')?.textContent === 'Finalizada');
- await pagina.waitForFunction(completado => document.querySelector('#mensajeSimulacion')?.textContent.includes(completado ? 'Finalizar red' : 'objetivos pendientes'), completado);
+ await pagina.locator('#formularioEjecucion button[type="submit"]:not(:disabled)').waitFor();
+ assert.equal(await pagina.locator('.metronet-notificacion--exito').count(),0);
  assert.equal(await pagina.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
  assert.equal(await pagina.getByRole('dialog').count(), 0);
  assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,0);

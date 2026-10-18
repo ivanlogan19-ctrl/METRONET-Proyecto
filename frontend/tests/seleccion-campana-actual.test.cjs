@@ -14,11 +14,13 @@ test('Selección usa nombres y relatos publicados de los diez niveles, y describ
   if(numero){const n=niveles[Number(numero)-1];return {json:{numero:n.numero,version:2,desafio:{nombre:n.nombre,relato:n.historia.texto},tarjetas:Array.from({length:7},(_,i)=>({id:`tarjeta-${i}`}))}};}
  }});
  t.after(()=>v.contexto.close());const p=v.pagina;
- await p.getByRole('heading',{name:niveles[9].nombre,exact:true}).waitFor();
+ await p.locator('[data-seleccionar-escenario="10"]').waitFor();
  for(const n of niveles){
+  await p.locator(`[data-seleccionar-escenario="${n.numero}"]`).click();
   const tarjeta=p.getByRole('article').filter({has:p.getByRole('heading',{name:n.nombre,exact:true})});
   assert.equal(await tarjeta.locator('.metronet-escenarios-pagina__relato').innerText(),n.historia.texto);
  }
+ await p.locator('[data-seleccionar-escenario="11"]').click();
  const libre=p.getByRole('article').filter({has:p.getByRole('heading',{name:'Modo Libre',exact:true})});
  assert.match(await libre.innerText(),/Ahora te toca a vos: diseñá, construí y simulá tu propia red/);
  assert.doesNotMatch(await libre.innerText(),/para desbloquear/);

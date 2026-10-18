@@ -23,7 +23,7 @@ for (const tipo of ['tutorial', 'ficha']) test(`Los clics de ${tipo} no atravies
     await p.locator('.metronet-tutorial>summary').click();
     await p.locator('.metronet-tutorial>summary').click();
   } else {
-    await p.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await p.getByRole('dialog').getByRole('button', { name: 'Cerrar información', exact: true }).click();
     assert.equal(await p.evaluate(() => editorPrueba.escena.capaPuntosInteres.puntoSeleccionado), null);
   }
   assert.equal(await p.evaluate(() => pulsosMapa), 0);

@@ -23,7 +23,7 @@ for (const contexto of ['editor', 'simulacion']) for (const width of [1440, 390]
       await p.keyboard.press('Escape');
       await p.locator('.metronet-tutorial > summary').click();
     } else {
-      const oferta=p.getByRole('button',{name:'Comenzar directamente',exact:true});
+      const oferta=p.getByRole('button',{name:'Continuar',exact:true});
       await oferta.click();
       await p.locator('#tutorialPantallaSimulacion').click();
     }
@@ -64,15 +64,16 @@ for (const contexto of ['editor', 'simulacion']) for (const width of [1440, 390]
     await panel.screenshot({path:`/tmp/guia-rapida-${contexto}-${width}.png`});
     assert.ok(await panel.locator('.metronet-tutorial__herramientas svg').count() >= 4);
     await tituloSinBarra(panel.locator('h2'));
-    const repetir = panel.getByRole('button', { name: 'Recorrer la pantalla' });
-    await color(repetir, '--tutorial-acento');
+    const repetir = panel.getByRole('button', { name: contexto === 'editor' ? 'Iniciar tutorial' : 'Recorrer la pantalla' });
+    await color(repetir, '--panel');
+    assert.equal(await repetir.locator('svg').evaluate(e => getComputedStyle(e).color), 'rgb(255, 208, 120)');
     await repetir.click();
     const guia = p.locator('.metronet-recorrido');
     await guia.waitFor();
     assert.equal(await guia.locator('[data-recorrido-siguiente]').textContent(), '');
     assert.equal(await guia.locator('[data-recorrido-icono] svg').count(), 1);
     await tituloSinBarra(guia.locator('h2'));
-    const omitir = guia.getByRole('button', { name: 'Omitir', exact: true });
+    const omitir = guia.getByRole('button', { name: 'Salir del tutorial', exact: true });
     const siguiente = guia.getByRole('button', { name: 'Siguiente', exact: true });
     await color(omitir, '--danger');
     await color(siguiente, '--success');

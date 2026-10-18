@@ -19,7 +19,7 @@ for (const administrador of [false, true]) for (const width of [390, 820, 1440])
     await p.locator('.metronet-navegacion__usuario summary').click();
     const menu = p.locator('.metronet-navegacion__menu-usuario');
     assert.equal(await principal.isVisible(), width > 1024);
-    assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : administrador ? 8 : 7);
+    assert.equal(await menu.locator('a:visible').count(), width > 1024 ? 1 : 8);
     assert.equal(await menu.getByRole('link', { name: 'Reglas', exact: true }).isVisible(), width <= 1024);
     assert.equal(await menu.getByRole('link', { name: 'Mi perfil' }).isVisible(), true);
     if (width <= 1024) assert.equal(await menu.getByRole('link', { name: 'Niveles' }).isVisible(), true);
@@ -76,8 +76,11 @@ for (const width of [390, 1440]) test(`Mantenimiento cerrado: guarda, recarga y 
     assert.equal(await select.evaluate(e => e.tagName), 'SELECT');
     assert.deepEqual(await select.locator('option').evaluateAll(es => es.map(e => e.value)), ['desactivado', 'activado']);
     await select.selectOption(valor);
-    await p.locator('[data-guardar-configuracion="modo_mantenimiento"]').click();
-    await p.getByText('Configuración actualizada correctamente.', { exact: true }).waitFor();
+    await Promise.all([
+      p.waitForResponse(r => r.url().endsWith('/api/admin/configuracion/modo_mantenimiento') && r.request().method() === 'PATCH' && r.ok()),
+      p.locator('[data-guardar-configuracion="modo_mantenimiento"]').click(),
+    ]);
+    await p.waitForFunction(() => !document.querySelector('[data-guardar-configuracion="modo_mantenimiento"]').disabled);
     await p.reload();
     await p.locator('[data-vista="configuracion"]').click();
     assert.equal(await p.locator('#configuracion-modo_mantenimiento').inputValue(), valor);

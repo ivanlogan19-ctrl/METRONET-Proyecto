@@ -172,18 +172,20 @@ for (const rol of ['JUGADOR', 'ADMIN']) {
       await ingresar(p, rol); await pantalla(p).waitFor();
       await p.locator('[data-continuar-bienvenida]').click();
       await p.waitForURL('**/inicio.html');
-      assert.equal(await p.locator('.metronet-navegacion a[href="/admin.html"]').count() > 0, rol === 'ADMIN');
+      assert.equal(await p.locator('.metronet-navegacion a[href="/admin.html"]').count() > 0, true);
     });
   }
 }
 
-test('acceso de jugador no habilita la página de administración', async t => {
+test('acceso de jugador solo habilita información pública, sin gestión administrativa', async t => {
   const { pagina: p, solicitudes } = await preparar(t, 'JUGADOR', { busqueda: '?destino=%2Fadmin.html' });
   await ingresar(p); await pantalla(p).waitFor();
   await p.locator('[data-continuar-bienvenida]').click();
   await p.waitForURL('**/inicio.html');
   await p.goto(p.url().replace('/inicio.html', '/admin.html'));
-  await p.waitForURL('**/admin-login.html');
+  await p.locator('#vista-unidades:not([hidden])').waitFor();
+  assert.equal(await p.locator('.admin-enlace').count(), 2);
+  assert.equal(await p.locator('#vista-usuarios, #vista-disenos, #vista-configuracion, #vista-niveles, #vista-actividad').count(), 0);
   assert.equal(solicitudes.some(s => s.path.startsWith('/api/admin/')), false);
 });
 

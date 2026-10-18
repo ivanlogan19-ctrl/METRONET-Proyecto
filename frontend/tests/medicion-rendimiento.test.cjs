@@ -18,7 +18,7 @@ test('La regla en reposo conserva etiquetas sin reescribir el DOM en cada cuadro
   } });
   t.after(() => v.contexto.close());
   const p = v.pagina;
-  await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  await p.getByRole('button', { name: 'Continuar', exact: true }).click();
   await p.route('**/src/simulacion/EscenaSimulacion.js*', async route => {
     const respuesta = await route.fetch();
     await route.fulfill({ response: respuesta, body: (await respuesta.text()).replace(

@@ -428,7 +428,7 @@ class CampanaPostgresTest {
                     new ObjetivosPuntosInteresService(mapper, geo), juego, restricciones);
                 var ejecucion = simulaciones.ejecutarSimulacion(7, 10,
                     new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 2));
-                assertEquals("UV_KM_UT_V3", ejecucion.escala());
+                assertEquals("UV_KM_UT_LINEA_V4", ejecucion.escala());
                 assertTrue(ejecucion.resultadoUvUt().completo(), "Play guarda el resultado V2 para el nivel 10");
                 assertEquals(ejecucion, simulaciones.listarResultados(7, 10).getFirst());
                 assertTrue(juego.evaluarEscenario(7, 10).completado(), "Las comparaciones, la red y la llegada permiten terminar el nivel 10");
@@ -469,8 +469,8 @@ class CampanaPostgresTest {
             var resultado = simulaciones.ejecutarSimulacion(7, 6,
                 new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, duracion));
             assertEquals(100, resultado.puntaje());
-            assertEquals("UV_KM_UT_V3", resultado.escala());
-            assertEquals(duracion, resultado.duracion());
+            assertEquals("UV_KM_UT_LINEA_V4", resultado.escala());
+            assertEquals(resultado.unidades().stream().mapToDouble(u -> u.duracionUt()).max().orElseThrow(), resultado.duracion(), 1e-7);
             assertFalse(resultado.unidades().isEmpty());
             assertEquals(resultado, simulaciones.listarResultados(7, 6).getFirst());
             assertEquals(100, juego.evaluarEscenario(7, 6).puntaje());

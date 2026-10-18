@@ -6,6 +6,19 @@ const pantallas = new Set(['/', '/index.html', '/login.html', '/admin-login.html
   '/escenarios.html', '/aprendizaje.html', '/reglas.html', '/ranking.html', '/disenos.html', '/perfil.html', '/privacidad.html', '/admin.html', '/simulacion.html']);
 const marco = document.querySelector('#pantalla-metronet');
 const error = document.querySelector('#error-pantalla');
+const carga = document.querySelector('#carga-pantalla');
+let documentoEnCarga = null;
+function preparar(vista, documento) {
+  if (vista !== marco.contentWindow || vista.document !== documento) return;
+  documentoEnCarga = documento;
+  carga.hidden = false;
+  marco.style.visibility = 'hidden';
+}
+function presentar(vista, documento) {
+  if (vista !== marco.contentWindow || vista.document !== documento || documentoEnCarga !== documento) return;
+  carga.hidden = true;
+  marco.style.visibility = '';
+}
 
 function rutaPermitida(ruta) {
   try {
@@ -39,7 +52,7 @@ function sincronizar(vista) {
   error.hidden = true;
 }
 
-window[CLAVE] = Object.freeze({ gestorMusica, sincronizar, recibirEntrada });
+window[CLAVE] = Object.freeze({ gestorMusica, sincronizar, recibirEntrada, preparar, presentar });
 window.addEventListener('pagehide', () => {
   // Chrome captura el estado del historial antes de pagehide al recargar.
   // Transportar solo el scroll de esta salida, por pestaña y por ruta exacta.
@@ -56,8 +69,13 @@ marco.addEventListener('load', () => {
     if (marco.contentWindow.location.href === 'about:blank') return;
     if (!marco.contentDocument?.querySelector('body') || !rutaPermitida(marco.contentWindow.location.href)) throw new Error('Pantalla no disponible');
     sincronizar(marco.contentWindow);
+    if (!marco.contentDocument.documentElement.hasAttribute('data-pantalla-preparando')) {
+      preparar(marco.contentWindow, marco.contentDocument);
+      presentar(marco.contentWindow, marco.contentDocument);
+    }
     if (!marco.contentDocument.documentElement.dataset.contextoMusical) gestorMusica.establecerContexto('general');
   } catch {
+    carga.hidden = true;
     error.hidden = false;
     const respaldo = rutaPermitida(location.href) ?? inicial;
     respaldo.searchParams.set('documento', '1');

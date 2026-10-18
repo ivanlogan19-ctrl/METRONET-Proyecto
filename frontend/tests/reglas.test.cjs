@@ -48,13 +48,8 @@ for (const administrador of [false, true]) for (const [width, height] of [[1440,
       await p.evaluate(() => window.scrollTo(0, 700));
       const cabecera = await p.locator('.metronet-reglas__titulo-fijo').boundingBox();
       assert.ok(Math.abs(cabecera.y) < 1, 'El título y las hojas permanecen fijos al recorrer las reglas');
-    } else {
-      const hoja = await p.locator('.metronet-reglas__hoja').first().boundingBox();
-      assert.ok(hoja.width >= 60 && hoja.height >= 72, 'Las ilustraciones del título conservan su tamaño');
-      const navegacion = await p.locator('.metronet-navegacion').boundingBox();
-      assert.ok(hoja.y >= navegacion.y + navegacion.height + 8, 'Las ilustraciones quedan separadas de la sombra del menú');
     }
-    assert.equal(await p.locator('.metronet-reglas__hoja[aria-hidden="true"]').count(), 2);
+    assert.equal(await p.locator('.metronet-reglas__hoja').count(), 0, 'El título ya no incluye las ilustraciones retiradas');
     assert.equal(v.solicitudes.filter(s => s.method !== 'GET').length, 0);
   });
 }
@@ -78,13 +73,9 @@ test('Las pestañas permiten recorrer todos los temas por teclado y entrar al co
   assert.equal(await p.getByRole('link', { name: 'Ver niveles', exact: true }).getAttribute('href'), '/escenarios.html');
   assert.equal(await p.getByRole('link', { name: 'Ver ranking', exact: true }).getAttribute('href'), '/ranking.html');
 });
-test('Las hojas permanecen visibles sin animación con movimiento reducido', async t => {
+test('El título conserva su jerarquía sin ilustraciones también con movimiento reducido', async t => {
   const v = await abrirPantalla(navegador, '/reglas.html', { reducedMotion: 'reduce' });
   t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
-  const lineas = await v.pagina.locator('.metronet-reglas__hoja span').evaluateAll(nodos => nodos.map(n => ({
-    animacion: getComputedStyle(n).animationName,
-    recorte: getComputedStyle(n).clipPath,
-  })));
-  assert.equal(lineas.length, 8);
-  assert.ok(lineas.every(l => l.animacion === 'none' && l.recorte === 'none'));
+  assert.equal(await v.pagina.getByRole('heading', { name: 'Reglas del juego', exact: true }).isVisible(), true);
+  assert.equal(await v.pagina.locator('.metronet-reglas__hoja').count(), 0);
 });

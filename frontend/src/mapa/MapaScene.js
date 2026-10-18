@@ -23,7 +23,7 @@ import ControlZoom from './controles/ControlZoom.js';
 import ReferenciasGeograficas from './controles/ReferenciasGeograficas.js';
 import PanelSeleccionGeografica from './controles/PanelSeleccionGeografica.js';
 import EditorRedMetro from './controles/EditorRedMetro.js';
-import { eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
+import { cerrarSesionRemota, eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
 import { COLORES_INTERFAZ_MAPA } from './configuracion/ColoresMapa.js';
 
 import { obtenerZona } from './utilidades/ClasificadorZonas.js';
@@ -374,11 +374,7 @@ export default class MapaScene extends Phaser.Scene {
 
     if (sesion) {
       try {
-        const ruta = sesion.usuario.rol === 'ADMIN' ? '/auth/logout/admin' : '/auth/logout';
-        await fetch(`${window.location.protocol}//${window.location.hostname}:8080${ruta}`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${sesion.token}` },
-        });
+        await cerrarSesionRemota(sesion);
       } catch {
         // La sesión local se elimina aunque el servicio ya no esté disponible.
       }

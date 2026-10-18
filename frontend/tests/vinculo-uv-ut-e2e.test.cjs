@@ -41,7 +41,7 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  const abrir=async()=>{
   await frame().goto(BASE+'/simulacion.html?idDiseno='+id);
   try { await vista.locator('#velocidadUnidad').waitFor(); } catch(error) { console.log('Errores',errors); console.log((await page.locator('body').innerText()).slice(0,1500)); for(const f of page.frames())console.log(f.url(),(await f.locator('body').innerText()).slice(0,4500)); await page.screenshot({path:'/tmp/metronet-vinculo-error.png'}); throw error; }
-  const omitir=vista.getByRole('button',{name:'Comenzar directamente',exact:true});
+  const omitir=vista.getByRole('button',{name:'Continuar',exact:true});
   if(await omitir.isVisible())await omitir.click();
   await vista.locator('#duracionSimulacion').waitFor();
  };
@@ -52,7 +52,10 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  assert.equal(await vista.locator('.simulacion-selector-metros__opciones button').count(),2,'Sólo una opción por línea');
  assert.equal(await vista.locator('#tituloConfiguracionMetros').textContent(),'Detalle de líneas');
  assert.equal(await vista.locator('.simulacion-configuracion-metros__lista li').count(),2,'Una configuración por línea aunque tenga varios metros');
- const esperarGuardado=async()=>{await vista.getByText('Velocidad y duración guardadas.',{exact:true}).waitFor({state:'attached'});await vista.locator('#velocidadUnidad:not(:disabled)').waitFor();};
+ const guardar=async selector=>{
+  await Promise.all([page.waitForResponse(r=>r.request().method()==='PATCH' && /\/unidades\//.test(r.url()) && r.ok()),vista.locator(selector).click()]);
+  await vista.locator('#velocidadUnidad:not(:disabled)').waitFor();
+ };
  const elegirLinea=async tren=>{
   await vista.locator('.simulacion-selector-metros summary').click();
   await vista.locator('.simulacion-selector-metros__opciones [data-metro="'+tren+'"]').click();
@@ -91,23 +94,25 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  await vista.getByRole('button',{name:'Aumentar duración',exact:true}).click();
  assert.equal(await vista.locator('#duracionSimulacion').inputValue(),'2.34','Los controles muestran como máximo dos decimales');
  const uvAntesGuardar=await vista.locator('#velocidadUnidad').inputValue();
- await vista.locator('.simulacion-parametro-velocidad button[type="submit"]').click();await esperarGuardado();
+ await guardar('.simulacion-parametro-velocidad button[type="submit"]');
  assert.equal(await vista.locator('#velocidadUnidad').inputValue(),uvAntesGuardar,'La UV calculada no cambia al guardar UT');
  d=await leer();assert.ok(d.unidadesMetro.filter(u=>u.nombreLinea==='L01').every(u=>u.duracionUt===2.34));
  assert.equal(d.unidadesMetro[1].duracionUt,otroAntes);
  // Guardar otra vez sin editar no debe convertir el valor calculado en referencia.
  const antesDeRepetir = [await vista.locator('#velocidadUnidad').inputValue(), await vista.locator('#duracionSimulacion').inputValue()];
  for (const selector of ['.simulacion-parametro-velocidad button[type="submit"]', '#aplicarUnidadTiempo']) {
-  await vista.locator(selector).click(); await esperarGuardado();
+  await vista.locator(selector).click();
+  await vista.locator('#velocidadUnidad:not(:disabled)').waitFor();
   assert.deepEqual([await vista.locator('#velocidadUnidad').inputValue(), await vista.locator('#duracionSimulacion').inputValue()], antesDeRepetir,
    'Guardar sin editar conserva UV y UT exactamente');
  }
  await vista.locator('#velocidadUnidad').fill('6');
  assert.equal(Number(await vista.locator('#duracionSimulacion').inputValue()), Number((km('L01')/6).toFixed(2)));
  const utAntesGuardar=await vista.locator('#duracionSimulacion').inputValue();
- await vista.locator('.simulacion-parametro-velocidad button[type="submit"]').click();await esperarGuardado();
+ await guardar('.simulacion-parametro-velocidad button[type="submit"]');
  assert.equal(await vista.locator('#duracionSimulacion').inputValue(),utAntesGuardar,'La UT calculada no cambia al guardar UV');
- await vista.locator('#aplicarUnidadTiempo').click();await esperarGuardado();
+ await vista.locator('#aplicarUnidadTiempo').click();
+ await vista.locator('#velocidadUnidad:not(:disabled)').waitFor();
  assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'6','Guardar el campo dependiente no altera la UV elegida');
  d=await leer();assert.equal(d.unidadesMetro.find(u=>u.idTren===u3.idTren).velocidadPromedio,6);assert.equal(d.unidadesMetro[0].velocidadPromedio,6);assert.equal(d.unidadesMetro[1].duracionUt,otroAntes);
  // Cada ajuste se aplica a una línea; las otras conservan su configuración.
@@ -130,7 +135,7 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  for(const tren of [u1.idTren,d.unidadesMetro.find(u=>u.nombreLinea==='L02').idTren]){
   await elegirLinea(tren);
   await vista.locator('#duracionSimulacion').fill('1.5');
-  await vista.locator('#aplicarUnidadTiempo').click();await esperarGuardado();
+  await guardar('#aplicarUnidadTiempo');
  }
  // Cambiar UT desde el segundo metro de L01 modifica ambos, no L02.
  await req('PATCH',ruta+'/unidades/'+u3.idTren,{nombreLinea:'L01',capacidad:250,velocidadPromedio:4,duracionUt:2,parametroReferencia:'UT'});

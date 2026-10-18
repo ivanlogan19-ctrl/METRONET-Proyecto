@@ -33,25 +33,25 @@ async function cargar(p, nivel, indice) {
     finally { Math.random = aleatorio; }
   }, { nivel, indice });
   await p.clock.runFor(700);
-  await p.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__consigna')).opacity === '1');
+  await p.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__dato')).opacity === '1');
   return p.locator('.metronet-viaje');
 }
 
 async function verificar(dialogo, viewport, sinScroll) {
   assert.equal(await dialogo.locator('[data-concepto], [data-concepto-destacado], [aria-haspopup], [role=tooltip], [popover], dialog, .metronet-glosario-preparacion').count(), 0);
-  assert.equal(await dialogo.locator('button').count(), 2, 'Solo Volver y Jugar');
+  assert.equal(await dialogo.locator('button').count(), 2, 'Solo Volver e Iniciar nivel');
   assert.equal(await dialogo.locator('[data-mensaje-id]').count(), 1);
   assert.equal(await dialogo.locator('.metronet-viaje__recorrido svg').count(), 1);
   assert.equal(await dialogo.getByRole('progressbar').count(), 1);
-  assert.equal(await dialogo.locator('.metronet-viaje__consigna').count(), 1);
+  assert.equal(await dialogo.locator('.metronet-viaje__dato').count(), 1);
   const datos = await dialogo.evaluate(d => {
     const rect = d.getBoundingClientRect();
-    const bloques = [...d.querySelectorAll('.metronet-viaje__cabecera, .metronet-viaje__recorrido, .metronet-viaje__progreso, .metronet-viaje__dato, .metronet-viaje__consigna, .metronet-viaje__pie')];
+    const bloques = [...d.querySelectorAll('.metronet-viaje__cabecera, .metronet-viaje__recorrido, .metronet-viaje__progreso, .metronet-viaje__dato,  .metronet-viaje__pie')];
     return { alto: rect.height, ancho: rect.width, desbordeY: d.scrollHeight > d.clientHeight + 1, desbordeX: d.scrollWidth > d.clientWidth + 1,
       fuente: [...d.querySelectorAll('.metronet-viaje__informacion p')].map(e => parseFloat(getComputedStyle(e).fontSize)),
       visibles: bloques.every(e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth; }),
       interiores: bloques.every(e => e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1),
-      opacidad: getComputedStyle(d.querySelector('.metronet-viaje__consigna')).opacity,
+      opacidad: getComputedStyle(d.querySelector('.metronet-viaje__dato')).opacity,
     };
   });
   assert.ok(datos.alto <= viewport.height && datos.ancho <= viewport.width);
@@ -72,7 +72,7 @@ for (const [width, height] of [[1366,768], [1440,900], [1920,1080], [1024,768], 
       const indice = mensajes.reduce((mayor, m, i) => m.texto.length > mensajes[mayor].texto.length ? i : mayor, 0);
       const dialogo = await cargar(p, nivel, indice);
       const datos = await verificar(dialogo, viewport, width >= 768);
-      assert.equal(await dialogo.locator('.metronet-viaje__consigna p').textContent(), nivel.objetivo);
+      assert.equal(await dialogo.locator('.metronet-viaje__consigna').count(), 0);
       assert.equal(await dialogo.locator('[data-mensaje-id] p').textContent(), mensajes[indice].texto);
       const antes = await dialogo.locator('.recorrido-tren').getAttribute('transform');
       await p.clock.runFor(500);
@@ -99,17 +99,17 @@ test('Los 30 mensajes reales entran a 1366×768 sin scroll, enlaces ni definicio
   await p.evaluate(() => cargaCompacta.cerrar());
 });
 
-test('La recarga varía el mensaje y mantiene una sola consigna; Jugar/cancelación conservan el foco', async t => {
+test('La recarga varía el mensaje y evita duplicar la consigna; inicio/cancelación conservan el foco', async t => {
   const p = await abrir(t, {width:1366,height:768});
   for (const numero of [1,6,10]) {
     const nivel = niveles.find(n => n.numero === numero);
     const dialogo = await cargar(p, nivel);
     const anterior = await dialogo.locator('[data-mensaje-id]').getAttribute('data-mensaje-id');
-    assert.equal(await dialogo.getByRole('button',{name:'Jugar',exact:true}).isDisabled(),true);
+    assert.equal(await dialogo.getByRole('button',{name:'Iniciar nivel',exact:true}).isDisabled(),true);
     await p.evaluate(() => { window.resultadoCarga = undefined; cargaCompacta.marcarDatosListos(); cargaCompacta.finalizada.then(valor => window.resultadoCarga = valor); });
     await p.clock.runFor(1);
     assert.equal(await p.evaluate(() => window.resultadoCarga), undefined);
-    await dialogo.getByRole('button',{name:'Jugar',exact:true}).press('Enter');
+    await dialogo.getByRole('button',{name:'Iniciar nivel',exact:true}).press('Enter');
     assert.equal(await dialogo.locator('.metronet-cartel-transicion:not([hidden]) strong').textContent(), `NIVEL ${numero}`);
     assert.equal(await p.evaluate(() => window.resultadoCarga), undefined);
     await p.clock.runFor(1100);
@@ -125,7 +125,7 @@ test('Sin objetivo ni catálogo: no inserta instrucciones largas ni bloquea el a
   const p = await abrir(t,{width:1366,height:768});
   const dialogo = await cargar(p, {numero:999,nombre:'Actividad externa',instrucciones:'Instrucción extensa. '.repeat(80)});
   await verificar(dialogo,{width:1366,height:768},true);
-  assert.equal(await dialogo.locator('.metronet-viaje__consigna p').textContent(),'Explorá el mapa y revisá la consigna completa dentro del nivel.');
+  assert.equal(await dialogo.locator('.metronet-viaje__consigna').count(),0);
   await p.evaluate(() => { cargaCompacta.marcarDatosListos(); cargaCompacta.finalizada.then(valor => window.resultadoCarga = valor); });
   await p.clock.runFor(2800);
   assert.equal(await p.evaluate(() => window.resultadoCarga),undefined, 'La transición respeta la duración musical aun sin catálogo');

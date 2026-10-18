@@ -13,8 +13,10 @@ const consigna = d => ({ condiciones:[
 ] });
 async function abrir(t, n = 1, opciones = {}) {
   const v = await abrirEditor(navegador, { escenario:escenario(n), estaciones:[], lineas:[], tramos:[], consigna,
-    novedadPresentada: Boolean(opciones.ofrecerRecorrido), ...opciones });
+    novedadPresentada: Boolean(opciones.ofrecerRecorrido), ...opciones, ofrecerRecorrido:true });
   t.after(async () => { await v.contexto.close(); assert.deepEqual(v.errores, []); });
+  if (!opciones.ofrecerRecorrido && await v.pagina.locator("[data-oferta-tutorial]").isVisible())
+    await v.pagina.locator("[data-oferta-tutorial]").getByRole("button", {name:"Iniciar tutorial", exact:true}).click();
   return v;
 }
 async function cerrarGuiaInicial(p) {
@@ -85,7 +87,7 @@ test('El panel muestra explicaciones directas y cierra fuera o con Escape', asyn
   assert.ok(await panel.locator('.metronet-tutorial__herramientas svg').count() >= 3);
   assert.equal(await panel.locator('.metronet-tutorial__herramientas details').count(),0);
   assert.equal(await panel.locator('.metronet-tutorial__herramientas a, .metronet-tutorial__herramientas button').count(),0);
-  assert.equal(await panel.getByRole('button',{name:'Recorrer la pantalla'}).isVisible(),true);
+  assert.equal(await panel.getByRole('button',{name:'Iniciar tutorial'}).isVisible(),true);
   await panel.locator('.metronet-tutorial__herramientas p').first().click();
   assert.equal(await panel.evaluate(e => e.open),true);
   const estilos = await panel.evaluate(e => {
@@ -99,7 +101,7 @@ test('El panel muestra explicaciones directas y cierra fuera o con Escape', asyn
   assert.ok(estilos.centro < 2,JSON.stringify(estilos));
   await p.keyboard.press('Escape');
   assert.equal(await panel.evaluate(e => e.open),false);
-  assert.equal(await p.evaluate(() => document.activeElement?.matches('.metronet-tutorial > summary')),true);
+  await p.waitForFunction(() => document.activeElement?.matches('.metronet-tutorial > summary'));
   await panel.locator('>summary').click();
   await p.locator('body').click({ position:{ x:2,y:2 } });
   assert.equal(await panel.evaluate(e => e.open),false);
@@ -122,14 +124,14 @@ test('El cartel final permanece legible y cierra recorrido y panel automáticame
   const panel = p.locator('.metronet-tutorial');
   if (!await panel.evaluate(e => e.open)) await panel.locator('>summary').click();
   await panel.locator('.metronet-tutorial__panel:popover-open').waitFor();
-  await panel.getByRole('button',{name:'Recorrer la pantalla'}).click();
+  await panel.getByRole('button',{name:'Iniciar tutorial'}).click();
   const guia = p.locator('.metronet-recorrido');
   while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
   assert.equal(await guia.getByText('RECORRIDO COMPLETADO').isVisible(),true);
   await guia.waitFor({ state:'detached', timeout:5000 });
   assert.equal(await panel.evaluate(e => e.open),false);
   assert.equal(await panel.locator('.metronet-tutorial__panel:popover-open').count(),0);
-  assert.equal(await p.evaluate(() => document.activeElement?.matches('.metronet-tutorial > summary')),true);
+  await p.waitForFunction(() => document.activeElement?.matches('.metronet-tutorial > summary'));
 });
 
 for (const width of [1440,768,390,320]) test(`Recorrido opcional: controles vigentes, teclado y burbujas a ${width}px`, async t => {
@@ -137,7 +139,7 @@ for (const width of [1440,768,390,320]) test(`Recorrido opcional: controles vige
   await p.emulateMedia({ reducedMotion:'reduce' });
   await cerrarGuiaInicial(p);
   await p.locator('.metronet-tutorial > summary').click();
-  await p.getByRole('button', { name:'Recorrer la pantalla', exact:true }).click();
+  await p.getByRole('button', { name:'Iniciar tutorial', exact:true }).click();
   const dialogo = p.locator('.metronet-recorrido');
   const titulos = [];
   for (let i = 0; i < 8; i++) {
@@ -172,14 +174,15 @@ test('Omitir con Escape, reabrir y cambiar de escenario limpian el recorrido y c
   assert.equal(await p.locator('.metronet-recorrido').count(),0);
   await p.locator('.metronet-tutorial > summary').click();
   await p.locator('.metronet-tutorial__panel:popover-open').waitFor();
-  await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
+  await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   await p.evaluate(n => { editorPrueba.escenarioJuegoActual=n; editorPrueba.actualizarAyuda(); },escenario(2));
+  await p.locator('[data-oferta-tutorial]').getByRole('button',{name:'Continuar',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido').count(),0);
   await p.locator('.metronet-tutorial > summary').click();
   await p.locator('.metronet-tutorial__panel:popover-open').waitFor();
-  await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
+  await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'),'[data-elegir-herramienta="conexiones"]');
-  assert.equal(await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).count(),0);
+  assert.equal(await p.locator('[data-oferta-tutorial]').count(),0);
   assert.equal(await p.locator('.metronet-tutorial').getAttribute('data-paso'),'conexiones');
 });
 
@@ -187,7 +190,7 @@ for (const n of [2,3,4,5,10]) test(`Nivel ${n}: recorrido físico solo para herr
   const { pagina:p } = await abrir(t,n);
   assert.equal(await p.locator('.metronet-tutorial>summary').isVisible(),true);
   assert.equal(await p.locator('[data-hud-vista="tutorial"]').count(),0);
-  assert.equal(await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).count(),0);
+  assert.equal(await p.locator('[data-oferta-tutorial]').count(),0);
   const panel = p.locator('.metronet-tutorial');
   const objetivo = {2:'[data-elegir-herramienta="conexiones"]',3:'[data-elegir-herramienta="metros"]',4:'[data-ir-simulacion]'}[n];
   assert.equal(await p.locator('.metronet-recorrido').count(),1);
@@ -210,7 +213,7 @@ test('La guía aparece en primera entrada, no se repite al recargar y queda disp
   await p.locator('.metronet-tutorial > summary').click();
   await p.locator('.metronet-tutorial__panel:popover-open').waitFor();
   assert.equal(await p.locator('.metronet-tutorial__panel:popover-open').getByRole('button').count(),1);
-  await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
+  await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   await guia.waitFor();
   while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
   assert.equal(await guia.locator('h2').textContent(),'¡Listos para construir!');
@@ -232,7 +235,7 @@ test('Nivel 4 señala Simular en Edición y permite repetir la indicación', asy
   assert.equal(await p.locator('[data-ir-simulacion]').isVisible(),true);
   await guia.waitFor({state:'detached',timeout:5000});
   await panel.locator('>summary').click();
-  await panel.getByRole('button',{name:'Recorrer la pantalla'}).click();
+  await panel.getByRole('button',{name:'Iniciar tutorial'}).click();
   assert.equal(await guia.getAttribute('data-objetivo'),'[data-ir-simulacion]');
   await guia.locator('[data-recorrido-omitir]').click();
   await p.reload();

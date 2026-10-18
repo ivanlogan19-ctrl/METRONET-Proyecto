@@ -2,3 +2,8 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 #pantalla-metronet { display: block; width: 100%; height: 100%; border: 0; }
 #error-pantalla { position: fixed; inset: 0; padding: 24px; background: #060c1c; font: 16px system-ui, sans-serif; }
 #error-pantalla a { color: #9bdcff; margin-left: 16px; }
+
+@font-face { font-family: Silkscreen; src: url('/assets/fonts/silkscreen/Silkscreen-Regular.ttf') format('truetype'); font-display: swap; }
+#carga-pantalla { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; margin: 0; background: #060c1c; color: #a8bfd6; font: 16px/1.5 Silkscreen, monospace; }
+#carga-pantalla[hidden] { display: none; }
+#error-pantalla { z-index: 2; }

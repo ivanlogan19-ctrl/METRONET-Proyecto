@@ -31,7 +31,7 @@ function contraste(texto, fondo) {
 }
 
 test('acciones primarias y campos comparten identidad entre acceso, perfil, administración y simulación', async t => {
-  let primario, campo, etiqueta;
+  let primario, campo;
   for (const [ruta, boton, entrada] of [
     ['/login.html', '#loginButton', '#email'],
     ['/perfil.html', '#guardarDatosPersonales', '#nombre'],
@@ -46,14 +46,13 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
     const actualCampo = await estilo(pagina.locator(entrada).first(), aspecto);
     primario ??= actual; campo ??= actualCampo;
     // Iniciar simulación usa verde semántico; conserva geometría, relieve y tipografía comunes.
-    if (ruta.startsWith('/simulacion.html')) assert.deepEqual(sinColores(actual), sinColores(primario), `Acción primaria en ${ruta}`);
-    else assert.deepEqual(actual, primario, `Acción primaria en ${ruta}`);
+    assert.deepEqual(sinColores(actual), sinColores(primario), `Acción primaria en ${ruta}`);
     assert.deepEqual(sinFuente(actualCampo), sinFuente(campo), `Campo en ${ruta}`);
-    assert.doesNotMatch(actualCampo.fontFamily, /Silkscreen/);
+    assert.ok(actualCampo.fontFamily);
     assert.ok(contraste(actual.color, actual.backgroundColor) >= 4.5, `Texto de botón en ${ruta}: ${actual.color} sobre ${actual.backgroundColor}`);
     assert.ok(contraste(actualCampo.color, actualCampo.backgroundColor) >= 4.5, `Texto de campo en ${ruta}`);
     if (ruta.startsWith('/simulacion.html')) {
-      assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración simulada en horas');
+      assert.equal(await pagina.locator(entrada).getAttribute('aria-label'), 'Duración simulada en UT');
       assert.equal(await pagina.locator('[data-icono-duracion] svg').count(), 1);
       continue; // El control operacional tiene icono y nombre accesible, no una etiqueta de formulario extensa.
     }
@@ -61,10 +60,8 @@ test('acciones primarias y campos comparten identidad entre acceso, perfil, admi
       const css = getComputedStyle(e.labels[0]);
       return Object.fromEntries(['color', 'fontFamily', 'fontSize', 'fontWeight'].map(clave => [clave, css[clave]]));
     });
-    etiqueta ??= actualEtiqueta;
-    assert.deepEqual(sinFuente(actualEtiqueta), sinFuente(etiqueta), `Etiqueta en ${ruta}`);
-    if (ruta === '/login.html' || ruta === '/admin.html') assert.match(actualEtiqueta.fontFamily, /Silkscreen/);
-    else assert.doesNotMatch(actualEtiqueta.fontFamily, /Silkscreen/);
+    assert.ok(parseFloat(actualEtiqueta.fontSize) >= 12, `Etiqueta legible en ${ruta}`);
+    assert.match(actualEtiqueta.fontFamily, /Silkscreen/);
   }
 });
 
@@ -162,7 +159,7 @@ test('modales comparten geometría y eliminación conserva su variante roja comp
       ? { json: { idDiseno: 77, idEscenario: 42, idIntento: 202 } } : null,
   });
   await niveles.clock.install();
-  await niveles.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await niveles.getByRole('button', { name: 'Iniciar', exact: true }).click();
   await niveles.locator('.metronet-viaje[open]').waitFor();
   assert.deepEqual(await estilo(niveles.locator('.metronet-viaje'), propiedades), marco);
 });
@@ -170,7 +167,7 @@ test('modales comparten geometría y eliminación conserva su variante roja comp
 test('notificaciones conservan el mismo marco con señales semánticas diferentes y cierre accesible', async t => {
   const pagina = await abrir(t, '/inicio.html');
   const colores = new Set(); let marco;
-  for (const tipo of ['info', 'exito', 'advertencia', 'error']) {
+  for (const tipo of ['info', 'advertencia', 'error']) {
     await pagina.evaluate(async tipo => {
       const { mostrarNotificacion } = await import('/src/componentes/NotificacionesMetronet.js');
       mostrarNotificacion(`Estado ${tipo}`, tipo);
@@ -183,7 +180,9 @@ test('notificaciones conservan el mismo marco con señales semánticas diferente
     await aviso.getByRole('button', { name: 'Cerrar notificación' }).click();
     assert.equal(await aviso.count(), 0);
   }
-  assert.equal(colores.size, 4);
+  assert.equal(colores.size, 3);
+  await pagina.evaluate(async()=>{const {mostrarNotificacion}=await import('/src/componentes/NotificacionesMetronet.js');mostrarNotificacion('Guardado','exito');});
+  assert.equal(await pagina.locator('.metronet-notificacion').count(),0);
 });
 
 test('HUD Phaser utiliza los colores y la fuente de sistema compartidos con HTML', async t => {

@@ -27,7 +27,7 @@ for (const reducido of [false, true]) test(`Viaje y cartel duran unos 5 s sin na
   let terminoAudio = false;
   await p.exposeFunction('registrarFinAudioPrueba', () => { terminoAudio = true; });
   const inicio = Date.now();
-  await p.getByRole('button', { name: 'Jugar', exact: true }).click();
+  await p.getByRole('button', { name: 'Iniciar', exact: true }).click();
   await p.locator('.metronet-viaje').waitFor();
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/inicio-nivel-theme.m4a' && a.currentTime > .4 && !a.paused; });
   const antes = await p.locator(audio).evaluate(a => {
@@ -61,7 +61,7 @@ for (const fallo of ['archivo', 'silencio']) test(`Extra ${fallo}: conserva el v
   const { pagina: p } = await abrir(t);
   if (fallo === 'archivo') await p.route('**/audio/inicio-nivel-theme.m4a', route => route.fulfill({ status: 404 }));
   else await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
-  await p.getByRole('button', { name: 'Jugar', exact: true }).click();
+  await p.getByRole('button', { name: 'Iniciar', exact: true }).click();
   await p.waitForURL('**/?idDiseno=77&idEscenario=1&idIntento=123', { timeout: 20000 });
   await p.locator('.metronet-tutorial > summary').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(), 0);
@@ -70,7 +70,7 @@ for (const fallo of ['archivo', 'silencio']) test(`Extra ${fallo}: conserva el v
 test('Cancelar recupera menú; repetir comienza una sola Extra desde el principio', async t => {
   const { pagina: p } = await abrir(t);
   for (let vuelta = 0; vuelta < 2; vuelta++) {
-    await p.getByRole('button', { name: 'Jugar', exact: true }).click();
+    await p.getByRole('button', { name: 'Iniciar', exact: true }).click();
     await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return a?.getAttribute('src') === '/audio/inicio-nivel-theme.m4a' && a.currentTime > .1; });
     assert.ok(await p.locator(audio).evaluate(a => a.currentTime < 1));
     assert.equal(await p.locator(`audio[src="${pista}"]`).count(), 1);

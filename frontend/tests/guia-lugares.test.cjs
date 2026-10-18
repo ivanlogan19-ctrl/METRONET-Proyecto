@@ -27,7 +27,7 @@ test('Lugares: búsqueda, capas y guía breve mantienen sus acciones', async () 
     await p.locator('.metronet-guia-rapida').screenshot({path:'/tmp/metronet-guia.png'});
     assert.equal(await p.getByRole('button',{name:'Consultar ayuda'}).count(),0);
     assert.equal(await p.locator('.metronet-tutorial__completado').count(),0);
-    await p.getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
+    await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
     assert.equal(await p.locator('.metronet-recorrido').count()>0,true);
     await p.evaluate(()=>editorPrueba.panelTutorial.recorrido.terminar(true,true));
     await p.locator('.metronet-tutorial > summary').click();

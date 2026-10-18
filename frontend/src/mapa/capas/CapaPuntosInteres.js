@@ -958,7 +958,7 @@ export default class CapaPuntosInteres {
 
     const estado = objetivo?.estado ?? ESTADOS_PUNTOS_INTERES.REFERENCIA;
 
-    const seleccionado = this.esPuntoDestacado(punto);
+    const seleccionado = this.clavePunto(punto) === this.puntoSeleccionado;
 
     const colorCategoria = this.obtenerColorMarcador(punto);
 
@@ -1001,7 +1001,7 @@ export default class CapaPuntosInteres {
       marcador.strokeCircle(0, 0, 20);
     }
 
-    const etiqueta = seleccionado || this.esObjetivoActivo(objetivo)
+    const etiqueta = this.esPuntoDestacado(punto) || this.esObjetivoActivo(objetivo)
       ? this.crearEtiquetaPunto(punto, objetivo, estado, posicion, indice)
       : null;
 

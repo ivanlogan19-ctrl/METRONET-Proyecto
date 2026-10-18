@@ -1,3 +1,4 @@
+import { cambiarPantalla } from './CambioPantalla.js';
 import { configurarAccion, configurarAccionPorNombre, establecerCargaAccion } from '../interfaz/AccionesInterfaz.js';
 import catalogoRecorrido from '../educacion/recorrido-integral.json';
 import { requerirSesion } from '../autenticacion/sesion.js';
@@ -18,6 +19,7 @@ const sesion = requerirSesion('/escenarios.html');
 let progresoActual = null;
 let accionEnCurso = false;
 let escenarioSeleccionado = null;
+const cargasContenido = new WeakMap();
 
 if (sesion) inicializar();
 
@@ -31,22 +33,6 @@ async function cargarProgreso() {
   establecerEstadoCarga(true);
   try {
     progresoActual = await solicitar('/progreso');
-    const niveles = (progresoActual.escenarios ?? []).filter(e => Number.isInteger(e.numero) && e.desbloqueado);
-    await Promise.allSettled(niveles.map(async escenario => {
-      const enCurso = ESTADOS_EN_CURSO.has(escenario.estado);
-      try {
-        const contenido = await cargarContenidoPublicado(escenario.numero, {
-          idIntento: enCurso ? escenario.idIntento : null,
-        });
-        escenario.contenidoPublicado = contenido;
-        escenario.nombre = contenido.desafio?.nombre ?? escenario.nombre;
-        escenario.dificultad = contenido.desafio?.dificultad ?? escenario.dificultad;
-        if (!enCurso) {
-          escenario.objetivo = contenido.desafio?.objetivo ?? escenario.objetivo;
-          escenario.instrucciones = contenido.desafio?.instrucciones ?? escenario.instrucciones;
-        }
-      } catch { /* La vista conserva el catálogo local si falla la lectura editorial. */ }
-    }));
     renderizarPantalla(progresoActual);
   } catch (error) {
     mostrarMensaje(error.message, 'error');
@@ -54,6 +40,26 @@ async function cargarProgreso() {
     renderizarEstadoVacio('No fue posible cargar los niveles. Volvé a intentarlo en unos instantes.');
   } finally {
     establecerEstadoCarga(false);
+  }
+}
+
+
+function precargarContenido(escenarios) {
+  for (const escenario of escenarios.filter(e => Number.isInteger(e.numero) && e.desbloqueado)) {
+    const enCurso = ESTADOS_EN_CURSO.has(escenario.estado);
+    const carga = cargarContenidoPublicado(escenario.numero, {
+      idIntento: enCurso ? escenario.idIntento : null,
+    }).then(contenido => {
+      escenario.contenidoPublicado = contenido;
+      escenario.nombre = contenido.desafio?.nombre ?? escenario.nombre;
+      escenario.dificultad = contenido.desafio?.dificultad ?? escenario.dificultad;
+      if (!enCurso) {
+        escenario.objetivo = contenido.desafio?.objetivo ?? escenario.objetivo;
+        escenario.instrucciones = contenido.desafio?.instrucciones ?? escenario.instrucciones;
+      }
+    }).catch(() => { /* La vista conserva el catálogo local si falla la lectura editorial. */ })
+      .finally(() => cargasContenido.delete(escenario));
+    cargasContenido.set(escenario, carga);
   }
 }
 
@@ -81,6 +87,7 @@ function progresoVacio() {
 }
 
 function renderizarPantalla(progreso) {
+  precargarContenido(progreso.escenarios ?? []);
   renderizarReinicio(progreso);
   renderizarEscenarios(progreso.escenarios ?? []);
 }
@@ -112,6 +119,21 @@ function renderizarEscenarios(escenarios) {
   const detalle = document.createElement('div');
   detalle.className = 'metronet-escenarios-pagina__detalle';
   const botones = [];
+  let revisionDetalle = 0;
+  async function mostrarDetalle(escenario) {
+    const revision = ++revisionDetalle;
+    const carga = cargasContenido.get(escenario);
+    const tarjeta = crearTarjetaEscenario(escenario);
+    detalle.replaceChildren(tarjeta);
+    detalle.setAttribute('aria-busy', String(Boolean(carga)));
+    if (!carga) return;
+    tarjeta.querySelector('button').disabled = true;
+    await carga;
+    // Una respuesta tardía no debe reemplazar la selección actual ni una nueva campaña.
+    if (revision !== revisionDetalle || !detalle.isConnected) return;
+    detalle.replaceChildren(crearTarjetaEscenario(escenario));
+    detalle.setAttribute('aria-busy', 'false');
+  }
   for (const escenario of ordenados) {
     const boton = document.createElement('button');
     boton.type = 'button';
@@ -128,15 +150,15 @@ function renderizarEscenarios(escenarios) {
     boton.addEventListener('click', () => {
       escenarioSeleccionado = escenario.idEscenario;
       botones.forEach(b => b.setAttribute('aria-pressed', String(b === boton)));
-      detalle.replaceChildren(crearTarjetaEscenario(escenario));
+      mostrarDetalle(escenario);
     });
     botones.push(boton);
     if (escenario.numero === null) boton.className = 'metronet-escenarios-pagina__opcion-libre';
     opciones.append(boton);
   }
   selector.append(titulo, opciones, document.getElementById('botonReiniciarRecorrido'));
-  detalle.append(crearTarjetaEscenario(seleccionado));
   lista.replaceChildren(selector, detalle);
+  mostrarDetalle(seleccionado);
 }
 
 function crearTarjetaEscenario(escenario) {
@@ -255,7 +277,7 @@ async function iniciarEscenario(escenario, boton, volverAJugar) {
           localStorage.removeItem(`metronet:tutorial-pantalla-simulacion:v2:${idUsuario}`);
       }
     } catch { /* El nuevo intento ya está creado aunque el navegador bloquee el almacenamiento. */ }
-    window.location.assign(establecerContextoEnRuta('/', inicio));
+    cambiarPantalla(establecerContextoEnRuta('/', inicio));
     navegando = true;
   } catch (error) {
     mostrarMensaje(error.message, 'error');

@@ -57,7 +57,8 @@ if (!sesion) {
   const destino = `${window.location.pathname}${window.location.search}`;
   window.location.replace(`/login.html?destino=${encodeURIComponent(destino)}`);
 } else {
-  inicializar();
+  inicializar().catch(error => { mostrarMensaje(error.message, 'error'); mostrarEstadoVacio(); })
+    .finally(() => document.body.setAttribute('aria-busy', 'false'));
 }
 
 function ubicarPanelAyuda(selector) {
@@ -146,6 +147,7 @@ async function inicializar() {
   if (!paginaActiva) return;
   if (idDisenoInicial) await abrirDiseno(idDisenoInicial);
   else mostrarEstadoVacio();
+  document.body.setAttribute('aria-busy', 'false');
   await consultaProgreso;
   if (!paginaActiva) return;
   if (disenoActual) tutorialSimulacion = presentarTutorialSimulacion({
@@ -197,8 +199,10 @@ async function abrirDiseno(idDiseno) {
     const contexto = obtenerContextoDiseno(idDiseno);
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
     visor.escena.establecerDiseno(disenoActual);
+    visor.escena.establecerUnidadSeleccionada(unidadSeleccionada);
     const vista = consumirVistaParaNavegacion(idDiseno, sesion, 'simulacion');
     actualizarPantalla();
+    document.body.setAttribute('aria-busy', 'false');
     if (vista) visor.escena.solicitarVistaGeografica(vista);
     // Ambas lecturas usan el mismo diseño y ninguna necesita la respuesta de
     // la otra. Una consigna lenta no debe retrasar los controles de UV/UT.
@@ -386,7 +390,12 @@ function previsualizarVinculo(referencia, valor) {
 async function guardarVinculoLibre(referencia, valor) {
   if (!disenoActual || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return false;
   const unidades = representantesLineas(unidadesElegidas());
-  if (!Number.isFinite(valor) || valor <= 0 || !unidades.length) return false;
+  if (!Number.isFinite(valor) || valor <= 0) {
+    mostrarMensaje(`Elegí ${referencia === 'UV' ? 'una velocidad UV' : 'una duración UT'} mayor que cero.`, 'error');
+    document.getElementById(referencia === 'UV' ? 'velocidadUnidad' : 'duracionSimulacion').focus();
+    return false;
+  }
+  if (!unidades.length) return false;
   // Sin una edición pendiente, el otro botón Guardar no debe convertir el
   // resultado redondeado en una nueva referencia y recalcular lo ya elegido.
   if (!vinculoPendiente) {

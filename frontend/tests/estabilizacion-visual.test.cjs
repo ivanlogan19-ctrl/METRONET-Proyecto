@@ -32,7 +32,7 @@ for(const [width,height] of [[1920,1080],[1440,900],[1366,768],[1280,720],[390,8
  assert.ok(antes['#metronet-aplicacion'].h>=height-antes['.metronet-navegacion'].h);
  await p.locator('.metronet-navegacion__usuario > summary').click();assert.deepEqual(await medidas(p),antes);
  await p.keyboard.press('Escape');
- if(width<620)await p.locator('[data-panel-edicion-toggle]').click();
+
  await p.locator('.metronet-hud > summary').scrollIntoViewIfNeeded();
  const base=await medidas(p);
  await p.locator('.metronet-hud > summary').click();
@@ -60,21 +60,22 @@ for(const width of [1440,390,320])test(`POI ${width}: lupa compacta, consulta co
  const v=await abrirEditor(navegador,{viewport:{width,height:900}});t.after(()=>v.contexto.close());t.after(()=>assert.deepEqual(v.errores,[]));const p=v.pagina;
  assert.equal(await p.locator('.metronet-capas-activas').isVisible(),false);
  await p.locator('.metronet-poi > summary').click();
- assert.equal(await p.locator('.metronet-poi__categorias button').count(),10);
+ assert.equal(await p.locator('.metronet-poi__categorias button').count(),8);
  assert.equal(await p.locator('.metronet-capas-activas [data-categoria=OTROS]').count(),0);
  assert.equal(await p.locator('.metronet-poi [data-categoria=OTROS]').count(),0);
  const compacto=()=>p.getByRole('button',{name:'Buscar punto de interés',exact:true}).evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]});
- assert.deepEqual(await compacto(),[44,44]);
+ assert.deepEqual(await compacto(),[26,26]);
  const lupa=p.getByRole('button',{name:'Buscar punto de interés',exact:true});await lupa.focus();await p.keyboard.press('Enter');
  const campo=p.getByRole('searchbox',{name:'Buscar punto de interés',exact:true});await campo.fill('Hospital');
  assert.ok((await campo.boundingBox()).width>110, 'El input ocupa el ancho disponible al abrir');
  assert.ok((await p.locator('.metronet-panel-puntos-interes').boundingBox()).width>240, 'La búsqueda abierta utiliza el panel, no la caja de la lupa');
  await p.locator('.metronet-panel-puntos-item').first().waitFor();
  const puntos=await p.locator('.metronet-panel-puntos-item').count();assert.ok(puntos>0);
- await lupa.click();assert.deepEqual(await compacto(),[44,44]);
+ await lupa.click();assert.deepEqual(await compacto(),[26,26]);
  await lupa.click();assert.equal(await campo.inputValue(),'Hospital');assert.equal(await p.locator('.metronet-panel-puntos-item').count(),puntos);
  await campo.fill('zzzz-sin-referencia');assert.equal(await p.locator('.metronet-panel-puntos-item').count(),0);
- await p.keyboard.press('Escape');assert.deepEqual(await compacto(),[44,44]);
+ await p.keyboard.press('Escape');assert.equal(await campo.isVisible(),false);
+ await p.locator('.metronet-poi > summary').click();assert.deepEqual(await compacto(),[26,26]);
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 test('Sin control Otros, incluso cuando existen referencias sin categoría aprobada',async t=>{
@@ -90,23 +91,27 @@ test('Todos los dibujos comparten centro y escala pixel; estados no desplazan lo
 for(const width of [1440,390,320])for(const cantidad of [0,1,8])test(`Ranking ${width}: ${cantidad} registros, tabla y datos secundarios`,async t=>{
  const {pagina:p}=await abrir(t,'/ranking.html',{viewport:{width,height:900},responder:req=>{const path=new URL(req.url()).pathname;if(path==='/api/juego/ranking')return{json:ranking(jugadores.slice(0,cantidad))};if(path==='/api/juego/progreso')return{json:progreso};}});
  await p.locator('#resumenPuntaje').filter({hasText:'Mejor puntaje acumulado'}).waitFor();
- assert.equal(await p.locator('#clasificacionRanking tr').count(),cantidad);
+ assert.equal(await p.locator('#clasificacionRanking tr').count(),Math.min(cantidad,6));
  assert.equal(await p.locator('#estadoRanking').isVisible(),cantidad===0);
  assert.equal(await p.getByRole('columnheader').count(),4);
- assert.equal(await p.getByRole('columnheader').evaluateAll(celdas=>celdas.every(celda=>{const texto=document.createRange();texto.selectNodeContents(celda);const r=texto.getBoundingClientRect(),c=celda.getBoundingClientRect();return r.height<=parseFloat(getComputedStyle(celda).lineHeight)+1&&r.left>=c.left&&r.right<=c.right;})),true,'Los encabezados se leen en una sola línea dentro de su columna');
+ assert.equal(await p.getByRole('columnheader').evaluateAll(celdas=>celdas.every(celda=>{const texto=document.createRange();texto.selectNodeContents(celda);const r=texto.getBoundingClientRect(),c=celda.getBoundingClientRect();return r.top>=c.top&&r.bottom<=c.bottom+1&&r.left>=c.left&&r.right<=c.right+1;})),true,'Los encabezados quedan dentro de su columna');
  if(cantidad){assert.equal(await p.locator('#clasificacionRanking tr').first().locator('td').nth(2).textContent(),'123456789');}
- await p.locator('.ranking-detalle > summary').click();assert.equal(await p.locator('#puntajesPorNivel li').count(),1);
+ if(cantidad>6){await p.locator('#rankingSiguiente').click();assert.equal(await p.locator('#clasificacionRanking tr').count(),cantidad-6);assert.equal(await p.locator('#paginaRanking').textContent(),'2 / 2');}
+ await p.locator('#verPuntosNivel').click();assert.equal(await p.locator('#puntajesPorNivel li').count(),1);
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
-test('Ranking admin: conserva exclusión y resumen secundario',async t=>{
- const {pagina:p}=await abrir(t,'/ranking.html',{administrador:true});await p.locator('#resumenPuntaje').filter({hasText:'Esta cuenta no participa'}).waitFor();assert.equal(await p.locator('.ranking-marcador').count(),1);assert.equal(await p.locator('#tituloMiDesempeno').textContent(),'ADMIN // Modo de pruebas');
+test('Ranking admin: omite el aviso de pruebas y conserva las vistas',async t=>{
+ const {pagina:p}=await abrir(t,'/ranking.html',{administrador:true});await p.locator('#clasificacionRanking tr').first().waitFor();
+ assert.equal(await p.locator('#resumenPersonalRanking').isVisible(),false);
+ assert.equal(await p.locator('.ranking-marcador').count(),1);
+ await p.locator('#verPuntosNivel').click();assert.equal(await p.locator('#vistaPuntosNivel').isVisible(),true);
 });
 
-test('POI táctil: lupa de 44px y resultados legibles sin tooltip sobre el input',async t=>{
+test('POI táctil: lupa compacta y resultados legibles sin tooltip sobre el input',async t=>{
  const v=await abrirEditor(navegador,{viewport:{width:390,height:844},hasTouch:true});t.after(()=>v.contexto.close());t.after(()=>assert.deepEqual(v.errores,[]));const p=v.pagina;
  await p.locator('.metronet-poi>summary').tap();const lupa=p.getByRole('button',{name:'Buscar punto de interés',exact:true});await lupa.tap();
  const campo=p.getByRole('searchbox',{name:'Buscar punto de interés',exact:true});await campo.fill('Hospital');assert.ok((await campo.boundingBox()).width>110);
  assert.equal(await campo.getAttribute('data-ayuda-sistema'),null);
  const figura=await p.locator('.metronet-panel-puntos-icono svg').first().boundingBox();assert.deepEqual([figura.width,figura.height],[16,16]);
- await lupa.tap();assert.deepEqual(await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]}),[44,44]);
+ await lupa.tap();assert.deepEqual(await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).evaluate(e=>{const r=e.getBoundingClientRect();return[r.width,r.height]}),[26,26]);
 });

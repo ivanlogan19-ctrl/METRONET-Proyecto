@@ -60,7 +60,6 @@ test('inicio: herramientas agrupadas, un solo panel y acciones de proyecto acces
   assert.equal(await pagina.locator('[data-crear-diseno]').count(), 0);
   assert.equal(await pagina.locator('[data-contenedor-selectores-mapa]').isVisible(), false);
   await pagina.locator('.metronet-poi>summary').click();
-  await pagina.getByRole('button', {name:'Barrios / Zonas',exact:true}).click();
   assert.equal(await pagina.locator('[data-contenedor-selectores-mapa]').isVisible(), true);
 });
 
@@ -203,7 +202,6 @@ test('la capacidad de una unidad histórica permanece intacta al guardar y recar
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 1024, height: 768 }, { width: 768, height: 1024 }, { width: 375, height: 667 }]) {
   test(`distribución sin desbordes ni superposición del panel y el mapa: ${viewport.width}px`, async (t) => {
     const { pagina } = await preparar(t, { viewport });
-    if (viewport.width <= 620) await pagina.locator('[data-panel-edicion-toggle]').click();
     for (const clave of ['seleccion', 'estaciones', 'lineas', 'conexiones', 'metros']) {
       await herramienta(pagina, clave);
       const medidas = await pagina.evaluate(() => {

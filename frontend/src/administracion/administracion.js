@@ -1,9 +1,8 @@
 import { mostrarFuentesMapa } from '../mapa/FuentesMapa.js';
 import { formatearVelocidad, VELOCIDAD_INICIAL } from '../simulacion/EscalaSimulacion.js';
 import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
-import { eliminarSesiones, guardarSesionAdministrador, obtenerSesionActiva } from "../autenticacion/sesion.js";
+import { cerrarSesionRemota, eliminarSesiones, guardarSesionAdministrador, obtenerSesionActiva } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
-import { crearAdministracionNiveles } from './AdministracionNiveles.js';
 
 const sesion = obtenerSesionActiva();
 const CAPACIDAD_COMPATIBILIDAD = 300;
@@ -12,6 +11,7 @@ let disenosDisponibles = [];
 let actividadesDisponibles = [];
 let borrandoActividad = false;
 let administracionNiveles = null;
+let cargaNiveles = null;
 
 if (!sesion) {
   window.location.replace("/login.html?destino=%2Fadmin.html");
@@ -39,16 +39,10 @@ function inicializarInformacionJugador() {
     if (!grupo.querySelector('.admin-enlace')) grupo.remove();
   });
   mostrarVista('unidades');
+  document.body.setAttribute('aria-busy', 'false');
 }
 
 function inicializarAdministracion(sesionAdministrador) {
-  administracionNiveles = crearAdministracionNiveles({
-    contenedor: document.getElementById('listaNivelesAdmin'),
-    mensaje: document.getElementById('mensajeNivelesAdmin'),
-    token: sesionAdministrador.token,
-    urlServidor: obtenerUrlServidor,
-    errorRespuesta: obtenerMensajeError,
-  });
   inicializarNavegacion({ actual: "administracion" });
   actualizarEtiquetaAdministrador(sesionAdministrador.usuario);
   document.querySelectorAll(".admin-enlace").forEach((boton) => {
@@ -66,7 +60,7 @@ function inicializarAdministracion(sesionAdministrador) {
       if (boton.dataset.vista === "configuracion") {
         cargarConfiguracion(sesionAdministrador.token);
       }
-      if (boton.dataset.vista === 'niveles') administracionNiveles.cargar();
+      if (boton.dataset.vista === 'niveles') cargarEditorNiveles(sesionAdministrador.token);
       if (boton.dataset.vista === 'fuentes') void mostrarFuentesMapa(document.getElementById('listaFuentesMapa'));
 
       if (boton.dataset.vista === "actividad") {
@@ -76,7 +70,7 @@ function inicializarAdministracion(sesionAdministrador) {
   });
 
   document.getElementById("cerrarSesion").addEventListener("click", () => {
-    cerrarSesion(sesionAdministrador.token);
+    cerrarSesion(sesionAdministrador);
   });
 
   document.getElementById("cerrarEditorUsuario").addEventListener("click", cerrarEditorUsuario);
@@ -154,7 +148,27 @@ function inicializarAdministracion(sesionAdministrador) {
     void borrarActividad(null, sesionAdministrador.token);
   });
 
-  cargarUsuarios(sesionAdministrador.token);
+  cargarUsuarios(sesionAdministrador.token).finally(() => document.body.setAttribute('aria-busy', 'false'));
+}
+
+function cargarEditorNiveles(token) {
+  if (cargaNiveles) return cargaNiveles;
+  const contenedor = document.getElementById('listaNivelesAdmin');
+  const mensaje = document.getElementById('mensajeNivelesAdmin');
+  contenedor.setAttribute('aria-busy', 'true');
+  cargaNiveles = (async () => {
+    if (!administracionNiveles) {
+      const { crearAdministracionNiveles } = await import('./AdministracionNiveles.js');
+      administracionNiveles = crearAdministracionNiveles({
+        contenedor, mensaje, token, urlServidor: obtenerUrlServidor, errorRespuesta: obtenerMensajeError,
+      });
+    }
+    await administracionNiveles.cargar();
+  })().catch(() => {
+    mensaje.textContent = 'No se pudo cargar el editor. Recargá la página para reintentar.';
+    mensaje.className = 'admin-mensaje error';
+  }).finally(() => { cargaNiveles = null; contenedor.setAttribute('aria-busy', 'false'); });
+  return cargaNiveles;
 }
 
 function mostrarVista(nombreVista) {
@@ -972,16 +986,13 @@ function actualizarEtiquetaAdministrador(administrador) {
   document.getElementById("identificadorAdministrador").textContent = identificador;
 }
 
-async function cerrarSesion(token) {
+async function cerrarSesion(sesion) {
   if (!await confirmarSistema("¿Querés cerrar la sesión de administración?")) {
     return;
   }
 
   try {
-    await fetch(`${obtenerUrlServidor()}/auth/logout/admin`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await cerrarSesionRemota(sesion);
   } finally {
     cerrarSesionLocal();
   }

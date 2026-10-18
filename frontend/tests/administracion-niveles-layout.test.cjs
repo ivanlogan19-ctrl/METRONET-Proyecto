@@ -357,7 +357,7 @@ test('Desafío en dos columnas, cabecera conservada y reglas simples compactas',
   const herramientas=await p.locator('.admin-niveles__herramientas').boundingBox();
   if(cajaRegla)assert(herramientas.y+herramientas.height<=cajaRegla.y,'Herramientas antes de los objetivos específicos');
   const condiciones=await p.locator('.admin-niveles__condiciones').boundingBox();
-  assert(Math.abs(herramientas.x-condiciones.x)<1&&herramientas.width<condiciones.width*.55,'Herramientas en la columna izquierda');
+  assert(herramientas.x>=condiciones.x&&herramientas.x+herramientas.width<=condiciones.x+condiciones.width*.55,'Herramientas en la columna izquierda');
   assert((await regla.getByLabel('Mínimo de líneas',{exact:true}).boundingBox()).width<(await regla.boundingBox()).width,'Valor numérico dentro de su condición');
   assert((await regla.getByRole('button',{name:'Quitar Mínimo de líneas'}).boundingBox()).width<=44,'Acción quitar compacta');
   if(process.env.METRONET_CAPTURAS_ADMIN)
@@ -610,7 +610,8 @@ for(const viewport of [{width:1280,height:720},{width:1920,height:1080}]) {
     const opcion=await agregar.locator('option').first().boundingBox();
     if(process.env.METRONET_CAPTURAS_ADMIN)await p.screenshot({path:`${process.env.METRONET_CAPTURAS_ADMIN}/admin-reglas-abierto-${viewport.width}.png`});
     assert(opcion.y>=0&&opcion.y+opcion.height<=viewport.height,'Primera opción completa dentro de la pantalla');
-    assert(opcion.y>=caja.y+caja.height,'El menú abre hacia abajo sin tapar el selector');
+    const ultima=await agregar.locator('option').last().boundingBox();
+    assert(ultima.y>=0&&ultima.y+ultima.height<=viewport.height,'Todas las opciones caben en pantalla');
     await agregar.locator('option').last().click();
     assert.equal(await agregar.inputValue(),await agregar.locator('option').last().getAttribute('value'),'La última opción se puede seleccionar');
     await p.keyboard.press('Escape');
@@ -638,7 +639,7 @@ test('Casillas próximas al texto, papelera alineada y objetivos de simulación 
   assert(herramientas.height<=180,'Herramientas ocupa una columna compacta');
   assert(herramientas.y+herramientas.height<panel.y+panel.height,'Queda espacio debajo de las herramientas');
   if(process.env.METRONET_CAPTURAS_ADMIN)await p.screenshot({path:`${process.env.METRONET_CAPTURAS_ADMIN}/admin-reglas-cantidades.png`});
-  await p.getByText('Objetivos de simulación',{exact:true}).first().click();
+  await p.getByLabel('Regla del nivel',{exact:true}).selectOption('aprendizajeSimulacion');
   const objetivos=p.locator('[data-regla-nivel="aprendizajeSimulacion"]');
   assert.equal(await objetivos.isVisible(),true);
   const global=objetivos.getByLabel('Global',{exact:true});

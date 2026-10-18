@@ -175,7 +175,7 @@ test('cancelar antes de mostrar no consume; siete visitas agotan el ciclo y reca
       window.viaje = crearPreparacionNivel(level);
       viaje.marcarDatosListos();
     }, niveles[4]);
-    await page.getByRole('button', { name:'Jugar' }).click();
+    await page.getByRole('button', { name:'Iniciar nivel' }).click();
     vistos.push(await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'));
     await page.getByRole('button', { name:'Continuar' }).click();
     await page.evaluate(() => viaje.cerrar());
@@ -187,7 +187,7 @@ test('cancelar antes de mostrar no consume; siete visitas agotan el ciclo y reca
     window.viaje = crearPreparacionNivel(level);
     viaje.marcarDatosListos();
   }, niveles[4]);
-  await page.getByRole('button', { name:'Jugar' }).click();
+  await page.getByRole('button', { name:'Iniciar nivel' }).click();
   const siguiente = await page.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa');
   assert.ok(vistos.includes(siguiente));
   assert.notEqual(siguiente,vistos[6]);
@@ -208,7 +208,7 @@ test('música y preparación preceden la tarjeta; Continuar abre el nivel en el 
   assert.equal(await dialog.locator('.metronet-viaje__contenido').isVisible(), true);
   assert.equal(await dialog.locator('.metronet-tarjeta-educativa').count(), 0);
   assert.equal(await dialog.getAttribute('aria-labelledby'), 'tituloPreparacionNivel');
-  await dialog.getByRole('button', { name:'Jugar' }).click();
+  await dialog.getByRole('button', { name:'Iniciar nivel' }).click();
   await dialog.locator('.metronet-tarjeta-educativa').waitFor({ state: 'visible' });
   assert.equal(await dialog.locator('.metronet-tarjeta-educativa').isVisible(), true);
   assert.equal(await dialog.locator('.metronet-viaje__contenido').isVisible(), false);
@@ -276,8 +276,8 @@ test('Aprender recorre las siete tarjetas del nivel sin alterar la siguiente ent
   const ids = [inicial];
   const imagenes = [await dialogo.locator('img').getAttribute('src')];
   for (let i = 0; i < 7; i++) {
-    await dialogo.getByRole('button', {name:'Siguiente tarjeta'}).click();
-    assert.equal(await dialogo.getByRole('button', {name:'Siguiente tarjeta'}).evaluate(e => e === document.activeElement), true);
+    await dialogo.getByRole('button', {name:'Siguiente'}).click();
+    assert.equal(await dialogo.getByRole('button', {name:'Siguiente'}).evaluate(e => e === document.activeElement), true);
     assert.equal(await dialogo.getAttribute('aria-labelledby'), await dialogo.locator('h2').getAttribute('id'));
     if (i < 6) {
       ids.push(await dialogo.locator('[data-tarjeta-educativa]').getAttribute('data-tarjeta-educativa'));

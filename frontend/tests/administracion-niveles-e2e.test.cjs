@@ -26,7 +26,7 @@ async function disponible(url,proceso){
   throw Error(`Servidor no disponible: ${url}`);
 }
 
-test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{timeout:240000},async t=>{
+test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{skip:!process.env.METRONET_TEST_POSTGRES_URL,timeout:240000},async t=>{
   assert(db&&db[1]!=='5432','Requiere el PostgreSQL efímero; nunca usar la instalación del jugador');
   const evidencias=path.join(raiz,'.local/informes/admin-e2e');fs.mkdirSync(evidencias,{recursive:true});
   const api=`http://127.0.0.1:${await puertoLibre()}`,base=`http://127.0.0.1:${await puertoLibre()}`;
@@ -101,7 +101,7 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
       if(clave==='dificultad')await campo.selectOption(valor);else await campo.fill(valor);
     }
     await tab('Reglas');
-    const cantidad=frame().getByLabel('Mínimo de estaciones',{exact:true}).filter({visible:true});
+    const cantidad=frame().getByRole('region',{name:'Cantidades de la red'}).getByLabel('Mínimo de estaciones',{exact:true});
     await cantidad.fill('0');await guardar(n,400);
     assert.equal((await get(`/${n}/borrador`)).revision,antes.revision,'Un rechazo no persiste cambios');
     await cantidad.fill(String(antes.contenido.reglasExito.minimoEstaciones+1));
@@ -160,6 +160,8 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     ];
     for(const [tipo,nombre,elementos] of casos){
       await tablas.getByLabel('Elementos de referencia',{exact:true}).selectOption(tipo);
+      while(await tablas.getByLabel('Elemento de referencia',{exact:true}).count())
+        await tablas.locator(':scope > .admin-niveles__grupo > .admin-niveles__acciones-elemento').getByRole('button',{name:'Quitar',exact:true}).click();
       for(const elemento of elementos){
         await tablas.getByRole('button',{name:`Agregar ${nombre}`,exact:true}).click();
         for(const [clave,valor] of Object.entries(elemento)){
@@ -169,7 +171,7 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
         }
       }
       await tablas.getByRole('button',{name:`Agregar ${nombre}`,exact:true}).click();
-      await tablas.locator(':scope > .admin-niveles__grupo > button').click();
+      await tablas.locator(':scope > .admin-niveles__grupo > .admin-niveles__acciones-elemento').getByRole('button',{name:'Quitar',exact:true}).click();
     }
     await guardar(10);const guardado=await get('/10/borrador');
     for(const [tipo,,elementos] of casos)assert.deepEqual(guardado.redReferencia[tipo],elementos,tipo);
@@ -197,7 +199,14 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     const anterior=await juego(tokenAnterior,`/escenarios/${escenario}/iniciar`,'POST');
     const contenidoAnterior=await juego(tokenAnterior,`/intentos/${anterior.idIntento}/contenido`);
     const escenarioAnterior=(await juego(tokenAnterior,'/escenarios')).find(e=>e.numero===1);
-    await abrir(1);const incompleta=await preview(1,400);assert.match(incompleta.detail,/al menos dos estaciones/);
+    await abrir(1);await tab('Red de referencia');
+    const referencia=frame().locator('[data-tablas-red]');
+    for(const tipo of ['ejecuciones','unidades','tramos','lineas','estaciones']) {
+      await referencia.getByLabel('Elementos de referencia',{exact:true}).selectOption(tipo);
+      while(await referencia.getByLabel('Elemento de referencia',{exact:true}).count())
+        await referencia.locator(':scope > .admin-niveles__grupo > .admin-niveles__acciones-elemento').getByRole('button',{name:'Quitar',exact:true}).click();
+    }
+    await guardar(1);const incompleta=await preview(1,400);assert.match(incompleta.detail,/al menos dos estaciones/);
     assert(await frame().getByRole('button',{name:'Publicar versión',exact:true}).isDisabled());
     await tab('Reglas');await frame().getByLabel('Mínimo de estaciones',{exact:true}).filter({visible:true}).fill('2');
     await tab('Red de referencia');
@@ -231,16 +240,16 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     for(const condicion of vista.diagnostico.condiciones)
       assert((await vistaPanel.innerText()).includes(condicion.texto));
     await frame().getByRole('button',{name:'Publicar versión',exact:true}).click();
-    assert.match(await frame().locator('#mensajeNivelesAdmin').innerText(),/Confirmá la revisión editorial/);
+    assert.match(await frame().locator('#mensajeNivelesAdmin').innerText(),/En Tarjetas, confirmá la revisión/);
     assert.equal((await get('/1/versiones')).length,versionesIniciales.length,'Sin confirmar no se publica');
     for(let vuelta=0;vuelta<2;vuelta++){
       if(vuelta){await tab('Desafío');await frame().getByLabel('Relato',{exact:true}).fill('Segunda publicación de prueba.');await guardar(1);assert((await preview(1)).diagnostico.viable);}
-      await frame().locator('[data-confirmacion-editorial]').check();
+      await tab('Tarjetas');await frame().locator('[data-confirmacion-editorial]').check();
       const publicar=page.waitForResponse(r=>r.url().endsWith('/niveles/1/publicar'));
       await frame().getByRole('button',{name:'Publicar versión',exact:true}).click();const r=await publicar;assert.equal(r.status(),200,await r.text());
       assert.equal((await r.json()).version,versionInicial+vuelta+1);
       await frame().getByRole('tab',{name:'Desafío',exact:true}).waitFor();
-      await frame().locator('#mensajeNivelesAdmin').filter({hasText:`versión ${versionInicial+vuelta+1}`}).waitFor();
+      assert.equal((await get('/1/versiones'))[0].version,versionInicial+vuelta+1);
     }
     assert.equal((await get('/1/versiones')).length,versionesIniciales.length+2);
     // El guardado/publicación del administrador se comprueba desde el contrato del jugador.
@@ -262,12 +271,12 @@ test('Administración real: navegador → Spring Boot → PostgreSQL aislado',{t
     for(const clave of ['nombre','dificultad','objetivo','instrucciones','relato'])
       assert.equal(escenarioNuevo[clave],guardado.contenido.desafio[clave]);
     assert.equal(consignaNueva.condiciones.find(c=>c.clave==='minimoEstaciones').requerido,2);
-    await tab('Historial');await frame().getByRole('button',{name:'Borrar registro de versiones',exact:true}).click();
+    await tab('Historial');await frame().getByRole('button',{name:'Borrar historial',exact:true}).click();
     const confirmacion=frame().getByRole('dialog');await confirmacion.getByRole('button',{name:'Cancelar',exact:true}).click();
     assert.equal((await get('/1/versiones')).length,versionesIniciales.length+2);
-    await frame().getByRole('button',{name:'Borrar registro de versiones',exact:true}).click();
+    await frame().getByRole('button',{name:'Borrar historial',exact:true}).click();
     const limpieza=page.waitForResponse(r=>r.url().includes('/versiones/sin-uso')&&r.request().method()==='DELETE');
-    await confirmacion.getByRole('button',{name:'Aceptar',exact:true}).click();const r=await limpieza;assert.equal(r.status(),200,await r.text());
+    await confirmacion.getByRole('button',{name:'Eliminar',exact:true}).click();const r=await limpieza;assert.equal(r.status(),200,await r.text());
     assert.deepEqual((await get('/1/versiones')).map(v=>v.version),[versionInicial+2,versionInicial],
       'La limpieza retira la versión intermedia sin uso y conserva vigente y partida anterior');
     assert.equal(Number(sql('SELECT count(*) FROM nivel_publicacion p JOIN escenario e USING(id_escenario) WHERE e.numero=1')),2);

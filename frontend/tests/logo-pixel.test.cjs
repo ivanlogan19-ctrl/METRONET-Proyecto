@@ -14,27 +14,25 @@ const ASSET = '/assets/metronet-logo-pixel.png';
 const resoluciones = [[1920,1080],[1440,900],[1366,768],[1280,720],[768,1024],[390,844],[320,568]];
 function cerrar(t, vista) { t.after(async () => { await vista.contexto.close(); assert.deepEqual(vista.errores,[]); }); }
 
-for (const width of [1440, 390]) test(`Inicio ${width}px: una sola marca grande y navegación intacta`, async t => {
+for (const width of [1440, 390]) test(`Inicio ${width}px: bienvenida sin logo y dos tarjetas con navegación intacta`, async t => {
   const v = await abrirPantalla(navegador, '/inicio.html', { viewport: { width, height: 844 } }); cerrar(t, v);
   const p = v.pagina;
   await p.locator('.metronet-inicio__tarjeta').first().waitFor();
   assert.equal(await p.locator('.metronet-navegacion__marca').count(), 0);
-  assert.equal(await p.locator('.metronet-inicio__marca .metronet-logo__imagen').count(), 1);
-  assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 6);
+  assert.equal(await p.locator('.metronet-inicio__marca .metronet-logo__imagen').count(), 0);
+  assert.equal(await p.locator('.metronet-navegacion__enlaces a').count(), 7);
   assert.equal(await p.locator('.metronet-navegacion__enlaces a[href="/reglas.html"]').count(), 1);
-  assert.equal(await p.locator('.metronet-inicio__tarjeta').count(), 3);
+  assert.equal(await p.locator('.metronet-inicio__tarjeta').count(), 2);
   assert.equal(await p.getByText('Consejo para tu próxima acción').count(), 0);
-  const progreso = await p.locator('.metronet-inicio__tarjeta--progreso').boundingBox();
+  assert.equal(await p.locator('.metronet-inicio__tarjeta--progreso').count(), 0);
   const continuar = await p.locator('.metronet-inicio__tarjeta--continuar').boundingBox();
   const crear = await p.locator('.metronet-inicio__tarjeta--crear').boundingBox();
   if (width === 1440) {
-    assert.ok(progreso.y >= Math.max(continuar.y + continuar.height, crear.y + crear.height));
-    assert.ok(Math.abs(progreso.x - continuar.x) < 1);
-    assert.ok(Math.abs(progreso.x + progreso.width - crear.x - crear.width) < 1);
+    assert.ok(Math.abs(continuar.y - crear.y) < 1);
+    assert.ok(Math.abs(continuar.height - crear.height) < 1);
   } else {
-    assert.ok(progreso.y >= continuar.y + continuar.height);
-    assert.ok(crear.y >= progreso.y + progreso.height);
-    assert.ok(Math.abs(progreso.width - continuar.width) < 1);
+    assert.ok(crear.y >= continuar.y + continuar.height);
+    assert.ok(Math.abs(crear.width - continuar.width) < 1);
   }
   await p.locator('.metronet-navegacion__usuario > summary').click();
   assert.equal(await p.getByRole('link', { name: 'Inicio', exact: true }).last().isVisible(), true);
@@ -53,10 +51,10 @@ for (const width of [1440, 390, 320]) test(`Inicio ${width}px: resumen compacto 
       : null}); cerrar(t,v);
   const p=v.pagina;
   await p.locator('.metronet-inicio__tarjeta').first().waitFor();
-  assert.equal(await p.locator('.metronet-inicio__tarjeta').count(),3);
+  assert.equal(await p.locator('.metronet-inicio__tarjeta').count(),2);
   assert.equal(await p.locator('.metronet-inicio__paso').count(),0);
-  assert.match(await p.locator('.metronet-inicio__avance-recorrido').innerText(),/0\/10/);
-  assert.equal(await p.getByRole('link',{name:'Niveles',exact:true}).count()>0,true);
+  assert.match(await p.locator('.metronet-inicio__nivel-actual').innerText(),/Nivel 1/i);
+  assert.equal(await p.getByRole('link',{name:'Ver todos los niveles',exact:true}).isVisible(),true);
   assert.equal(await p.locator('.metronet-inicio__tarjeta--crear').getByText('Modo Libre', { exact: true }).count(),1);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
 });
@@ -98,7 +96,7 @@ for (const [width,height] of resoluciones) for (const ruta of ['/login.html','/i
   test(`Identidad ${width}×${height}: ${ruta}, marca y navegación aprobadas sin desbordes`, async t => {
     const v = ruta === 'editor' ? await abrirEditor(navegador,{viewport:{width,height}}) : await abrirPantalla(navegador,ruta,{viewport:{width,height}});
     cerrar(t,v); const p=v.pagina;
-    if (ruta === 'editor' || ruta.startsWith('/simulacion.html')) {
+    if (ruta === 'editor' || ruta === '/inicio.html' || ruta.startsWith('/simulacion.html')) {
       assert.equal(await p.locator('.metronet-logo__imagen').count(), 0);
       assert.equal(await p.locator('.metronet-navegacion').count(), 1);
       assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1), false);
@@ -122,7 +120,7 @@ for (const [width,height] of resoluciones) for (const ruta of ['/login.html','/i
   });
 }
 
-for (const ruta of ['/login.html','/inicio.html']) test(`Descarga lenta: ${ruta} reserva espacio sin mover formulario ni navegación`, async t => {
+for (const ruta of ['/login.html']) test(`Descarga lenta: ${ruta} reserva espacio sin mover formulario ni navegación`, async t => {
   let liberar, obtenerPagina;
   const espera = new Promise(r=>{liberar=r;}), paginaLista = new Promise(r=>{obtenerPagina=r;});
   const navegadorControlado = { newContext:async opciones=>{

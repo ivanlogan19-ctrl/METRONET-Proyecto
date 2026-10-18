@@ -10,6 +10,7 @@ for (const ruta of ['/?idDiseno=77', '/simulacion.html?idDiseno=77']) {
   const v = await abrirPantalla(navegador, ruta, { viewport: { width, height: 900 }, responder: r => new URL(r.url()).pathname.startsWith('/auth/logout') ? { status: 204 } : undefined });
   t.after(() => v.contexto.close());
   const p = v.pagina;
+  if (ruta.startsWith('/simulacion')) await p.locator('[data-oferta-tutorial]').getByRole('button', { name:'Continuar', exact:true }).click();
   await p.locator('.metronet-navegacion__usuario > summary').click();
   const boton = p.getByRole('button', { name: 'Cerrar sesión', exact: true });
   await boton.waitFor();

@@ -204,8 +204,8 @@ button { cursor: pointer; }
 
 /* Mapa, selección de escenarios y herramientas. */
 #metronet-aplicacion { background: var(--bg-primary); }
-#metronet-mapa { border-color: var(--border); background: var(--bg-primary); box-shadow: none; }
-#metronet-panel-controles { border-color: var(--border); background: var(--panel); box-shadow: none; }
+#metronet-mapa { border-color: var(--border); box-shadow: none; }
+#metronet-panel-controles { border-color: var(--border); box-shadow: none; }
 #metronet-panel-controles .metronet-logo { width: var(--metronet-logo-width-map); align-self: center; }
 .metronet-logo-marca { aspect-ratio: auto; padding: 0; background: transparent; overflow: visible; }
 .metronet-panel-titulo, .metronet-informacion-jugador-titulo { color: var(--text-primary); }
@@ -429,9 +429,7 @@ html:root body.metronet-pagina-inicio .metronet-inicio__saludo p { margin: 0; }
 .metronet-escenarios-pagina__presentacion p + p { margin-top: var(--space-xs); }
 .metronet-escenarios-pagina__lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 14px; }.metronet-escenarios-pagina__tarjeta { display: grid; align-content: start; gap: 9px; min-height: 260px; padding: 18px; border: var(--border-width) solid var(--border); border-radius: var(--radius-control); background: var(--panel); }.metronet-escenarios-pagina__tarjeta > p, .metronet-escenarios-pagina__tarjeta h2, .metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small, .metronet-escenarios-pagina__tarjeta b { margin: 0; }.metronet-escenarios-pagina__tarjeta > p { color: var(--info-active); font-family: var(--font-tecnica); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }.metronet-escenarios-pagina__tarjeta span, .metronet-escenarios-pagina__tarjeta small { color: var(--text-secondary); line-height: 1.45; }.metronet-escenarios-pagina__tarjeta b { color: var(--success); font-size: 12px; }.metronet-escenarios-pagina__tarjeta button { align-self: end; min-height: 38px; margin-top: auto; }.metronet-escenarios-pagina__tarjeta.bloqueada { background: var(--bg-secondary); }.metronet-escenarios-pagina__tarjeta.bloqueada > p, .metronet-escenarios-pagina__tarjeta.bloqueada b { color: var(--text-disabled); }
 
-body.metronet-pagina-editor { overflow: hidden; background: var(--bg-primary); }
-.metronet-pantalla-editor { display: grid; grid-template-rows: var(--navegacion-alto) minmax(0, 1fr); width: 100%; height: 100svh; min-height: 0; }
-.metronet-pantalla-editor #metronet-aplicacion { min-height: 0; height: 100%; }
+body.metronet-pagina-editor { background: var(--bg-primary); }
 .metronet-pagina-navegable .admin-aplicacion, .metronet-pagina-navegable .simulacion-aplicacion { min-height: calc(100svh - var(--navegacion-alto)); }
 .metronet-pagina-navegable .auth-page { min-height: calc(100svh - var(--navegacion-alto)); }
 

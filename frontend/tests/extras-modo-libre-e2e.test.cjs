@@ -23,6 +23,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   assert.equal((await context.request.put(API+'/api/juego/aprendizaje/extras/tarjetas/1',{headers})).status(),403);
   assert.equal((await context.request.get(API+'/api/juego/aprendizaje/extras')).status(),401);
   await vista.getByRole('link',{name:'Aprendizaje',exact:true}).first().click();
+  await vista.locator('#selectorAprendizaje [data-nivel=libre]').click();
   await vista.locator('#extrasAprendizaje').getByText(/Ingresá a Modo Libre/).waitFor();
   await vista.getByRole('link',{name:'Inicio',exact:true}).first().click();
   await vista.locator('.metronet-inicio__tarjeta--crear button').click();
@@ -68,7 +69,8 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   assert.deepEqual((await estado()).visitadas,[1,2],'Repetir no suma tarjetas');
   await vista.getByRole('button',{name:'Cerrar',exact:true}).click();
   await frame().goto(BASE+'/aprendizaje.html');
-  await vista.locator('#extrasAprendizaje').getByText('7 tarjetas disponibles · 2 de 7 recorridas').waitFor();
+  await vista.locator('#selectorAprendizaje [data-nivel=libre]').click();
+  await vista.locator('#extrasAprendizaje').getByText('7 tarjetas · 2 de 7 recorridas').waitFor();
   await vista.locator('#extrasAprendizaje button').nth(2).click();
   await vista.getByRole('heading',{name:'Tráfico histórico',exact:true}).waitFor();
   for(const [width,height] of [[1440,900],[1280,720],[390,844]]) {
@@ -98,10 +100,12 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   assert.equal((await estado()).visitadas.length,7);
   assert.equal((await (await context.request.put(API+'/api/juego/aprendizaje/extras/tarjetas/7',{headers})).json()).nuevoTrofeo,null);
   await frame().goto(BASE+'/ranking.html');
+  await vista.getByRole('button',{name:/Cartógrafo de la red/}).click();
   await vista.getByRole('heading',{name:'Cartógrafo de la red',exact:true}).waitFor();
   assert.equal(await vista.locator('.ranking-trofeo').count(),6);
   await frame().goto(BASE+'/aprendizaje.html');
-  await vista.locator('#extrasAprendizaje').getByText('7 tarjetas disponibles · 7 de 7 recorridas').waitFor();
+  await vista.locator('#selectorAprendizaje [data-nivel=libre]').click();
+  await vista.locator('#extrasAprendizaje').getByText('7 tarjetas · 7 de 7 recorridas').waitFor();
   // Cada diseño nuevo/recreado vuelve a ofrecer Extras, conservando premio y progreso.
   async function solicitar(method,path,data) {
     const r=await context.request.fetch(API+path,{method,headers,data});
@@ -120,7 +124,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
     assert.equal(await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).count(),0);
     await vista.getByRole('button',{name:'Ver las 7 tarjetas',exact:true}).click();
     await vista.getByRole('heading',{name:'Calles y avenidas',exact:true}).waitFor();
-    await vista.getByRole('button',{name:'Saltar e ir a construir',exact:true}).click();
+    await vista.getByRole('button',{name:'Cerrar',exact:true}).click();
     await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).click();
     await vista.locator('[data-recorrido-omitir]').click();
     await frame().goto(url);

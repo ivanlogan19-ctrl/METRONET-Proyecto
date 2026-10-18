@@ -11,8 +11,6 @@ body {
 
     overflow: hidden;
 
-    background: var(--bg-primary);
-
     font-family:
         var(--font-ui);
 
@@ -45,8 +43,6 @@ body {
 
     padding: 16px;
 
-    background: var(--bg-primary);
-
     box-sizing: border-box;
 
 }
@@ -61,12 +57,6 @@ body {
     min-height: 0;
 
     overflow: hidden;
-
-    border-radius: var(--radius-control);
-
-    background: var(--bg-primary);
-
-    box-shadow: none;
 
 }
 
@@ -85,12 +75,6 @@ body {
 
     overflow-y: auto;
 
-    border-radius: var(--radius-control);
-
-    background: var(--panel);
-
-    box-shadow: none;
-
     box-sizing: border-box;
 
 }
@@ -107,8 +91,6 @@ body {
     aspect-ratio: 1;
 
     padding: 7px;
-
-    background: transparent;
 
     overflow: hidden;
 
@@ -406,9 +388,6 @@ textarea:focus {
 canvas {
 
     display: block;
-
-    background:
-        var(--bg-primary);
 
 }
 

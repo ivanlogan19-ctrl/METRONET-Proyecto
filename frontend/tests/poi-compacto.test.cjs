@@ -18,7 +18,7 @@ for (const pantalla of ['nivel','libre','simulacion']) for(const width of [1440,
   const v=pantalla==='simulacion' ? await abrirPantalla(browser,'/simulacion.html?idDiseno=77',opciones) : await abrirEditor(browser,opciones);
   t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});
   const p=v.pagina;
-  if(pantalla==='simulacion') await p.getByRole('button',{name:'Comenzar directamente',exact:true}).click();
+  if(pantalla==='simulacion') await p.getByRole('button',{name:'Continuar',exact:true}).click();
   else if(await p.locator('.metronet-recorrido').count()) await p.keyboard.press('Escape');
   await p.locator('.metronet-poi>summary').click();
   await p.getByRole('searchbox').waitFor({state:'visible'});

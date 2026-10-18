@@ -79,15 +79,16 @@ async function destino(pagina, escenario) {
   await pagina.waitForURL(`${BASE}/?idDiseno=101&idEscenario=${escenario.idEscenario}&idIntento=202`);
 }
 for (const ruta of ['/escenarios.html', '/inicio.html']) {
-  test(`${ruta}: entra automáticamente en cada nivel, con API en paralelo y consigna correcta`, async t => {
+  test(`${ruta}: entra automáticamente en cada nivel, con API en paralelo y sin repetir el desafío`, async t => {
     for (const numero of niveles.map(n => n.numero)) await t.test(`nivel ${numero}`, async t => {
       const escenario = nivel(numero);
       const { pagina, solicitudes } = await abrir(t, [escenario], ruta);
-      await pagina.getByRole('button', { name: ruta === '/inicio.html' ? 'Jugar' : 'Comenzar', exact: true }).click();
+      await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
       const dialogo = pagina.getByRole('dialog', { name: escenario.nombre, exact: true });
       await dialogo.waitFor();
       await pagina.waitForFunction(() => document.querySelector('[role="progressbar"]'));
-      assert.match(await dialogo.locator('.metronet-viaje__consigna').innerText(), new RegExp(escenario.objetivo));
+      assert.equal(await dialogo.locator('.metronet-viaje__consigna').count(), 0);
+      assert.ok(await dialogo.locator('[data-mensaje-id]').innerText());
       assert.equal(solicitudes.length, 1);
       assert.ok(Number(await dialogo.getByRole('progressbar').getAttribute('aria-valuenow')) < 100);
       assert.equal(await dialogo.getByRole('button', { name: 'Comenzar nivel' }).count(), 0);
@@ -100,7 +101,7 @@ for (const ruta of ['/escenarios.html', '/inicio.html']) {
 test('API lenta: progreso monótono, 100% visible, mensaje estable y sin navegación prematura', async t => {
   const escenario = nivel(5);
   const { pagina, solicitudes, liberar } = await abrir(t, [escenario], '/escenarios.html', { demorarApi: true });
-  await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
   const dialogo = pagina.locator('.metronet-viaje'); await dialogo.waitFor();
   const mensaje = await dialogo.locator('[data-mensaje-id]').innerText();
   assert.equal(solicitudes.length, 1);
@@ -115,7 +116,7 @@ test('API lenta: progreso monótono, 100% visible, mensaje estable y sin navegac
   assert.equal(await dialogo.locator('circle.activa').count(), 5);
   assert.match(await dialogo.innerText(), /Esperando la respuesta/);
   assert.equal(new URL(pagina.url()).pathname, '/escenarios.html');
-  assert.equal(await dialogo.getByRole('button', { name: 'Jugar', exact: true }).isDisabled(), true);
+  assert.equal(await dialogo.getByRole('button', { name: 'Iniciar nivel', exact: true }).isDisabled(), true);
   liberar();
   await destino(pagina, escenario);
 });
@@ -123,7 +124,7 @@ test('volver, Escape y doble clic no duplican viajes; cada reingreso cambia el m
   const { pagina, solicitudes } = await abrir(t, [nivel(1)]);
   let anterior;
   for (const accion of ['volver', 'escape', 'continuar']) {
-    const boton = pagina.getByRole('button', { name: 'Comenzar', exact: true });
+    const boton = pagina.getByRole('button', { name: 'Iniciar', exact: true });
     await boton.dblclick();
     const dialogo = pagina.locator('.metronet-viaje'); await dialogo.waitFor();
     assert.equal(await dialogo.count(), 1);
@@ -144,7 +145,7 @@ test('volver, Escape y doble clic no duplican viajes; cada reingreso cambia el m
   // Cada entrada autoriza un único POST. Volver cancela el viaje, no revierte un intento del servidor.
   assert.equal(solicitudes.length, 3);
 });
-for (const [estado, accion, endpoint] of [['EN_DESARROLLO', 'Continuar', 'iniciar'], ['COMPLETADO', 'Volver a jugar', 'volver-a-jugar']]) {
+for (const [estado, accion, endpoint] of [['EN_DESARROLLO', 'Continuar', 'iniciar'], ['COMPLETADO', 'Repetir', 'volver-a-jugar']]) {
   test(`${accion}: conserva endpoint e identificadores`, async t => {
     const escenario = nivel(2, estado), { pagina, solicitudes } = await abrir(t, [escenario]);
     await pagina.getByRole('button', { name: accion, exact: true }).click(); await viajar(pagina); await destino(pagina, escenario);
@@ -153,41 +154,43 @@ for (const [estado, accion, endpoint] of [['EN_DESARROLLO', 'Continuar', 'inicia
 }
 for (const numero of [99, null]) test(`sin catálogo (${numero ?? 'Modo Libre'}): fallback o acceso directo`, async t => {
   const escenario = nivel(numero), { pagina, solicitudes } = await abrir(t, [escenario]);
-  await pagina.getByRole('button', { name: numero === null ? 'Entrar al Modo Libre' : 'Comenzar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
   if (numero) { await pagina.getByText('Analizá las conexiones antes de tomar una decisión.').waitFor(); await viajar(pagina); }
   await destino(pagina, escenario); assert.equal(solicitudes.length, 1);
 });
 for (const fallo of ['falloModulo', 'falloRender', 'sinStorage']) test(`${fallo}: la presentación no bloquea el acceso`, async t => {
   const { pagina, solicitudes } = await abrir(t, [nivel(1)], '/escenarios.html', { [fallo]: true });
-  await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
   if (fallo === 'sinStorage') await viajar(pagina);
   await destino(pagina, nivel(1)); assert.equal(solicitudes.length, 1);
 });
 test('errores de API y niveles bloqueados conservan sus restricciones', async t => {
   const { pagina, solicitudes } = await abrir(t, [nivel(1), nivel(2, 'BLOQUEADO')], '/escenarios.html', { errorApi: true });
+  await pagina.locator('[data-seleccionar-escenario="42"]').click();
   assert.equal(await pagina.getByRole('button', { name: 'Bloqueado', exact: true }).isDisabled(), true);
-  await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await pagina.locator('[data-seleccionar-escenario="41"]').click();
+  await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
   await pagina.getByText('El escenario está bloqueado.', { exact: true }).waitFor();
   await pagina.clock.runFor(5000);
   assert.equal(await pagina.locator('.metronet-viaje').count(), 0);
   assert.equal(new URL(pagina.url()).pathname, '/escenarios.html');
-  assert.equal(await pagina.getByRole('button', { name: 'Comenzar', exact: true }).isEnabled(), true);
+  assert.equal(await pagina.getByRole('button', { name: 'Iniciar', exact: true }).isEnabled(), true);
   assert.equal(solicitudes.length, 1);
 });
 for (const width of [1440, 768, 375]) for (const reducedMotion of ['no-preference', 'reduce']) {
   test(`Responsive ${width}, movimiento ${reducedMotion}: lectura, foco y animación accesibles`, async t => {
     const { pagina } = await abrir(t, [nivel(10)], '/escenarios.html', { viewport: { width, height: 800 }, reducedMotion });
-    await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
+    await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
     const dialogo = pagina.locator('.metronet-viaje'); await dialogo.waitFor();
     assert.equal(await pagina.evaluate(() => document.activeElement.id), 'tituloPreparacionNivel');
     const antes = await dialogo.locator('.recorrido-tren').getAttribute('transform');
     await pagina.clock.runFor(1500);
     const despues = await dialogo.locator('.recorrido-tren').getAttribute('transform');
     assert.equal(antes === despues, reducedMotion === 'reduce');
-    await pagina.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__consigna')).opacity === '1');
-    const medidas = await dialogo.evaluate(d => ({ ancho: d.getBoundingClientRect().width, alto: d.getBoundingClientRect().height, desborde: d.scrollWidth > d.clientWidth, opacidad: getComputedStyle(d.querySelector('.metronet-viaje__consigna')).opacity }));
+    await pagina.waitForFunction(() => getComputedStyle(document.querySelector('.metronet-viaje__dato')).opacity === '1');
+    const medidas = await dialogo.evaluate(d => ({ ancho: d.getBoundingClientRect().width, alto: d.getBoundingClientRect().height, desborde: d.scrollWidth > d.clientWidth, opacidad: getComputedStyle(d.querySelector('.metronet-viaje__dato')).opacity }));
     assert.ok(medidas.ancho <= width && medidas.alto <= 800); assert.equal(medidas.desborde, false); assert.equal(medidas.opacidad, '1');
-    await dialogo.getByRole('button', { name: 'Jugar', exact: true }).press('Enter');
+    await dialogo.getByRole('button', { name: 'Iniciar nivel', exact: true }).press('Enter');
     await destino(pagina, nivel(10));
   });
 }
@@ -202,11 +205,11 @@ test('catálogo: tres mensajes breves por nivel y sin IDs repetidos', () => {
 
 test('recarga: se reinicia el viaje y se evita el último mensaje de la misma sesión', async t => {
   const { pagina } = await abrir(t, [nivel(6)]);
-  await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
   const dato = pagina.locator('[data-mensaje-id]'); await dato.waitFor();
   const anterior = await dato.getAttribute('data-mensaje-id');
   await pagina.reload();
-  await pagina.getByRole('button', { name: 'Comenzar', exact: true }).click();
+  await pagina.getByRole('button', { name: 'Iniciar', exact: true }).click();
   await dato.waitFor();
   assert.notEqual(await dato.getAttribute('data-mensaje-id'), anterior);
   assert.ok(Number(await pagina.getByRole('progressbar', { name: 'Progreso del viaje visual' }).getAttribute('aria-valuenow')) < 50);

@@ -13,6 +13,20 @@ function registrar(t, pantalla) {
   return pantalla;
 }
 
+test('Borrar conserva confirmación roja y Cancelar seguro sin ejecutar la acción', async t => {
+  const { pagina } = registrar(t, await abrirPantalla(navegador, '/admin.html'));
+  await pagina.evaluate(async () => {
+    const { confirmarSistema } = await import('/src/componentes/DialogoSistema.js');
+    window.confirmacionBorrado = confirmarSistema('¿Borrar el historial?');
+  });
+  const dialogo = pagina.locator('.metronet-dialogo-sistema--peligro');
+  await dialogo.waitFor();
+  assert.equal(await dialogo.locator('[value="aceptar"]').getAttribute('data-categoria-accion'), 'peligro');
+  assert.equal(await dialogo.getByRole('button', { name: 'Cancelar' }).getAttribute('data-categoria-accion'), 'principal');
+  await pagina.keyboard.press('Escape');
+  assert.equal(await pagina.evaluate(() => window.confirmacionBorrado), false);
+});
+
 test('Escape y Cancelar preservan usuario y foco; aceptar mantiene DELETE y muestra error del servidor', async t => {
   const { pagina, solicitudes } = registrar(t, await abrirPantalla(navegador, '/admin.html'));
   const boton = pagina.locator('[data-eliminar-usuario]').first();
@@ -85,7 +99,7 @@ test('encabezados equivalentes y selectores mantienen tipografía y geometría e
     referencia ??= estilo; assert.deepEqual(estilo, referencia, ruta);
     if (ruta === '/admin.html') {
       const select = await pagina.locator('select').first().evaluate(e => { const s = getComputedStyle(e); return { appearance: s.appearance, image: s.backgroundImage, radius: s.borderRadius }; });
-      assert.equal(select.appearance, 'none'); assert.match(select.image, /linear-gradient/); assert.equal(select.radius, '0px');
+      assert.equal(select.appearance, 'base-select'); assert.equal(select.radius, '0px');
     }
   }
 });
@@ -105,7 +119,8 @@ test('campos por rol respetan hidden y el error de guardar queda dentro del moda
 test('restricciones HTML bloquean la simulación y presentan un aviso dentro del sistema', async t => {
   const { pagina, solicitudes } = registrar(t, await abrirPantalla(navegador, '/simulacion.html?idDiseno=77'));
 
-  await pagina.locator('#duracionSimulacion').fill('0');
+  await pagina.locator('[data-oferta-tutorial]').getByRole('button', {name:'Continuar', exact:true}).click();
+  await pagina.locator('#duracionSimulacion').fill('-1');
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
   await pagina.locator('.metronet-notificacion--error').waitFor();
   assert.equal(await pagina.locator('#duracionSimulacion').evaluate(e => e.validity.rangeUnderflow && e === document.activeElement), true);

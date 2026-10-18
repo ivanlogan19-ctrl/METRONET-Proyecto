@@ -31,7 +31,7 @@ class RestriccionesGeograficasIntegrationTest {
         jdbc.execute("CREATE TABLE usuario(id_usuario INT PRIMARY KEY)");
         jdbc.update("INSERT INTO usuario VALUES (7)");
         jdbc.execute("CREATE TABLE diseno(id_diseno INT PRIMARY KEY)");
-        jdbc.execute("CREATE TABLE escenario(id_escenario INT, nombre VARCHAR, modo VARCHAR, dificultad VARCHAR, objetivo VARCHAR, instrucciones VARCHAR, id_diseno_base INT, progresivo BOOLEAN, reglas_exito VARCHAR)");
+        jdbc.execute("CREATE TABLE escenario(id_escenario INT, numero INT, nombre VARCHAR, modo VARCHAR, dificultad VARCHAR, objetivo VARCHAR, instrucciones VARCHAR, id_diseno_base INT, progresivo BOOLEAN, reglas_exito VARCHAR)");
         jdbc.execute("CREATE TABLE intento(id_intento INT, id_diseno INT, id_escenario INT, id_usuario INT, estado VARCHAR)");
         jdbc.execute("CREATE TABLE intento_catalogo_v1(id_intento INT, reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
         jdbc.execute("CREATE TABLE intento_uv_ut(id_intento INT, version INT, limite_ut INT, presupuesto_uv DECIMAL(8,2), reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
@@ -42,7 +42,7 @@ class RestriccionesGeograficasIntegrationTest {
         jdbc.execute("CREATE TABLE pasa(id_diseno INT, nombre_linea VARCHAR, nombre_estacion VARCHAR)");
         jdbc.execute("CREATE TABLE metro(duracion_ut INT, id_diseno INT, nombre_linea VARCHAR, id_tren INT, capacidad INT, velocidad_promedio NUMERIC(6,2))");
         jdbc.update("INSERT INTO diseno VALUES (1)");
-        jdbc.update("INSERT INTO escenario VALUES (1,'Prueba','NIVEL','Inicial','Objetivo','Instrucciones',NULL,FALSE,'{}')");
+        jdbc.update("INSERT INTO escenario VALUES (1,NULL,'Prueba','NIVEL','Inicial','Objetivo','Instrucciones',NULL,FALSE,'{}')");
         jdbc.update("INSERT INTO intento VALUES (1,1,1,7,'EN_DISENO')");
         restricciones = new RestriccionesGeograficasService(jdbc, mapper, geografia);
         admin = new DisenoAdministracionService(jdbc, restricciones);

@@ -86,9 +86,3 @@ export function obtenerZona(nombreBarrio) {
 export function obtenerBarriosDeZona(zona) {
   return [...(BARRIOS_POR_ZONA[zona] ?? [])];
 }
-
-export function obtenerZonasDeBarrio(nombreBarrio) {
-  const zona = obtenerZona(nombreBarrio);
-
-  return zona ? [zona] : [];
-}

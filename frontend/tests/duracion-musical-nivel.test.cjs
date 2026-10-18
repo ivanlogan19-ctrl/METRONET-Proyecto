@@ -109,7 +109,7 @@ test('El viaje de 5 s espera los datos reales antes de entrar al nivel', async t
   });
   await p.clock.runFor(5050);
   assert.equal(await v.evaluate(() => termino), false);
-  assert.equal(await v.getByRole('button', { name: 'Jugar', exact: true }).isDisabled(), true);
+  assert.equal(await v.getByRole('button', { name: 'Iniciar nivel', exact: true }).isDisabled(), true);
   assert.match(await v.locator('.metronet-viaje__estado').textContent(), /Esperando la respuesta del nivel/);
   await v.evaluate(() => intro.marcarDatosListos());
   await p.clock.runFor(1200);

@@ -2,12 +2,12 @@ import { gestorMusica } from './GestorMusica.js';
 
 // La vista solicita atenuación al único reproductor, también dentro del
 // contenedor persistente. No cambia pista, posición ni preferencia de volumen.
-const selectores = 'dialog[open]:not(.metronet-viaje):not(.metronet-victoria), .metronet-guia-rapida:popover-open';
+const SELECTORES_LECTURA = 'dialog[open]:not(.metronet-viaje):not(.metronet-victoria), .metronet-guia-rapida:popover-open';
 let liberar = null;
 let programada = false;
 function actualizar() {
   programada = false;
-  const leyendo = [...document.querySelectorAll(selectores)].some(e => !e.hidden && e.getClientRects().length);
+  const leyendo = [...document.querySelectorAll(SELECTORES_LECTURA)].some(e => !e.hidden && e.getClientRects().length);
   if (leyendo && !liberar) liberar = gestorMusica.atenuarLectura();
   if (!leyendo && liberar) { liberar(); liberar = null; }
 }

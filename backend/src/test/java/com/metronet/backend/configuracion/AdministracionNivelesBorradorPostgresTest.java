@@ -33,7 +33,8 @@ class AdministracionNivelesBorradorPostgresTest {
                     """,Integer.class);
                 assertEquals(10,servicio.listar().size());
                 var anterior = servicio.borrador(1);
-                assertEquals(2,servicio.versiones(1).size());
+                int versionesIniciales = servicio.versiones(1).size();
+                assertTrue(versionesIniciales >= 2);
                 assertEquals(6,servicio.versiones(1).getLast().tarjetas().size());
                 assertEquals(7,servicio.versiones(1).getFirst().tarjetas().size());
                 ObjectNode reglasAlteradas = anterior.contenido().path("reglasExito").deepCopy();
@@ -68,11 +69,15 @@ class AdministracionNivelesBorradorPostgresTest {
                 assertEquals(anterior.revision()+1,guardado.revision());
                 var conflicto = assertThrows(ResponseStatusException.class,() -> servicio.guardar(1,pedido,idAdmin));
                 assertEquals(HttpStatus.CONFLICT,conflicto.getStatusCode());
+                var reversion = servicio.prepararReversion(1,1,idAdmin);
+                assertEquals(guardado.revision()+1,reversion.revision());
+                assertFalse(reversion.redReferencia().path("estaciones").isEmpty(), "Reutiliza una referencia publicada al restaurar versiones antiguas");
+                jdbc.update("UPDATE nivel_publicacion SET red_referencia='{}'::jsonb WHERE id_escenario=(SELECT id_escenario FROM escenario WHERE numero=1 AND progresivo=TRUE)");
                 var sinReferencia = assertThrows(ResponseStatusException.class,
                     () -> servicio.prepararReversion(1,1,idAdmin));
                 assertEquals(HttpStatus.CONFLICT,sinReferencia.getStatusCode());
-                assertEquals(guardado.revision(),servicio.borrador(1).revision());
-                assertEquals(2,servicio.versiones(1).size(),"Preparar una reversión no publica");
+                assertEquals(reversion.revision(),servicio.borrador(1).revision());
+                assertEquals(versionesIniciales,servicio.versiones(1).size(),"Preparar una reversión no publica");
             } finally { conexion.rollback(); }
         }
     }

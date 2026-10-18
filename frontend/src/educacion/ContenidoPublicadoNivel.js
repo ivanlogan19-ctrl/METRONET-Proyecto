@@ -39,8 +39,3 @@ export function contenidoPublicadoEnCache(numero, idIntento = null) {
   if (!sesion) return null;
   return cache.get(`${sesion.usuario?.idUsuario ?? 'sesion'}:${idIntento ?? `actual:${numero}`}`) ?? null;
 }
-
-export function invalidarContenidoActual(numero) {
-  const sesion = obtenerSesionActiva();
-  if (sesion) cache.delete(`${sesion.usuario?.idUsuario ?? 'sesion'}:actual:${numero}`);
-}

@@ -12,7 +12,7 @@ before(async () => { navegador = await chromium.launch({ headless: true, channel
 after(async () => navegador?.close());
 const opciones = {
   escenario: { ...niveles[0], idEscenario: 41 }, estaciones: [], lineas: [], tramos: [],
-  consigna: d => ({ estadoGlobal: 'PARCIAL', condiciones: [{ clave: 'minimoEstaciones', completado: d.estaciones.length >= 2, texto: 'Estaciones de la red', actual: d.estaciones.length, requerido: 2 }] }),
+  consigna: d => ({ estadoGlobal: 'PARCIAL', referenciasObjetivo: [{ idPunto: 1, nombrePunto: 'Palacio Legislativo', cubierto: false }], condiciones: [{ clave: 'minimoEstaciones', completado: d.estaciones.length >= 2, texto: 'Estaciones de la red', actual: d.estaciones.length, requerido: 2 }] }),
 };
 async function preparar(t, width = 320, browser = navegador) {
   const vista = await abrirEditor(browser, { ...opciones, viewport: { width, height: 844 } });

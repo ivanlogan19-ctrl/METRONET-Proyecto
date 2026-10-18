@@ -16,7 +16,7 @@ for(const n of niveles) test(`consistencia del nivel ${n.numero}: reglas, herram
  assert.equal(n.reglasExito.requiereSimulacion,true);
  for(const [regla,herramienta] of Object.entries(herramientasPorRegla)) if(n.reglasExito[regla]) assert.equal(n.herramientasHabilitadas[herramienta],true,regla);
  assert.match(n.instrucciones,/Guardá/);
- assert.match(n.instrucciones,/simula|ejecu|ejecut/i);
+ assert.match(n.instrucciones,/simul[aá]|ejecu|ejecut/i);
  assert.ok(n.historia.texto.length>60);
  assert.notEqual(n.historia.texto,n.objetivo);
  for(const p of n.reglasExito.puntosInteresObjetivo||[]) {
@@ -30,7 +30,7 @@ test('progresión explícita sin objetivos territoriales adelantados',()=>{
  assert.ok(niveles.slice(0,5).every(n=>!n.reglasExito.puntosInteresObjetivo));
  assert.deepEqual(niveles[1].reglasExito.aprendizajeSimulacion,{velocidad:true});
  assert.deepEqual(niveles[2].reglasExito.aprendizajeSimulacion,{duracion:true});
- assert.deepEqual(niveles[3].reglasExito.aprendizajeSimulacion,{global:true,individual:true});
+ assert.deepEqual(niveles[3].reglasExito.aprendizajeSimulacion,{velocidad:true,duracion:true});
  assert.equal(niveles[4].reglasExito.puntosInteresObjetivo,undefined);
  assert.equal(niveles[5].reglasExito.puntosInteresObjetivo.length,3);
  assert.equal(niveles[6].reglasExito.minimoLineas,2);

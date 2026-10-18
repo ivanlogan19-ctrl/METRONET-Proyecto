@@ -60,7 +60,7 @@ test('Inicio real → loading conservado → NIVEL 1 → oferta de tutorial', as
   }}); cerrar(t,v); const p = v.pagina;
   await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
   await p.clock.install();
-  await p.getByRole('button',{name:'Jugar',exact:true}).click();
+  await p.getByRole('button',{name:'Iniciar',exact:true}).click();
   await p.locator('.metronet-viaje').waitFor();
   assert.equal(await p.locator('.metronet-identificacion').count(),0);
   await p.clock.runFor(3000);
@@ -149,7 +149,7 @@ test('Simular y finalizar el último nivel desde Edición: celebración de un so
   const red = { simulacion:{idDiseno:77,idEscenario:ultimo,nombre:'Red integral',modo:'NIVEL',estado:'VALIDADO'},
     estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],
     lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B',distanciaKm:4}],
-    unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:40,duracionUt:1}],preparadoParaSimular:true,
+    unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:4,duracionUt:1}],preparadoParaSimular:true,
     resultados:[],territorio:{areas:[],errores:[]} };
   const libreDiseno = { ...red, simulacion:{idDiseno:200,idEscenario:111,nombre:'Mi red libre',modo:'EDICION_LIBRE',estado:'EN_DISENO'} };
   const v = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder:req => {
@@ -160,17 +160,17 @@ test('Simular y finalizar el último nivel desde Edición: celebración de un so
     if (ruta === '/api/simulaciones/77') return {json:red};
     if (ruta === '/api/simulaciones/200') return {json:libreDiseno};
     if (ruta === '/api/simulaciones/77/guardar') return {json:red.simulacion};
-    if (ruta.endsWith('/ejecutar')) return {json:{idSimulacion:1,puntaje:0,estado:'COMPLETADA',duracion:10,velocidad:4}};
+    if (ruta.endsWith('/ejecutar')) return {json:{idSimulacion:1,puntaje:0,estado:'COMPLETADA',duracion:1,velocidad:4}};
     if (ruta.endsWith('/evaluar')) { completado = true; return {json:{completado:true,puntaje:100,idSiguienteEscenario:null,mensaje:'Nivel completado'}}; }
     if (ruta.endsWith('/111/iniciar')) return {json:{idDiseno:200,idEscenario:111,idIntento:900}};
   } }); cerrar(t,v);
   const p = v.pagina;
   await p.evaluate(async () => (await import('/src/audio/GestorMusica.js')).gestorMusica.establecerSilencio(true));
 
-  await p.getByRole('button', {name:'Comenzar directamente',exact:true}).click();
-  await p.locator('#duracionSimulacion').fill('1');
+  await p.getByRole('button', {name:'Continuar',exact:true}).click();
+  assert.equal(await p.locator('#duracionSimulacion').inputValue(), '1');
   await p.locator('#formularioEjecucion button[type="submit"]').click();
-  await p.waitForFunction(() => document.querySelector('#mensajeSimulacion')?.textContent.includes('Simulación terminada.'), null, {timeout:45000});
+  await p.waitForFunction(() => document.querySelector('#estadoTiempoReal')?.textContent === 'Finalizada', null, {timeout:45000});
   assert.equal(v.solicitudes.filter(s => s.path.endsWith('/evaluar')).length, 0);
   assert.equal(await p.locator('.metronet-resultado-nivel').count(), 0);
   await p.locator('#volverEdicion').click();

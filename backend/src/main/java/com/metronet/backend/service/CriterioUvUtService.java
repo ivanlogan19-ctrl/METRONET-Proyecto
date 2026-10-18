@@ -221,7 +221,7 @@ public class CriterioUvUtService {
         if (resultado == null) return List.of();
         List<String> excesos = new ArrayList<>();
         if (resultado.utEjecutadas() > resultado.limiteUt())
-            excesos.add(resultado.utEjecutadas() + " UT; máximo " + resultado.limiteUt());
+            excesos.add(BigDecimal.valueOf(resultado.utEjecutadas()).stripTrailingZeros().toPlainString() + " UT; máximo " + resultado.limiteUt());
         if (resultado.sumaUv().compareTo(resultado.presupuestoUv()) > 0)
             excesos.add(resultado.sumaUv().stripTrailingZeros().toPlainString() + " UV asignadas; máximo "
                 + resultado.presupuestoUv().stripTrailingZeros().toPlainString());

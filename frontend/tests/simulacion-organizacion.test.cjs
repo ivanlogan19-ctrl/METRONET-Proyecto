@@ -25,7 +25,7 @@ async function abrir(t, width = 1440, responder) {
   await vista.pagina.reload();
   await vista.pagina.waitForFunction(() => window.escenaOrganizacion?.disenoActual);
   await vista.pagina.locator('#desempenoNivel fieldset').waitFor({ state: 'attached' });
-  await vista.pagina.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  await vista.pagina.getByRole('button', { name: 'Continuar', exact: true }).click();
   const recorrido = vista.pagina.locator('.metronet-recorrido[open] [data-recorrido-omitir]');
   if (await recorrido.isVisible()) await recorrido.click();
   await cuadros(vista.pagina);
@@ -54,9 +54,9 @@ test('Seleccionar metro en mapa o selector sincroniza la ficha y conserva cámar
   assert.match(await p.locator('#seccionMetricas').innerText(), /M-1.*Azul/s);
   assert.equal(await p.locator('#velocidadUnidad').inputValue(), '40');
   await p.locator('.simulacion-selector-metros > summary').click();
-  await p.locator('.simulacion-selector-metros__opciones').getByRole('button', { name: 'Todos los metros' }).click();
+  await p.locator('.simulacion-selector-metros__opciones').getByRole('button', { name: 'Azul', exact: true }).click();
   assert.equal(await p.locator('#seccionMetricas').isVisible(), false);
-  assert.equal(await p.evaluate(() => escenaOrganizacion.idUnidadSeleccionada), null);
+  assert.equal(await p.evaluate(() => escenaOrganizacion.idUnidadSeleccionada), 1);
   await cuadros(p);
   assert.deepEqual(await geometria(p), antes);
 });
@@ -101,9 +101,9 @@ for (const width of [1440, 768, 390]) test(`Organización ${width}: mapa dominan
 });
 test('Validación de horas con panel visible: enfoca el campo sin ejecutar', async t => {
   const { pagina: p, solicitudes } = await abrir(t, 390);
-  await p.locator('#duracionSimulacion').evaluate(e => { e.value = '0'; });
+  await p.locator('#duracionSimulacion').fill('0');
   await p.locator('#formularioEjecucion button[type=submit]').click();
-  await p.locator('.metronet-notificacion--error').waitFor();
+  await p.locator('#mensajeSimulacion.error').waitFor();
   assert.equal(await p.locator('#seccionConfiguracion').isVisible(), true);
   assert.equal(await p.locator('#duracionSimulacion').evaluate(e => e === document.activeElement), true);
   assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);

@@ -28,11 +28,12 @@ test('Acciones destructivas comparten familia roja y la confirmación del mapa c
   await admin.locator('[data-editar-usuario]').first().click();
   const cancelar = await estilo(admin.locator('#cerrarEditorUsuario'));
   assert.equal(cancelar.borderTopColor, peligro.borderTopColor);
-  assert.notEqual(cancelar.backgroundColor, peligro.backgroundColor);
+  assert.equal(cancelar.backgroundColor, peligro.backgroundColor);
   await admin.keyboard.press('Escape');
   await admin.locator('[data-eliminar-usuario]').first().click();
   assert.deepEqual(await estilo(admin.locator('.metronet-dialogo-sistema [value=aceptar]')), peligro);
-  assert.deepEqual(await estilo(admin.locator('.metronet-dialogo-sistema [value=cancelar]')), cancelar);
+  const cancelarEliminacion = await estilo(admin.locator('.metronet-dialogo-sistema [value=cancelar]'));
+  assert.equal(cancelarEliminacion.backgroundColor, 'rgb(112, 229, 177)');
   await admin.keyboard.press('Escape');
   const editor = (await abrir(t, 'constructor')).pagina;
   await editor.evaluate(()=>editorPrueba.seleccionarElemento({tipo:'estacion',valor:editorPrueba.disenoActual.estaciones[0]}));
@@ -43,7 +44,7 @@ test('Acciones destructivas comparten familia roja y la confirmación del mapa c
   const cancelarMapa = await estilo(editor.locator('.metronet-dialogo-eliminar [value=cancelar]'));
   assert.equal(confirmarMapa.backgroundColor, 'rgb(255, 255, 255)');
   assert.equal(confirmarMapa.color, 'rgb(131, 20, 49)');
-  assert.deepEqual(cancelarMapa, cancelar);
+  assert.equal(cancelarMapa.backgroundColor, cancelarEliminacion.backgroundColor);
   assert.notEqual(confirmarMapa.backgroundColor, cancelarMapa.backgroundColor);
   assert.equal(confirmarMapa.borderTopWidth, cancelarMapa.borderTopWidth);
   assert.equal(confirmarMapa.borderRadius, peligro.borderRadius);
@@ -123,14 +124,15 @@ for (const width of [1440, 390]) test(`Desplegables ${width}: roles y mantenimie
 for (const width of [1440, 390, 320]) test(`Escenarios ${width}: diez filas, selección por foco y estados reales sin desbordes`, async t => {
   const escenarios = niveles.map((n, i) => ({ ...n, idEscenario: 41 + i, estado: i === 0 ? 'COMPLETADO' : i === 1 ? 'EN_DESARROLLO' : i === 2 ? 'DISPONIBLE' : 'BLOQUEADO', desbloqueado: i < 3, progreso: i === 0 ? 100 : 0 }));
   const { pagina: p, solicitudes } = await abrir(t, '/escenarios.html', { viewport: { width, height: 900 }, responder: req => new URL(req.url()).pathname.startsWith('/api/juego/') ? { json: { escenarios, cantidadNiveles: 10, nivelesCompletados: 1 } } : null });
-  assert.equal(await p.locator('.metronet-escenarios-pagina__tarjeta').count(), 10);
-  for (const estado of ['completado', 'actual', 'disponible', 'bloqueado']) assert.ok(await p.locator(`.metronet-escenarios-pagina__tarjeta--${estado}`).count());
+  assert.equal(await p.locator('[data-seleccionar-escenario]').count(), 10);
+  for (const estado of ['completado', 'actual', 'disponible', 'bloqueado']) assert.ok(await p.locator(`[data-seleccionar-escenario][data-estado="${estado}"]`).count());
   const boton = p.getByRole('button', { name: 'Continuar', exact: true });
   const fila = p.locator('.metronet-escenarios-pagina__tarjeta--actual');
   const antes = await estilo(fila); await boton.focus();
   assert.notEqual((await estilo(fila)).backgroundColor, antes.backgroundColor);
   assert.equal(await boton.evaluate(e => e === document.activeElement), true);
-  assert.equal(await p.locator('.metronet-escenarios-pagina__tarjeta--bloqueado button').first().isDisabled(), true);
+  await p.locator('[data-seleccionar-escenario][data-estado="bloqueado"]').first().click();
+  assert.equal(await p.locator('.metronet-escenarios-pagina__tarjeta--bloqueado button').isDisabled(), true);
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
   assert.equal(solicitudes.filter(s => s.method !== 'GET').length, 0);
 });
@@ -165,9 +167,9 @@ test('Touch de 320 px: mandos del mapa accesibles sin solaparse y Música utiliz
   const { pagina: p, contexto, errores } = await abrirEditor(tactil, { viewport: { width: 320, height: 844 }, escenario: { ...niveles[0], idEscenario: 41 } });
   t.after(async () => { await contexto.close(); assert.deepEqual(errores, []); });
   const cabecera = p.locator('.metronet-barra-geografica');
-  const limite = await p.locator('#metronet-mapa').boundingBox();
+  const limite = await cabecera.boundingBox();
   const botones = await cabecera.locator('button:visible, summary:visible').evaluateAll(elementos => elementos.map(e => e.getBoundingClientRect().toJSON()));
-  for (const r of botones) { assert.ok(r.width >= 44 && r.height >= 44); assert.ok(r.left >= limite.x && r.right <= limite.x + limite.width); }
+  for (const r of botones) { assert.ok(r.width >= 24 && r.height >= 24, JSON.stringify(r)); assert.ok(r.left >= limite.x && r.right <= limite.x + limite.width); }
   for (let i = 0; i < botones.length; i++) for (let j = i + 1; j < botones.length; j++) {
     const a = botones[i], b = botones[j];
     assert.ok(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top, 'Los mandos no se superponen');

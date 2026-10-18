@@ -30,14 +30,17 @@ test('Recorrido completo: editor, niveles, administración, logout, bienvenida, 
  assert.deepEqual([...new Set(alturas)],[76]);
  assert.equal(await p.locator('.metronet-mapa-cargando').count(),0);
 });
-for(const reducedMotion of ['no-preference','reduce'])test(`Scroll nativo y transición ${reducedMotion}: nueva página arriba, atrás restaura`,async t=>{
+for(const reducedMotion of ['no-preference','reduce'])test(`Ranking paginado y transición ${reducedMotion}: navegación sin desplazamiento`,async t=>{
  const {pagina:p}=await abrir(t,'/ranking.html',{viewport:{width:1280,height:720},reducedMotion});
  await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Inicio',exact:true}).click();await p.locator('.metronet-inicio__tarjeta').first().waitFor();
- assert.equal(await p.evaluate(()=>getComputedStyle(document.body).animationName),reducedMotion==='reduce'?'none':'metronet-entrada-pagina');
+ assert.equal(await p.evaluate(()=>getComputedStyle(document.body).animationName),'none');
  assert.equal(await p.locator('link[href="/transiciones-documento.css"]').count(),0);
  await p.locator('.metronet-navegacion__enlaces').getByRole('link',{name:'Ranking',exact:true}).click();
- await p.locator('#clasificacionRanking tr').first().waitFor();await p.evaluate(()=>scrollTo(0,600));const anterior=await p.evaluate(()=>scrollY);assert.equal(anterior,600);
+ await p.locator('#clasificacionRanking tr').first().waitFor();
+ assert.equal(await p.locator('#clasificacionRanking tr').count(),6);
+ await p.locator('#rankingSiguiente').click();assert.equal(await p.locator('#paginaRanking').innerText(),'2 / 7');
+ assert.equal(await p.evaluate(()=>document.documentElement.scrollHeight>innerHeight+1),false);
  await p.evaluate(async()=>{const {navegarConCambiosPendientes}=await import('/src/navegacion/NavegacionAplicacion.js');await navegarConCambiosPendientes('/inicio.html');});await p.waitForURL('**/inicio.html');await p.locator('.metronet-inicio__tarjeta').first().waitFor();assert.equal(await p.evaluate(()=>scrollY),0);
- await p.goBack();await p.locator('#clasificacionRanking tr').first().waitFor();await p.waitForFunction(()=>scrollY===600);assert.equal(await p.evaluate(()=>scrollY),anterior);
+ await p.goBack();await p.locator('#clasificacionRanking tr').first().waitFor();assert.equal(await p.evaluate(()=>scrollY),0);assert.equal(await p.evaluate(()=>document.documentElement.scrollHeight>innerHeight+1),false);
  if(reducedMotion==='reduce')assert.equal(await p.evaluate(()=>getComputedStyle(document.body).animationName),'none');
 });

@@ -243,3 +243,25 @@ test('clic en marcador objetivo y clic fuera seleccionan y deseleccionan sin blo
   assert.equal(await pagina.evaluate(() => poi.puntoSeleccionado), null);
   await pagina.locator('.metronet-control-zoom-restaurar').click();
 });
+
+test('buscar y después elegir otro POI no deja el anterior con apariencia de selección', async t => {
+  const { pagina } = await preparar(t);
+  const resultado = await pagina.evaluate(() => {
+    const grafico = id => [...poi.representaciones.find(r => r.punto.id === id).contenedor.list[0].commandBuffer];
+    const inicial = grafico(1);
+    poi.seleccionarPunto(1, { desdeBusqueda: true });
+    const seleccionado = grafico(1);
+    poi.seleccionarPunto(26);
+    return {
+      inicial, seleccionado, anterior: grafico(1),
+      actuales: poi.puntos.filter(p => poi.resumirPunto(p).seleccionado).map(p => p.id),
+      buscadoVisible: poi.representaciones.find(r => r.punto.id === 1).contenedor.visible,
+      fijados: [...poi.puntosFijados],
+    };
+  });
+  assert.notDeepEqual(resultado.seleccionado, resultado.inicial);
+  assert.deepEqual(resultado.actuales, [26]);
+  assert.equal(resultado.buscadoVisible, true, 'La búsqueda puede conservar visibilidad sin simular una selección');
+  assert.deepEqual(resultado.fijados, [], 'Ningún punto se fija sin marcar Mantener visible');
+  assert.deepEqual(resultado.anterior, resultado.inicial, 'Solo el punto actual debe llevar el anillo de selección');
+});

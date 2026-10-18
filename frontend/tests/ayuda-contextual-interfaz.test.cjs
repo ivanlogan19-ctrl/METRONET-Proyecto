@@ -135,9 +135,10 @@ test('simulación: Tutorial, circulación, pausa y repetición sin consultas ext
   } });
   t.after(() => vista.contexto.close()); t.after(() => assert.deepEqual(vista.errores, []));
   const p = vista.pagina;
+  await p.locator('[data-oferta-tutorial]').getByRole('button', { name: 'Continuar', exact: true }).click();
   await estadoMotorAyuda(p, 'simular');
   assert.equal(await p.locator('#tutorialPantallaSimulacion').isVisible(), true);
-  assert.equal(await p.locator('.metronet-aprender-acceso').isVisible(), false);
+  assert.equal(await p.locator('.metronet-aprender-acceso').isVisible(), true);
   const iniciales = vista.solicitudes.filter(s => s.path.endsWith('/consigna')).length;
   await p.locator('#formularioEjecucion button[type=submit]').click();
   await estadoMotorAyuda(p, 'circulacion-EN_CURSO');

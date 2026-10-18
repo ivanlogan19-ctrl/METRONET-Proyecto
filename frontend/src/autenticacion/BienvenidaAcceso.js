@@ -1,3 +1,4 @@
+import { cambiarPantalla } from '../navegacion/CambioPantalla.js';
 import { iniciarAudioBienvenida } from '../audio/AudioBienvenida.js';
 
 const CLAVE_PENDIENTE = 'metronet:bienvenida-pendiente';
@@ -29,7 +30,7 @@ export function reanudarBienvenida(sesion) {
       || !pendiente.destino?.startsWith('/') || pendiente.destino.startsWith('//')) return false;
     const destino = DESTINO_INICIAL;
     prepararContinuacionDocumento(destino);
-    location.replace(destino);
+    cambiarPantalla(destino, { reemplazar: true });
     return true;
   } catch { return false; }
 }
@@ -57,7 +58,7 @@ export function continuarConBienvenida(sesion) {
       quitarPendiente();
       // La cobertura permanece hasta pagehide: no reaparece el login entre pantallas.
       prepararContinuacionDocumento(destino);
-      location.assign(destino);
+      cambiarPantalla(destino);
       resolve(true);
     };
     const salir = () => {

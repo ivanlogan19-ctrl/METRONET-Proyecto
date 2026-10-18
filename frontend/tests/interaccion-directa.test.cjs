@@ -151,13 +151,17 @@ test('Simular revisa y guarda antes de navegar; la intención se consume una sol
 });
 
 async function abrirTutorialManual(p){
- if(await p.locator('.metronet-recorrido').count()) return;
- if(!await p.locator('.metronet-tutorial-simulacion:popover-open').count()) await p.locator('#tutorialPantallaSimulacion').click();
- await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla'}).click();
+ if(await p.locator('.metronet-recorrido:not([data-oferta-tutorial])').count()) return;
+ const oferta=p.locator('[data-oferta-tutorial]');
+ await p.addLocatorHandler(oferta,()=>oferta.getByRole('button',{name:'Continuar',exact:true}).click());
+ try {
+  if(!await p.locator('.metronet-tutorial-simulacion:popover-open').count()) await p.locator('#tutorialPantallaSimulacion').click();
+  await p.locator('.metronet-tutorial-simulacion:popover-open').getByRole('button',{name:'Recorrer la pantalla',exact:true}).click();
+ } finally {await p.removeLocatorHandler(oferta);}
 }
 
 async function completarTutorialSimulacion(p){
- if(!await p.locator('.metronet-recorrido').count()) await abrirTutorialManual(p);
+ await abrirTutorialManual(p);
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
  for(let i=0;await tutorial.getAttribute('data-objetivo') !== 'fin' && i<25;i++)await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
  await tutorial.waitFor({state:'detached',timeout:5000});
@@ -176,7 +180,7 @@ async function demorarProgresoSimulacion(p,t){
 
 for(const repetido of [false,true])test(`Progreso demorado: Play manual 503 ${repetido?'sin tutorial repetido':'antes del tutorial'} no duplica ejecución`,async t=>{
  const {pagina:p}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
- if(repetido)await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v2:7','presentado'));
+ if(repetido)await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v6:7:1:libre:77','presentado'));
  const progreso=await demorarProgresoSimulacion(p,t);
  let intentos=0;
  await p.route('**/api/simulaciones/77/ejecutar',route=>{intentos++;return route.fulfill({status:503,json:{detail:'Error de prueba.'},headers:{'access-control-allow-origin':'*'}});});
@@ -193,7 +197,7 @@ for(const repetido of [false,true])test(`Progreso demorado: Play manual 503 ${re
   await p.waitForTimeout(250);
   assert.equal(await p.locator('.metronet-recorrido').count(),0);
  }else{
-  assert.equal(await p.locator('.metronet-recorrido').count(),0,'Modo Libre no ofrece tutorial de campaña');
+  assert.equal(await p.locator('.metronet-recorrido:not([data-oferta-tutorial])').count(),0,'La oferta no inicia el recorrido sin aceptación');
   await completarTutorialSimulacion(p);
  }
  assert.equal(intentos,1,'La intención consumida no reintenta el Play manual fallido');
@@ -201,7 +205,7 @@ for(const repetido of [false,true])test(`Progreso demorado: Play manual 503 ${re
 
 for(const manual of [false,true])test(`Progreso demorado sin tutorial: ${manual?'Play manual no se repite':'espera el Play manual'}`,async t=>{
  const {pagina:p,solicitudes}=await abrir(t,{tramos:[{nombreLinea:'Azul',estacionA:'Centro',estacionB:'Parque'},{nombreLinea:'Azul',estacionA:'Parque',estacionB:'Este'}]});
- await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v2:7','presentado'));
+ await p.evaluate(()=>localStorage.setItem('metronet:tutorial-pantalla-simulacion:v6:7:1:libre:77','presentado'));
  const progreso=await demorarProgresoSimulacion(p,t);
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');await progreso.solicitado;
  assert.equal(await p.locator('.metronet-recorrido').count(),0);
@@ -235,7 +239,7 @@ for(const cierre of ['Omitir','Escape'])test(`Simular pendiente: ${cierre} no ej
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');
  await abrirTutorialManual(p);
  const tutorial=p.locator('.metronet-recorrido');await tutorial.waitFor();
- if(cierre==='Omitir')await tutorial.getByRole('button',{name:'Omitir',exact:true}).click();
+ if(cierre==='Omitir')await tutorial.getByRole('button',{name:'Salir del tutorial',exact:true}).click();
  else {await tutorial.getByRole('button',{name:'Siguiente',exact:true}).focus();await p.keyboard.press('Escape');}
  await tutorial.waitFor({state:'detached'});
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
@@ -455,8 +459,10 @@ test('Nivel a Modo Libre: cambiar de diseño no consulta contenido del nivel ant
  await p.evaluate(async()=>{
   editorPrueba.escenariosJuego.push({idEscenario:45,numero:null,modo:'EDICION_LIBRE',nombre:'Modo Libre',desbloqueado:true});
   history.replaceState({},'','/?idDiseno=78&idEscenario=45&idIntento=124');
-  await editorPrueba.abrirDiseno(78);
+  window.cambioDisenoPrueba = editorPrueba.abrirDiseno(78);
  });
+ await p.getByRole('button',{name:'Ir a construir',exact:true}).click();
+ await p.evaluate(()=>window.cambioDisenoPrueba);
  assert.deepEqual(consultas,[],'El modo libre no tiene contenido de un nivel publicado');
  assert.equal(await p.evaluate(()=>editorPrueba.panelAyuda.numeroEducativo),null);
  assert.equal(await p.locator('[data-finalizar-red]').isVisible(),false);

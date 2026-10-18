@@ -1,3 +1,4 @@
+import { cambiarPantalla } from './CambioPantalla.js';
 import { configurarAccion, configurarAccionPorNombre, establecerCargaAccion } from '../interfaz/AccionesInterfaz.js';
 import { requerirSesion } from '../autenticacion/sesion.js';
 import { establecerContextoEnRuta } from '../red/ContextoDiseno.js';
@@ -259,7 +260,7 @@ async function iniciarEscenario(escenario, boton) {
             body: JSON.stringify({ versionEsperada: escenario.contenidoPublicado.version }) } : {}),
       }));
     if (!inicio) { mostrarMensaje(''); return; }
-    window.location.assign(establecerContextoEnRuta('/', inicio));
+    cambiarPantalla(establecerContextoEnRuta('/', inicio));
     navegando = true;
   } catch (error) {
     mostrarMensaje(error.message, 'error');

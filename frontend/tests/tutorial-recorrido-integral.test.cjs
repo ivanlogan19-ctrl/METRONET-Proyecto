@@ -75,7 +75,7 @@ for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial autom
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Nueva funcionalidad');
   await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),titulo);
-  assert.equal(await p.locator('[data-recorrido-omitir]').evaluate(e=>e.getBoundingClientRect().width),24);
+  assert.equal(await p.locator('[data-recorrido-omitir]').evaluate(e=>e.getBoundingClientRect().width),32);
   await p.keyboard.press('Escape');
  } else assert.equal(await p.locator('.metronet-recorrido').count(),0);
  assert.deepEqual(v.errores,[]);

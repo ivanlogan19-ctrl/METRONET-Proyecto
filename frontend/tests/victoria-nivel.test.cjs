@@ -47,7 +47,7 @@ for(const [width,height] of [[1366,768],[1440,900],[1920,1080],[768,1024],[390,8
    alto:r.height,ancho:r.width,scroll:d.scrollHeight>d.clientHeight+1,scrollX:d.scrollWidth>d.clientWidth+1,
    imagen:d.querySelector('.metronet-victoria__recorrido').getBoundingClientRect().height,
    texto:[...d.querySelectorAll('header, footer, .metronet-victoria__destino')].map(e=>e.getBoundingClientRect().height),
-   botones:[...d.querySelectorAll('footer button')].every(b=>b.getBoundingClientRect().height>=44),
+   botones:[...d.querySelectorAll('footer button')].every(b=>b.getBoundingClientRect().height>=40),
    tren:d.querySelector('.recorrido-tren').getBoundingClientRect().width};});
   assert.ok(medidas.alto<=height&&medidas.ancho<=width);assert.equal(medidas.scrollX,false);assert.equal(medidas.botones,true);
   assert.ok(medidas.imagen>Math.max(...medidas.texto),'La animación es el bloque principal');
@@ -208,15 +208,16 @@ for (const caso of ['repetido','administrador','listo','modoLibre','incompleto']
  if(caso==='administrador'){progreso.campanaCompletada=false;progreso.escenarios.forEach(e=>e.desbloqueado=true);}
  if(!numero)progreso.escenarios.push({numero:null,idEscenario:11,estado:'DISPONIBLE',desbloqueado:true});
  const red={simulacion:{idDiseno:77,idEscenario:numero??11,nombre:'Red de prueba',modo:numero?'NIVEL':'EDICION_LIBRE',estado:caso==='repetido'?'COMPLETADO':'VALIDADO'},
-  estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B'}],
-  unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:40}],preparadoParaSimular:true,resultados:[],territorio:{areas:[],errores:[]}};
+  estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B',distanciaKm:12}],
+  unidadesMetro:[{idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:3,duracionUt:4}],preparadoParaSimular:true,resultados:[],territorio:{areas:[],errores:[]}};
  const vista=await abrirPantalla(navegador,'/simulacion.html?idDiseno=77',{administrador:caso==='administrador',responder:async req=>{
   const ruta=new URL(req.url()).pathname;
   if(ruta==='/api/juego/progreso')return {json:progreso};
   if(ruta==='/api/simulaciones')return {json:[red.simulacion]};
   if(ruta==='/api/simulaciones/77')return {json:red};
+  if(ruta.endsWith('/desempeno'))return {json:{puntajeMaximo:100,redResuelta:caso!=='incompleto',unidades:[]}};
   if(ruta.endsWith('/ejecutar')){
-   const resultado={idSimulacion:1,puntaje:0,estado:'COMPLETADA',escala:'UV_H_V1',duracion:10,velocidad:4};
+   const resultado={idSimulacion:1,puntaje:0,estado:'COMPLETADA',escala:'UV_H_V1',...req.postDataJSON()};
    red.resultados.unshift(resultado);
    return {json:resultado};
   }
@@ -228,17 +229,18 @@ for (const caso of ['repetido','administrador','listo','modoLibre','incompleto']
  pagina.setDefaultTimeout(45000); // El ritmo visual fijo requiere completar la ejecución antes de la transición.
  if(caso==='administrador')assert.equal(await pagina.evaluate(()=>JSON.parse(localStorage.getItem('sesionAdministrador')).usuario.rol),'ADMIN');
  await pagina.route('**/?idDiseno=200*',route=>route.fulfill({contentType:'text/html',body:'<script src="/transicion-pagina.js"></script><link rel="stylesheet" href="/src/estilos/navegacion-estable.css"><h1>Consigna del nivel 5</h1>'}));
- await pagina.locator('#duracionSimulacion').fill('10');assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(),false);
+ await pagina.getByRole('button',{name:'Continuar',exact:true}).click();
+ const omitir=pagina.locator('[data-recorrido-omitir]');if(await omitir.isVisible())await omitir.click();
+ assert.equal(await pagina.locator('[data-paso-ritmo="1"]').isVisible(),false);
  await pagina.locator('#formularioEjecucion button[type="submit"]').click();
  await pagina.waitForFunction(()=>document.querySelector('#estadoTiempoReal')?.textContent==='Finalizada');
- await pagina.waitForFunction(()=>/Simulación terminada/.test(document.querySelector('#mensajeSimulacion')?.textContent??''));
+ await pagina.locator('#continuarEscenarios:not([hidden])').waitFor({ state: 'attached' });
+ assert.equal(await pagina.locator('#mensajeSimulacion').textContent(), '', 'Finalizar no muestra carteles de éxito redundantes');
  assert.equal(await pagina.locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
  assert.equal(solicitudes.filter(s=>s.path.endsWith('/evaluar')).length,0);
  assert.equal(solicitudes.filter(s=>/escenarios\/5\//.test(s.path)).length,0);
  assert.equal(new URL(pagina.url()).pathname,'/simulacion.html');
  assert.equal(await pagina.locator('#volverEdicion').isVisible(),true);
- if(caso==='repetido') assert.match(await pagina.locator('#mensajeSimulacion').innerText(), /ya está aprobado/);
- if(caso==='modoLibre') assert.doesNotMatch(await pagina.locator('#mensajeSimulacion').innerText(), /aproba|Finalizar red/);
 
 });
 

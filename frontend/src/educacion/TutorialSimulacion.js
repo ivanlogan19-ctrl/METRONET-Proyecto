@@ -1,3 +1,4 @@
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { ofrecerTutorial } from './OfertaTutorial.js';
 import { describirFunciones, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
@@ -77,6 +78,7 @@ export function crearPanelTutorialSimulacion(acceso, alRecorrer, alAbrir = () =>
   const repetir = document.createElement('button');
   repetir.type = 'button'; repetir.className = 'metronet-tutorial__repetir';
   configurarBotonIcono(repetir, 'reiniciar', 'Recorrer la pantalla');
+  configurarAccion(repetir, 'iniciarTutorial', { icono:true, conservarTexto:true });
   repetir.addEventListener('click', () => { cerrar(); acceso.focus({ preventScroll:true }); alRecorrer(); });
   panel.append(cabecera, estado, lista, repetir);
   document.body.append(panel);

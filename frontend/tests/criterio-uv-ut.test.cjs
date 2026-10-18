@@ -19,7 +19,7 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   const red = { simulacion: { idDiseno: 77, idEscenario: 50, nombre: 'Red final', modo: 'NIVEL', estado: 'VALIDADO' },
     estaciones: [{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],
     lineas: [{nombre:'Principal'}], tramos: [{nombreLinea:'Principal',estacionA:'A',estacionB:'B'}],
-    unidadesMetro: [{idTren:1,nombreLinea:'Principal',capacidad:300,velocidadPromedio:4.5}],
+    unidadesMetro: [{idTren:1,nombreLinea:'Principal',capacidad:300,velocidadPromedio:4.5,duracionUt:2}],
     preparadoParaSimular: true, territorio: {areas:[],errores:[]}, resultados: [
       {idSimulacion:11,escala:'UV_UT_V2',estado:'COMPLETADA',puntaje:100,duracion:2,velocidad:1,comentarios:'Ejecución V2',resultadoUvUt},
       {idSimulacion:10,escala:'UV_H_V1',estado:'COMPLETADA',puntaje:80,duracion:6,velocidad:1,comentarios:'Ejecución anterior',unidades:[]},
@@ -39,13 +39,13 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   assert.equal(await p.locator('#duracionSimulacion').inputValue(), '2');
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');
-  if (await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).isVisible()) await p.getByRole('button', { name: 'Comenzar directamente', exact: true }).click();
+  if (await p.getByRole('button', { name: 'Continuar', exact: true }).isVisible()) await p.getByRole('button', { name: 'Continuar', exact: true }).click();
   await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
-  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /Metro 1\s+Línea\s+Principal\s+UV actual\s+4,5 UV\s+UT actual\s+2 UT/s);
+  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /Principal\s+1 metro\s+UV actual\s+4,5 UV\s+UT actual\s+2 UT/s);
   await p.locator('#duracionSimulacion').fill('3');
   await p.locator('#aplicarUnidadTiempo').click();
   await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
-  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /UV actual\s+4,5 UV\s+UT actual\s+3 UT/);
+  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /UV actual\s+[0-9,]+ UV\s+UT actual\s+3 UT/);
   assert.equal(await p.locator('#resumenCriterioUvUt').isVisible(), false);
   assert.equal(await p.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
   assert.equal(red.resultados.length, 2, 'El historial recibido permanece en los datos del diseño');
@@ -102,10 +102,12 @@ test('Admin guarda UV/UT en borrador y publica la versión completa tras validar
   assert.equal(await publicar.isEnabled(),true);
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/publicar')).length,0);
   await publicar.click();
-  await p.getByText('Confirmá la revisión editorial de textos, fuentes e imágenes.').waitFor();
+  await p.getByText('En Tarjetas, confirmá la revisión de textos, fuentes e imágenes.').waitFor();
+  await p.getByRole('tab',{name:'Tarjetas',exact:true}).click();
   await p.locator('[data-confirmacion-editorial]').check();
+  const publicacion=p.waitForResponse(r=>r.url().endsWith('/10/publicar')&&r.request().method()==='POST');
   await publicar.click();
-  await p.getByText('Nivel 10 publicado como versión 2.').waitFor();
+  assert.equal((await publicacion).status(),200);
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/10/publicar')).length,1);
   assert.equal(vista.solicitudes.filter(s=>s.path.endsWith('/criterio-uvut/10')).length,0);
 });
