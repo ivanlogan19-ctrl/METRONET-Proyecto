@@ -13,11 +13,13 @@ test('rechaza archivos incompletos o sin cartografía, sin fabricar colores', as
  const { validarPoblacion } = await modelo();
  const datos = JSON.parse(fs.readFileSync('frontend/src/mapa/datos/poblacion-montevideo.geojson'));
  validarPoblacion(datos);
- assert.equal(datos.metadata.anio, 2011);
- assert.equal(datos.features.length, 13621);
- assert.equal(datos.features.filter(f => f.properties.poblacion === null).length, 15);
+ assert.equal(datos.metadata.anio, 2023);
+ assert.equal(datos.features.length, 1067);
+ assert.equal(datos.features.filter(f => f.properties.poblacion === null).length, 0);
+ assert.equal(datos.features.reduce((s, f) => s + f.properties.poblacion, 0), 1279409);
  assert.equal(datos.metadata.poblacionSinGeometria.length, 0);
- assert.equal(datos.metadata.paginas.length, 21);
+ assert.equal(datos.metadata.unidadTerritorial, 'segmento censal');
+ assert.match(datos.metadata.sha256, /^[a-f0-9]{64}$/);
  assert.throws(()=>validarPoblacion({estado:'no_disponible'}));
  const f = {properties:{id:1,poblacion:100,areaKm2:.02},geometry:{type:'Polygon',coordinates:[[[-56,-35],[-56.01,-35],[-56,-35.01],[-56,-35]]]}};
  const muestra = {type:'FeatureCollection',metadata:{anio:2011,totalFuente:1,sinGeometria:[]},features:[f]};
@@ -26,4 +28,12 @@ test('rechaza archivos incompletos o sin cartografía, sin fabricar colores', as
  assert.throws(()=>validarPoblacion({...muestra,features:[f,f]}));
  f.properties.poblacion = -1;
  assert.throws(()=>validarPoblacion(muestra));
+});
+
+test('el modelo admite el censo 2023 y rechaza años sin soporte', async () => {
+ const { validarPoblacion } = await modelo();
+ const f = {properties:{id:1,poblacion:100,areaKm2:.02},geometry:{type:'Polygon',coordinates:[[[-56,-35],[-56.01,-35],[-56,-35.01],[-56,-35]]]}};
+ const datos = {type:'FeatureCollection',metadata:{anio:2023,totalFuente:1,sinGeometria:[]},features:[f]};
+ assert.equal(validarPoblacion(datos), datos);
+ assert.throws(() => validarPoblacion({...datos, metadata:{...datos.metadata,anio:2025}}));
 });

@@ -14,7 +14,7 @@ export function colorPoblacion(propiedades) {
   return densidad === null ? COLOR_SIN_DATOS : BANDAS_POBLACION.find(b => densidad <= b.maximo).color;
 }
 export function validarPoblacion(datos) {
-  if (datos?.type !== 'FeatureCollection' || datos.metadata?.anio !== 2011 || !datos.features?.length
+  if (datos?.type !== 'FeatureCollection' || ![2011, 2023].includes(datos.metadata?.anio) || !datos.features?.length
     || datos.features.length + (datos.metadata.sinGeometria?.length ?? 0) !== datos.metadata.totalFuente) throw new Error('Cobertura censal inválida');
   const ids = new Set();
   for (const f of datos.features) {

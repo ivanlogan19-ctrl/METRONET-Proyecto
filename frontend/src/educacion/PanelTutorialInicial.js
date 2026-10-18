@@ -194,7 +194,7 @@ export default class PanelTutorialInicial {
       ? 'Simulá la red y volvé para finalizar el nivel.' : 'Simulá tu red y volvé para seguir editando.']);
     if (visible('[data-calles-visible]')) temas.push(['calles', 'Mostrá las vías reales y acercate para ver calles. Podés construir encima.']);
     if (visible('#opacidad-calles')) temas.push(['capas', 'Ajustá la transparencia de las calles.']);
-    if (visible('[data-poblacion-visible]')) temas.push(['poblacion', 'Mostrá densidad del Censo 2011 y ajustá su transparencia. No cambia con la hora del tráfico.']);
+    if (visible('[data-poblacion-visible]')) temas.push(['poblacion', 'Mostrá densidad del Censo 2023 y ajustá su transparencia. No cambia con la hora del tráfico.']);
     if (visible('[data-desplazamientos-visible]')) temas.push(['desplazamientos', 'Explorá viajes históricos por hora y pausá las flechas. Fuentes y años en Reglas → Fuentes del mapa.']);
     if (visible('[data-trafico-visible]')) temas.push(['trafico', 'Consultá tráfico histórico por hora. Los colores muestran intensidad relativa; no atascos.']);
     const requierePoi = this.contexto?.escenario?.reglasExito?.puntosInteresObjetivo?.length

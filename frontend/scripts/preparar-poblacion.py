@@ -1,86 +1,60 @@
-"""Preparar Censo 2011 INE desde páginas oficiales MGAP (geometría) y SIT/MVOT (población).
-Uso: python3 frontend/scripts/preparar-poblacion.py /directorio/paginas
-Requiere GDAL/ogr2ogr. Consultas y hashes quedan en el GeoJSON. No extrapola datos.
+"""Preparar los segmentos del Censo 2023 publicados por el INE, sin interpolación.
+Uso: python3 frontend/scripts/preparar-poblacion.py /ruta/sg_23_pg.gpkg
+Requiere GDAL/ogr2ogr. El archivo se obtiene del ZIP oficial indicado en FUENTE.
 """
 import datetime
 import hashlib
 import json
 import math
 import pathlib
+import sqlite3
 import subprocess
 import sys
 import tempfile
 
-GEOMETRIA = 'https://dgrn.mgap.gub.uy/arcgis/rest/services/BASE/Administrativo/MapServer/1'
-POBLACION = 'https://sit.mvot.gub.uy/arcgis/rest/services/07_EXTERNO/INDICADORES_CENSO/MapServer/6'
+FUENTE = 'https://www5.ine.gub.uy/documents/CENSO%202023/Cartografia/Vectoriales/Unidades%20Geoestadisticas%20Censo%202023.zip'
 
-def clave(valores):
-    return '-'.join(str(int(v)).zfill(n) for v, n in zip(valores, [2, 2, 3, 3]))
-
-def area_km2(anillos):
-    # ESRI: exteriores horarios e interiores antihorarios. Calcular en UTM 21S,
-    # antes de redondear o reproyectar: los huecos restan área.
-    return abs(sum(sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(r,r[1:])) / 2 for r in anillos)) / 1e6
-
-def leer_paginas(carpeta, prefijo, cantidad):
-    features, ids, hashes = [], set(), []
-    for archivo in sorted(pathlib.Path(carpeta).glob(f'{prefijo}-*.json'), key=lambda p:int(p.stem.split('-')[-1])):
-        raw = archivo.read_bytes()
-        hashes.append({'pagina': archivo.name, 'sha256': hashlib.sha256(raw).hexdigest()})
-        for f in json.loads(raw)['features']:
-            identificador = f['attributes']['OBJECTID']
-            assert identificador not in ids, 'Página duplicada'
-            ids.add(identificador); features.append(f)
-    assert len(features) == cantidad, f'{prefijo}: cobertura incompleta {len(features)}/{cantidad}'
-    return features, hashes
-
-def preparar(carpeta):
-    censos, hashes_p = leer_paginas(carpeta, 'poblacion', 13606)
-    zonas, hashes_g = leer_paginas(carpeta, 'geometria', 13621)
-    poblaciones = {}
-    for f in censos:
-        p = f['attributes']; assert int(p['DPTO']) == 1
-        codigo = clave([p[k] for k in ['DPTO','SECC','SEGM','ZONA_1']])
-        assert codigo not in poblaciones, 'Código censal duplicado'
-        valor = p['P_TOT']
-        assert valor is None or (isinstance(valor, int) and valor >= 0)
-        poblaciones[codigo] = valor
-    features, usadas, sin_poblacion = [], set(), []
-    for f in zonas:
-        p,g = f['attributes'],f['geometry']; assert p['DEPTO'] == 1 and g.get('rings')
-        codigo = clave([p[k] for k in ['DEPTO','SECCION','SEGMENTO','ZONA']])
-        codificada = p['SECCION'] > 0 and p['SEGMENTO'] > 0
-        if codificada:
-            assert codigo not in usadas, 'Geometría censal duplicada'
-            usadas.add(codigo)
-        superficie = area_km2(g['rings']); assert math.isfinite(superficie) and superficie > 0
-        poblacion = poblaciones.get(codigo) if codificada else None
-        if poblacion is None: sin_poblacion.append({'zona':codigo,'id':p['OBJECTID']})
-        features.append({'attributes': {'id':p['OBJECTID'], 'zona':codigo, 'poblacion':poblacion, 'areaKm2':superficie}, 'geometry':g})
-    # GDAL interpreta los anillos exteriores/huecos/multipolígonos de ESRI y reproyecta.
-    with tempfile.TemporaryDirectory() as tmp:
-        entrada, salida = pathlib.Path(tmp)/'zonas.json', pathlib.Path(tmp)/'zonas.geojson'
-        entrada.write_text(json.dumps({'geometryType':'esriGeometryPolygon','spatialReference':{'wkid':32721},'features':features}))
-        subprocess.run(['ogr2ogr','-f','GeoJSON','-s_srs','EPSG:32721','-t_srs','EPSG:4326',str(salida),str(entrada),'-lco','COORDINATE_PRECISION=6'],check=True)
+def preparar(archivo):
+    archivo = pathlib.Path(archivo).resolve()
+    with sqlite3.connect(f'{archivo.as_uri()}?mode=ro', uri=True) as conexion:
+        cantidad = conexion.execute("SELECT COUNT(*) FROM sg_23_pg WHERE DEPTO='01'").fetchone()[0]
+    if not cantidad:
+        raise ValueError('La fuente no contiene segmentos de Montevideo')
+    with tempfile.TemporaryDirectory() as directorio:
+        salida = pathlib.Path(directorio) / 'segmentos.geojson'
+        subprocess.run(['ogr2ogr', '-f', 'GeoJSON', str(salida), str(archivo),
+            '-sql', "SELECT geom, fid + 0 AS id, CODSEG AS zona, POB_TOT_23 AS poblacion, AREA_KM2 AS areaKm2 FROM sg_23_pg WHERE DEPTO='01'",
+            '-t_srs', 'EPSG:4326', '-lco', 'COORDINATE_PRECISION=6'], check=True)
         datos = json.loads(salida.read_text())
+    ids, codigos = set(), set()
     for f in datos['features']:
-        f['properties'].setdefault('poblacion', None)
-    assert len(datos['features']) == 13621
-    datos.pop('crs',None);datos.pop('name',None)
-    datos['metadata'] = {'version':1,'anio':2011,'fuente':POBLACION,'fuenteGeometria':GEOMETRIA,
-        'autor':'Instituto Nacional de Estadística (INE)','publicador':'MGAP y SIT / MVOT','descarga':datetime.date.today().isoformat(),
-        'unidad':'habitantes/km²','totalFuente':len(zonas),'totalPoblacionFuente':len(censos),'sinGeometria':[],
-        'poblacionSinGeometria':sorted(set(poblaciones)-usadas),'sinPoblacion':sin_poblacion,
-        'metodologia':'Unión exacta por departamento/sección/segmento/zona del Censo 2011. P_TOT dividido por área de polígonos oficiales calculada en UTM 21S, descontando huecos, antes de reproyectar a WGS84 y redondear a 6 decimales. Sin interpolación.',
-        'licencia':'Cartografía INE: uso libre citando al INE, según metadatos MGAP. Población: datos abiertos SIT/MVOT, atribución INE.',
-        'metadatosGeometria':'https://dgrn.mgap.gub.uy/Metadatos/ine_zonas_11_metadatos.pdf',
-        'declaracionDatosAbiertos':'https://www.gub.uy/ministerio-vivienda-ordenamiento-territorial/tramites-y-servicios/servicios/sistema-informacion-territorial',
-        'consultas':{'geometria':"DEPTO=1; outFields=*; returnGeometry=true; outSR=32721; orderByFields=OBJECTID; resultRecordCount=1000; f=json",'poblacion':"DPTO='01'; outFields=*; returnGeometry=false; orderByFields=OBJECTID; resultRecordCount=2000; f=json"},
-        'paginas':hashes_g+hashes_p}
+        p = f['properties']
+        if (p.get('id') in ids or p.get('zona') in codigos or not p.get('zona')
+            or (f.get('geometry') or {}).get('type') not in ('Polygon', 'MultiPolygon')):
+            raise ValueError('Segmento duplicado o sin geometría')
+        poblacion, superficie = p.get('poblacion'), p.get('areaKm2')
+        if (not isinstance(poblacion, (int, float)) or not math.isfinite(poblacion) or poblacion < 0 or poblacion != int(poblacion)
+            or not isinstance(superficie, (int, float)) or not math.isfinite(superficie) or superficie <= 0):
+            raise ValueError('Población o superficie inválida')
+        p['poblacion'] = int(poblacion)
+        ids.add(p['id']); codigos.add(p['zona'])
+    if len(ids) != cantidad:
+        raise ValueError('Cobertura incompleta de la fuente')
+    datos.pop('crs', None); datos.pop('name', None)
+    datos['metadata'] = {
+        'version':2, 'anio':2023, 'fuente':FUENTE, 'fuenteGeometria':FUENTE,
+        'autor':'Instituto Nacional de Estadística (INE)', 'publicador':'INE',
+        'archivoFuente':archivo.name, 'sha256':hashlib.sha256(archivo.read_bytes()).hexdigest(),
+        'descarga':datetime.date.today().isoformat(), 'unidad':'habitantes/km²', 'unidadTerritorial':'segmento censal',
+        'totalFuente':cantidad, 'totalPoblacionFuente':cantidad, 'sinGeometria':[], 'sinPoblacion':[], 'poblacionSinGeometria':[],
+        'metodologia':'POB_TOT_23 dividido por AREA_KM2 del mismo segmento oficial del Censo 2023. Cartografía INE en WGS84, redondeada a 6 decimales. Sin interpolación ni proyecciones. La resolución corresponde a segmentos, no a zonas censales.',
+        'atribucion':'Fuente: INE, Unidades Geoestadísticas Censo 2023, sg_23_pg.gpkg.',
+        'paginaFuente':'https://www.gub.uy/instituto-nacional-estadistica/politicas-y-gestion/unidades-geostadisticas',
+    }
     return datos
 
 if __name__ == '__main__':
     datos = preparar(sys.argv[1])
-    destino = pathlib.Path(__file__).parents[1]/'src/mapa/datos/poblacion-montevideo.geojson'
-    destino.write_text(json.dumps(datos,ensure_ascii=False,separators=(',',':'))+'\n')
-    print(json.dumps({'zonas':len(datos['features']),'sinPoblacion':len(datos['metadata']['sinPoblacion']),'poblacionSinGeometria':len(datos['metadata']['poblacionSinGeometria']),'bytes':destino.stat().st_size}))
+    destino = pathlib.Path(__file__).parents[1] / 'src/mapa/datos/poblacion-montevideo.geojson'
+    destino.write_text(json.dumps(datos, ensure_ascii=False, separators=(',', ':')) + '\n')
+    print(json.dumps({'segmentos':len(datos['features']), 'poblacion':sum(f['properties']['poblacion'] for f in datos['features']), 'bytes':destino.stat().st_size}))

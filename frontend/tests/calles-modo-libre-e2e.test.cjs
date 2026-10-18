@@ -101,8 +101,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await frame().locator('#accionesInicio[aria-busy="false"]').waitFor();
     for (const [ancho, alto] of [[1440, 900], [1366, 768], [1280, 720], [390, 844]]) {
       await page.setViewportSize({ width: ancho, height: alto });
-      await frame().waitForFunction(() => [...document.querySelectorAll('.metronet-inicio__ilustracion')].length === 2
-        && [...document.querySelectorAll('.metronet-inicio__ilustracion')].every(i => i.complete && i.naturalWidth > 0));
+      await frame().locator('.metronet-inicio__nivel-actual').waitFor();
+      assert.equal(await frame().locator('.metronet-inicio__ilustracion').count(), 0);
       const disposicion = await frame().evaluate(() => {
         const cajas = [...document.querySelectorAll('.metronet-inicio__tarjeta-pie')].map(e => e.getBoundingClientRect());
         return { sinDesborde: document.documentElement.scrollWidth <= innerWidth,
@@ -118,7 +118,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     assert.equal(await frame().locator('.metronet-inicio__tarjeta--crear button').isEnabled(), true);
-    assert.match(await frame().locator('.metronet-inicio__nombre-nivel').innerText(), /Nivel 1/i);
+    assert.match(await frame().locator('.metronet-inicio__nivel-actual').innerText(), /Nivel 1/i);
     await frame().locator('.metronet-inicio__tarjeta--continuar a').click();
     const contextoJugador = await browser.newContext();
     t.after(() => contextoJugador.close());
@@ -138,6 +138,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await vistaJugador.getByRole('link', { name: 'Reglas', exact: true }).first().click();
     assert.equal(await vistaJugador.locator('#listaFuentesMapa').count(), 0, 'Las fuentes se consultan en Administración');
     await vistaJugador.getByRole('link', { name: 'Administración', exact: true }).first().click();
+    await vistaJugador.locator('.admin-enlace.activo[data-vista="unidades"]').waitFor();
     await vistaJugador.locator('#vista-unidades:not([hidden])').waitFor();
     assert.deepEqual(await vistaJugador.locator('.admin-enlace').evaluateAll(es => es.map(e => e.dataset.vista)), ['fuentes', 'unidades']);
     const marcoJugador = paginaJugador.frames().find(f => f.parentFrame());
@@ -164,8 +165,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
 
     await vistaJugador.locator('#nombre').fill('Perfil QA');
     await vistaJugador.locator('#apellido').fill('Verificado');
-    await vistaJugador.locator('#guardarDatosPersonales').click();
-    await vistaJugador.getByText('Información personal actualizada correctamente.',{exact:true}).waitFor();
+    await Promise.all([paginaJugador.waitForResponse(r => r.url().endsWith('/auth/perfil/datos-personales') && r.request().method() === 'PATCH' && r.ok()), vistaJugador.locator('#guardarDatosPersonales').click()]);
+    await marcoJugador.waitForFunction(() => !document.querySelector('#guardarDatosPersonales').disabled);
     await marcoJugador.goto(BASE + '/perfil.html');
     await vistaJugador.locator('.perfil-contenedor[aria-busy="false"]').waitFor();
     assert.equal(await vistaJugador.locator('#apellido').inputValue(),'Verificado');
@@ -174,7 +175,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await vistaJugador.locator('[data-target="contrasenaActual"]').click();
     assert.equal(await vistaJugador.locator('#contrasenaActual').getAttribute('type'),'password');
     console.log('Perfil real: tipografía, alineación, sin scroll, guardado y recuperación: PASS');
-    await frame().getByRole('button', { name: 'Entrar al Modo Libre', exact: true }).click();
+    await frame().locator('.metronet-escenarios-pagina__opcion-libre').click();
+    await frame().getByRole('button', { name: 'Iniciar', exact: true }).click();
     await esperarEditor();
     await frame().getByRole('button', { name: 'Ir a construir', exact: true }).click();
     await frame().waitForFunction(() => juegoPrueba.scene.getScene('MapaScene').capaCalles.estado === 'lista');
@@ -264,7 +266,8 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     const censoDisponible = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '../src/mapa/datos/poblacion-montevideo.geojson'))).estado !== 'no_disponible';
     assert.equal(censoDisponible, true, 'La aceptación requiere datos censales reales');
     await frame().waitForFunction(() => juegoPrueba.scene.getScene('MapaScene').capaPoblacion.estado === 'lista');
-    assert.ok(await leer(() => { const s = juegoPrueba.scene.getScene('MapaScene'); return s.capaPoblacion.datos.features.length > 13000 && !s.capaPoblacion.grafico.input && s.capaPoblacion.grafico.depth < s.capaCalles.grafico.depth && s.capaBarrios.graficos.every(g => g.grafico.depth > s.capaPoblacion.grafico.depth); }));
+    assert.deepEqual(await leer(() => { const d = juegoPrueba.scene.getScene('MapaScene').capaPoblacion.datos; return [d.metadata.anio, d.features.length, d.metadata.unidadTerritorial]; }), [2023, 1067, 'segmento censal']);
+    assert.ok(await leer(() => { const s = juegoPrueba.scene.getScene('MapaScene'); return !s.capaPoblacion.grafico.input && s.capaPoblacion.grafico.depth < s.capaCalles.grafico.depth && s.capaBarrios.graficos.every(g => g.grafico.depth > s.capaPoblacion.grafico.depth); }), 'La población debe quedar debajo de las calles y barrios, sin capturar clics');
     const densidad = frame().getByRole('slider', { name: 'Opacidad de densidad de población' });
     await densidad.fill('40');
     assert.deepEqual(await leer(() => { const s = juegoPrueba.scene.getScene('MapaScene'); return [s.capaPoblacion.grafico.alpha,s.capaCalles.grafico.alpha]; }), [.4,.65]);
@@ -426,6 +429,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     // Reingreso con sesión real: las operaciones vuelven desde PostgreSQL.
     await login();
     await frame().getByRole('link', { name: 'Mis diseños', exact: true }).first().click();
+    await frame().locator('#pestanaDisenosLibres').click();
     let fallarCartografia = true;
     await context.route('**/calles-montevideo.geojson*', route => {
       if (fallarCartografia) { fallarCartografia = false; return route.abort(); }
@@ -512,7 +516,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     const respuestaEjecucion = page.waitForResponse(r=>r.url().endsWith('/ejecutar') && r.request().method()==='POST' && r.ok());
     await frame().getByRole('button', { name: 'Iniciar simulación', exact: true }).click();
     const resultadoFisico = await (await respuestaEjecucion).json();
-    assert.equal(resultadoFisico.escala,'UV_KM_UT_V3');
+    assert.equal(resultadoFisico.escala,'UV_KM_UT_LINEA_V4');
     assert.ok(resultadoFisico.unidades.length>0);
     for (const unidad of resultadoFisico.unidades) {
       assert.ok(unidad.distanciaKm>0);
@@ -574,13 +578,13 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     const guardarMantenimiento = frame().locator('[data-guardar-configuracion="modo_mantenimiento"]');
     await mantenimiento.selectOption('activado');
     await Promise.all([page.waitForResponse(r=>r.url().includes('/api/admin/configuracion/modo_mantenimiento') && r.request().method()==='PATCH' && r.ok()), guardarMantenimiento.click()]);
-    await frame().locator('#mensajeConfiguracion').filter({hasText:'actualizada correctamente'}).waitFor();
+    await frame().waitForFunction(() => !document.querySelector('[data-guardar-configuracion="modo_mantenimiento"]').disabled);
     await frame().getByRole('button', {name:'Unidades y equivalencias',exact:true}).click();
     await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/admin/configuracion') && r.request().method()==='GET' && r.ok()), frame().getByRole('button', {name:'Configuración',exact:true}).click()]);
     await frame().waitForFunction(() => document.querySelector('#configuracion-modo_mantenimiento')?.value === 'activado');
     await mantenimiento.selectOption('desactivado');
     await Promise.all([page.waitForResponse(r=>r.url().includes('/api/admin/configuracion/modo_mantenimiento') && r.request().method()==='PATCH' && r.ok()), guardarMantenimiento.click()]);
-    await frame().locator('#mensajeConfiguracion').filter({hasText:'actualizada correctamente'}).waitFor();
+    await frame().waitForFunction(() => !document.querySelector('[data-guardar-configuracion="modo_mantenimiento"]').disabled);
     for (const [ancho,alto] of [[1440,900],[1280,720],[390,844]]) {
       await page.setViewportSize({width:ancho,height:alto});
       for (const [vista, nombre] of [['configuracion','Configuración'],['unidades','Unidades y equivalencias'],['fuentes','Fuentes del mapa']]) {
@@ -590,16 +594,16 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
           horizontal:document.documentElement.scrollWidth<=innerWidth,
           vertical:document.querySelector('#vista-'+vista).getBoundingClientRect().bottom<=innerHeight+1,
           sinScroll:document.documentElement.scrollHeight<=innerHeight+1,
-          tituloAlineado:Math.abs(document.querySelector('.admin-enlace').getBoundingClientRect().top-document.querySelector('#tituloVista').getBoundingClientRect().top)<1,
-          senalLibre:document.querySelector('.admin-senal-ferroviaria').getBoundingClientRect().top>=document.querySelector('.admin-navegacion').getBoundingClientRect().bottom,
+          menuDentro: [...document.querySelectorAll('.admin-enlace')].every(e => { const r=e.getBoundingClientRect(); return r.top>=0 && r.bottom<=innerHeight && r.left>=0; }),
+          sinSenal:document.querySelector('.admin-senal-ferroviaria')===null,
         }), vista);
         await page.screenshot({path:`/tmp/metronet-admin-${vista}-${ancho}.png`,fullPage:true,animations:'disabled'});
         assert.equal(medidas.horizontal,true, `${vista}: sin desborde horizontal a ${ancho}px`);
         if(ancho>800) {
           assert.equal(medidas.vertical,true, `${vista}: cabe en ${ancho}×${alto}`);
           assert.equal(medidas.sinScroll,true, `${vista}: sin desplazamiento vertical`);
-          assert.equal(medidas.tituloAlineado,true, `${vista}: menú alineado con el título`);
-          assert.equal(medidas.senalLibre,true, `${vista}: señal sin superponerse al menú`);
+          assert.equal(medidas.menuDentro,true, `${vista}: menú completo dentro de la pantalla`);
+          assert.equal(medidas.sinSenal,true, `${vista}: la señal decorativa retirada no reaparece`);
         }
       }
     }
