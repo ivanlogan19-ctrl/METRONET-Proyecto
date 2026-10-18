@@ -302,8 +302,8 @@ class JuegoEducativoServiceTest {
     }
 
     private JuegoEducativoService crearServicio() {
-        return new JuegoEducativoService(jdbcTemplate, new ObjectMapper(), objetivosPuntosInteresService,
-            new CondicionesGeograficasService(jdbcTemplate, new ObjectMapper(), new GeografiaService(new ObjectMapper()), org.mockito.Mockito.mock(RestriccionesGeograficasService.class)));
+        return com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbcTemplate, new ObjectMapper(), objetivosPuntosInteresService,
+            new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbcTemplate), new ObjectMapper(), new GeografiaService(new ObjectMapper()), org.mockito.Mockito.mock(RestriccionesGeograficasService.class)));
     }
 
     private Usuario usuario(Rol rol) {

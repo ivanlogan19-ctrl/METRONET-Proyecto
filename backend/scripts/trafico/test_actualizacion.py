@@ -95,7 +95,7 @@ class ActualizacionTest(unittest.TestCase):
 
     def test_solo_https_oficial_incluso_redirecciones(self):
         for url in ['http://ckan-data.montevideo.gub.uy/a.zip','https://evil.test/a.zip','https://ckan-data.montevideo.gub.uy:888/a.zip','https://u:p@ckan-data.montevideo.gub.uy/a.zip']:
-            with self.subTest(url=url), self.assertRaises(ValueError): a.validar_url(url)
+            with self.subTest(url=url), self.assertRaises(ValueError): a.validarUrl(url)
         with self.assertRaises(ValueError):
             a.RedireccionOficial().redirect_request(None,None,302,'',{},'http://127.0.0.1/a')
 

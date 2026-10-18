@@ -27,13 +27,13 @@ class ValidacionPublicacionNivelPostgresTest {
                 var jdbc=new JdbcTemplate(datos);
                 var mapper=new ObjectMapper();
                 var geo=new GeografiaService(mapper);
-                var restricciones=new RestriccionesGeograficasService(jdbc,mapper,geo);
+                var restricciones=new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc),mapper,geo);
                 var objetivos=new ObjetivosPuntosInteresService(mapper,geo);
-                var condiciones=new CondicionesGeograficasService(jdbc,mapper,geo,restricciones);
-                var juego=new JuegoEducativoService(jdbc,mapper,objetivos,condiciones);
-                var simulaciones=new SimulacionService(jdbc,org.mockito.Mockito.mock(DisenoAdministracionService.class),
+                var condiciones=new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc),mapper,geo,restricciones);
+                var juego=com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc,mapper,objetivos,condiciones);
+                var simulaciones=com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc,org.mockito.Mockito.mock(DisenoAdministracionService.class),
                     objetivos,juego,restricciones);
-                var validador=new ValidacionPublicacionNivelService(jdbc,datos,mapper,juego,simulaciones);
+                var validador=new ValidacionPublicacionNivelService(new com.metronet.backend.repository.ValidacionPublicacionNivelRepository(jdbc,datos),mapper,juego,simulaciones);
                 int admin=jdbc.queryForObject("""
                     INSERT INTO usuario(nombre,email,password,rol) VALUES
                       ('Admin Referencia','admin-referencia-qa@local.test','hash-de-prueba','ADMIN') RETURNING id_usuario
@@ -112,8 +112,8 @@ class ValidacionPublicacionNivelPostgresTest {
                 }
                 assertEquals(intentos,jdbc.queryForObject("SELECT COUNT(*) FROM intento",Integer.class));
                 assertEquals(simulacionesPrevias,jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class));
-                var borradores=new AdministracionNivelesService(jdbc,mapper);
-                var publicador=new PublicacionNivelService(jdbc,borradores,validador,mapper);
+                var borradores=new AdministracionNivelesService(new com.metronet.backend.repository.AdministracionNivelesRepository(jdbc),mapper);
+                var publicador=new PublicacionNivelService(new com.metronet.backend.repository.PublicacionNivelRepository(jdbc),borradores,validador,mapper);
                 ObjectNode contenidoImposible=contenido.deepCopy();
                 ((ObjectNode)contenidoImposible.path("herramientasHabilitadas")).put("estaciones",false);
                 var borradorImposible=borradores.borrador(1);
@@ -144,7 +144,7 @@ class ValidacionPublicacionNivelPostgresTest {
                       ('Jugador QA','jugador-version-qa@local.test','hash-de-prueba','JUGADOR') RETURNING id_usuario
                     """,Integer.class);
                 var intentoAnterior=juego.iniciarEscenario(jugador,escenario);
-                var lector=new ContenidoPublicadoNivelService(jdbc,mapper);
+                var lector=new ContenidoPublicadoNivelService(new com.metronet.backend.repository.ContenidoPublicadoNivelRepository(jdbc),mapper);
                 assertEquals(2,lector.deIntento(intentoAnterior.idIntento(),jugador).version());
                 var previo=borradores.borrador(1);
                 ((ObjectNode)contenido.path("desafio")).put("objetivo","Conectá dos estaciones con una línea revisada.");

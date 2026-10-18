@@ -44,7 +44,7 @@ class ActividadAdministrativaEliminacionTest {
         when(auth.obtenerAdministradorAutorizado("Bearer jugador"))
             .thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo administradores"));
         http = MockMvcBuilders.standaloneSetup(new ActividadAdministrativaController(
-            new ActividadAdministrativaService(jdbc), auth
+            new ActividadAdministrativaService(new com.metronet.backend.repository.ActividadAdministrativaRepository(jdbc)), auth
         )).build();
     }
 

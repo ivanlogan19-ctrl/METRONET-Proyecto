@@ -1,14 +1,14 @@
 package com.metronet.backend.service;
 
-import com.metronet.backend.entity.Usuario;
-import com.metronet.backend.enums.Rol;
-import com.metronet.backend.repository.UsuarioRepository;
 import com.metronet.backend.dto.EjecutarSimulacionRequest;
 import com.metronet.backend.dto.ValidacionDisenoResponse;
+import com.metronet.backend.entity.Usuario;
+import com.metronet.backend.enums.Rol;
+import com.metronet.backend.repository.DatosDemostrativosRepository;
+import com.metronet.backend.repository.UsuarioRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,20 +27,20 @@ public class DatosDemostrativosService {
     private static final String ESTACION_INICIO_NIVEL_UNO = "Estación Inicio";
     private static final String ESTACION_FIN_NIVEL_UNO = "Estación Fin";
     private final UsuarioRepository usuarioRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final DatosDemostrativosRepository repositorio;
     private final PasswordEncoder codificadorContrasena;
     private final SimulacionService simulacionService;
     private final JuegoEducativoService juegoEducativoService;
 
     public DatosDemostrativosService(
         UsuarioRepository usuarioRepository,
-        JdbcTemplate jdbcTemplate,
+        DatosDemostrativosRepository repositorio,
         PasswordEncoder codificadorContrasena,
         SimulacionService simulacionService,
         JuegoEducativoService juegoEducativoService
     ) {
         this.usuarioRepository = usuarioRepository;
-        this.jdbcTemplate = jdbcTemplate;
+        this.repositorio = repositorio;
         this.codificadorContrasena = codificadorContrasena;
         this.simulacionService = simulacionService;
         this.juegoEducativoService = juegoEducativoService;
@@ -91,33 +91,16 @@ public class DatosDemostrativosService {
     }
 
     private Integer crearOActualizarEscenario() {
-        List<Integer> escenarios = jdbcTemplate.query("""
-            SELECT id_escenario FROM escenario
-            WHERE nombre = ? AND modo = 'EDICION_LIBRE' AND progresivo = FALSE
-            ORDER BY id_escenario
-            """, (resultado, fila) -> resultado.getInt("id_escenario"), NOMBRE_ESCENARIO);
+        List<Integer> escenarios = repositorio.escenarioLibre((resultado, fila) -> resultado.getInt("id_escenario"), NOMBRE_ESCENARIO);
         if (escenarios.isEmpty()) {
-            return jdbcTemplate.queryForObject("""
-                INSERT INTO escenario (
-                    nombre, objetivo, dificultad, instrucciones, modo, progresivo, reglas_exito, herramientas_habilitadas
-                )
-                VALUES (?, ?, 'Inicial', ?, 'EDICION_LIBRE', FALSE, '{}'::jsonb,
-                    '{"estaciones":true,"lineas":true,"conexiones":true,"metros":true,"simulacion":true}'::jsonb)
-                RETURNING id_escenario
-                """, Integer.class,
+            return repositorio.crearEscenarioLibre(
                 NOMBRE_ESCENARIO,
                 "Explorá una red de metro demostrativa con tres estaciones, una línea y una unidad en circulación.",
                 "Revisá la red, sus conexiones y el resultado de la simulación guardada."
             );
         }
         Integer idEscenario = escenarios.getFirst();
-        jdbcTemplate.update("""
-            UPDATE escenario
-            SET objetivo = ?, dificultad = 'Inicial', instrucciones = ?, id_diseno_base = NULL,
-                progresivo = FALSE, reglas_exito = '{}'::jsonb,
-                herramientas_habilitadas = '{"estaciones":true,"lineas":true,"conexiones":true,"metros":true,"simulacion":true}'::jsonb
-            WHERE id_escenario = ?
-            """,
+        repositorio.actualizarEscenarioLibre(
             "Explorá una red de metro demostrativa con tres estaciones, una línea y una unidad en circulación.",
             "Revisá la red, sus conexiones y el resultado de la simulación guardada.",
             idEscenario
@@ -126,48 +109,34 @@ public class DatosDemostrativosService {
     }
 
     private IntentoDemostrativo crearOActualizarIntento(Integer idJugador, Integer idEscenario) {
-        List<IntentoDemostrativo> intentos = jdbcTemplate.query("""
-            SELECT id_intento, id_diseno FROM intento
-            WHERE id_usuario = ? AND id_escenario = ?
-            ORDER BY id_intento
-            """, (resultado, fila) -> new IntentoDemostrativo(
+        List<IntentoDemostrativo> intentos = repositorio.intentoLibre((resultado, fila) -> new IntentoDemostrativo(
                 resultado.getInt("id_intento"), resultado.getInt("id_diseno")
             ), idJugador, idEscenario);
         if (intentos.isEmpty()) {
-            Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
-            Integer idIntento = jdbcTemplate.queryForObject("""
-                INSERT INTO intento (id_usuario, id_escenario, id_diseno, estado, progreso, puntaje, fecha_finalizacion)
-                VALUES (?, ?, ?, 'EN_DISENO', 0, NULL, NULL) RETURNING id_intento
-                """, Integer.class, idJugador, idEscenario, idDiseno);
+            Integer idDiseno = repositorio.crearDisenoLibre();
+            Integer idIntento = repositorio.crearIntentoLibre(idJugador, idEscenario, idDiseno);
             return new IntentoDemostrativo(idIntento, idDiseno);
         }
         IntentoDemostrativo intento = intentos.getFirst();
         for (IntentoDemostrativo duplicado : intentos.subList(1, intentos.size())) {
-            jdbcTemplate.update("DELETE FROM diseno WHERE id_diseno = ?", duplicado.idDiseno());
+            repositorio.eliminarDisenoLibre(duplicado.idDiseno());
         }
-        jdbcTemplate.update("""
-            UPDATE intento
-            SET estado = 'EN_DISENO', progreso = 0, puntaje = NULL, fecha_finalizacion = NULL
-            WHERE id_intento = ?
-            """, intento.idIntento());
+        repositorio.reiniciarIntentoLibre(intento.idIntento());
         return intento;
     }
 
     private void reconstruirRedDemostrativa(IntentoDemostrativo intento) {
-        jdbcTemplate.update("DELETE FROM simulacion WHERE id_intento = ?", intento.idIntento());
-        jdbcTemplate.update("DELETE FROM metro WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM tramo WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM pasa WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM linea WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM estacion WHERE id_diseno = ?", intento.idDiseno());
+        repositorio.eliminarSimulacionesLibres(intento.idIntento());
+        repositorio.eliminarMetrosLibres(intento.idDiseno());
+        repositorio.eliminarTramosLibres(intento.idDiseno());
+        repositorio.eliminarConexionesLibres(intento.idDiseno());
+        repositorio.eliminarLineasLibres(intento.idDiseno());
+        repositorio.eliminarEstacionesLibres(intento.idDiseno());
         insertarEstaciones(intento.idDiseno());
-        jdbcTemplate.update("INSERT INTO linea (id_diseno, nombre, modificable) VALUES (?, ?, TRUE)", intento.idDiseno(), NOMBRE_LINEA);
+        repositorio.crearLineaLibre(intento.idDiseno(), NOMBRE_LINEA);
         insertarConexiones(intento.idDiseno());
         insertarTramos(intento.idDiseno());
-        jdbcTemplate.update("""
-            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio)
-            VALUES (?, ?, 300, 4.00)
-            """, intento.idDiseno(), NOMBRE_LINEA);
+        repositorio.crearMetroLibre(intento.idDiseno(), NOMBRE_LINEA);
     }
 
     private void validarYEjecutarSimulacionDemostrativa(Integer idJugador, Integer idDiseno) {
@@ -183,73 +152,46 @@ public class DatosDemostrativosService {
     }
 
     private void crearOActualizarNivelUnoCompletado(Integer idJugador) {
-        Integer idEscenarioNivelUno = jdbcTemplate.query("""
-            SELECT id_escenario FROM escenario
-            WHERE progresivo = TRUE AND numero = 1 AND modo = 'NIVEL'
-            ORDER BY id_escenario
-            """, (resultado, fila) -> resultado.getInt("id_escenario")).stream().findFirst()
+        Integer idEscenarioNivelUno = repositorio.escenarioNivelUno((resultado, fila) -> resultado.getInt("id_escenario")).stream().findFirst()
             .orElseThrow(() -> new IllegalStateException("No existe el Nivel 1 del catálogo educativo"));
         IntentoDemostrativo intento = crearOActualizarIntentoNivelUno(idJugador, idEscenarioNivelUno);
         reconstruirRedNivelUno(idJugador, intento);
     }
 
     private IntentoDemostrativo crearOActualizarIntentoNivelUno(Integer idJugador, Integer idEscenario) {
-        List<IntentoDemostrativo> intentos = jdbcTemplate.query("""
-            SELECT id_intento, id_diseno FROM intento
-            WHERE id_usuario = ? AND id_escenario = ?
-            ORDER BY id_intento
-            """, (resultado, fila) -> new IntentoDemostrativo(
+        List<IntentoDemostrativo> intentos = repositorio.intentoNivelUno((resultado, fila) -> new IntentoDemostrativo(
                 resultado.getInt("id_intento"), resultado.getInt("id_diseno")
             ), idJugador, idEscenario);
         if (intentos.isEmpty()) {
-            Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
-            Integer idIntento = jdbcTemplate.queryForObject("""
-                INSERT INTO intento (id_usuario, id_escenario, id_diseno, estado, progreso, puntaje, fecha_finalizacion)
-                VALUES (?, ?, ?, 'EN_DESARROLLO', 0, NULL, NULL) RETURNING id_intento
-                """, Integer.class, idJugador, idEscenario, idDiseno);
+            Integer idDiseno = repositorio.crearDisenoNivelUno();
+            Integer idIntento = repositorio.crearIntentoNivelUno(idJugador, idEscenario, idDiseno);
             return new IntentoDemostrativo(idIntento, idDiseno);
         }
         IntentoDemostrativo intento = intentos.getFirst();
         for (IntentoDemostrativo duplicado : intentos.subList(1, intentos.size())) {
-            jdbcTemplate.update("DELETE FROM diseno WHERE id_diseno = ?", duplicado.idDiseno());
+            repositorio.eliminarDisenoNivelUno(duplicado.idDiseno());
         }
-        jdbcTemplate.update("""
-            UPDATE intento
-            SET estado = 'EN_DESARROLLO', progreso = 0, puntaje = NULL, fecha_finalizacion = NULL
-            WHERE id_intento = ?
-            """, intento.idIntento());
+        repositorio.reiniciarIntentoNivelUno(intento.idIntento());
         return intento;
     }
 
     private void reconstruirRedNivelUno(Integer idJugador, IntentoDemostrativo intento) {
-        jdbcTemplate.update("DELETE FROM simulacion WHERE id_intento = ?", intento.idIntento());
-        jdbcTemplate.update("DELETE FROM metro WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM tramo WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM pasa WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM linea WHERE id_diseno = ?", intento.idDiseno());
-        jdbcTemplate.update("DELETE FROM estacion WHERE id_diseno = ?", intento.idDiseno());
+        repositorio.eliminarSimulacionesNivelUno(intento.idIntento());
+        repositorio.eliminarMetrosNivelUno(intento.idDiseno());
+        repositorio.eliminarTramosNivelUno(intento.idDiseno());
+        repositorio.eliminarConexionesNivelUno(intento.idDiseno());
+        repositorio.eliminarLineasNivelUno(intento.idDiseno());
+        repositorio.eliminarEstacionesNivelUno(intento.idDiseno());
         insertarEstacion(
             intento.idDiseno(), ESTACION_INICIO_NIVEL_UNO, new BigDecimal("420"), new BigDecimal("300"), false
         );
         insertarEstacion(
             intento.idDiseno(), ESTACION_FIN_NIVEL_UNO, new BigDecimal("560"), new BigDecimal("300"), false
         );
-        jdbcTemplate.update(
-            "INSERT INTO linea (id_diseno, nombre, modificable) VALUES (?, ?, TRUE)",
-            intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO
-        );
-        jdbcTemplate.update(
-            "INSERT INTO pasa (id_diseno, nombre_linea, nombre_estacion) VALUES (?, ?, ?)",
-            intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO, ESTACION_INICIO_NIVEL_UNO
-        );
-        jdbcTemplate.update(
-            "INSERT INTO pasa (id_diseno, nombre_linea, nombre_estacion) VALUES (?, ?, ?)",
-            intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO, ESTACION_FIN_NIVEL_UNO
-        );
-        jdbcTemplate.update("""
-            INSERT INTO tramo (id_diseno, nombre_linea, nombre_estacion_a, nombre_estacion_b)
-            VALUES (?, ?, ?, ?)
-            """, intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO, ESTACION_INICIO_NIVEL_UNO, ESTACION_FIN_NIVEL_UNO);
+        repositorio.crearLineaNivelUno(intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO);
+        repositorio.crearConexionOrigen(intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO, ESTACION_INICIO_NIVEL_UNO);
+        repositorio.crearConexionDestino(intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO, ESTACION_FIN_NIVEL_UNO);
+        repositorio.crearTramoNivelUno(intento.idDiseno(), NOMBRE_LINEA_NIVEL_UNO, ESTACION_INICIO_NIVEL_UNO, ESTACION_FIN_NIVEL_UNO);
         ValidacionDisenoResponse validacion = simulacionService.validarDiseno(
             idJugador,
             intento.idDiseno()
@@ -267,10 +209,7 @@ public class DatosDemostrativosService {
     }
 
     private void insertarEstacion(Integer idDiseno, String nombre, BigDecimal posicionX, BigDecimal posicionY, boolean transbordo) {
-        jdbcTemplate.update("""
-            INSERT INTO estacion (id_diseno, nombre, posicion_x, posicion_y, transbordo, modificable)
-            VALUES (?, ?, ?, ?, ?, TRUE)
-            """, idDiseno, nombre, posicionX, posicionY, transbordo);
+        repositorio.insertarEstacion(idDiseno, nombre, posicionX, posicionY, transbordo);
     }
 
     private void insertarConexiones(Integer idDiseno) {
@@ -280,7 +219,7 @@ public class DatosDemostrativosService {
     }
 
     private void insertarConexion(Integer idDiseno, String nombreEstacion) {
-        jdbcTemplate.update("INSERT INTO pasa (id_diseno, nombre_linea, nombre_estacion) VALUES (?, ?, ?)", idDiseno, NOMBRE_LINEA, nombreEstacion);
+        repositorio.insertarConexion(idDiseno, NOMBRE_LINEA, nombreEstacion);
     }
 
     private void insertarTramos(Integer idDiseno) {
@@ -289,10 +228,7 @@ public class DatosDemostrativosService {
     }
 
     private void insertarTramo(Integer idDiseno, String estacionA, String estacionB) {
-        jdbcTemplate.update("""
-            INSERT INTO tramo (id_diseno, nombre_linea, nombre_estacion_a, nombre_estacion_b)
-            VALUES (?, ?, ?, ?)
-            """, idDiseno, NOMBRE_LINEA, estacionA, estacionB);
+        repositorio.insertarTramo(idDiseno, NOMBRE_LINEA, estacionA, estacionB);
     }
 
     private void validarContrasena(String contrasena, String tipoCuenta) {

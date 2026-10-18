@@ -1,7 +1,6 @@
 import RelojCapas from './desplazamientos/RelojCapas.mjs';
 import CapaDesplazamientos from './capas/CapaDesplazamientos.js';
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
-import { confirmarSistema } from '../componentes/DialogoSistema.js';
 import Phaser from 'phaser';
 import { observarTamanoMapa } from './ObservarTamanoMapa.js';
 
@@ -23,7 +22,7 @@ import ControlZoom from './controles/ControlZoom.js';
 import ReferenciasGeograficas from './controles/ReferenciasGeograficas.js';
 import PanelSeleccionGeografica from './controles/PanelSeleccionGeografica.js';
 import EditorRedMetro from './controles/EditorRedMetro.js';
-import { cerrarSesionRemota, eliminarSesiones, obtenerSesionActiva } from '../autenticacion/sesion.js';
+import { configurarControlSesionEditor } from '../autenticacion/ControlSesionEditor.js';
 import { COLORES_INTERFAZ_MAPA } from './configuracion/ColoresMapa.js';
 
 import { obtenerZona } from './utilidades/ClasificadorZonas.js';
@@ -348,40 +347,13 @@ export default class MapaScene extends Phaser.Scene {
     this.controlSesion = controlSesion;
     this.contenedorInformacionJugador = contenedorInformacionJugador;
 
-    if (controlSimulacion) {
-      controlSimulacion.href = obtenerSesionActiva()
-        ? '/simulacion.html'
-        : '/login.html?destino=%2Fsimulacion.html';
-    }
-
-    this.controlSesion.addEventListener('click', async () => {
-      await this.cerrarSesion();
-    });
+    configurarControlSesionEditor(this.controlSesion, controlSimulacion);
 
     if (this.contenedorInformacionJugador) {
       this.contenedorPieEditor.appendChild(this.contenedorInformacionJugador);
     }
 
     this.contenedorPieEditor.appendChild(this.controlSesion);
-  }
-
-  async cerrarSesion() {
-    if (!await confirmarSistema('¿Querés cerrar la sesión actual?')) {
-      return;
-    }
-
-    const sesion = obtenerSesionActiva();
-
-    if (sesion) {
-      try {
-        await cerrarSesionRemota(sesion);
-      } catch {
-        // La sesión local se elimina aunque el servicio ya no esté disponible.
-      }
-    }
-
-    eliminarSesiones();
-    window.location.assign('/login.html');
   }
 
   actualizarInformacionSeleccionGeografica(tipo, nombres) {

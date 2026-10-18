@@ -44,8 +44,8 @@ class CampanaPostgresTest {
                     RETURNING id_escenario
                     """, Integer.class, reglas014, herramientas);
                 var inicializador = new InicializadorCatalogoEscenariosProgresivos();
-                inicializador.inicializarCatalogoEscenariosProgresivos(jdbc).run();
-                inicializador.inicializarCatalogoEscenariosProgresivos(jdbc).run();
+                inicializador.inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc))).run();
+                inicializador.inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc))).run();
                 assertEquals(7, jdbc.queryForObject("SELECT count(*) FROM criterio_uv_ut", Integer.class));
                 assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM criterio_uv_ut WHERE id_escenario=?", Integer.class, legado));
                 assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM criterio_uv_ut WHERE id_escenario=?", Integer.class, personalizado));
@@ -70,14 +70,14 @@ class CampanaPostgresTest {
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
                 prepararTablasTemporales(jdbc);
-                new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc).run();
+                new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc))).run();
                 jdbc.update("UPDATE usuario SET rol=? WHERE id_usuario=7", rol.name());
                 var usuario = new Usuario(); usuario.setIdUsuario(7); usuario.setRol(rol);
                 var mapper = new ObjectMapper();
                 var geo = new GeografiaService(mapper);
-                var restricciones = new RestriccionesGeograficasService(jdbc, mapper, geo);
-                var juego = new JuegoEducativoService(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo),
-                    new CondicionesGeograficasService(jdbc, mapper, geo, restricciones));
+                var restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geo);
+                var juego = com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo),
+                    new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geo, restricciones));
                 int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=?", Integer.class, nivel);
                 prepararNivelesAnteriores(jdbc, nivel, 1);
                 var inicio = juego.iniciarEscenario(7, escenario);
@@ -148,7 +148,7 @@ class CampanaPostgresTest {
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
                 prepararTablasTemporales(jdbc);
-                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
+                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc)));
                 inicializador.run();
                 var reglas = jdbc.queryForList("SELECT numero,reglas_exito::text,herramientas_habilitadas::text FROM escenario ORDER BY id_escenario");
                 var actuales = jdbc.queryForList("SELECT numero,objetivo,instrucciones FROM escenario WHERE numero IS NOT NULL ORDER BY numero");
@@ -180,7 +180,7 @@ class CampanaPostgresTest {
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
                 prepararTablasTemporales(jdbc);
-                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
+                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc)));
                 inicializador.run();
                 String anterior = "{\"minimoEstaciones\":3,\"minimoLineas\":1,\"minimoTramos\":2,\"minimoMetros\":1,\"requiereRedValida\":true,\"requiereSimulacion\":true}";
                 jdbc.update("UPDATE escenario SET instrucciones='Consigna personalizada', reglas_exito=CAST(? AS jsonb) WHERE numero=4", anterior);
@@ -206,7 +206,7 @@ class CampanaPostgresTest {
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
                 prepararTablasTemporales(jdbc);
-                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
+                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc)));
                 inicializador.run();
                 var mapper = new ObjectMapper();
                 try (var entrada = new org.springframework.core.io.ClassPathResource("educacion/niveles-pre-uv.json").getInputStream()) {
@@ -233,15 +233,15 @@ class CampanaPostgresTest {
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
                 prepararTablasTemporales(jdbc);
-                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc);
+                var inicializador = new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc)));
                 inicializador.run(); inicializador.run();
                 assertEquals(11, jdbc.queryForObject("SELECT COUNT(*) FROM escenario", Integer.class));
                 assertEquals(7, jdbc.queryForObject("SELECT COUNT(*) FROM criterio_uv_ut", Integer.class),
                     "La activación canónica V2 es idempotente y no crea configuraciones para niveles 1–3");
                 var mapper = new ObjectMapper();
                 var geo = new GeografiaService(mapper);
-                var restricciones = new RestriccionesGeograficasService(jdbc, mapper, geo);
-                var juego = new JuegoEducativoService(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo), new CondicionesGeograficasService(jdbc, mapper, geo, restricciones));
+                var restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geo);
+                var juego = com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo), new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geo, restricciones));
                 for (int nivel = 1; nivel <= 10; nivel++) {
                     int idEscenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE numero=?", Integer.class, nivel);
                     var reglas = mapper.readTree(jdbc.queryForObject("SELECT reglas_exito::text FROM escenario WHERE numero=?", String.class, nivel));
@@ -296,10 +296,10 @@ class CampanaPostgresTest {
                     assertEquals(nivel, juego.obtenerResumenProgreso(7).nivelesCompletados());
                 }
                 // Una instancia nueva lee el mismo progreso persistido, sin estado del navegador.
-                var recargado = new JuegoEducativoService(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo), new CondicionesGeograficasService(jdbc, mapper, geo, restricciones));
+                var recargado = com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo), new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geo, restricciones));
                 assertTrue(recargado.obtenerResumenProgreso(7).campanaCompletada());
                 assertFalse(recargado.obtenerResumenProgreso(7).tutorialSimulacionDisponible());
-                var puntos = new PuntuacionService(jdbc, mapper);
+                var puntos = com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper);
                 var ranking = puntos.ranking(7);
                 assertEquals(1, ranking.tuPosicion());
                 assertEquals("Ana Prueba", ranking.jugadores().getFirst().jugador());
@@ -336,14 +336,14 @@ class CampanaPostgresTest {
             var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
             try {
                 prepararTablasTemporales(jdbc);
-                new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(jdbc).run();
+                new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(jdbc))).run();
                 var mapper = new ObjectMapper();
                 var geo = new GeografiaService(mapper);
-                var restricciones = new RestriccionesGeograficasService(jdbc, mapper, geo);
-                var criterio = new CriterioUvUtService(jdbc, mapper, new PuntuacionService(jdbc, mapper));
-                var admin = new AdministracionUvUtService(jdbc, mapper);
-                var juego = new JuegoEducativoService(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo),
-                    new CondicionesGeograficasService(jdbc, mapper, geo, restricciones));
+                var restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geo);
+                var criterio = com.metronet.backend.service.ServiciosPrueba.crearCriterioUvUt(jdbc, mapper, com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper));
+                var admin = new AdministracionUvUtService(new com.metronet.backend.repository.AdministracionUvUtRepository(jdbc), mapper);
+                var juego = com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geo),
+                    new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geo, restricciones));
                 java.math.BigDecimal[] presupuestos = {null, null, null, null,
                     new java.math.BigDecimal("2"), new java.math.BigDecimal("2.5"), new java.math.BigDecimal("3"),
                     new java.math.BigDecimal("4"), new java.math.BigDecimal("5.5"),
@@ -386,7 +386,7 @@ class CampanaPostgresTest {
                         jdbc.update("INSERT INTO pasa VALUES (?,?,?),(?,?,'E2')", nivel, linea, origen, nivel, linea);
                         jdbc.update("INSERT INTO tramo VALUES (?,?,?,'E2')", nivel, linea, origen);
                     }
-                    var distancias = new DistanciasRedService(jdbc, geo).porLinea(nivel);
+                    var distancias = new DistanciasRedService(new com.metronet.backend.repository.DistanciasRedRepository(jdbc), geo).porLinea(nivel);
                     int[] longitudes = vista.tramosFixture();
                     java.math.BigDecimal presupuestoFisico = java.math.BigDecimal.ZERO;
                     for (int i = 0; i < longitudes.length; i++) {
@@ -419,12 +419,12 @@ class CampanaPostgresTest {
                 jdbc.execute("ALTER TABLE escenario ADD COLUMN id_diseno_base INT");
                 jdbc.execute("ALTER TABLE simulacion ADD COLUMN velocidad NUMERIC, ADD COLUMN estado VARCHAR, ADD COLUMN fecha_ejecucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 ComparacionesSimulacionFixture.practicar(jdbc, juego, 10);
-                for (var linea : new DistanciasRedService(jdbc,geo).porLinea(10).entrySet()) {
+                for (var linea : new DistanciasRedService(new com.metronet.backend.repository.DistanciasRedRepository(jdbc),geo).porLinea(10).entrySet()) {
                     var uv = java.math.BigDecimal.valueOf(linea.getValue()).divide(java.math.BigDecimal.valueOf(2),2,java.math.RoundingMode.CEILING);
                     jdbc.update("UPDATE metro SET velocidad_promedio=? WHERE id_diseno=10 AND nombre_linea=?",uv,linea.getKey());
                 }
                 jdbc.update("UPDATE intento SET estado='VALIDADO' WHERE id_intento=10");
-                var simulaciones = new SimulacionService(jdbc, org.mockito.Mockito.mock(DisenoAdministracionService.class),
+                var simulaciones = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, org.mockito.Mockito.mock(DisenoAdministracionService.class),
                     new ObjetivosPuntosInteresService(mapper, geo), juego, restricciones);
                 var ejecucion = simulaciones.ejecutarSimulacion(7, 10,
                     new com.metronet.backend.dto.EjecutarSimulacionRequest(java.math.BigDecimal.ONE, 2));
@@ -463,7 +463,7 @@ class CampanaPostgresTest {
         jdbc.execute("ALTER TABLE escenario ADD COLUMN id_diseno_base INT");
         jdbc.execute("ALTER TABLE simulacion ADD COLUMN velocidad NUMERIC, ADD COLUMN estado VARCHAR, ADD COLUMN fecha_ejecucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
         jdbc.update("UPDATE usuario SET numero_campana_actual=1 WHERE id_usuario=7");
-        var simulaciones = new SimulacionService(jdbc, org.mockito.Mockito.mock(DisenoAdministracionService.class),
+        var simulaciones = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, org.mockito.Mockito.mock(DisenoAdministracionService.class),
             new ObjetivosPuntosInteresService(mapper, geo), juego, restricciones);
         for (int duracion : new int[]{1, 6, 9, 25}) {
             var resultado = simulaciones.ejecutarSimulacion(7, 6,

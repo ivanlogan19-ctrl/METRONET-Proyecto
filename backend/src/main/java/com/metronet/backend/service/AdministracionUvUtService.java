@@ -2,25 +2,25 @@ package com.metronet.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metronet.backend.repository.AdministracionUvUtRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Configuración acotada del criterio didáctico, sin editar contenido educativo general. */
 @Service
 public class AdministracionUvUtService {
-    private final JdbcTemplate jdbc;
+    private final AdministracionUvUtRepository repositorio;
     private final ObjectMapper mapper;
     // Redes completas de CampanaPostgresTest. Su validez debe revalidarse en CI con cada cambio del catálogo.
     private static final int[][] TRAMOS_FIJOS = {{}, {}, {}, {}, {2}, {3}, {4}, {5, 1}, {7, 1, 1}, {7, 1, 1}, {9, 1, 1}};
 
-    public AdministracionUvUtService(JdbcTemplate jdbc, ObjectMapper mapper) {
-        this.jdbc = jdbc;
+    public AdministracionUvUtService(AdministracionUvUtRepository repositorio, ObjectMapper mapper) {
+        this.repositorio = repositorio;
         this.mapper = mapper;
     }
 
@@ -29,11 +29,7 @@ public class AdministracionUvUtService {
                         int[] tramosFixture, BigDecimal uvMinimaFixture, boolean viable, String aviso) {}
 
     public List<Vista> listar() {
-        return jdbc.query("""
-            SELECT e.numero,COALESCE(c.version,0),c.limite_ut,c.presupuesto_uv,e.reglas_exito::text,e.herramientas_habilitadas::text
-            FROM escenario e LEFT JOIN criterio_uv_ut c ON c.id_escenario=e.id_escenario
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero BETWEEN 4 AND 10 ORDER BY e.numero
-            """, (r, fila) -> vista(r.getInt(1), r.getInt(2), r.getObject(3, Integer.class), r.getBigDecimal(4),
+        return repositorio.listarCriterios((r, fila) -> vista(r.getInt(1), r.getInt(2), r.getObject(3, Integer.class), r.getBigDecimal(4),
                 r.getString(5), r.getString(6)));
     }
 
@@ -44,10 +40,7 @@ public class AdministracionUvUtService {
         if (cambio.limiteUt() == null || cambio.limiteUt() <= 0 || cambio.presupuestoUv() == null
             || cambio.presupuestoUv().signum() <= 0 || cambio.presupuestoUv().scale() > 2)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá UT enteras positivas y presupuesto UV positivo con hasta dos decimales");
-        return jdbc.query("""
-            SELECT e.reglas_exito::text,e.herramientas_habilitadas::text FROM escenario e
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=?
-            """, (r, fila) -> vista(numero, actual.version(), cambio.limiteUt(), cambio.presupuestoUv(),
+        return repositorio.reglasYHerramientas((r, fila) -> vista(numero, actual.version(), cambio.limiteUt(), cambio.presupuestoUv(),
                 r.getString(1), r.getString(2)), numero).getFirst();
     }
 
@@ -88,14 +81,11 @@ public class AdministracionUvUtService {
     }
 
     private JsonNode referenciaActual(int numero) {
-        if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT to_regclass('nivel_borrador') IS NOT NULL AND to_regclass('escenario')=to_regclass('public.escenario')",Boolean.class))) return null;
-        return jdbc.query("""
-            SELECT b.red_referencia::text FROM nivel_borrador b JOIN escenario e ON e.id_escenario=b.id_escenario
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=?
-            """, (r,fila) -> {
+        if (!Boolean.TRUE.equals(repositorio.tieneBorradoresPublicos())) return null;
+        return repositorio.referenciaBorrador((r,fila) -> {
                 try { return mapper.readTree(r.getString(1)); }
                 catch (Exception error) { return null; }
-            },numero).stream().filter(java.util.Objects::nonNull).findFirst().orElse(null);
+            }, numero).stream().filter(java.util.Objects::nonNull).findFirst().orElse(null);
     }
 
 }

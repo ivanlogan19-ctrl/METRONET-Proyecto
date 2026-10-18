@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.metronet.backend.dto.EdicionNivelRequest;
 import com.metronet.backend.dto.PublicarNivelRequest;
+import com.metronet.backend.repository.RecorridoIntegralRepository;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
@@ -22,16 +22,16 @@ public class RecorridoIntegralService {
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
     private final GeografiaService geografia;
-    private final JdbcTemplate jdbc;
+    private final RecorridoIntegralRepository repositorio;
 
     public RecorridoIntegralService(AdministracionNivelesService borradores, PublicacionNivelService publicador,
-        ObjectMapper mapper, GeografiaService geografia, JdbcTemplate jdbc) {
-        this.borradores=borradores; this.publicador=publicador; this.mapper=mapper; this.geografia=geografia; this.jdbc=jdbc;
+        ObjectMapper mapper, GeografiaService geografia, RecorridoIntegralRepository repositorio) {
+        this.borradores=borradores; this.publicador=publicador; this.mapper=mapper; this.geografia=geografia; this.repositorio=repositorio;
     }
 
     @Transactional
     public List<PublicacionNivelService.Publicada> publicar(int idAdmin) throws Exception {
-        if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM usuario WHERE id_usuario=? AND rol='ADMIN')",Boolean.class,idAdmin)))
+        if (!Boolean.TRUE.equals(repositorio.esAdministrador(idAdmin)))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"La publicación requiere un administrador existente");
         JsonNode catalogo;
         try (var entrada=new ClassPathResource("educacion/recorrido-integral.json").getInputStream()) {
@@ -82,27 +82,10 @@ public class RecorridoIntegralService {
     /** Adopción explícita del cambio aprobado en intentos activos del recorrido anterior.
      * Las publicaciones, ejecuciones y campañas completadas conservan su historia. */
     private void adaptarIntentosEnCurso() {
-        var intentos = jdbc.queryForList("""
-            SELECT i.id_intento, nueva.id_nivel_publicacion
-            FROM intento i JOIN nivel_publicacion anterior ON anterior.id_nivel_publicacion=i.id_nivel_publicacion
-            JOIN nivel_publicacion nueva ON nueva.id_escenario=i.id_escenario
-            WHERE anterior.contenido->'desafio'->>'recorrido'='integral-2026-10-objetivos-reales-km-v3'
-              AND nueva.contenido->'desafio'->>'recorrido'=?
-              AND nueva.numero_version=(SELECT MAX(p.numero_version) FROM nivel_publicacion p WHERE p.id_escenario=i.id_escenario)
-              AND i.estado<>'COMPLETADO' AND i.fecha_finalizacion IS NULL
-              AND i.numero_campana=(SELECT MAX(j.numero_campana) FROM intento j WHERE j.id_usuario=i.id_usuario)
-              AND NOT EXISTS (SELECT 1 FROM intento_uv_ut v WHERE v.id_intento=i.id_intento)
-            FOR UPDATE OF i
-            """, VERSION);
+        var intentos = repositorio.intentosEnCurso(VERSION);
         for (var intento : intentos) {
-            jdbc.update("UPDATE intento SET id_nivel_publicacion=? WHERE id_intento=?",
-                intento.get("id_nivel_publicacion"), intento.get("id_intento"));
-            jdbc.update("""
-                UPDATE intento_catalogo_v1 h SET reglas_exito=p.contenido->'reglasExito',
-                  herramientas_habilitadas=p.contenido->'herramientasHabilitadas',
-                  objetivo=p.contenido->'desafio'->>'objetivo', instrucciones=p.contenido->'desafio'->>'instrucciones'
-                FROM nivel_publicacion p WHERE h.id_intento=? AND p.id_nivel_publicacion=?
-                """, intento.get("id_intento"), intento.get("id_nivel_publicacion"));
+            repositorio.vincularPublicacion(intento.get("id_nivel_publicacion"), intento.get("id_intento"));
+            repositorio.actualizarCatalogoIntento(intento.get("id_intento"), intento.get("id_nivel_publicacion"));
         }
     }
 

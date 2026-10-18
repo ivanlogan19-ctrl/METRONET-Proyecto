@@ -2,11 +2,11 @@ package com.metronet.backend.service;
 
 import com.metronet.backend.dto.ActualizarConfiguracionRequest;
 import com.metronet.backend.dto.ConfiguracionResponse;
+import com.metronet.backend.repository.ConfiguracionRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,16 +22,14 @@ public class ConfiguracionService {
         new BigDecimal("2"),
         new BigDecimal("4")
     );
-    private final JdbcTemplate jdbcTemplate;
+    private final ConfiguracionRepository repositorio;
 
-    public ConfiguracionService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public ConfiguracionService(ConfiguracionRepository repositorio) {
+        this.repositorio = repositorio;
     }
 
     public List<ConfiguracionResponse> listarConfiguraciones() {
-        return jdbcTemplate.query("""
-            SELECT clave, valor, descripcion FROM configuracion ORDER BY clave
-            """, (resultado, fila) -> new ConfiguracionResponse(
+        return repositorio.listarConfiguraciones((resultado, fila) -> new ConfiguracionResponse(
                 resultado.getString("clave"), resultado.getString("valor"), resultado.getString("descripcion")
             ));
     }
@@ -43,23 +41,17 @@ public class ConfiguracionService {
 
         String claveNormalizada = clave == null ? "" : clave.trim().toLowerCase(Locale.ROOT);
         String valor = normalizarValor(claveNormalizada, solicitud.valor());
-        if (jdbcTemplate.update("UPDATE configuracion SET valor = ? WHERE clave = ?", valor, claveNormalizada) == 0) {
+        if (repositorio.actualizarValor(valor, claveNormalizada) == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la configuración solicitada");
         }
 
-        return jdbcTemplate.queryForObject("""
-            SELECT clave, valor, descripcion FROM configuracion WHERE clave = ?
-            """, (resultado, fila) -> new ConfiguracionResponse(
+        return repositorio.obtenerConfiguracion((resultado, fila) -> new ConfiguracionResponse(
                 resultado.getString("clave"), resultado.getString("valor"), resultado.getString("descripcion")
             ), claveNormalizada);
     }
 
     public boolean estaModoMantenimientoActivo() {
-        List<String> valores = jdbcTemplate.query(
-            "SELECT valor FROM configuracion WHERE clave = ?",
-            (resultado, fila) -> resultado.getString("valor"),
-            CLAVE_MODO_MANTENIMIENTO
-        );
+        List<String> valores = repositorio.obtenerValores((resultado, fila) -> resultado.getString("valor"), CLAVE_MODO_MANTENIMIENTO);
         return !valores.isEmpty() && "activado".equalsIgnoreCase(valores.getFirst().trim());
     }
 

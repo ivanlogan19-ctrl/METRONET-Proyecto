@@ -1,7 +1,7 @@
 import catalogo from './catalogo-svgs-niveles.json' with { type: 'json' };
 
 // El catálogo conserva juntos el contenido editorial y su imagen verificada.
-export const tarjetasEducativas = Object.freeze(catalogo.map(nivel =>
+export const TARJETAS_EDUCATIVAS = Object.freeze(catalogo.map(nivel =>
   Object.freeze(nivel.tarjetas.map(({ id, imagen, titulo, texto, aprendizaje, fuente, url, descripcionImagen }) =>
     Object.freeze({ id, imagen, titulo, texto, aprendizaje, fuente, url, descripcionImagen })))));
 
@@ -26,7 +26,7 @@ export function limpiarTarjetasPublicadas(numero) {
 }
 
 export function tarjetasDisponibles(numero) {
-  return publicadas.get(numero)?.tarjetas ?? tarjetasEducativas[numero - 1] ?? [];
+  return publicadas.get(numero)?.tarjetas ?? TARJETAS_EDUCATIVAS[numero - 1] ?? [];
 }
 
 function estadoPublicado(numero) {
@@ -79,14 +79,14 @@ function ultima(numero) {
   try {
     const guardada = localStorage.getItem(`${PREFIJO_ULTIMA_TARJETA}${numero}`);
     const indice = Number(guardada);
-    if (guardada !== null && Number.isInteger(indice) && indice >= 0 && indice < (tarjetasEducativas[numero - 1]?.length ?? 0)) return indice;
+    if (guardada !== null && Number.isInteger(indice) && indice >= 0 && indice < (TARJETAS_EDUCATIVAS[numero - 1]?.length ?? 0)) return indice;
   } catch { /* El almacenamiento puede estar deshabilitado. */ }
   return ultimasEnMemoria.get(numero) ?? -1;
 }
 
 export function seleccionarTarjetaEducativa(numero) {
   if (publicadas.has(numero)) return seleccionarPublicada(numero);
-  const pareja = tarjetasEducativas[numero - 1];
+  const pareja = TARJETAS_EDUCATIVAS[numero - 1];
   if (!pareja) return null;
   let usadas = usadasEnMemoria.get(numero);
   if (!usadas) {
@@ -115,7 +115,7 @@ export function tarjetaEducativaActual(numero) {
   const publicada = estadoPublicado(numero);
   if (publicada) return publicada.publicacion.tarjetas.find(t => t.id === publicada.ultimo)
     ?? publicada.publicacion.tarjetas[0];
-  const pareja = tarjetasEducativas[numero - 1];
+  const pareja = TARJETAS_EDUCATIVAS[numero - 1];
   if (!pareja) return null;
   return pareja[Math.max(0, ultima(numero))];
 }

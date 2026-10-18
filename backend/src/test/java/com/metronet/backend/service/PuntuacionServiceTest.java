@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PuntuacionServiceTest {
     @Test void politicaAprobadaSeparaPuntosInicialesDeObjetivosPendientes() {
-        var servicio = new PuntuacionService(org.mockito.Mockito.mock(org.springframework.jdbc.core.JdbcTemplate.class),
+        var servicio = com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(org.mockito.Mockito.mock(org.springframework.jdbc.core.JdbcTemplate.class),
             new com.fasterxml.jackson.databind.ObjectMapper());
         var resultado = servicio.calcular(1, """
             {"puntuacion":{"version":"puntuacion-progreso-v1","puntosBase":100,
@@ -21,7 +21,7 @@ class PuntuacionServiceTest {
     }
 
     @Test void explicacionMencionaSoloElTutorialVigenteSinAlterarPuntos() {
-        var servicio = new PuntuacionService(null, new com.fasterxml.jackson.databind.ObjectMapper());
+        var servicio = com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(null, new com.fasterxml.jackson.databind.ObjectMapper());
         var resultado = servicio.calcular(1, "{}", criterios(4, 4));
         assertEquals(100, resultado.puntaje());
         assertTrue(resultado.explicacion().contains("tutorial"));

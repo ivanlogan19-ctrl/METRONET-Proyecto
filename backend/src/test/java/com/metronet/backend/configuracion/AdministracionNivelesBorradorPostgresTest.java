@@ -26,11 +26,24 @@ class AdministracionNivelesBorradorPostgresTest {
             try {
                 var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion,true));
                 var mapper = new ObjectMapper();
-                var servicio = new AdministracionNivelesService(jdbc,mapper);
+                var servicio = new AdministracionNivelesService(new com.metronet.backend.repository.AdministracionNivelesRepository(jdbc),mapper);
                 int idAdmin = jdbc.queryForObject("""
                     INSERT INTO usuario(nombre,email,password,rol) VALUES
                       ('Admin QA','admin-borrador-qa@local.test','hash-de-prueba','ADMIN') RETURNING id_usuario
                     """,Integer.class);
+                // La reversión requiere una referencia publicada; esta prueba la prepara
+                // en su propia transacción para no depender de otras clases de prueba.
+                assertEquals(1, jdbc.update("""
+                    UPDATE nivel_publicacion SET red_referencia=CAST(? AS jsonb)
+                    WHERE id_nivel_publicacion=(
+                        SELECT p.id_nivel_publicacion FROM nivel_publicacion p
+                        JOIN escenario e USING(id_escenario)
+                        WHERE e.progresivo=TRUE AND e.numero=1
+                        ORDER BY p.numero_version DESC LIMIT 1)
+                    """, """
+                    {"estaciones":[{"nombre":"A","x":10,"y":10},{"nombre":"B","x":20,"y":20}],
+                     "lineas":["L1"],"tramos":[{"linea":"L1","a":"A","b":"B"}],"unidades":[]}
+                    """));
                 assertEquals(10,servicio.listar().size());
                 var anterior = servicio.borrador(1);
                 int versionesIniciales = servicio.versiones(1).size();

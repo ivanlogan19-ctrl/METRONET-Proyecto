@@ -4,10 +4,10 @@ import com.metronet.backend.dto.ActualizarUsuarioRequest;
 import com.metronet.backend.dto.UsuarioResponse;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
+import com.metronet.backend.repository.UsuarioDepuracionRepository;
 import com.metronet.backend.repository.UsuarioRepository;
 import com.metronet.backend.utilidades.ValidadorDatos;
 import java.util.List;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,18 +19,18 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
-    private final JdbcTemplate jdbcTemplate;
+    private final UsuarioDepuracionRepository repositorio;
 
     public UsuarioService(
         UsuarioRepository usuarioRepository,
         PasswordEncoder passwordEncoder,
         AuthService authService,
-        JdbcTemplate jdbcTemplate
+        UsuarioDepuracionRepository repositorio
     ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
-        this.jdbcTemplate = jdbcTemplate;
+        this.repositorio = repositorio;
     }
 
     public List<UsuarioResponse> listarUsuarios() {
@@ -112,44 +112,20 @@ public class UsuarioService {
         );
 
         List<Integer> escenariosNoProgresivos = obtenerEscenariosNoProgresivosRelacionados(idUsuario);
-        jdbcTemplate.update("DELETE FROM actividad_administrativa WHERE id_administrador = ?", idUsuario);
-        jdbcTemplate.update("""
-            DELETE FROM diseno
-            WHERE id_diseno IN (
-                SELECT id_diseno FROM intento WHERE id_usuario = ?
-            )
-            """, idUsuario);
+        repositorio.eliminarActividad(idUsuario);
+        repositorio.eliminarDisenosDeUsuario(idUsuario);
         eliminarEscenariosSinIntentos(escenariosNoProgresivos);
         authService.invalidarSesionesDeUsuario(idUsuario);
         usuarioRepository.delete(usuario);
     }
 
     private List<Integer> obtenerEscenariosNoProgresivosRelacionados(Integer idUsuario) {
-        return jdbcTemplate.query("""
-            SELECT DISTINCT e.id_escenario
-            FROM escenario e
-            WHERE COALESCE(e.progresivo, FALSE) = FALSE
-              AND (
-                  e.id_diseno_base IN (
-                      SELECT i.id_diseno FROM intento i WHERE i.id_usuario = ?
-                  )
-                  OR e.id_escenario IN (
-                      SELECT i.id_escenario FROM intento i WHERE i.id_usuario = ?
-                  )
-              )
-            """, (resultado, fila) -> resultado.getInt("id_escenario"), idUsuario, idUsuario);
+        return repositorio.escenariosNoProgresivos((resultado, fila) -> resultado.getInt("id_escenario"), idUsuario, idUsuario);
     }
 
     private void eliminarEscenariosSinIntentos(List<Integer> idsEscenario) {
         for (Integer idEscenario : idsEscenario) {
-            jdbcTemplate.update("""
-                DELETE FROM escenario
-                WHERE id_escenario = ?
-                  AND COALESCE(progresivo, FALSE) = FALSE
-                  AND NOT EXISTS (
-                      SELECT 1 FROM intento WHERE id_escenario = ?
-                  )
-                """, idEscenario, idEscenario);
+            repositorio.eliminarEscenarioSinIntentos(idEscenario, idEscenario);
         }
     }
 

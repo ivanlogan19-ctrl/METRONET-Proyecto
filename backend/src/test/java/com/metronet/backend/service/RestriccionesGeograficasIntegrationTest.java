@@ -44,9 +44,9 @@ class RestriccionesGeograficasIntegrationTest {
         jdbc.update("INSERT INTO diseno VALUES (1)");
         jdbc.update("INSERT INTO escenario VALUES (1,NULL,'Prueba','NIVEL','Inicial','Objetivo','Instrucciones',NULL,FALSE,'{}')");
         jdbc.update("INSERT INTO intento VALUES (1,1,1,7,'EN_DISENO')");
-        restricciones = new RestriccionesGeograficasService(jdbc, mapper, geografia);
-        admin = new DisenoAdministracionService(jdbc, restricciones);
-        simulacion = new SimulacionService(jdbc, admin, new ObjetivosPuntosInteresService(mapper, geografia), org.mockito.Mockito.mock(JuegoEducativoService.class), restricciones);
+        restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geografia);
+        admin = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones);
+        simulacion = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, admin, new ObjetivosPuntosInteresService(mapper, geografia), org.mockito.Mockito.mock(JuegoEducativoService.class), restricciones);
     }
 
     @AfterEach
@@ -155,7 +155,7 @@ class RestriccionesGeograficasIntegrationTest {
 
     @Test
     void geografiaPendienteSinEstacionesSeCumpleSoloDespuesDeConstruir() {
-        var servicio = new CondicionesGeograficasService(jdbc, mapper, geografia, restricciones);
+        var servicio = new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geografia, restricciones);
         var reglas = Map.<String, Object>of("requiereGeografiaValida", true);
         assertFalse(servicio.evaluar(1, reglas, List.of()).getFirst().completado());
         estacion("Propia", 580, 470);
@@ -170,7 +170,7 @@ class RestriccionesGeograficasIntegrationTest {
         assertEquals(1, restricciones.observarDiseno(1).size());
         rechaza(() -> simulacion.guardarDiseno(7, 1), "territorio");
         assertEquals(n(600).setScale(2), jdbc.queryForObject("SELECT posicion_y FROM estacion", BigDecimal.class));
-        var servicio = new CondicionesGeograficasService(jdbc, mapper, geografia, restricciones);
+        var servicio = new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geografia, restricciones);
         assertFalse(servicio.evaluar(1, Map.of("requiereGeografiaValida", true), List.of()).getFirst().completado());
         assertTrue(servicio.evaluar(1, Map.of(), List.of()).isEmpty());
         admin.actualizarEstacion(1, "Anterior", new ActualizarEstacionRequest("Anterior", n(580), n(470), false));

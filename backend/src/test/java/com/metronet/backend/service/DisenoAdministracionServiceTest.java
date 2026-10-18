@@ -114,6 +114,6 @@ class DisenoAdministracionServiceTest {
     }
 
     private DisenoAdministracionService crearServicio() {
-        return new DisenoAdministracionService(jdbcTemplate, org.mockito.Mockito.mock(RestriccionesGeograficasService.class));
+        return new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbcTemplate), org.mockito.Mockito.mock(RestriccionesGeograficasService.class));
     }
 }

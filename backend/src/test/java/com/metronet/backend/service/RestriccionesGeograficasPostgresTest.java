@@ -34,9 +34,9 @@ class RestriccionesGeograficasPostgresTest {
                 jdbc.update("INSERT INTO intento(id_intento,id_usuario,id_escenario,id_diseno,estado) VALUES (?,?,?,?,'EN_DISENO')", id, idUsuario, id, id);
                 var mapper = new ObjectMapper();
                 var geografia = new GeografiaService(mapper);
-                var restricciones = new RestriccionesGeograficasService(jdbc, mapper, geografia);
-                var admin = new DisenoAdministracionService(jdbc, restricciones);
-                var simulacion = new SimulacionService(jdbc, admin, new ObjetivosPuntosInteresService(mapper, geografia), org.mockito.Mockito.mock(JuegoEducativoService.class), restricciones);
+                var restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geografia);
+                var admin = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones);
+                var simulacion = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, admin, new ObjetivosPuntosInteresService(mapper, geografia), org.mockito.Mockito.mock(JuegoEducativoService.class), restricciones);
                 simulacion.crearEstacion(idUsuario, id, new CrearEstacionSimulacionRequest("Válida", new BigDecimal("710.1234"), new BigDecimal("460")));
                 var error = assertThrows(ResponseStatusException.class, () -> simulacion.crearEstacion(idUsuario, id,
                     new CrearEstacionSimulacionRequest("Fuera", new BigDecimal("600"), new BigDecimal("600"))));

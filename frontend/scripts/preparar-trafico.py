@@ -22,7 +22,7 @@ DISTANCIA_MAXIMA = 60  # Metros; no extender una medición a toda una avenida.
 def resumir(filas, periodo):
     sensores, fechas = {}, set()
     revision = dict(registros=0, invalidos=0, duplicados=0)
-    dias_mes = calendar.monthrange(*map(int, periodo.split('-')))[1]
+    diasMes = calendar.monthrange(*map(int, periodo.split('-')))[1]
     for r in filas:
         revision['registros'] += 1
         try:
@@ -31,7 +31,7 @@ def resumir(filas, periodo):
             h, m, s = map(int, r['hora'].split(':'))
             valor = float(r['volumen_hora'])
             punto = [float(r['longitud']), float(r['latitud'])]
-            if not (fecha[:7] == periodo and 1 <= dia <= dias_mes and 0 <= h < 24
+            if not (fecha[:7] == periodo and 1 <= dia <= diasMes and 0 <= h < 24
                     and 0 <= m < 60 and m % 5 == 0 and s == 0
                     and math.isfinite(valor) and valor >= 0
                     and -56.5 < punto[0] < -55.9 and -35 < punto[1] < -34.5):
@@ -117,7 +117,7 @@ def vincular(sensores, calles):
     return list(grupos.values()), excluidos
 
 
-def procesar(archivo, periodo, archivo_calles):
+def procesar(archivo, periodo, archivoCalles):
     with zipfile.ZipFile(archivo) as z:
         entradas = [n for n in z.infolist() if n.filename.lower().endswith('.csv')]
         if len(entradas) != 1 or entradas[0].file_size > 2_000_000_000:
@@ -125,7 +125,7 @@ def procesar(archivo, periodo, archivo_calles):
         nombre = entradas[0].filename
         with io.TextIOWrapper(z.open(nombre), encoding='utf-8-sig') as f:
             sensores, revision = resumir(csv.DictReader(f), periodo)
-    calles = json.loads(Path(archivo_calles).read_text())
+    calles = json.loads(Path(archivoCalles).read_text())
     tramos, excluidos = vincular(sensores, calles)
     with Path(archivo).open('rb') as f:
         huella = hashlib.file_digest(f, 'sha256').hexdigest()

@@ -1,0 +1,60 @@
+package com.metronet.backend.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.metronet.backend.repository.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+/** Construcción explícita de servicios reales para pruebas fuera del contenedor Spring. */
+public final class ServiciosPrueba {
+    private ServiciosPrueba() {}
+
+    public static PuntuacionService crearPuntuacion(JdbcTemplate jdbc, ObjectMapper mapper) {
+        return crearPuntuacion(jdbc, mapper, new DistanciasRedService(new DistanciasRedRepository(jdbc), new GeografiaService(mapper)));
+    }
+
+    public static PuntuacionService crearPuntuacion(JdbcTemplate jdbc, ObjectMapper mapper, DistanciasRedService distancias) {
+        return new PuntuacionService(new PuntuacionRepository(jdbc), mapper, distancias, new VinculoUvUtLibre(new VinculoUvUtLibreRepository(jdbc), distancias));
+    }
+
+    public static CriterioUvUtService crearCriterioUvUt(JdbcTemplate jdbc, ObjectMapper mapper, PuntuacionService puntuacion) {
+        return crearCriterioUvUt(jdbc, mapper, puntuacion, new DistanciasRedService(new DistanciasRedRepository(jdbc), new GeografiaService(mapper)));
+    }
+
+    public static CriterioUvUtService crearCriterioUvUt(JdbcTemplate jdbc, ObjectMapper mapper, PuntuacionService puntuacion, DistanciasRedService distancias) {
+        return new CriterioUvUtService(new CriterioUvUtRepository(jdbc), mapper, puntuacion, distancias, new VinculoUvUtLibre(new VinculoUvUtLibreRepository(jdbc), distancias));
+    }
+
+    public static JuegoEducativoService crearJuegoEducativo(JdbcTemplate jdbc, ObjectMapper mapper, ObjetivosPuntosInteresService objetivos, CondicionesGeograficasService condiciones) {
+        return crearJuegoEducativo(jdbc, mapper, objetivos, condiciones, crearPuntuacion(jdbc, mapper));
+    }
+
+    public static JuegoEducativoService crearJuegoEducativo(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, ObjetivosPuntosInteresService objetivosPuntosInteresService, CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion) {
+        return crearJuegoEducativo(jdbcTemplate, objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion,
+            crearCriterioUvUt(jdbcTemplate, objectMapper, puntuacion));
+    }
+
+    public static JuegoEducativoService crearJuegoEducativo(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, ObjetivosPuntosInteresService objetivosPuntosInteresService, CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion, CriterioUvUtService criterioUvUt) {
+        return crearJuegoEducativo(jdbcTemplate, objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion,
+            criterioUvUt, new TrofeosService(new com.metronet.backend.repository.TrofeosRepository(jdbcTemplate), puntuacion));
+    }
+
+    public static JuegoEducativoService crearJuegoEducativo(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, ObjetivosPuntosInteresService objetivosPuntosInteresService, CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion, CriterioUvUtService criterioUvUt, TrofeosService trofeos) {
+        return new JuegoEducativoService(new JuegoEducativoRepository(jdbcTemplate), objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion, criterioUvUt, trofeos);
+    }
+
+    public static SimulacionService crearSimulacion(JdbcTemplate jdbcTemplate, DisenoAdministracionService disenoAdministracionService, ObjetivosPuntosInteresService objetivosPuntosInteresService, JuegoEducativoService juegoEducativoService, RestriccionesGeograficasService restriccionesGeograficas) {
+        return crearSimulacion(jdbcTemplate, disenoAdministracionService, objetivosPuntosInteresService, juegoEducativoService,
+            restriccionesGeograficas, crearCriterioUvUt(jdbcTemplate, new com.fasterxml.jackson.databind.ObjectMapper(),
+                crearPuntuacion(jdbcTemplate, new com.fasterxml.jackson.databind.ObjectMapper())));
+    }
+
+    public static SimulacionService crearSimulacion(JdbcTemplate jdbcTemplate, DisenoAdministracionService disenoAdministracionService, ObjetivosPuntosInteresService objetivosPuntosInteresService, JuegoEducativoService juegoEducativoService, RestriccionesGeograficasService restriccionesGeograficas, CriterioUvUtService criterioUvUt) {
+        return crearSimulacion(jdbcTemplate, disenoAdministracionService, objetivosPuntosInteresService, juegoEducativoService,
+            restriccionesGeograficas, criterioUvUt, new DistanciasRedService(new DistanciasRedRepository(jdbcTemplate),
+                new GeografiaService(new com.fasterxml.jackson.databind.ObjectMapper())));
+    }
+
+    public static SimulacionService crearSimulacion(JdbcTemplate jdbcTemplate, DisenoAdministracionService disenoAdministracionService, ObjetivosPuntosInteresService objetivosPuntosInteresService, JuegoEducativoService juegoEducativoService, RestriccionesGeograficasService restriccionesGeograficas, CriterioUvUtService criterioUvUt, DistanciasRedService distancias) {
+        return new SimulacionService(new SimulacionRepository(jdbcTemplate), disenoAdministracionService, objetivosPuntosInteresService, juegoEducativoService, restriccionesGeograficas, criterioUvUt, distancias, new VinculoUvUtLibre(new VinculoUvUtLibreRepository(jdbcTemplate), distancias));
+    }
+}

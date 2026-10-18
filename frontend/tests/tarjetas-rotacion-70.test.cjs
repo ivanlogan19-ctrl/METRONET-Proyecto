@@ -18,7 +18,7 @@ async function moduloAislado() {
 
 test('las siete tarjetas iniciales se agotan antes de repetir', async () => {
   const tarjetas = await moduloAislado();
-  assert.deepEqual(tarjetas.tarjetasEducativas.map(nivel => nivel.length), Array(10).fill(7));
+  assert.deepEqual(tarjetas.TARJETAS_EDUCATIVAS.map(nivel => nivel.length), Array(10).fill(7));
   const elegidas = Array.from({ length: 7 }, () => tarjetas.seleccionarTarjetaEducativa(1).id);
   assert.equal(new Set(elegidas).size, 7);
   const siguiente = tarjetas.seleccionarTarjetaEducativa(1).id;
@@ -27,7 +27,7 @@ test('las siete tarjetas iniciales se agotan antes de repetir', async () => {
 
 test('publicaciones nuevas de siete e históricas de seis rotan por separado', async () => {
   const tarjetas = await moduloAislado();
-  const todas = tarjetas.tarjetasEducativas[2];
+  const todas = tarjetas.TARJETAS_EDUCATIVAS[2];
   tarjetas.registrarTarjetasPublicadas(3, { version: 2, tarjetas: todas }, 18);
   const nuevas = Array.from({ length: 7 }, () => tarjetas.seleccionarTarjetaEducativa(3).id);
   assert.equal(new Set(nuevas).size, 7);

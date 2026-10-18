@@ -106,7 +106,7 @@ class UsuarioServiceTest {
     }
 
     private UsuarioService crearServicio() {
-        return new UsuarioService(usuarioRepository, passwordEncoder, authService, jdbcTemplate);
+        return new UsuarioService(usuarioRepository, passwordEncoder, authService,new com.metronet.backend.repository.UsuarioDepuracionRepository( jdbcTemplate));
     }
 
     private Usuario crearUsuario(Integer idUsuario, Rol rol, String identificadorAdministrador) {

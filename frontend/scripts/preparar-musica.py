@@ -54,12 +54,12 @@ def preparar(raiz):
             rms = np.sqrt(np.mean(audio**2))
             ganancia = min(10**(-22/20)/rms, .89/np.max(np.abs(audio)))
             audio *= ganancia
-            salida_wav = Path(temporal) / 'salida.wav'
-            with wave.open(str(salida_wav), 'wb') as f:
+            salidaWav = Path(temporal) / 'salida.wav'
+            with wave.open(str(salidaWav), 'wb') as f:
                 f.setnchannels(canales); f.setsampwidth(2); f.setframerate(sr)
                 f.writeframes((audio*32767).astype('<i2').tobytes())
             destino = DESTINO / f'{nombre}-theme.m4a'
-            subprocess.run(['afconvert','-f','m4af','-d','aac','-b','192000',str(salida_wav),str(destino)], check=True)
+            subprocess.run(['afconvert','-f','m4af','-d','aac','-b','192000',str(salidaWav),str(destino)], check=True)
             registros.append({'original':original,'sha256Original':hashlib.sha256(fuente.read_bytes()).hexdigest(),
                 'recurso':destino.name,'sha256Recurso':hashlib.sha256(destino.read_bytes()).hexdigest(),
                 'bucle':bucle,'inicioOriginalSegundos':round(inicio/sr,3),'finOriginalSegundos':round(fin/sr,3),

@@ -32,7 +32,7 @@ class AuditoriaExperienciaNivelesPostgresTest {
             try {
                 var mapper=new ObjectMapper();
                 var jdbc=new JdbcTemplate(new SingleConnectionDataSource(conexion,true));
-                var servicio=new AdministracionNivelesService(jdbc,mapper);
+                var servicio=new AdministracionNivelesService(new com.metronet.backend.repository.AdministracionNivelesRepository(jdbc),mapper);
                 var almacenado=servicio.borrador(numero);
                 // El seed no tiene una referencia diseñada; el editor envía
                 // sus cinco listas vacías incluso antes de agregar elementos.

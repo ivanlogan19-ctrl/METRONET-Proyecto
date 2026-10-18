@@ -37,12 +37,12 @@ class ImpactoReglasAdministradasPostgresTest {
         conexion.setAutoCommit(false);
         var datos=new SingleConnectionDataSource(conexion,true);
         jdbc=new JdbcTemplate(datos);geo=new GeografiaService(mapper);
-        var restricciones=new RestriccionesGeograficasService(jdbc,mapper,geo);
+        var restricciones=new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc),mapper,geo);
         var objetivos=new ObjetivosPuntosInteresService(mapper,geo);
-        var condiciones=new CondicionesGeograficasService(jdbc,mapper,geo,restricciones);
-        var juego=new JuegoEducativoService(jdbc,mapper,objetivos,condiciones);
-        var simulaciones=new SimulacionService(jdbc,org.mockito.Mockito.mock(DisenoAdministracionService.class),objetivos,juego,restricciones);
-        validador=new ValidacionPublicacionNivelService(jdbc,datos,mapper,juego,simulaciones);
+        var condiciones=new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc),mapper,geo,restricciones);
+        var juego=com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc,mapper,objetivos,condiciones);
+        var simulaciones=com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc,org.mockito.Mockito.mock(DisenoAdministracionService.class),objetivos,juego,restricciones);
+        validador=new ValidacionPublicacionNivelService(new com.metronet.backend.repository.ValidacionPublicacionNivelRepository(jdbc,datos),mapper,juego,simulaciones);
         admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Auditoría','impacto-qa@example.test','hash-prueba','ADMIN') RETURNING id_usuario",Integer.class);
         escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero=1",Integer.class);
         contenido=(ObjectNode)mapper.readTree("""

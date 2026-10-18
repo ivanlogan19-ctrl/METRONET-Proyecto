@@ -42,7 +42,7 @@ class PreparacionTest(unittest.TestCase):
     def test_huecos(self):
         exterior=[[0,0],[10,0],[10,10],[0,10],[0,0]]
         hueco=[[2,2],[8,2],[8,8],[2,8],[2,2]]
-        x,y=m.punto_interior([exterior,hueco])
+        x,y=m.puntoInterior([exterior,hueco])
         self.assertTrue(0<x<10 and 0<y<10)
         self.assertFalse(2<x<8 and 2<y<8)
 

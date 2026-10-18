@@ -2,37 +2,25 @@ package com.metronet.backend.service;
 
 import com.metronet.backend.dto.ActividadAdministrativaResponse;
 import com.metronet.backend.entity.Usuario;
+import com.metronet.backend.repository.ActividadAdministrativaRepository;
 import java.util.List;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ActividadAdministrativaService {
-    private final JdbcTemplate jdbcTemplate;
+    private final ActividadAdministrativaRepository repositorio;
 
-    public ActividadAdministrativaService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public ActividadAdministrativaService(ActividadAdministrativaRepository repositorio) {
+        this.repositorio = repositorio;
     }
 
     public void registrarActividad(Usuario administrador, String accion, String detalle) {
-        jdbcTemplate.update(
-            "INSERT INTO actividad_administrativa (id_administrador, accion, detalle) VALUES (?, ?, ?)",
-            administrador.getIdUsuario(),
-            accion,
-            detalle
-        );
+        repositorio.registrarActividad(administrador.getIdUsuario(), accion, detalle);
     }
 
     public List<ActividadAdministrativaResponse> listarActividades() {
-        return jdbcTemplate.query("""
-            SELECT a.id_actividad, COALESCE(u.identificador_administrador, u.nombre) AS administrador,
-                   a.accion, a.detalle, a.fecha
-            FROM actividad_administrativa a
-            JOIN usuario u ON u.id_usuario = a.id_administrador
-            ORDER BY a.fecha DESC, a.id_actividad DESC
-            LIMIT 100
-            """, (resultado, fila) -> new ActividadAdministrativaResponse(
+        return repositorio.listarActividades((resultado, fila) -> new ActividadAdministrativaResponse(
                 resultado.getInt("id_actividad"),
                 resultado.getString("administrador"),
                 resultado.getString("accion"),
@@ -43,11 +31,11 @@ public class ActividadAdministrativaService {
 
     @Transactional
     public boolean borrarActividad(int idActividad) {
-        return jdbcTemplate.update("DELETE FROM actividad_administrativa WHERE id_actividad = ?", idActividad) > 0;
+        return repositorio.borrarActividad(idActividad) > 0;
     }
 
     @Transactional
     public int borrarTodasLasActividades() {
-        return jdbcTemplate.update("DELETE FROM actividad_administrativa");
+        return repositorio.borrarTodasLasActividades();
     }
 }

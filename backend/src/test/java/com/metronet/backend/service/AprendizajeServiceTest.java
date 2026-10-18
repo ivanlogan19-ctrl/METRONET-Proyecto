@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 class AprendizajeServiceTest {
     private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
     private final ContenidoPublicadoNivelService contenido = mock(ContenidoPublicadoNivelService.class);
-    private final AprendizajeService servicio = new AprendizajeService(jdbc, contenido);
+    private final AprendizajeService servicio = new AprendizajeService(new com.metronet.backend.repository.AprendizajeRepository(jdbc), contenido);
 
     private Usuario usuario(Rol rol) {
         var usuario = new Usuario(); usuario.setIdUsuario(42); usuario.setRol(rol); return usuario;

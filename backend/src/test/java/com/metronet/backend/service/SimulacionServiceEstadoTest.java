@@ -148,7 +148,7 @@ class SimulacionServiceEstadoTest {
     }
 
     private SimulacionService crearServicio() {
-        return new SimulacionService(
+        return com.metronet.backend.service.ServiciosPrueba.crearSimulacion(
             jdbcTemplate,
             disenoAdministracionService,
             new ObjetivosPuntosInteresService(new ObjectMapper(), new GeografiaService(new ObjectMapper())),

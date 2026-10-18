@@ -2,32 +2,35 @@ package com.metronet.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metronet.backend.dto.DesempenoNivelResponse;
 import com.metronet.backend.dto.CondicionConsignaResponse;
 import com.metronet.backend.dto.DesempenoNivelResponse.MedicionUnidad;
-import com.metronet.backend.dto.RankingResponse;
+import com.metronet.backend.dto.DesempenoNivelResponse;
 import com.metronet.backend.dto.DesglosePuntuacionResponse;
+import com.metronet.backend.dto.RankingResponse;
+import com.metronet.backend.repository.PuntuacionRepository;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /** Puntuación educativa de redes válidas. Las metas son configuración didáctica, no límites reales de operación. */
 @Service
 public class PuntuacionService {
     private static final String MARCA = " [METRONET-RED-v1:";
-    private final JdbcTemplate jdbc;
+    private final PuntuacionRepository repositorio;
     private final ObjectMapper mapper;
     private final DistanciasRedService distancias;
-
-    public PuntuacionService(JdbcTemplate jdbc, ObjectMapper mapper) {
-        this(jdbc, mapper, new DistanciasRedService(jdbc, new GeografiaService(mapper)));
-    }
+    private final VinculoUvUtLibre vinculoLibre;
 
     @org.springframework.beans.factory.annotation.Autowired
-    public PuntuacionService(JdbcTemplate jdbc, ObjectMapper mapper, DistanciasRedService distancias) {
-        this.jdbc = jdbc; this.mapper = mapper; this.distancias = distancias;
+    public PuntuacionService(
+        PuntuacionRepository repositorio,
+        ObjectMapper mapper,
+        DistanciasRedService distancias,
+        VinculoUvUtLibre vinculoLibre
+    ) {
+        this.repositorio = repositorio; this.mapper = mapper; this.distancias = distancias;
+        this.vinculoLibre = vinculoLibre;
     }
 
     public int maximo(String reglas) {
@@ -64,8 +67,7 @@ public class PuntuacionService {
                 "Consigna con escala anterior: solicitar actualización al administrador", 0, 1, false));
         }
         if (!requiereSimulacion && aprendizaje.isMissingNode()) return condiciones;
-        var ejecuciones = jdbc.query("SELECT duracion, comentarios FROM simulacion WHERE id_intento=? ORDER BY id_simulacion",
-            (r, fila) -> new Ejecucion(r.getDouble("duracion"), r.getString("comentarios"), RegistroSimulacionDidactica.leer(r.getString("comentarios"))), idIntento);
+        var ejecuciones = repositorio.ejecucionesIntento((r, fila) -> new Ejecucion(r.getDouble("duracion"), r.getString("comentarios"), RegistroSimulacionDidactica.leer(r.getString("comentarios"))), idIntento);
         Set<String> realizadas = new HashSet<>();
         String estructuraActual = marcaEstructura(idDiseno);
         for (int i = 1; i < ejecuciones.size(); i++) {
@@ -106,7 +108,7 @@ public class PuntuacionService {
                 escalaUt ? textos.get(clave).replace("horas", "UT") : textos.get(clave), cumplida ? 1 : 0, 1, cumplida));
         }
         if (requiereSimulacion) {
-            boolean actual = escalaUt && !new VinculoUvUtLibre(jdbc, distancias).aplica(idDiseno) ? simulacionVigenteUvUt(idIntento, idDiseno)
+            boolean actual = escalaUt && !vinculoLibre.aplica(idDiseno) ? simulacionVigenteUvUt(idIntento, idDiseno)
                 : !ejecuciones.isEmpty() && ejecuciones.getLast().registro != null
                     && ejecuciones.getLast().comentarios.endsWith(marcaRed(idDiseno));
             condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y sus UV/UT actuales", actual ? 1 : 0, 1, actual));
@@ -154,10 +156,7 @@ public class PuntuacionService {
     private record RegistroGuardado(int idSimulacion, String comentarios, RegistroSimulacionDidactica registro) {}
 
     private List<RegistroGuardado> registros(int idDiseno) {
-        return jdbc.query("""
-            SELECT s.id_simulacion,s.comentarios FROM simulacion s JOIN intento i USING(id_intento)
-            WHERE i.id_diseno=? ORDER BY s.id_simulacion
-            """, (r, fila) -> new RegistroGuardado(r.getInt(1), r.getString(2),
+        return repositorio.registros((r, fila) -> new RegistroGuardado(r.getInt(1), r.getString(2),
                 RegistroSimulacionDidactica.leer(r.getString(2))), idDiseno);
     }
 
@@ -191,18 +190,16 @@ public class PuntuacionService {
         var instantanea = new RegistroSimulacionDidactica(actual.registro().estructura(), actual.registro().unidades(), evaluacion, actual.registro().escala(), actual.registro().referencias());
         // Conserva exactamente la huella evaluada, al final, como esperan los lectores existentes.
         String huella = actual.comentarios().substring(actual.comentarios().lastIndexOf(MARCA));
-        jdbc.update("UPDATE simulacion SET comentarios=?,puntaje=? WHERE id_simulacion=?",
+        repositorio.registrarPuntaje(
             comentarioVisible(actual.comentarios()) + instantanea.codificar() + huella,
-            politica.puntosBase() - evaluacion.totalDescontado(), idSimulacion);
+            politica.puntosBase() - evaluacion.totalDescontado(),
+            idSimulacion
+        );
     }
 
     public List<MedicionUnidad> medirUnidades(int idDiseno) {
         var longitudes = distancias.porLinea(idDiseno);
-        return jdbc.query("""
-            SELECT m.id_tren, m.nombre_linea, m.velocidad_promedio, m.duracion_ut,
-                (SELECT COUNT(*) FROM tramo t WHERE t.id_diseno=m.id_diseno AND t.nombre_linea=m.nombre_linea) tramos
-            FROM metro m WHERE m.id_diseno=? ORDER BY m.id_tren
-            """, (r, fila) -> new MedicionUnidad(r.getInt("id_tren"), r.getString("nombre_linea"),
+        return repositorio.medicionesUnidades((r, fila) -> new MedicionUnidad(r.getInt("id_tren"), r.getString("nombre_linea"),
                 r.getDouble("velocidad_promedio"), r.getInt("tramos"), (r.getBigDecimal("duracion_ut") == null ? null : r.getBigDecimal("duracion_ut").doubleValue()), longitudes.getOrDefault(r.getString("nombre_linea"), 0d), null, null), idDiseno);
     }
 
@@ -211,8 +208,8 @@ public class PuntuacionService {
             Math.min(u.distanciaKm(), u.velocidad() * u.tiempoEfectivo(duracionGlobal)),
             u.velocidad() > 0 ? u.distanciaKm() / u.velocidad() : null)).toList();
         var referencias = new java.util.LinkedHashMap<String, String>();
-        boolean vinculada = new VinculoUvUtLibre(jdbc, distancias).aplica(idDiseno);
-        if (vinculada) jdbc.query("SELECT DISTINCT nombre_linea,referencia_uv_ut FROM metro WHERE id_diseno=?", r -> {
+        boolean vinculada = vinculoLibre.aplica(idDiseno);
+        if (vinculada) repositorio.referenciasLineas(r -> {
             referencias.put(r.getString(1), r.getString(2));
         }, idDiseno);
         return new RegistroSimulacionDidactica(marcaEstructura(idDiseno), unidades, null,
@@ -237,26 +234,20 @@ public class PuntuacionService {
 
     private String marcaRed(int idDiseno, boolean incluirVelocidad, boolean incluirCapacidad) {
         try {
-            boolean incluirDuracion = incluirVelocidad && Boolean.TRUE.equals(jdbc.queryForObject(
-                "SELECT EXISTS(SELECT 1 FROM metro WHERE id_diseno=? AND duracion_ut IS NOT NULL)", Boolean.class, idDiseno));
+            boolean incluirDuracion = incluirVelocidad && Boolean.TRUE.equals(repositorio.tieneDuracion(idDiseno));
             var datos = List.of(
-                jdbc.queryForList("SELECT nombre,posicion_x,posicion_y,transbordo FROM estacion WHERE id_diseno=? ORDER BY nombre", idDiseno),
-                jdbc.queryForList("SELECT nombre FROM linea WHERE id_diseno=? ORDER BY nombre", idDiseno),
-                jdbc.queryForList("SELECT nombre_linea,nombre_estacion FROM pasa WHERE id_diseno=? ORDER BY nombre_linea,nombre_estacion", idDiseno),
-                jdbc.queryForList("SELECT nombre_linea,nombre_estacion_a,nombre_estacion_b FROM tramo WHERE id_diseno=? ORDER BY nombre_linea,nombre_estacion_a,nombre_estacion_b", idDiseno),
-                jdbc.queryForList("SELECT id_tren,nombre_linea" + (incluirVelocidad ? ",velocidad_promedio" : "") + (incluirDuracion ? ",duracion_ut" : "")
-                    + (incluirCapacidad ? ",capacidad" : "") + " FROM metro WHERE id_diseno=? ORDER BY id_tren", idDiseno));
+                repositorio.estacionesOrdenadas(idDiseno),
+                repositorio.lineasOrdenadas(idDiseno),
+                repositorio.conexionesOrdenadas(idDiseno),
+                repositorio.tramosOrdenados(idDiseno),
+                repositorio.unidadesOrdenadas(incluirVelocidad, incluirDuracion, incluirCapacidad, idDiseno));
             byte[] hash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsString(datos).getBytes(StandardCharsets.UTF_8));
             return MARCA + HexFormat.of().formatHex(hash) + "]";
         } catch (Exception e) { throw new IllegalStateException("No fue posible identificar la red simulada", e); }
     }
 
     private boolean simulacionVigenteUvUt(int idIntento, int idDiseno) {
-        var ultima = jdbc.query("""
-            SELECT r.huella_ejecucion FROM resultado_uv_ut r
-            JOIN simulacion s ON s.id_simulacion=r.id_simulacion
-            WHERE s.id_intento=? ORDER BY s.id_simulacion DESC LIMIT 1
-            """, (r, fila) -> r.getString(1), idIntento);
+        var ultima = repositorio.huellaUltimaEjecucion((r, fila) -> r.getString(1), idIntento);
         return !ultima.isEmpty() && ultima.getFirst().equals(marcaEjecucionUvUt(idDiseno));
     }
 
@@ -270,17 +261,7 @@ public class PuntuacionService {
     }
 
     public RankingResponse ranking(int idUsuario) {
-        var filas = jdbc.query("""
-            WITH mejores AS (
-                SELECT i.id_usuario, i.id_escenario, MAX(i.puntaje) puntos
-                FROM intento i JOIN escenario e ON e.id_escenario=i.id_escenario
-                WHERE i.estado='COMPLETADO' AND i.puntaje IS NOT NULL AND e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero IS NOT NULL
-                GROUP BY i.id_usuario,i.id_escenario
-            )
-            SELECT u.id_usuario, u.nombre, u.apellido, COALESCE(SUM(m.puntos),0) total, COUNT(m.id_escenario) completados
-            FROM usuario u LEFT JOIN mejores m ON m.id_usuario=u.id_usuario WHERE u.rol='JUGADOR'
-            GROUP BY u.id_usuario, u.nombre, u.apellido ORDER BY total DESC, completados DESC, u.id_usuario ASC
-            """, (r, fila) -> {
+        var filas = repositorio.ranking((r, fila) -> {
                 String nombre = r.getString("nombre");
                 String apellido = r.getString("apellido");
                 String nombreVisible = ((nombre == null ? "" : nombre.trim()) + " "
@@ -289,8 +270,7 @@ public class PuntuacionService {
                     r.getInt("total"), r.getInt("completados"), r.getInt("id_usuario") == idUsuario);
             });
         var propio = filas.stream().filter(RankingResponse.Entrada::sosVos).findFirst();
-        int maximo = jdbc.query("SELECT reglas_exito::text AS reglas_exito FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero IS NOT NULL",
-            (r, fila) -> maximo(r.getString("reglas_exito"))).stream().mapToInt(Integer::intValue).sum();
+        int maximo = repositorio.reglasNiveles((r, fila) -> maximo(r.getString("reglas_exito"))).stream().mapToInt(Integer::intValue).sum();
         return new RankingResponse(filas, propio.map(RankingResponse.Entrada::posicion).orElse(null), propio.map(RankingResponse.Entrada::puntajeTotal).orElse(0), maximo);
     }
 }

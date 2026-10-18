@@ -2,20 +2,20 @@ package com.metronet.backend.service;
 
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
+import com.metronet.backend.repository.TrofeosRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /** Premios acumulables calculados desde intentos completados, sin estado duplicado. */
 @Service
 public class TrofeosService {
-    private final JdbcTemplate jdbc;
+    private final TrofeosRepository repositorio;
     private final PuntuacionService puntuacion;
 
-    public TrofeosService(JdbcTemplate jdbc, PuntuacionService puntuacion) {
-        this.jdbc = jdbc;
+    public TrofeosService(TrofeosRepository repositorio, PuntuacionService puntuacion) {
+        this.repositorio = repositorio;
         this.puntuacion = puntuacion;
     }
 
@@ -27,18 +27,12 @@ public class TrofeosService {
     }
 
     public List<Trofeo> consultar(Integer idUsuario) {
-        boolean admin = jdbc.queryForObject("SELECT rol = 'ADMIN' FROM usuario WHERE id_usuario=?", Boolean.class, idUsuario);
+        boolean admin = repositorio.esAdministrador(idUsuario);
         return consultar(idUsuario, admin);
     }
 
     private List<Trofeo> consultar(Integer idUsuario, boolean admin) {
-        List<Nivel> niveles = jdbc.query("""
-            SELECT e.numero,e.reglas_exito::text,MAX(i.id_intento) AS intento_completado,MAX(i.puntaje) AS mejor
-            FROM escenario e LEFT JOIN intento i ON i.id_escenario=e.id_escenario
-              AND i.id_usuario=? AND i.estado='COMPLETADO'
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero BETWEEN 1 AND 10
-            GROUP BY e.id_escenario,e.numero,e.reglas_exito ORDER BY e.numero
-            """, (r, fila) -> new Nivel(r.getInt(1), puntuacion.maximo(r.getString(2)),
+        List<Nivel> niveles = repositorio.logrosPorNivel((r, fila) -> new Nivel(r.getInt(1), puntuacion.maximo(r.getString(2)),
                 r.getObject(3) != null, r.getObject(4, Integer.class)), idUsuario);
         Map<Integer, Nivel> porNumero = niveles.stream().collect(Collectors.toMap(Nivel::numero, n -> n, (a, b) -> a));
         long completados = porNumero.values().stream().filter(Nivel::completo).count();
@@ -55,9 +49,7 @@ public class TrofeosService {
                 "Completaste el primer nivel.", porNumero.containsKey(1) && porNumero.get(1).completo(), admin),
             trofeo("camino", "Camino a la cima", "Completar 5 niveles distintos.",
                 "Completaste cinco niveles distintos.", completados >= 5, admin),
-            trofeoExtras(!admin && Boolean.TRUE.equals(jdbc.queryForObject(
-                "SELECT EXISTS(SELECT 1 FROM aprendizaje_extra_usuario WHERE id_usuario=? AND premio_obtenido_en IS NOT NULL)",
-                Boolean.class, idUsuario))));
+            trofeoExtras(!admin && Boolean.TRUE.equals(repositorio.premioExtrasObtenido(idUsuario))));
     }
 
     public static Trofeo trofeoExtras(boolean obtenido) {

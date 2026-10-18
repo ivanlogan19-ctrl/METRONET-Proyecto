@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metronet.backend.dto.AreaTerritorialResponse;
 import com.metronet.backend.dto.ConfiguracionTerritorialResponse;
+import com.metronet.backend.repository.RestriccionesGeograficasRepository;
 import com.metronet.backend.utilidades.GeometriaTerritorial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,31 +15,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class RestriccionesGeograficasService {
-    private final JdbcTemplate jdbc;
+    private final RestriccionesGeograficasRepository repositorio;
     private final ObjectMapper mapper;
     private final GeografiaService geografia;
     private final GeometriaTerritorial territorio;
     private final Map<String, GeometriaTerritorial> areas = new ConcurrentHashMap<>();
 
-    public RestriccionesGeograficasService(JdbcTemplate jdbc, ObjectMapper mapper, GeografiaService geografia) {
-        this.jdbc = jdbc;
+    public RestriccionesGeograficasService(
+        RestriccionesGeograficasRepository repositorio,
+        ObjectMapper mapper,
+        GeografiaService geografia
+    ) {
+        this.repositorio = repositorio;
         this.mapper = mapper;
         this.geografia = geografia;
         this.territorio = new GeometriaTerritorial(geografia.geometriasMapa());
     }
 
     public ConfiguracionTerritorialResponse obtenerConfiguracion(Integer idDiseno) {
-        List<String> reglas = jdbc.query("""
-            SELECT e.reglas_exito::text AS reglas_exito FROM intento i
-            JOIN escenario e ON e.id_escenario = i.id_escenario
-            WHERE i.id_diseno = ? ORDER BY i.id_intento DESC LIMIT 1
-            """, (r, fila) -> r.getString("reglas_exito"), idDiseno);
+        List<String> reglas = repositorio.reglasDeIntento((r, fila) -> r.getString("reglas_exito"), idDiseno);
         return leerConfiguracion(reglas.isEmpty() ? null : reglas.getFirst());
     }
 
@@ -98,7 +98,7 @@ public class RestriccionesGeograficasService {
 
     // Se invoca dentro de las transacciones de edición: serializa los cambios de geometría de un diseño.
     private void bloquearDiseno(Integer idDiseno) {
-        jdbc.queryForObject("SELECT id_diseno FROM diseno WHERE id_diseno = ? FOR UPDATE", Integer.class, idDiseno);
+        repositorio.bloquearDiseno(idDiseno);
     }
 
     public void validarEstacion(Integer idDiseno, String nombreActual, BigDecimal x, BigDecimal y) {
@@ -154,14 +154,12 @@ public class RestriccionesGeograficasService {
     }
 
     private Map<String, Estacion> estaciones(Integer idDiseno) {
-        return jdbc.query("SELECT nombre, posicion_x, posicion_y FROM estacion WHERE id_diseno = ?",
-            (r, fila) -> new Estacion(r.getString("nombre"), r.getBigDecimal("posicion_x"), r.getBigDecimal("posicion_y")), idDiseno)
+        return repositorio.estaciones((r, fila) -> new Estacion(r.getString("nombre"), r.getBigDecimal("posicion_x"), r.getBigDecimal("posicion_y")), idDiseno)
             .stream().collect(Collectors.toMap(Estacion::nombre, Function.identity()));
     }
 
     private List<Tramo> tramos(Integer idDiseno) {
-        return jdbc.query("SELECT nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?",
-            (r, fila) -> new Tramo(r.getString("nombre_estacion_a"), r.getString("nombre_estacion_b")), idDiseno);
+        return repositorio.tramos((r, fila) -> new Tramo(r.getString("nombre_estacion_a"), r.getString("nombre_estacion_b")), idDiseno);
     }
 
     private static void rechazar(String error) { if (error != null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, error); }

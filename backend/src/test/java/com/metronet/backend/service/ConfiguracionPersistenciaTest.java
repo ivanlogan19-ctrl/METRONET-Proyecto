@@ -17,10 +17,10 @@ class ConfiguracionPersistenciaTest {
             // Esquema aislado de prueba, no ejecuta migraciones ni usa PostgreSQL real.
             jdbc.execute("CREATE TABLE configuracion(clave VARCHAR PRIMARY KEY, valor VARCHAR NOT NULL, descripcion VARCHAR)");
             jdbc.update("INSERT INTO configuracion VALUES ('modo_mantenimiento', 'desactivado', 'Estado de mantenimiento')");
-            var servicio = new ConfiguracionService(jdbc);
+            var servicio = new ConfiguracionService(new com.metronet.backend.repository.ConfiguracionRepository(jdbc));
             assertFalse(servicio.estaModoMantenimientoActivo());
             assertEquals("activado", servicio.actualizarConfiguracion("modo_mantenimiento", new ActualizarConfiguracionRequest(" ACTIVADO ")).valor());
-            var recargado = new ConfiguracionService(new JdbcTemplate(fuente));
+            var recargado = new ConfiguracionService(new com.metronet.backend.repository.ConfiguracionRepository(new JdbcTemplate(fuente)));
             assertTrue(recargado.estaModoMantenimientoActivo());
             assertEquals("activado", recargado.listarConfiguraciones().getFirst().valor());
             for (String invalido : new String[]{"true", "false", "1", "0", "cualquier texto", ""}) {

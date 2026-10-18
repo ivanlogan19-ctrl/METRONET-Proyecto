@@ -25,7 +25,7 @@ class LimpiezaHistorialNivelesPostgresTest {
             try {
                 var jdbc=new JdbcTemplate(new SingleConnectionDataSource(conexion,true));
                 var mapper=new ObjectMapper();
-                var servicio=new AdministracionNivelesService(jdbc,mapper);
+                var servicio=new AdministracionNivelesService(new com.metronet.backend.repository.AdministracionNivelesRepository(jdbc),mapper);
                 int admin=jdbc.queryForObject("""
                     INSERT INTO usuario(nombre,email,password,rol)
                     VALUES ('Limpieza QA','limpieza-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario

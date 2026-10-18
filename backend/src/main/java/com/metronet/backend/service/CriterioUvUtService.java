@@ -2,6 +2,7 @@ package com.metronet.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metronet.backend.dto.CondicionConsignaResponse;
+import com.metronet.backend.repository.CriterioUvUtRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayDeque;
@@ -12,26 +13,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Evalúa kilómetros con 1 UV = 1 km/UT y 1 UT = 1 hora; las ejecuciones V1 nunca pasan por este servicio. */
 @Service
 public class CriterioUvUtService {
-    private final JdbcTemplate jdbc;
+    private final CriterioUvUtRepository repositorio;
     private final ObjectMapper mapper;
     private final PuntuacionService puntuacion;
     private final DistanciasRedService distancias;
-
-    public CriterioUvUtService(JdbcTemplate jdbc, ObjectMapper mapper, PuntuacionService puntuacion) {
-        this(jdbc, mapper, puntuacion, new DistanciasRedService(jdbc, new GeografiaService(mapper)));
-    }
+    private final VinculoUvUtLibre vinculoLibre;
 
     @org.springframework.beans.factory.annotation.Autowired
-    public CriterioUvUtService(JdbcTemplate jdbc, ObjectMapper mapper, PuntuacionService puntuacion, DistanciasRedService distancias) {
+    public CriterioUvUtService(
+        CriterioUvUtRepository repositorio,
+        ObjectMapper mapper,
+        PuntuacionService puntuacion,
+        DistanciasRedService distancias,
+        VinculoUvUtLibre vinculoLibre
+    ) {
         this.distancias = distancias;
-        this.jdbc = jdbc;
+        this.vinculoLibre = vinculoLibre;
+        this.repositorio = repositorio;
         this.mapper = mapper;
         this.puntuacion = puntuacion;
     }
@@ -48,53 +52,32 @@ public class CriterioUvUtService {
                             boolean completo, List<Unidad> unidades, BigDecimal mejorUv) {}
 
     public Configuracion configuracionIntento(int idIntento) {
-        return jdbc.query("SELECT version,limite_ut,presupuesto_uv FROM intento_uv_ut WHERE id_intento=?",
-            (r, fila) -> new Configuracion(r.getInt(1), r.getInt(2), r.getBigDecimal(3)), idIntento)
+        return repositorio.configuracionIntento((r, fila) -> new Configuracion(r.getInt(1), r.getInt(2), r.getBigDecimal(3)), idIntento)
             .stream().findFirst().orElse(null);
     }
 
     public void iniciarIntento(int idIntento, int idEscenario) {
-        if (tienePublicaciones() && Boolean.TRUE.equals(jdbc.queryForObject("""
-            SELECT EXISTS (SELECT 1 FROM intento i JOIN nivel_publicacion p ON p.id_nivel_publicacion=i.id_nivel_publicacion
-              WHERE i.id_intento=? AND p.version_criterio_uv_ut IS NULL)
-            """,Boolean.class,idIntento))) return;
-        jdbc.update("""
-            INSERT INTO intento_uv_ut(id_intento,version,limite_ut,presupuesto_uv,reglas_exito,herramientas_habilitadas,objetivo,instrucciones)
-            SELECT ?,c.version,c.limite_ut,c.presupuesto_uv,e.reglas_exito,e.herramientas_habilitadas,
-              e.objetivo,regexp_replace(e.instrucciones, '\\mhoras?\\M', 'UT', 'gi') ||
-              ' Completá todos los recorridos en hasta ' || c.limite_ut || ' UT con un máximo de ' || c.presupuesto_uv || ' UV asignadas.'
-            FROM criterio_uv_ut c JOIN escenario e ON e.id_escenario=c.id_escenario
-            WHERE c.id_escenario=? AND e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero BETWEEN 4 AND 10
-            """, idIntento, idEscenario);
+        if (tienePublicaciones() && Boolean.TRUE.equals(repositorio.tieneCriterioPublicado(idIntento))) return;
+        repositorio.iniciarIntento(idIntento, idEscenario);
     }
 
     public Presentacion presentacion(Integer idIntento, int idEscenario, String objetivo, String instrucciones, String herramientas) {
         if (idIntento != null) {
-            var vigente = jdbc.query("SELECT objetivo,instrucciones,herramientas_habilitadas::text FROM intento_uv_ut WHERE id_intento=?",
-                (r, fila) -> new Presentacion(r.getString(1), r.getString(2), r.getString(3)), idIntento);
+            var vigente = repositorio.presentacionIntento((r, fila) -> new Presentacion(r.getString(1), r.getString(2), r.getString(3)), idIntento);
             if (!vigente.isEmpty()) return vigente.getFirst();
-            var anterior = jdbc.query("SELECT objetivo,instrucciones,herramientas_habilitadas::text FROM intento_catalogo_v1 WHERE id_intento=?",
-                (r, fila) -> new Presentacion(r.getString(1), r.getString(2), r.getString(3)), idIntento);
+            var anterior = repositorio.presentacionCatalogo((r, fila) -> new Presentacion(r.getString(1), r.getString(2), r.getString(3)), idIntento);
             return anterior.isEmpty() ? new Presentacion(objetivo, instrucciones, herramientas) : anterior.getFirst();
         }
-        if (tienePublicaciones() && Boolean.TRUE.equals(jdbc.queryForObject("""
-            SELECT EXISTS (SELECT 1 FROM nivel_publicacion p WHERE p.id_escenario=? AND p.version_criterio_uv_ut IS NULL
-              AND p.numero_version=(SELECT MAX(numero_version) FROM nivel_publicacion WHERE id_escenario=p.id_escenario))
-            """,Boolean.class,idEscenario))) return new Presentacion(objetivo,instrucciones,herramientas);
-        var nueva = jdbc.query("SELECT limite_ut,presupuesto_uv FROM criterio_uv_ut WHERE id_escenario=?",
-            (r, fila) -> new Configuracion(1, r.getInt(1), r.getBigDecimal(2)), idEscenario);
+        if (tienePublicaciones() && Boolean.TRUE.equals(repositorio.tieneVersionCriterio(idEscenario))) return new Presentacion(objetivo,instrucciones,herramientas);
+        var nueva = repositorio.criterioEscenario((r, fila) -> new Configuracion(1, r.getInt(1), r.getBigDecimal(2)), idEscenario);
         if (nueva.isEmpty()) return new Presentacion(objetivo, instrucciones, herramientas);
         var c = nueva.getFirst();
         return new Presentacion(objetivo, instruccionesV2(instrucciones, c), herramientas);
     }
 
     private boolean tienePublicaciones() {
-        if (!Boolean.TRUE.equals(jdbc.execute((org.springframework.jdbc.core.ConnectionCallback<Boolean>)
-            conexion -> "PostgreSQL".equals(conexion.getMetaData().getDatabaseProductName())))) return false;
-        return Boolean.TRUE.equals(jdbc.queryForObject("""
-            SELECT to_regclass('intento')=to_regclass('public.intento')
-              AND to_regclass('nivel_publicacion') IS NOT NULL
-            """,Boolean.class));
+        if (!Boolean.TRUE.equals(repositorio.esPostgreSQL())) return false;
+        return Boolean.TRUE.equals(repositorio.tienePublicaciones());
     }
 
     private String instruccionesV2(String texto, Configuracion c) {
@@ -109,8 +92,7 @@ public class CriterioUvUtService {
         List<Unidad> unidades = new ArrayList<>();
         Map<String, Integer> longitudes = longitudes(idDiseno);
         Map<String, Double> kilometros = distancias.porLinea(idDiseno);
-        List<Metro> metros = jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? ORDER BY id_tren",
-            (r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3), (r.getBigDecimal(4) == null ? null : r.getBigDecimal(4).intValueExact())), idDiseno);
+        List<Metro> metros = repositorio.unidades((r, fila) -> new Metro(r.getInt(1), r.getString(2), r.getBigDecimal(3), (r.getBigDecimal(4) == null ? null : r.getBigDecimal(4).intValueExact())), idDiseno);
         Set<String> atendidas = new HashSet<>();
         BigDecimal suma = BigDecimal.ZERO;
         int tiempoTotal = metros.stream().mapToInt(m -> m.duracion() == null ? utEjecutadas : m.duracion()).max().orElse(utEjecutadas);
@@ -132,11 +114,18 @@ public class CriterioUvUtService {
         String problema = puntuacion.marcaProblemaUvUt(idDiseno);
         String ejecucion = puntuacion.marcaEjecucionUvUt(idDiseno);
         try {
-            jdbc.update("""
-                INSERT INTO resultado_uv_ut(id_simulacion,version,huella_problema,huella_ejecucion,limite_ut,presupuesto_uv,ut_ejecutadas,suma_uv,completo,unidades)
-                VALUES (?,?,?,?,?,?,?,?,?,CAST(? AS jsonb))
-                """, idSimulacion, c.version(), problema, ejecucion, c.limiteUt(), c.presupuestoUv(), tiempoTotal,
-                suma, completo, mapper.writeValueAsString(unidades));
+            repositorio.registrarResultado(
+                idSimulacion,
+                c.version(),
+                problema,
+                ejecucion,
+                c.limiteUt(),
+                c.presupuestoUv(),
+                tiempoTotal,
+                suma,
+                completo,
+                mapper.writeValueAsString(unidades)
+            );
         } catch (com.fasterxml.jackson.core.JsonProcessingException error) {
             throw new IllegalStateException("No fue posible registrar el resultado UV/UT", error);
         }
@@ -144,9 +133,8 @@ public class CriterioUvUtService {
     }
 
     public Resultado ultimo(int idIntento, int idDiseno) {
-        if (new VinculoUvUtLibre(jdbc, distancias).aplica(idDiseno)) {
-            var ultima = jdbc.query("SELECT id_simulacion FROM simulacion WHERE id_intento=? ORDER BY id_simulacion DESC LIMIT 1",
-                (r,n) -> r.getInt(1), idIntento);
+        if (vinculoLibre.aplica(idDiseno)) {
+            var ultima = repositorio.ultimaSimulacion((r,n) -> r.getInt(1), idIntento);
             if (!ultima.isEmpty()) {
                 var resultado = resultadoVinculado(ultima.getFirst(), true);
                 if (resultado != null) return resultado;
@@ -156,13 +144,7 @@ public class CriterioUvUtService {
         if (c == null) return null;
         String problema = puntuacion.marcaProblemaUvUt(idDiseno);
         String ejecucion = puntuacion.marcaEjecucionUvUt(idDiseno);
-        return jdbc.query("""
-            SELECT r.version,r.huella_problema,r.huella_ejecucion,r.limite_ut,r.presupuesto_uv,r.ut_ejecutadas,r.suma_uv,r.completo,r.unidades::text,
-              (SELECT MIN(r2.suma_uv) FROM resultado_uv_ut r2 JOIN simulacion s2 ON s2.id_simulacion=r2.id_simulacion
-               WHERE s2.id_intento=? AND r2.huella_problema=? AND r2.completo=TRUE AND r2.version=r.version) mejor_uv
-            FROM resultado_uv_ut r JOIN simulacion s ON s.id_simulacion=r.id_simulacion
-            WHERE s.id_intento=? ORDER BY s.id_simulacion DESC LIMIT 1
-            """, (r, fila) -> {
+        return repositorio.ultimoResultado((r, fila) -> {
                 try {
                     var tipo = mapper.getTypeFactory().constructCollectionType(List.class, Unidad.class);
                     return new Resultado(r.getInt(1), r.getString(2), r.getString(3), r.getInt(4), r.getBigDecimal(5),
@@ -178,13 +160,7 @@ public class CriterioUvUtService {
     public Resultado resultadoDeSimulacion(int idSimulacion) {
         var vinculado = resultadoVinculado(idSimulacion, false);
         if (vinculado != null) return vinculado;
-        return jdbc.query("""
-            SELECT r.version,r.huella_problema,r.huella_ejecucion,r.limite_ut,r.presupuesto_uv,r.ut_ejecutadas,r.suma_uv,r.completo,r.unidades::text,
-              (SELECT MIN(r2.suma_uv) FROM resultado_uv_ut r2 JOIN simulacion s2 ON s2.id_simulacion=r2.id_simulacion
-               WHERE s2.id_intento=s.id_intento AND r2.huella_problema=r.huella_problema AND r2.completo=TRUE AND r2.version=r.version) mejor_uv
-            FROM resultado_uv_ut r JOIN simulacion s ON s.id_simulacion=r.id_simulacion
-            WHERE r.id_simulacion=?
-            """, (r, fila) -> {
+        return repositorio.resultadoDeSimulacion((r, fila) -> {
                 try {
                     var tipo = mapper.getTypeFactory().constructCollectionType(List.class, Unidad.class);
                     return new Resultado(r.getInt(1), r.getString(2), r.getString(3), r.getInt(4), r.getBigDecimal(5),
@@ -196,8 +172,7 @@ public class CriterioUvUtService {
     // Los nuevos tiempos fraccionarios se leen de la instantánea JSON existente.
     // No se truncan ni se reescriben las filas enteras de resultados históricos.
     private Resultado resultadoVinculado(int idSimulacion, boolean exigirVigencia) {
-        return jdbc.query("SELECT s.id_intento,i.id_diseno,s.comentarios FROM simulacion s JOIN intento i USING(id_intento) WHERE s.id_simulacion=?",
-            (r,n) -> {
+        return repositorio.datosSimulacion((r,n) -> {
                 var registro = RegistroSimulacionDidactica.leer(r.getString(3));
                 if (registro == null || !registro.esVinculada()) return null;
                 var c = configuracionIntento(r.getInt(1));
@@ -239,9 +214,8 @@ public class CriterioUvUtService {
     }
 
     private Map<String, Integer> longitudes(int idDiseno) {
-        List<String> lineas = jdbc.queryForList("SELECT nombre FROM linea WHERE id_diseno=?", String.class, idDiseno);
-        List<Tramo> tramos = jdbc.query("SELECT nombre_linea,nombre_estacion_a,nombre_estacion_b FROM tramo WHERE id_diseno=?",
-            (r, fila) -> new Tramo(r.getString(1), r.getString(2), r.getString(3)), idDiseno);
+        List<String> lineas = repositorio.lineas(idDiseno);
+        List<Tramo> tramos = repositorio.tramos((r, fila) -> new Tramo(r.getString(1), r.getString(2), r.getString(3)), idDiseno);
         Map<String, Integer> resultado = new HashMap<>();
         for (String linea : lineas) {
             List<Tramo> ruta = tramos.stream().filter(t -> t.linea().equals(linea)).toList();

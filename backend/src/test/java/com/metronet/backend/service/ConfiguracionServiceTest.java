@@ -154,6 +154,6 @@ class ConfiguracionServiceTest {
     }
 
     private ConfiguracionService crearServicio() {
-        return new ConfiguracionService(jdbcTemplate);
+        return new ConfiguracionService(new com.metronet.backend.repository.ConfiguracionRepository(jdbcTemplate));
     }
 }

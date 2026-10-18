@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metronet.backend.dto.CondicionConsignaResponse;
 import com.metronet.backend.dto.PuntoInteresObjetivoResponse;
+import com.metronet.backend.repository.CondicionesGeograficasRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,19 +12,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /** Condiciones optativas del escenario; no sustituye las reglas de conectividad de la red. */
 @Service
 public class CondicionesGeograficasService {
-    private final JdbcTemplate jdbc;
+    private final CondicionesGeograficasRepository repositorio;
     private final ObjectMapper mapper;
     private final GeografiaService geografia;
     private final RestriccionesGeograficasService restricciones;
 
-    public CondicionesGeograficasService(JdbcTemplate jdbc, ObjectMapper mapper, GeografiaService geografia, RestriccionesGeograficasService restricciones) {
-        this.jdbc = jdbc;
+    public CondicionesGeograficasService(
+        CondicionesGeograficasRepository repositorio,
+        ObjectMapper mapper,
+        GeografiaService geografia,
+        RestriccionesGeograficasService restricciones
+    ) {
+        this.repositorio = repositorio;
         this.mapper = mapper;
         this.geografia = geografia;
         this.restricciones = restricciones;
@@ -39,7 +44,7 @@ public class CondicionesGeograficasService {
         JsonNode configuracion = mapper.valueToTree(reglas);
         if (Boolean.TRUE.equals(reglas.get("requiereGeografiaValida")) || reglas.containsKey("restriccionesGeograficas")) {
             List<String> problemas = restricciones.observarDiseno(idDiseno, restricciones.leerConfiguracion(configuracion.toString()));
-            Integer estaciones = jdbc.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
+            Integer estaciones = repositorio.contarEstaciones(idDiseno);
             // Sin una red construida no hay geografía que acreditar como logro educativo.
             boolean cumplida = estaciones != null && estaciones > 0 && problemas.isEmpty();
             condiciones.add(new CondicionConsignaResponse("requiereGeografiaValida", problemas.isEmpty()
@@ -51,13 +56,7 @@ public class CondicionesGeograficasService {
             boolean valido = minimo.isIntegralNumber() && minimo.canConvertToInt() && minimo.intValue() > 0;
             // Los intentos previos conservan el criterio explícito guardado en su snapshot.
             boolean porConexion = Boolean.TRUE.equals(reglas.get("transbordosPorConexion"));
-            Integer actual = valido ? jdbc.queryForObject("""
-                SELECT COUNT(*) FROM estacion e WHERE e.id_diseno = ?
-                  AND (? OR e.transbordo = TRUE)
-                  AND (SELECT COUNT(DISTINCT t.nombre_linea) FROM tramo t
-                       WHERE t.id_diseno = e.id_diseno
-                         AND (t.nombre_estacion_a = e.nombre OR t.nombre_estacion_b = e.nombre)) >= 2
-                """, Integer.class, idDiseno, porConexion) : 0;
+            Integer actual = valido ? repositorio.contarEstacionesDeIntercambio(idDiseno, porConexion) : 0;
             condiciones.add(new CondicionConsignaResponse("minimoTransbordos",
                 valido ? (porConexion
                     ? "Conectar al menos " + (minimo.intValue() == 1 ? "una estación compartida" : minimo.intValue() + " estaciones compartidas") + " por dos líneas"
@@ -68,8 +67,7 @@ public class CondicionesGeograficasService {
         boolean areas = reglas.containsKey("areasObjetivo");
         boolean mismaLinea = Boolean.TRUE.equals(reglas.get("requiereObjetivosMismaLinea"));
         if (!areas && !mismaLinea) return condiciones;
-        List<Estacion> estaciones = jdbc.query("SELECT nombre, posicion_x, posicion_y FROM estacion WHERE id_diseno = ?",
-            (r, fila) -> new Estacion(r.getString("nombre"), r.getBigDecimal("posicion_x"), r.getBigDecimal("posicion_y")), idDiseno);
+        List<Estacion> estaciones = repositorio.estaciones((r, fila) -> new Estacion(r.getString("nombre"), r.getBigDecimal("posicion_x"), r.getBigDecimal("posicion_y")), idDiseno);
         if (areas) {
             JsonNode lista = configuracion.path("areasObjetivo");
             if (!lista.isArray() || lista.isEmpty()) {
@@ -92,8 +90,7 @@ public class CondicionesGeograficasService {
             }
         }
         if (mismaLinea) {
-            List<Tramo> tramos = jdbc.query("SELECT nombre_linea, nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?",
-                (r, fila) -> new Tramo(r.getString("nombre_linea"), r.getString("nombre_estacion_a"), r.getString("nombre_estacion_b")), idDiseno);
+            List<Tramo> tramos = repositorio.tramos((r, fila) -> new Tramo(r.getString("nombre_linea"), r.getString("nombre_estacion_a"), r.getString("nombre_estacion_b")), idDiseno);
             boolean conectado = conectaObjetivos(estaciones, tramos, objetivos);
             condiciones.add(new CondicionConsignaResponse("requiereObjetivosMismaLinea",
                 "Conectar los POI objetivo mediante un recorrido continuo de una misma línea", conectado ? 1 : 0, 1, conectado));

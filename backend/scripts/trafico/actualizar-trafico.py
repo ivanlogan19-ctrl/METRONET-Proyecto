@@ -21,7 +21,7 @@ HOSTS = {'ckan.montevideo.gub.uy', 'ckan-data.montevideo.gub.uy'}
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
 
-def validar_url(url):
+def validarUrl(url):
     u = urlparse(url)
     if u.scheme != 'https' or u.hostname not in HOSTS or u.port not in (None, 443) or u.username or u.password:
         raise ValueError('Fuente no autorizada')
@@ -30,13 +30,13 @@ def validar_url(url):
 
 class RedireccionOficial(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        validar_url(newurl)
+        validarUrl(newurl)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def descargar(url, destino, limite):
     abrir = urllib.request.build_opener(RedireccionOficial())
-    peticion = urllib.request.Request(validar_url(url), headers={'User-Agent': 'METRONET-Trafico/1.0'})
+    peticion = urllib.request.Request(validarUrl(url), headers={'User-Agent': 'METRONET-Trafico/1.0'})
     with abrir.open(peticion, timeout=45) as r, Path(destino).open('wb') as f:
         total = 0
         while bloque := r.read(1024*1024):
@@ -58,7 +58,7 @@ def seleccionar(catalogo, hoy, vigente):
             continue
         periodo = f'{anio.group(1)}-{meses[0]:02d}'
         if vigente < periodo < hoy.strftime('%Y-%m'):
-            url = validar_url(r['url'])
+            url = validarUrl(r['url'])
             if not urlparse(url).path.lower().endswith('.zip'):
                 continue
             candidatos.append((periodo, url))
@@ -129,10 +129,10 @@ def actualizar(carpeta, base, calles, procesar, hoy=None, descarga=descargar, tr
     carpeta = Path(carpeta)
     carpeta.mkdir(parents=True, exist_ok=True)
     datos = vigente(carpeta, base)
-    estado_path = carpeta/'estado.json'
+    rutaEstado = carpeta/'estado.json'
     try:
-        estado_previo = leer(estado_path)
-        if estado_previo.get('periodo') == datos['periodo'] and date.fromisoformat(estado_previo['proximaComprobacion']) > hoy:
+        estadoPrevio = leer(rutaEstado)
+        if estadoPrevio.get('periodo') == datos['periodo'] and date.fromisoformat(estadoPrevio['proximaComprobacion']) > hoy:
             return 'no-corresponde'
     except (OSError, ValueError, KeyError, TypeError):
         pass
@@ -153,14 +153,14 @@ def actualizar(carpeta, base, calles, procesar, hoy=None, descarga=descargar, tr
                 atomico(carpeta/'actual.json', nuevos)
                 datos = nuevos
                 estado.update(resultado='actualizado', periodo=periodo)
-        anterior_mes = (hoy.replace(day=1)-timedelta(days=1)).strftime('%Y-%m')
+        mesAnterior = (hoy.replace(day=1)-timedelta(days=1)).strftime('%Y-%m')
         siguiente = (hoy.replace(day=28)+timedelta(days=4)).replace(day=1)
-        estado['proximaComprobacion'] = (siguiente if datos['periodo'] >= anterior_mes else hoy+timedelta(days=1)).isoformat()
+        estado['proximaComprobacion'] = (siguiente if datos['periodo'] >= mesAnterior else hoy+timedelta(days=1)).isoformat()
     except Exception as error:
         estado.update(resultado='error', detalle=type(error).__name__, proximaComprobacion=(hoy+timedelta(days=1)).isoformat())
-        atomico(estado_path, estado)
+        atomico(rutaEstado, estado)
         raise
-    atomico(estado_path, estado)
+    atomico(rutaEstado, estado)
     return estado['resultado']
 
 

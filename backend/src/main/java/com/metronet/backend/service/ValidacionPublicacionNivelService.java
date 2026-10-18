@@ -6,21 +6,17 @@ import com.metronet.backend.dto.CondicionConsignaResponse;
 import com.metronet.backend.dto.EjecutarSimulacionRequest;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
+import com.metronet.backend.repository.ValidacionPublicacionNivelRepository;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.sql.Connection;
-import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
-import javax.sql.DataSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,15 +24,14 @@ import org.springframework.web.server.ResponseStatusException;
 /** Ensaya exactamente la ruta de evaluación del jugador y revierte todo el ensayo. */
 @Service
 public class ValidacionPublicacionNivelService {
-    private final JdbcTemplate jdbc;
-    private final DataSource datos;
+    private final ValidacionPublicacionNivelRepository repositorio;
     private final ObjectMapper mapper;
     private final JuegoEducativoService juego;
     private final SimulacionService simulaciones;
 
-    public ValidacionPublicacionNivelService(JdbcTemplate jdbc, DataSource datos, ObjectMapper mapper,
+    public ValidacionPublicacionNivelService(ValidacionPublicacionNivelRepository repositorio, ObjectMapper mapper,
         JuegoEducativoService juego, SimulacionService simulaciones) {
-        this.jdbc=jdbc; this.datos=datos; this.mapper=mapper; this.juego=juego; this.simulaciones=simulaciones;
+        this.repositorio=repositorio; this.mapper=mapper; this.juego=juego; this.simulaciones=simulaciones;
     }
 
     public record Diagnostico(boolean viable, List<CondicionConsignaResponse> condiciones,
@@ -48,34 +43,34 @@ public class ValidacionPublicacionNivelService {
         if (!herramientasFaltantes.isEmpty()) return new Diagnostico(false,List.of(),
             "La referencia requiere herramientas deshabilitadas: " + String.join(", ",herramientasFaltantes),
             huella(contenido,red,tarjetas));
-        Connection conexion = DataSourceUtils.getConnection(datos);
-        Savepoint punto = null;
+        var ensayo = repositorio.prepararEnsayo();
         try {
-            punto = conexion.setSavepoint("referencia_nivel");
-            int diseno = jdbc.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno",Integer.class);
+            ensayo.iniciar();
+            int diseno = repositorio.crearDiseno();
             cargarRed(diseno,red);
-            int campana = jdbc.queryForObject("SELECT numero_campana_actual FROM usuario WHERE id_usuario=?",Integer.class,idAdmin);
-            int intento = jdbc.queryForObject("""
-                INSERT INTO intento(id_usuario,id_escenario,id_diseno,numero_campana,estado,progreso)
-                VALUES (?,?,?,?,'EN_DESARROLLO',0) RETURNING id_intento
-                """,Integer.class,idAdmin,idEscenario,diseno,campana);
+            int campana = repositorio.campanaActual(idAdmin);
+            int intento = repositorio.crearIntento(idAdmin, idEscenario, diseno, campana);
             JsonNode desafio = contenido.path("desafio");
-            jdbc.update("""
-                UPDATE intento_catalogo_v1 SET reglas_exito=CAST(? AS jsonb),
-                  herramientas_habilitadas=CAST(? AS jsonb),objetivo=?,instrucciones=? WHERE id_intento=?
-                """, contenido.path("reglasExito").toString(),contenido.path("herramientasHabilitadas").toString(),
-                desafio.path("objetivo").asText(),desafio.path("instrucciones").asText(),intento);
+            repositorio.actualizarCatalogoIntento(
+                contenido.path("reglasExito").toString(),
+                contenido.path("herramientasHabilitadas").toString(),
+                desafio.path("objetivo").asText(),
+                desafio.path("instrucciones").asText(),
+                intento
+            );
             JsonNode criterio = contenido.path("criterioUvUt");
             if (criterio.isObject()) {
-                int version = jdbc.queryForObject("SELECT COALESCE(MAX(version),0)+1 FROM criterio_uv_ut WHERE id_escenario=?",
-                    Integer.class,idEscenario);
-                jdbc.update("""
-                    INSERT INTO intento_uv_ut(id_intento,version,limite_ut,presupuesto_uv,reglas_exito,
-                      herramientas_habilitadas,objetivo,instrucciones)
-                    VALUES (?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),?,?)
-                    """,intento,version,criterio.path("limiteUt").asInt(),criterio.path("presupuestoUv").decimalValue(),
-                    contenido.path("reglasExito").toString(),contenido.path("herramientasHabilitadas").toString(),
-                    desafio.path("objetivo").asText(),desafio.path("instrucciones").asText());
+                int version = repositorio.siguienteVersionCriterio(idEscenario);
+                repositorio.crearCriterioIntento(
+                    intento,
+                    version,
+                    criterio.path("limiteUt").asInt(),
+                    criterio.path("presupuestoUv").decimalValue(),
+                    contenido.path("reglasExito").toString(),
+                    contenido.path("herramientasHabilitadas").toString(),
+                    desafio.path("objetivo").asText(),
+                    desafio.path("instrucciones").asText()
+                );
             }
             JsonNode pasos = red.path("ejecuciones");
             var validacionRed = simulaciones.validarDiseno(idAdmin,diseno);
@@ -103,11 +98,7 @@ public class ValidacionPublicacionNivelService {
         } catch (Exception error) {
             throw new IllegalStateException("No fue posible validar la referencia sin persistir el ensayo",error);
         } finally {
-            if (punto != null) {
-                try { conexion.rollback(punto); conexion.releaseSavepoint(punto); }
-                catch (Exception error) { throw new IllegalStateException("No se pudo revertir el ensayo de referencia",error); }
-            }
-            DataSourceUtils.releaseConnection(conexion,datos);
+            ensayo.revertir();
         }
     }
 
@@ -131,37 +122,42 @@ public class ValidacionPublicacionNivelService {
     }
 
     private void cargarRed(int diseno, JsonNode red) {
-        for (JsonNode estacion : red.path("estaciones")) jdbc.update("""
-            INSERT INTO estacion(id_diseno,nombre,posicion_x,posicion_y,transbordo)
-            VALUES (?,?,?,?,?)
-            """,diseno,texto(estacion,"nombre"),coordenada(estacion.path("x"),"x"),
-            coordenada(estacion.path("y"),"y"),estacion.path("transbordo").asBoolean(false));
+        for (JsonNode estacion : red.path("estaciones")) repositorio.crearEstacion(
+            diseno,
+            texto(estacion,"nombre"),
+            coordenada(estacion.path("x"),"x"),
+            coordenada(estacion.path("y"),"y"),
+            estacion.path("transbordo").asBoolean(false)
+        );
         for (JsonNode linea : red.path("lineas"))
-            jdbc.update("INSERT INTO linea(id_diseno,nombre) VALUES (?,?)",diseno,texto(linea,"nombre"));
+            repositorio.crearLinea(diseno, texto(linea,"nombre"));
         for (JsonNode tramo : red.path("tramos")) {
             String linea = texto(tramo,"linea"), a=texto(tramo,"a"), b=texto(tramo,"b");
-            jdbc.update("INSERT INTO tramo(id_diseno,nombre_linea,nombre_estacion_a,nombre_estacion_b) VALUES (?,?,?,?)",
-                diseno,linea,a,b);
-            jdbc.update("INSERT INTO pasa(id_diseno,nombre_linea,nombre_estacion) VALUES (?,?,?) ON CONFLICT DO NOTHING",
-                diseno,linea,a);
-            jdbc.update("INSERT INTO pasa(id_diseno,nombre_linea,nombre_estacion) VALUES (?,?,?) ON CONFLICT DO NOTHING",
-                diseno,linea,b);
+            repositorio.crearTramo(diseno, linea, a, b);
+            repositorio.crearConexionOrigen(diseno, linea, a);
+            repositorio.crearConexionDestino(diseno, linea, b);
         }
-        for (JsonNode unidad : red.path("unidades")) jdbc.update("""
-            INSERT INTO metro(id_diseno,nombre_linea,capacidad,velocidad_promedio) VALUES (?,?,?,?)
-            """,diseno,texto(unidad,"linea"),entero(unidad.path("capacidad"),"capacidad"),
-            decimal(unidad.path("uv"),"UV"));
+        for (JsonNode unidad : red.path("unidades")) repositorio.crearUnidad(
+            diseno,
+            texto(unidad,"linea"),
+            entero(unidad.path("capacidad"),"capacidad"),
+            decimal(unidad.path("uv"),"UV")
+        );
     }
 
     private void aplicarPaso(int diseno, JsonNode paso) {
         JsonNode unidades = paso.path("unidades");
         if (!unidades.isArray()) throw invalido("Cada ejecución debe indicar UV por unidad");
-        List<Integer> ids = jdbc.queryForList("SELECT id_tren FROM metro WHERE id_diseno=? ORDER BY id_tren",Integer.class,diseno);
+        List<Integer> ids = repositorio.unidades(diseno);
         if (unidades.size() != ids.size()) throw invalido("La ejecución debe incluir todas las unidades");
         String referencia = paso.path("parametroReferencia").asText("UV");
         if (!java.util.Set.of("UV", "UT").contains(referencia)) throw invalido("Referencia UV/UT inválida");
-        for (int i=0;i<ids.size();i++) jdbc.update("UPDATE metro SET velocidad_promedio=?,duracion_ut=?,referencia_uv_ut=? WHERE id_tren=?",
-            decimal(unidades.get(i).path("uv"),"UV"), "UT".equals(referencia) ? decimal(paso.path("duracion"),"UT") : null, referencia, ids.get(i));
+        for (int i=0;i<ids.size();i++) repositorio.actualizarUnidad(
+            decimal(unidades.get(i).path("uv"),"UV"),
+            "UT".equals(referencia) ? decimal(paso.path("duracion"),"UT") : null,
+            referencia,
+            ids.get(i)
+        );
     }
 
     private String texto(JsonNode nodo,String campo) {

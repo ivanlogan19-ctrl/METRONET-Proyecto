@@ -2,9 +2,10 @@ package com.metronet.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.metronet.backend.dto.EdicionNivelRequest;
+import com.metronet.backend.repository.AdministracionNivelesRepository;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,15 +22,15 @@ import org.springframework.web.server.ResponseStatusException;
 /** Borradores privados y versiones de los diez niveles; publicar exige validar la red. */
 @Service
 public class AdministracionNivelesService {
-    private final JdbcTemplate jdbc;
+    private final AdministracionNivelesRepository repositorio;
     private final ObjectMapper mapper;
     private final List<JsonNode> catalogo;
     private final Set<String> imagenes;
     private final Set<String> clavesRegla;
     private final Set<String> clavesHerramienta;
 
-    public AdministracionNivelesService(JdbcTemplate jdbc, ObjectMapper mapper) {
-        this.jdbc = jdbc;
+    public AdministracionNivelesService(AdministracionNivelesRepository repositorio, ObjectMapper mapper) {
+        this.repositorio = repositorio;
         this.mapper = mapper;
         try (var entrada = new ClassPathResource("educacion/catalogo-svgs-niveles.json").getInputStream();
              var reglas = new ClassPathResource("educacion/niveles.json").getInputStream()) {
@@ -64,21 +64,11 @@ public class AdministracionNivelesService {
     public record LimpiezaHistorial(List<Integer> versionesEliminadas, int versionesConservadas) {}
 
     public List<Resumen> listar() {
-        return jdbc.query("""
-            SELECT e.numero,e.nombre,p.numero_version,b.revision FROM escenario e
-            JOIN LATERAL (SELECT numero_version FROM nivel_publicacion WHERE id_escenario=e.id_escenario
-              ORDER BY numero_version DESC LIMIT 1) p ON TRUE
-            JOIN nivel_borrador b ON b.id_escenario=e.id_escenario
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero BETWEEN 1 AND 10 ORDER BY e.numero
-            """, (r, fila) -> new Resumen(r.getInt(1),r.getString(2),r.getInt(3),r.getInt(4)));
+        return repositorio.listar((r, fila) -> new Resumen(r.getInt(1),r.getString(2),r.getInt(3),r.getInt(4)));
     }
 
     public Borrador borrador(int numero) {
-        return jdbc.query("""
-            SELECT b.version_base,b.revision,b.contenido::text,b.red_referencia::text,b.tarjetas::text
-            FROM nivel_borrador b JOIN escenario e ON e.id_escenario=b.id_escenario
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=?
-            """, (r, fila) -> new Borrador(numero,r.getInt(1),r.getInt(2),json(r.getString(3)),
+        return repositorio.borrador((r, fila) -> new Borrador(numero,r.getInt(1),r.getInt(2),json(r.getString(3)),
                 json(r.getString(4)),json(r.getString(5))), numero).stream().findFirst().orElseThrow(() -> noExiste());
     }
 
@@ -108,24 +98,22 @@ public class AdministracionNivelesService {
         contenido.set("herramientasHabilitadas", edicion.herramientasHabilitadas());
         contenido.set("criterioUvUt", edicion.criterioUvUt());
         contenido.set("ayudas", edicion.ayudas());
-        int filas = jdbc.update("""
-            UPDATE nivel_borrador SET contenido=CAST(? AS jsonb),red_referencia=CAST(? AS jsonb),
-              tarjetas=CAST(? AS jsonb),revision=revision+1,autor_id=?,actualizado_en=clock_timestamp()
-            WHERE id_escenario=? AND revision=? AND version_base=?
-            """, contenido.toString(), edicion.redReferencia().toString(), edicion.tarjetas().toString(),
-            idAdmin, id, previo.revision(), vigente);
+        int filas = repositorio.guardar(
+            contenido.toString(),
+            edicion.redReferencia().toString(),
+            edicion.tarjetas().toString(),
+            idAdmin,
+            id,
+            previo.revision(),
+            vigente
+        );
         if (filas != 1) throw conflicto("El borrador cambió mientras lo editabas");
         return borrador(numero);
     }
 
     public List<Version> versiones(int numero) {
         idEscenario(numero, false);
-        return jdbc.query("""
-            SELECT p.numero_version,p.version_criterio_uv_ut,p.contenido::text,p.red_referencia::text,
-              p.huella,p.publicado_en::text,p.id_nivel_publicacion
-            FROM nivel_publicacion p JOIN escenario e ON e.id_escenario=p.id_escenario
-            WHERE e.progresivo=TRUE AND e.modo='NIVEL' AND e.numero=? ORDER BY p.numero_version DESC
-            """, (r, fila) -> new Version(numero,r.getInt(1),r.getObject(2,Integer.class),json(r.getString(3)),
+        return repositorio.versiones((r, fila) -> new Version(numero,r.getInt(1),r.getObject(2,Integer.class),json(r.getString(3)),
                 json(r.getString(4)),tarjetas(r.getLong(7)),r.getString(5),r.getString(6)), numero);
     }
 
@@ -137,24 +125,19 @@ public class AdministracionNivelesService {
         if (vigente != versionEsperada)
             throw conflicto("El historial cambió. Recargá el nivel antes de eliminar versiones");
         record Candidata(long id, int version) {}
-        var candidatas = jdbc.query("""
-            SELECT p.id_nivel_publicacion,p.numero_version FROM nivel_publicacion p
-            WHERE p.id_escenario=? AND p.numero_version<?
-              AND NOT EXISTS (SELECT 1 FROM intento i WHERE i.id_nivel_publicacion=p.id_nivel_publicacion)
-              AND NOT EXISTS (SELECT 1 FROM nivel_borrador b
-                WHERE b.id_escenario=p.id_escenario AND b.version_base=p.numero_version)
-            ORDER BY p.numero_version
-            """, (r,f) -> new Candidata(r.getLong(1),r.getInt(2)),id,vigente);
+        var candidatas = repositorio.versionesSinUso((r,f) -> new Candidata(r.getLong(1),r.getInt(2)), id, vigente);
         for (var candidata : candidatas) {
-            jdbc.update("DELETE FROM nivel_publicacion_tarjeta WHERE id_nivel_publicacion=?",candidata.id());
-            jdbc.update("DELETE FROM nivel_publicacion WHERE id_nivel_publicacion=?",candidata.id());
+            repositorio.borrarTarjetasVersion(candidata.id());
+            repositorio.borrarVersion(candidata.id());
         }
         var eliminadas = candidatas.stream().map(Candidata::version).toList();
-        if (!eliminadas.isEmpty()) jdbc.update("""
-            INSERT INTO actividad_administrativa(id_administrador,accion,detalle) VALUES (?,?,?)
-            """,idAdmin,"Limpieza de historial de nivel","Nivel " + numero + ": " + eliminadas.size()
-                + " versiones antiguas sin uso; versión vigente " + vigente);
-        int conservadas = jdbc.queryForObject("SELECT COUNT(*) FROM nivel_publicacion WHERE id_escenario=?",Integer.class,id);
+        if (!eliminadas.isEmpty()) repositorio.registrarBorrado(
+            idAdmin,
+            "Limpieza de historial de nivel",
+            "Nivel " + numero + ": " + eliminadas.size()
+                + " versiones antiguas sin uso; versión vigente " + vigente
+        );
+        int conservadas = repositorio.contarVersiones(id);
         return new LimpiezaHistorial(eliminadas,conservadas);
     }
 
@@ -170,12 +153,15 @@ public class AdministracionNivelesService {
             .filter(v -> v.version() != version && referenciaConstruida(v.redReferencia()))
             .map(Version::redReferencia).findFirst()
             .orElseThrow(() -> conflicto("Esta versión no conserva una red de referencia con estaciones, líneas y conexiones; publicá una referencia antes de preparar la reversión"));
-        int filas = jdbc.update("""
-            UPDATE nivel_borrador SET version_base=?,revision=revision+1,contenido=CAST(? AS jsonb),
-              red_referencia=CAST(? AS jsonb),tarjetas=CAST(? AS jsonb),autor_id=?,actualizado_en=clock_timestamp()
-            WHERE id_escenario=? AND revision=?
-            """, vigente,origen.contenido().toString(),redReferencia.toString(),
-            tarjetasParaNuevoBorrador(numero, origen.tarjetas()).toString(),idAdmin,id,previo.revision());
+        int filas = repositorio.prepararReversion(
+            vigente,
+            origen.contenido().toString(),
+            redReferencia.toString(),
+            tarjetasParaNuevoBorrador(numero, origen.tarjetas()).toString(),
+            idAdmin,
+            id,
+            previo.revision()
+        );
         if (filas != 1) throw conflicto("El borrador cambió mientras preparabas la reversión");
         return borrador(numero);
     }
@@ -202,10 +188,7 @@ public class AdministracionNivelesService {
 
     private JsonNode tarjetas(long idPublicacion) {
         var resultado = mapper.createArrayNode();
-        jdbc.query("""
-            SELECT id_tarjeta,titulo,texto,aprendizaje,fuente,url_fuente,descripcion_imagen,id_svg_catalogo
-            FROM nivel_publicacion_tarjeta WHERE id_nivel_publicacion=? ORDER BY posicion
-            """, r -> {
+        repositorio.tarjetas(r -> {
                 ObjectNode tarjeta = mapper.createObjectNode();
                 for (String[] campo : new String[][] {{"id","id_tarjeta"},{"titulo","titulo"},{"texto","texto"},
                     {"aprendizaje","aprendizaje"},{"fuente","fuente"},{"urlFuente","url_fuente"},
@@ -218,14 +201,11 @@ public class AdministracionNivelesService {
 
     private int idEscenario(int numero, boolean bloquear) {
         if (numero < 1 || numero > 10) throw noExiste();
-        String sql = "SELECT id_escenario FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero=?"
-            + (bloquear ? " FOR UPDATE" : "");
-        return jdbc.query(sql,(r,fila) -> r.getInt(1),numero).stream().findFirst().orElseThrow(() -> noExiste());
+        return repositorio.idEscenario(numero, bloquear).stream().findFirst().orElseThrow(this::noExiste);
     }
 
     private int versionVigente(int idEscenario) {
-        return jdbc.queryForObject("SELECT MAX(numero_version) FROM nivel_publicacion WHERE id_escenario=?",
-            Integer.class,idEscenario);
+        return repositorio.versionVigente(idEscenario);
     }
 
     private void validar(int numero, EdicionNivelRequest edicion) {

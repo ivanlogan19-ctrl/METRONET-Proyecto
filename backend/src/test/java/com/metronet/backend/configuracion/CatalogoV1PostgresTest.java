@@ -65,10 +65,10 @@ class CatalogoV1PostgresTest {
 
                 var mapper = new ObjectMapper();
                 var geografia = new GeografiaService(mapper);
-                var restricciones = new RestriccionesGeograficasService(jdbc, mapper, geografia);
+                var restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geografia);
                 var objetivos = new ObjetivosPuntosInteresService(mapper, geografia);
-                var juego = new JuegoEducativoService(jdbc, mapper, objetivos,
-                    new CondicionesGeograficasService(jdbc, mapper, geografia, restricciones));
+                var juego = com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc, mapper, objetivos,
+                    new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geografia, restricciones));
                 var usuario = new Usuario(); usuario.setIdUsuario(usuarioId); usuario.setRol(Rol.JUGADOR);
                 var consigna = juego.obtenerConsigna(usuario, disenoId);
                 assertTrue(consigna.condiciones().stream().anyMatch(c -> c.clave().equals("minimoEstaciones") && c.requerido() == 2));
@@ -77,7 +77,7 @@ class CatalogoV1PostgresTest {
                 assertEquals(anterior.get("objetivo"), nivel.objetivo());
                 assertEquals(anterior.get("instrucciones"), nivel.instrucciones());
                 assertTrue(nivel.herramientasHabilitadas().get("estaciones"));
-                var simulaciones = new SimulacionService(jdbc, mock(DisenoAdministracionService.class), objetivos, juego, restricciones);
+                var simulaciones = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, mock(DisenoAdministracionService.class), objetivos, juego, restricciones);
                 var resumen = simulaciones.listarSimulaciones(usuarioId).stream()
                     .filter(s -> s.idDiseno().equals(disenoId)).findFirst().orElseThrow();
                 assertEquals(anterior.get("objetivo"), resumen.objetivo());

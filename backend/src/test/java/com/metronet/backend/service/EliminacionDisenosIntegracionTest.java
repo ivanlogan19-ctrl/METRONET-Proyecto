@@ -73,10 +73,10 @@ class EliminacionDisenosIntegracionTest {
         admin = "Bearer " + auth.iniciarSesionAdministrador(new LoginAdministradorRequest("admin", "prueba")).token();
         jugador = "Bearer " + auth.iniciarSesion(new LoginRequest("jugador@example.test", "prueba")).token();
         var restricciones = mock(RestriccionesGeograficasService.class);
-        var disenos = new DisenoAdministracionService(jdbc, restricciones);
+        var disenos = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones);
         var objetivos = mock(ObjetivosPuntosInteresService.class);
         when(objetivos.obtenerObjetivos(anyString())).thenReturn(List.of());
-        var simulaciones = new SimulacionService(jdbc, disenos, objetivos, mock(JuegoEducativoService.class), restricciones);
+        var simulaciones = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, disenos, objetivos, mock(JuegoEducativoService.class), restricciones);
         actividad = mock(ActividadAdministrativaService.class);
         http = MockMvcBuilders.standaloneSetup(new DisenoAdministracionController(auth, disenos, actividad), new SimulacionController(auth, simulaciones)).build();
     }
@@ -106,7 +106,7 @@ class EliminacionDisenosIntegracionTest {
     @Test
     void administradorPuedeBorrarCompletadoConIntentoPuntajeYRedSinBorrarElNivel() throws Exception {
         var mapper = new ObjectMapper();
-        var puntuacion = new PuntuacionService(jdbc, mapper);
+        var puntuacion = com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper);
         assertEquals(100, puntuacion.ranking(8).puntajeTotal());
         http.perform(delete("/api/admin/disenos/103").header("Authorization", admin)).andExpect(status().isOk());
         for (String tabla : List.of("diseno", "intento", "linea", "estacion", "pasa", "tramo", "metro")) {

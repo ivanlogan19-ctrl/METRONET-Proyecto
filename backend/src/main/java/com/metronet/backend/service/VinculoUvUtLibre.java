@@ -1,26 +1,24 @@
 package com.metronet.backend.service;
 
 import com.metronet.backend.dto.UnidadMetroSimulacionResponse;
+import com.metronet.backend.repository.VinculoUvUtLibreRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Vínculo por línea para Modo Libre y niveles 1–10. Conserva el nombre por compatibilidad. */
+@org.springframework.stereotype.Service
 public class VinculoUvUtLibre {
-    private final JdbcTemplate jdbc;
+    private final VinculoUvUtLibreRepository repositorio;
     private final DistanciasRedService distancias;
-    public VinculoUvUtLibre(JdbcTemplate jdbc, DistanciasRedService distancias) {
-        this.jdbc = jdbc; this.distancias = distancias;
+    public VinculoUvUtLibre(VinculoUvUtLibreRepository repositorio, DistanciasRedService distancias) {
+        this.repositorio = repositorio; this.distancias = distancias;
     }
     public boolean aplica(int diseno) {
         // La extensión aprobada incluye los diez niveles, sin alterar escenarios externos.
-        return Boolean.TRUE.equals(jdbc.queryForObject("""
-            SELECT EXISTS(SELECT 1 FROM intento i JOIN escenario e ON e.id_escenario=i.id_escenario
-             WHERE i.id_diseno=? AND (e.modo IN ('LIBRE','EDICION_LIBRE') OR (e.modo='NIVEL' AND e.numero BETWEEN 1 AND 10)))
-            """, Boolean.class, diseno));
+        return Boolean.TRUE.equals(repositorio.aplica(diseno));
     }
     public record Valores(BigDecimal uv, Double ut) {}
     public static Valores calcular(double km, BigDecimal uv, Double ut, String referencia) {
@@ -73,13 +71,13 @@ public class VinculoUvUtLibre {
 
     /** Serializa las modificaciones de una red libre antes de actualizar sus unidades. */
     public void bloquear(int diseno) {
-        if (aplica(diseno)) jdbc.queryForObject("SELECT id_diseno FROM diseno WHERE id_diseno=? FOR UPDATE", Integer.class, diseno);
+        if (aplica(diseno)) repositorio.bloquearDiseno(diseno);
     }
 
     private Map<String, Configuracion> configuraciones(int diseno) {
         Map<String, Configuracion> resultado = new LinkedHashMap<>();
         // Compatibilidad con diseños anteriores: el primer metro es la referencia de su línea.
-        jdbc.query("SELECT nombre_linea,velocidad_promedio,duracion_ut,referencia_uv_ut FROM metro WHERE id_diseno=? ORDER BY id_tren", r -> {
+        repositorio.configuraciones(r -> {
             var ut = r.getBigDecimal(3);
             var c = new Configuracion(r.getString(1), r.getBigDecimal(2), ut == null ? null : ut.doubleValue(), r.getString(4));
             resultado.putIfAbsent(c.linea(), c);
@@ -89,21 +87,18 @@ public class VinculoUvUtLibre {
 
     /** Tras editar un metro, el parámetro elegido gobierna todos los de su línea. */
     public void compartir(int diseno, int tren, String referencia, boolean cambioDeLinea) {
-        var filas = jdbc.query("SELECT nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? AND id_tren=?",
-            (r,n) -> new Configuracion(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3) == null ? null : r.getBigDecimal(3).doubleValue(), referencia), diseno, tren);
+        var filas = repositorio.configuracionUnidad((r,n) -> new Configuracion(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3) == null ? null : r.getBigDecimal(3).doubleValue(), referencia), diseno, tren);
         var elegida = filas.getFirst();
         if (cambioDeLinea) {
             // Al reasignar, hereda la línea de destino sin alterar los metros que ya estaban allí.
-            var destino = jdbc.query("SELECT nombre_linea,velocidad_promedio,duracion_ut,referencia_uv_ut FROM metro WHERE id_diseno=? AND nombre_linea=? AND id_tren<>? ORDER BY id_tren LIMIT 1",
-                (r,n) -> new Configuracion(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3) == null ? null : r.getBigDecimal(3).doubleValue(), r.getString(4)), diseno, elegida.linea(), tren);
+            var destino = repositorio.configuracionDestino((r,n) -> new Configuracion(r.getString(1), r.getBigDecimal(2), r.getBigDecimal(3) == null ? null : r.getBigDecimal(3).doubleValue(), r.getString(4)), diseno, elegida.linea(), tren);
             if (!destino.isEmpty()) elegida = destino.getFirst();
         }
         guardarLinea(diseno, elegida);
     }
 
     private void guardarLinea(int diseno, Configuracion c) {
-        jdbc.update("UPDATE metro SET velocidad_promedio=?,duracion_ut=?,referencia_uv_ut=? WHERE id_diseno=? AND nombre_linea=?",
-            c.uv(), c.ut(), c.referencia(), diseno, c.linea());
+        repositorio.guardarLinea(c.uv(), c.ut(), c.referencia(), diseno, c.linea());
     }
 
     public List<UnidadMetroSimulacionResponse> resolver(int diseno, List<UnidadMetroSimulacionResponse> unidades) {

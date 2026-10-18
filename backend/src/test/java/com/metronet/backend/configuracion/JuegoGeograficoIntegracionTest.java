@@ -66,9 +66,9 @@ class JuegoGeograficoIntegracionTest {
             }
             return 1;
         });
-        new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(catalogo).run();
-        juego = new JuegoEducativoService(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geografia),
-            new CondicionesGeograficasService(jdbc, mapper, geografia, new RestriccionesGeograficasService(jdbc, mapper, geografia)));
+        new InicializadorCatalogoEscenariosProgresivos().inicializarCatalogoEscenariosProgresivos(new com.metronet.backend.service.CatalogoEscenariosService(new com.metronet.backend.repository.CatalogoEscenariosRepository(catalogo))).run();
+        juego = com.metronet.backend.service.ServiciosPrueba.crearJuegoEducativo(jdbc, mapper, new ObjetivosPuntosInteresService(mapper, geografia),
+            new CondicionesGeograficasService(new com.metronet.backend.repository.CondicionesGeograficasRepository(jdbc), mapper, geografia, new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geografia)));
         usuario = new Usuario(); usuario.setIdUsuario(7); usuario.setRol(Rol.JUGADOR);
         for (int nivel = 1; nivel <= 4; nivel++) {
             jdbc.update("INSERT INTO intento VALUES (?,?,?, ?,1,'EN_DESARROLLO',0,NULL,NULL)", nivel, 7, nivel, nivel);
@@ -283,13 +283,13 @@ class JuegoGeograficoIntegracionTest {
         jdbc.update("INSERT INTO escenario VALUES (11,NULL,'Libre','','','', 'EDICION_LIBRE',TRUE,'{}','{}')");
         jdbc.update("UPDATE intento SET estado='COMPLETADO',puntaje=80 WHERE id_intento=1");
         jdbc.update("INSERT INTO intento VALUES (12,7,1,12,1,'COMPLETADO',100,70,NULL),(13,7,11,13,1,'COMPLETADO',100,10000,NULL),(14,8,1,14,1,'COMPLETADO',100,80,NULL),(15,9,1,15,1,'COMPLETADO',100,9000,NULL)");
-        var ranking = new PuntuacionService(jdbc, mapper).ranking(7);
+        var ranking = com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper).ranking(7);
         assertEquals(2, ranking.jugadores().size()); assertEquals(80, ranking.puntajeTotal());
         assertEquals("Ana Prueba", ranking.jugadores().getFirst().jugador());
         assertEquals("Bruno Silva", ranking.jugadores().get(1).jugador());
         assertEquals(1, ranking.tuPosicion()); assertEquals(1000, ranking.puntajeMaximo());
         jdbc.update("UPDATE intento SET puntaje=90 WHERE id_intento=12");
-        assertEquals(90, new PuntuacionService(jdbc, mapper).ranking(7).puntajeTotal());
+        assertEquals(90, com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper).ranking(7).puntajeTotal());
     }
 
     @Test

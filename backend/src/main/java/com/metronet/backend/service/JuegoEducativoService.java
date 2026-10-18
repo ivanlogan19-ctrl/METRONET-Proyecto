@@ -3,16 +3,17 @@ package com.metronet.backend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metronet.backend.dto.CondicionConsignaResponse;
-import com.metronet.backend.dto.DesempenoNivelResponse;
 import com.metronet.backend.dto.ConsignaDisenoResponse;
+import com.metronet.backend.dto.DesempenoNivelResponse;
 import com.metronet.backend.dto.EscenarioJuegoResponse;
 import com.metronet.backend.dto.EvaluacionEscenarioResponse;
 import com.metronet.backend.dto.InicioEscenarioResponse;
-import com.metronet.backend.dto.PuntoInteresObjetivoResponse;
 import com.metronet.backend.dto.ProgresoJuegoResponse;
+import com.metronet.backend.dto.PuntoInteresObjetivoResponse;
 import com.metronet.backend.dto.ReferenciaObjetivoConsignaResponse;
 import com.metronet.backend.entity.Usuario;
 import com.metronet.backend.enums.Rol;
+import com.metronet.backend.repository.JuegoEducativoRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,7 +33,7 @@ public class JuegoEducativoService {
     private static final String ESTADO_COMPLETADO = "COMPLETADO";
     private static final String ESTADO_EN_DESARROLLO = "EN_DESARROLLO";
     private static final String MODO_EDICION_LIBRE = "EDICION_LIBRE";
-    private final JdbcTemplate jdbcTemplate;
+    private final JuegoEducativoRepository repositorio;
     private final ObjectMapper objectMapper;
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
     private final CondicionesGeograficasService condicionesGeograficasService;
@@ -41,39 +41,14 @@ public class JuegoEducativoService {
     private final CriterioUvUtService criterioUvUt;
     private final TrofeosService trofeos;
 
-    public JuegoEducativoService(JdbcTemplate jdbc, ObjectMapper mapper, ObjetivosPuntosInteresService objetivos, CondicionesGeograficasService condiciones) {
-        this(jdbc, mapper, objetivos, condiciones, new PuntuacionService(jdbc, mapper));
-    }
-
-    public JuegoEducativoService(
-        JdbcTemplate jdbcTemplate,
-        ObjectMapper objectMapper,
-        ObjetivosPuntosInteresService objetivosPuntosInteresService,
-        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion
-    ) {
-        this(jdbcTemplate, objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion,
-            new CriterioUvUtService(jdbcTemplate, objectMapper, puntuacion));
-    }
-
-    public JuegoEducativoService(
-        JdbcTemplate jdbcTemplate,
-        ObjectMapper objectMapper,
-        ObjetivosPuntosInteresService objetivosPuntosInteresService,
-        CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion,
-        CriterioUvUtService criterioUvUt
-    ) {
-        this(jdbcTemplate, objectMapper, objetivosPuntosInteresService, condicionesGeograficasService, puntuacion,
-            criterioUvUt, new TrofeosService(jdbcTemplate, puntuacion));
-    }
-
     @org.springframework.beans.factory.annotation.Autowired
     public JuegoEducativoService(
-        JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
+        JuegoEducativoRepository repositorio, ObjectMapper objectMapper,
         ObjetivosPuntosInteresService objetivosPuntosInteresService,
         CondicionesGeograficasService condicionesGeograficasService, PuntuacionService puntuacion,
         CriterioUvUtService criterioUvUt, TrofeosService trofeos
     ) {
-        this.jdbcTemplate = jdbcTemplate;
+        this.repositorio = repositorio;
         this.objectMapper = objectMapper;
         this.objetivosPuntosInteresService = objetivosPuntosInteresService;
         this.condicionesGeograficasService = condicionesGeograficasService;
@@ -101,12 +76,7 @@ public class JuegoEducativoService {
             EstadisticasIntento estadisticas = obtenerEstadisticas(idUsuario, escenario.idEscenario(), progresoUsuario.numeroCampanaActual());
             var presentacion = criterioUvUt.presentacion(intento == null ? null : intento.idIntento(),
                 escenario.idEscenario(), escenario.objetivo(), escenario.instrucciones(), escenario.herramientas());
-            String[] presentacionEditorial = publicaciones ? jdbcTemplate.query("""
-                SELECT contenido->'desafio'->>'nombre',contenido->'desafio'->>'dificultad',contenido->'desafio'->>'relato',contenido->'desafio'->>'recorrido'
-                FROM nivel_publicacion WHERE id_nivel_publicacion=COALESCE(?,
-                  (SELECT id_nivel_publicacion FROM nivel_publicacion WHERE id_escenario=? ORDER BY numero_version DESC LIMIT 1))
-                """,(r,f)->new String[]{r.getString(1),r.getString(2),r.getString(3),r.getString(4)},
-                intento==null?null:intento.idNivelPublicacion(),escenario.idEscenario())
+            String[] presentacionEditorial = publicaciones ? repositorio.desafioPublicado((r,f)->new String[]{r.getString(1),r.getString(2),r.getString(3),r.getString(4)}, intento==null?null:intento.idNivelPublicacion(), escenario.idEscenario())
                 .stream().findFirst().orElse(new String[]{escenario.nombre(),escenario.dificultad(),null,null})
                 : new String[]{escenario.nombre(),escenario.dificultad(),null,null};
             respuesta.add(new EscenarioJuegoResponse(
@@ -127,11 +97,7 @@ public class JuegoEducativoService {
             campanaCompletada,
             progresoUsuario.campanaCompletadaHistoricamente(),
             esAdministrador(idUsuario) || progresoUsuario.campanaCompletadaHistoricamente(),
-            !Boolean.TRUE.equals(jdbcTemplate.queryForObject("""
-                SELECT EXISTS (SELECT 1 FROM simulacion s JOIN intento i ON i.id_intento=s.id_intento
-                    JOIN escenario e ON e.id_escenario=i.id_escenario
-                    WHERE i.id_usuario=? AND i.numero_campana=? AND e.progresivo=TRUE AND e.modo='NIVEL')
-                """, Boolean.class, idUsuario, progresoUsuario.numeroCampanaActual()))
+            !Boolean.TRUE.equals(repositorio.tieneSimulacionEnCampana(idUsuario, progresoUsuario.numeroCampanaActual()))
         );
     }
 
@@ -143,11 +109,7 @@ public class JuegoEducativoService {
     public boolean puedeConsultarContenidoActual(Integer idUsuario, int numero) {
         if (numero < 1 || numero > 10) return false;
         if (esAdministrador(idUsuario)) return true;
-        Boolean completadoAntes = jdbcTemplate.queryForObject("""
-            SELECT EXISTS (SELECT 1 FROM intento i JOIN escenario e ON e.id_escenario=i.id_escenario
-                WHERE i.id_usuario=? AND i.estado='COMPLETADO' AND e.progresivo=TRUE
-                  AND e.modo='NIVEL' AND e.numero=?)
-            """, Boolean.class, idUsuario, numero);
+        Boolean completadoAntes = repositorio.puedeConsultarContenido(idUsuario, numero);
         if (Boolean.TRUE.equals(completadoAntes)) return true;
         ProgresoUsuario progreso = obtenerProgresoUsuario(idUsuario);
         return listarEscenariosProgresivos().stream()
@@ -210,11 +172,7 @@ public class JuegoEducativoService {
         if (numeroCampanaEsperado != null && numeroCampanaEsperado != progresoUsuario.numeroCampanaActual()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El recorrido cambió. Actualizá la pantalla antes de reiniciarlo otra vez");
         }
-        int actualizados = jdbcTemplate.update("""
-            UPDATE usuario
-            SET numero_campana_actual = numero_campana_actual + 1
-            WHERE id_usuario = ? AND numero_campana_actual = ?
-            """, idUsuario, progresoUsuario.numeroCampanaActual());
+        int actualizados = repositorio.reiniciarCampana(idUsuario, progresoUsuario.numeroCampanaActual());
         if (actualizados != 1) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "No fue posible reiniciar el recorrido. Actualizá la pantalla e intentá nuevamente");
         }
@@ -225,53 +183,39 @@ public class JuegoEducativoService {
                                                 boolean primeraPasada, Integer versionEsperada) {
         Long idPublicacion=null;
         if (escenario.numero()!=null && tieneEsquemaPublicaciones()) {
-            var publicaciones=jdbcTemplate.query("""
-                SELECT id_nivel_publicacion,numero_version FROM nivel_publicacion WHERE id_escenario=?
-                ORDER BY numero_version DESC LIMIT 1
-                """,(r,f)->new long[]{r.getLong(1),r.getLong(2)},escenario.idEscenario());
+            var publicaciones=repositorio.ultimaPublicacion((r,f)->new long[]{r.getLong(1),r.getLong(2)}, escenario.idEscenario());
             if (publicaciones.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT,"No hay publicación para este nivel");
             long[] publicada=publicaciones.getFirst();
             if (versionEsperada!=null && versionEsperada.longValue()!=publicada[1])
                 throw new ResponseStatusException(HttpStatus.CONFLICT,"El nivel cambió desde la preparación. Actualizala antes de iniciar");
             idPublicacion=publicada[0];
         }
-        Integer idDiseno = jdbcTemplate.queryForObject("INSERT INTO diseno DEFAULT VALUES RETURNING id_diseno", Integer.class);
-        Integer idIntento = idPublicacion==null ? jdbcTemplate.queryForObject("""
-            INSERT INTO intento (id_usuario, id_escenario, id_diseno, numero_campana, estado, progreso, puntaje)
-            VALUES (?, ?, ?, ?, 'EN_DESARROLLO', 0, NULL)
-            RETURNING id_intento
-            """, Integer.class, idUsuario, escenario.idEscenario(), idDiseno, numeroCampana)
-            : jdbcTemplate.queryForObject("""
-            INSERT INTO intento (id_usuario, id_escenario, id_diseno, numero_campana, estado, progreso, puntaje,id_nivel_publicacion)
-            VALUES (?, ?, ?, ?, 'EN_DESARROLLO', 0, NULL,?) RETURNING id_intento
-            """, Integer.class, idUsuario, escenario.idEscenario(), idDiseno, numeroCampana,idPublicacion);
+        Integer idDiseno = repositorio.crearDiseno();
+        Integer idIntento = idPublicacion==null ? repositorio.crearIntentoPublicado(idUsuario, escenario.idEscenario(), idDiseno, numeroCampana)
+            : repositorio.crearIntento(idUsuario, escenario.idEscenario(), idDiseno, numeroCampana, idPublicacion);
         criterioUvUt.iniciarIntento(idIntento, escenario.idEscenario());
         return new InicioEscenarioResponse(idDiseno, escenario.idEscenario(), idIntento, ESTADO_EN_DESARROLLO, numeroCampana, primeraPasada,idPublicacion);
     }
 
     private void bloquearEscenario(int idEscenario) {
         if (!esPostgreSQL()) return;
-        jdbcTemplate.queryForList("SELECT id_escenario FROM escenario WHERE id_escenario=? FOR SHARE",Integer.class,idEscenario);
+        repositorio.bloquearEscenario(idEscenario);
     }
 
     private boolean tieneEsquemaPublicaciones() {
         // Las pruebas H2 no instalan 018; to_regclass pertenece a PostgreSQL.
         if (!esPostgreSQL()) return false;
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("""
-            SELECT to_regclass('intento')=to_regclass('public.intento')
-              AND to_regclass('nivel_publicacion') IS NOT NULL
-            """,Boolean.class));
+        return Boolean.TRUE.equals(repositorio.tienePublicaciones());
     }
 
     private boolean esPostgreSQL() {
-        return Boolean.TRUE.equals(jdbcTemplate.execute((org.springframework.jdbc.core.ConnectionCallback<Boolean>)
-            conexion -> "PostgreSQL".equals(conexion.getMetaData().getDatabaseProductName())));
+        return Boolean.TRUE.equals(repositorio.esPostgreSQL());
     }
 
     @Transactional
     public EvaluacionEscenarioResponse evaluarEscenario(Integer idUsuario, Integer idDiseno) {
         // Serializa las evaluaciones del mismo jugador antes de comparar premios.
-        jdbcTemplate.queryForObject("SELECT id_usuario FROM usuario WHERE id_usuario=? FOR UPDATE", Integer.class, idUsuario);
+        repositorio.bloquearUsuario(idUsuario);
         ProgresoUsuario progresoUsuario = obtenerProgresoUsuario(idUsuario);
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
         if (intento == null) {
@@ -293,26 +237,15 @@ public class JuegoEducativoService {
         if (!completado) progreso = Math.min(progreso, 99);
         Integer puntaje = desempeno.puntaje();
         String estado = estadoLuegoDeEvaluacion(completado, intento.estado());
-        jdbcTemplate.update("""
-            UPDATE intento SET estado = ?, progreso = GREATEST(progreso, ?), puntaje = CASE WHEN estado = 'COMPLETADO' THEN GREATEST(COALESCE(puntaje, 0), ?) ELSE ? END,
-            fecha_finalizacion = CASE WHEN ? THEN COALESCE(fecha_finalizacion, ?) ELSE fecha_finalizacion END
-            WHERE id_intento = ?
-            """, estado, progreso, puntaje, puntaje, completado, LocalDateTime.now(), intento.idIntento());
+        repositorio.registrarEvaluacion(estado, progreso, puntaje, puntaje, completado, LocalDateTime.now(), intento.idIntento());
         if (booleano(leerJson(intento.reglasExito()), "requiereSimulacion")) {
             // El historial conserva el resultado de esta ejecución; el intento conserva su mejor puntaje.
-            jdbcTemplate.update("""
-                UPDATE simulacion SET puntaje = ?
-                WHERE id_simulacion = (SELECT MAX(id_simulacion) FROM simulacion WHERE id_intento = ?)
-                  AND comentarios LIKE ?
-                """, puntaje, intento.idIntento(), "%" + puntuacion.marcaRed(idDiseno));
+            repositorio.actualizarPuntajeSimulacion(puntaje, intento.idIntento(), "%" + puntuacion.marcaRed(idDiseno));
         }
         Integer siguiente = completado ? obtenerIdSiguienteNivel(intento.numero()) : null;
         boolean campanaCompletada = completado && nivelesCompletados(idUsuario, progresoUsuario.numeroCampanaActual());
         if (campanaCompletada) {
-            jdbcTemplate.update("""
-                UPDATE usuario SET campana_completada_historicamente = TRUE
-                WHERE id_usuario = ?
-                """, idUsuario);
+            repositorio.marcarCampanaCompleta(idUsuario);
         }
         boolean modoLibre = esAdministrador(idUsuario) || campanaCompletada || progresoUsuario.campanaCompletadaHistoricamente();
         String mensaje = completado
@@ -329,15 +262,12 @@ public class JuegoEducativoService {
     /** Conserva avance y puntuación sin aprobar, premiar ni desbloquear el siguiente nivel. */
     @Transactional
     public void actualizarProgreso(Integer idUsuario, Integer idDiseno) {
-        jdbcTemplate.queryForObject("SELECT id_usuario FROM usuario WHERE id_usuario=? FOR UPDATE", Integer.class, idUsuario);
+        repositorio.bloquearUsuarioParaProgreso(idUsuario);
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
         if (intento == null || MODO_EDICION_LIBRE.equals(intento.modo()) || "COMPLETADO".equals(intento.estado())) return;
         EvaluacionCondiciones evaluacion = evaluarCondiciones(intento, idDiseno);
         DesempenoNivelResponse desempeno = calcularDesempeno(intento, idDiseno, evaluacion);
-        jdbcTemplate.update("""
-            UPDATE intento SET progreso = GREATEST(progreso, ?), puntaje = ?
-            WHERE id_intento = ?
-            """, Math.min(evaluacion.progreso(), 99), desempeno.puntaje(), intento.idIntento());
+        repositorio.actualizarProgreso(Math.min(evaluacion.progreso(), 99), desempeno.puntaje(), intento.idIntento());
     }
 
     @Transactional(readOnly = true)
@@ -387,10 +317,7 @@ public class JuegoEducativoService {
     }
 
     private List<EscenarioBase> listarEscenariosProgresivos() {
-        return jdbcTemplate.query("""
-            SELECT id_escenario, numero, nombre, objetivo, dificultad, instrucciones, modo, reglas_exito::text AS reglas_exito, herramientas_habilitadas::text AS herramientas_habilitadas
-            FROM escenario WHERE progresivo = TRUE ORDER BY numero NULLS LAST, id_escenario
-            """, (resultado, fila) -> new EscenarioBase(
+        return repositorio.escenariosProgresivos((resultado, fila) -> new EscenarioBase(
                 resultado.getInt("id_escenario"), resultado.getObject("numero", Integer.class), resultado.getString("nombre"),
                 resultado.getString("objetivo"), resultado.getString("dificultad"), resultado.getString("instrucciones"),
                 resultado.getString("modo"), resultado.getString("reglas_exito"), resultado.getString("herramientas_habilitadas")
@@ -403,10 +330,7 @@ public class JuegoEducativoService {
     }
 
     private ProgresoUsuario obtenerProgresoUsuario(Integer idUsuario) {
-        return jdbcTemplate.query("""
-            SELECT numero_campana_actual, campana_completada_historicamente
-            FROM usuario WHERE id_usuario = ?
-            """, (resultado, fila) -> new ProgresoUsuario(
+        return repositorio.progresoUsuario((resultado, fila) -> new ProgresoUsuario(
                 resultado.getInt("numero_campana_actual"),
                 resultado.getBoolean("campana_completada_historicamente")
             ), idUsuario).stream().findFirst().orElseThrow(
@@ -415,45 +339,21 @@ public class JuegoEducativoService {
     }
 
     private IntentoJuego obtenerIntentoActual(Integer idUsuario, Integer idEscenario, int numeroCampana) {
-        String columna=tieneEsquemaPublicaciones()?"id_nivel_publicacion":"NULL::bigint AS id_nivel_publicacion";
-        return jdbcTemplate.query("""
-            SELECT id_intento, id_diseno, estado, progreso, %s
-            FROM intento
-            WHERE id_usuario = ? AND id_escenario = ? AND numero_campana = ?
-            ORDER BY id_intento DESC LIMIT 1
-            """.formatted(columna),
-            (resultado, fila) -> new IntentoJuego(resultado.getInt("id_intento"), resultado.getInt("id_diseno"), resultado.getString("estado"), resultado.getInt("progreso"),resultado.getObject("id_nivel_publicacion",Long.class)),
-            idUsuario, idEscenario, numeroCampana).stream().findFirst().orElse(null);
+        return repositorio.intentoActual(tieneEsquemaPublicaciones(), (resultado, fila) -> new IntentoJuego(resultado.getInt("id_intento"), resultado.getInt("id_diseno"), resultado.getString("estado"), resultado.getInt("progreso"),resultado.getObject("id_nivel_publicacion",Long.class)), idUsuario, idEscenario, numeroCampana).stream().findFirst().orElse(null);
     }
 
     private IntentoEvaluable obtenerIntentoPorDiseno(Integer idUsuario, Integer idDiseno) {
-        return jdbcTemplate.query("""
-            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo,
-                   COALESCE(v.reglas_exito,h.reglas_exito,e.reglas_exito)::text AS reglas_exito
-            FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
-            LEFT JOIN intento_uv_ut v ON v.id_intento=i.id_intento
-            LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
-            WHERE i.id_usuario = ? AND i.id_diseno = ? AND e.progresivo = TRUE
-            """, (resultado, fila) -> new IntentoEvaluable(
+        return repositorio.intentoPorDiseno((resultado, fila) -> new IntentoEvaluable(
                 resultado.getInt("id_intento"), resultado.getString("estado"), resultado.getObject("puntaje", Integer.class),
                 resultado.getInt("numero_campana"), resultado.getObject("numero", Integer.class), resultado.getString("modo"), resultado.getString("reglas_exito")
             ), idUsuario, idDiseno).stream().findFirst().orElse(null);
     }
 
     private IntentoEvaluable obtenerIntentoParaConsigna(Usuario solicitante, Integer idDiseno) {
-        String filtroPropietario = solicitante.getRol() == Rol.ADMIN ? "" : " AND i.id_usuario = ?";
-        String consulta = """
-            SELECT i.id_intento, i.estado, i.puntaje, i.numero_campana, e.numero, e.modo,
-                   COALESCE(v.reglas_exito,h.reglas_exito,e.reglas_exito)::text AS reglas_exito
-            FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
-            LEFT JOIN intento_uv_ut v ON v.id_intento=i.id_intento
-            LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
-            WHERE i.id_diseno = ? AND e.progresivo = TRUE%s
-            ORDER BY i.id_intento DESC LIMIT 1
-            """.formatted(filtroPropietario);
-        return solicitante.getRol() == Rol.ADMIN
-            ? jdbcTemplate.query(consulta, this::mapearIntentoEvaluable, idDiseno).stream().findFirst().orElse(null)
-            : jdbcTemplate.query(consulta, this::mapearIntentoEvaluable, idDiseno, solicitante.getIdUsuario()).stream().findFirst().orElse(null);
+        boolean administrador = solicitante.getRol() == Rol.ADMIN;
+        return repositorio.intentoParaConsigna(administrador, idDiseno,
+            administrador ? null : solicitante.getIdUsuario(), this::mapearIntentoEvaluable)
+            .stream().findFirst().orElse(null);
     }
 
     private IntentoEvaluable mapearIntentoEvaluable(java.sql.ResultSet resultado, int fila) throws java.sql.SQLException {
@@ -464,8 +364,7 @@ public class JuegoEducativoService {
     }
 
     private boolean esAdministrador(Integer idUsuario) {
-        return Integer.valueOf(1).equals(jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM usuario WHERE id_usuario = ? AND rol = 'ADMIN'", Integer.class, idUsuario));
+        return Integer.valueOf(1).equals(repositorio.contarAdministradores(idUsuario));
     }
 
     private boolean esDesbloqueado(Integer idUsuario, EscenarioBase escenario, ProgresoUsuario progresoUsuario) {
@@ -477,11 +376,7 @@ public class JuegoEducativoService {
     }
 
     private boolean nivelCompletado(Integer idUsuario, int numero, int numeroCampana) {
-        Integer cantidad = jdbcTemplate.queryForObject("""
-            SELECT COUNT(*) FROM intento i JOIN escenario e ON e.id_escenario = i.id_escenario
-            WHERE i.id_usuario = ? AND i.numero_campana = ? AND e.progresivo = TRUE
-              AND e.numero = ? AND i.estado = 'COMPLETADO'
-            """, Integer.class, idUsuario, numeroCampana, numero);
+        Integer cantidad = repositorio.contarNivelCompletado(idUsuario, numeroCampana, numero);
         return cantidad != null && cantidad > 0;
     }
 
@@ -496,17 +391,7 @@ public class JuegoEducativoService {
     }
 
     private EstadisticasIntento obtenerEstadisticas(Integer idUsuario, Integer idEscenario, int campana) {
-        return jdbcTemplate.query("""
-            SELECT COUNT(*) AS cantidad_intentos, MAX(CASE WHEN i.estado='COMPLETADO' THEN i.puntaje ELSE NULL END) AS mejor_puntaje,
-                   (
-                       SELECT reciente.puntaje
-                       FROM intento reciente
-                       WHERE reciente.id_usuario = ? AND reciente.id_escenario = ?
-                       ORDER BY reciente.id_intento DESC LIMIT 1
-                   ) AS ultimo_puntaje, COUNT(CASE WHEN i.numero_campana = ? THEN 1 END) AS cantidad_campana
-            FROM intento i
-            WHERE i.id_usuario = ? AND i.id_escenario = ?
-            """, (resultado, fila) -> new EstadisticasIntento(
+        return repositorio.estadisticasIntento((resultado, fila) -> new EstadisticasIntento(
                 resultado.getInt("cantidad_intentos"),
                 resultado.getObject("mejor_puntaje", Integer.class),
                 resultado.getObject("ultimo_puntaje", Integer.class), resultado.getInt("cantidad_campana")
@@ -521,18 +406,17 @@ public class JuegoEducativoService {
             .map(EscenarioBase::idEscenario).findFirst().orElse(null);
     }
 
-    private int contar(String consulta, Integer idDiseno) {
-        Integer resultado = jdbcTemplate.queryForObject(consulta, Integer.class, idDiseno);
+    private int cantidad(Integer resultado) {
         return resultado == null ? 0 : resultado;
     }
 
     private EvaluacionCondiciones evaluarCondiciones(IntentoEvaluable intento, Integer idDiseno) {
         Map<String, Object> reglas = leerJson(intento.reglasExito());
         List<CondicionConsignaResponse> condiciones = new ArrayList<>();
-        int estaciones = contar("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", idDiseno);
-        int lineas = contar("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", idDiseno);
-        int tramos = contar("SELECT COUNT(*) FROM tramo WHERE id_diseno = ?", idDiseno);
-        int metros = contar("SELECT COUNT(*) FROM metro WHERE id_diseno = ?", idDiseno);
+        int estaciones = cantidad(repositorio.contarEstaciones(idDiseno));
+        int lineas = cantidad(repositorio.contarLineas(idDiseno));
+        int tramos = cantidad(repositorio.contarTramos(idDiseno));
+        int metros = cantidad(repositorio.contarMetros(idDiseno));
         agregarCondicion(
             condiciones,
             "minimoEstaciones",
@@ -575,10 +459,7 @@ public class JuegoEducativoService {
         }
         boolean simulacionRealizada = tieneSimulacion(intento.idIntento());
         if (booleano(reglas, "requiereMetroPorLinea")) {
-            int atendidas = contar("""
-                SELECT COUNT(*) FROM linea l WHERE l.id_diseno=? AND EXISTS
-                  (SELECT 1 FROM metro m WHERE m.id_diseno=l.id_diseno AND m.nombre_linea=l.nombre)
-                """, idDiseno);
+            int atendidas = cantidad(repositorio.contarLineasAtendidas(idDiseno));
             condiciones.add(new CondicionConsignaResponse("requiereMetroPorLinea",
                 "Asignar al menos un Metro a cada línea", atendidas, lineas, lineas > 0 && atendidas == lineas));
         }
@@ -650,9 +531,7 @@ public class JuegoEducativoService {
         List<PuntoInteresObjetivoResponse> puntosInteresObjetivo
     ) {
         if (puntosInteresObjetivo.isEmpty()) return List.of();
-        List<CoordenadaEstacion> estaciones = jdbcTemplate.query("""
-            SELECT posicion_x, posicion_y FROM estacion WHERE id_diseno = ?
-            """, (resultado, fila) -> new CoordenadaEstacion(
+        List<CoordenadaEstacion> estaciones = repositorio.referenciasObjetivo((resultado, fila) -> new CoordenadaEstacion(
                 resultado.getBigDecimal("posicion_x"), resultado.getBigDecimal("posicion_y")
             ), idDiseno);
         return puntosInteresObjetivo.stream().map(punto -> new ReferenciaObjetivoConsignaResponse(
@@ -679,7 +558,7 @@ public class JuegoEducativoService {
     }
 
     private boolean tieneSimulacion(Integer idIntento) {
-        Integer cantidad = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM simulacion WHERE id_intento = ?", Integer.class, idIntento);
+        Integer cantidad = repositorio.contarSimulaciones(idIntento);
         return cantidad != null && cantidad > 0;
     }
 

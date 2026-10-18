@@ -36,7 +36,7 @@ class TrofeosServiceTest {
             }
             return filas;
         });
-        var servicio = new TrofeosService(jdbc, puntuacion);
+        var servicio = new TrofeosService(new com.metronet.backend.repository.TrofeosRepository(jdbc), puntuacion);
         completados.set(0);
         assertTrue(servicio.consultar(usuario(Rol.JUGADOR)).stream().noneMatch(TrofeosService.Trofeo::obtenido));
         completados.set(5);

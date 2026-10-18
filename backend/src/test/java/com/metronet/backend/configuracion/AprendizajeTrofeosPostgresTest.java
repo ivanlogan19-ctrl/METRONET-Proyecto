@@ -27,9 +27,9 @@ class AprendizajeTrofeosPostgresTest {
             try {
                 var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion, true));
                 var mapper = new ObjectMapper();
-                var contenido = new ContenidoPublicadoNivelService(jdbc, mapper);
-                var aprendizaje = new AprendizajeService(jdbc, contenido);
-                var trofeos = new TrofeosService(jdbc, new PuntuacionService(jdbc, mapper));
+                var contenido = new ContenidoPublicadoNivelService(new com.metronet.backend.repository.ContenidoPublicadoNivelRepository(jdbc), mapper);
+                var aprendizaje = new AprendizajeService(new com.metronet.backend.repository.AprendizajeRepository(jdbc), contenido);
+                var trofeos = new TrofeosService(new com.metronet.backend.repository.TrofeosRepository(jdbc), com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper));
                 var vacio = usuario(jdbc, "vacio", Rol.JUGADOR);
                 var parcial = usuario(jdbc, "parcial", Rol.JUGADOR);
                 var completo = usuario(jdbc, "completo", Rol.JUGADOR);

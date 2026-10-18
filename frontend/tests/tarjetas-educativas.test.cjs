@@ -24,13 +24,13 @@ async function paginaPrueba(t, viewport = { width: 1440, height: 900 }) {
 test('10 niveles tienen siete tarjetas únicas de texto, fuente e imagen local válida', async t => {
   const page = await paginaPrueba(t);
   const result = await page.evaluate(async () => {
-    const { tarjetasEducativas } = await import('/src/educacion/TarjetasEducativasNivel.js');
+    const { TARJETAS_EDUCATIVAS } = await import('/src/educacion/TarjetasEducativasNivel.js');
     const rows = [];
-    for (const pair of tarjetasEducativas) for (const card of pair) {
+    for (const pair of TARJETAS_EDUCATIVAS) for (const card of pair) {
       const response = await fetch(card.imagen);
       rows.push({ ...card, ok:response.ok, tipo:response.headers.get('content-type'), svg:response.ok ? await response.text() : '' });
     }
-    return { counts:tarjetasEducativas.map(p => p.length), rows };
+    return { counts:TARJETAS_EDUCATIVAS.map(p => p.length), rows };
   });
   assert.deepEqual(result.counts, Array(10).fill(7));
   assert.equal(new Set(result.rows.map(row => row.id)).size, 70);

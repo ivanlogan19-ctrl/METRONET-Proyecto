@@ -24,7 +24,7 @@ class SieteTarjetasPostgresTest {
             try {
                 var jdbc = new JdbcTemplate(new SingleConnectionDataSource(conexion,true));
                 var mapper = new ObjectMapper();
-                var servicio = new AdministracionNivelesService(jdbc,mapper);
+                var servicio = new AdministracionNivelesService(new com.metronet.backend.repository.AdministracionNivelesRepository(jdbc),mapper);
                 int idAdmin = jdbc.queryForObject("""
                     INSERT INTO usuario(nombre,email,password,rol) VALUES
                     ('Admin 70 QA','admin-70-qa@local.test','hash-de-prueba','ADMIN') RETURNING id_usuario

@@ -2,13 +2,13 @@ package com.metronet.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.metronet.backend.dto.PublicarNivelRequest;
 import com.metronet.backend.dto.EdicionNivelRequest;
+import com.metronet.backend.dto.PublicarNivelRequest;
+import com.metronet.backend.repository.PublicacionNivelRepository;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,15 +16,15 @@ import org.springframework.web.server.ResponseStatusException;
 /** Único publicador: contenido, proyecciones y criterio UV/UT cambian juntos. */
 @Service
 public class PublicacionNivelService {
-    private final JdbcTemplate jdbc;
+    private final PublicacionNivelRepository repositorio;
     private final AdministracionNivelesService borradores;
     private final ValidacionPublicacionNivelService validacion;
     private final ObjectMapper mapper;
     private final Map<String,String> svgConHuella;
 
-    public PublicacionNivelService(JdbcTemplate jdbc, AdministracionNivelesService borradores,
+    public PublicacionNivelService(PublicacionNivelRepository repositorio, AdministracionNivelesService borradores,
         ValidacionPublicacionNivelService validacion, ObjectMapper mapper) {
-        this.jdbc=jdbc; this.borradores=borradores; this.validacion=validacion; this.mapper=mapper;
+        this.repositorio=repositorio; this.borradores=borradores; this.validacion=validacion; this.mapper=mapper;
         try (var entrada=new ClassPathResource("educacion/catalogo-svgs-niveles.json").getInputStream()) {
             JsonNode catalogo=mapper.readTree(entrada);
             Map<String,String> huellas=new HashMap<>();
@@ -43,8 +43,7 @@ public class PublicacionNivelService {
     public Publicada publicarCriterioUvUt(int numero, AdministracionUvUtService.Cambio cambio, int idAdmin) {
         if (numero < 4 || numero > 10) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No existe el criterio solicitado");
         int id = idEscenario(numero,true);
-        Integer versionCriterio = jdbc.queryForObject(
-            "SELECT version FROM criterio_uv_ut WHERE id_escenario=? FOR UPDATE", Integer.class,id);
+        Integer versionCriterio = repositorio.versionCriterioActual(id);
         if (cambio == null || cambio.versionEsperada() == null || !cambio.versionEsperada().equals(versionCriterio))
             throw conflicto("El criterio UV/UT cambió. Actualizá antes de guardar");
         if (cambio.limiteUt() == null || cambio.limiteUt() <= 0 || cambio.presupuestoUv() == null
@@ -100,56 +99,65 @@ public class PublicacionNivelService {
         if (criterio.isObject()) {
             if (!criterio.isObject() || !criterio.path("limiteUt").isIntegralNumber()
                 || !criterio.path("presupuestoUv").isNumber()) throw invalido("Criterio UV/UT inválido");
-            versionCriterio=jdbc.queryForObject("SELECT version+1 FROM criterio_uv_ut WHERE id_escenario=? FOR UPDATE",Integer.class,id);
+            versionCriterio=repositorio.siguienteVersionCriterio(id);
             if (versionCriterio==null) throw invalido("Falta criterio UV/UT de este nivel");
         }
         int siguiente=vigente+1;
-        long publicacion=jdbc.queryForObject("""
-            INSERT INTO nivel_publicacion(id_escenario,numero_version,version_criterio_uv_ut,contenido,
-              red_referencia,huella,autor_id,confirmacion_editorial)
-            VALUES (?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),?,?,TRUE) RETURNING id_nivel_publicacion
-            """,Long.class,id,siguiente,versionCriterio,contenido.toString(),borrador.redReferencia().toString(),
-            diagnostico.huella(),idAdmin);
+        long publicacion=repositorio.crearPublicacion(
+            id,
+            siguiente,
+            versionCriterio,
+            contenido.toString(),
+            borrador.redReferencia().toString(),
+            diagnostico.huella(),
+            idAdmin
+        );
         for (int i=0;i<7;i++) {
             JsonNode tarjeta=tarjetas.get(i);
             String imagen=tarjeta.path("idSvgCatalogo").asText();
             String hash=svgConHuella.get(imagen);
             if (hash==null) throw invalido("La tarjeta " + (i+1) + " usa un SVG no autorizado");
-            jdbc.update("""
-                INSERT INTO nivel_publicacion_tarjeta(id_nivel_publicacion,posicion,id_tarjeta,titulo,texto,
-                  aprendizaje,fuente,url_fuente,descripcion_imagen,id_svg_catalogo,sha256_svg)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)
-                """,publicacion,i+1,tarjeta.path("id").asText(),tarjeta.path("titulo").asText(),
-                tarjeta.path("texto").asText(),tarjeta.path("aprendizaje").asText(),tarjeta.path("fuente").asText(),
-                tarjeta.path("urlFuente").asText(),tarjeta.path("descripcionImagen").asText(),imagen,hash);
+            repositorio.crearTarjeta(
+                publicacion,
+                i+1,
+                tarjeta.path("id").asText(),
+                tarjeta.path("titulo").asText(),
+                tarjeta.path("texto").asText(),
+                tarjeta.path("aprendizaje").asText(),
+                tarjeta.path("fuente").asText(),
+                tarjeta.path("urlFuente").asText(),
+                tarjeta.path("descripcionImagen").asText(),
+                imagen,
+                hash
+            );
         }
-        jdbc.update("""
-            UPDATE escenario SET nombre=?,objetivo=?,instrucciones=?,dificultad=?,
-              reglas_exito=CAST(? AS jsonb),herramientas_habilitadas=CAST(? AS jsonb)
-            WHERE id_escenario=?
-            """,desafio.path("nombre").asText(),desafio.path("objetivo").asText(),
-            desafio.path("instrucciones").asText(),desafio.path("dificultad").asText(),
-            contenido.path("reglasExito").toString(),contenido.path("herramientasHabilitadas").toString(),id);
-        if (versionCriterio!=null) jdbc.update("""
-            UPDATE criterio_uv_ut SET version=?,limite_ut=?,presupuesto_uv=? WHERE id_escenario=?
-            """,versionCriterio,criterio.path("limiteUt").asInt(),criterio.path("presupuestoUv").decimalValue(),id);
-        jdbc.update("UPDATE nivel_borrador SET version_base=?,revision=revision+1 WHERE id_escenario=?",
-            siguiente,id);
-        jdbc.update("""
-            INSERT INTO actividad_administrativa(id_administrador,accion,detalle)
-            VALUES (?,'PUBLICAR_NIVEL',?)
-            """,idAdmin,"Nivel "+numero+" publicado como versión "+siguiente+"; revisión editorial confirmada");
+        repositorio.actualizarEscenario(
+            desafio.path("nombre").asText(),
+            desafio.path("objetivo").asText(),
+            desafio.path("instrucciones").asText(),
+            desafio.path("dificultad").asText(),
+            contenido.path("reglasExito").toString(),
+            contenido.path("herramientasHabilitadas").toString(),
+            id
+        );
+        if (versionCriterio!=null) repositorio.actualizarCriterio(
+            versionCriterio,
+            criterio.path("limiteUt").asInt(),
+            criterio.path("presupuestoUv").decimalValue(),
+            id
+        );
+        repositorio.actualizarVersionBorrador(siguiente, id);
+        repositorio.registrarPublicacion(idAdmin, "Nivel "+numero+" publicado como versión "+siguiente+"; revisión editorial confirmada");
         return new Publicada(numero,siguiente,versionCriterio,diagnostico.huella());
     }
 
     private int idEscenario(int numero,boolean bloquear) {
         if (numero<1 || numero>10) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No existe el nivel solicitado");
-        return jdbc.query("SELECT id_escenario FROM escenario WHERE progresivo=TRUE AND modo='NIVEL' AND numero=?"
-            +(bloquear?" FOR UPDATE":" FOR SHARE"),(r,f)->r.getInt(1),numero).stream().findFirst()
+        return repositorio.idEscenario(bloquear, (r,f)->r.getInt(1), numero).stream().findFirst()
             .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"No existe el nivel solicitado"));
     }
     private int version(int idEscenario) {
-        return jdbc.queryForObject("SELECT MAX(numero_version) FROM nivel_publicacion WHERE id_escenario=?",Integer.class,idEscenario);
+        return repositorio.version(idEscenario);
     }
     private ResponseStatusException conflicto(String mensaje) { return new ResponseStatusException(HttpStatus.CONFLICT,mensaje); }
     private ResponseStatusException invalido(String mensaje) { return new ResponseStatusException(HttpStatus.BAD_REQUEST,mensaje); }
