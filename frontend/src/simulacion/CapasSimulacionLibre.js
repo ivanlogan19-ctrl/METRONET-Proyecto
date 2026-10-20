@@ -5,6 +5,7 @@ import CapaPoblacion from '../mapa/capas/CapaPoblacion.js';
 import CapaDesplazamientos from '../mapa/capas/CapaDesplazamientos.js';
 import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import { RelojTerritorial, minutosDesdeHora, mostrarHora, circuloCobertura } from './RelojTerritorial.mjs';
+import SelectorLineasReproduccion from './SelectorLineasReproduccion.js';
 import './capas-simulacion.css';
 
 export default class CapasSimulacionLibre {
@@ -32,26 +33,24 @@ export default class CapasSimulacionLibre {
   }
   crearPanel() {
     document.body.classList.add('simulacion-libre-territorio');
-    this.horarios = document.createElement('section');
-    this.horarios.className = 'simulacion-horarios simulacion-territorio-panel';
-    this.horarios.innerHTML = `<h3 class="simulacion-seccion-titulo">Horarios</h3><div class="simulacion-horarios__valores">
-      <div><label for="horaInicioEscenario">Inicio</label><div class="simulacion-horarios__inicio"><input id="horaInicioEscenario" type="time" aria-label="Hora de inicio del escenario" value="${mostrarHora(this.reloj.inicio)}" step="60"><div class="simulacion-horarios__flechas"><button type="button" data-paso-hora="1" aria-label="Adelantar inicio una hora">▴</button><button type="button" data-paso-hora="-1" aria-label="Atrasar inicio una hora">▾</button></div></div></div>
-      <div><span>Actual</span><output data-hora-actual></output></div><div><span>Fin</span><output data-hora-fin></output></div></div>
-      <progress max="1" value="0" aria-label="Avance del horario"></progress>`;
-    this.inicio = this.horarios.querySelector('input');
-    this.inicio.addEventListener('change', () => {
-      const minutos = minutosDesdeHora(this.inicio.value);
-      if (minutos === null || this.inicio.disabled) return;
-      this.reloj.inicio = minutos; this.preferencias.inicio = this.inicio.value; this.guardar();
-      this.sincronizar(this.estado ?? { estado: 'DETENIDA', duracion: 6, tiempoTranscurrido: 0, progreso: 0 });
-    });
-    this.flechasHora = [...this.horarios.querySelectorAll('[data-paso-hora]')];
+    this.horarios = document.querySelector('.simulacion-acciones-panel');
+    this.horarios.classList.add('simulacion-horarios');
+    this.tituloAcciones = this.horarios.querySelector('h3');
+    this.tituloAcciones.textContent = 'Reloj de estación';
+    this.relojVisual = document.createElement('div');
+    this.relojVisual.className = 'simulacion-reloj-digital';
+    this.relojVisual.innerHTML = `<button type="button" data-paso-hora="-1" aria-label="Atrasar horario 15 minutos">◀</button>
+      <output data-hora-actual aria-label="Hora del escenario"></output>
+      <button type="button" data-paso-hora="1" aria-label="Adelantar horario 15 minutos">▶</button>
+      <output data-hora-fin hidden></output>`;
+    this.tituloAcciones.after(this.relojVisual);
+    this.flechasHora = [...this.relojVisual.querySelectorAll('[data-paso-hora]')];
     this.flechasHora.forEach(boton => boton.addEventListener('click', () => {
-      if (this.inicio.disabled) return;
-      const minutos = minutosDesdeHora(this.inicio.value) ?? this.reloj.inicio;
-      this.inicio.value = mostrarHora((minutos + Number(boton.dataset.pasoHora) * 60 + 1440) % 1440);
-      this.inicio.dispatchEvent(new Event('change', { bubbles: true }));
+      this.reloj.inicio = (this.reloj.inicio + Number(boton.dataset.pasoHora) * 15 + 1440) % 1440;
+      this.preferencias.inicio = mostrarHora(this.reloj.inicio); this.guardar();
+      this.sincronizar(this.estado ?? this.escena.motorSimulacion.obtenerEstado());
     }));
+    this.selectorLineas = new SelectorLineasReproduccion(this.diseno, nombres => this.escena.seleccionarLineasReproduccion(nombres));
     this.panel = document.createElement('section'); this.panel.className = 'simulacion-territorio-panel simulacion-capas';
     this.panel.innerHTML = `<h3 class="simulacion-seccion-titulo">Capas del mapa</h3><div class="simulacion-capas__botones"></div>
       <input type="range" min="10" max="100" step="5" value="65" aria-label="Transparencia de las capas">
@@ -73,7 +72,7 @@ export default class CapasSimulacionLibre {
     this.rango = this.panel.querySelector('input');
     this.rango.addEventListener('input', () => { this.establecerOpacidad(Number(this.rango.value)/100); this.guardar(); });
     const instrumentos = document.getElementById('instrumentosSimulacion');
-    instrumentos.querySelector('.simulacion-acciones-panel').after(this.horarios);
+    this.horarios.after(this.selectorLineas.elemento);
     instrumentos.append(this.panel);
   }
   guardar() { try { localStorage.setItem(this.clave, JSON.stringify(this.preferencias)); } catch { /* No bloquea simular. */ } }
@@ -102,15 +101,11 @@ export default class CapasSimulacionLibre {
   sincronizar(estado) {
     this.estado = estado;
     const t = estado.tiempoTranscurrido ?? 0;
-    const duracion = estado.estado === 'DETENIDA'
-      ? Math.max(0, ...(this.diseno.unidadesMetro ?? []).map(u => u.duracionUt ?? estado.duracion ?? 6))
-      : estado.duracion;
+    const duracion = estado.duracion ?? 0;
     this.reloj.sincronizar(t);
-    this.inicio.disabled = ['EN_CURSO', 'PAUSADA'].includes(estado.estado);
-    this.flechasHora.forEach(boton => { boton.disabled = this.inicio.disabled; });
+    this.selectorLineas.establecerBloqueado(this.bloqueoExterno || ['EN_CURSO', 'PAUSADA'].includes(estado.estado));
     this.mostrarReloj('[data-hora-actual]', this.reloj.inicio + t * 60);
     this.mostrarReloj('[data-hora-fin]', this.reloj.inicio + duracion * 60);
-    this.horarios.querySelector('progress').value = estado.progreso ?? 0;
     // Las flechas siguen el mismo tiempo; pausas, reinicios y movimiento reducido no derivan.
     const fase = this.desplazamientos.movimientoReducido.matches ? 0 : t % 1;
     if (fase !== this.desplazamientos.fase) {
@@ -142,7 +137,9 @@ export default class CapasSimulacionLibre {
   eliminar() {
     this.eliminado = true;
     for (const capa of Object.values(this.capas)) capa.eliminar();
-    this.cobertura.destroy(); this.reloj.eliminar(); this.horarios.remove(); this.panel.remove();
+    this.cobertura.destroy(); this.reloj.eliminar(); this.relojVisual.remove(); this.panel.remove();
+    this.selectorLineas.elemento.remove();
+    this.horarios.classList.remove('simulacion-horarios'); this.tituloAcciones.textContent = 'Acciones';
     document.body.classList.remove('simulacion-libre-territorio');
   }
 }

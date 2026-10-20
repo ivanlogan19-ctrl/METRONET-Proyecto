@@ -2,7 +2,7 @@
   display: inline-flex;
   gap: 2px;
   padding: 3px;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid #66d9c4;
   border-radius: var(--radius-control);
   background: var(--panel);
   box-shadow: var(--shadow-floating);
@@ -47,7 +47,7 @@
   display: inline-flex;
   gap: 2px;
   padding: 3px;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid #66d9c4;
   border-radius: var(--radius-control);
   background: var(--panel);
   box-shadow: var(--shadow-floating);
@@ -63,7 +63,7 @@
   grid-template-columns: var(--mando-mapa) calc(2 * var(--mando-mapa) + var(--separacion-mapa));
   gap: var(--separacion-mapa);
   padding: 4px;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid #66d9c4;
   background: var(--panel);
   box-shadow: var(--shadow-floating);
 }

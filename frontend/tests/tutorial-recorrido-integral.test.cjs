@@ -1,11 +1,11 @@
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
-const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
+const {abrirNavegador}=require('./soporte/navegador.cjs');
 const {abrirEditor}=require('./soporte/editor.cjs');
 const {abrirPantalla}=require('./soporte/pantallas.cjs');
 const catalogo=require('../src/educacion/recorrido-integral.json');
 let browser;
-before(async()=>{browser=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
+before(async()=>{browser=await abrirNavegador();});
 after(()=>browser?.close());
 for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, incluida Simular deshabilitada: ${width}`,async t=>{
  const escenario={...catalogo[0],idEscenario:1,recorrido:'integral-2026-10'};
@@ -33,7 +33,7 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
   assert.ok(r.x>=0 && r.x+r.width<=width+1,'La guía queda dentro del ancho visible');
   await p.locator('[data-recorrido-siguiente]').click();
  }
- for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
+ for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Línea a configurar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
  await p.waitForFunction(()=>document.querySelector('.metronet-recorrido h2')?.textContent==='Elegí Estación');
  assert.equal(await p.locator('[data-recorrido-siguiente]').isVisible(),false,'La práctica requiere la herramienta real');
  await p.locator('[data-elegir-herramienta="estaciones"]').click();

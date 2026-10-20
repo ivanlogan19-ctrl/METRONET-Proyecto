@@ -1,3 +1,4 @@
+import { prepararMenuLineas } from '../mapa/controles/MenuLineasConfiguracion.js';
 import { normalizarSeleccion, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import { formatearVelocidad } from './EscalaSimulacion.js';
@@ -8,7 +9,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   contenedor.limpiarSelectorMetro?.();
   contenedor.innerHTML = `
     <section class="simulacion-grupo-metros">
-      <h3 class="simulacion-seccion-titulo">${opciones.vinculoLibre ? 'Líneas' : 'Metros'}</h3>
+      <h3 class="simulacion-seccion-titulo">${opciones.vinculoLibre ? 'Línea a configurar' : 'Metros'}</h3>
       <details class="simulacion-selector-metros">
         <summary aria-expanded="false">${iconoRetro('metros')}<span data-seleccion-metro></span></summary>
         <select id="unidadCirculacion" aria-label="Metro" aria-hidden="true" tabindex="-1"></select>
@@ -60,7 +61,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     resumen.querySelector('[data-nivel-configuracion]').textContent = nivel || 'Red actual';
   }
   actualizarNivel(opciones.nivel);
-  resumen.hidden = unidades.length === 0;
+  resumen.hidden = opciones.modoLibre || unidades.length === 0;
   function actualizarTiempo(duracionGlobal) {
     const unidad = 'UT';
     const tiempo = Number.isFinite(Number(duracionGlobal)) && Number(duracionGlobal) > 0
@@ -96,12 +97,13 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       return fila;
     }));
     listaResumen.querySelectorAll('li').forEach(fila => {
-      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre).some(u => String(u.idTren) === fila.dataset.metro));
+      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, opciones.modoLibre).some(u => String(u.idTren) === fila.dataset.metro));
     });
   }
-  selector.replaceChildren(...(opciones.vinculoLibre ? [] : [new Option(etiquetaVacia, 'todas')]), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? u.nombreLinea : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
+  selector.replaceChildren(...(opciones.vinculoLibre && !opciones.modoLibre ? [] : [new Option(opciones.modoLibre ? 'Todas' : etiquetaVacia, 'todas')]), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? u.nombreLinea : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
   const desplegable = contenedor.querySelector('.simulacion-selector-metros');
   const acceso = desplegable.querySelector('summary');
+  desplegable.classList.toggle('simulacion-selector-lineas', Boolean(opciones.vinculoLibre));
   const lista = desplegable.querySelector('.simulacion-selector-metros__opciones');
   const opcionesMetro = [...selector.options].map(opcion => {
     const control = document.createElement('button');
@@ -117,12 +119,19 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     lista.append(control);
     return control;
   });
+  const menuLibre = opciones.vinculoLibre ? prepararMenuLineas(lista, opcionesMetro, diseno, acceso) : null;
   function actualizarMenu() {
     acceso.querySelector('[data-seleccion-metro]').textContent = selector.selectedOptions[0]?.textContent ?? etiquetaVacia;
     opcionesMetro.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.metro === selector.value)));
+    if (menuLibre) {
+      acceso.querySelector('.simulacion-color-linea')?.remove();
+      const muestra = opcionesMetro.find(control => control.dataset.metro === selector.value)?.querySelector('.simulacion-color-linea');
+      if (muestra) acceso.querySelector('[data-seleccion-metro]').before(muestra.cloneNode(true));
+    }
   }
   function posicionarMenu() {
     if (!desplegable.open) return;
+    if (menuLibre) { menuLibre.posicionar(); return; }
     const panel = desplegable.closest('#instrumentosSimulacion').getBoundingClientRect();
     const accesoRect = acceso.getBoundingClientRect();
     const debajo = panel.bottom - accesoRect.bottom - 8;
@@ -150,8 +159,9 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     const indice = evento.key === 'Home' ? 0 : evento.key === 'End' ? opcionesMetro.length - 1
       : indiceActual < 0 ? Math.max(0, opcionesMetro.findIndex(control => control.dataset.metro === selector.value))
         : (indiceActual + (evento.key === 'ArrowDown' ? 1 : -1) + opcionesMetro.length) % opcionesMetro.length;
+    menuLibre?.mostrarIndice(indice);
     opcionesMetro[indice]?.focus({ preventScroll: true });
-    opcionesMetro[indice]?.scrollIntoView({ block: 'nearest' });
+    if (!menuLibre) opcionesMetro[indice]?.scrollIntoView({ block: 'nearest' });
   });
   const escucha = new AbortController();
   document.addEventListener('pointerdown', evento => {
@@ -172,12 +182,12 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   input.disabled = boton.disabled = !permitidas;
   campo.disabled = opciones.bloqueado === true;
   configurarBotonIcono(boton, 'guardar', 'Aplicar velocidad');
-  const elegidas = () => seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre);
+  const elegidas = () => seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, opciones.modoLibre);
   function seleccionar(id) {
-    selector.value = normalizarSeleccion(unidades, id, opciones.vinculoLibre);
+    selector.value = normalizarSeleccion(unidades, id, opciones.vinculoLibre, opciones.modoLibre);
     actualizarMenu();
     listaResumen.querySelectorAll('li').forEach(fila => {
-      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre).some(u => String(u.idTren) === fila.dataset.metro));
+      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, opciones.modoLibre).some(u => String(u.idTren) === fila.dataset.metro));
     });
     const velocidades = [...new Set(elegidas().map(u => Number(u.velocidadPromedio)))];
     const valorMixto = velocidades.length > 1;

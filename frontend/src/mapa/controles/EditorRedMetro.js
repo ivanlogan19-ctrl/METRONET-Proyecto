@@ -1,3 +1,4 @@
+import SelectorLineasEditor from './SelectorLineasEditor.js';
 import { metasConLineas } from '../../educacion/IndicacionesLineas.mjs';
 import '../../educacion/indicaciones-lineas.css';
 import CreacionDirecta from './CreacionDirecta.js';
@@ -143,6 +144,7 @@ export default class EditorRedMetro {
     );
     editorActivo.append(herramientas);
     this.agregarListaContextual('lineas', 'data-lista-lineas', 'Líneas existentes');
+    this.selectorLineas = new SelectorLineasEditor(herramientas, nombre => this.seleccionarLineaDesdeLista(nombre));
     this.obtener('[data-linea-gestion]')?.closest('.metronet-editor-fila')?.setAttribute('hidden', '');
     const finalizacion = document.createElement('section');
     finalizacion.className = 'metronet-editor-finalizar metronet-editor-bloque';
@@ -707,6 +709,7 @@ export default class EditorRedMetro {
   }
 
   renderizarListaLineas(lineas = []) {
+    this.selectorLineas?.actualizar(this.disenoActual, this.creacionDirecta.lineaActiva);
     const lista = this.obtener('[data-lista-lineas]');
     if (!lista) return;
     lista.replaceChildren();
@@ -1174,6 +1177,7 @@ export default class EditorRedMetro {
     this.actualizarAyuda();
   }
   eliminar() {
+    this.selectorLineas?.eliminar();
     this.panelCalles?.eliminar();
     // La salida del documento puede cerrar una escena cuyo editor ya se liberó.
     if (!this.activo) return;

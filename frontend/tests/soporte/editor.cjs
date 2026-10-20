@@ -3,8 +3,12 @@ const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 async function abrirEditor(navegador, opciones = {}) {
   const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
   await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
-  await contexto.addInitScript(() => localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } })));
+  await contexto.addInitScript(() => {
+    if (!/^https?:$/.test(location.protocol)) return;
+    localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } }));
+  });
   if (opciones.novedadPresentada && Number.isInteger(opciones.escenario?.numero)) await contexto.addInitScript(numero => {
+    if (!/^https?:$/.test(location.protocol)) return;
     localStorage.setItem(`metronet:tutorial-nueva-herramienta:v1:7:${numero}`, 'presentada');
   }, opciones.escenario.numero);
   // Las suites de edición continúan la tarjeta para probar sus flujos previos;
@@ -16,6 +20,7 @@ async function abrirEditor(navegador, opciones = {}) {
     });
   });
   if (opciones.escenario && opciones.primeraPasada !== false) await contexto.addInitScript(escenario => {
+    if (!/^https?:$/.test(location.protocol)) return;
     if (performance.getEntriesByType('navigation')[0]?.type === 'reload') return;
     sessionStorage.setItem('metronet:inicio-tutorial', JSON.stringify({idDiseno:77,idEscenario:escenario.idEscenario,idIntento:123,numeroCampana:1,idUsuario:7,creada:Date.now()}));
   }, opciones.escenario);

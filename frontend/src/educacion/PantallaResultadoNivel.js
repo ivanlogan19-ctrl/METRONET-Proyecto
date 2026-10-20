@@ -99,6 +99,7 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
   const pie = texto('footer', '', 'metronet-resultado-nivel__acciones');
   const continuar = texto('button', pendiente ? 'Volver al nivel' : 'Continuar', 'metronet-boton--exito metronet-boton--destacado');
   continuar.type = 'button';
+  continuar.tabIndex = 0;
   configurarAccion(continuar, pendiente ? 'reintentar' : 'continuar', { conservarTexto: true });
   pie.append(continuar);
   if (pendiente) pie.append(texto('p', 'Tu diseño se conserva para seguir trabajando.', 'metronet-resultado-nivel__nota'));

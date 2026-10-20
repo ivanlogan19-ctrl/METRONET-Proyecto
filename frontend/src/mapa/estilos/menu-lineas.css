@@ -1,0 +1,29 @@
+html:root body .metronet-menu-lineas {
+  position:fixed; inset:auto; margin:0; box-sizing:border-box; padding:8px;
+  max-height:none; overflow:visible; background:var(--panel); border:2px solid var(--info-active);
+  z-index:var(--layer-dropdown,200); color:var(--text-primary);
+}
+html:root body .metronet-menu-lineas > button {
+  display:grid; grid-template-columns:60px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; gap:3px 10px;
+  width:100%; min-height:48px; height:48px; padding:5px 8px; font:11px/1.3 var(--font-arcade); text-align:center;
+}
+html:root body .metronet-menu-lineas > button[hidden] { display:none; }
+.metronet-menu-lineas .simulacion-color-linea { grid-row:1 / 3; display:block; width:60px; height:16px; }
+.metronet-menu-lineas small { grid-column:2; font:10px/1.2 var(--font-tecnica); }
+.metronet-menu-lineas > button[aria-pressed="true"] { background:var(--info-active); color:var(--primary-ink); }
+.metronet-menu-lineas .simulacion-lineas-paginas { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:6px; }
+.metronet-menu-lineas .simulacion-lineas-paginas[hidden] { display:none; }
+html:root body .metronet-menu-lineas nav button { width:28px; min-width:0; height:24px; min-height:24px; padding:2px; font-size:12px; background:var(--warning); border-color:var(--warning); color:var(--primary-ink); }
+.metronet-menu-lineas output { font:9px/1 var(--font-arcade); }
+.metronet-selector-lineas-editor { padding:0 8px 6px; }
+html:root body .metronet-selector-lineas-editor > button { width:100%; min-height:34px; font-size:9px; }
+
+html:root body .simulacion-selector-lineas > .metronet-menu-lineas { right:auto; bottom:auto; max-width:calc(100vw - 16px); }
+html:root body.simulacion-pagina .simulacion-selector-lineas > summary {
+  position:relative; display:flex; justify-content:center; padding-inline:66px;
+}
+html:root body.simulacion-pagina .simulacion-selector-lineas > summary > .metronet-icono { position:absolute; left:10px; }
+html:root body.simulacion-pagina .simulacion-selector-lineas > summary > .simulacion-color-linea {
+  position:absolute; right:24px; width:34px; height:14px;
+}
+html:root body.simulacion-pagina .simulacion-selector-lineas > summary > [data-seleccion-metro] { text-align:center; }

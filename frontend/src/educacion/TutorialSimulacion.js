@@ -12,7 +12,7 @@ const PASOS = [
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
-  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Elegí una línea para ajustar UV y UT según su distancia. Sus metros comparten la configuración; las demás líneas conservan sus valores.'],
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'El menú abre hacia la izquierda del panel. Elegí una línea para ajustar UV y UT según su distancia. Sus metros comparten la configuración; las demás líneas conservan sus valores.'],
   ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para consultar la UV y la UT guardadas de cada metro. No modifica la red.'],
   ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá la línea seleccionada. Su UT se calcula según la distancia; guardá el valor.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
@@ -31,13 +31,15 @@ const RESUMEN = [
 
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
-  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Cada línea tiene su propia UV y UT, compartidas por todos sus metros. Elegí una línea para ajustarla sin cambiar las otras.'],
+  ['.simulacion-selector-metros > summary', 'Línea a configurar', 'Abrí el menú hacia la izquierda. Elegí una línea o Todas para aplicar UV o UT. Cada línea calcula el otro valor con su propia distancia; aquí también ves sus valores guardados.'],
   ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'Al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
   ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. La duración se calcula con la distancia de la línea seleccionada.'],
   ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
 
-  ['.simulacion-horarios', 'Horarios de la simulación', 'Inicio es la hora elegida para el escenario. Actual avanza con la ejecución y Fin indica hasta cuándo se simula según la mayor duración UT de tus metros.'],
-  ['#horaInicioEscenario', 'Elegir la hora de inicio', 'Escribí la hora o usá las flechas para adelantar o atrasar una hora. Elegila antes de iniciar; durante el recorrido o una pausa queda bloqueada.'],
+  ['.simulacion-horarios', 'Reloj de estación', 'El reloj avanza con las líneas que reproducís. Las capas de tráfico y desplazamientos siguen ese mismo horario.'],
+  ['.simulacion-reloj-digital', 'Cambiar el horario', 'Las flechas amarillas atrasan o adelantan el horario de a 15 minutos. Cambian la hora de las capas, sin modificar UV, UT ni la posición recorrida por los metros.'],
+  ['.simulacion-reproduccion', 'Líneas a reproducir', 'Todas comienzan marcadas. Desmarcá las que no quieras ver circular o usá Todas. Los cuadrados llenos indican la selección; cada franja conserva el color de su línea. Si hay más líneas, usá las flechas de página.'],
+  ['#formularioEjecucion', 'Reproducir la selección', 'Play reproduce las líneas marcadas al mismo tiempo. Para cambiar la selección, detené el recorrido. Esta selección controla la reproducción visual; los resultados guardados siguen evaluando la red completa.'],
   ['[data-capa-simulacion="calles"]', 'Calles y avenidas', 'Este botón muestra u oculta las calles para ubicar tu red en la ciudad. Las estaciones, líneas y metros permanecen por encima.'],
   ['[data-capa-simulacion="trafico"]', 'Tráfico sincronizado', 'Activá el tráfico histórico para ver su intensidad por colores. Cambia con la hora Actual de la simulación; son datos históricos, no tráfico en vivo.'],
   ['[data-capa-simulacion="poblacion"]', 'Densidad de población', 'Mostrá dónde se concentra la población. Esta capa censal permanece igual al avanzar el reloj.'],
@@ -46,7 +48,8 @@ const PASOS_LIBRE = [
   ['.simulacion-capas input[type="range"]', 'Transparencia de las capas', 'Deslizá este control para ver las capas con mayor o menor intensidad, manteniendo tu red visible. Podés combinarlas o apagarlas con sus botones.'],
 ];
 const RESUMEN_LIBRE = [
-  ['reloj', 'Elegí Inicio y seguí el horario Actual.'],
+  ['reloj', 'Cambiá el horario de a 15 minutos.'],
+  ['metros', 'Elegí qué líneas reproducir y cuáles configurar.'],
   ['trafico', 'Tráfico y desplazamientos siguen el reloj.'],
   ['poblacion', 'La población conserva sus datos censales.'],
   ['cobertura', 'Compará las capas con la cobertura de 500 m.'],
@@ -165,7 +168,7 @@ export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { p
 export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroNivel, numeroCampana, escenario, alFinalizar } = {}) {
   if (esModoLibre(modo)) {
     // Independiente del aprendizaje de la campaña: estas funciones solo existen en Modo Libre.
-    const clave = `metronet:tutorial-simulacion-libre:v2:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
+    const clave = `metronet:tutorial-simulacion-libre:v3:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
     try { if (localStorage.getItem(clave)) return null; } catch { /* No bloquea jugar. */ }
     const registrar = (completado, motivo) => {
       if (completado || motivo === 'omitido') try {
@@ -176,7 +179,7 @@ export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroN
     let recorrido;
     const oferta = ofrecerTutorial({
       titulo: 'Simulación de Modo Libre',
-      descripcion: 'Conocé Horarios, las capas sincronizadas y la cobertura de tu red. Te mostramos cómo usar estas funciones en esta pantalla.',
+      descripcion: 'Conocé el reloj de estación, la selección de líneas y las capas de tu red. Te mostramos cómo usar estas funciones en esta pantalla.',
       textoAceptar: 'Recorrer las funciones',
       alAceptar: () => { recorrido = abrirTutorialSimulacion(registrar, undefined, { modo }); },
       alOmitir: () => registrar(false, 'omitido'),

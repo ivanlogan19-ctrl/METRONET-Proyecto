@@ -17,6 +17,7 @@ export default class MotorSimulacion {
   }
 
   iniciar({ velocidad = 1, duracion = HORAS_INICIALES, ahora = 0 } = {}) {
+    if (!this.rutas.length) return this.detener();
     this.velocidad = normalizarVelocidad(velocidad);
     this.ventanaVisual = normalizarHoras(duracion);
     this.duracion = Math.max(...this.rutas.map(u => u.duracionUt ?? this.ventanaVisual), this.rutas.length ? 0 : this.ventanaVisual);
@@ -26,6 +27,15 @@ export default class MotorSimulacion {
     this.progreso = 0;
     this.estado = 'EN_CURSO';
     this.finalizada = false;
+    return this.obtenerEstado();
+  }
+
+  seleccionarLineas(nombres) {
+    if (['EN_CURSO', 'PAUSADA'].includes(this.estado)) return this.obtenerEstado();
+    const seleccion = new Set(nombres);
+    this.rutas = this.crearRutas().filter(ruta => seleccion.has(ruta.nombreLinea));
+    this.detener();
+    this.duracion = Math.max(0, ...this.rutas.map(ruta => ruta.duracionUt ?? this.ventanaVisual));
     return this.obtenerEstado();
   }
 

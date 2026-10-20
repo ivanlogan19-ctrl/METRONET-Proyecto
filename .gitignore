@@ -16,6 +16,10 @@ frontend/dist/
 # Mac
 .DS_Store
 
+# Cachés locales de generación de manuales
+__pycache__/
+*.pyc
+
 # Logs
 *.log
 

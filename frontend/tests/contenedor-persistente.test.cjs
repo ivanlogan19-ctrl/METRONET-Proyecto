@@ -1,9 +1,9 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless:true, channel:process.env.METRONET_BROWSER_CHANNEL, args:['--autoplay-policy=no-user-gesture-required'] }); });
+before(async () => { navegador = await abrirNavegador({ headless:true, channel:process.env.METRONET_BROWSER_CHANNEL, args:['--autoplay-policy=no-user-gesture-required'] }); });
 after(async () => { await navegador?.close(); });
 const base = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 async function abrir(t, ruta='/inicio.html', opciones={}) {
@@ -110,7 +110,10 @@ for(const rol of ['ADMIN','JUGADOR']) test(`Login/logout ${rol}: pistas original
   await v.locator('.metronet-bienvenida').waitFor(); await sonar(p,'welcome');
   await v.locator('[data-continuar-bienvenida]').click(); await v.waitForURL('**/inicio.html'); await sonar(p);
   await v.locator('.metronet-navegacion__usuario>summary').click(); await v.getByRole('button',{name:'Cerrar sesión',exact:true}).click();
-  await v.waitForURL('**/login.html'); await sonar(p,'portada');
+  // Firefox puede cancelar una navegación intermedia al reflejar el historial
+  // del iframe. Comprobar el destino final y el formulario utilizable.
+  await v.waitForFunction(()=>location.pathname==='/login.html'&&document.querySelector('#loginForm'));
+  await v.locator('#loginButton').waitFor(); await sonar(p,'portada');
   assert.equal(await p.evaluate(()=>localStorage.getItem('sesionAdministrador')||localStorage.getItem('sesionUsuario')),null);
   await p.goBack(); await v.locator('#loginForm, #loginAdminForm').waitFor();
   assert.equal(await v.locator('#tablaUsuarios, .metronet-inicio__tarjeta').count(),0);
@@ -211,10 +214,12 @@ test('Outro y siguiente nivel completan el viaje de 11 s y liberan su contexto a
   await ir(v,p,'Niveles','escenarios');await sonar(p);assert.equal(await p.evaluate(()=>window[Symbol.for('metronet:gestor-musica')].temporales.size),0);
 });
 
-test('Gesto de usuario dentro del iframe habilita audio y conserva acceso con autoplay bloqueado',async t=>{
-  const b=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL,args:['--autoplay-policy=user-gesture-required']});t.after(()=>b.close());
+test('Gesto dentro del iframe habilita audio respetando la política del navegador',async t=>{
+  const b=await abrirNavegador({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL,args:['--autoplay-policy=user-gesture-required']});t.after(()=>b.close());
   const {pagina:p,vista:v,contexto:c,errores}=await abrirPantalla(b,'/login.html',{contenedor:true});t.after(async()=>{await c.close();assert.deepEqual(errores,[]);});
-  await p.waitForFunction(()=>window[Symbol.for('metronet:gestor-musica')].obtenerEstado().esperandoGesto);
+  // Solo Chromium admite forzar esta política con el argumento de arranque.
+  if (!process.env.METRONET_BROWSER || process.env.METRONET_BROWSER === 'chromium')
+    await p.waitForFunction(()=>window[Symbol.for('metronet:gestor-musica')].obtenerEstado().esperandoGesto);
   assert.equal(await v.locator('#loginButton').isEnabled(),true);await v.locator('#email').click();await sonar(p,'portada');
 });
 

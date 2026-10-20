@@ -1,10 +1,10 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 const catalogoRecorrido = require('../src/educacion/recorrido-integral.json');
 let navegador;
-before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador(); });
 after(async () => { await navegador?.close(); });
 
 async function abrir(t, { fallaGuardado = false, segundaLinea = false, redResuelta = true, demoraEjecucion = 0, ids = [1, 2], nivel = false, numeroNivel = 2, nombreLinea = 'Azul', viewport = { width: 1440, height: 900 } } = {}) {
@@ -63,6 +63,10 @@ async function guardar(p, referencia, valor) {
 async function seleccionarLinea(p, id) {
   const menu = p.locator('.simulacion-selector-metros');
   if (!await menu.evaluate(e => e.open)) await menu.locator('summary').click();
+  const siguiente = menu.getByRole('button', { name: 'Opciones siguientes', exact: true });
+  while (!await menu.locator(`[data-metro="${id}"]`).isVisible() && await siguiente.isEnabled()) {
+    await siguiente.click();
+  }
   await menu.locator(`[data-metro="${id}"]`).click();
 }
 
@@ -92,7 +96,7 @@ for (const n of catalogoRecorrido) test(`Nivel ${n.numero}: aplicar UV/UT permit
 test('UV/UT por línea: agrupa metros, conserva otras líneas y no repite escrituras sin cambios', async t => {
   const { pagina: p, red, solicitudes } = await abrir(t, { segundaLinea: true, ids: [206, 211] });
   assert.equal(await p.locator('#tituloConfiguracionMetros').textContent(), 'Detalle de líneas');
-  assert.equal(await p.locator('[data-metro="todas"]').count(), 0);
+  assert.equal(await p.locator('[data-metro="todas"]').count(), 1);
   await guardar(p, 'UV', 6);
   assert.deepEqual(red.unidadesMetro.map(u => [u.velocidadPromedio, u.duracionUt]), [[6, 2], [6, 2], [2, 3]]);
   assert.ok(solicitudes.some(s => s.path.endsWith('/unidades/206') && s.method === 'PATCH'));
@@ -101,11 +105,12 @@ test('UV/UT por línea: agrupa metros, conserva otras líneas y no repite escrit
   await seleccionarLinea(p, '99');
   await guardar(p, 'UT', 2);
   assert.deepEqual(red.unidadesMetro.map(u => [u.velocidadPromedio, u.duracionUt]), [[6, 2], [6, 2], [3, 2]]);
-  await p.locator('.simulacion-configuracion-metros summary').click();
-  assert.deepEqual(await p.locator('.simulacion-configuracion-metros li strong').allTextContents(), ['Azul', 'Roja']);
-  assert.deepEqual(await p.locator('[data-linea-metro]').allTextContents(), ['2 metros', '1 metro']);
-  await p.locator('.simulacion-configuracion-metros summary').press('Escape');
-  assert.equal(await p.locator('.simulacion-configuracion-metros li').first().isVisible(), false);
+  assert.equal(await p.locator('.simulacion-configuracion-metros').isVisible(), false);
+  await p.locator('.simulacion-selector-metros summary').click();
+  assert.deepEqual(await p.locator('.metronet-menu-lineas > button > span').allTextContents(), ['Todas', 'Azul', 'Roja']);
+  assert.deepEqual(await p.locator('.metronet-menu-lineas > button > small').allTextContents(), ['6 UV · 2 UT', '3 UV · 2 UT']);
+  await p.locator('.simulacion-selector-metros summary').press('Escape');
+  assert.equal(await p.locator('.metronet-menu-lineas').isVisible(), false);
 });
 
 test('Selector de líneas: teclado, foco y opciones dentro de pantalla', async t => {
@@ -188,7 +193,7 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     const distribucion = await p.evaluate(() => {
       const panel = document.getElementById('instrumentosSimulacion').getBoundingClientRect();
-      const bloques = ['.simulacion-acciones-panel', '.simulacion-horarios', '.simulacion-grupo-metros', '.simulacion-grupo-velocidad', '#seccionConfiguracion', '.simulacion-capas']
+      const bloques = ['.simulacion-acciones-panel', '.simulacion-reproduccion', '.simulacion-grupo-metros', '.simulacion-grupo-velocidad', '#seccionConfiguracion', '.simulacion-capas']
         .map(selector => document.querySelector(selector).getBoundingClientRect());
       const titulo = document.querySelector('.simulacion-grupo-velocidad > .simulacion-seccion-titulo');
       return {
@@ -224,10 +229,10 @@ for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 72
       const grupo = document.querySelector('.simulacion-grupo-metros');
       const r = e => e.getBoundingClientRect();
       const cabecera = r(grupo.querySelector('h3'));
-      const menus = [...grupo.querySelectorAll('summary')].map(r);
+      const menus = [...grupo.querySelectorAll('summary')].filter(e => e.getClientRects().length).map(r);
       const borde = Number.parseFloat(getComputedStyle(grupo).borderBottomWidth);
-      const espacios = [menus[0].top - cabecera.bottom, menus[1].top - menus[0].bottom, r(grupo).bottom - borde - menus[1].bottom];
-      const etiquetas = [...grupo.querySelectorAll('summary')].map(menu => {
+      const espacios = [menus[0].top - cabecera.bottom, r(grupo).bottom - borde - menus.at(-1).bottom];
+      const etiquetas = [...grupo.querySelectorAll('summary')].filter(e => e.getClientRects().length).map(menu => {
         const texto = r(menu.querySelector('span')), box = r(menu);
         return Math.abs((texto.left + texto.right) / 2 - (box.left + box.right) / 2);
       });

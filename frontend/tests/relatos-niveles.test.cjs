@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 const niveles = require('../src/educacion/recorrido-integral.json');
 const tarjetas = require('../src/educacion/catalogo-svgs-niveles.json');
@@ -23,7 +23,7 @@ test('Diez capítulos breves conservan la narración separada de las instruccion
 
 for (const viewport of [{ width: 1280, height: 720 }, { width: 1470, height: 800 }]) {
   test(`Los diez relatos y sus desafíos se leen completos a ${viewport.width}×${viewport.height}`, async t => {
-    const navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL });
+    const navegador = await abrirNavegador({ channel: process.env.METRONET_BROWSER_CHANNEL });
     t.after(() => navegador.close());
     const escenarios = niveles.map(n => ({ ...n, relato: 'Relato anterior a la publicación.', idEscenario: n.numero,
       estado: 'DISPONIBLE', desbloqueado: true }));

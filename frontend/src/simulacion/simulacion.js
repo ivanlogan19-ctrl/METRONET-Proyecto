@@ -1,4 +1,4 @@
-import { normalizarSeleccion, usaVinculoPorLinea, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
+import { esModoLibre, normalizarSeleccion, usaVinculoPorLinea, calcularVinculo, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
 import { escenarioCampana, funcionesCampana } from '../educacion/FuncionesCampana.js';
 import { abrirTutorialSimulacion, crearPanelTutorialSimulacion, presentarTutorialSimulacion } from '../educacion/TutorialSimulacion.js';
 import { RITMOS, formatearVelocidad, formatearDuracion, formatearRitmo } from './EscalaSimulacion.js';
@@ -222,7 +222,7 @@ function actualizarPantalla() {
   document.getElementById('panelSimulacion').hidden = false;
   ubicarPanelAyuda('[data-hud-mapa]');
   organizacion.mostrarDiseno(resumen.idDiseno);
-  document.getElementById('tituloSimulacion').textContent = resumen.nombre;
+  document.getElementById('tituloSimulacion').textContent = esModoLibre(disenoActual) ? 'Modo libre' : resumen.nombre;
   document.getElementById('volverEdicion').href = establecerIdDisenoEnRuta('/', resumen.idDiseno, obtenerContextoDiseno(resumen.idDiseno));
   actualizarConsignaSimulacion(resumen);
   document.getElementById('estadoEjecucion').textContent = obtenerEstadoEjecucion();
@@ -319,10 +319,10 @@ async function actualizarDesempeno(idDiseno) {
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
   // Las métricas pertenecen al panel. El motor usa estaciones, tramos y UV,
   // ya cargados por abrirDiseno: no recrear la red ni reiniciar su estado aquí.
-  unidadSeleccionada = normalizarSeleccion(disenoActual.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual));
+  unidadSeleccionada = normalizarSeleccion(disenoActual.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual), esModoLibre(disenoActual));
   controlUnidades = renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, guardarVelocidades, {
     seleccion: unidadSeleccionada, alSeleccionar: seleccionarUnidad,
-    vinculoLibre: usaVinculoPorLinea(disenoActual), alCambiarVelocidad: valor => previsualizarVinculo('UV', valor),
+    modoLibre: esModoLibre(disenoActual), vinculoLibre: usaVinculoPorLinea(disenoActual), alCambiarVelocidad: valor => previsualizarVinculo('UV', valor),
     nivel: obtenerRotuloNivel(),
     duracionGlobal: duracionAplicada, unidadTiempo: 'UT',
     bloqueado: guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado),
@@ -342,7 +342,7 @@ function obtenerRotuloNivel() {
 
 async function seleccionarUnidad(id) {
   if (guardandoVelocidad) return;
-  id = normalizarSeleccion(disenoActual?.unidadesMetro ?? [], id, usaVinculoPorLinea(disenoActual));
+  id = normalizarSeleccion(disenoActual?.unidadesMetro ?? [], id, usaVinculoPorLinea(disenoActual), esModoLibre(disenoActual));
   if (id === unidadSeleccionada) return;
   if (usaVinculoPorLinea(disenoActual) && vinculoPendiente) {
     const { referencia, valor } = vinculoPendiente;
@@ -362,7 +362,7 @@ async function seleccionarUnidad(id) {
 }
 
 function unidadesElegidas() {
-  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual));
+  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual), esModoLibre(disenoActual));
 }
 function actualizarCampoDuracion() {
   const input = document.getElementById('duracionSimulacion');
@@ -529,6 +529,7 @@ function obtenerEstadoEjecucion() {
 
 async function ejecutarSimulacion(evento) {
   evento.preventDefault();
+  if (esModoLibre(disenoActual) && !visor?.escena.capasLibre?.selectorLineas.seleccion.size) return;
   if (!disenoActual || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || ['EN_CURSO', 'PAUSADA'].includes(estadoMotor?.estado) || estaMantenimientoActivo(sesion)) return;
   if (usaVinculoPorLinea(disenoActual) && vinculoPendiente && !await guardarVinculoLibre(vinculoPendiente.referencia, vinculoPendiente.valor)) return;
   const velocidad = Number(document.getElementById('velocidadSimulacion').value);
@@ -738,7 +739,8 @@ function actualizarControlesSimulacion(estado) {
   document.getElementById('reanudarSimulacion').disabled = !pausada || estaMantenimientoActivo(sesion);
   document.getElementById('reanudarSimulacion').hidden = !pausada;
   document.getElementById('detenerSimulacion').disabled = !enCurso && !pausada;
-  document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar || resultadoEnCurso || estaMantenimientoActivo(sesion);
+  document.getElementById('reiniciarSimulacion').disabled = !puedeReiniciar || resultadoEnCurso || preparacionEnCurso || guardandoVelocidad || estaMantenimientoActivo(sesion)
+    || (esModoLibre(disenoActual) && !visor?.escena.capasLibre?.selectorLineas.seleccion.size);
   document.getElementById('seguirMetro').disabled = !estado?.metroActivo?.transitable;
   actualizarDisponibilidadEjecucion();
   if (controlConFoco?.id === 'pausarSimulacion' && pausada) document.getElementById('reanudarSimulacion').focus({ preventScroll: true });
@@ -750,7 +752,11 @@ function actualizarDisponibilidadEjecucion() {
   if (!boton) return;
   const ejecucionActiva = estadoMotor?.estado === 'EN_CURSO' || estadoMotor?.estado === 'PAUSADA';
   boton.hidden = ejecucionActiva;
-  boton.disabled = !disenoActual || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || estaMantenimientoActivo(sesion);
+  boton.disabled = !disenoActual || (esModoLibre(disenoActual) && !visor?.escena.capasLibre?.selectorLineas.seleccion.size) || guardandoVelocidad || preparacionEnCurso || resultadoEnCurso || estaMantenimientoActivo(sesion);
+  if (visor?.escena.capasLibre) {
+    visor.escena.capasLibre.bloqueoExterno = preparacionEnCurso || guardandoVelocidad || resultadoEnCurso || estaMantenimientoActivo(sesion);
+    visor.escena.capasLibre.selectorLineas.establecerBloqueado(ejecucionActiva || visor.escena.capasLibre.bloqueoExterno);
+  }
   boton.setAttribute('aria-busy', String(preparacionEnCurso));
   boton.title = estaMantenimientoActivo(sesion) ? MENSAJE_MANTENIMIENTO : preparacionEnCurso
     ? 'Comprobando la red…'

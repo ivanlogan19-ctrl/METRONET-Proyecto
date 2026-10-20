@@ -28,6 +28,23 @@ test('paletas ferroviarias independientes y líneas adyacentes distintas sin per
  const asignacion=coloresDeLineas(lineas);assert.equal(new Set(asignacion.values()).size,8);
  assert.deepEqual(coloresDeLineas([...lineas].reverse()),asignacion);
 });
+test('cada línea conserva un color exclusivo aunque la red supere la paleta inicial',async()=>{
+ const {PALETA_RED,coloresDeLineas}=await cargar('../src/mapa/configuracion/PaletaRed.js');
+ for(const cantidad of [1,2,8,9,32,256]){
+  const lineas=Array.from({length:cantidad},(_,i)=>({nombre:`Línea ${i+1}`}));
+  const tramos=lineas.map(l=>({nombreLinea:l.nombre,estacionA:'Central',estacionB:l.nombre}));
+  const editor=coloresDeLineas(lineas,tramos);
+  const simulacion=coloresDeLineas([...lineas].reverse(),[...tramos].reverse());
+  assert.equal(new Set(editor.values()).size,cantidad,`${cantidad} líneas sin colores repetidos`);
+  assert.deepEqual(simulacion,editor,'mismo color por nombre al cargar la misma red');
+  assert.deepEqual(coloresDeLineas(lineas),editor,'editar conexiones no cambia los colores');
+  assert.deepEqual([...editor.values()].slice(0,8),PALETA_RED.lineas.slice(0,cantidad));
+  for(const color of editor.values()){
+   assert.ok(Number.isInteger(color)&&color>=0&&color<=0xffffff);
+   assert.ok(![...Object.values(PALETA_RED.estaciones),...PALETA_RED.metros,PALETA_RED.transbordo].includes(color));
+  }
+ }
+});
 function cliente(valida,estado='EN_DISENO') {const llamadas=[];return {llamadas,obtener:async()=>({simulacion:{estado}}),solicitar:async(ruta,opciones)=>{llamadas.push([ruta,opciones.method]);return ruta.endsWith('/validacion')?valida:{};}};}
 test('guardar borrador conserva avances, simular red inválida no guarda ni ejecuta',async()=>{
  const {prepararDiseno}=await cargar('../src/red/PreparacionDiseno.js');

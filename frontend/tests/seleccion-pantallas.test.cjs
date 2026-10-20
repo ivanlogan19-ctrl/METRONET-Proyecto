@@ -1,12 +1,12 @@
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
-const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const {abrirPantalla}=require('./soporte/pantallas.cjs');
 const catalogo=require('../src/educacion/catalogo-svgs-niveles.json');
 const recorrido=require('../src/educacion/recorrido-integral.json');
 const reglas=require('../src/educacion/niveles.json');
 let browser;
-before(async()=>{browser=await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL})});
+before(async()=>{browser=await abrirNavegador({channel:process.env.METRONET_BROWSER_CHANNEL})});
 after(async()=>{await browser?.close()});
 const escenarios=recorrido.map((n,i)=>({idEscenario:n.numero,numero:n.numero,nombre:n.nombre,objetivo:reglas[i].objetivo,
   estado:i===2?'EN_DISENO':i<2?'COMPLETADO':i===9?'BLOQUEADO':'DISPONIBLE',desbloqueado:i!==9,herramientasHabilitadas:{}}));
@@ -45,6 +45,9 @@ for(const viewport of [{width:1280,height:720},{width:1470,height:745},{width:19
     for(let n=1;n<=10;n++){await p.locator(`#selectorAprendizaje [data-nivel="${n}"]`).click();await cabe(p,viewport);assert.equal(await p.locator('.metronet-aprendizaje__nivel:visible').count(),1);assert.equal(await p.locator('.metronet-aprendizaje__tarjeta:visible').count(),n===10?0:7);}
     await p.locator('#selectorAprendizaje [data-nivel="1"]').click();await p.locator('.metronet-aprendizaje__tarjeta:visible').first().click();
     assert.equal(await p.locator('#tarjetaAprendizaje img').getAttribute('src'),catalogo[0].tarjetas[0].imagen);
+    // Comparar colores finales: Firefox oficial no emula reducedMotion por BiDi.
+    await p.waitForFunction(() => [...document.querySelectorAll('#selectorAprendizaje [aria-pressed="true"], .metronet-aprendizaje__volver')]
+      .every(elemento => elemento.getAnimations().every(animacion => animacion.playState !== 'running')));
     const volver=p.getByRole('button',{name:'Volver a las tarjetas'});assert.equal(await volver.evaluate(e=>getComputedStyle(e).backgroundColor),await p.locator('#selectorAprendizaje [aria-pressed="true"]').evaluate(e=>getComputedStyle(e).backgroundColor));await volver.click();
     await p.locator('#selectorAprendizaje [data-nivel="libre"]').click();await cabe(p,viewport);assert.equal(await p.locator('.metronet-aprendizaje__tarjeta:visible').count(),7);
     assert.equal(await p.locator('.metronet-aprendizaje__recorrida').first().evaluate(e=>getComputedStyle(e).writingMode),'vertical-rl');

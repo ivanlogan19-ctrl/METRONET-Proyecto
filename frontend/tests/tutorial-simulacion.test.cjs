@@ -1,6 +1,6 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla: abrirBase } = require('./soporte/pantallas.cjs');
 // La presentación completa pertenece al nuevo Nivel 1; después solo hay prácticas incrementales.
 async function abrirPantalla(navegador,ruta,opciones={}) {
@@ -15,7 +15,7 @@ async function abrirPantalla(navegador,ruta,opciones={}) {
   return vista;
 }
 let navegador;
-before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 
 for (const width of [1440, 390]) test(`Mapa de la red ${width}: el primer paso conserva el marco visible`, async t => {
@@ -359,7 +359,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-  for (const titulo of ['Elegir línea', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Horarios de la simulación', 'Elegir la hora de inicio', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+  for (const titulo of ['Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     assert.equal(await p.locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0, 'La guía no activa capas');
     await p.locator('[data-recorrido-siguiente]').click();
@@ -372,7 +372,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   assert.deepEqual(await p.evaluate(() => Object.keys(localStorage).filter(c => c.includes('tutorial-pantalla-simulacion'))), []);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
-  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Elegir línea', exact: true }).waitFor();
+  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Línea a configurar', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await p.goto(new URL('/simulacion.html?idDiseno=78', p.url()).href);
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();

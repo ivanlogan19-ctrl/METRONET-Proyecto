@@ -1,9 +1,9 @@
 const {test,before,after} = require('node:test');
 const assert = require('node:assert/strict');
-const {chromium} = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const {abrirEditor} = require('./soporte/editor.cjs');
 let browser;
-before(async()=>{browser=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
+before(async()=>{browser=await abrirNavegador({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
 after(async()=>browser?.close());
 async function abrir(t,opciones) { const vista=await abrirEditor(browser,opciones);t.after(()=>vista.contexto.close());t.after(()=>assert.deepEqual(vista.errores,[]));return vista; }
 async function punto(p,x,y) {return p.evaluate(({x,y})=>{const e=editorPrueba.escena,c=e.cameras.main,m=e.capaRedMetro.convertirPosicion(x,y),r=e.game.canvas.getBoundingClientRect();return {x:r.x+(m.x-c.worldView.x)*c.zoom,y:r.y+(m.y-c.worldView.y)*c.zoom};},{x,y});}
@@ -88,6 +88,7 @@ for(const numero of [1,2,3,4,5,6,7,8,9,10]) test(`nivel ${numero}: conserva disp
 });
 
 test('pinza de dos dedos y búsqueda POI no crean elementos con Estación activa',async t=>{
+ if (process.env.METRONET_BROWSER && process.env.METRONET_BROWSER !== 'chromium') { t.skip('La pinza multitáctil de esta prueba requiere CDP de Chromium'); return; }
  const {pagina:p,contexto,solicitudes}=await abrir(t);await herramienta(p,'estaciones');
  const a=await punto(p,700,460), cdp=await contexto.newCDPSession(p);
  const puntos=(delta)=>[{x:a.x-delta,y:a.y,id:0},{x:a.x+delta,y:a.y,id:1}];

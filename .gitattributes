@@ -1,0 +1,4 @@
+# Los entregables se conservan como archivos binarios, sin normalizar saltos de línea.
+*.pdf binary
+*.docx binary
+*.png binary

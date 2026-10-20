@@ -1,9 +1,9 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
+const {abrirNavegador}=require('./soporte/navegador.cjs');
 const API=process.env.METRONET_API_PRUEBAS,BASE='http://127.0.0.1:5198';
 test('Modo Libre: vínculo automático en controles, servidor, distancias y persistencia',{skip:!API,timeout:210000},async t=>{
- const browser=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});t.after(()=>browser.close());
+ const browser=await abrirNavegador();t.after(()=>browser.close());
  const context=await browser.newContext({viewport:{width:1440,height:900}});
  await context.route(/http:\/\/[^/]+:8080\//,route=>route.continue({url:API+new URL(route.request().url()).pathname+new URL(route.request().url()).search}));
  const page=await context.newPage();page.setDefaultTimeout(20000);
@@ -49,7 +49,7 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  assert.equal(await vista.locator('#unidadCirculacion').inputValue(),String(u1.idTren),'Modo Libre abre con una línea concreta y sus valores calculados');
  assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'4');
  assert.equal(Number(await vista.locator('#duracionSimulacion').inputValue()), Number((km('L01')/4).toFixed(2)));
- assert.equal(await vista.locator('.simulacion-selector-metros__opciones button').count(),2,'Sólo una opción por línea');
+ assert.equal(await vista.locator('.simulacion-selector-metros__opciones [data-metro]').count(),3,'Dos líneas y la opción Todas, sin contar la paginación');
  assert.equal(await vista.locator('#tituloConfiguracionMetros').textContent(),'Detalle de líneas');
  assert.equal(await vista.locator('.simulacion-configuracion-metros__lista li').count(),2,'Una configuración por línea aunque tenga varios metros');
  const guardar=async selector=>{
@@ -116,7 +116,7 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'6','Guardar el campo dependiente no altera la UV elegida');
  d=await leer();assert.equal(d.unidadesMetro.find(u=>u.idTren===u3.idTren).velocidadPromedio,6);assert.equal(d.unidadesMetro[0].velocidadPromedio,6);assert.equal(d.unidadesMetro[1].duracionUt,otroAntes);
  // Cada ajuste se aplica a una línea; las otras conservan su configuración.
- assert.equal(await vista.locator('[data-metro="todas"]').count(),0);
+ assert.equal(await vista.locator('.simulacion-selector-metros__opciones [data-metro="todas"]').count(),1);
  await vista.locator('#velocidadUnidad').fill('8');
  assert.equal(Number(await vista.locator('#duracionSimulacion').inputValue()),Number((km('L01')/8).toFixed(2)));
  await vista.locator('#formularioEjecucion button[type=submit]').click();

@@ -1,10 +1,10 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 
 test('La regla sigue la cámara real al acercar y girar, sin reescribir el DOM en reposo', async t => {
-  const browser = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL });
+  const browser = await abrirNavegador({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL });
   t.after(() => browser.close());
   const v = await abrirPantalla(browser, '/simulacion.html?idDiseno=77', { responder: req => {
     if (new URL(req.url()).pathname === '/api/simulaciones/77') return { json: {

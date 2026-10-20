@@ -27,6 +27,8 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
   const admin = opciones.administrador ?? ruta.startsWith('/admin.html');
   const publica = /login|registro|contrasena|codigo|privacidad/.test(ruta);
   await contexto.addInitScript(({ admin, publica, usuario, contenedor }) => {
+    // Firefox también ejecuta el inicio en about:blank, sin almacenamiento de origen.
+    if (!/^https?:$/.test(location.protocol)) return;
     if (contenedor && sessionStorage.getItem("fixture-persistente")) return;
     if (contenedor) sessionStorage.setItem("fixture-persistente", "1");
     if (!publica && (contenedor || !/login|registro|contrasena|codigo|privacidad/.test(location.pathname))) localStorage.setItem(admin ? 'sesionAdministrador' : 'sesionUsuario', JSON.stringify({ token: 'prueba-visual', usuario: { ...usuario, rol: admin ? 'ADMIN' : 'JUGADOR' } }));
@@ -36,6 +38,7 @@ async function abrirPantalla(navegador, ruta, opciones = {}) {
   // se prueba por separado y aquí se continúa automáticamente al aparecer.
   await contexto.addInitScript(() => {
     window.addEventListener('DOMContentLoaded', () => {
+      if (!document.body || !/^https?:$/.test(location.protocol)) return;
       const continuar = () => document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button')?.click();
       new MutationObserver(continuar).observe(document.body, { childList:true, subtree:true });
     });

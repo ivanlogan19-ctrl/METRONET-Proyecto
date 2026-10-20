@@ -8,23 +8,38 @@ const puntosEsperados=process.env.METRONET_E2E_DESCUENTOS==='true'
  ? [100,90,80,70,100,100,100,60,90,60] : Array(10).fill(100);
 const premiosFinales=puntosEsperados.every(puntos=>puntos===100)
  ? ['corona','biblioteca','copa'] : ['biblioteca','copa'];
-const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const BASE=process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5198';
 const API=process.env.METRONET_API_PRUEBAS;
 
 test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API,timeout:1100000}, async t=>{
- const navegador=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});
+ const navegador=await abrirNavegador({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});
  t.after(()=>navegador.close());
  const contexto=await navegador.newContext({viewport:{width:1440,height:1000}});
  const pagina=await contexto.newPage(); pagina.setDefaultTimeout(20000);
  const errores=[],fallos=[],evaluaciones=[];
  pagina.on('pageerror',e=>errores.push(e.message));
  pagina.on('response',async r=>{
-  if(r.url().includes('/api/')&&r.status()>=400) fallos.push([new URL(r.url()).pathname,r.status()]);
+  if(/\/(?:api|auth)\//.test(r.url())&&r.status()>=400) fallos.push([new URL(r.url()).pathname,r.status()]);
   if(r.url().endsWith('/evaluar')&&r.ok()) evaluaciones.push(await r.json());
  });
- // Proxy transparente hacia Spring Boot real en un puerto aleatorio; no se simula ninguna respuesta REST.
- await contexto.route(/http:\/\/[^/]+:8080\//,route=>route.continue({url:API+new URL(route.request().url()).pathname+new URL(route.request().url()).search}));
+ // Firefox oficial no expone el cuerpo de POST mediante la interceptación BiDi.
+ // El proxy HTTP conserva la petición real y las comprobaciones CORS del navegador.
+ if (process.env.METRONET_E2E_PROXY_HTTP === 'true') {
+  const { abrirProxyApi } = require('./soporte/proxy-api.cjs');
+  t.after(await abrirProxyApi(API));
+ } else await contexto.route(/http:\/\/[^/]+:8080\//,async route=>{
+  // WebKit no admite cambiar el origen con continue. Se conserva íntegra
+  // la respuesta HTTP del servidor real, incluidos estado y cabeceras CORS.
+  const url=new URL(route.request().url());
+  // Reabrir una conexión de lectura cerrada por keep-alive es seguro.
+  // Nunca reintentar aquí una escritura cuyo resultado puede ser incierto.
+  const respuesta=await route.fetch({url:API+url.pathname+url.search,
+   maxRetries:route.request().method()==='GET'?1:0});
+  if (respuesta.status() >= 400) console.log('HTTP', route.request().method(), url.pathname,
+   respuesta.status(), 'origen', route.request().headers().origin ?? 'sin origen');
+  await route.fulfill({response:respuesta});
+ });
  await contexto.route('**/src/main.js*',async route=>{
   const respuesta=await route.fetch();
   await route.fulfill({response:respuesta,body:(await respuesta.text()).replace('let juego = new Phaser.Game(config);','let juego = new Phaser.Game(config); window.juegoPrueba = juego;')});
@@ -39,7 +54,8 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
  await f().locator('#email').fill(process.env.METRONET_E2E_EMAIL);
  await f().locator('#password').fill(process.env.METRONET_E2E_CLAVE);
  await f().locator('#loginButton').click();
- try { await f().getByRole('link',{name:'Niveles',exact:true}).first().click({timeout:30000}); } catch(error) { console.log('LOGIN',pagina.frames().map(f=>f.url()),await f().locator('body').innerText(),errores,fallos); throw error; }
+ await f().locator('[data-continuar-bienvenida]').click();
+ await f().getByRole('link',{name:'Niveles',exact:true}).first().click();
  await f().getByRole('button',{name:'Iniciar',exact:true}).click();
  await f().getByRole('button',{name:'Iniciar nivel',exact:true}).click();
 

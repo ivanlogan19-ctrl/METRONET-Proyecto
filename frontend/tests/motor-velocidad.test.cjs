@@ -182,3 +182,22 @@ test('Los pasos fraccionarios no saltan casi a cero ni pierden precisión al sum
   assert.equal(desplazarValorVinculado(0,-1),null);
   assert.equal(desplazarValorVinculado(0,1),0.01);
 });
+
+test('Reproducir una selección conserva UV/UT, excluye las otras líneas y bloquea cambios en marcha', async () => {
+  const Motor = await cargar(), datos=red([4]);
+  datos.unidadesMetro[0].duracionUt=7.5;
+  datos.tramos.push({nombreLinea:'Corta',estacionA:'E0',estacionB:'E1',distanciaKm:6});
+  datos.unidadesMetro.push({idTren:2,nombreLinea:'Corta',velocidadPromedio:3,duracionUt:2});
+  const original=JSON.stringify(datos), motor=new Motor(datos);
+  assert.equal(motor.seleccionarLineas(['Corta']).duracion,2);
+  motor.iniciar({ahora:0});
+  assert.deepEqual(motor.seleccionarLineas(['Línea']).unidades.map(u=>u.nombreLinea),['Corta']);
+  const estado=motor.actualizar(motor.duracionVisual);
+  assert.equal(estado.estado,'FINALIZADA');
+  assert.equal(estado.unidades[0].distanciaRecorridaKm,6);
+  motor.seleccionarLineas([]);
+  assert.equal(motor.iniciar().estado,'DETENIDA');
+  motor.seleccionarLineas(['Línea','Corta']);
+  assert.equal(motor.iniciar().duracion,7.5);
+  assert.equal(JSON.stringify(datos),original,'La reproducción no modifica el diseño');
+});

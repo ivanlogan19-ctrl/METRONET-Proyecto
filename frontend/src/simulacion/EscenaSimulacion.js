@@ -108,7 +108,11 @@ class EscenaSimulacion extends Phaser.Scene {
     const libre = ['LIBRE', 'EDICION_LIBRE'].includes(diseno.simulacion?.modo);
     if (cambiaDiseno || !libre) { this.capasLibre?.eliminar(); this.capasLibre = null; }
     if (libre && !this.capasLibre) this.capasLibre = new CapasSimulacionLibre(this, diseno);
-    else if (this.capasLibre) { this.capasLibre.diseno = diseno; this.capasLibre.redibujar(); }
+    else if (this.capasLibre) {
+      this.capasLibre.diseno = diseno; this.capasLibre.redibujar();
+      this.capasLibre.selectorLineas.establecerDiseno(diseno);
+    }
+    if (this.capasLibre) this.motorSimulacion.seleccionarLineas([...this.capasLibre.selectorLineas.seleccion]);
     this.capaRedMetro.establecerDiseno(diseno);
     this.capaPuntosInteres?.establecerPuntosObjetivo(this.obtenerPuntosInteresObjetivo());
     this.capaPuntosInteres?.establecerEstacionesReferencia(diseno.estaciones ?? []);
@@ -120,6 +124,13 @@ class EscenaSimulacion extends Phaser.Scene {
     this.sincronizarEstadoMotor(this.motorSimulacion.obtenerEstado(), true);
     // Recargar resultados o métricas del mismo diseño no es una solicitud de reencuadre.
     if (cambiaDiseno) this.controlZoom?.ajustarRed();
+  }
+
+  seleccionarLineasReproduccion(nombres) {
+    if (!this.capasLibre || ['EN_CURSO', 'PAUSADA'].includes(this.motorSimulacion.estado)) return;
+    const estado = this.motorSimulacion.seleccionarLineas(nombres);
+    this.capaRedMetro.iniciarRepresentacionSimulacion(estado.unidades);
+    this.sincronizarEstadoMotor(estado, true);
   }
 
   iniciarAnimacion(velocidad, duracion) {

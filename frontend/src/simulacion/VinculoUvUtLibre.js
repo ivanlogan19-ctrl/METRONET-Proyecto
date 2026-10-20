@@ -5,14 +5,15 @@ export const velocidadInicial = diseno => usaVinculoPorLinea(diseno) ? 1 : 4;
 // Sólo presentación: el estado y los kilómetros conservan su precisión original.
 export const valorVisible = valor => String(Number(Number(valor).toFixed(2)));
 // El selector usa un representante por línea; nunca agrupa distancias distintas.
-export function normalizarSeleccion(unidades, id, porLinea = false) {
+export function normalizarSeleccion(unidades, id, porLinea = false, permitirTodas = false) {
+  if (permitirTodas && id === 'todas') return 'todas';
   if (!porLinea) return unidades.some(u => String(u.idTren) === String(id)) ? String(id) : 'todas';
   const elegida = unidades.find(u => String(u.idTren) === String(id));
   const representante = elegida ? unidades.find(u => u.nombreLinea === elegida.nombreLinea) : unidades[0];
   return representante ? String(representante.idTren) : '';
 }
-export function seleccionarUnidades(unidades, id, porLinea = false) {
-  if (id === 'todas') return porLinea ? [] : unidades;
+export function seleccionarUnidades(unidades, id, porLinea = false, permitirTodas = false) {
+  if (id === 'todas') return porLinea && !permitirTodas ? [] : unidades;
   const elegida = unidades.find(u => String(u.idTren) === String(id));
   return elegida ? unidades.filter(u => porLinea ? u.nombreLinea === elegida.nombreLinea : u.idTren === elegida.idTren) : [];
 }
