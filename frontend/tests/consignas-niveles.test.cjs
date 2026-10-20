@@ -70,3 +70,14 @@ test('la dificultad incorpora herramientas y criterios sin retroceder en el reco
     if (indice >= 5 && radioAnterior && radioActual) assert.ok(radioActual <= radioAnterior);
   }
 });
+
+test('Ayudas y consejos describen controles vigentes; los catálogos permanecen sincronizados', () => {
+  const backend = require('../../backend/src/main/resources/educacion/niveles.json');
+  const mensajes = require('../src/educacion/mensajesTransicion.json');
+  assert.deepEqual(niveles, backend);
+  for (const nivel of niveles) {
+    const ayudas = JSON.stringify([nivel.preparacion, nivel.transicion, mensajes.find(n => n.numero === nivel.numero)]);
+    assert.doesNotMatch(ayudas, /ritmo visual|Todos los metros|×0\.5|Acciones de nivel/);
+  }
+  assert.match(niveles[7].preparacion.consejo, /Todas.*UV común.*UT según su distancia/);
+});

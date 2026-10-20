@@ -70,18 +70,7 @@ function iniciar() {
       acciones.className = 'metronet-disenos__acciones';
       // El editor y el simulador personales conservan sus permisos de propiedad.
       if (propio(d)) for (const [icono, etiqueta, destino] of [['editar', 'Abrir diseño', '/'], ['play', 'Simular diseño', '/simulacion.html']]) {
-        const deshabilitado = icono === 'play' && !d.preparadoParaSimular;
-        const enlace = document.createElement(deshabilitado ? 'button' : 'a');
-        enlace.className = 'metronet-boton';
-        if (deshabilitado) {
-          enlace.type = 'button';
-          enlace.disabled = true;
-        } else enlace.href = ruta(d, destino);
-        configurarBotonIcono(enlace, icono, `${etiqueta}: ${d.nombre}`);
-        configurarAccion(enlace,icono==='editar'?'abrir':'simular',{icono:true});
-        if (deshabilitado) enlace.title = 'Prepará la red desde Edición para habilitar su simulación.';
-        enlace.classList.add(icono === 'editar' ? 'metronet-disenos__accion--editar' : 'metronet-disenos__accion--simular');
-        acciones.append(enlace);
+        acciones.append(crearAcceso(d, icono, etiqueta, destino));
       }
       const eliminar = document.createElement('button');
       eliminar.type = 'button';
@@ -95,6 +84,36 @@ function iniciar() {
       return fila;
   }
 
+  function crearAcceso(d, icono, etiqueta, destino) {
+    const deshabilitado = icono === 'play' && !d.preparadoParaSimular;
+    const enlace = document.createElement(deshabilitado ? 'button' : 'a');
+    enlace.className = 'metronet-boton';
+    if (deshabilitado) { enlace.type = 'button'; enlace.disabled = true; }
+    else enlace.href = ruta(d, destino);
+    configurarBotonIcono(enlace, icono, `${etiqueta}: ${d.nombre}`);
+    configurarAccion(enlace, icono === 'editar' ? 'abrir' : 'simular', {icono:true});
+    if (deshabilitado) enlace.title = d.verificacion === 'pendiente'
+      ? 'Comprobando si la red está preparada para simular.' : 'Prepará la red desde Edición para habilitar su simulación.';
+    enlace.classList.add(icono === 'editar' ? 'metronet-disenos__accion--editar' : 'metronet-disenos__accion--simular');
+    return enlace;
+  }
+
+  async function verificarSimulacion(d) {
+    const escenario = escenarios.find(e => e.idEscenario === d.idEscenario);
+    if (d.verificacion || !propio(d) || !['VALIDADO', 'COMPLETADA', 'COMPLETADO'].includes(d.estado)
+      || escenario?.herramientasHabilitadas?.simulacion === false) return;
+    d.verificacion = 'pendiente';
+    try { d.preparadoParaSimular = (await cliente.obtener(d.idDiseno))?.preparadoParaSimular === true; }
+    catch { d.preparadoParaSimular = false; }
+    d.verificacion = 'completa';
+    // Una respuesta anterior a una recarga o eliminación no modifica la lista vigente.
+    if (!disenos.includes(d)) return;
+    for (const fila of document.querySelectorAll('[data-diseno]')) {
+      if (fila.dataset.diseno !== String(d.idDiseno)) continue;
+      fila.querySelector('.metronet-disenos__accion--simular')?.replaceWith(crearAcceso(d, 'play', 'Simular diseño', '/simulacion.html'));
+    }
+  }
+
   function renderizar() {
     const grupos = { campana: disenos.filter(d => !esDisenoLibre(d)), libres: disenos.filter(esDisenoLibre) };
     for (const [grupo, redes] of Object.entries(grupos)) {
@@ -102,7 +121,9 @@ function iniciar() {
       const totalPaginas = Math.max(1, Math.ceil(redes.length / porPagina));
       paginas[grupo] = Math.min(paginas[grupo], totalPaginas - 1);
       const desde = paginas[grupo] * porPagina;
-      (grupo === 'campana' ? lista : listaLibres).replaceChildren(...redes.slice(desde, desde + porPagina).map(crearFila));
+      const visibles = redes.slice(desde, desde + porPagina);
+      if (grupo === grupoActivo) visibles.forEach(d => { void verificarSimulacion(d); });
+      (grupo === 'campana' ? lista : listaLibres).replaceChildren(...visibles.map(crearFila));
       document.getElementById(`panelDisenos${sufijo}`).hidden = grupo !== grupoActivo;
       document.getElementById(`vacioDisenos${sufijo}`).hidden = redes.length > 0;
       document.getElementById(`resumenDisenos${sufijo}`).textContent = redes.length
@@ -155,19 +176,7 @@ function iniciar() {
       document.getElementById('explicacionDisenoLibre').hidden = Boolean(modoLibre);
       botonLibre.title = modoLibre ? '' : 'Completá los diez niveles para habilitar el diseño libre.';
       if (redes.status === 'fulfilled' && Array.isArray(redes.value)) {
-        const verificadas = await Promise.all(redes.value.map(async d => {
-          let preparadoParaSimular = false;
-          const escenario = escenarios.find(e => e.idEscenario === d.idEscenario);
-          if (propio(d) && ['VALIDADO', 'COMPLETADA', 'COMPLETADO'].includes(d.estado)
-            && escenario?.herramientasHabilitadas?.simulacion !== false) {
-            try {
-              preparadoParaSimular = (await cliente.obtener(d.idDiseno))?.preparadoParaSimular === true;
-            } catch { /* Sin confirmación del servidor, el acceso sigue deshabilitado. */ }
-          }
-          return { ...d, nombre: d.nombre || `Diseño #${d.idDiseno}`, preparadoParaSimular };
-        }));
-        if (version !== versionListado) return;
-        disenos = verificadas;
+        disenos = redes.value.map(d => ({ ...d, nombre: d.nombre || `Diseño #${d.idDiseno}`, preparadoParaSimular: false }));
         mensaje.hidden = true;
         renderizar();
       } else {

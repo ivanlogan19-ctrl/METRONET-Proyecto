@@ -101,3 +101,17 @@ test('errores, selección de extremos, referencias y circulación', () => {
   for (const estadoMotor of ['EN_CURSO', 'PAUSADA']) assert.equal(orientar({ ...geo, pantalla: 'simulacion', estadoMotor }).clave, `circulacion-${estadoMotor}`);
   assert.equal(orientar({ ...geo, pantalla: 'simulacion', estadoMotor: 'FINALIZADA' }).clave, 'simular', 'Finalizar la animación no demuestra éxito');
 });
+
+
+test('La ayuda de ajustes enseña UV o UT por línea y Todas, sin controles retirados', () => {
+  const c = contexto(niveles[8]);
+  c.diseno = { estaciones: [{}, {}], lineas: [{}, {}] };
+  for (const tipo of ['velocidad', 'duracion', 'individual', 'global', 'combinacion']) {
+    c.consigna.condiciones = [condicion(`aprendizajeSimulacion:${tipo}`, false)];
+    const ayuda = orientar(c);
+    assert.equal(ayuda.clave, `aprendizajeSimulacion:${tipo}`);
+    assert.doesNotMatch(JSON.stringify(ayuda), /ritmo|Todos los metros|Acciones de nivel/i);
+    if (tipo === 'global') assert.match(ayuda.texto, /Todas.*UV común.*UT según su distancia/);
+    if (tipo === 'individual') assert.match(ayuda.texto, /color.*UT se recalcula.*demás líneas/);
+  }
+});

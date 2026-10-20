@@ -1,9 +1,9 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador(); });
 after(async () => { await navegador?.close(); });
 
 for (const administrador of [false, true]) test(`Acceso al diseño preparado; bloqueos y actualización (${administrador ? 'administrador' : 'jugador'})`, async t => {
@@ -30,7 +30,9 @@ for (const administrador of [false, true]) test(`Acceso al diseño preparado; bl
   await p.locator('#listaMisDisenos[aria-busy="false"]').waitFor({ state: 'attached' });
   for (const id of [77, 78, 81, 82, 83]) assert.equal(await p.locator(`[data-diseno="${id}"] .metronet-disenos__accion--simular`).isDisabled(), true);
   for (const id of [79, 80]) {
+    await p.locator(`[data-grupo="${id === 80 ? 'libres' : 'campana'}"]`).click();
     const enlace = p.locator(`[data-diseno="${id}"] a.metronet-disenos__accion--simular`);
+    await enlace.waitFor();
     const url = new URL(await enlace.getAttribute('href'), 'http://localhost');
     assert.equal(url.pathname, '/simulacion.html');
     assert.equal(url.searchParams.get('idDiseno'), String(id));
@@ -40,6 +42,7 @@ for (const administrador of [false, true]) test(`Acceso al diseño preparado; bl
   assert.equal(v.solicitudes.some(s => s.method === 'POST'), false, 'Consultar no valida ni ejecuta redes');
   preparada = false;
   await p.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+  await p.locator('[data-grupo="campana"]').click();
   await p.locator('[data-diseno="79"] button.metronet-disenos__accion--simular').waitFor();
   assert.equal(await p.locator('[data-diseno="80"] .metronet-disenos__accion--simular').isDisabled(), true);
   assert.deepEqual(v.errores, []);

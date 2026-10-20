@@ -4,7 +4,7 @@ import { obtenerConcepto } from './Conceptos.js';
 const iniciales = ['diseno', 'linea', 'estacion', 'nivel', 'escenario', 'objetivo', 'regla-exito', 'herramientas', 'progreso', 'intento', 'puntaje'];
 const conexiones = [...iniciales, 'conexion'];
 const unidades = [...conexiones, 'unidad', 'cantidad-unidades', 'velocidad'];
-const geografia = [...unidades, 'poi', 'cobertura', 'unidades-mapa', 'zona', 'barrio', 'simulacion', 'ritmo', 'duracion', 'tiempo-estimado'];
+const geografia = [...unidades, 'poi', 'cobertura', 'unidades-mapa', 'zona', 'barrio', 'simulacion', 'duracion', 'tiempo-estimado'];
 const intercambios = [...geografia, 'transbordo'];
 
 export const CONCEPTOS_POR_NIVEL = Object.freeze({
@@ -20,7 +20,7 @@ export const CONCEPTOS_POR_NIVEL = Object.freeze({
   10: { ids: intercambios },
 });
 
-const herramientaConcepto = { estacion: 'estaciones', linea: 'lineas', conexion: 'conexiones', unidad: 'metros', 'cantidad-unidades': 'metros', velocidad: 'metros', simulacion: 'simulacion', ritmo: 'simulacion', duracion: 'simulacion', 'tiempo-estimado': 'simulacion' };
+const herramientaConcepto = { estacion: 'estaciones', linea: 'lineas', conexion: 'conexiones', unidad: 'metros', 'cantidad-unidades': 'metros', velocidad: 'metros', simulacion: 'simulacion', duracion: 'simulacion', 'tiempo-estimado': 'simulacion' };
 const validos = ids => ids.filter(id => obtenerConcepto(id)?.definicion);
 export function conceptosDelNivel(escenario) {
   const configuracion = CONCEPTOS_POR_NIVEL[escenario?.numero];
@@ -30,4 +30,4 @@ export function conceptosDelNivel(escenario) {
 
 // En la pantalla de simulación estos controles ya están presentes, incluso para
 // diseños libres. La consigna utiliza por separado la asociación del escenario.
-export const CONCEPTOS_SIMULACION = Object.freeze(['simulacion', 'unidad', 'velocidad', 'ritmo', 'duracion', 'tiempo-estimado', 'puntaje']);
+export const CONCEPTOS_SIMULACION = Object.freeze(['simulacion', 'unidad', 'velocidad', 'duracion', 'tiempo-estimado', 'puntaje']);

@@ -12,8 +12,7 @@ const PASOS = [
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
-  ['.simulacion-selector-metros > summary', 'Elegir línea', 'El menú abre hacia la izquierda del panel. Elegí una línea para ajustar UV y UT según su distancia. Sus metros comparten la configuración; las demás líneas conservan sus valores.'],
-  ['.simulacion-configuracion-metros__desplegable > summary', 'Detalle de metros', 'Abrí este resumen para consultar la UV y la UT guardadas de cada metro. No modifica la red.'],
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'El menú abre hacia la izquierda del panel. Cada opción muestra el color real de la línea y sus valores UV y UT guardados. Elegí una línea o Todas para aplicar un valor común. Con la misma UV, cada línea calcula su UT según su distancia; con la misma UT, calcula su UV. Sus metros comparten la configuración; las demás líneas conservan sus valores.'],
   ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá la línea seleccionada. Su UT se calcula según la distancia; guardá el valor.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
   ['#seccionConfiguracion', 'Duración simulada · UT', '1 UT equivale a una hora del escenario. Al elegir UT, la UV se calcula para completar los kilómetros de la línea. Confirmá la duración con el disquete.'],
@@ -24,16 +23,16 @@ const PASOS = [
 const RESUMEN = [
   ['territorio', 'Recorré el mapa y ajustá la vista.'],
   ['play', 'Iniciá, pausá o detené el recorrido.'],
-  ['metros', 'Elegí una línea para consultar y ajustar sus valores.'],
+  ['metros', 'Elegí una línea o Todas para ajustar UV o UT.'],
   ['velocidad', 'Ajustá y aplicá la velocidad UV.'],
   ['reloj', 'Ajustá y aplicá la duración UT.'],
 ];
 
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
-  ['.simulacion-selector-metros > summary', 'Línea a configurar', 'Abrí el menú hacia la izquierda. Elegí una línea o Todas para aplicar UV o UT. Cada línea calcula el otro valor con su propia distancia; aquí también ves sus valores guardados.'],
+  ['.simulacion-selector-metros > summary', 'Línea a configurar', 'Abrí el menú hacia la izquierda. Elegí una línea o Todas para aplicar UV o UT. El nombre y la franja corresponden al color real de la línea; debajo ves sus valores UV y UT guardados. Con Todas, ingresá una UV común y cada línea calculará su UT, o ingresá una UT común para calcular cada UV. “Por línea” indica que los resultados son distintos; podés escribir un valor o iniciar en 1 con + o −.'],
   ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'Al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
-  ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT: 1,5 UT equivale a una hora y media. La duración se calcula con la distancia de la línea seleccionada.'],
+  ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT. La duración se calcula con la distancia y la velocidad de cada línea.'],
   ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
 
   ['.simulacion-horarios', 'Reloj de estación', 'El reloj avanza con las líneas que reproducís. Las capas de tráfico y desplazamientos siguen ese mismo horario.'],
@@ -41,9 +40,9 @@ const PASOS_LIBRE = [
   ['.simulacion-reproduccion', 'Líneas a reproducir', 'Todas comienzan marcadas. Desmarcá las que no quieras ver circular o usá Todas. Los cuadrados llenos indican la selección; cada franja conserva el color de su línea. Si hay más líneas, usá las flechas de página.'],
   ['#formularioEjecucion', 'Reproducir la selección', 'Play reproduce las líneas marcadas al mismo tiempo. Para cambiar la selección, detené el recorrido. Esta selección controla la reproducción visual; los resultados guardados siguen evaluando la red completa.'],
   ['[data-capa-simulacion="calles"]', 'Calles y avenidas', 'Este botón muestra u oculta las calles para ubicar tu red en la ciudad. Las estaciones, líneas y metros permanecen por encima.'],
-  ['[data-capa-simulacion="trafico"]', 'Tráfico sincronizado', 'Activá el tráfico histórico para ver su intensidad por colores. Cambia con la hora Actual de la simulación; son datos históricos, no tráfico en vivo.'],
+  ['[data-capa-simulacion="trafico"]', 'Tráfico sincronizado', 'Activá el tráfico histórico para ver su intensidad por colores. Cambia con la hora del reloj de la simulación; son datos históricos, no tráfico en vivo.'],
   ['[data-capa-simulacion="poblacion"]', 'Densidad de población', 'Mostrá dónde se concentra la población. Esta capa censal permanece igual al avanzar el reloj.'],
-  ['[data-capa-simulacion="desplazamientos"]', 'Desplazamientos sincronizados', 'Las flechas muestran los desplazamientos históricos del horario Actual. Su animación sigue la ejecución: se pausa y se reinicia junto con ella.'],
+  ['[data-capa-simulacion="desplazamientos"]', 'Desplazamientos sincronizados', 'Las flechas muestran los desplazamientos históricos del horario elegido. Las puntas se mueven para indicar la dirección, aunque los metros estén detenidos; ese movimiento es ilustrativo y no adelanta el reloj.'],
   ['[data-capa-simulacion="cobertura"]', 'Cobertura de las estaciones', 'Mostrá u ocultá el área de 500 m alrededor de cada estación para compararla con las capas. El área depende del diseño de la red.'],
   ['.simulacion-capas input[type="range"]', 'Transparencia de las capas', 'Deslizá este control para ver las capas con mayor o menor intensidad, manteniendo tu red visible. Podés combinarlas o apagarlas con sus botones.'],
 ];
@@ -134,15 +133,15 @@ export function pasosSimulacion(numero, escenario, pendientes) {
   const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Observá la UT calculada según la distancia de esa línea.', 'velocidad'];
   const duracion = ['#seccionConfiguracion', 'Cambiá duración UT', 'Aumentá o reducí la duración UT y aplicala. La velocidad UV se calcula automáticamente para completar esa distancia.', 'duracion'];
   if (numero === 4) return [ejecucion, velocidad, ejecucion, duracion, ejecucion];
-  if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[8]], ejecucion, velocidad, ejecucion];
-  if (nuevas.includes('simulacion.duracion')) return [[...PASOS[10]], ejecucion, duracion, ejecucion];
+  if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[7]], ejecucion, velocidad, ejecucion];
+  if (nuevas.includes('simulacion.duracion')) return [[...PASOS[9]], ejecucion, duracion, ejecucion];
   if (nuevas.includes('simulacion.global') || nuevas.includes('simulacion.individual')) return [PASOS[6], ejecucion,
     ['.simulacion-selector-metros', 'Elegí una línea', 'Seleccioná una línea concreta en el selector.', 'unidad-individual'],
     ['.simulacion-parametro-velocidad', 'Ajuste individual', 'Cambiá y aplicá la UV de esa línea. Su UT se calcula sola; las otras líneas conservan sus valores.', 'velocidad-individual'], ejecucion];
   if (nuevas.includes('simulacion.combinacion')) return [['#formularioEjecucion', 'Comparar A y B', 'Compararemos ejecuciones de la misma red. Cambiar controles sin volver a ejecutar no alcanza.'],
     ejecucion, velocidad, duracion, ejecucion];
   if (numero !== 1 && Number.isInteger(numero)) return [];
-  return [PASOS[0], PASOS[6], PASOS[7], PASOS[8], PASOS[10],
+  return [PASOS[0], PASOS[6], PASOS[7], PASOS[9],
     ...PASOS.slice(1,6)];
 }
 

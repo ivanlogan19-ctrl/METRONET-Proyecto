@@ -1,4 +1,4 @@
-import { coloresDeLineas } from '../mapa/configuracion/PaletaRed.js';
+import { coloresDeLineas, nombreVisibleLinea } from '../mapa/configuracion/PaletaRed.js';
 import { representantesLineas } from './VinculoUvUtLibre.js';
 
 export function colorDeLineaCss(colores, nombre) {
@@ -16,7 +16,7 @@ export default class SelectorLineasReproduccion {
       <button type="button" class="simulacion-lineas-todas" aria-pressed="true"><i aria-hidden="true"></i>Todas</button>
       <div class="simulacion-reproduccion__lineas"></div>
       <nav class="simulacion-lineas-paginas" aria-label="Páginas de líneas">
-        <button type="button" aria-label="Líneas anteriores">◀</button><output></output>
+        <button type="button" aria-label="Líneas anteriores">◀</button>
         <button type="button" aria-label="Líneas siguientes">▶</button>
       </nav>`;
     this.todas = this.elemento.querySelector('.simulacion-lineas-todas');
@@ -56,7 +56,7 @@ export default class SelectorLineasReproduccion {
       boton.type = 'button'; boton.dataset.lineaReproducir = linea.nombreLinea;
       boton.setAttribute('aria-pressed', String(this.seleccion.has(linea.nombreLinea)));
       const indicador = document.createElement('i'); indicador.setAttribute('aria-hidden', 'true');
-      const nombre = document.createElement('span'); nombre.textContent = linea.nombreLinea;
+      const nombre = document.createElement('span'); nombre.textContent = nombreVisibleLinea(this.colores.get(linea.nombreLinea));
       const muestra = document.createElement('b'); muestra.className = 'simulacion-color-linea';
       muestra.style.backgroundColor = colorDeLineaCss(this.colores, linea.nombreLinea);
       muestra.setAttribute('aria-hidden', 'true');
@@ -72,7 +72,6 @@ export default class SelectorLineasReproduccion {
     });
     this.elemento.querySelector('.simulacion-reproduccion__lineas').replaceChildren(...filas);
     this.navegacion.hidden = paginas <= 1;
-    this.navegacion.querySelector('output').textContent = `${this.pagina + 1} / ${paginas}`;
     const [anterior, siguiente] = this.navegacion.querySelectorAll('button');
     anterior.disabled = this.pagina === 0; siguiente.disabled = this.pagina === paginas - 1;
     this.establecerBloqueado(this.bloqueado);

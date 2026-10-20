@@ -33,7 +33,7 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
   assert.ok(r.x>=0 && r.x+r.width<=width+1,'La guía queda dentro del ancho visible');
   await p.locator('[data-recorrido-siguiente]').click();
  }
- for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Línea a configurar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
+ for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
  await p.waitForFunction(()=>document.querySelector('.metronet-recorrido h2')?.textContent==='Elegí Estación');
  assert.equal(await p.locator('[data-recorrido-siguiente]').isVisible(),false,'La práctica requiere la herramienta real');
  await p.locator('[data-elegir-herramienta="estaciones"]').click();
@@ -217,5 +217,27 @@ for (const numero of [1,6]) test(`Guía rápida N${numero}: solo funciones visib
  assert.equal(await p.getByRole('button',{name:'Aprender',exact:true}).isVisible(),true);
  await p.getByRole('button',{name:'Aprender',exact:true}).click();
  await p.locator('.metronet-tarjeta-educativa').waitFor();
+ assert.deepEqual(v.errores,[]);
+});
+
+test('Modo libre: el paseo señala herramientas actuales de edición y omite el selector retirado', async t => {
+ const v=await abrirEditor(browser,{modo:'EDICION_LIBRE',escenario:{idEscenario:45,numero:null,nombre:'Modo libre',modo:'EDICION_LIBRE',desbloqueado:true},primeraPasada:false});
+ t.after(()=>v.contexto.close());const p=v.pagina;
+ await p.evaluate(async()=>{
+  document.querySelector('.metronet-recorrido [data-recorrido-omitir]')?.click();
+  const {default:Recorrido}=await import('/src/educacion/RecorridoInicial.js');
+  window.recorridoLibrePrueba=new Recorrido(()=>{}, {senalarDeshabilitados:true});
+  recorridoLibrePrueba.iniciar();
+ });
+ const titulos=[];
+ for(let i=0;i<40 && await p.locator('[data-recorrido-siguiente]:visible').count();i++) {
+  const dialogo=p.locator('.metronet-recorrido');
+  titulos.push(await dialogo.locator('h2').textContent());
+  assert.doesNotMatch(await dialogo.innerText(),/Acciones de nivel|Línea a configurar|Reglas → Fuentes del mapa/);
+  const selector=await dialogo.getAttribute('data-objetivo');
+  assert.ok(await p.locator(selector).first().isVisible(),`Objetivo disponible: ${selector}`);
+  await p.locator('[data-recorrido-siguiente]').click();
+ }
+ for(const titulo of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección']) assert.ok(titulos.includes(titulo),titulo);
  assert.deepEqual(v.errores,[]);
 });

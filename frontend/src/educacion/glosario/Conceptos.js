@@ -1,5 +1,5 @@
 // Explicaciones del comportamiento IMPLEMENTADO, no transcripciones del Documento
-// METRONET. UV, duración didáctica y ritmo se muestran según la versión del intento;
+// METRONET. UV y duración didáctica se muestran según la versión del intento;
 // la actualización del documento académico se registra por separado.
 const concepto = (id, termino, definicion, categoria, alias = [], nombreCompleto = null) =>
   Object.freeze({ id, termino, nombreCompleto, definicion, categoria, alias: Object.freeze(alias) });
@@ -24,9 +24,8 @@ export const CONCEPTOS = Object.freeze([
   concepto('cantidad-unidades', 'Cantidad de unidades', 'Número de metros asignados a la red. Revisá la cantidad requerida por la consigna y su distribución entre líneas.', 'Circulación'),
   concepto('velocidad', 'UV — Unidad de Velocidad', 'Velocidad del metro: 1 UV equivale a 1 km por UT y 1 UT a una hora del escenario. A 4 UV durante 2 UT puede recorrer 8 km, hasta el final de su línea.', 'Circulación', ['UV', 'unidad de velocidad', 'velocidad', 'velocidades', 'velocidad promedio', 'velocidades promedio']),
   concepto('simulacion', 'Simulación', 'Representación del movimiento de los metros sobre los recorridos del diseño. Permite observar su circulación y consultar resultados.', 'Simulación', ['simulaciones']),
-  concepto('ritmo', 'Ritmo de reproducción', 'Multiplicador ×0.5, ×1, ×2 o ×4 que cambia la rapidez de la animación. No cambia las UV de los metros ni la duración simulada; no otorga puntos.', 'Simulación', ['ritmo']),
   concepto('duracion', 'Duración simulada', 'Cantidad de tiempo representada dentro de una ejecución: 1 UT equivale a una hora del escenario. No es el tiempo real que tarda la animación.', 'Simulación', ['duración']),
-  concepto('tiempo-estimado', 'Tiempo simulado', 'Duración representada que ya transcurrió durante la ejecución. Cada UT equivale a una hora del escenario; su avance visual depende del ritmo de reproducción.', 'Simulación', ['tiempos estimados', 'tiempo de recorrido']),
+  concepto('tiempo-estimado', 'Tiempo simulado', 'Duración representada que ya transcurrió durante la ejecución. Cada UT equivale a una hora del escenario; el reloj acompaña el avance de los metros por sus líneas.', 'Simulación', ['tiempos estimados', 'tiempo de recorrido']),
   concepto('objetivo', 'Objetivo', 'Resultado que te pide alcanzar la consigna del nivel.', 'Aprendizaje', ['objetivos']),
   concepto('regla-exito', 'Regla de éxito', 'Condición que se comprueba para completar el nivel, como alcanzar una cantidad de estaciones o cubrir los lugares indicados.', 'Aprendizaje', ['reglas de éxito', 'condiciones']),
   concepto('herramientas', 'Herramientas habilitadas', 'Acciones disponibles para construir la red en el nivel actual.', 'Aprendizaje'),

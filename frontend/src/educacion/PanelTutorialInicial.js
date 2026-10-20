@@ -195,7 +195,7 @@ export default class PanelTutorialInicial {
     if (visible('[data-calles-visible]')) temas.push(['calles', 'Mostrá las vías reales y acercate para ver calles. Podés construir encima.']);
     if (visible('#opacidad-calles')) temas.push(['capas', 'Ajustá la transparencia de las calles.']);
     if (visible('[data-poblacion-visible]')) temas.push(['poblacion', 'Mostrá densidad del Censo 2023 y ajustá su transparencia. No cambia con la hora del tráfico.']);
-    if (visible('[data-desplazamientos-visible]')) temas.push(['desplazamientos', 'Explorá viajes históricos por hora y pausá las flechas. Fuentes y años en Reglas → Fuentes del mapa.']);
+    if (visible('[data-desplazamientos-visible]')) temas.push(['desplazamientos', 'Explorá viajes históricos por hora; el control junto a su transparencia pausa o reanuda las flechas.']);
     if (visible('[data-trafico-visible]')) temas.push(['trafico', 'Consultá tráfico histórico por hora. Los colores muestran intensidad relativa; no atascos.']);
     const requierePoi = this.contexto?.escenario?.reglasExito?.puntosInteresObjetivo?.length
       || this.contexto?.consigna?.referenciasObjetivo?.length;

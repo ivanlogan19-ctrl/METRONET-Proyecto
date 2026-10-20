@@ -9,17 +9,16 @@ const PASOS_INTEGRAL = [
   ['[data-elegir-herramienta="estaciones"]', 'Estación', 'Este símbolo permite colocar estaciones sobre el mapa.'],
   ['[data-elegir-herramienta="lineas"]', 'Línea', 'Esta herramienta une dos estaciones y crea una línea con su primer tramo.'],
   ['[data-elegir-herramienta="seleccion"]', 'Selección', 'Seleccioná elementos existentes para consultar o editar sus propiedades.'],
-  ['[data-guardar]', 'Guardar', 'El disquete guarda el diseño y revisa las condiciones del nivel.'],
-  ['.metronet-selector-lineas-editor > button', 'Línea a configurar', 'El menú abre hacia la izquierda. Seleccioná una línea existente por su nombre y color para editarla; las flechas muestran más líneas sin desplazar la pantalla.'],
+  ['[data-guardar]', 'Guardar', 'El disquete conserva los cambios de tu red.'],
   ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Elegí una vía y dos estaciones para extender una línea.'],
   ['[data-elegir-herramienta="metros"]', 'Metro', 'Tocá una vía con esta herramienta para asignarle una unidad.'],
-  ['[data-ir-simulacion]', 'Simular', 'En Acciones de nivel podés pasar a Simulación después de guardar y comprobar la red.'],
+  ['[data-ir-simulacion]', 'Simular', 'En Acciones podés pasar a Simulación después de guardar y comprobar la red.'],
   ['.metronet-aprender-acceso', 'Aprender', 'Abrí este botón para volver a ver las tarjetas educativas de este nivel.'],
   ['.metronet-hud--integrado > summary', 'Música', 'Este botón permite activar o silenciar la música y ajustar su volumen.'],
   ['.metronet-consigna__cabecera', 'Metas del nivel', 'Este panel muestra las metas y su progreso. Cada meta cumplida se marca con una estrella.'],
 ];
 
-const PASOS = [...PASOS_CALLES, ...PASOS_INTEGRAL.slice(3,8),
+const PASOS = [...PASOS_CALLES, ...PASOS_INTEGRAL.slice(0,11),
   ['.metronet-poi > summary', 'Referencias', 'La bandera amarilla permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
   ...PASOS_INTEGRAL.slice(-3)];
 

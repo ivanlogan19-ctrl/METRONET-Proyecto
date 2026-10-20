@@ -96,7 +96,7 @@ async function inicializar() {
     progresoSimulacion = progreso;
     escenariosGlosario = Array.isArray(progreso?.escenarios) ? progreso.escenarios : [];
     catalogoProgresoDisponible = Array.isArray(progreso?.escenarios);
-    if (disenoActual) { actualizarAyuda(); controlUnidades?.actualizarNivel(obtenerRotuloNivel()); }
+    if (disenoActual) actualizarAyuda();
   }).catch(() => {});
   destacarConceptos(document.querySelector('.simulacion-etiqueta-control'), CONCEPTOS_SIMULACION);
   document.querySelector('[data-icono-duracion]').innerHTML = iconoRetro('reloj');
@@ -114,9 +114,8 @@ async function inicializar() {
   document.querySelectorAll('[data-paso-horas]').forEach(boton => boton.addEventListener('click', () => {
     const input = document.getElementById('duracionSimulacion');
     if (input.disabled) return;
-    if (usaVinculoPorLinea(disenoActual) && input.value === '') { input.focus(); return; }
     const siguiente = usaVinculoPorLinea(disenoActual)
-      ? desplazarValorVinculado(Number(input.value), Number(boton.dataset.pasoHoras))
+      ? input.value === '' ? 1 : desplazarValorVinculado(Number(input.value), Number(boton.dataset.pasoHoras))
       : Math.max(1, Number(input.value) + Number(boton.dataset.pasoHoras));
     if (siguiente == null) return;
     input.value = String(siguiente);
@@ -172,10 +171,12 @@ async function abrirDiseno(idDiseno) {
   const version = ++versionDiseno;
   try {
     const nuevoDiseno = String(disenoActual?.simulacion?.idDiseno) !== String(idDiseno);
-    if (nuevoDiseno) duracionAplicada = null;
+    if (nuevoDiseno) {
+      duracionAplicada = null;
+      panelAyuda?.actualizar({});
+    }
     cerrarDefinicion();
     errorAyuda = null;
-    panelAyuda?.actualizar({});
     numeroSolicitudConsigna += 1;
     consignaActual = null;
     idDisenoConsigna = null;
@@ -319,7 +320,7 @@ async function actualizarDesempeno(idDiseno) {
   disenoActual.metricasUnidades = desempeno?.unidades ?? [];
   // Las métricas pertenecen al panel. El motor usa estaciones, tramos y UV,
   // ya cargados por abrirDiseno: no recrear la red ni reiniciar su estado aquí.
-  unidadSeleccionada = normalizarSeleccion(disenoActual.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual), esModoLibre(disenoActual));
+  unidadSeleccionada = normalizarSeleccion(disenoActual.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual), true);
   controlUnidades = renderizarDesempeno(document.getElementById('desempenoNivel'), disenoActual, desempeno, guardarVelocidades, {
     seleccion: unidadSeleccionada, alSeleccionar: seleccionarUnidad,
     modoLibre: esModoLibre(disenoActual), vinculoLibre: usaVinculoPorLinea(disenoActual), alCambiarVelocidad: valor => previsualizarVinculo('UV', valor),
@@ -342,7 +343,7 @@ function obtenerRotuloNivel() {
 
 async function seleccionarUnidad(id) {
   if (guardandoVelocidad) return;
-  id = normalizarSeleccion(disenoActual?.unidadesMetro ?? [], id, usaVinculoPorLinea(disenoActual), esModoLibre(disenoActual));
+  id = normalizarSeleccion(disenoActual?.unidadesMetro ?? [], id, usaVinculoPorLinea(disenoActual), true);
   if (id === unidadSeleccionada) return;
   if (usaVinculoPorLinea(disenoActual) && vinculoPendiente) {
     const { referencia, valor } = vinculoPendiente;
@@ -362,13 +363,13 @@ async function seleccionarUnidad(id) {
 }
 
 function unidadesElegidas() {
-  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual), esModoLibre(disenoActual));
+  return seleccionarUnidades(disenoActual?.unidadesMetro ?? [], unidadSeleccionada, usaVinculoPorLinea(disenoActual), true);
 }
 function actualizarCampoDuracion() {
   const input = document.getElementById('duracionSimulacion');
   const valores = [...new Set(unidadesElegidas().map(u => usaVinculoPorLinea(disenoActual) ? u.duracionUt : u.duracionUt ?? duracionAplicada ?? 6))];
   input.value = valores.length === 1 && valores[0] != null ? (usaVinculoPorLinea(disenoActual) ? valorVisible(valores[0]) : String(valores[0])) : '';
-  input.placeholder = valores.length > 1 ? 'MIXTO' : '';
+  input.placeholder = valores.length > 1 ? 'Por línea' : '';
   input.required = valores.length <= 1;
 }
 function previsualizarVinculo(referencia, valor) {
@@ -379,12 +380,10 @@ function previsualizarVinculo(referencia, valor) {
   if (!campo) return;
   const valores = [...new Set((calculadas ?? []).map(u => referencia === 'UV' ? u.duracionUt : u.velocidadPromedio))];
   campo.value = valores.length === 1 ? valorVisible(valores[0]) : '';
-  campo.placeholder = valores.length > 1 ? 'MIXTO' : '—';
-  // El campo calculado puede ser MIXTO: no es una duración/velocidad faltante.
+  campo.placeholder = valores.length > 1 ? 'Por línea' : '—';
+  // El campo calculado puede variar por línea: no es una duración/velocidad faltante.
   campo.required = valores.length <= 1;
   document.getElementById(referencia === 'UV' ? 'velocidadUnidad' : 'duracionSimulacion').required = true;
-  const mixto = document.querySelector('[data-velocidad-mixta]');
-  if (mixto) mixto.hidden = referencia === 'UV' || valores.length <= 1;
 }
 
 async function guardarVinculoLibre(referencia, valor) {
@@ -554,7 +553,6 @@ async function ejecutarSimulacion(evento) {
     if (!await abrirDiseno(id) || !paginaActiva) return;
     duracionAplicada = duracion;
     actualizarCampoDuracion();
-    controlUnidades?.actualizarTiempo(duracion);
     parametrosUltimaEjecucion = { velocidad, duracion };
     ejecucionPendiente = { idDiseno: disenoActual.simulacion.idDiseno, resultado };
     if (estaMantenimientoActivo(sesion)) return;

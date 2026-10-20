@@ -74,3 +74,15 @@ test('una red operable puede guardarse y abrir simulación aunque tenga una cons
  assert.equal(preparada.validacion.preparadoParaSimular,true);
  assert.deepEqual(c.llamadas,[['/7/validacion','POST'],['/7/guardar','POST']]);
 });
+
+test('los nombres visibles corresponden al color del mapa sin renombrar las líneas guardadas',async()=>{
+ const {coloresDeLineas,nombreVisibleLinea}=await cargar('../src/mapa/configuracion/PaletaRed.js');
+ const lineas=Array.from({length:256},(_,i)=>({nombre:`Línea ${i+1}`}));
+ const antes=JSON.stringify(lineas);
+ const colores=coloresDeLineas(lineas);
+ const nombres=[...colores.values()].map(nombreVisibleLinea);
+ assert.deepEqual(nombres.slice(0,3),['Línea azul','Línea fucsia','Línea amarilla']);
+ assert.equal(new Set(nombres).size,256,'Los tonos adicionales siguen siendo identificables');
+ assert.deepEqual([...coloresDeLineas([...lineas].reverse()).values()].map(nombreVisibleLinea),nombres);
+ assert.equal(JSON.stringify(lineas),antes);
+});

@@ -159,7 +159,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
     assert.doesNotMatch(await tutorial.innerText(), /RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
     await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
   }
-  assert.ok(titulosVisitados.includes('Detalle de metros'));
+  assert.ok(titulosVisitados.includes('Elegir línea'));
   assert.ok(!titulosVisitados.includes('Vista del mapa'));
   assert.match(await tutorial.innerText(),/¡Listo para simular!/i);
   await tutorial.waitFor({state:'detached',timeout:5000});
@@ -362,6 +362,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   for (const titulo of ['Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     assert.equal(await p.locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0, 'La guía no activa capas');
+    assert.doesNotMatch(await p.locator('.metronet-recorrido').innerText(), /ritmo|Todos los metros|Acciones de nivel|se detienen al pausar/i);
     await p.locator('[data-recorrido-siguiente]').click();
   }
   await p.locator('.metronet-recorrido').waitFor({ state: 'detached' });

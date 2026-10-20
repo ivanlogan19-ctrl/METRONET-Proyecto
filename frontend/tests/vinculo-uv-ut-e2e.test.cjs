@@ -50,8 +50,8 @@ test('Modo Libre: vínculo automático en controles, servidor, distancias y pers
  assert.equal(await vista.locator('#velocidadUnidad').inputValue(),'4');
  assert.equal(Number(await vista.locator('#duracionSimulacion').inputValue()), Number((km('L01')/4).toFixed(2)));
  assert.equal(await vista.locator('.simulacion-selector-metros__opciones [data-metro]').count(),3,'Dos líneas y la opción Todas, sin contar la paginación');
- assert.equal(await vista.locator('#tituloConfiguracionMetros').textContent(),'Detalle de líneas');
- assert.equal(await vista.locator('.simulacion-configuracion-metros__lista li').count(),2,'Una configuración por línea aunque tenga varios metros');
+ assert.equal(await vista.locator('#tituloConfiguracionMetros').count(),0);
+ assert.equal(await vista.locator('.metronet-menu-lineas > button > small').count(),2,'Una configuración por línea aunque tenga varios metros');
  const guardar=async selector=>{
   await Promise.all([page.waitForResponse(r=>r.request().method()==='PATCH' && /\/unidades\//.test(r.url()) && r.ok()),vista.locator(selector).click()]);
   await vista.locator('#velocidadUnidad:not(:disabled)').waitFor();

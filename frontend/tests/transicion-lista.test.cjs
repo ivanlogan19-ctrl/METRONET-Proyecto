@@ -1,10 +1,10 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 
 test('Cambio de pantalla: no expone el contenido parcial y conserva música e historial', { timeout: 30000 }, async t => {
-  const navegador = await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL});
+  const navegador = await abrirNavegador();
   t.after(() => navegador.close());
   const v = await abrirPantalla(navegador, '/inicio.html', {contenedor:true});
   t.after(() => v.contexto.close());
@@ -23,6 +23,15 @@ test('Cambio de pantalla: no expone el contenido parcial y conserva música e hi
   assert.equal(await f.getByRole('heading',{name:'Mis diseños',exact:true}).isVisible(),false,
     'El encabezado y las listas vacías no deben aparecer como una pantalla terminada');
   await p.getByRole('status').filter({hasText:'Preparando pantalla'}).waitFor({timeout:3000});
+  assert.equal(await p.locator('#pantalla-metronet').evaluate(e => e.inert), true);
+  // El documento cubierto debe seguir dibujando: Firefox frena los iframe con visibility:hidden.
+  const cuadros = await f.evaluate(() => new Promise(resolve => {
+    let cantidad = 0;
+    const limite = setTimeout(() => resolve(cantidad), 400);
+    function contar() { if (++cantidad === 3) { clearTimeout(limite); resolve(cantidad); } else requestAnimationFrame(contar); }
+    requestAnimationFrame(contar);
+  }));
+  assert.equal(cuadros, 3, 'La cobertura no debe suspender el dibujo del destino');
   liberar();
   await f.locator('#listaMisDisenos[aria-busy="false"]').waitFor({state:'attached'});
   await f.getByRole('heading',{name:'Mis diseños',exact:true}).waitFor();
@@ -35,7 +44,7 @@ test('Cambio de pantalla: no expone el contenido parcial y conserva música e hi
 });
 
 for (const fallo of [false, true]) test(`Entrada al editor: espera la red y libera la pantalla ante ${fallo ? 'un error' : 'datos válidos'}`, {timeout:30000}, async t => {
-  const navegador = await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL});
+  const navegador = await abrirNavegador();
   t.after(() => navegador.close());
   const v = await abrirPantalla(navegador, '/inicio.html', {contenedor:true,
     responder:r=>new URL(r.url()).pathname==='/api/juego/escenarios'?{json:[]}:null});
@@ -64,7 +73,7 @@ for (const fallo of [false, true]) test(`Entrada al editor: espera la red y libe
 });
 
 test('Destino HTML lento: la salida aceptada cubre la vista anterior sin interrumpir el audio', {timeout:30000}, async t => {
-  const navegador = await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL});
+  const navegador = await abrirNavegador();
   t.after(() => navegador.close());
   const v = await abrirPantalla(navegador, '/inicio.html', {contenedor:true});
   t.after(() => v.contexto.close());
@@ -85,7 +94,7 @@ test('Destino HTML lento: la salida aceptada cubre la vista anterior sin interru
 });
 
 test('Editor: la lectura de la red empieza sin esperar el catálogo de niveles', {timeout:15000}, async t => {
-  const navegador = await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL});
+  const navegador = await abrirNavegador();
   t.after(() => navegador.close());
   const v = await abrirPantalla(navegador, '/inicio.html', {contenedor:true});
   t.after(() => v.contexto.close());

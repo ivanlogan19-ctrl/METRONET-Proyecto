@@ -12,12 +12,15 @@ function preparar(vista, documento) {
   if (vista !== marco.contentWindow || vista.document !== documento) return;
   documentoEnCarga = documento;
   carga.hidden = false;
-  marco.style.visibility = 'hidden';
+  // La cobertura tapa el contenido sin suspender los cuadros del iframe en Firefox.
+  marco.style.opacity = '0';
+  marco.inert = true;
 }
 function presentar(vista, documento) {
   if (vista !== marco.contentWindow || vista.document !== documento || documentoEnCarga !== documento) return;
   carga.hidden = true;
-  marco.style.visibility = '';
+  marco.style.opacity = '';
+  marco.inert = false;
 }
 
 function rutaPermitida(ruta) {

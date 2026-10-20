@@ -591,7 +591,7 @@ html:root body.simulacion-pagina .simulacion-selector-metros__opciones > button[
   background: var(--panel);
   padding: 0 0 8px;
 }
-html:root body.simulacion-pagina #instrumentosSimulacion .simulacion-grupo-metros { grid-template-rows: auto minmax(8px, 1fr) minmax(40px, auto) minmax(8px, 1fr) minmax(40px, auto) minmax(8px, 1fr); row-gap: 0; padding-bottom: 0; }
+html:root body.simulacion-pagina #instrumentosSimulacion .simulacion-grupo-metros { grid-template-rows: auto minmax(8px, 1fr) minmax(40px, auto) minmax(8px, 1fr); row-gap: 0; padding-bottom: 0; }
 .simulacion-instrumentos .simulacion-grupo-metros > .simulacion-selector-metros { grid-row: 3; align-self: center; }
 .simulacion-instrumentos .simulacion-grupo-metros > .simulacion-configuracion-metros { grid-row: 5; align-self: center; }
 .simulacion-instrumentos .simulacion-configuracion-metros {
@@ -689,16 +689,18 @@ html:root body.simulacion-pagina #tituloSimulacion {
   font-size: clamp(14px, 1.4vw, 20px);
 }
 html:root body.simulacion-pagina .simulacion-accesos-titulo :is(
-  .simulacion-volver-icono, .metronet-poi > summary, .metronet-hud > summary
+  .simulacion-volver-icono, .metronet-aprender-acceso, .metronet-extras-acceso, .metronet-poi > summary, .metronet-hud > summary
 ) {
-  width: 32px;
+  width: 32px !important;
+  max-width: 32px;
+  flex: 0 0 32px;
   height: 32px;
   min-width: 32px;
   min-height: 32px;
   padding: 5px;
 }
 html:root body.simulacion-pagina .simulacion-accesos-titulo :is(
-  .simulacion-volver-icono, .metronet-poi > summary, .metronet-hud > summary
+  .simulacion-volver-icono, .metronet-aprender-acceso, .metronet-extras-acceso, .metronet-poi > summary, .metronet-hud > summary
 ) svg { width: 18px; height: 18px; flex-basis: 18px; }
 .simulacion-mandos-camara .metronet-control-zoom__panel-mapa { --mando-mapa: 28px; }
 .simulacion-mandos-camara .metronet-control-zoom__rosa { width: 32px; height: 32px; }
@@ -782,3 +784,13 @@ html:root body.simulacion-pagina :is([data-paso-uv], [data-paso-horas]):not(:dis
   background: color-mix(in srgb, var(--color-ajuste) 80%, white) !important;
 }
 html:root body.simulacion-pagina #formularioEjecucion .simulacion-primario { --accion-simulacion-color: var(--primary); }
+
+/* En campaña hay menos bloques: controles algo mayores, sin alterar Modo Libre. */
+@media (min-width:1051px) and (min-height:650px) {
+  body.simulacion-pagina:not(.simulacion-libre-territorio) { --simulacion-panel-ancho:clamp(230px,17vw,260px); }
+  html:root body.simulacion-pagina:not(.simulacion-libre-territorio) .simulacion-instrumentos h3.simulacion-seccion-titulo { min-height:30px; font-size:12px; }
+  html:root body.simulacion-pagina:not(.simulacion-libre-territorio) .simulacion-selector-metros > summary { height:44px; min-height:44px; font-size:11px; }
+  html:root body.simulacion-pagina:not(.simulacion-libre-territorio) .simulacion-parametro-valor { grid-template-columns:30px minmax(0,1fr) 30px 38px; grid-template-rows:44px; }
+  html:root body.simulacion-pagina:not(.simulacion-libre-territorio) :is(.simulacion-parametro-valor input,.simulacion-parametro-valor button,.simulacion-parametro-velocidad button[type="submit"].metronet-boton-icono) { height:44px; min-height:44px; font-size:14px; }
+  html:root body.simulacion-pagina:not(.simulacion-libre-territorio) .simulacion-acciones-panel .simulacion-mandos button.metronet-boton-icono { width:48px; min-width:48px; max-width:48px; height:48px; min-height:48px; }
+}

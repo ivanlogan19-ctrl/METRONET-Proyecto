@@ -1,7 +1,7 @@
 import { prepararMenuLineas } from '../mapa/controles/MenuLineasConfiguracion.js';
 import { normalizarSeleccion, seleccionarUnidades, representantesLineas, desplazarValorVinculado, valorVisible } from './VinculoUvUtLibre.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
-import { formatearVelocidad } from './EscalaSimulacion.js';
+import { coloresDeLineas, nombreVisibleLinea } from '../mapa/configuracion/PaletaRed.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 
 // Un único editor de velocidad didáctica; el multiplicador visual vive fuera de él.
@@ -15,15 +15,6 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
         <select id="unidadCirculacion" aria-label="Metro" aria-hidden="true" tabindex="-1"></select>
         <div class="simulacion-selector-metros__opciones" role="group" aria-label="Elegir metro"></div>
       </details>
-    <section class="simulacion-configuracion-metros" aria-labelledby="tituloConfiguracionMetros">
-      <details class="simulacion-configuracion-metros__desplegable">
-        <summary title="Consultar la velocidad y duración de cada ${opciones.vinculoLibre ? 'línea' : 'metro'}">${iconoRetro('metros')}<span id="tituloConfiguracionMetros">Detalle de ${opciones.vinculoLibre ? 'líneas' : 'metros'}</span></summary>
-        <div class="simulacion-configuracion-metros__lista">
-          <p data-nivel-configuracion></p>
-          <ul></ul>
-        </div>
-      </details>
-    </section>
     </section>
     <section class="simulacion-grupo-velocidad">
     <h3 class="simulacion-seccion-titulo">Velocidad · UV</h3>
@@ -34,11 +25,11 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
           <button type="button" data-paso-uv="-1" aria-label="Reducir velocidad">−</button><input id="velocidadUnidad" type="number" min="0.01" max="9999.99" step="0.01" required aria-label="Velocidad en UV" />
           <span>UV</span><button type="button" data-paso-uv="1" aria-label="Aumentar velocidad">+</button><button type="submit"></button>
         </div>
-        <span data-velocidad-mixta hidden>MIXTO</span>
       </fieldset>
     </form>
     </section>`;
   const unidades = diseno.unidadesMetro ?? [];
+  const colores = coloresDeLineas(diseno.lineas ?? []);
   const seleccionables = opciones.vinculoLibre ? representantesLineas(unidades) : unidades;
   const etiquetaVacia = opciones.vinculoLibre ? 'Sin líneas con metros' : 'Todos los metros';
   const selector = contenedor.querySelector('select'), input = contenedor.querySelector('input');
@@ -52,55 +43,8 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     opciones.alCambiarVelocidad?.(Number(input.value));
   });
   const boton = contenedor.querySelector('button[type="submit"]'), campo = contenedor.querySelector('fieldset');
-  const mixto = contenedor.querySelector('[data-velocidad-mixta]');
-  const resumen = contenedor.querySelector('.simulacion-configuracion-metros');
-  const desplegableResumen = resumen.querySelector('details');
-  const listaResumen = resumen.querySelector('ul');
   const nombreMetro = metro => `Metro ${numeroMetroEnRed(metro.idTren, unidades) ?? '—'}`;
-  function actualizarNivel(nivel) {
-    resumen.querySelector('[data-nivel-configuracion]').textContent = nivel || 'Red actual';
-  }
-  actualizarNivel(opciones.nivel);
-  resumen.hidden = opciones.modoLibre || unidades.length === 0;
-  function actualizarTiempo(duracionGlobal) {
-    const unidad = 'UT';
-    const tiempo = Number.isFinite(Number(duracionGlobal)) && Number(duracionGlobal) > 0
-      ? `${duracionGlobal} ${unidad}` : `— ${unidad}`;
-    listaResumen.replaceChildren(...seleccionables.map(metro => {
-      const fila = document.createElement('li');
-      fila.dataset.metro = String(metro.idTren);
-      const nombre = document.createElement('strong');
-      nombre.textContent = opciones.vinculoLibre ? metro.nombreLinea : nombreMetro(metro);
-      const linea = document.createElement('p');
-      linea.dataset.lineaMetro = '';
-      const nombreLinea = metro.nombreLinea?.trim();
-      linea.textContent = !nombreLinea ? 'Sin línea'
-        : /^l[ií]nea(?:\s|$)/i.test(nombreLinea) ? nombreLinea : `Línea ${nombreLinea}`;
-      if (opciones.vinculoLibre) {
-        const cantidad = unidades.filter(u => u.nombreLinea === metro.nombreLinea).length;
-        linea.textContent = `${cantidad} ${cantidad === 1 ? 'metro' : 'metros'}`;
-      }
-      const valores = document.createElement('dl');
-      const velocidad = Number(metro.velocidadPromedio);
-      for (const [etiqueta, valor] of [
-        ['UV actual', Number.isFinite(velocidad) ? formatearVelocidad(velocidad) : '— UV'],
-        ['UT actual', metro.duracionUt != null ? `${opciones.vinculoLibre ? valorVisible(metro.duracionUt) : metro.duracionUt} UT` : opciones.vinculoLibre ? '— UT' : tiempo],
-      ]) {
-        const termino = document.createElement('dt');
-        const dato = document.createElement('dd');
-        termino.textContent = etiqueta;
-        dato.textContent = valor;
-        if (etiqueta === 'UT actual') dato.title = opciones.vinculoLibre ? 'Duración compartida por los metros de esta línea' : 'Duración aplicada a este metro';
-        valores.append(termino, dato);
-      }
-      fila.append(nombre, linea, valores);
-      return fila;
-    }));
-    listaResumen.querySelectorAll('li').forEach(fila => {
-      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, opciones.modoLibre).some(u => String(u.idTren) === fila.dataset.metro));
-    });
-  }
-  selector.replaceChildren(...(opciones.vinculoLibre && !opciones.modoLibre ? [] : [new Option(opciones.modoLibre ? 'Todas' : etiquetaVacia, 'todas')]), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? u.nombreLinea : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
+  selector.replaceChildren(new Option(opciones.vinculoLibre ? 'Todas' : etiquetaVacia, 'todas'), ...seleccionables.map(u => new Option(opciones.vinculoLibre ? nombreVisibleLinea(colores.get(u.nombreLinea)) : `${nombreMetro(u)} · ${u.nombreLinea}`, String(u.idTren))));
   const desplegable = contenedor.querySelector('.simulacion-selector-metros');
   const acceso = desplegable.querySelector('summary');
   desplegable.classList.toggle('simulacion-selector-lineas', Boolean(opciones.vinculoLibre));
@@ -166,14 +110,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   const escucha = new AbortController();
   document.addEventListener('pointerdown', evento => {
     if (!desplegable.contains(evento.target)) desplegable.open = false;
-    if (!desplegableResumen.contains(evento.target)) desplegableResumen.open = false;
   }, { signal: escucha.signal });
-  desplegableResumen.addEventListener('keydown', evento => {
-    if (evento.key !== 'Escape' || !desplegableResumen.open) return;
-    evento.preventDefault();
-    desplegableResumen.open = false;
-    desplegableResumen.querySelector('summary').focus({ preventScroll: true });
-  });
   window.addEventListener('resize', posicionarMenu, { signal: escucha.signal });
   contenedor.limpiarSelectorMetro = () => escucha.abort();
   // Los objetivos pendientes no bloquean experimentar. El estado del motor y
@@ -182,29 +119,23 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   input.disabled = boton.disabled = !permitidas;
   campo.disabled = opciones.bloqueado === true;
   configurarBotonIcono(boton, 'guardar', 'Aplicar velocidad');
-  const elegidas = () => seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, opciones.modoLibre);
+  const elegidas = () => seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, true);
   function seleccionar(id) {
-    selector.value = normalizarSeleccion(unidades, id, opciones.vinculoLibre, opciones.modoLibre);
+    selector.value = normalizarSeleccion(unidades, id, opciones.vinculoLibre, true);
     actualizarMenu();
-    listaResumen.querySelectorAll('li').forEach(fila => {
-      fila.classList.toggle('es-seleccionado', selector.value !== 'todas' && seleccionarUnidades(unidades, selector.value, opciones.vinculoLibre, opciones.modoLibre).some(u => String(u.idTren) === fila.dataset.metro));
-    });
     const velocidades = [...new Set(elegidas().map(u => Number(u.velocidadPromedio)))];
     const valorMixto = velocidades.length > 1;
     input.value = velocidades.length === 1 ? (opciones.vinculoLibre ? valorVisible(velocidades[0]) : String(velocidades[0])) : '';
-    input.placeholder = valorMixto ? 'Mixto' : '—';
+    input.placeholder = valorMixto ? 'Por línea' : '—';
     input.required = !opciones.vinculoLibre || !valorMixto;
-    mixto.hidden = !valorMixto;
   }
-  actualizarTiempo(opciones.duracionGlobal);
   seleccionar(opciones.seleccion);
   contenedor.querySelectorAll('[data-paso-uv]').forEach(control => {
     control.disabled = !permitidas;
     control.addEventListener('click', () => {
-      // MIXTO no se reemplaza por un promedio inventado.
-      if (input.value === '') { input.focus(); return; }
+      // Un clic explícito propone 1 como valor común; no promedia líneas distintas.
       const siguiente = opciones.vinculoLibre
-        ? desplazarValorVinculado(Number(input.value), Number(control.dataset.pasoUv))
+        ? input.value === '' ? 1 : desplazarValorVinculado(Number(input.value), Number(control.dataset.pasoUv))
         : Math.max(0.01, Math.round((Number(input.value) + Number(control.dataset.pasoUv)) * 100) / 100);
       if (siguiente == null) return;
       input.value = String(Math.min(9999.99, siguiente));
@@ -229,5 +160,5 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     try { await guardar(elegidas(), valor); }
     finally { guardando = false; }
   });
-  return { seleccionar, actualizarTiempo, actualizarNivel };
+  return { seleccionar };
 }

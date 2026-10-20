@@ -10,34 +10,34 @@
     { "id": "recorrido", "categoria": "Comprobación", "texto": "Después de guardar, fijate en el panel cuál condición falta antes de sumar elementos." }
   ] },
   { "numero": 3, "mensajes": [
-    { "id": "unidad", "categoria": "Herramientas", "texto": "Al crear una unidad, elegí la línea en su selector: el metro circulará por esa línea." },
+    { "id": "unidad", "categoria": "Herramientas", "texto": "Elegí Metro y tocá una vía para asignarle una unidad a esa línea." },
     { "id": "parametros", "categoria": "Selección", "texto": "Seleccioná una unidad existente para comprobar a qué línea quedó asignada." },
     { "id": "linea-valida", "categoria": "Comprobación", "texto": "Guardá el diseño para que el panel señale tramos o estaciones que requieren revisión." }
   ] },
   { "numero": 4, "mensajes": [
     { "id": "poi", "categoria": "Referencias", "texto": "Abrí la bandera amarilla de Referencias y buscá cada lugar antes de elegir la ubicación de las estaciones." },
     { "id": "simular", "categoria": "Planificación", "texto": "Comprobá por separado la cercanía a los lugares y la pertenencia territorial antes de guardar." },
-    { "id": "validar", "categoria": "Simulación", "texto": "Mantené las horas constantes al cambiar UV para poder atribuir la diferencia a la velocidad." }
+    { "id": "validar", "categoria": "Simulación", "texto": "Cambiá y aplicá la UV de la línea; su UT se calcula según la distancia. Compará el recorrido antes y después." }
   ] },
   { "numero": 5, "mensajes": [
     { "id": "barrio", "categoria": "Referencias", "texto": "La ficha de cada punto de interés permite ubicarlo con precisión antes de dibujar." },
     { "id": "lugares", "categoria": "Territorio", "texto": "Una estación cercana a un lugar puede quedar en otro barrio; consultá los límites en el mapa." },
-    { "id": "capas", "categoria": "Simulación", "texto": "Para comparar ejecuciones, dejá UV sin tocar y variá solo h." }
+    { "id": "capas", "categoria": "Simulación", "texto": "Elegí una UT y aplicala: la UV se calcula según la distancia. Volvé a ejecutar para comparar." }
   ] },
   { "numero": 6, "mensajes": [
     { "id": "zonas", "categoria": "Mapa", "texto": "Alterná las capas de barrios y zonas para comprobar el trazado sin perder de vista la línea." },
-    { "id": "mirador", "categoria": "Simulación", "texto": "Probá el ritmo visual ×0.5 para observar el tren con calma; no modifica UV ni horas." },
-    { "id": "velocidad", "categoria": "Comprobación", "texto": "En una segunda ejecución, cambiá un solo campo y conservá los demás para comparar." }
+    { "id": "mirador", "categoria": "Simulación", "texto": "Usá Pausar para observar la posición de los metros y Reanudar para continuar el recorrido." },
+    { "id": "velocidad", "categoria": "Comprobación", "texto": "En una segunda ejecución, ajustá UV o UT; el otro valor se calcula según la distancia de cada línea." }
   ] },
   { "numero": 7, "mensajes": [
     { "id": "intercambio", "categoria": "Planificación", "texto": "Reutilizá una misma estación donde se encuentran dos líneas en vez de superponer dos puntos." },
     { "id": "brazo", "categoria": "Conexiones", "texto": "Conectá dos líneas en la misma estación para crear un transbordo; un cruce visual no basta." },
-    { "id": "marca", "categoria": "Simulación", "texto": "Elegí una unidad concreta antes de Aplicar velocidad para no modificar toda la flota." }
+    { "id": "marca", "categoria": "Simulación", "texto": "Elegí una línea por su color antes de Aplicar velocidad para conservar los valores de las otras líneas." }
   ] },
   { "numero": 8, "mensajes": [
     { "id": "estadio", "categoria": "Planificación", "texto": "Si un recorrido se bifurca, separá el ramal en otra línea y conectalas mediante una estación compartida." },
-    { "id": "lineas", "categoria": "Selección", "texto": "Consultá la lista de unidades para comprobar a qué línea pertenece cada metro." },
-    { "id": "unidades", "categoria": "Simulación", "texto": "Todos los metros aplica el mismo cambio a la flota; verificá el selector antes de pulsar Aplicar velocidad." }
+    { "id": "lineas", "categoria": "Selección", "texto": "En Líneas a configurar, reconocé cada línea por su color y consultá sus valores UV y UT." },
+    { "id": "unidades", "categoria": "Simulación", "texto": "Todas aplica una UV común; cada línea calcula su UT según su distancia. Revisá la selección antes de aplicar." }
   ] },
   { "numero": 9, "mensajes": [
     { "id": "radio", "categoria": "Mapa", "texto": "Acercá el mapa antes de colocar una estación cerca del borde de cobertura; una ubicación precisa puede evitar otra estación." },
@@ -47,6 +47,6 @@
   { "numero": 10, "mensajes": [
     { "id": "conjunto", "categoria": "Planificación", "texto": "Revisá por etapas: Referencias y límites territoriales primero, continuidad e intercambios después." },
     { "id": "territorio", "categoria": "Comprobación", "texto": "Atendé la primera condición pendiente que indique Guardar diseño antes de rehacer la red." },
-    { "id": "revision", "categoria": "Simulación", "texto": "Antes de Aplicar velocidad, comprobá si el selector indica una unidad o Todos los metros." }
+    { "id": "revision", "categoria": "Simulación", "texto": "Antes de Aplicar velocidad, comprobá si elegiste una línea por su color o Todas." }
   ] }
 ]

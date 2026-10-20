@@ -30,7 +30,7 @@ async function abrirEditor(navegador, opciones = {}) {
   pagina.on('pageerror', (error) => errores.push(error.message));
   const solicitudes = [];
   const diseno = {
-    simulacion: { idDiseno: 77, idEscenario: opciones.escenario?.idEscenario ?? null, nombre: 'Red de prueba', estado: 'EN_DISENO', puntosInteresObjetivo: opciones.objetivos || [] },
+    simulacion: { modo: opciones.modo, idDiseno: 77, idEscenario: opciones.escenario?.idEscenario ?? null, nombre: 'Red de prueba', estado: 'EN_DISENO', puntosInteresObjetivo: opciones.objetivos || [] },
     estaciones: [
       { nombre: 'Centro', posicionX: 580, posicionY: 470, transbordo: false },
       { nombre: 'Parque', posicionX: 700, posicionY: 460, transbordo: false },

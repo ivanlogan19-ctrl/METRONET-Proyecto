@@ -95,7 +95,7 @@ for (const n of catalogoRecorrido) test(`Nivel ${n.numero}: aplicar UV/UT permit
 
 test('UV/UT por línea: agrupa metros, conserva otras líneas y no repite escrituras sin cambios', async t => {
   const { pagina: p, red, solicitudes } = await abrir(t, { segundaLinea: true, ids: [206, 211] });
-  assert.equal(await p.locator('#tituloConfiguracionMetros').textContent(), 'Detalle de líneas');
+  assert.equal(await p.locator('#tituloConfiguracionMetros').count(), 0);
   assert.equal(await p.locator('[data-metro="todas"]').count(), 1);
   await guardar(p, 'UV', 6);
   assert.deepEqual(red.unidadesMetro.map(u => [u.velocidadPromedio, u.duracionUt]), [[6, 2], [6, 2], [2, 3]]);
@@ -107,7 +107,7 @@ test('UV/UT por línea: agrupa metros, conserva otras líneas y no repite escrit
   assert.deepEqual(red.unidadesMetro.map(u => [u.velocidadPromedio, u.duracionUt]), [[6, 2], [6, 2], [3, 2]]);
   assert.equal(await p.locator('.simulacion-configuracion-metros').isVisible(), false);
   await p.locator('.simulacion-selector-metros summary').click();
-  assert.deepEqual(await p.locator('.metronet-menu-lineas > button > span').allTextContents(), ['Todas', 'Azul', 'Roja']);
+  assert.deepEqual(await p.locator('.metronet-menu-lineas > button > span').allTextContents(), ['Todas', 'Línea azul', 'Línea fucsia']);
   assert.deepEqual(await p.locator('.metronet-menu-lineas > button > small').allTextContents(), ['6 UV · 2 UT', '3 UV · 2 UT']);
   await p.locator('.simulacion-selector-metros summary').press('Escape');
   assert.equal(await p.locator('.metronet-menu-lineas').isVisible(), false);
@@ -124,7 +124,7 @@ test('Selector de líneas: teclado, foco y opciones dentro de pantalla', async t
   await menu.locator('[data-metro="1"]').click();
   await acceso.focus(); await p.keyboard.press('ArrowDown'); await p.keyboard.press('End'); await p.keyboard.press('Enter');
   assert.equal(await p.locator('#unidadCirculacion').inputValue(), '99');
-  assert.match(await acceso.innerText(), /Roja/i);
+  assert.match(await acceso.innerText(), /Línea fucsia/i);
   await acceso.click(); await p.keyboard.press('Escape');
   assert.equal(await menu.evaluate(e => e.open), false);
   assert.equal(await acceso.evaluate(e => e === document.activeElement), true);
@@ -172,16 +172,14 @@ test('Objetivos pendientes permiten ajustar UV y UT sin bloquear su resolución'
   assert.equal(await p.locator('#duracionSimulacion').isEnabled(), true);
 });
 
-for (const width of [1440, 390]) test(`Ficha por línea a ${width}px: nombre, nivel y valores legibles`, async t => {
+for (const width of [1440, 390]) test(`Ficha por línea a ${width}px: color y valores legibles`, async t => {
   const { pagina: p } = await abrir(t, { nivel: true, nombreLinea: 'Línea 01', viewport: { width, height: 900 } });
-  const menu = p.locator('.simulacion-configuracion-metros__desplegable');
+  const menu = p.locator('.simulacion-selector-metros');
   await menu.locator('summary').click();
-  assert.equal(await menu.locator('[data-nivel-configuracion]').innerText(), 'Nivel 2');
-  assert.equal(await menu.locator('[data-nivel-configuracion]').evaluate(e => getComputedStyle(e).textAlign), 'center');
-  assert.deepEqual(await menu.locator('li strong').allTextContents(), ['Línea 01']);
-  assert.deepEqual(await menu.locator('li dt').allTextContents(), ['UV actual', 'UT actual']);
+  assert.deepEqual(await menu.locator('.metronet-menu-lineas > button > span').allTextContents(), ['Todas', 'Línea azul']);
+  assert.match(await menu.locator('.metronet-menu-lineas > button > small').innerText(), /UV · .* UT/);
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-  const caja = await menu.locator('.simulacion-configuracion-metros__lista').boundingBox();
+  const caja = await menu.locator('.metronet-menu-lineas').boundingBox();
   assert.ok(caja.x >= 0 && caja.x + caja.width <= width);
 });
 

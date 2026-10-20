@@ -1,12 +1,12 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 const niveles = require('../src/educacion/niveles.json');
 const catalogo = require('../src/educacion/catalogo-svgs-niveles.json');
 
 let navegador;
-before(async () => { navegador = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador(); });
 after(async () => { await navegador?.close(); });
 
 test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el resultado V1', async t => {
@@ -40,12 +40,12 @@ test('Nivel 10 V2 muestra UT, presupuesto y marca UV sin reinterpretar el result
   assert.equal(await p.locator('#duracionSimulacion').getAttribute('aria-label'), 'Duración simulada en UT');
   assert.equal(await p.locator('#unidadDuracionSimulacion').textContent(), 'UT');
   if (await p.getByRole('button', { name: 'Continuar', exact: true }).isVisible()) await p.getByRole('button', { name: 'Continuar', exact: true }).click();
-  await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
-  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /Principal\s+1 metro\s+UV actual\s+4,5 UV\s+UT actual\s+2 UT/s);
+  await p.locator('.simulacion-selector-metros summary').click();
+  assert.match(await p.locator('.metronet-menu-lineas').innerText(), /Línea azul\s+4.5 UV · 2 UT/is);
   await p.locator('#duracionSimulacion').fill('3');
   await p.locator('#aplicarUnidadTiempo').click();
-  await p.locator('.simulacion-configuracion-metros__desplegable summary').click();
-  assert.match(await p.locator('.simulacion-configuracion-metros__lista').innerText(), /UV actual\s+[0-9,]+ UV\s+UT actual\s+3 UT/);
+  await p.locator('.simulacion-selector-metros summary').click();
+  assert.match(await p.locator('.metronet-menu-lineas').innerText(), /[0-9.]+ UV · 3 UT/);
   assert.equal(await p.locator('#resumenCriterioUvUt').isVisible(), false);
   assert.equal(await p.locator('#seccionResultados, #listaResultadosSimulacion').count(), 0);
   assert.equal(red.resultados.length, 2, 'El historial recibido permanece en los datos del diseño');

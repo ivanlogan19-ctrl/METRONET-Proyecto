@@ -10,7 +10,7 @@ const LECCIONES = {
   lineas: ['Línea', 'Elegí el icono de línea y dos estaciones distintas. Se crea la línea y su primer tramo; el nombre se asigna automáticamente.'],
   conexiones: ['Conexión', 'Elegí el icono de vía, una línea activa y dos estaciones. Cada destino agrega un tramo; después podés continuar desde esa estación.'],
   metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea. Seleccionala después para editar la velocidad.'],
-  simulacion: ['Simulación', 'El botón verde Simular está en Acciones de nivel. Comprueba y guarda la red antes de abrir la simulación; primero construí la red y asigná un metro.'],
+  simulacion: ['Simulación', 'El botón verde Simular está en Acciones. Comprueba y guarda la red antes de abrir la simulación; primero construí la red y asigná un metro.'],
 
 };
 
@@ -97,7 +97,7 @@ export function pasosPracticosEditor(numero, escenario) {
     ['[data-elegir-herramienta="metros"]', 'Elegí Metro', 'Seleccioná Metro y después tocá la vía de tu línea.', 'metro-elegido'],
     [mapa, 'Asigná el Metro', 'Tocá la vía. La unidad queda asignada cuando se confirme su creación.', 'metro-creado'],
     ['[data-guardar]', 'Guardá la red', 'Pulsá el disquete para conservar el avance. Guardar no termina el nivel.', 'guardado'],
-    ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones de nivel y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
+    ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
   ];
   if (nuevas.includes('editor.extender')) return [
     ['[data-elegir-herramienta="conexiones"]', 'Extendé la línea', 'Creá primero una línea entre dos estaciones. Luego elegí Conexión para agregar otra estación al mismo recorrido.', 'conexion-elegida'],

@@ -204,12 +204,12 @@
     },
     "preparacion": {
       "concepto": "Cobertura y simulación",
-      "explicacion": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Conectá Palacio Legislativo y Rambla de Carrasco por una misma línea de al menos tres estaciones y dos conexiones. Simulá el recorrido y compará la configuración UV/UT. Usá entre 3 y 4 estaciones.",
-      "consejo": "Ejecutá una primera simulación. Después cambiá las UV, conservá las horas simuladas y ejecutá nuevamente para observar la diferencia."
+      "consejo": "Ejecutá una primera simulación. Cambiá y aplicá la UV de la línea; la UT se calcula según su distancia. Volvé a ejecutar para comparar."
     },
     "transicion": {
-      "aprendizaje": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "La cobertura relaciona la ubicación de las estaciones con los puntos de interés objetivo. La simulación permite observar la circulación de una unidad por la red diseñada. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "En el mapa del proyecto, Palacio Legislativo está en Aguada y Plaza Virgilio en Punta Gorda. Los límites barriales ayudan a distinguir cercanía y pertenencia."
     },
     "historia": {
@@ -269,12 +269,12 @@
     },
     "preparacion": {
       "concepto": "POI y pertenencia barrial",
-      "explicacion": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Conectá Palacio Legislativo y Terminal Tres Cruces en una red que también atienda Punta Gorda. Compará dos simulaciones cambiando las UT. Usá entre 4 y 5 estaciones.",
-      "consejo": "Compará dos ejecuciones: mantené las UV y cambiá las horas simuladas antes de volver a ejecutar."
+      "consejo": "Compará dos ejecuciones: cambiá y aplicá la UT de la línea. La UV se calcula automáticamente según su distancia."
     },
     "transicion": {
-      "aprendizaje": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "Cubrir un lugar cercano y ubicar una estación dentro de su barrio son condiciones distintas. La consigna comprueba ambas. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "En la clasificación de METRONET, Centro pertenece a ZONA CENTRO, Aguada y Tres Cruces a ZONA OESTE, y Punta Gorda a ZONA ESTE. Son las agrupaciones del proyecto."
     },
     "historia": {
@@ -339,12 +339,12 @@
     },
     "preparacion": {
       "concepto": "Movilidad entre zonas",
-      "explicacion": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Conectá Palacio Legislativo, Mirador de la Intendencia y Plaza Virgilio en una red que llegue a la Zona Este. Compará UV y UT por separado. Usá entre 5 y 6 estaciones.",
-      "consejo": "Compará configuraciones cambiando un parámetro por vez: primero UV con las mismas horas y después horas con las mismas UV. Ejecutá después de cada cambio."
+      "consejo": "Compará configuraciones eligiendo un parámetro por vez: UV o UT. El otro se calcula según la distancia. Ejecutá después de cada ajuste."
     },
     "transicion": {
-      "aprendizaje": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "Las zonas de METRONET agrupan barrios. Una línea continua permite relacionar estaciones de distintos sectores del mapa. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "Brazo Oriental pertenece a ZONA NORTE en METRONET. Atender una zona adicional introduce nuevas relaciones entre los sectores de la red."
     },
     "historia": {
@@ -411,12 +411,12 @@
     },
     "preparacion": {
       "concepto": "Transbordos y conectividad",
-      "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Extendé la red hasta Brazo Oriental; conectá tres POI con dos líneas y un transbordo. Compará la UV de un metro. Usá entre 6 y 7 estaciones.",
-      "consejo": "Ejecutá la red. Seleccioná un metro, cambiá solo sus UV y repetí la ejecución con las mismas horas para compararlo con las otras unidades."
+      "consejo": "Ejecutá la red. Elegí una línea por su color, cambiá su UV y repetí. Su UT se recalcula; las otras líneas conservan sus valores."
     },
     "transicion": {
-      "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "Un transbordo es una estación compartida por líneas. En este desafío debe tener conexiones de al menos dos líneas distintas; un cruce dibujado sin estación común no cuenta. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "El Estadio Centenario se ubica en el polígono Parque Batlle Villa Dolores del mapa. Incorporarlo suma una relación territorial a los intercambios entre líneas."
     },
     "historia": {
@@ -483,12 +483,12 @@
     },
     "preparacion": {
       "concepto": "Relaciones en una red urbana",
-      "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Integrá el Estadio Centenario a una red de tres líneas y dos transbordos que atienda Parque Batlle. Compará las UV de todos los metros. Usá entre 8 y 9 estaciones.",
-      "consejo": "Simulá, seleccioná Todos los metros, aplicá una misma UV nueva y repetí con las mismas UT."
+      "consejo": "Simulá, elegí Todas en Líneas a configurar y aplicá una UV común. Cada línea calcula su UT según su distancia; volvé a ejecutar."
     },
     "transicion": {
-      "aprendizaje": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "Una red puede ofrecer varias líneas sin ramificar cada recorrido. Los intercambios permiten relacionarlas en estaciones comunes. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "La cobertura expresa proximidad, mientras que la continuidad de tramos expresa conectividad. Una red debe resolver ambas: estaciones cercanas sin recorrido no bastan."
     },
     "historia": {
@@ -560,12 +560,12 @@
     },
     "preparacion": {
       "concepto": "Precisión y uso de recursos",
-      "explicacion": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Resolvé cuatro POI con mayor precisión y una estación en Zona Este usando entre ocho y nueve estaciones. Compará UV y UT juntas. Creá al menos 7 conexiones.",
-      "consejo": "Compará dos ejecuciones: cambiá UV y UT juntas y volvé a simular."
+      "consejo": "Compará dos ejecuciones: aplicá una UV o una UT nueva. El otro valor se calcula según la distancia de la línea."
     },
     "transicion": {
-      "aprendizaje": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "Un radio menor exige ubicar con más precisión las estaciones. El límite de estaciones obliga a planificar la cobertura antes de construir. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "El Rosedal del Prado añade una referencia en Prado Nueva Savona para la etapa final del recorrido."
     },
     "historia": {
@@ -638,12 +638,12 @@
     },
     "preparacion": {
       "concepto": "Integración territorial",
-      "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "explicacion": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "contexto": "Integrá cuatro POI y Prado Nueva Savona en una red de tres líneas con tres transbordos y entre diez y once estaciones. Creá al menos 9 conexiones.",
-      "consejo": "Compará una nueva UV global; después cambiá UV y UT juntas y volvé a simular."
+      "consejo": "Compará una UV común desde Todas; después ajustá una línea por su color. Aplicá UV o UT y volvé a simular."
     },
     "transicion": {
-      "aprendizaje": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV es la velocidad didáctica; h indica horas simuladas y × solo cambia el ritmo visual.",
+      "aprendizaje": "El desafío reúne cobertura, pertenencia territorial, continuidad de recorridos e intercambios. Todas las condiciones deben cumplirse en la misma red. UV expresa kilómetros por UT; UT expresa horas simuladas. Al ajustar uno, el otro se calcula según la distancia de la línea.",
       "ciudad": "Completaste un recorrido que combina lugares, territorio y conexiones. Podés revisar tus diseños y comparar alternativas en Modo Libre."
     },
     "historia": {

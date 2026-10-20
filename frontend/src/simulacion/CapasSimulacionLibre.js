@@ -18,7 +18,6 @@ export default class CapasSimulacionLibre {
     this.trafico = new CapaTrafico(escena, this.calles, this.reloj);
     this.poblacion = new CapaPoblacion(escena, escena.capaBarrios);
     this.desplazamientos = new CapaDesplazamientos(escena, escena.capaBarrios, this.reloj);
-    this.desplazamientos.animando = false;
     this.capas = { calles: this.calles, trafico: this.trafico, poblacion: this.poblacion, desplazamientos: this.desplazamientos };
     this.cobertura = escena.add.graphics().setDepth(6).setVisible(false);
     this.crearPanel();
@@ -106,12 +105,6 @@ export default class CapasSimulacionLibre {
     this.selectorLineas.establecerBloqueado(this.bloqueoExterno || ['EN_CURSO', 'PAUSADA'].includes(estado.estado));
     this.mostrarReloj('[data-hora-actual]', this.reloj.inicio + t * 60);
     this.mostrarReloj('[data-hora-fin]', this.reloj.inicio + duracion * 60);
-    // Las flechas siguen el mismo tiempo; pausas, reinicios y movimiento reducido no derivan.
-    const fase = this.desplazamientos.movimientoReducido.matches ? 0 : t % 1;
-    if (fase !== this.desplazamientos.fase) {
-      this.desplazamientos.fase = fase;
-      if (this.desplazamientos.grafico.visible) this.desplazamientos.dibujar();
-    }
   }
   mostrarReloj(selector, minutos) {
     const salida = this.horarios.querySelector(selector);
@@ -126,7 +119,7 @@ export default class CapasSimulacionLibre {
     this.calles.redibujar(); this.trafico.redibujar(); this.poblacion.redibujar(); this.desplazamientos.redibujar();
     const barrios = this.escena.capaBarrios, limites = barrios.transformacion, escala = barrios.calcularEscalaMapa();
     if (!limites || !escala) return;
-    const g = this.cobertura; g.clear(); g.fillStyle(0x40bcdf, .14); g.lineStyle(1, 0x40bcdf, .6);
+    const g = this.cobertura; g.clear(); g.fillStyle(0x40bcdf, .3); g.lineStyle(2, 0x40bcdf, .9);
     for (const e of this.diseno.estaciones ?? []) {
       const lon = limites.minX + Number(e.posicionX)/1000 * (limites.maxX-limites.minX);
       const lat = limites.maxY - Number(e.posicionY)/620 * (limites.maxY-limites.minY);

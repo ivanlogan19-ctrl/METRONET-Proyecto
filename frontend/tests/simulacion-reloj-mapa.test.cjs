@@ -39,6 +39,21 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
   await pagina.reload();
   await pagina.waitForFunction(() => window.escenaPrueba?.motorSimulacion?.rutas.length === 2);
   await pagina.getByRole('button', {name:'Continuar', exact:true}).click();
+  await pagina.locator('[data-capa-simulacion="desplazamientos"]').click();
+  await pagina.waitForFunction(() => window.escenaPrueba.capasLibre.desplazamientos.flujos.length > 0);
+  const movimiento = await pagina.evaluate(() => {
+    const escena=window.escenaPrueba, capas=escena.capasLibre;
+    escena.game.loop.sleep();
+    const inicio=capas.desplazamientos.fase, hora=capas.reloj.hora;
+    for(let i=0;i<10;i++) {
+      escena.events.emit('update',i*16,16);
+      capas.sincronizar(escena.motorSimulacion.obtenerEstado());
+    }
+    return {avance:(capas.desplazamientos.fase-inicio+1)%1,hora,final:capas.reloj.hora};
+  });
+  assert.ok(Math.abs(movimiento.avance-.032)<1e-8,JSON.stringify(movimiento));
+  assert.equal(movimiento.hora,movimiento.final,'Las flechas se mueven sin adelantar la hora del escenario');
+  await pagina.locator('[data-capa-simulacion="desplazamientos"]').click();
   const muestras = await pagina.evaluate(() => {
     const escena = window.escenaPrueba;
     escena.game.loop.sleep(); // Avanzar fotogramas deterministas con el motor y los dibujos reales.
@@ -68,6 +83,10 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
   assert.equal(muestras[5].estado, 'FINALIZADA');
   await pagina.evaluate(() => window.escenaPrueba.detenerAnimacion());
   assert.equal(await pagina.locator('#tituloSimulacion').textContent(), 'Modo libre');
+  assert.equal(await pagina.locator('.simulacion-configuracion-metros').count(), 0);
+  assert.deepEqual(await pagina.locator('.metronet-menu-lineas > button > span').allTextContents(), ['Todas', 'Línea azul', 'Línea fucsia']);
+  assert.deepEqual(await pagina.locator('.metronet-menu-lineas > button > small').allTextContents(), ['4 UV · 3 UT', '4 UV · 4.5 UT']);
+  assert.deepEqual(await pagina.locator('[data-linea-reproducir] > span').allTextContents(), ['Línea azul', 'Línea fucsia']);
   await pagina.getByRole('button', { name:'Adelantar horario 15 minutos', exact:true }).click();
   assert.equal(await pagina.locator('[data-hora-actual]').textContent(), '08:15');
   await pagina.getByRole('button', { name:'Atrasar horario 15 minutos', exact:true }).click();
@@ -81,12 +100,24 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
   await pagina.evaluate(() => window.escenaPrueba.game.loop.wake());
   for (const [width,height] of [[1470,800],[1366,768],[1440,1000]]) {
     await pagina.setViewportSize({width,height});
+    const flecha = await pagina.locator('.simulacion-selector-metros > summary').evaluate(e => {
+      const s=getComputedStyle(e,'::after');return {contenido:s.content,ancho:s.width,borde:s.borderRightWidth,color:s.borderRightColor,texto:getComputedStyle(e).color,giro:s.transform};
+    });
+    assert.equal(flecha.contenido, '""');
+    assert.equal(flecha.ancho, '8px');
+    assert.equal(flecha.borde, '2px');
+    assert.equal(flecha.color, flecha.texto);
+    assert.match(flecha.giro, /matrix\(0\.707/);
     await pagina.locator('.simulacion-selector-metros > summary').click();
     await pagina.waitForFunction(() => { const menu=document.querySelector('.simulacion-selector-metros__opciones'); return menu.getBoundingClientRect().right <= document.querySelector('.simulacion-selector-metros > summary').getBoundingClientRect().left; });
     const medidas = await pagina.evaluate(() => {
       const rect = selector => {const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};};
       return {mapa:rect('.simulacion-lienzo-contenedor'),panel:rect('#instrumentosSimulacion'),menu:rect('.simulacion-selector-metros__opciones'),acceso:rect('.simulacion-selector-metros > summary'),alto:document.documentElement.scrollHeight,ancho:document.documentElement.scrollWidth};
     });
+    assert.ok(medidas.panel.right - medidas.panel.left <= 301, JSON.stringify(medidas));
+    const accesos = await pagina.locator('.simulacion-accesos-titulo :is(.simulacion-volver-icono, .metronet-aprender-acceso, .metronet-extras-acceso, .metronet-poi > summary, .metronet-hud > summary)').evaluateAll(es => es.filter(e => !e.hidden && e.getBoundingClientRect().width > 0).map(e => {const r=e.getBoundingClientRect();return [r.width,r.height];}));
+    for(const medida of accesos) assert.deepEqual(medida,[32,32]);
+    assert.ok(medidas.menu.right - medidas.menu.left <= 241, JSON.stringify(medidas));
     assert.ok(medidas.menu.right <= medidas.acceso.left, JSON.stringify(medidas));
     assert.ok(medidas.menu.top >= 0 && medidas.menu.bottom <= height, JSON.stringify(medidas));
     assert.ok(Math.abs(medidas.mapa.bottom-medidas.panel.bottom)<2, JSON.stringify(medidas));
@@ -112,8 +143,37 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
   }
   await pagina.reload();
   await pagina.locator('[data-linea-reproducir="Azul"]').waitFor();
+  const paginas = pagina.locator('.simulacion-reproduccion .simulacion-lineas-paginas');
+  const comprobarFlechas = async () => {
+    const estado = await paginas.evaluate(e => ({
+      controles:[...e.querySelectorAll('button')].map(b=>({color:getComputedStyle(b).backgroundColor,opacidad:getComputedStyle(b).opacity})),
+      contador:e.querySelector('output'),
+      distancias:[e.querySelector('button').getBoundingClientRect().left-e.getBoundingClientRect().left,
+        e.getBoundingClientRect().right-e.querySelector('button:last-child').getBoundingClientRect().right]
+    }));
+    assert.equal(estado.controles[0].color, estado.controles[1].color);
+    assert.equal(estado.controles[0].opacidad, '1');
+    assert.equal(estado.controles[1].opacidad, '1');
+    assert.equal(estado.contador, null);
+    assert.ok(estado.distancias.every(d=>Math.abs(d)<1),JSON.stringify(estado));
+  };
+  await comprobarFlechas();
+  const alineacion=await pagina.evaluate(()=>{
+    const r=s=>document.querySelector(s).getBoundingClientRect();
+    const reloj=r('.simulacion-reloj-digital');
+    return ['.simulacion-lineas-paginas','.simulacion-lineas-todas','.simulacion-reproduccion__lineas',
+      '.simulacion-grupo-metros > .simulacion-selector-metros','.simulacion-parametro-velocidad .simulacion-parametro-valor',
+      '#seccionConfiguracion > .simulacion-parametro-valor','.simulacion-capas__botones'].map(s=>({selector:s,izquierda:r(s).left-reloj.left,derecha:r(s).right-reloj.right}));
+  });
+  for(const fila of alineacion)assert.ok(Math.abs(fila.izquierda)<1&&Math.abs(fila.derecha)<1,JSON.stringify(fila));
+  const muestrasColor=await pagina.locator('[data-linea-reproducir]').evaluateAll(es=>es.map(e=>({
+    izquierda:e.querySelector('i').getBoundingClientRect().left-e.getBoundingClientRect().left,
+    derecha:e.getBoundingClientRect().right-e.querySelector('b').getBoundingClientRect().right
+  })));
+  for(const muestra of muestrasColor)assert.ok(Math.abs(muestra.izquierda)<1&&Math.abs(muestra.derecha)<1,JSON.stringify(muestra));
   await pagina.locator('.simulacion-reproduccion').getByRole('button',{name:'Líneas siguientes',exact:true}).click();
   assert.equal(await pagina.locator('[data-linea-reproducir="Línea 3"]').isVisible(),true);
+  await comprobarFlechas();
   await pagina.locator('.simulacion-selector-metros > summary').click();
   await pagina.getByRole('button',{name:'Opciones siguientes',exact:true}).click();
   await pagina.locator('.simulacion-selector-metros__opciones [data-metro="6"]').click();

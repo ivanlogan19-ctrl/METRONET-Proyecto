@@ -31,3 +31,19 @@ function colorAdicional(indice) {
   return (canal(5) << 16) | (canal(3) << 8) | canal(1);
 }
 export function colorMetro(idTren) { return PALETA_RED.metros[Math.abs(Number(idTren) || 0) % PALETA_RED.metros.length]; }
+
+// Etiquetas de presentación: la API conserva la identidad original de la línea.
+export function nombreVisibleLinea(color) {
+  if (!Number.isInteger(color)) return 'Línea sin color';
+  const nombres = ['azul', 'fucsia', 'amarilla', 'violeta', 'naranja', 'lima', 'roja', 'lavanda'];
+  const indice = PALETA_RED.lineas.indexOf(color);
+  if (indice >= 0) return `Línea ${nombres[indice]}`;
+  const [rojo, verde, azul] = [color >> 16, (color >> 8) & 255, color & 255];
+  const maximo = Math.max(rojo, verde, azul), minimo = Math.min(rojo, verde, azul);
+  const diferencia = maximo - minimo;
+  const tono = diferencia === 0 ? 0 : ((maximo === rojo ? (verde - azul) / diferencia
+    : maximo === verde ? 2 + (azul - rojo) / diferencia : 4 + (rojo - verde) / diferencia) + 6) % 6;
+  const nombre = ['roja', 'naranja', 'amarilla', 'verde', 'verde', 'turquesa', 'celeste', 'azul', 'azul', 'violeta', 'fucsia', 'rosa'][Math.round(tono * 2) % 12];
+  // Los tonos generados pueden compartir familia; su código distingue cada uno.
+  return `Línea ${nombre} · #${color.toString(16).padStart(6, '0')}`;
+}

@@ -739,7 +739,7 @@ body .metronet-pantalla-editor #metronet-aplicacion:has(.metronet-objetivos-pane
 }
 .metronet-consigna__lista-breve:focus-visible { outline: 2px solid var(--info-active); outline-offset: -2px; }
 .metronet-consigna__lista-breve li { align-items: center; min-height: 32px; padding: 6px 0; line-height: 1.45; }
-.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo { overflow-wrap: anywhere; }
+.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo { white-space: nowrap; }
 .metronet-consigna__lista-breve .metronet-consigna__texto-objetivo,
 .metronet-consigna__lista-referencias .metronet-consigna__texto-objetivo {
   font-size: 11px;
@@ -1270,13 +1270,8 @@ html:root body #metronet-aplicacion .metronet-panel-editor-toggle { display:none
   html:root body #metronet-aplicacion .metronet-editor-bloque { padding:3px; }
 }
 html:root body #metronet-aplicacion .metronet-barra-geografica { min-height:32px; height:32px; padding:0; gap:6px; }
-html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) { width:30px !important; min-width:30px; max-width:30px; height:30px; min-height:30px; padding:4px; }
+html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) { width:32px !important; min-width:32px; max-width:32px; height:32px; min-height:32px; padding:5px; }
 html:root body #metronet-aplicacion .metronet-barra-geografica :is(.metronet-boton-icono, .metronet-poi > summary, .metronet-tutorial > summary):not(.metronet-poi__panel *, .metronet-tutorial__panel *) > svg.metronet-icono { width:18px; height:18px; min-width:18px; flex:0 0 18px; }
-
-/* Compensación óptica del libro, más denso que los demás pictogramas. */
-html:root body #metronet-aplicacion .metronet-barra-geografica .metronet-aprender-acceso.metronet-boton-icono:not(.metronet-poi__panel *, .metronet-tutorial__panel *) > svg.metronet-icono {
-  width: 16px; height: 16px; min-width: 16px; flex: 0 0 16px;
-}
 
 /* Las cinco metas solas aprovechan la altura que no ocupa la lista de lugares. */
 @media (min-width:701px) {
@@ -1423,6 +1418,10 @@ html:root body #metronet-aplicacion:has(.metronet-calles) .metronet-editor-bloqu
 }
 
 /* Acciones conserva las dimensiones originales del mapa. */
+html:root body #metronet-aplicacion #metronet-panel-controles:not(.metronet-panel-nivel) .metronet-editor-finalizar :is([data-guardar], [data-ir-simulacion]) {
+  grid-column: span 2;
+  width: 100%;
+}
 html:root body #metronet-panel-controles .metronet-editor-finalizar [data-guardar] {
   --accion-editor-color: var(--warning);
 }
@@ -1454,3 +1453,10 @@ html:root body #metronet-panel-controles .metronet-herramientas__barra button.me
   background: color-mix(in srgb, var(--herramienta-color) 80%, white) !important;
 }
 html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:disabled { opacity: .5; }
+
+.metronet-consigna__indicador-objetivo.es-estrella path {
+  stroke: #d99614;
+  stroke-width: .7;
+  stroke-linejoin: miter;
+  paint-order: stroke fill;
+}

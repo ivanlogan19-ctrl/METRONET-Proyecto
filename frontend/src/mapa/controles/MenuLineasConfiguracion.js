@@ -45,11 +45,11 @@ export function prepararMenuLineas(lista, controles, diseno, acceso) {
     const rect = acceso.getBoundingClientRect();
     const mapa = document.querySelector('.simulacion-lienzo-contenedor, #metronet-mapa').getBoundingClientRect();
     const margen = 8;
-    const ancho = Math.min(300, Math.max(180, rect.left - margen * 2));
+    const ancho = Math.min(240, Math.max(180, rect.left - margen * 2));
     const juntoAlMapa = rect.left >= mapa.right;
     const limiteSuperior = juntoAlMapa ? Math.max(margen, mapa.top) : margen;
     const limiteInferior = juntoAlMapa ? Math.min(innerHeight - margen, mapa.bottom) : innerHeight - margen;
-    porPagina = Math.max(1, Math.min(5, Math.floor((limiteInferior - limiteSuperior - 62) / 52)));
+    porPagina = Math.max(1, Math.min(5, Math.floor((limiteInferior - limiteSuperior - 62) / 46)));
     mostrarPagina();
     lista.style.width = `${ancho}px`;
     lista.style.left = `${Math.max(margen, rect.left - ancho - margen)}px`;
