@@ -361,6 +361,8 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
   for (const titulo of ['Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
+    const objetivo = await p.locator('.metronet-recorrido').getAttribute('data-objetivo');
+    assert.equal(await p.locator(objetivo).first().isVisible(), true, `${titulo}: el control señalado debe estar visible`);
     assert.equal(await p.locator('[data-capa-simulacion][aria-pressed="true"]').count(), 0, 'La guía no activa capas');
     assert.doesNotMatch(await p.locator('.metronet-recorrido').innerText(), /ritmo|Todos los metros|Acciones de nivel|se detienen al pausar/i);
     await p.locator('[data-recorrido-siguiente]').click();

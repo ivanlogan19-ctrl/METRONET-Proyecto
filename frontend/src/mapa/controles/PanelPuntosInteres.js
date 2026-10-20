@@ -60,6 +60,7 @@ export default class PanelPuntosInteres {
     this.botonAlternar = document.createElement('button');
     this.botonAlternar.type = 'button';
     this.botonAlternar.className = 'metronet-panel-puntos-alternar';
+    configurarBotonIcono(this.botonAlternar, 'buscar', 'Buscar punto de interés');
     this.botonAlternar.setAttribute('aria-controls', this.identificador);
     this.botonAlternar.addEventListener('click', () => { this.establecerAbierto(!this.estaAbierto); this.campoBusqueda.focus({preventScroll:true}); });
     acciones.append(this.contador, this.botonAlternar);
@@ -150,7 +151,6 @@ export default class PanelPuntosInteres {
     this.elemento.dataset.abierto = String(this.estaAbierto);
     if (this.contenedorAcceso) this.contenedorPadre.hidden = !this.estaAbierto;
     this.botonAlternar.setAttribute('aria-expanded', String(this.estaAbierto));
-    configurarBotonIcono(this.botonAlternar, 'buscar', 'Buscar punto de interés');
     if (this.estaAbierto && !this.siempreVisible) this.campoBusqueda.focus({preventScroll:true});
     if (this.estaAbierto) this.renderizarLista();
   }

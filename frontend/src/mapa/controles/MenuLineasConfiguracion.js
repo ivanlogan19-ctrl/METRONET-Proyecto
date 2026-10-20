@@ -22,10 +22,17 @@ export function prepararMenuLineas(lista, controles, diseno, acceso) {
     control.replaceChildren(muestra, nombre);
     if (unidad) {
       const valores = document.createElement('small');
-      valores.textContent = `${valorVisible(unidad.velocidadPromedio)} UV · ${valorVisible(unidad.duracionUt)} UT`;
       control.append(valores);
     }
   }
+  function actualizarValores(red) {
+    for (const control of controles) {
+      const unidad = (red.unidadesMetro ?? []).find(u => String(u.idTren) === control.dataset.metro);
+      const valores = control.querySelector('small');
+      if (unidad && valores) valores.textContent = `${valorVisible(unidad.velocidadPromedio)} UV · ${valorVisible(unidad.duracionUt)} UT`;
+    }
+  }
+  actualizarValores(diseno);
   let pagina = 0, porPagina = 5;
   const navegacion = document.createElement('nav');
   navegacion.className = 'simulacion-lineas-paginas';
@@ -58,7 +65,7 @@ export function prepararMenuLineas(lista, controles, diseno, acceso) {
   anterior.addEventListener('click', () => { pagina--; posicionar(); });
   siguiente.addEventListener('click', () => { pagina++; posicionar(); });
   return {
-    posicionar,
+    posicionar, actualizarValores,
     mostrarIndice(indice) { pagina = Math.floor(indice / porPagina); posicionar(); },
   };
 }

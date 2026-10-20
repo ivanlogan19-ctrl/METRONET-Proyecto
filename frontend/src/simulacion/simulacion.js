@@ -173,13 +173,14 @@ async function abrirDiseno(idDiseno) {
     const nuevoDiseno = String(disenoActual?.simulacion?.idDiseno) !== String(idDiseno);
     if (nuevoDiseno) {
       duracionAplicada = null;
+      consignaActual = null;
+      idDisenoConsigna = null;
+      configuracionUvUt = null;
       panelAyuda?.actualizar({});
     }
     cerrarDefinicion();
     errorAyuda = null;
     numeroSolicitudConsigna += 1;
-    consignaActual = null;
-    idDisenoConsigna = null;
     mensajeConsigna = '';
     detenerAnimacion();
     parametrosUltimaEjecucion = null;
@@ -196,7 +197,6 @@ async function abrirDiseno(idDiseno) {
     horas.step = usaVinculoPorLinea(diseno) ? 'any' : '1';
     horas.min = usaVinculoPorLinea(diseno) ? '0' : '1';
     if (usaVinculoPorLinea(diseno)) duracionAplicada = Math.max(0, ...(diseno.unidadesMetro ?? []).map(u => u.duracionUt ?? 0)) || 6;
-    configuracionUvUt = null;
     const contexto = obtenerContextoDiseno(idDiseno);
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
     visor.escena.establecerDiseno(disenoActual);
@@ -236,8 +236,8 @@ function actualizarConsignaSimulacion() { actualizarAyuda(); }
 async function cargarConsignaReal(idDiseno) {
   const solicitud = ++numeroSolicitudConsigna;
   errorAyuda = null;
-  consignaActual = null;
-  idDisenoConsigna = null;
+  // La respuesta vigente sigue visible mientras se actualiza la misma red.
+  if (idDisenoConsigna !== idDiseno) consignaActual = null;
   if (!esSolicitudConsignaVigente(solicitud, idDiseno)) return;
   if (catalogoProgresoDisponible && !escenariosGlosario.some(e => e.idEscenario === disenoActual.simulacion.idEscenario)) {
     mensajeConsigna = 'Diseño propio: las instrucciones y la validación de la red siguen disponibles.';
@@ -254,6 +254,8 @@ async function cargarConsignaReal(idDiseno) {
     mensajeConsigna = '';
   } catch (error) {
     if (!esSolicitudConsignaVigente(solicitud, idDiseno)) return;
+    consignaActual = null;
+    idDisenoConsigna = null;
     mensajeConsigna = obtenerMensajeConsignaNoDisponible(error);
   }
   actualizarConsignaSimulacion(disenoActual.simulacion);
@@ -309,7 +311,6 @@ async function actualizarDesempeno(idDiseno) {
   duracionAplicada ??= Number(document.getElementById('duracionSimulacion').value);
   document.getElementById('duracionSimulacion').setAttribute('aria-label', 'Duración simulada en UT');
   document.getElementById('unidadDuracionSimulacion').textContent = 'UT';
-  configurarBotonIcono(document.getElementById('aplicarUnidadTiempo'), 'guardar', 'Aplicar UT');
   const resumenCriterio = document.getElementById('resumenCriterioUvUt');
   resumenCriterio.hidden = !esUvUt;
   if (esUvUt) {
@@ -622,7 +623,8 @@ function alternarSeguimientoMetro() {
 function restablecerSeguimientoMetro() {
   const boton = document.getElementById('seguirMetro');
   boton.setAttribute('aria-pressed', 'false');
-  configurarBotonIcono(boton, 'metros', 'Seguir metro: desactivado');
+  boton.setAttribute('aria-label', 'Seguir metro: desactivado');
+  boton.title = 'Seguir metro: desactivado';
 }
 
 function detenerAnimacion() {

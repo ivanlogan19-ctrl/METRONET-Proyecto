@@ -6,6 +6,12 @@ import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 
 // Un único editor de velocidad didáctica; el multiplicador visual vive fuera de él.
 export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opciones = {}) {
+  const estructura = JSON.stringify([diseno.simulacion?.idDiseno, Boolean(opciones.vinculoLibre),
+    diseno.lineas, (diseno.unidadesMetro ?? []).map(u => [u.idTren, u.nombreLinea])]);
+  if (contenedor.controlDesempeno?.estructura === estructura) {
+    contenedor.controlDesempeno.actualizar(diseno, guardar, opciones);
+    return contenedor.controlDesempeno;
+  }
   contenedor.limpiarSelectorMetro?.();
   contenedor.innerHTML = `
     <section class="simulacion-grupo-metros">
@@ -28,7 +34,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
       </fieldset>
     </form>
     </section>`;
-  const unidades = diseno.unidadesMetro ?? [];
+  let unidades = diseno.unidadesMetro ?? [];
   const colores = coloresDeLineas(diseno.lineas ?? []);
   const seleccionables = opciones.vinculoLibre ? representantesLineas(unidades) : unidades;
   const etiquetaVacia = opciones.vinculoLibre ? 'Sin líneas con metros' : 'Todos los metros';
@@ -160,5 +166,19 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
     try { await guardar(elegidas(), valor); }
     finally { guardando = false; }
   });
-  return { seleccionar };
+  const control = {
+    estructura, seleccionar,
+    actualizar(nuevoDiseno, nuevoGuardar, nuevasOpciones) {
+      // UV/UT no cambia la estructura del panel. Conservar sus nodos evita
+      // desmontar los controles y perder el menú abierto durante el guardado.
+      unidades = nuevoDiseno.unidadesMetro ?? [];
+      guardar = nuevoGuardar;
+      opciones = nuevasOpciones;
+      campo.disabled = opciones.bloqueado === true;
+      menuLibre?.actualizarValores(nuevoDiseno);
+      seleccionar(opciones.seleccion);
+    },
+  };
+  contenedor.controlDesempeno = control;
+  return control;
 }

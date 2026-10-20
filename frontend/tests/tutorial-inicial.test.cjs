@@ -1,10 +1,10 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirEditor } = require('./soporte/editor.cjs');
 const niveles = require('../src/educacion/niveles.json');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless:true, channel:process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador(); });
 after(async () => { await navegador?.close(); });
 const escenario = n => ({ ...niveles[n - 1], idEscenario:n, desbloqueado:true, estado:'EN_DESARROLLO', progreso:0 });
 const consigna = d => ({ condiciones:[
@@ -142,7 +142,7 @@ for (const width of [1440,768,390,320]) test(`Recorrido opcional: controles vige
   await p.getByRole('button', { name:'Iniciar tutorial', exact:true }).click();
   const dialogo = p.locator('.metronet-recorrido');
   const titulos = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 11; i++) {
     titulos.push(await dialogo.locator('h2').textContent());
     const caja = await dialogo.boundingBox();
     assert.ok(caja.x >= 0 && caja.y >= 0 && caja.x + caja.width <= width && caja.y + caja.height <= 900, JSON.stringify(caja));
@@ -160,7 +160,7 @@ for (const width of [1440,768,390,320]) test(`Recorrido opcional: controles vige
     }
     await p.keyboard.press('Enter');
   }
-  assert.deepEqual(titulos, ['Herramientas','Estación','Línea','Selección','Guardar','Aprender','Música','Metas del nivel']);
+  assert.deepEqual(titulos, ['Mapa de la red','Vista del mapa','Rotación del mapa','Herramientas','Estación','Línea','Selección','Guardar','Aprender','Música','Metas del nivel']);
   assert.equal(await dialogo.locator('h2').textContent(), '¡Listos para construir!');
   await dialogo.waitFor({state:'detached',timeout:5000});
   assert.equal(await p.locator('.metronet-tutorial').getAttribute('data-fase'),'practica');
@@ -194,7 +194,7 @@ for (const n of [2,3,4,5,10]) test(`Nivel ${n}: recorrido físico solo para herr
   const panel = p.locator('.metronet-tutorial');
   const objetivo = {2:'[data-elegir-herramienta="conexiones"]',3:'[data-elegir-herramienta="metros"]',4:'[data-ir-simulacion]'}[n];
   assert.equal(await p.locator('.metronet-recorrido').count(),1);
-  assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'), objetivo ?? '.metronet-herramientas__barra');
+  assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'), objetivo ?? '#metronet-mapa');
   if (n === 3) {
     await p.evaluate(() => { editorPrueba.disenoActual.unidadesMetro=[]; editorPrueba.actualizarAyuda(); });
     assert.equal(await panel.getAttribute('data-paso'),'metros');

@@ -5,6 +5,7 @@ const MARGEN_AJUSTE_MINIMO = 40;
 const MARGEN_AJUSTE_MAXIMO = 96;
 const PROPORCION_MINIMA_ENFOQUE = 0.16;
 const ZOOM_MAXIMO_ENFOQUE_PUNTUAL = 2.6;
+const UMBRAL_ARRASTRE = 6;
 
 export default class ControlZoom {
   constructor(escena, opciones = {}) {
@@ -1045,6 +1046,10 @@ export default class ControlZoom {
 
     const deltaX = posicion.x - this.arrastre.x;
     const deltaY = posicion.y - this.arrastre.y;
+    // GestosRed admite esta oscilación como clic: no desplazar el mapa mientras
+    // todavía puede terminar colocando o seleccionando una estación.
+    if (!this.arrastre.iniciado && Math.hypot(deltaX, deltaY) <= UMBRAL_ARRASTRE) return;
+    this.arrastre.iniciado = true;
     const coseno = Math.cos(camara.rotation);
     const seno = Math.sin(camara.rotation);
     camara.scrollX -= (deltaX * coseno + deltaY * seno) / camara.zoom;
