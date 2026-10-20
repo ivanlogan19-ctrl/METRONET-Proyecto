@@ -249,6 +249,7 @@ export default class EditorRedMetro {
 
   async cargarDisenos(idParaAbrir, opciones = {}) {
     if (idParaAbrir) return this.abrirDiseno(idParaAbrir, opciones);
+    this.controlResultadoPendiente?.abort();
     this.ocultarAvisoAdvertencia();
     this.identificacion?.cancelar();
     this.identificacion = null;
@@ -270,6 +271,7 @@ export default class EditorRedMetro {
     if (entrada) this.panelTutorial?.actualizar({});
     if (this.disenoActual?.simulacion?.idDiseno !== idDiseno) {
       this.versionContexto += 1;
+      this.controlResultadoPendiente?.abort();
       this.ocultarAvisoAdvertencia();
     }
     try {
@@ -398,7 +400,16 @@ export default class EditorRedMetro {
       await this.cargarJuego();
       await this.abrirDiseno(idDiseno);
       if (controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
-      if (!evaluacion.completado) this.mostrarAvisoFinalizacion();
+      if (!evaluacion.completado) {
+        const { mostrarResultadoNivel } = await import('../../educacion/PantallaResultadoNivel.js');
+        if (!this.activo || controlador.signal.aborted || this.idDiseno() !== idDiseno) return;
+        this.controlResultadoPendiente = controlador;
+        mostrarResultadoNivel(this.escenarioJuegoActual ?? this.disenoActual.simulacion, evaluacion,
+          { signal: controlador.signal, condiciones: this.consignaActual?.condiciones,
+            focoAlCerrar: this.obtener('[data-finalizar-red]') }).finally(() => {
+          if (this.controlResultadoPendiente === controlador) this.controlResultadoPendiente = null;
+        });
+      }
       if (evaluacion.completado) {
         this.panelTutorial?.cerrarRecorridos(true);
         const progreso = await this.solicitarJuego('/progreso');
@@ -1167,6 +1178,7 @@ export default class EditorRedMetro {
     // La salida del documento puede cerrar una escena cuyo editor ya se liberó.
     if (!this.activo) return;
     this.activo = false;
+    this.controlResultadoPendiente?.abort();
     this.versionApertura += 1;
     this.identificacion?.cancelar();
     this.creacionDirecta.cancelar();

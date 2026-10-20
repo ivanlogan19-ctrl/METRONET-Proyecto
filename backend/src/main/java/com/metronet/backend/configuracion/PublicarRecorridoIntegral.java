@@ -17,9 +17,10 @@ public class PublicarRecorridoIntegral {
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
     ApplicationRunner ejecutarPublicacionRecorrido(RecorridoIntegralService servicio,
-        @Value("${metronet.recorrido.administrador:0}") int administrador) {
+        @Value("${metronet.recorrido.administrador:0}") int administrador,
+        @Value("${metronet.recorrido.solo-relatos:false}") boolean soloRelatos) {
         return argumentos -> {
-            var publicaciones=servicio.publicar(administrador);
+            var publicaciones=soloRelatos ? servicio.publicarRelatos(administrador) : servicio.publicar(administrador);
             LoggerFactory.getLogger(PublicarRecorridoIntegral.class).info(
                 "Recorrido {}: {} niveles publicados mediante validación e historial existentes",
                 RecorridoIntegralService.VERSION,publicaciones.size());

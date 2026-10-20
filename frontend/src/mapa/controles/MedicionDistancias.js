@@ -87,7 +87,9 @@ export default class MedicionDistancias {
     const escalaX = rect.width / capa.escena.scale.gameSize.width;
     const escalaY = rect.height / capa.escena.scale.gameSize.height;
     const proyectar = punto => {
-      const p = camara.matrix.transformPoint(punto.x - camara.scrollX, punto.y - camara.scrollY);
+      // Phaser 4 incorpora el desplazamiento y el origen de la cámara en esta
+      // matriz. Restar scroll otra vez separaría las etiquetas de la vía.
+      const p = camara.matrixCombined.transformPoint(punto.x, punto.y);
       return { x: p.x * escalaX + rect.left - contenedor.left, y: p.y * escalaY + rect.top - contenedor.top };
     };
     const seleccion = capa.elementoSeleccionado;

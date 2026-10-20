@@ -27,4 +27,13 @@ class PublicarRecorridoIntegralTest {
             verify(c.getBean(RecorridoIntegralService.class)).publicar(2);
         });
     }
+
+    @Test void actualizacionEditorialNoInvocaLaPublicacionCompleta() {
+        contexto.withPropertyValues("metronet.recorrido.publicar=true", "metronet.recorrido.administrador=2",
+            "metronet.recorrido.solo-relatos=true").run(c -> {
+            c.getBean(ApplicationRunner.class).run(new DefaultApplicationArguments());
+            verify(c.getBean(RecorridoIntegralService.class)).publicarRelatos(2);
+            verify(c.getBean(RecorridoIntegralService.class), never()).publicar(anyInt());
+        });
+    }
 }

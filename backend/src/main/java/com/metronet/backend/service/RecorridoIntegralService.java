@@ -31,13 +31,8 @@ public class RecorridoIntegralService {
 
     @Transactional
     public List<PublicacionNivelService.Publicada> publicar(int idAdmin) throws Exception {
-        if (!Boolean.TRUE.equals(repositorio.esAdministrador(idAdmin)))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"La publicación requiere un administrador existente");
-        JsonNode catalogo;
-        try (var entrada=new ClassPathResource("educacion/recorrido-integral.json").getInputStream()) {
-            catalogo=mapper.readTree(entrada);
-        }
-        validarCatalogo(catalogo);
+        validarAdministrador(idAdmin);
+        JsonNode catalogo = leerCatalogo();
         List<PublicacionNivelService.Publicada> resultado=new ArrayList<>();
         for (JsonNode nivel:catalogo) {
             int numero=nivel.path("numero").asInt();
@@ -77,6 +72,49 @@ public class RecorridoIntegralService {
         }
         adaptarIntentosEnCurso();
         return resultado;
+    }
+
+    /** Actualización editorial explícita: publica relatos sin cambiar reglas ni partidas anteriores. */
+    @Transactional
+    public List<PublicacionNivelService.Publicada> publicarRelatos(int idAdmin) throws Exception {
+        validarAdministrador(idAdmin);
+        List<PublicacionNivelService.Publicada> resultado = new ArrayList<>();
+        for (JsonNode nivel : leerCatalogo()) {
+            int numero = nivel.path("numero").asInt();
+            var vigente = borradores.versiones(numero).getFirst();
+            var c = vigente.contenido();
+            if (!VERSION.equals(c.path("desafio").path("recorrido").asText()))
+                throw new IllegalStateException("Nivel " + numero + ": el relato requiere el recorrido vigente");
+            ObjectNode desafio = c.path("desafio").deepCopy();
+            String relato = nivel.path("historia").path("texto").asText();
+            desafio.put("relato", relato);
+            desafio.withObject("preparacion").put("contexto", relato);
+            desafio.withObject("transicion").put("ciudad", relato);
+            if (desafio.equals(c.path("desafio"))) continue;
+            var previo = borradores.borrador(numero);
+            if (!previo.contenido().equals(c) || !previo.redReferencia().equals(vigente.redReferencia())
+                || !previo.tarjetas().equals(vigente.tarjetas()))
+                throw new IllegalStateException("Nivel " + numero + ": hay un borrador pendiente; se conserva sin publicar");
+            var guardado = borradores.guardar(numero, new EdicionNivelRequest(previo.versionBase(), previo.revision(),
+                desafio, c.path("reglasExito"), c.path("herramientasHabilitadas"), c.path("criterioUvUt"),
+                vigente.redReferencia(), c.path("ayudas"), vigente.tarjetas()), idAdmin);
+            resultado.add(publicarValidado(numero, guardado, idAdmin));
+        }
+        return resultado;
+    }
+
+    private void validarAdministrador(int idAdmin) {
+        if (!Boolean.TRUE.equals(repositorio.esAdministrador(idAdmin)))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"La publicación requiere un administrador existente");
+    }
+
+    private JsonNode leerCatalogo() throws Exception {
+        JsonNode catalogo;
+        try (var entrada=new ClassPathResource("educacion/recorrido-integral.json").getInputStream()) {
+            catalogo=mapper.readTree(entrada);
+        }
+        validarCatalogo(catalogo);
+        return catalogo;
     }
 
     /** Adopción explícita del cambio aprobado en intentos activos del recorrido anterior.

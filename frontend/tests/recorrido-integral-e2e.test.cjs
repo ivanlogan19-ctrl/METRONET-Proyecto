@@ -4,7 +4,10 @@ const niveles=require('../src/educacion/recorrido-integral.json');
 const politica=require('../src/educacion/puntuacion-progreso.json');
 // Las variantes completas de cada nivel se prueban también en PostgreSQL.
 // Este recorrido comprueba los cinco puntajes en la interfaz y su transición al siguiente nivel.
-const puntosEsperados=Array(10).fill(100);
+const puntosEsperados=process.env.METRONET_E2E_DESCUENTOS==='true'
+ ? [100,90,80,70,100,100,100,60,90,60] : Array(10).fill(100);
+const premiosFinales=puntosEsperados.every(puntos=>puntos===100)
+ ? ['corona','biblioteca','copa'] : ['biblioteca','copa'];
 const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
 const BASE=process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5198';
 const API=process.env.METRONET_API_PRUEBAS;
@@ -135,7 +138,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    if(n.desbloqueado) assert.equal(n.contenido.tarjetas.length,7,`Siete tarjetas ganadas en nivel ${n.numero}`);
    else assert.equal(n.contenido,null,'No adelantar tarjetas de niveles pendientes');
   }
-  const esperados=completados===10?['corona','biblioteca','copa','estacion','camino']:completados>=5?['estacion','camino']:completados>=1?['estacion']:[];
+  const esperados=completados===10?[...premiosFinales,'estacion','camino']:completados>=5?['estacion','camino']:completados>=1?['estacion']:[];
   assert.deepEqual(coleccion.trofeos.filter(t=>t.obtenido).map(t=>t.id),esperados);
  }
  async function ejecutar(){
@@ -220,7 +223,24 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
      assert.equal(resultado.puntaje,100-10*Math.max(0,ejecucion-1));
     }
     assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,cantidadDescuentos);
-    if(esperado===60){resultado=await ejecutar();assert.equal(resultado.puntaje,60,'El tope permite seguir jugando');}
+    if(esperado===60){
+     resultado=await ejecutar();assert.equal(resultado.puntaje,60,'El tope permite seguir jugando');
+     await f().locator('#volverEdicion').click();await editor();
+     const respuestaPendiente=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok());
+     await f().getByRole('button',{name:'Finalizar red',exact:true}).click();
+     const pendiente=await(await respuestaPendiente).json();
+     assert.equal(pendiente.completado,false,'Sesenta puntos no reemplazan los objetivos pendientes');
+     assert.equal(pendiente.puntaje,60);
+     assert.equal(pendiente.idSiguienteEscenario,null);
+     const aviso=f().getByRole('dialog',{name:'Nivel no completado',exact:true});
+     await aviso.waitFor();
+     assert.equal(await f().locator('.metronet-victoria').count(),0);
+     assert.match(await aviso.innerText(),/Todavía falta cumplir/);
+     await pagina.screenshot({path:`/tmp/metronet-pendiente-real-nivel-${nivel.numero}.png`});
+     await f().locator('body').press('Escape');await aviso.waitFor({state:'hidden'});
+     await f().locator('[data-ir-simulacion]').click();
+     await f().locator('#formularioEjecucion').waitFor();await presentaciones();
+    }
    }
    if(nivel.numero===2){
     assert.equal(resultado.listo,false);
@@ -231,8 +251,11 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     assert.equal(resultado.listo,false);await aplicarUv(5);resultado=await ejecutar();
     assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();
    }
-   if(nivel.numero===8){assert.equal(resultado.listo,false);await aplicarUv(3,true);resultado=await ejecutar();}
-   if([9,10].includes(nivel.numero)){assert.equal(resultado.listo,false);await aplicarUv(6);await horas(8);resultado=await ejecutar();}
+   if(nivel.numero===8){assert.equal(resultado.listo,false);await aplicarUv(3);resultado=await ejecutar();}
+   // La consigna permite cambiar UV o UT: comprobar cada alternativa sin
+   // modificar ambos controles y ocultar un posible requisito imposible.
+   if(nivel.numero===9){assert.equal(resultado.listo,false);await aplicarUv(6);resultado=await ejecutar();}
+   if(nivel.numero===10){assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();}
    assert.equal(resultado.consigna.progreso,100);
    assert.equal(resultado.listo,true);assert.equal(resultado.puntaje,esperado);
    assert.equal(resultado.progreso.nivelesCompletados,nivel.numero-1,'Ni Guardar ni Simular aprueban');
@@ -263,7 +286,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    const aprobado=await(await cierre).json();
    assert.equal(aprobado.completado,true);assert.equal(aprobado.puntaje,esperado);
    assert.equal(aprobado.modoLibreDesbloqueado,nivel.numero===10);
-   const nuevosEsperados=nivel.numero===1?['estacion']:nivel.numero===5?['camino']:nivel.numero===10?['corona','biblioteca','copa']:[];
+   const nuevosEsperados=nivel.numero===1?['estacion']:nivel.numero===5?['camino']:nivel.numero===10?premiosFinales:[];
    assert.deepEqual(aprobado.trofeosNuevos.map(t=>t.id),nuevosEsperados,'Premios solo al cumplir su requisito');
    await comprobarColeccion(nivel.numero);
    assert.deepEqual(aprobado.desempeno.desglosePuntuacion,resultado.desempeno.desglosePuntuacion,'Finalizar no descuenta');
@@ -277,6 +300,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
      assert.equal(await descuentos.count(),(100-esperado)/10);
      assert.match(await puntos.innerText(),new RegExp(`Ejecución 2\\s+Sin nuevos avances`));
     }
+    if(esperado===60) await pagina.screenshot({path:`/tmp/metronet-aprobado-60-nivel-${nivel.numero}.png`});
     assert.equal(await f().locator('.metronet-victoria').count(),0);
     await puntos.getByRole('button',{name:'Continuar',exact:true}).click();
     const premiosMostrados=[];

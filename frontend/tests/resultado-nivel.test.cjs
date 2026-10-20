@@ -92,7 +92,7 @@ test('Tope de descuentos en pantalla pequeña: cuenta completa, desplazamiento y
     await window.resultado;
     const { mostrarResultadoNivel } = await import('/src/educacion/PantallaResultadoNivel.js');
     window.resultadoDescuentos = mostrarResultadoNivel({ numero: 10, nombre: 'Una red para Montevideo', puntajeMaximo: 100 }, {
-      puntaje: 60, desempeno: { puntajeMaximo: 100, desglosePuntuacion: {
+      completado: true, puntaje: 60, desempeno: { puntajeMaximo: 100, desglosePuntuacion: {
         puntosBase: 100, practicasGratuitas: 4, descuentoMaximo: 40, puntajeMinimoAprobacion: 60,
         totalDescontado: 40, total: 60, descuentos: Array.from({ length: 4 }, (_, i) => ({
           numeroEjecucion: i + 5, puntos: 10,
@@ -142,4 +142,39 @@ for (const width of [1440, 390, 320]) test(`Exceso ${width}: muestra los límite
   assert.equal(await dialogo.evaluate(e => e.scrollWidth > e.clientWidth), false);
   await dialogo.getByRole('button', { name: 'Continuar', exact: true }).click();
   assert.equal(await p.evaluate(() => window.resultadoDescuentos), true);
+});
+
+// El caso de 50 es una prueba de presentación: la regla vigente limita los descuentos a 40.
+for (const puntos of [50, 60]) test(`No completado ${puntos}: explica descuentos, centra Volver y no habilita avance`, async t => {
+  const { pagina: p, solicitudes } = await abrir(t, 1280);
+  await p.setViewportSize({ width: 1280, height: 800 });
+  await p.evaluate(async puntos => {
+    window.controlResultado.abort(); await window.resultado;
+    const { mostrarResultadoNivel } = await import('/src/educacion/PantallaResultadoNivel.js');
+    window.resultadoPendiente = mostrarResultadoNivel({ nombre: 'Nivel 8 · Ajustar una línea' }, {
+      completado: false, puntaje: puntos, desempeno: { puntajeMaximo: 100, desglosePuntuacion: {
+        puntosBase: 100, total: puntos, totalDescontado: 100 - puntos, descuentoMaximo: 100 - puntos,
+        puntajeMinimoAprobacion: 60, descuentos: Array.from({ length: (100 - puntos) / 10 }, (_, i) => ({
+          numeroEjecucion: i + 2, puntos: 10, motivos: ['Cambiar UV y simular'],
+        })),
+      } },
+    }, { condiciones: [{ texto: 'Cambiar UV y simular', completado: false }, { texto: 'Ubicar estaciones', completado: true }] });
+  }, puntos);
+  const d = p.getByRole('dialog', { name: 'Nivel no completado', exact: true });
+  await d.waitFor();
+  assert.match(await d.innerText(), /Cambiar UV y simular/);
+  assert.doesNotMatch(await d.innerText(), /Ganaste|Nuevo récord|Ubicar estaciones/);
+  assert.equal(await d.locator('.metronet-resultado-nivel__motivo-descuento p:visible').count(), (100 - puntos) / 10);
+  if (puntos === 50) assert.match(await d.innerText(), /mínimo de 60/);
+  else assert.doesNotMatch(await d.innerText(), /debajo del mínimo/);
+  const volver = d.getByRole('button', { name: 'Volver al nivel', exact: true });
+  const caja = await d.boundingBox(), boton = await volver.boundingBox();
+  assert.ok(Math.abs(boton.x + boton.width / 2 - caja.x - caja.width / 2) < 2);
+  assert.equal(await d.evaluate(e => e.scrollHeight > e.clientHeight), false);
+  assert.equal(await d.evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(44, 23, 33)');
+  await p.screenshot({ path: `/tmp/metronet-no-completado-${puntos}.png` });
+  await volver.click();
+  assert.equal(await p.evaluate(() => window.resultadoPendiente), false);
+  assert.equal(await p.locator('.metronet-resultado-nivel, .metronet-victoria').count(), 0);
+  assert.equal(solicitudes.filter(s => s.method !== 'GET').length, 0);
 });

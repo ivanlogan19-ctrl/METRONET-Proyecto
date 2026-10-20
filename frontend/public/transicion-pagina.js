@@ -49,9 +49,9 @@
   });
   const observadorCarga = new MutationObserver(comprobarPantalla);
   function comprobarPantalla() {
-    if (lista || saliendo || !fuentesListas || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
-    cancelAnimationFrame(cuadro);
+    if (lista || saliendo || cuadro || !fuentesListas || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
     cuadro = requestAnimationFrame(() => {
+      cuadro = 0;
       if (saliendo || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
       lista = true;
       observadorCarga.disconnect();
@@ -66,6 +66,7 @@
   window.addEventListener('pagehide', () => {
     saliendo = true;
     cancelAnimationFrame(cuadro);
+    cuadro = 0;
     contenedor?.preparar(window, document);
   });
   window.addEventListener('pageshow', evento => {

@@ -1,4 +1,4 @@
-import { configurarAccion, configurarAccionPorNombre } from '../interfaz/AccionesInterfaz.js';
+import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import './resultado-nivel.css';
 
 let cerrarResultadoActivo;
@@ -8,26 +8,28 @@ const texto = (etiqueta, valor, clase = '') => {
 };
 
 // Solo presenta la evaluación persistida. No deduce penalizaciones ni recalcula puntos.
-export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeAnterior } = {}) {
+export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeAnterior, condiciones = [], focoAlCerrar = document.activeElement } = {}) {
   cerrarResultadoActivo?.();
   if (signal?.aborted) return Promise.resolve(false);
-  const focoAnterior = document.activeElement;
+  const focoAnterior = focoAlCerrar;
   const dialogo = document.createElement('dialog');
   dialogo.className = 'metronet-dialogo-cambios metronet-resultado-nivel';
+  const pendiente = evaluacion.completado === false;
+  dialogo.classList.toggle('metronet-resultado-nivel--pendiente', pendiente);
   dialogo.setAttribute('aria-labelledby', 'tituloResultadoNivel');
   const detalle = evaluacion.desempeno?.desglosePuntuacion;
-  const puntos = evaluacion.puntaje, maximo = evaluacion.desempeno?.puntajeMaximo ?? nivel.puntajeMaximo;
+  const puntos = evaluacion.puntaje, maximo = evaluacion.desempeno?.puntajeMaximo ?? detalle?.puntosBase ?? nivel.puntajeMaximo;
   const cabecera = texto('header', '', 'metronet-resultado-nivel__cabecera');
-  const titulo = texto('h2', 'Nivel completado');
+  const titulo = texto('h2', pendiente ? 'Nivel no completado' : 'Nivel completado');
   titulo.id = 'tituloResultadoNivel'; titulo.tabIndex = -1;
   cabecera.append(titulo, texto('p', nivel.nombre || 'Tu red', 'metronet-resultado-nivel__nivel'));
   const premio = texto('section', '', 'metronet-resultado-nivel__premio');
   const marcador = texto('p', '', 'metronet-resultado-nivel__puntos');
   if (Number.isFinite(puntos)) {
-    marcador.append(texto('span', 'Ganaste'), texto('strong', puntos), texto('span', 'puntos'));
+    marcador.append(texto('span', pendiente ? 'Tu puntaje' : 'Ganaste'), texto('strong', puntos), texto('span', 'puntos'));
   } else marcador.textContent = 'Tu resultado quedó registrado.';
   premio.append(marcador);
-  if (Number.isFinite(puntos) && Number.isFinite(mejorPuntajeAnterior) && puntos > mejorPuntajeAnterior)
+  if (!pendiente && Number.isFinite(puntos) && Number.isFinite(mejorPuntajeAnterior) && puntos > mejorPuntajeAnterior)
     premio.append(texto('p', 'Nuevo récord personal', 'metronet-resultado-nivel__record'));
   dialogo.append(cabecera, premio);
   const cuenta = texto('section', '', 'metronet-resultado-nivel__cuenta');
@@ -45,22 +47,23 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
       for (const descuento of detalle.descuentos) {
         const item = texto('div', '', 'metronet-resultado-nivel__descuento');
         const motivo = texto('dt', '');
-        const pendientes = document.createElement('details');
-        const resumen = texto('summary', `Ejecución ${descuento.numeroEjecucion}`);
+        const pendientes = document.createElement(pendiente ? 'div' : 'details');
+        pendientes.className = 'metronet-resultado-nivel__motivo-descuento';
+        const resumen = texto(pendiente ? 'h4' : 'summary', `Ejecución ${descuento.numeroEjecucion}`);
         const excesos = descuento.excesos ?? [];
-        resumen.append(texto('span', excesos.length ? 'Exceso sobre la consigna' : 'Sin nuevos avances'));
+        if (!pendiente) resumen.append(texto('span', excesos.length ? 'Exceso sobre la consigna' : 'Sin nuevos avances'));
         pendientes.append(resumen, texto('p', excesos.length
           ? `Superaste: ${excesos.join('; ')}.`
-          : `En esa ejecución faltaba: ${descuento.motivos.join('; ')}.`));
+          : `${pendiente ? 'Sin nuevos avances; faltaba' : 'En esa ejecución faltaba'}: ${descuento.motivos.join('; ')}.`));
         motivo.append(pendientes);
         item.append(motivo, texto('dd', `−${descuento.puntos}`)); desglose.append(item);
       }
       if (!detalle.descuentos.length) fila('Descuentos aplicados', '0');
-      fila('Total obtenido', detalle.total, 'metronet-resultado-nivel__total');
+      fila(pendiente ? 'Puntaje actual' : 'Total obtenido', detalle.total, 'metronet-resultado-nivel__total');
       cuenta.append(desglose);
-      if (detalle.descuentos.length)
+      if (detalle.descuentos.length && !pendiente)
         cuenta.append(texto('p', 'Abrí cada ejecución para ver el motivo.', 'metronet-resultado-nivel__nota'));
-      if (detalle.totalDescontado >= detalle.descuentoMaximo)
+      if (!pendiente && detalle.totalDescontado >= detalle.descuentoMaximo)
         cuenta.append(texto('p', `Tope alcanzado: ${detalle.descuentoMaximo} puntos de descuento. No se restó más.`, 'metronet-resultado-nivel__nota'));
     } else {
       fila('Máximo del nivel', maximo);
@@ -75,9 +78,31 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
     }
   }
   dialogo.append(cuenta);
+  if (pendiente) {
+    const motivos = texto('section', '', 'metronet-resultado-nivel__motivos');
+    motivos.id = 'motivosResultadoNivel';
+    dialogo.setAttribute('aria-describedby', motivos.id);
+    motivos.append(texto('h3', 'Por qué no completaste el nivel'));
+    const minimo = detalle?.puntajeMinimoAprobacion;
+    if (Number.isFinite(puntos) && Number.isFinite(minimo) && puntos < minimo)
+      motivos.append(texto('p', `Tu puntaje quedó por debajo del mínimo de ${minimo} puntos.`));
+    const pendientes = [...new Set(condiciones.filter(c => !c.completado).map(c => c.texto).filter(Boolean))];
+    if (pendientes.length) {
+      motivos.append(texto('p', 'Todavía falta cumplir:'));
+      const lista = document.createElement('ul');
+      pendientes.forEach(motivo => lista.append(texto('li', motivo)));
+      motivos.append(lista);
+    } else motivos.append(texto('p', evaluacion.desempeno?.explicacion || evaluacion.mensaje
+      || 'Revisá los objetivos y ejecutá la simulación de la red actual.'));
+    dialogo.append(motivos);
+  }
   const pie = texto('footer', '', 'metronet-resultado-nivel__acciones');
-  const continuar = texto('button', 'Continuar', 'metronet-boton--exito metronet-boton--destacado');
-  continuar.type = 'button';configurarAccion(continuar,'continuar'); pie.append(continuar); dialogo.append(pie);
+  const continuar = texto('button', pendiente ? 'Volver al nivel' : 'Continuar', 'metronet-boton--exito metronet-boton--destacado');
+  continuar.type = 'button';
+  configurarAccion(continuar, pendiente ? 'reintentar' : 'continuar', { conservarTexto: true });
+  pie.append(continuar);
+  if (pendiente) pie.append(texto('p', 'Tu diseño se conserva para seguir trabajando.', 'metronet-resultado-nivel__nota'));
+  dialogo.append(pie);
   return new Promise(resolve => {
     let cerrado = false;
     const observador = new MutationObserver(() => { if (!dialogo.isConnected) cancelar(); });
@@ -90,7 +115,7 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
       dialogo.remove();
       if (cerrarResultadoActivo === cancelar) cerrarResultadoActivo = null;
       if (focoAnterior?.isConnected) focoAnterior.focus({ preventScroll: true });
-      resolve(avanzar);
+      resolve(avanzar && !pendiente);
     }
     function cancelar() { cerrar(false); }
     continuar.addEventListener('click', () => cerrar(true));

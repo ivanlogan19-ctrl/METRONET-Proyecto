@@ -53,6 +53,38 @@ html:root body .metronet-resultado-nivel__nota { margin:12px 0 0; font-size:12px
 .metronet-resultado-nivel__historial { margin-top:10px; font-size:13px; }
 .metronet-resultado-nivel__acciones { padding:18px 24px; }
 .metronet-resultado-nivel__acciones > button { width:100%; min-height:44px; }
+html:root body dialog.metronet-resultado-nivel--pendiente {
+  --border:#814354; --border-active:#df617e;
+  --panel:#2c1721; --bg-secondary:#21131d;
+  width:min(680px, calc(100vw - 24px)); background:var(--panel);
+  border-color:var(--border-active);
+}
+html:root body .metronet-resultado-nivel--pendiente :is(.metronet-resultado-nivel__puntos, .metronet-resultado-nivel__total) { color:#ff829e; }
+.metronet-resultado-nivel--pendiente .metronet-resultado-nivel__cabecera { padding:12px 24px 0; }
+html:root body .metronet-resultado-nivel--pendiente .metronet-resultado-nivel__nivel { margin:4px 0; }
+.metronet-resultado-nivel--pendiente .metronet-resultado-nivel__premio { padding:6px 24px 8px; }
+.metronet-resultado-nivel--pendiente .metronet-resultado-nivel__puntos > strong { font-size:58px; }
+.metronet-resultado-nivel--pendiente .metronet-resultado-nivel__cuenta { padding:10px 24px; }
+html:root body .metronet-resultado-nivel--pendiente h3 { margin-bottom:6px; }
+.metronet-resultado-nivel--pendiente dl > div { padding:4px 0; }
+html:root body .metronet-resultado-nivel--pendiente .metronet-resultado-nivel__motivo-descuento h4 {
+  margin:0; padding:0; border:0; background:none; color:var(--text-primary); font:400 11px/1.5 var(--font-arcade);
+}
+.metronet-resultado-nivel__motivo-descuento h4::before,
+.metronet-resultado-nivel__motivo-descuento h4::after { display:none !important; }
+html:root body .metronet-resultado-nivel--pendiente .metronet-resultado-nivel__motivo-descuento p {
+  margin:3px 0 0; color:var(--text-secondary); font:400 13px/1.4 Arial, Helvetica, sans-serif;
+}
+.metronet-resultado-nivel__motivos { padding:8px 24px; text-align:center; }
+html:root body .metronet-resultado-nivel__motivos p { margin:4px 0; font:400 14px/1.4 Arial, Helvetica, sans-serif; }
+.metronet-resultado-nivel__motivos ul { margin:4px 0; padding:0; list-style:none; }
+.metronet-resultado-nivel--pendiente .metronet-resultado-nivel__acciones {
+  padding:8px 24px; border-top:1px solid var(--border); text-align:center;
+}
+html:root body .metronet-resultado-nivel--pendiente .metronet-resultado-nivel__nota { margin-top:6px; }
+html:root body .metronet-resultado-nivel--pendiente .metronet-resultado-nivel__acciones > button {
+  display:block; width:min(260px, 100%); margin-inline:auto;
+}
 @media (max-width:400px) {
   .metronet-resultado-nivel__cabecera { padding:18px 16px 0; }
   .metronet-resultado-nivel__premio { padding:14px 16px 18px; }

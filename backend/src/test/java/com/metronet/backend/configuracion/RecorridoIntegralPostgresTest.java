@@ -145,5 +145,53 @@ class RecorridoIntegralPostgresTest {
         int jugador=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('QA Jugador','recorrido-jugador@example.test','!sin-acceso','JUGADOR') RETURNING id_usuario",Integer.class);
         var rechazo=assertThrows(org.springframework.web.server.ResponseStatusException.class,()->recorrido.publicar(jugador));
         assertEquals(403,rechazo.getStatusCode().value());
+        var rechazoRelatos=assertThrows(org.springframework.web.server.ResponseStatusException.class,()->recorrido.publicarRelatos(jugador));
+        assertEquals(403,rechazoRelatos.getStatusCode().value());
+    }
+
+    @Test void actualizarRelatosConservaReglasReferenciasTarjetasEIntentos() throws Exception {
+        int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Relatos QA','relatos-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
+        recorrido.publicar(admin);
+        // Recrea publicaciones anteriores a la revisión editorial, sin tocar sus reglas.
+        jdbc.update("""
+            UPDATE nivel_publicacion SET contenido=jsonb_set(contenido,'{desafio,relato}','"Relato anterior"'::jsonb)
+            WHERE id_nivel_publicacion IN (SELECT MAX(id_nivel_publicacion) FROM nivel_publicacion GROUP BY id_escenario)
+            """);
+        var anteriores=new java.util.ArrayList<AdministracionNivelesService.Version>();
+        for(int numero=1;numero<=10;numero++) {
+            var version=borradores.versiones(numero).getFirst();
+            anteriores.add(version);
+            borradores.prepararReversion(numero,version.version(),admin);
+        }
+        int escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=1",Integer.class);
+        var intento=juego.iniciarEscenario(admin,escenario);
+        var historia=contenido.deIntento(intento.idIntento(),admin);
+        assertEquals(10,recorrido.publicarRelatos(admin).size());
+        for(int numero=1;numero<=10;numero++) {
+            var antes=anteriores.get(numero-1);
+            var despues=borradores.versiones(numero).getFirst();
+            assertEquals(antes.version()+1,despues.version());
+            assertEquals(antes.redReferencia(),despues.redReferencia());
+            assertEquals(antes.tarjetas(),despues.tarjetas());
+            var esperado=antes.contenido().deepCopy();
+            ((com.fasterxml.jackson.databind.node.ObjectNode)esperado).set("desafio",despues.contenido().path("desafio"));
+            assertEquals(esperado,despues.contenido(),"La edición no altera reglas, ayudas ni herramientas");
+            for(String campo:java.util.List.of("objetivo","instrucciones","nombre","recorrido","dificultad"))
+                assertEquals(antes.contenido().path("desafio").path(campo),despues.contenido().path("desafio").path(campo));
+            assertEquals(antes,borradores.versiones(numero).get(1),"La publicación anterior permanece intacta");
+        }
+        assertEquals(historia,contenido.deIntento(intento.idIntento(),admin),"Una revisión editorial no reinterpreta una partida");
+        assertTrue(recorrido.publicarRelatos(admin).isEmpty(),"Repetir la operación no crea versiones duplicadas");
+    }
+
+    @Test void actualizarRelatosNoDescartaBorradoresPendientes() throws Exception {
+        int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Borrador QA','borrador-relato@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
+        recorrido.publicar(admin);
+        jdbc.update("UPDATE nivel_publicacion SET contenido=jsonb_set(contenido,'{desafio,relato}','\"Relato anterior\"'::jsonb)");
+        var borrador=borradores.borrador(1);
+        var versiones=borradores.versiones(1);
+        assertThrows(IllegalStateException.class,()->recorrido.publicarRelatos(admin));
+        assertEquals(borrador,borradores.borrador(1));
+        assertEquals(versiones,borradores.versiones(1));
     }
 }

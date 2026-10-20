@@ -21,18 +21,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Una red comienza con un trayecto sencillo. Construí tu primer enlace y observá cómo una unidad recorre lo que diseñaste.",
+      "texto": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, un primer trazo empieza a unir sus ideas. Todavía es un boceto; verlo en movimiento les dirá si tienen algo sobre lo que seguir trabajando.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Del diseño a la circulación",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Una red comienza con un trayecto sencillo. Construí tu primer enlace y observá cómo una unidad recorre lo que diseñaste.",
+      "contexto": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, un primer trazo empieza a unir sus ideas. Todavía es un boceto; verlo en movimiento les dirá si tienen algo sobre lo que seguir trabajando.",
       "consejo": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Una red comienza con un trayecto sencillo. Construí tu primer enlace y observá cómo una unidad recorre lo que diseñaste."
+      "ciudad": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, un primer trazo empieza a unir sus ideas. Todavía es un boceto; verlo en movimiento les dirá si tienen algo sobre lo que seguir trabajando."
     }
   },
   {
@@ -59,18 +59,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "El primer enlace debe llegar más lejos. Extendé el recorrido y observá cómo cambia el movimiento cuando ajustás la velocidad de la unidad.",
+      "texto": "Con el primer ensayo a sus espaldas, Sol mira más allá de los extremos del trazado. Hay otros destinos que podrían formar parte del proyecto. La distancia crece y trae una pregunta al equipo: ¿qué cambia en el viaje cuando cambia su ritmo?",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "UV — Unidad de Velocidad",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "El primer enlace debe llegar más lejos. Extendé el recorrido y observá cómo cambia el movimiento cuando ajustás la velocidad de la unidad.",
+      "contexto": "Con el primer ensayo a sus espaldas, Sol mira más allá de los extremos del trazado. Hay otros destinos que podrían formar parte del proyecto. La distancia crece y trae una pregunta al equipo: ¿qué cambia en el viaje cuando cambia su ritmo?",
       "consejo": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la UT calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "El primer enlace debe llegar más lejos. Extendé el recorrido y observá cómo cambia el movimiento cuando ajustás la velocidad de la unidad."
+      "ciudad": "Con el primer ensayo a sus espaldas, Sol mira más allá de los extremos del trazado. Hay otros destinos que podrían formar parte del proyecto. La distancia crece y trae una pregunta al equipo: ¿qué cambia en el viaje cuando cambia su ritmo?"
     }
   },
   {
@@ -97,18 +97,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la velocidad correspondiente.",
+      "texto": "Dani conserva las notas de Sol y pone el reloj junto al mapa. Hasta ahora miraban por dónde pasaría la red; ahora importa cuánto duraría el recorrido. El tiempo deja de ser una anotación al margen y empieza a orientar sus decisiones.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Duración simulada",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la velocidad correspondiente.",
+      "contexto": "Dani conserva las notas de Sol y pone el reloj junto al mapa. Hasta ahora miraban por dónde pasaría la red; ahora importa cuánto duraría el recorrido. El tiempo deja de ser una anotación al margen y empieza a orientar sus decisiones.",
       "consejo": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B con la UV calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "La red ya conecta varios puntos. Decidí cuánto tiempo simulado observar y compará dos ejecuciones con distinta duración y la velocidad correspondiente."
+      "ciudad": "Dani conserva las notas de Sol y pone el reloj junto al mapa. Hasta ahora miraban por dónde pasaría la red; ahora importa cuánto duraría el recorrido. El tiempo deja de ser una anotación al margen y empieza a orientar sus decisiones."
     }
   },
   {
@@ -135,18 +135,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Dos metros comparten el recorrido. Compará cómo cambia su tiempo al elegir otra velocidad y cómo cambia su velocidad al elegir otro tiempo.",
+      "texto": "Sol ve aparecer otra unidad sobre el trazado que venían estudiando. El proyecto ya no se entiende siguiendo un solo vehículo: ambos forman parte de una misma línea. Vuelve a las notas de Dani para pensar qué decisiones comparten y cómo se mueven juntos.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Configuración compartida por línea",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Dos metros comparten el recorrido. Compará cómo cambia su tiempo al elegir otra velocidad y cómo cambia su velocidad al elegir otro tiempo.",
+      "contexto": "Sol ve aparecer otra unidad sobre el trazado que venían estudiando. El proyecto ya no se entiende siguiendo un solo vehículo: ambos forman parte de una misma línea. Vuelve a las notas de Dani para pensar qué decisiones comparten y cómo se mueven juntos.",
       "consejo": "Ubicá 4 estaciones y asigná 2 Metros a una línea conectada. Guardá y simulá A. Cambiá UV y simulá B con la UT calculada. Después elegí otra UT y simulá C con la UV calculada. Ambos metros comparten la configuración de la línea. Volvé y pulsá Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Dos metros comparten el recorrido. Compará cómo cambia su tiempo al elegir otra velocidad y cómo cambia su velocidad al elegir otro tiempo."
+      "ciudad": "Sol ve aparecer otra unidad sobre el trazado que venían estudiando. El proyecto ya no se entiende siguiendo un solo vehículo: ambos forman parte de una misma línea. Vuelve a las notas de Dani para pensar qué decisiones comparten y cómo se mueven juntos."
     }
   },
   {
@@ -171,18 +171,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "El recorrido se divide en dos líneas de servicio. Construí una red conectada y poné dos unidades a circular para observar cómo se organiza el conjunto.",
+      "texto": "Ari extiende sobre la mesa dos trazados que antes parecían proyectos separados. Quiere que se encuentren sin perder su identidad. Mientras Sol revisa los destinos y Dani observa la circulación, el equipo empieza a pensar en una red completa.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Dos líneas conectadas",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "El recorrido se divide en dos líneas de servicio. Construí una red conectada y poné dos unidades a circular para observar cómo se organiza el conjunto.",
+      "contexto": "Ari extiende sobre la mesa dos trazados que antes parecían proyectos separados. Quiere que se encuentren sin perder su identidad. Mientras Sol revisa los destinos y Dani observa la circulación, el equipo empieza a pensar en una red completa.",
       "consejo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "El recorrido se divide en dos líneas de servicio. Construí una red conectada y poné dos unidades a circular para observar cómo se organiza el conjunto."
+      "ciudad": "Ari extiende sobre la mesa dos trazados que antes parecían proyectos separados. Quiere que se encuentren sin perder su identidad. Mientras Sol revisa los destinos y Dani observa la circulación, el equipo empieza a pensar en una red completa."
     }
   },
   {
@@ -222,18 +222,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "La red llega a tres referencias del centro: el Mirador de la Intendencia, Plaza Cagancha y Plaza Fabini. Acercá una estación a cada lugar y comprobá la circulación.",
+      "texto": "Sol recorre el centro con el cuaderno del equipo. Entre las plazas Cagancha y Fabini y la Intendencia, los puntos del mapa adquieren un sentido cotidiano. De vuelta con Ari y Dani, ya no habla solo de trazados: habla de los lugares a los que permitirían llegar.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "POI y cobertura",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "La red llega a tres referencias del centro: el Mirador de la Intendencia, Plaza Cagancha y Plaza Fabini. Acercá una estación a cada lugar y comprobá la circulación.",
+      "contexto": "Sol recorre el centro con el cuaderno del equipo. Entre las plazas Cagancha y Fabini y la Intendencia, los puntos del mapa adquieren un sentido cotidiano. De vuelta con Ari y Dani, ya no habla solo de trazados: habla de los lugares a los que permitirían llegar.",
       "consejo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "La red llega a tres referencias del centro: el Mirador de la Intendencia, Plaza Cagancha y Plaza Fabini. Acercá una estación a cada lugar y comprobá la circulación."
+      "ciudad": "Sol recorre el centro con el cuaderno del equipo. Entre las plazas Cagancha y Fabini y la Intendencia, los puntos del mapa adquieren un sentido cotidiano. De vuelta con Ari y Dani, ya no habla solo de trazados: habla de los lugares a los que permitirían llegar."
     }
   },
   {
@@ -274,18 +274,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Una línea atiende tres referencias de Ciudad Vieja y se encuentra con otra en una estación compartida. Cada Metro recorre su propia línea; el transbordo representa el intercambio entre ambas.",
+      "texto": "Ari retoma esa mirada sobre los lugares al estudiar el entorno de Ciudad Vieja. Sus trazados se aproximan y una estación compartida aparece como punto de encuentro. El proyecto empieza a enlazar recorridos que, hasta entonces, el equipo miraba por separado.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Transbordos",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Una línea atiende tres referencias de Ciudad Vieja y se encuentra con otra en una estación compartida. Cada Metro recorre su propia línea; el transbordo representa el intercambio entre ambas.",
+      "contexto": "Ari retoma esa mirada sobre los lugares al estudiar el entorno de Ciudad Vieja. Sus trazados se aproximan y una estación compartida aparece como punto de encuentro. El proyecto empieza a enlazar recorridos que, hasta entonces, el equipo miraba por separado.",
       "consejo": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Una línea atiende tres referencias de Ciudad Vieja y se encuentra con otra en una estación compartida. Cada Metro recorre su propia línea; el transbordo representa el intercambio entre ambas."
+      "ciudad": "Ari retoma esa mirada sobre los lugares al estudiar el entorno de Ciudad Vieja. Sus trazados se aproximan y una estación compartida aparece como punto de encuentro. El proyecto empieza a enlazar recorridos que, hasta entonces, el equipo miraba por separado."
     }
   },
   {
@@ -327,18 +327,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Dos líneas atienden referencias de Cordón. Ajustá la velocidad de una línea y observá su tiempo calculado; la otra conserva su configuración.",
+      "texto": "En Cordón, Dani detiene la discusión antes de que cambien todo a la vez. Quiere entender qué aporta cada decisión. Conserva una línea tal como estaba y concentra la atención en la otra; por primera vez, el ensayo parte de una pregunta bien delimitada.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Ajuste individual",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Dos líneas atienden referencias de Cordón. Ajustá la velocidad de una línea y observá su tiempo calculado; la otra conserva su configuración.",
+      "contexto": "En Cordón, Dani detiene la discusión antes de que cambien todo a la vez. Quiere entender qué aporta cada decisión. Conserva una línea tal como estaba y concentra la atención en la otra; por primera vez, el ensayo parte de una pregunta bien delimitada.",
       "consejo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná una sola línea, cambiá y aplicá su UV y ejecutá B con su UT calculada y sin cambiar las demás líneas. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Dos líneas atienden referencias de Cordón. Ajustá la velocidad de una línea y observá su tiempo calculado; la otra conserva su configuración."
+      "ciudad": "En Cordón, Dani detiene la discusión antes de que cambien todo a la vez. Quiere entender qué aporta cada decisión. Conserva una línea tal como estaba y concentra la atención en la otra; por primera vez, el ensayo parte de una pregunta bien delimitada."
     }
   },
   {
@@ -380,18 +380,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Tres referencias de Parque Batlle forman el contexto para comparar configuraciones de una misma red. Observá qué cambia al ajustar un parámetro y observar su relación con el otro.",
+      "texto": "Sol reúne los ensayos del entorno de Parque Batlle y los pone junto al mismo mapa. Las primeras impresiones ya no alcanzan: necesita explicar por qué una alternativa se comporta distinto de otra. El cuaderno empieza a parecerse al informe del proyecto.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Comparación de ejecuciones",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Tres referencias de Parque Batlle forman el contexto para comparar configuraciones de una misma red. Observá qué cambia al ajustar un parámetro y observar su relación con el otro.",
+      "contexto": "Sol reúne los ensayos del entorno de Parque Batlle y los pone junto al mismo mapa. Las primeras impresiones ya no alcanzan: necesita explicar por qué una alternativa se comporta distinto de otra. El cuaderno empieza a parecerse al informe del proyecto.",
       "consejo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT y ejecutá B con el otro valor calculado. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Tres referencias de Parque Batlle forman el contexto para comparar configuraciones de una misma red. Observá qué cambia al ajustar un parámetro y observar su relación con el otro."
+      "ciudad": "Sol reúne los ensayos del entorno de Parque Batlle y los pone junto al mismo mapa. Las primeras impresiones ya no alcanzan: necesita explicar por qué una alternativa se comporta distinto de otra. El cuaderno empieza a parecerse al informe del proyecto."
     }
   },
   {
@@ -434,18 +434,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "La campaña culmina con una red de siete estaciones, un transbordo y tres unidades. Atendé tres referencias de Prado y compará dos ejecuciones con distinta velocidad y duración.",
+      "texto": "Con el Prado como último escenario, Dani prepara la presentación junto a Ari y Sol. Sobre la mesa se reúnen trazados, lugares y ensayos que antes estudiaban por separado. Su red sigue siendo una propuesta, pero ahora pueden contar cómo llegaron a ella.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
       "concepto": "Integración de la red",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "La campaña culmina con una red de siete estaciones, un transbordo y tres unidades. Atendé tres referencias de Prado y compará dos ejecuciones con distinta velocidad y duración.",
+      "contexto": "Con el Prado como último escenario, Dani prepara la presentación junto a Ari y Sol. Sobre la mesa se reúnen trazados, lugares y ensayos que antes estudiaban por separado. Su red sigue siendo una propuesta, pero ahora pueden contar cómo llegaron a ella.",
       "consejo": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT, aplicala y observá el valor calculado y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "La campaña culmina con una red de siete estaciones, un transbordo y tres unidades. Atendé tres referencias de Prado y compará dos ejecuciones con distinta velocidad y duración."
+      "ciudad": "Con el Prado como último escenario, Dani prepara la presentación junto a Ari y Sol. Sobre la mesa se reúnen trazados, lugares y ensayos que antes estudiaban por separado. Su red sigue siendo una propuesta, pero ahora pueden contar cómo llegaron a ella."
     }
   }
 ]

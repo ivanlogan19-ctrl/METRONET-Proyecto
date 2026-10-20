@@ -18,7 +18,7 @@ test('La regla mantiene distancias paralelas, separadas y legibles al girar y ac
     const estaciones = puntos.map((p,i)=>({nombre:String(i),posicionX:p.x,posicionY:p.y}));
     const capa = {
       escena: { events: {on(){},off(){}}, game:{canvas:contenedor.querySelector('canvas')},
-        scale:{gameSize:{width:1000,height:1000}}, cameras:{main:{scrollX:0,scrollY:0,matrix:{transformPoint:(x,y)=>({x,y})}}}},
+        scale:{gameSize:{width:1000,height:1000}}, cameras:{main:{scrollX:0,scrollY:0,matrixCombined:{transformPoint:(x,y)=>({x,y})}}}},
       puntosEstaciones:puntos, unidadesEstaticas:[{x:250,y:545},{x:410,y:487},{x:550,y:436},{x:675,y:455}],
       unidadesSimulacion:new Map(), convertirPosicion:(x,y)=>({x,y}),
     };
@@ -30,7 +30,7 @@ test('La regla mantiene distancias paralelas, separadas y legibles al girar y ac
     const casos = [];
     for (const giro of [0, Math.PI / 6, Math.PI, 3 * Math.PI / 2]) for (const zoom of [1, .7]) {
       const proyectar = (x,y) => ({x:500+zoom*((x-500)*Math.cos(giro)-(y-500)*Math.sin(giro)),y:500+zoom*((x-500)*Math.sin(giro)+(y-500)*Math.cos(giro))});
-      capa.escena.cameras.main.matrix.transformPoint = proyectar;
+      capa.escena.cameras.main.matrixCombined.transformPoint = proyectar;
       medicion.posicionar();
       const etiquetas=medicion.etiquetas.map(({elemento,origen,destino})=>{
         const r=elemento.getBoundingClientRect(), estilo=getComputedStyle(elemento), matriz=new DOMMatrix(estilo.transform);

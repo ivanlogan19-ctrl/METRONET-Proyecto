@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 
-test('La regla en reposo conserva etiquetas sin reescribir el DOM en cada cuadro', async t => {
+test('La regla sigue la cámara real al acercar y girar, sin reescribir el DOM en reposo', async t => {
   const browser = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL });
   t.after(() => browser.close());
   const v = await abrirPantalla(browser, '/simulacion.html?idDiseno=77', { responder: req => {
@@ -51,4 +51,34 @@ test('La regla en reposo conserva etiquetas sin reescribir el DOM en cada cuadro
   assert.match(resultado.texto, /8,2 km/);
   assert.equal(resultado.cambios, 0, 'Una cámara y red inmóviles no necesitan escrituras repetidas de estilo o visibilidad');
   assert.deepEqual(v.errores, []);
+  const posiciones = await p.evaluate(async () => {
+    const escena = window.escenaMedicionPrueba;
+    const capa = escena.capaRedMetro, camara = escena.cameras.main;
+    const medicion = capa.medicionDistancias;
+    const casos = [];
+    // La conversión inversa de Phaser contrasta el centro de cada etiqueta DOM
+    // con las coordenadas de la vía, sin repetir la proyección de la regla.
+    for (const zoom of [.8, 1, 1.7, 2.4]) for (const giro of [0, .3]) for (const margen of [0, 40]) {
+      camara.setViewport(margen, margen, escena.scale.gameSize.width - 2 * margen, escena.scale.gameSize.height - 2 * margen);
+      camara.setZoom(zoom).setRotation(giro);
+      const a = capa.convertirPosicion(400, 420), b = capa.convertirPosicion(770, 410);
+      camara.centerOn((a.x + b.x) / 2 + 20, (a.y + b.y) / 2 - 30);
+      camara.preRender();
+      medicion.posicionar();
+      const rect = escena.game.canvas.getBoundingClientRect();
+      const elemento = medicion.etiquetas[0].elemento, etiqueta = elemento.getBoundingClientRect();
+      const escala = rect.width / escena.scale.gameSize.width;
+      const centro = camara.getWorldPoint((etiqueta.x + etiqueta.width / 2 - rect.x) / escala,
+        (etiqueta.y + etiqueta.height / 2 - rect.y) / escala);
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const distancia = Math.abs((centro.x - a.x) * dy - (centro.y - a.y) * dx) / Math.hypot(dx, dy) * zoom * escala;
+      const fraccion = ((centro.x - a.x) * dx + (centro.y - a.y) * dy) / (dx * dx + dy * dy);
+      casos.push({ zoom, giro, margen, fraccion, visible: !elemento.hidden, separacion: distancia - elemento.offsetHeight / 2 });
+    }
+    return casos;
+  });
+  for (const posicion of posiciones) {
+    assert.ok(posicion.visible && posicion.fraccion >= 0 && posicion.fraccion <= 1
+      && posicion.separacion >= 7.5 && posicion.separacion <= 42.5, JSON.stringify(posicion));
+  }
 });

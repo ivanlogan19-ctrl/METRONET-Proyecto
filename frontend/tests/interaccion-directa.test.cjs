@@ -229,6 +229,8 @@ test('Progreso demorado: salida preservada cancela la intención antes de mostra
  const progreso=await demorarProgresoSimulacion(p,t);
  await p.locator('[data-ir-simulacion]').click();await p.waitForURL('**/simulacion.html?**');await progreso.solicitado;
  await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
+ // La página preservada vuelve a mostrarse antes de interactuar con su tutorial.
+ await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
  progreso.liberar();await p.locator('#tutorialPantallaSimulacion').waitFor();
  await completarTutorialSimulacion(p);
  assert.equal(solicitudes.filter(s=>s.ruta.endsWith('/ejecutar')).length,0);
@@ -358,24 +360,23 @@ for (const width of [1440, 390, 320]) test(`Finalizar red ${width}px: botón vis
  await b.click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
  assert.equal(evaluaciones,1);
  assert.deepEqual(solicitudes.filter(s=>/guardar|validacion/.test(s.ruta)).map(s=>s.ruta.split('/').at(-1)),['validacion','guardar']);
- const aviso=p.getByRole('dialog',{name:'Completá la consigna para finalizar',exact:true});
+ const aviso=p.getByRole('dialog',{name:'Nivel no completado',exact:true});
  assert.equal(await aviso.isVisible(),true);
- assert.equal(await aviso.locator('[data-mensaje-advertencia]').innerText(),'Revisá los objetivos del nivel y continuá construyendo tu red.');
- assert.doesNotMatch(await aviso.innerText(),/Clic fuera|continuar · Esc|Volver a la red/);
- assert.equal(await aviso.getByRole('button').count(),0);
- assert.doesNotMatch(await aviso.innerText(),/Simular la red actual|100 puntos|descuentos/);
- assert.doesNotMatch(await p.locator('[data-estado-editor]').innerText(),/Red guardada\. Todavía falta/);
+ assert.match(await aviso.innerText(),/Simular la red actual/);
+ assert.doesNotMatch(await aviso.innerText(),/Ganaste|Nuevo récord|debajo del mínimo/);
+ assert.equal(await aviso.getByRole('button',{name:'Volver al nivel',exact:true}).count(),1);
  assert.equal(await p.evaluate(()=>editorPrueba.consignaActual.condiciones[0].completado),false);
- const accesibilidad=await aviso.evaluate(d=>({titulo:document.getElementById(d.getAttribute('aria-labelledby'))?.textContent,descripcion:d.getAttribute('aria-describedby')?.split(' ').map(id=>document.getElementById(id)?.textContent).join(' '),enfocado:document.activeElement===d}));
- assert.equal(accesibilidad.titulo,'Completá la consigna para finalizar');
- assert.match(accesibilidad.descripcion,/Revisá los objetivos del nivel/);
+ const accesibilidad=await aviso.evaluate(d=>({descripcion:document.getElementById(d.getAttribute('aria-describedby'))?.textContent,enfocado:document.activeElement===d.querySelector('h2')}));
+ assert.match(accesibilidad.descripcion,/Simular la red actual/);
  assert.equal(accesibilidad.enfocado,true);
  const limites=await aviso.boundingBox();
  assert.ok(limites.x>=0 && limites.x+limites.width<=width && limites.y>=0 && limites.y+limites.height<=1000);
  assert.equal(await aviso.evaluate(d=>d.scrollWidth>d.clientWidth),false);
  await aviso.locator('h2').click();
  assert.equal(await aviso.isVisible(),true);
- await p.keyboard.press('Escape');await aviso.waitFor({state:'hidden'});
+ if(width===1440) await aviso.getByRole('button',{name:'Volver al nivel',exact:true}).click();
+ else await p.keyboard.press('Escape');
+ await aviso.waitFor({state:'hidden'});
  await p.waitForFunction(()=>document.activeElement===document.querySelector('[data-finalizar-red]'));
  assert.equal(await p.locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
  assert.equal(await b.isEnabled(),true);
@@ -423,12 +424,12 @@ for(const accion of ['cambiar diseño','cerrar editor']) test(`Finalizar red: li
  const {pagina:p,diseno}=await abrir(t,{primeraPasada:false,escenario:nivel});
  await p.route('**/api/juego/disenos/77/evaluar',route=>route.fulfill({json:{completado:false},headers:{'access-control-allow-origin':'*'}}));
  await p.locator('[data-finalizar-red]').click();await p.waitForFunction(()=>!editorPrueba.finalizacionEnCurso);
- assert.equal(await p.locator('.metronet-dialogo-advertencia').isVisible(),true);
+ assert.equal(await p.getByRole('dialog',{name:'Nivel no completado',exact:true}).isVisible(),true);
  if(accion==='cambiar diseño') {
    await p.route('**/api/simulaciones/78',route=>route.fulfill({json:{...diseno,simulacion:{...diseno.simulacion,idDiseno:78}},headers:{'access-control-allow-origin':'*'}}));
    await p.evaluate(()=>editorPrueba.abrirDiseno(78));
  } else await p.evaluate(()=>{editorPrueba.eliminar();editorPrueba.eliminar();});
- assert.equal(await p.locator('.metronet-dialogo-advertencia').count(),0);
+ assert.equal(await p.getByRole('dialog',{name:'Nivel no completado',exact:true}).count(),0);
 });
 
 test('Finalizar red: falla de guardado no evalúa y permite reintentar',async t=>{

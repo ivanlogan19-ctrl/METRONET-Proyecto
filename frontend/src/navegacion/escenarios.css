@@ -62,6 +62,9 @@ html:root body.metronet-pagina-niveles #botonReiniciarRecorrido { margin-top:12p
 }
 
 @media(min-width:1001px) and (max-height:760px) {
-  html:root body.metronet-pagina-niveles .metronet-escenarios-pagina { gap:10px; }
+  html:root body.metronet-pagina-niveles .metronet-escenarios-pagina { gap:8px; padding-top:12px; }
+  html:root body.metronet-pagina-niveles .metronet-escenarios-pagina__presentacion { padding-block:6px; }
+  html:root body.metronet-pagina-niveles .metronet-escenarios-pagina__tarjeta { padding:12px; gap:6px; }
+  html:root body.metronet-pagina-niveles .metronet-escenarios-pagina__tarjeta-contenido { gap:6px; }
   html:root body.metronet-pagina-niveles #botonReiniciarRecorrido { margin-top:6px; }
 }
