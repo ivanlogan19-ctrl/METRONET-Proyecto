@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ejecutar desde cualquier directorio: bash backend/scripts/probar-postgres.sh
 # Sin argumentos ejecuta *PostgresTest; para toda la suite: ... -DfailIfNoTests=true
-# Requiere PostgreSQL local, Python 3 y Java 21. No conecta a la base de la aplicación.
+# Requiere PostgreSQL local, Python 3 y Java 25. No conecta a la base de la aplicación.
 set -euo pipefail
 
 raiz=$(cd "$(dirname "$0")/../.." && pwd)
@@ -18,8 +18,8 @@ if [[ ! -x "$pg_bin/initdb" ]]; then
   echo 'Falta PostgreSQL local. Indicá su directorio bin con METRONET_POSTGRES_BIN.' >&2
   exit 1
 fi
-if [[ -z "${JAVA_HOME:-}" && -d /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ]]; then
-  export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+if [[ -z "${JAVA_HOME:-}" && -d /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ]]; then
+  export JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
 fi
 
 temporal=$(mktemp -d "${TMPDIR:-/tmp}/metronet-pruebas-pg.XXXXXX")

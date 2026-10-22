@@ -14,7 +14,7 @@
 	<name>METRONET Backend</name>
 	<description>Backend del Sistema de Modelado de Líneas de Metro</description>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
 		<!-- Parches de seguridad posteriores al BOM 3.5.16; sin cambios mayores. -->
 		<tomcat.version>10.1.60</tomcat.version>
 		<postgresql.version>42.7.12</postgresql.version>
