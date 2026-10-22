@@ -1,3 +1,4 @@
+import { DESCRIPCION_MAPA_LIBRE } from './TutorialCalles.js';
 import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { ofrecerTutorial } from './OfertaTutorial.js';
 import { describirFunciones, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
@@ -30,6 +31,7 @@ const RESUMEN = [
 
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
+  ['#visorSimulacion', 'Mapa y entorno real', DESCRIPCION_MAPA_LIBRE],
   ['.simulacion-selector-metros > summary', 'Línea a configurar', 'Abrí el menú hacia la izquierda. Elegí una línea o Todas para aplicar UV o UT. El nombre y la franja corresponden al color real de la línea; debajo ves sus valores UV y UT guardados. Con Todas, ingresá una UV común y cada línea calculará su UT, o ingresá una UT común para calcular cada UV. “Por línea” indica que los resultados son distintos; podés escribir un valor o iniciar en 1 con + o −.'],
   ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'Al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
   ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT. La duración se calcula con la distancia y la velocidad de cada línea.'],

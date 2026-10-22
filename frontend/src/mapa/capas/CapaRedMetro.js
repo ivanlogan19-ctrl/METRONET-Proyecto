@@ -1,3 +1,4 @@
+import { calcularCrucesLineas } from '../utilidades/CrucesLineas.mjs';
 import { PALETA_RED, coloresDeLineas, colorMetro } from '../configuracion/PaletaRed.js';
 import GestosRed from '../controles/GestosRed.js';
 import { numeroMetroEnRed } from '../controles/NombresRed.js';
@@ -44,6 +45,7 @@ export default class CapaRedMetro {
     this.etiquetasEstaciones = [];
     this.texturasMarcos = new Map();
     this.marcadoresEstaciones = [];
+    this.marcadoresCruces = [];
     this.unidadesEstaticas = [];
     this.lineasPorEstacion = new Map();
     this.puntosEstaciones = [];
@@ -162,6 +164,7 @@ export default class CapaRedMetro {
     }));
     this.limitesEtiquetas = [];
     this.obtenerTramos().forEach((tramo) => this.dibujarTramo(tramo, estacionesPorNombre));
+    this.dibujarCruces(estaciones);
     estaciones.forEach((estacion, indice) => this.dibujarEstacion(estacion, indice));
     if (this.mostrarUnidadesEstaticas) this.obtenerUnidadesMetro().forEach((unidad, indice) => this.dibujarUnidad(unidad, indice));
     this.actualizarEscalaElementosGraficos(true);
@@ -188,23 +191,35 @@ export default class CapaRedMetro {
     this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
   }
 
+  dibujarCruces(estaciones) {
+    for (const cruce of calcularCrucesLineas(estaciones, this.obtenerTramos())) {
+      const punto = this.convertirPosicion(cruce.posicionX, cruce.posicionY);
+      const marcador = this.escena.add.graphics().setPosition(punto.x, punto.y).setDepth(PROFUNDIDAD_ESTACIONES - 1);
+      const rombo = [{ x: 0, y: -5 }, { x: 5, y: 0 }, { x: 0, y: 5 }, { x: -5, y: 0 }];
+      marcador.fillStyle(COLORES_INTERFAZ_MAPA.FONDO, 1);
+      marcador.fillPoints(rombo, true);
+      marcador.lineStyle(4, COLORES_INTERFAZ_MAPA.FONDO, 1);
+      marcador.strokePoints(rombo, true);
+      marcador.lineStyle(2, PALETA_RED.estaciones.seleccionada, 1);
+      marcador.strokePoints(rombo, true);
+      this.marcadoresCruces.push(marcador);
+    }
+  }
+
   dibujarEstacion(estacion, indice) {
     const punto = this.convertirPosicion(estacion.posicionX, estacion.posicionY);
     const seleccionada = this.estacionesSeleccionadas.includes(estacion.nombre);
     const activa = this.elementoSeleccionado?.tipo === 'estacion' && this.elementoSeleccionado.valor.nombre === estacion.nombre;
     const destacada = seleccionada || activa;
     const transbordo = this.esTransbordo(estacion);
-    this.dibujarNodoFuncional(punto, destacada, transbordo);
-    this.marcadoresEstaciones.push(this.crearMarcadorEstacion(punto, destacada, transbordo));
+    const colores = [...(this.lineasPorEstacion.get(estacion.nombre) ?? [])].map(nombre => this.colorLinea(nombre));
+    const color = colores[0] ?? PALETA_RED.estaciones.normal;
+    this.dibujarNodoFuncional(punto, destacada, transbordo, color);
+    this.marcadoresEstaciones.push(this.crearMarcadorEstacion(punto, destacada, transbordo, color, colores));
     this.crearEtiquetaEstacion(estacion, punto, indice, ALCANCE_MARCADOR_ESTACION);
   }
 
-  dibujarNodoFuncional(punto, destacada, transbordo) {
-    const colorNodo = destacada
-      ? PALETA_RED.estaciones.seleccionada
-      : transbordo
-        ? PALETA_RED.transbordo
-        : PALETA_RED.estaciones.normal;
+  dibujarNodoFuncional(punto, destacada, transbordo, colorNodo) {
     if (destacada) {
       this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.ACTIVO, 0.16);
       this.grafico.fillCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 9);
@@ -212,6 +227,13 @@ export default class CapaRedMetro {
       this.grafico.strokeCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 7);
     }
     this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 1);
+    if (transbordo) {
+      const contorno = this.contornoEstacionCompartida(punto.x, punto.y, RADIO_NODO_VISIBLE, RADIO_NODO_VISIBLE);
+      this.grafico.fillPoints(contorno, true);
+      this.grafico.lineStyle(2, PALETA_RED.transbordo, 1);
+      this.grafico.strokePoints(contorno, true);
+      return;
+    }
     this.grafico.fillCircle(punto.x, punto.y, RADIO_NODO_VISIBLE);
     this.grafico.lineStyle(2, colorNodo, 1);
     this.grafico.strokeCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL + 1);
@@ -219,19 +241,15 @@ export default class CapaRedMetro {
     this.grafico.fillCircle(punto.x, punto.y, RADIO_NODO_FUNCIONAL - 1);
   }
 
-  crearMarcadorEstacion(punto, destacada, transbordo) {
+  crearMarcadorEstacion(punto, destacada, transbordo, color, colores) {
     const contenedor = this.escena.add.container(punto.x, punto.y).setDepth(PROFUNDIDAD_ESTACIONES);
     const grafico = this.escena.add.graphics();
     const centroY = -DESPLAZAMIENTO_MARCADOR_ESTACION;
     const superior = centroY - ALTO_MARCADOR_ESTACION / 2;
-    const colorMarcador = transbordo
-      ? PALETA_RED.transbordo
-      : destacada
-        ? PALETA_RED.estaciones.seleccionada
-        : PALETA_RED.estaciones.normal;
+    const colorMarcador = transbordo ? PALETA_RED.transbordo : color;
     this.dibujarEnlaceNodoMarcador(grafico, centroY, colorMarcador);
     if (destacada) this.dibujarHaloMarcadorEstacion(grafico, centroY);
-    this.dibujarCuerpoMarcadorEstacion(grafico, superior, colorMarcador, transbordo);
+    this.dibujarCuerpoMarcadorEstacion(grafico, superior, colorMarcador, transbordo, colores);
     contenedor.add(grafico);
     return contenedor;
   }
@@ -246,14 +264,29 @@ export default class CapaRedMetro {
     grafico.strokeCircle(0, centroY, 13);
   }
 
-  dibujarCuerpoMarcadorEstacion(grafico, superior, colorMarcador, transbordo) {
+  contornoEstacionCompartida(x, y, ancho, alto) {
+    return [[-0.5, -1], [0.5, -1], [1, -0.5], [1, 0.5], [0.5, 1], [-0.5, 1], [-1, 0.5], [-1, -0.5]]
+      .map(([dx, dy]) => ({ x: x + dx * ancho, y: y + dy * alto }));
+  }
+
+  dibujarCuerpoMarcadorEstacion(grafico, superior, colorMarcador, transbordo, colores) {
     const izquierda = -ANCHO_MARCADOR_ESTACION / 2;
     const centroY = superior + ALTO_MARCADOR_ESTACION / 2;
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO, 0.56);
     grafico.fillEllipse(0, centroY + 10, ANCHO_MARCADOR_ESTACION + 7, 5);
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 1);
-    grafico.fillRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION);
     grafico.lineStyle(2, colorMarcador, 1);
+    if (transbordo) {
+      const contorno = this.contornoEstacionCompartida(0, centroY, ANCHO_MARCADOR_ESTACION / 2, ALTO_MARCADOR_ESTACION / 2);
+      grafico.fillPoints(contorno, true);
+      grafico.strokePoints(contorno, true);
+      colores.forEach((color, indice) => {
+        grafico.fillStyle(color, 1);
+        grafico.fillRect(-5 + indice * 10 / colores.length, centroY - 4, 10 / colores.length, 7);
+      });
+      return;
+    }
+    grafico.fillRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION);
     grafico.strokeRect(izquierda, superior, ANCHO_MARCADOR_ESTACION, ALTO_MARCADOR_ESTACION);
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 1);
     grafico.fillRect(-5, centroY - 5, 10, 6);
@@ -265,12 +298,6 @@ export default class CapaRedMetro {
     grafico.fillStyle(colorMarcador, 1);
     grafico.fillCircle(-5, centroY + 4, 1.3);
     grafico.fillCircle(5, centroY + 4, 1.3);
-    if (transbordo) {
-      grafico.lineStyle(1, PALETA_RED.transbordo, 1);
-      grafico.strokeRect(-6, centroY - 5, 5, 6);
-      grafico.strokeRect(1, centroY - 5, 5, 6);
-      grafico.lineBetween(-1, centroY - 2, 1, centroY - 2);
-    }
   }
 
   dibujarUnidad(unidad, indice) {
@@ -738,6 +765,7 @@ export default class CapaRedMetro {
     if (!forzar && this.zoomElementosGraficos === zoom && this.rotacionElementosGraficos === rotacion) return;
     const escala = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.125, 1);
     const escalaMetro = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.2, 1);
+    this.marcadoresCruces.forEach(marcador => marcador.setScale(escala));
     this.etiquetasEstaciones.forEach((etiqueta) => etiqueta.setScale(escala));
     this.marcadoresEstaciones.forEach((marcador) => marcador.setScale(Phaser.Math.Clamp(escala, ESCALA_MINIMA_MARCADOR, 1)));
     const actualizarMetro = (unidad) => {
@@ -802,9 +830,11 @@ export default class CapaRedMetro {
   eliminarElementosEstaticos() {
     this.etiquetasEstaciones.forEach((etiqueta) => etiqueta.destroy());
     this.marcadoresEstaciones.forEach((marcador) => marcador.destroy());
+    this.marcadoresCruces.forEach(marcador => marcador.destroy());
     this.unidadesEstaticas.forEach((unidad) => unidad.destroy());
     this.etiquetasEstaciones = [];
     this.marcadoresEstaciones = [];
+    this.marcadoresCruces = [];
     this.unidadesEstaticas = [];
     this.zoomElementosGraficos = null;
     this.rotacionElementosGraficos = null;

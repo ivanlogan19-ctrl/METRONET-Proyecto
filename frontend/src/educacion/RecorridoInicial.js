@@ -1,13 +1,13 @@
 import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
-import { PASOS_CALLES } from './TutorialCalles.js';
+import { PASOS_CALLES, DESCRIPCION_MAPA_LIBRE } from './TutorialCalles.js';
 const PASOS_INTEGRAL = [
   ['#metronet-mapa', 'Mapa de la red', 'Acá construís tu red. Arrastrá para desplazarte por el mapa.'],
   ['.metronet-control-zoom', 'Vista del mapa', 'Usá + y − para acercar o alejar. El botón de ajustar vuelve a encuadrar la red.'],
   ['.metronet-control-zoom__brujula', 'Rotación del mapa', 'Las flechas curvas giran el mapa a izquierda o derecha. La aguja señala el norte. Tocá la brújula para volver a colocar el norte arriba.'],
   ['.metronet-herramientas__barra', 'Herramientas', 'Estos símbolos permiten construir y editar la red. Solo aparecen disponibles los que corresponden al nivel.'],
   ['[data-elegir-herramienta="estaciones"]', 'Estación', 'Este símbolo permite colocar estaciones sobre el mapa.'],
-  ['[data-elegir-herramienta="lineas"]', 'Línea', 'Esta herramienta une dos estaciones y crea una línea con su primer tramo.'],
+  ['[data-elegir-herramienta="lineas"]', 'Línea', 'Uní dos estaciones para crear la línea. Sus estaciones toman ese color; las compartidas son octagonales. Los rombos señalan cruces visuales, sin crear conexiones.'],
   ['[data-elegir-herramienta="seleccion"]', 'Selección', 'Seleccioná elementos existentes para consultar o editar sus propiedades.'],
   ['[data-guardar]', 'Guardar', 'El disquete conserva los cambios de tu red.'],
   ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Elegí una vía y dos estaciones para extender una línea.'],
@@ -39,6 +39,8 @@ export default class RecorridoInicial {
     if (this.panelCerrado) this.togglePanel.click();
     this.pasos = (this.opciones.pasos ?? (this.opciones.integral ? PASOS_INTEGRAL : PASOS)).filter(([selector]) =>
       this.opciones.pasosDinamicos || (this.opciones.senalarDeshabilitados ? senalable : visible)(document.querySelector(selector)));
+    if (this.opciones.libre) this.pasos = this.pasos.map(paso => paso[0] === '#metronet-mapa'
+      ? [paso[0], paso[1], DESCRIPCION_MAPA_LIBRE] : paso);
     this.indice = 0;
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';

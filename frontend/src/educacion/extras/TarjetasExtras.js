@@ -4,7 +4,7 @@ export const TARJETAS_EXTRAS = Object.freeze([
     "id": 1,
     "titulo": "Calles y avenidas",
     "subtitulo": "Orientá el trazado en el territorio",
-    "texto": "La capa de calles muestra referencias viales para ubicar estaciones y reconocer corredores entre barrios.",
+    "texto": "La capa de calles permite reconocer corredores dentro de Montevideo. Los departamentos vecinos y la costa aportan contexto geográfico; la construcción permanece dentro de Montevideo.",
     "aporte": "Te permite relacionar el trazado con la estructura urbana antes de construir estaciones y conexiones en el editor.",
     "practica": "Activá Calles y acercá el mapa. Identificá una avenida, ubicá estaciones próximas a sectores que querés conectar y compará dos trazados posibles.",
     "justificacion": "Justificá por qué elegiste ese corredor y qué sectores conecta.",
@@ -44,11 +44,11 @@ export const TARJETAS_EXTRAS = Object.freeze([
     "id": 5,
     "titulo": "Horarios",
     "subtitulo": "Compará escenarios temporales",
-    "texto": "El control horario permite observar tráfico y desplazamientos en distintas horas. En simulación se muestra inicio, hora actual y fin.",
+    "texto": "En simulación, el Reloj de estación muestra la hora digital. Las flechas amarillas la ajustan de a 15 minutos; tráfico y desplazamientos siguen ese horario.",
     "aporte": "Permite analizar una misma red bajo distintos contextos horarios, sin confundir la hora de las capas con la velocidad del metro.",
-    "practica": "En el mapa, compará 08:00 y 18:00. En simulación, fijá una hora de inicio y mantené la red, la velocidad y la duración para observar el contexto.",
+    "practica": "En edición, compará horarios con la capa Horarios. En simulación, ajustá el reloj y elegí las Líneas a reproducir: Todas están marcadas al comenzar. Iniciá el recorrido y observá las capas.",
     "justificacion": "Separá lo que cambia en las capas históricas de lo que cambia en el movimiento de las unidades.",
-    "nota": "La población permanece fija. Las fuentes pertenecen a períodos distintos; cambiar la hora no crea demanda de pasajeros."
+    "nota": "Cambiar el reloj no modifica UV, UT ni la posición recorrida por los metros. La población permanece fija y las capas históricas no generan pasajeros simulados."
   },
   {
     "id": 6,
@@ -82,12 +82,12 @@ const DIAGRAMAS = [
   '<path d="M40 50H210V260H40Z" fill="#51416f"/><path d="M240 50H405V260H240Z" fill="#8f74c4"/><path d="M430 50H560V260H430Z" fill="#d7b9f0"/>'+LINEA+NODOS+texto(300,32,'CENSO 2023'),
   '<path d="M50 145H215" stroke="#70e5b1" stroke-width="16"/><path d="M215 145H380" stroke="#ffd078" stroke-width="16"/><path d="M380 145H550" stroke="#ff858d" stroke-width="16"/>'+texto(300,80,'UN MISMO CORREDOR')+texto(130,210,'BAJO')+texto(298,210,'MEDIO')+texto(470,210,'ALTO'),
   '<path d="M45 130H140V245H45ZM465 110H560V230H465Z" fill="#18304d" stroke="#426084" stroke-dasharray="7 5"/>'+LINEA+NODOS+FLECHA+texto(92,115,'ORIGEN')+texto(510,95,'DESTINO'),
-  '<circle cx="160" cy="130" r="65" fill="#132641" stroke="#70e5b1" stroke-width="5"/><path d="M160 85v45l-35 25" fill="none" stroke="#edf5ff" stroke-width="6"/><circle cx="435" cy="130" r="65" fill="#132641" stroke="#ffd078" stroke-width="5"/><path d="M435 85v45h-45" fill="none" stroke="#edf5ff" stroke-width="6"/>'+texto(160,240,'08:00')+texto(435,240,'18:00'),
+  texto(300,55,'RELOJ DE ESTACIÓN')+'<rect x="80" y="90" width="60" height="70" fill="#ffd078"/><path d="m100 125 22-16v32Z" fill="#091326"/><rect x="150" y="90" width="300" height="70" fill="#132641" stroke="#48b4ff" stroke-width="3"/><text x="300" y="139" text-anchor="middle" fill="#edf5ff" font-family="monospace" font-size="40">08:15</text><rect x="460" y="90" width="60" height="70" fill="#ffd078"/><path d="m500 125-22-16v32Z" fill="#091326"/>'+texto(300,205,'PASOS DE 15 MINUTOS')+texto(300,250,'TRÁFICO Y DESPLAZAMIENTOS'),
   '<g fill="#8f74c4" fill-opacity=".25" stroke="#bfa3ed" stroke-width="2" stroke-dasharray="7 5"><circle cx="90" cy="180" r="65"/><circle cx="220" cy="150" r="65"/><circle cx="350" cy="200" r="65"/><circle cx="510" cy="155" r="65"/></g>'+LINEA+NODOS+texto(300,55,'500 m POR ESTACIÓN'),
   '<path d="M80 145H520" stroke="#48b4ff" stroke-width="6"/>'+estacion(80,145)+estacion(520,145)+'<path d="M80 195v15h440v-15" fill="none" stroke="#ffd078" stroke-width="3"/>'+texto(300,90,'12 km')+texto(300,260,'4 UV × 3 UT = 12 km'),
 ];
 export function ilustracionExtra(id) {
   const tarjeta = TARJETAS_EXTRAS[id-1] ?? {titulo:'Herramientas del mapa'};
-  const bienvenida = '<g fill="#8f74c4" fill-opacity=".25" stroke="#bfa3ed" stroke-dasharray="7 5"><circle cx="120" cy="165" r="70"/><circle cx="300" cy="165" r="70"/><circle cx="480" cy="215" r="70"/></g><path d="M120 165H300L480 215" stroke="#48b4ff" stroke-width="6" fill="none"/>'+estacion(120,165)+estacion(300,165)+estacion(480,215)+'<path d="M190 100h60l-12-12m12 12-12 12" fill="none" stroke="#ffd078" stroke-width="5"/><circle cx="480" cy="65" r="30" fill="none" stroke="#88d4ee" stroke-width="4"/><path d="M480 42v23h18" fill="none" stroke="#88d4ee" stroke-width="4"/>';
+  const bienvenida = '<g fill="#8f74c4" fill-opacity=".25" stroke="#bfa3ed" stroke-dasharray="7 5"><circle cx="120" cy="165" r="70"/><circle cx="300" cy="165" r="70"/><circle cx="480" cy="215" r="70"/></g><path d="M120 165H300L480 215" stroke="#48b4ff" stroke-width="6" fill="none"/>'+estacion(120,165)+estacion(300,165)+estacion(480,215)+'<path d="M190 100h60l-12-12m12 12-12 12" fill="none" stroke="#ffd078" stroke-width="5"/><rect x="420" y="38" width="120" height="50" fill="#132641" stroke="#88d4ee" stroke-width="3"/><text x="480" y="72" text-anchor="middle" fill="#edf5ff" font-family="monospace" font-size="27">08:15</text>';
   return `<svg viewBox="0 0 600 300" role="img" aria-label="Esquema didáctico: ${tarjeta.titulo}" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="300" fill="#091326"/><path d="M0 50H600M0 100H600M0 150H600M0 200H600M0 250H600M50 0V300M100 0V300M150 0V300M200 0V300M250 0V300M300 0V300M350 0V300M400 0V300M450 0V300M500 0V300M550 0V300" stroke="#18304d"/>${id===0?bienvenida:DIAGRAMAS[id-1]}</svg>`;
 }

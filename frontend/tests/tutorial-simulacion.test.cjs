@@ -359,7 +359,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-  for (const titulo of ['Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+  for (const titulo of ['Mapa y entorno real', 'Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     const objetivo = await p.locator('.metronet-recorrido').getAttribute('data-objetivo');
     assert.equal(await p.locator(objetivo).first().isVisible(), true, `${titulo}: el control señalado debe estar visible`);
@@ -375,7 +375,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   assert.deepEqual(await p.evaluate(() => Object.keys(localStorage).filter(c => c.includes('tutorial-pantalla-simulacion'))), []);
   await p.locator('#tutorialPantallaSimulacion').click();
   await p.getByRole('button', { name: 'Recorrer la pantalla', exact: true }).click();
-  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Línea a configurar', exact: true }).waitFor();
+  await p.locator('.metronet-recorrido').getByRole('heading', { name: 'Mapa y entorno real', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await p.goto(new URL('/simulacion.html?idDiseno=78', p.url()).href);
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();

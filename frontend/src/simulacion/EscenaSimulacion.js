@@ -4,6 +4,7 @@ import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 import { observarTamanoMapa } from '../mapa/ObservarTamanoMapa.js';
 
 import CapaBarrios from '../mapa/capas/CapaBarrios.js';
+import CapaContextoGeografico from '../mapa/capas/CapaContextoGeografico.js';
 import CapaMapaBase from '../mapa/capas/CapaMapaBase.js';
 import CapaPuntosInteres from '../mapa/capas/CapaPuntosInteres.js';
 import { leerCategoriasPoi } from '../mapa/EstadoCategoriasPoi.mjs';
@@ -57,6 +58,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaMapaBase.crear();
     this.capaBarrios = new CapaBarrios(this, { datos: this.cache.json.get('barriosMontevideoSimulacion') });
     this.capaBarrios.dibujar();
+    this.capaContextoGeografico = new CapaContextoGeografico(this, this.capaBarrios);
     this.capaPuntosInteres = new CapaPuntosInteres(this, {
       categoriasIniciales: [],
       mostrarObjetivosSiempre: false,
@@ -106,6 +108,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaTerritorial?.dibujar();
     this.motorSimulacion = new MotorSimulacion(diseno);
     const libre = ['LIBRE', 'EDICION_LIBRE'].includes(diseno.simulacion?.modo);
+    this.capaContextoGeografico?.establecerDisponible(libre);
     if (cambiaDiseno || !libre) { this.capasLibre?.eliminar(); this.capasLibre = null; }
     if (libre && !this.capasLibre) this.capasLibre = new CapasSimulacionLibre(this, diseno);
     else if (this.capasLibre) {
@@ -307,6 +310,7 @@ class EscenaSimulacion extends Phaser.Scene {
     this.capaPuntosInteres?.dibujar();
     this.capaTerritorial?.dibujar();
     this.capaRedMetro?.actualizarTamano();
+    this.capaContextoGeografico?.redibujar();
     this.capasLibre?.redibujar();
     this.controlZoom?.restaurarVistaTrasRedimension(vistaAnterior, this.obtenerLimitesRed());
     this.aplicarVistaGeograficaPendiente();
@@ -413,6 +417,7 @@ class EscenaSimulacion extends Phaser.Scene {
   }
 
   eliminar() {
+    this.capaContextoGeografico?.eliminar();
     this.capasLibre?.eliminar(); this.capasLibre = null;
     this.liberarTamano?.();
     this.liberarTamano = null;

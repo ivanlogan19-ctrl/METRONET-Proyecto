@@ -1,3 +1,5 @@
+export const DESCRIPCION_MAPA_LIBRE = 'Montevideo es el área donde podés construir. Los contornos reales de los departamentos vecinos y la costa sirven de referencia. Al alejar ves más territorio; al girar, el mapa y tu red se mueven juntos.';
+
 export const PASOS_CALLES = [
   ['.metronet-extras-acceso', 'Tarjetas Extras', 'Este icono reúne las siete tarjetas sobre las capas y el diseño de tu red. Podés retomarlas cuando quieras. También están en Aprendizaje, en Extras.'],
   ['[data-calles-visible]', 'Calles y avenidas', 'Este icono muestra u oculta las vías reales. Las avenidas se ven desde lejos; al acercarte aparecen las calles. Podés construir tu red encima.'],

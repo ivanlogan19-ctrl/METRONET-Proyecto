@@ -6,6 +6,17 @@ async function abrirEditor(navegador, opciones = {}) {
   await contexto.addInitScript(() => {
     if (!/^https?:$/.test(location.protocol)) return;
     localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } }));
+    // Firefox oficial no expone siempre el cuerpo POST al interceptar la petición.
+    // Se conserva el cuerpo real enviado por la aplicación, sólo en esta página de prueba.
+    const solicitar = window.fetch;
+    window.cuerposEditorPrueba = new Map();
+    window.fetch = function(recurso, opciones) {
+      if (typeof opciones?.body === 'string') {
+        const ruta = new URL(recurso, location.href).pathname;
+        window.cuerposEditorPrueba.set(`${opciones.method}:${ruta}`, opciones.body);
+      }
+      return solicitar.call(this, recurso, opciones);
+    };
   });
   if (opciones.novedadPresentada && Number.isInteger(opciones.escenario?.numero)) await contexto.addInitScript(numero => {
     if (!/^https?:$/.test(location.protocol)) return;
@@ -56,7 +67,9 @@ async function abrirEditor(navegador, opciones = {}) {
     const ruta = new URL(request.url()).pathname;
     const metodo = request.method();
     if (metodo === 'OPTIONS') return route.fulfill({ status: 204 });
-    const datos = request.postData() ? JSON.parse(request.postData()) : null;
+    const cuerpo = request.postData() ?? await request.frame().evaluate(
+      clave => window.cuerposEditorPrueba?.get(clave) ?? null, `${metodo}:${ruta}`);
+    const datos = cuerpo ? JSON.parse(cuerpo) : null;
     if (metodo !== 'GET') solicitudes.push({ ruta, metodo, datos });
     let respuesta = {};
     if (ruta === '/api/configuraciones') respuesta = [];

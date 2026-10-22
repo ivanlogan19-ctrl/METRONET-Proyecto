@@ -758,6 +758,7 @@ export default class EditorRedMetro {
   }
 
   aplicarHerramientas() {
+    this.escena.capaContextoGeografico?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     this.escena.capaCalles?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     this.escena.capaTrafico?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');
     this.escena.capaPoblacion?.establecerDisponible(this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE');

@@ -92,6 +92,7 @@ export default class PanelTutorialInicial {
     this.contexto = contexto;
     this.integral = esRecorridoIntegral(contexto.escenario);
     this.recorrido.opciones.integral = this.integral;
+    this.recorrido.opciones.libre = contexto.diseno?.simulacion?.modo === 'EDICION_LIBRE';
     this.recorrido.opciones.senalarDeshabilitados = this.integral;
     const id = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario]);
     const nuevo = this.id !== id;

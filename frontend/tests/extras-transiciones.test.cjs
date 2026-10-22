@@ -131,6 +131,13 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
       await pagina.getByRole('heading', { name: titulos[destino], exact: true }).waitFor();
       estable(await medir(pagina), inicial, `tarjeta ${destino + 1}`);
       await sinRecortes(pagina);
+      if (destino === 4) {
+        const contenido = await pagina.locator('.metronet-extras').innerText();
+        assert.match(contenido, /15 minutos/);
+        assert.doesNotMatch(contenido, /se muestra inicio, hora actual y fin/);
+        assert.equal(await pagina.locator('.metronet-extras svg text').filter({ hasText: '08:15' }).count(), 1);
+        await pagina.screenshot({ path: `/tmp/metronet-extra-reloj-${width}.png` });
+      }
       estable(await medir(pagina), inicial, `tarjeta ${destino + 1} tras leer`);
     }
     assert.equal(visitas.length, 12);

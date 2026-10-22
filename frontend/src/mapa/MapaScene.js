@@ -4,6 +4,7 @@ import { configurarBotonIcono } from '../interfaz/IconosRetro.js';
 import Phaser from 'phaser';
 import { observarTamanoMapa } from './ObservarTamanoMapa.js';
 
+import CapaContextoGeografico from './capas/CapaContextoGeografico.js';
 import CapaMapaBase from './capas/CapaMapaBase.js';
 import CapaBarrios from './capas/CapaBarrios.js';
 import CapaCalles from './capas/CapaCalles.js';
@@ -90,6 +91,7 @@ export default class MapaScene extends Phaser.Scene {
     this.crearCapaMapaBase();
 
     this.crearCapaBarrios();
+    this.capaContextoGeografico = new CapaContextoGeografico(this, this.capaBarrios);
     this.capaPoblacion = new CapaPoblacion(this, this.capaBarrios);
     this.capaCalles = new CapaCalles(this, this.capaBarrios);
     this.relojCapas = new RelojCapas();
@@ -391,6 +393,7 @@ export default class MapaScene extends Phaser.Scene {
     }
 
     this.capaTerritorial?.dibujar();
+    this.capaContextoGeografico?.redibujar();
     this.capaPoblacion?.redibujar();
     this.capaCalles?.redibujar();
     this.capaTrafico?.redibujar();
@@ -424,6 +427,7 @@ export default class MapaScene extends Phaser.Scene {
     this.consultaPanelMovil?.removeEventListener('change', this.manejadorCambioPanelMovil);
     this.consultaPanelMovil = null;
     this.manejadorCambioPanelMovil = null;
+    this.capaContextoGeografico?.eliminar();
     this.editorRedMetro?.eliminar();
     this.editorRedMetro = null;
 
