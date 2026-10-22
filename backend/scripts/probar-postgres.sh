@@ -18,9 +18,10 @@ if [[ ! -x "$pg_bin/initdb" ]]; then
   echo 'Falta PostgreSQL local. Indicá su directorio bin con METRONET_POSTGRES_BIN.' >&2
   exit 1
 fi
-if [[ -z "${JAVA_HOME:-}" && -d /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ]]; then
-  export JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
-fi
+source "$raiz/backend/scripts/seleccionar-java.sh"
+seleccionarJava "${JAVA_HOME:-}" \
+  /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home \
+  /usr/local/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
 
 temporal=$(mktemp -d "${TMPDIR:-/tmp}/metronet-pruebas-pg.XXXXXX")
 preparado=false

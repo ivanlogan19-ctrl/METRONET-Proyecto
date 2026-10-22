@@ -11,10 +11,13 @@ for (const fallo of [false, true]) test(`arranque aislado: compilación ${fallo 
     for (const carpeta of ['backend/scripts', 'backend/target', 'java/bin', 'temporal'])
       fs.mkdirSync(path.join(raiz, carpeta), { recursive: true });
     fs.copyFileSync(path.join(__dirname, '../backend/scripts/iniciar-local.sh'), path.join(raiz, 'backend/scripts/iniciar-local.sh'));
+    fs.copyFileSync(path.join(__dirname, '../backend/scripts/seleccionar-java.sh'), path.join(raiz, 'backend/scripts/seleccionar-java.sh'));
+    fs.writeFileSync(path.join(raiz, 'java/bin/javac'), '#!/bin/bash\nexit 0\n', { mode: 0o700 });
     fs.writeFileSync(path.join(raiz, 'entorno'), '');
     fs.writeFileSync(path.join(raiz, 'backend/mvnw'), `#!/bin/bash\n${fallo ? 'exit 7' : 'printf original > target/backend-0.0.1-SNAPSHOT.jar'}\n`, { mode: 0o700 });
     fs.writeFileSync(path.join(raiz, 'java/bin/java'), `#!/bin/bash
 set -eu
+if [[ "$1" == -version ]]; then printf 'openjdk version "25.0.5"\\n'; exit 0; fi
 [[ "$1" == -jar && "$3" == --prueba ]]
 [[ "$2" != target/backend-0.0.1-SNAPSHOT.jar ]]
 [[ "$(cat "$2")" == original ]]

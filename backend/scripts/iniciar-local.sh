@@ -10,7 +10,10 @@ fi
 set -a
 source "$configuracion"
 set +a
-export JAVA_HOME=${JAVA_HOME:-/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home}
+source "$raiz/backend/scripts/seleccionar-java.sh"
+seleccionarJava "${JAVA_HOME:-}" \
+  /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home \
+  /usr/local/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
 cd "$raiz/backend"
 # Empaquetar el código actual evita arrancar un JAR antiguo después de actualizar Git.
 # Si falla la compilación, set -e impide ejecutar silenciosamente la versión anterior.
