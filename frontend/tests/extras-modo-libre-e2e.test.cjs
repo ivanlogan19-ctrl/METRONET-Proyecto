@@ -40,7 +40,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   await page.setViewportSize({width:1440,height:900});
   await vista.getByRole('button',{name:'Ir a construir',exact:true}).click();
   await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).click();
-  await vista.locator('.metronet-recorrido').getByRole('heading',{name:'Tarjetas Extras',exact:true}).waitFor();
+  await vista.locator('.metronet-recorrido').getByRole('heading',{name:'Mapa y entorno real',exact:true}).waitFor();
   await vista.locator('[data-recorrido-omitir]').click();
   assert.deepEqual((await estado()).visitadas,[],'Saltar no cuenta tarjetas');
   assert.equal((await estado()).bienvenidaVista,true);
@@ -186,5 +186,5 @@ test('Primera entrada: bienvenida, siete tarjetas y premio antes del tutorial',{
   assert.equal(await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).count(),0);
   await vista.getByRole('button',{name:'Continuar',exact:true}).click();
   await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).click();
-  await vista.locator('.metronet-recorrido').getByRole('heading',{name:'Tarjetas Extras',exact:true}).waitFor();
+  await vista.locator('.metronet-recorrido').getByRole('heading',{name:'Mapa y entorno real',exact:true}).waitFor();
 });

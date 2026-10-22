@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
 @Service
 public class RecorridoIntegralService {
-    public static final String VERSION = "integral-2026-10-lineas-automaticas-v4";
+    public static final String VERSION = "integral-2026-10-red-progresiva-v5";
     private final AdministracionNivelesService borradores;
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
@@ -70,7 +70,6 @@ public class RecorridoIntegralService {
                 referencia(nivel),ayudas,tarjetasActualizadas(previo.tarjetas(), nivel)),idAdmin);
             resultado.add(publicarValidado(numero, guardado, idAdmin));
         }
-        adaptarIntentosEnCurso();
         return resultado;
     }
 
@@ -117,16 +116,6 @@ public class RecorridoIntegralService {
         return catalogo;
     }
 
-    /** Adopción explícita del cambio aprobado en intentos activos del recorrido anterior.
-     * Las publicaciones, ejecuciones y campañas completadas conservan su historia. */
-    private void adaptarIntentosEnCurso() {
-        var intentos = repositorio.intentosEnCurso(VERSION);
-        for (var intento : intentos) {
-            repositorio.vincularPublicacion(intento.get("id_nivel_publicacion"), intento.get("id_intento"));
-            repositorio.actualizarCatalogoIntento(intento.get("id_intento"), intento.get("id_nivel_publicacion"));
-        }
-    }
-
     private JsonNode tarjetasActualizadas(JsonNode anteriores, JsonNode nivel) {
         JsonNode tarjetas = anteriores.deepCopy();
         ((ObjectNode) tarjetas.get(tarjetas.size()-1)).put("aprendizaje", nivel.path("transicion").path("aprendizaje").asText());
@@ -142,34 +131,57 @@ public class RecorridoIntegralService {
 
     // Referencia privada para el ensayo de publicación. Nunca se entrega al jugador ni inicia su diseño.
     private JsonNode referencia(JsonNode nivel) {
-        int numero=nivel.path("numero").asInt();
-        JsonNode reglas=nivel.path("reglasExito");
-        ObjectNode red=mapper.createObjectNode();
-        var estaciones=red.putArray("estaciones");
-        int cantidad=reglas.path("minimoEstaciones").asInt();
-        for (int i=0;i<cantidad;i++) estaciones.addObject().put("nombre","E"+i).put("x",620+i*10).put("y",465);
-        int indice=0;
-        for (JsonNode objetivo:reglas.path("puntosInteresObjetivo")) {
-            var punto=geografia.resolverPunto(objetivo.path("idPunto").asInt(),null);
-            ((ObjectNode)estaciones.get(indice++)).put("x",geografia.posicionX(punto)).put("y",geografia.posicionY(punto));
+        int numero = nivel.path("numero").asInt();
+        JsonNode reglas = nivel.path("reglasExito");
+        ObjectNode red = mapper.createObjectNode();
+        var estaciones = red.putArray("estaciones");
+        var lineas = red.putArray("lineas");
+        var tramos = red.putArray("tramos");
+        var cantidades = reglas.path("configuracionRecorrido").path("estacionesPorLinea");
+        var puntos = reglas.path("puntosInteresObjetivo");
+        double centroX = numero < 4 ? 650 : 610, centroY = numero < 4 ? 465 : 380;
+        estaciones.addObject().put("nombre", "Centro").put("x", centroX).put("y", centroY);
+        for (int linea = 0; linea < cantidades.size(); linea++) {
+            String nombre = "Línea " + (linea + 1);
+            lineas.addObject().put("nombre", nombre);
+            double x = numero < 4 ? 620 + linea * 50 : 650 + linea * 45;
+            double y = numero < 4 ? 465 + linea * 30 : 465 - linea * 45;
+            if (linea < puntos.size()) {
+                var punto = geografia.resolverPunto(puntos.get(linea).path("idPunto").asInt(), null);
+                x = geografia.posicionX(punto).doubleValue(); y = geografia.posicionY(punto).doubleValue();
+                // Los hitos costeros se cubren desde tierra, sin colocar estaciones sobre la costa.
+                double distancia = Math.hypot(centroX - x, centroY - y);
+                x += (centroX - x) * 12 / distancia; y += (centroY - y) * 12 / distancia;
+            }
+            String anterior = "Centro";
+            double origenX = centroX, origenY = centroY;
+            if (numero == 3 && linea == 1) {
+                anterior = "Centro2"; origenX = 700; origenY = 495;
+                estaciones.addObject().put("nombre", anterior).put("x", origenX).put("y", origenY);
+            }
+            int cantidad = cantidades.get(linea).asInt();
+            for (int indice = 1; indice < cantidad; indice++) {
+                String estacion = "E" + linea + "_" + indice;
+                double fraccion = (double) indice / (cantidad - 1);
+                double estacionX = origenX + (x - origenX) * fraccion;
+                double estacionY = origenY + (y - origenY) * fraccion;
+                // La llegada a Ciudad Vieja bordea el puerto por tierra.
+                if (numero == 10 && linea == 0 && indice == 2) { estacionX = 610; estacionY = 520; }
+                estaciones.addObject().put("nombre", estacion).put("x", estacionX).put("y", estacionY);
+                tramos.addObject().put("linea", nombre).put("a", anterior).put("b", estacion);
+                anterior = estacion;
+            }
         }
-        var lineas=red.putArray("lineas"); lineas.addObject().put("nombre","Principal");
-        boolean dos=reglas.path("minimoLineas").asInt()>1 || reglas.path("minimoTransbordos").asInt()>0;
-        if (dos) lineas.addObject().put("nombre","Enlace");
-        var tramos=red.putArray("tramos");
-        for (int i=1;i<cantidad;i++) tramos.addObject().put("linea",dos && i==cantidad-1 ? "Enlace":"Principal")
-            .put("a","E"+(i-1)).put("b","E"+i);
-        var unidades=red.putArray("unidades");
-        int metros=reglas.path("minimoMetros").asInt();
-        for (int i=0;i<metros;i++) unidades.addObject().put("linea",dos && i==metros-1?"Enlace":"Principal")
-            .put("capacidad",300).put("uv",4);
-        var ejecuciones=red.putArray("ejecuciones");
-        paso(ejecuciones,6,metros,4,4);
-        if (numero==2) paso(ejecuciones,6,metros,5,5);
-        if (numero==3) { paso(ejecuciones,8,metros,4,4); ((ObjectNode)ejecuciones.get(ejecuciones.size()-1)).put("parametroReferencia","UT"); }
-        if (numero==4) { paso(ejecuciones,6,metros,5,5); paso(ejecuciones,8,metros,5,5); ((ObjectNode)ejecuciones.get(ejecuciones.size()-1)).put("parametroReferencia","UT"); }
-        if (numero==8) paso(ejecuciones,6,metros,3,4);
-        if (numero==9 || numero==10) paso(ejecuciones,8,metros,6,6);
+        var unidades = red.putArray("unidades");
+        int metros = reglas.path("minimoMetros").asInt();
+        for (int indice = 0; indice < metros; indice++) unidades.addObject()
+            .put("linea", "Línea " + (indice % cantidades.size() + 1)).put("capacidad", 300).put("uv", 1);
+        var ejecucion = red.putArray("ejecuciones").addObject().put("velocidad", 1)
+            .put("duracion", numero == 7 ? 100 : numero == 8 ? 0.5 : 6)
+            .put("parametroReferencia", numero == 7 || numero == 8 ? "UT" : "UV");
+        var valores = ejecucion.putArray("unidades");
+        double uv = numero == 6 || numero == 10 ? 2 : numero == 9 ? 0.5 : 1;
+        for (int indice = 0; indice < metros; indice++) valores.addObject().put("uv", uv);
         return red;
     }
 
@@ -192,7 +204,7 @@ public class RecorridoIntegralService {
                 if (!nivel.path("herramientasHabilitadas").path(herramienta).asBoolean())
                     throw new IllegalStateException("Nivel " + numero + ": herramienta requerida no habilitada: " + herramienta);
             var puntos = reglas.path("puntosInteresObjetivo");
-            if (puntos.size() != (numero < 6 ? 0 : 3) || (numero >= 6 && !reglas.path("requierePoiIndividuales").asBoolean()))
+            if (puntos.size() != (numero < 6 ? 0 : numero == 6 ? 1 : numero == 10 ? 3 : 2) || (numero >= 6 && !reglas.path("requierePoiIndividuales").asBoolean()))
                 throw new IllegalStateException("Nivel " + numero + ": cantidad/evaluación de POI inválida");
             for (var punto : puntos) {
                 int id = punto.path("idPunto").asInt();
@@ -202,8 +214,4 @@ public class RecorridoIntegralService {
         }
     }
 
-    private void paso(com.fasterxml.jackson.databind.node.ArrayNode ejecuciones,int horas,int cantidad,int primera,int resto) {
-        var unidades=ejecuciones.addObject().put("duracion",horas).put("velocidad",1).putArray("unidades");
-        for (int i=0;i<cantidad;i++) unidades.addObject().put("uv",i==0?primera:resto);
-    }
 }

@@ -513,6 +513,12 @@ public class JuegoEducativoService {
         objetivosVigentes = ObjetivosAvanzados.reducir(intento.numero() == null ? 0 : intento.numero(),
             configuracionUt != null, reglas, objetivosVigentes,
             condicionesGeograficasService::zonaIncluyeBarrio);
+        if (reglas.get("configuracionRecorrido") instanceof Map<?, ?> configuracion) {
+            var enlaces = repositorio.enlacesRecorrido((r, fila) -> new MetasRecorrido.Enlace(
+                r.getString(1), r.getString(2), r.getString(3)), idDiseno);
+            objetivosVigentes = MetasRecorrido.evaluar(configuracion, objetivosVigentes, enlaces,
+                lineas, cantidad(repositorio.contarLineasAtendidas(idDiseno)));
+        }
         objetivosVigentes = TextosMetasNivel.aplicar(reglas, objetivosVigentes);
         int progreso = PuntuacionService.normalizar(objetivosVigentes);
         boolean completado = !objetivosVigentes.isEmpty() && objetivosVigentes.stream().allMatch(CondicionConsignaResponse::completado);

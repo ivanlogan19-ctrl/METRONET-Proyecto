@@ -198,6 +198,7 @@ export default class PanelAyudaContextual {
     this.controlExtras = new AbortController();
     try { await ofrecerExtras({...contexto,signal:this.controlExtras.signal}); }
     catch { /* No impedir construir cuando no está disponible el material. */ }
+    finally { contexto.alPresentar?.(); }
   }
 
   eliminar() {

@@ -9,14 +9,16 @@ const nodo = (tag,texto='',clase='') => { const e=document.createElement(tag); e
 const boton = (texto,accion,clase='') => { const e=nodo('button',texto,clase); e.type='button'; configurarAccionPorNombre(e); if(!e.dataset.accionUi)configurarAccion(e,texto==='Ir a construir'?'abrir':'continuar',{conservarTexto:true}); e.addEventListener('click',accion); return e; };
 const figura = id => { const e=nodo('div','','metronet-extras__imagen'); e.innerHTML=ilustracionExtra(id); return e; };
 
-export async function ofrecerExtras({signal,idDiseno,idUsuario}={}) {
+export async function ofrecerExtras({signal,idDiseno,idUsuario,alPresentar}={}) {
   await solicitarExtras('/ingreso','POST',signal);
   if (signal?.aborted) return;
   // La oferta pertenece a esta red; las visitas y el premio siguen perteneciendo a la cuenta.
   const clave=idDiseno && idUsuario ? `metronet:extras-bienvenida:v1:${idUsuario}:${idDiseno}` : null;
   try { if(clave && localStorage.getItem(clave)) return; } catch { /* Preferencia opcional. */ }
   const registrar=()=>{try { if(clave)localStorage.setItem(clave,'ofrecida'); } catch { /* No bloquear el juego. */ }};
-  await abrirExtras({bienvenida:true,signal,alElegirBienvenida:registrar});
+  const recorrido = abrirExtras({bienvenida:true,signal,alElegirBienvenida:registrar});
+  alPresentar?.();
+  await recorrido;
 }
 
 export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualizar,alElegirBienvenida}={}) {

@@ -38,6 +38,13 @@ class RecorridoIntegralE2EPostgresTest {
         assertTrue(System.getenv("METRONET_TEST_POSTGRES_URL").matches("jdbc:postgresql://127\\.0\\.0\\.1:[0-9]+/metronet_pruebas"));
         int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Editor QA','editor-e2e@example.test','!sin-login','ADMIN') RETURNING id_usuario",Integer.class);
         recorrido.publicar(admin);
+        var referencias = java.nio.file.Files.createTempFile("metronet-referencias-v5-", ".json");
+        var redes = jdbc.queryForList("""
+            SELECT p.red_referencia::text FROM nivel_publicacion p JOIN escenario e USING(id_escenario)
+            WHERE p.numero_version=(SELECT MAX(v.numero_version) FROM nivel_publicacion v WHERE v.id_escenario=p.id_escenario)
+            ORDER BY e.numero
+            """, String.class);
+        java.nio.file.Files.writeString(referencias, "[" + String.join(",", redes) + "]");
         String email="campana-"+UUID.randomUUID()+"@example.test", clave="CampanaQA!7";
         int jugador=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Campaña UI',?,?, 'JUGADOR') RETURNING id_usuario",Integer.class,email,encoder.encode(clave));
         var proceso=new ProcessBuilder("node","--test","tests/recorrido-integral-e2e.test.cjs")
@@ -47,20 +54,22 @@ class RecorridoIntegralE2EPostgresTest {
         proceso.environment().put("METRONET_URL_PRUEBAS","http://127.0.0.1:5198");
         proceso.environment().put("METRONET_E2E_EMAIL",email);
         proceso.environment().put("METRONET_E2E_CLAVE",clave);
+        proceso.environment().put("METRONET_E2E_REFERENCIAS", referencias.toString());
         var ejecucion=proceso.start();
-        boolean termino=ejecucion.waitFor(20,TimeUnit.MINUTES);
+        boolean termino;
+        try { termino=ejecucion.waitFor(20,TimeUnit.MINUTES); }
+        finally { java.nio.file.Files.deleteIfExists(referencias); }
         if (!termino) ejecucion.destroyForcibly();
         assertTrue(termino,"Tiempo máximo de campaña excedido");
         System.out.println(java.nio.file.Files.readString(Path.of("/tmp/metronet-recorrido-browser.log")));
         assertEquals(0,ejecucion.exitValue(),"Falló un recorrido real de navegador");
         assertEquals(10,jdbc.queryForObject("SELECT COUNT(*) FROM intento WHERE id_usuario=? AND estado='COMPLETADO' AND progreso=100",Integer.class,jugador));
-        var puntosEsperados = "true".equals(System.getenv("METRONET_E2E_DESCUENTOS"))
-            ? java.util.List.of(100,90,80,70,100,100,100,60,90,60) : java.util.Collections.nCopies(10,100);
+        var puntosEsperados = java.util.Collections.nCopies(10,100);
         assertEquals(puntosEsperados.stream().mapToInt(Integer::intValue).sum(),
             jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=? AND estado='COMPLETADO'",Integer.class,jugador));
         assertEquals(puntosEsperados,jdbc.queryForList(
             "SELECT i.puntaje FROM intento i JOIN escenario e USING(id_escenario) WHERE i.id_usuario=? AND i.estado='COMPLETADO' ORDER BY e.numero",Integer.class,jugador));
         assertTrue(jdbc.queryForObject("SELECT campana_completada_historicamente FROM usuario WHERE id_usuario=?",Boolean.class,jugador));
-        assertTrue(jdbc.queryForObject("SELECT COUNT(*) FROM simulacion s JOIN intento i USING(id_intento) WHERE i.id_usuario=?",Integer.class,jugador)>=17);
+        assertTrue(jdbc.queryForObject("SELECT COUNT(*) FROM simulacion s JOIN intento i USING(id_intento) WHERE i.id_usuario=?",Integer.class,jugador)>=10);
     }
 }

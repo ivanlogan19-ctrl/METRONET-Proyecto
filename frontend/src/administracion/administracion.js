@@ -830,7 +830,8 @@ async function eliminarUsuario(idUsuario, nombreUsuario, token) {
     }
 
     mostrarMensaje("");
-    cargarUsuarios(token);
+    usuariosDisponibles = usuariosDisponibles.filter(usuario => String(usuario.idUsuario) !== String(idUsuario));
+    filtrarUsuarios();
   } catch (error) {
     mostrarMensaje(error.message, "error");
   }

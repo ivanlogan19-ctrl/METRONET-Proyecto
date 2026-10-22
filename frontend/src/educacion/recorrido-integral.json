@@ -2,15 +2,30 @@
   {
     "numero": 1,
     "nombre": "Nivel 1 · Primer recorrido",
-    "objetivo": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido.",
-    "instrucciones": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido.",
+    "objetivo": "Construí 1 línea de 2 estaciones, con 2 estaciones en total. Asigná 1 Metro. Guardá, simulá y volvé a Edición para Finalizar red. Conservá la velocidad y duración iniciales.",
+    "instrucciones": "Construí 1 línea de 2 estaciones, con 2 estaciones en total. Asigná 1 Metro. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red. Conservá la velocidad y duración iniciales.",
     "dificultad": "Inicial",
     "reglasExito": {
       "minimoEstaciones": 2,
       "minimoLineas": 1,
       "minimoTramos": 1,
       "minimoMetros": 1,
-      "requiereSimulacion": true
+      "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          2
+        ],
+        "redConectada": false,
+        "metroPorLinea": true,
+        "practica": "inicial"
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} línea de 2 estaciones.",
+        "minimoTramos": "Crear {cantidad} conexión.",
+        "minimoMetros": "{cantidad} Metro.",
+        "simulacionActual": "Simular con los valores iniciales."
+      }
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -21,33 +36,45 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, un primer trazo empieza a unir sus ideas. Todavía es un boceto; verlo en movimiento les dirá si tienen algo sobre lo que seguir trabajando.",
+      "texto": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, una idea empieza a tomar forma. El equipo deja de discutir sobre una red imaginada: ahora tiene un primer recorrido que puede observar en movimiento.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Del diseño a la circulación",
+      "concepto": "Primer recorrido",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, un primer trazo empieza a unir sus ideas. Todavía es un boceto; verlo en movimiento les dirá si tienen algo sobre lo que seguir trabajando.",
-      "consejo": "Ubicá 2 estaciones, creá 1 línea con su primer tramo y asigná 1 Metro. Guardá, entrá en Simulación y ejecutá la red actual. Volvé a Edición y pulsá Finalizar red. Línea une las primeras dos estaciones; Conexión permite extender ese recorrido."
+      "contexto": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, una idea empieza a tomar forma. El equipo deja de discutir sobre una red imaginada: ahora tiene un primer recorrido que puede observar en movimiento.",
+      "consejo": "Construí 1 línea de 2 estaciones, con 2 estaciones en total. Asigná 1 Metro. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red. Conservá la velocidad y duración iniciales."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, un primer trazo empieza a unir sus ideas. Todavía es un boceto; verlo en movimiento les dirá si tienen algo sobre lo que seguir trabajando."
+      "ciudad": "Ari abre el cuaderno del proyecto de Logística que comparte con Sol y Dani. Frente al mapa de Montevideo, una idea empieza a tomar forma. El equipo deja de discutir sobre una red imaginada: ahora tiene un primer recorrido que puede observar en movimiento."
     }
   },
   {
     "numero": 2,
-    "nombre": "Nivel 2 · Extender y cambiar velocidad",
-    "objetivo": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la UT calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
-    "instrucciones": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la UT calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
+    "nombre": "Nivel 2 · Extensión de línea",
+    "objetivo": "Construí 1 línea de 3 estaciones, con 3 estaciones en total. Asigná 2 Metros, al menos uno por línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 1 línea de 3 estaciones, con 3 estaciones en total. Asigná 2 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
     "dificultad": "Inicial",
     "reglasExito": {
       "minimoEstaciones": 3,
+      "minimoLineas": 1,
       "minimoTramos": 2,
-      "minimoMetros": 1,
+      "minimoMetros": 2,
       "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "velocidad": true
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          3
+        ],
+        "redConectada": false,
+        "metroPorLinea": true
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} línea de 3 estaciones.",
+        "minimoTramos": "Crear {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros.",
+        "simulacionActual": "Ejecutar una simulación."
       }
     },
     "herramientasHabilitadas": {
@@ -59,33 +86,46 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Con el primer ensayo a sus espaldas, Sol mira más allá de los extremos del trazado. Hay otros destinos que podrían formar parte del proyecto. La distancia crece y trae una pregunta al equipo: ¿qué cambia en el viaje cuando cambia su ritmo?",
+      "texto": "Sol vuelve sobre el boceto de Ari y señala lo que quedó fuera. La ciudad no termina donde acaba un primer trazo. Mientras extienden la propuesta, aparecen nuevas preguntas sobre cómo sostener el servicio a lo largo del recorrido.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "UV — Unidad de Velocidad",
+      "concepto": "Extensión de línea",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Con el primer ensayo a sus espaldas, Sol mira más allá de los extremos del trazado. Hay otros destinos que podrían formar parte del proyecto. La distancia crece y trae una pregunta al equipo: ¿qué cambia en el viaje cuando cambia su ritmo?",
-      "consejo": "Ubicá 3 estaciones, construí 2 tramos continuos y asigná 1 Metro. Creá el primer tramo con Línea y extendelo con Conexión. Guardá y entrá en Simulación. Ejecutá A, cambiá y aplicá UV y ejecutá B con la UT calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
+      "contexto": "Sol vuelve sobre el boceto de Ari y señala lo que quedó fuera. La ciudad no termina donde acaba un primer trazo. Mientras extienden la propuesta, aparecen nuevas preguntas sobre cómo sostener el servicio a lo largo del recorrido.",
+      "consejo": "Construí 1 línea de 3 estaciones, con 3 estaciones en total. Asigná 2 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Con el primer ensayo a sus espaldas, Sol mira más allá de los extremos del trazado. Hay otros destinos que podrían formar parte del proyecto. La distancia crece y trae una pregunta al equipo: ¿qué cambia en el viaje cuando cambia su ritmo?"
+      "ciudad": "Sol vuelve sobre el boceto de Ari y señala lo que quedó fuera. La ciudad no termina donde acaba un primer trazo. Mientras extienden la propuesta, aparecen nuevas preguntas sobre cómo sostener el servicio a lo largo del recorrido."
     }
   },
   {
     "numero": 3,
-    "nombre": "Nivel 3 · Tiempo simulado",
-    "objetivo": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B con la UV calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
-    "instrucciones": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B con la UV calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red.",
+    "nombre": "Nivel 3 · Dos líneas",
+    "objetivo": "Construí 2 líneas de 2 estaciones, con 4 estaciones en total. Mantené los dos recorridos independientes. Asigná 2 Metros, al menos uno por línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 2 líneas de 2 estaciones, con 4 estaciones en total. Mantené los dos recorridos independientes. Asigná 2 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
     "dificultad": "Básico",
     "reglasExito": {
       "minimoEstaciones": 4,
-      "minimoTramos": 3,
-      "minimoMetros": 1,
+      "minimoLineas": 2,
+      "minimoTramos": 2,
+      "minimoMetros": 2,
       "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "duracion": true
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          2,
+          2
+        ],
+        "redConectada": false,
+        "metroPorLinea": true
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas de 2 estaciones.",
+        "minimoTramos": "Crear {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros: 1 por línea.",
+        "simulacionActual": "Ejecutar una simulación."
       }
     },
     "herramientasHabilitadas": {
@@ -97,33 +137,46 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Dani conserva las notas de Sol y pone el reloj junto al mapa. Hasta ahora miraban por dónde pasaría la red; ahora importa cuánto duraría el recorrido. El tiempo deja de ser una anotación al margen y empieza a orientar sus decisiones.",
+      "texto": "Dani pone dos trazados sobre la mesa. Cada uno responde a una necesidad distinta y merece ser observado por sí mismo. Antes de reunirlos en una única propuesta, el equipo quiere entender cómo se comportan cuando empiezan a circular.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Duración simulada",
+      "concepto": "Dos líneas",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Dani conserva las notas de Sol y pone el reloj junto al mapa. Hasta ahora miraban por dónde pasaría la red; ahora importa cuánto duraría el recorrido. El tiempo deja de ser una anotación al margen y empieza a orientar sus decisiones.",
-      "consejo": "Ubicá 4 estaciones, construí 3 tramos continuos y asigná 1 Metro. Guardá y simulá A; después cambiá y aplicá la duración UT y ejecutá B con la UV calculada por distancia. La última ejecución debe corresponder a la red actual. Volvé y pulsá Finalizar red."
+      "contexto": "Dani pone dos trazados sobre la mesa. Cada uno responde a una necesidad distinta y merece ser observado por sí mismo. Antes de reunirlos en una única propuesta, el equipo quiere entender cómo se comportan cuando empiezan a circular.",
+      "consejo": "Construí 2 líneas de 2 estaciones, con 4 estaciones en total. Mantené los dos recorridos independientes. Asigná 2 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Dani conserva las notas de Sol y pone el reloj junto al mapa. Hasta ahora miraban por dónde pasaría la red; ahora importa cuánto duraría el recorrido. El tiempo deja de ser una anotación al margen y empieza a orientar sus decisiones."
+      "ciudad": "Dani pone dos trazados sobre la mesa. Cada uno responde a una necesidad distinta y merece ser observado por sí mismo. Antes de reunirlos en una única propuesta, el equipo quiere entender cómo se comportan cuando empiezan a circular."
     }
   },
   {
     "numero": 4,
-    "nombre": "Nivel 4 · Varias unidades",
-    "objetivo": "Ubicá 4 estaciones y asigná 2 Metros a una línea conectada. Guardá y simulá A. Cambiá UV y simulá B con la UT calculada. Después elegí otra UT y simulá C con la UV calculada. Ambos metros comparten la configuración de la línea. Volvé y pulsá Finalizar red.",
-    "instrucciones": "Ubicá 4 estaciones y asigná 2 Metros a una línea conectada. Guardá y simulá A. Cambiá UV y simulá B con la UT calculada. Después elegí otra UT y simulá C con la UV calculada. Ambos metros comparten la configuración de la línea. Volvé y pulsá Finalizar red.",
+    "nombre": "Nivel 4 · Unir dos líneas",
+    "objetivo": "Construí 2 líneas de 3 estaciones, con 5 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 2 Metros, al menos uno por línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 2 líneas de 3 estaciones, con 5 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 2 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
     "dificultad": "Básico",
     "reglasExito": {
-      "minimoEstaciones": 4,
+      "minimoEstaciones": 5,
+      "minimoLineas": 2,
+      "minimoTramos": 4,
       "minimoMetros": 2,
       "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "velocidad": true,
-        "duracion": true
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          3,
+          3
+        ],
+        "redConectada": true,
+        "metroPorLinea": true
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas de 3 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros: 1 por línea.",
+        "simulacionActual": "Ejecutar una simulación."
       }
     },
     "herramientasHabilitadas": {
@@ -135,32 +188,48 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Sol ve aparecer otra unidad sobre el trazado que venían estudiando. El proyecto ya no se entiende siguiendo un solo vehículo: ambos forman parte de una misma línea. Vuelve a las notas de Dani para pensar qué decisiones comparten y cómo se mueven juntos.",
+      "texto": "Sol encuentra un lugar donde las ideas de Ari y Dani pueden reunirse. Esa estación deja de pertenecer a un recorrido aislado y se vuelve un punto común. El proyecto empieza a tener continuidad más allá de cada línea.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Configuración compartida por línea",
+      "concepto": "Unir dos líneas",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Sol ve aparecer otra unidad sobre el trazado que venían estudiando. El proyecto ya no se entiende siguiendo un solo vehículo: ambos forman parte de una misma línea. Vuelve a las notas de Dani para pensar qué decisiones comparten y cómo se mueven juntos.",
-      "consejo": "Ubicá 4 estaciones y asigná 2 Metros a una línea conectada. Guardá y simulá A. Cambiá UV y simulá B con la UT calculada. Después elegí otra UT y simulá C con la UV calculada. Ambos metros comparten la configuración de la línea. Volvé y pulsá Finalizar red."
+      "contexto": "Sol encuentra un lugar donde las ideas de Ari y Dani pueden reunirse. Esa estación deja de pertenecer a un recorrido aislado y se vuelve un punto común. El proyecto empieza a tener continuidad más allá de cada línea.",
+      "consejo": "Construí 2 líneas de 3 estaciones, con 5 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 2 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Sol ve aparecer otra unidad sobre el trazado que venían estudiando. El proyecto ya no se entiende siguiendo un solo vehículo: ambos forman parte de una misma línea. Vuelve a las notas de Dani para pensar qué decisiones comparten y cómo se mueven juntos."
+      "ciudad": "Sol encuentra un lugar donde las ideas de Ari y Dani pueden reunirse. Esa estación deja de pertenecer a un recorrido aislado y se vuelve un punto común. El proyecto empieza a tener continuidad más allá de cada línea."
     }
   },
   {
     "numero": 5,
-    "nombre": "Nivel 5 · Dos líneas en servicio",
-    "objetivo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red.",
-    "instrucciones": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red.",
+    "nombre": "Nivel 5 · Tres líneas",
+    "objetivo": "Construí 3 líneas de 3 estaciones, con 7 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 3 Metros, al menos uno por línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 3 líneas de 3 estaciones, con 7 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 3 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
     "dificultad": "Intermedio",
     "reglasExito": {
-      "minimoEstaciones": 5,
-      "minimoLineas": 2,
-      "minimoTramos": 4,
-      "minimoMetros": 2,
-      "requiereSimulacion": true
+      "minimoEstaciones": 7,
+      "minimoLineas": 3,
+      "minimoTramos": 6,
+      "minimoMetros": 3,
+      "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          3,
+          3,
+          3
+        ],
+        "redConectada": true,
+        "metroPorLinea": true
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas de 3 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros: 1 por línea.",
+        "simulacionActual": "Ejecutar una simulación."
+      }
     },
     "herramientasHabilitadas": {
       "estaciones": true,
@@ -171,43 +240,52 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Ari extiende sobre la mesa dos trazados que antes parecían proyectos separados. Quiere que se encuentren sin perder su identidad. Mientras Sol revisa los destinos y Dani observa la circulación, el equipo empieza a pensar en una red completa.",
+      "texto": "Ari agrega una nueva dirección al esquema. El cuaderno ya no contiene trazos sueltos: cualquier decisión alcanza a otros recorridos. Sol revisa sus encuentros y Dani sigue las unidades, mientras los tres aprenden a mirar la red como un conjunto.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Dos líneas conectadas",
+      "concepto": "Tres líneas",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Ari extiende sobre la mesa dos trazados que antes parecían proyectos separados. Quiere que se encuentren sin perder su identidad. Mientras Sol revisa los destinos y Dani observa la circulación, el equipo empieza a pensar en una red completa.",
-      "consejo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Uní las estaciones en una red conectada usando Línea y Conexión. Guardá y ejecutá la red actual en Simulación. Volvé a Edición y pulsá Finalizar red."
+      "contexto": "Ari agrega una nueva dirección al esquema. El cuaderno ya no contiene trazos sueltos: cualquier decisión alcanza a otros recorridos. Sol revisa sus encuentros y Dani sigue las unidades, mientras los tres aprenden a mirar la red como un conjunto.",
+      "consejo": "Construí 3 líneas de 3 estaciones, con 7 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 3 Metros, al menos uno por línea. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Ari extiende sobre la mesa dos trazados que antes parecían proyectos separados. Quiere que se encuentren sin perder su identidad. Mientras Sol revisa los destinos y Dani observa la circulación, el equipo empieza a pensar en una red completa."
+      "ciudad": "Ari agrega una nueva dirección al esquema. El cuaderno ya no contiene trazos sueltos: cualquier decisión alcanza a otros recorridos. Sol revisa sus encuentros y Dani sigue las unidades, mientras los tres aprenden a mirar la red como un conjunto."
     }
   },
   {
     "numero": 6,
-    "nombre": "Nivel 6 · Tres referencias del centro",
-    "objetivo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini.",
-    "instrucciones": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini.",
+    "nombre": "Nivel 6 · Conexión oeste",
+    "objetivo": "Construí 3 líneas con 4, 3 y 3 estaciones, con 8 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 3 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Aumentá UV de una línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 3 líneas con 4, 3 y 3 estaciones, con 8 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 3 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Aumentá UV de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
     "dificultad": "Intermedio",
     "reglasExito": {
-      "minimoEstaciones": 5,
-      "minimoLineas": 2,
-      "minimoTramos": 4,
-      "minimoMetros": 2,
+      "minimoEstaciones": 8,
+      "minimoLineas": 3,
+      "minimoTramos": 7,
+      "minimoMetros": 3,
       "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          4,
+          3,
+          3
+        ],
+        "redConectada": true,
+        "metroPorLinea": true,
+        "practica": "aumentarUV"
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas con 4, 3 y 3 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros: 1 por línea.",
+        "simulacionActual": "Aumentar UV de una línea y simular."
+      },
       "puntosInteresObjetivo": [
         {
-          "idPunto": 33,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 34,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 35,
+          "idPunto": 63,
           "radioCobertura": 25
         }
       ],
@@ -222,97 +300,254 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "Sol recorre el centro con el cuaderno del equipo. Entre las plazas Cagancha y Fabini y la Intendencia, los puntos del mapa adquieren un sentido cotidiano. De vuelta con Ari y Dani, ya no habla solo de trazados: habla de los lugares a los que permitirían llegar.",
+      "texto": "Sol lleva al equipo hacia el oeste, donde el Parque Tecnológico Industrial del Cerro incorpora otra actividad al proyecto. Dani observa el ritmo del recorrido y propone ensayar una marcha más ágil. La distancia permanece; la manera de recorrerla comienza a cambiar.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "POI y cobertura",
+      "concepto": "Conexión oeste",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Sol recorre el centro con el cuaderno del equipo. Entre las plazas Cagancha y Fabini y la Intendencia, los puntos del mapa adquieren un sentido cotidiano. De vuelta con Ari y Dani, ya no habla solo de trazados: habla de los lugares a los que permitirían llegar.",
-      "consejo": "Ubicá 5 estaciones, construí 2 líneas y 4 tramos, y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Mirador Panorámico de la Intendencia, Plaza Cagancha, Plaza Fabini."
+      "contexto": "Sol lleva al equipo hacia el oeste, donde el Parque Tecnológico Industrial del Cerro incorpora otra actividad al proyecto. Dani observa el ritmo del recorrido y propone ensayar una marcha más ágil. La distancia permanece; la manera de recorrerla comienza a cambiar.",
+      "consejo": "Construí 3 líneas con 4, 3 y 3 estaciones, con 8 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 3 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Aumentá UV de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Sol recorre el centro con el cuaderno del equipo. Entre las plazas Cagancha y Fabini y la Intendencia, los puntos del mapa adquieren un sentido cotidiano. De vuelta con Ari y Dani, ya no habla solo de trazados: habla de los lugares a los que permitirían llegar."
+      "ciudad": "Sol lleva al equipo hacia el oeste, donde el Parque Tecnológico Industrial del Cerro incorpora otra actividad al proyecto. Dani observa el ritmo del recorrido y propone ensayar una marcha más ágil. La distancia permanece; la manera de recorrerla comienza a cambiar."
     }
   },
   {
     "numero": 7,
-    "nombre": "Nivel 7 · Dos líneas, un intercambio",
-    "objetivo": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís.",
-    "instrucciones": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís.",
+    "nombre": "Nivel 7 · Goes y Carrasco",
+    "objetivo": "Construí 3 líneas con 4, 4 y 3 estaciones, con 9 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 4 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Aumentá UT de una línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 3 líneas con 4, 4 y 3 estaciones, con 9 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 4 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Aumentá UT de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
     "dificultad": "Avanzado",
     "reglasExito": {
-      "minimoEstaciones": 5,
-      "minimoLineas": 2,
-      "minimoMetros": 2,
+      "minimoEstaciones": 9,
+      "minimoLineas": 3,
+      "minimoTramos": 8,
+      "minimoMetros": 4,
       "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          4,
+          4,
+          3
+        ],
+        "redConectada": true,
+        "metroPorLinea": true,
+        "practica": "aumentarUT"
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas con 4, 4 y 3 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros; mínimo 1 por línea.",
+        "simulacionActual": "Aumentar UT de una línea y simular."
+      },
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 2,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 25,
+          "radioCobertura": 25
+        }
+      ],
+      "requierePoiIndividuales": true
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "historia": {
+      "estado": "APROBADA",
+      "texto": "Ari despliega el mapa entre Goes y Carrasco. Los lugares tienen ritmos distintos y el equipo empieza a discutir qué significa dar más tiempo a un servicio. Sol recuerda que una red también debe pensarse desde la experiencia de quienes la usan.",
+      "fuente": "Relato didáctico de METRONET"
+    },
+    "preparacion": {
+      "concepto": "Goes y Carrasco",
+      "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
+      "contexto": "Ari despliega el mapa entre Goes y Carrasco. Los lugares tienen ritmos distintos y el equipo empieza a discutir qué significa dar más tiempo a un servicio. Sol recuerda que una red también debe pensarse desde la experiencia de quienes la usan.",
+      "consejo": "Construí 3 líneas con 4, 4 y 3 estaciones, con 9 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 4 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Aumentá UT de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
+    },
+    "transicion": {
+      "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
+      "ciudad": "Ari despliega el mapa entre Goes y Carrasco. Los lugares tienen ritmos distintos y el equipo empieza a discutir qué significa dar más tiempo a un servicio. Sol recuerda que una red también debe pensarse desde la experiencia de quienes la usan."
+    }
+  },
+  {
+    "numero": 8,
+    "nombre": "Nivel 8 · Oeste y Parque Batlle",
+    "objetivo": "Construí 3 líneas con 5, 4 y 3 estaciones, con 10 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 4 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Reducí UT de una línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 3 líneas con 5, 4 y 3 estaciones, con 10 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 4 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Reducí UT de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
+    "dificultad": "Avanzado",
+    "reglasExito": {
+      "minimoEstaciones": 10,
+      "minimoLineas": 3,
+      "minimoTramos": 9,
+      "minimoMetros": 4,
+      "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          5,
+          4,
+          3
+        ],
+        "redConectada": true,
+        "metroPorLinea": true,
+        "practica": "reducirUT"
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas con 5, 4 y 3 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros; mínimo 1 por línea.",
+        "simulacionActual": "Reducir UT de una línea y simular."
+      },
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 88,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 80,
+          "radioCobertura": 25
+        }
+      ],
+      "requierePoiIndividuales": true
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "historia": {
+      "estado": "APROBADA",
+      "texto": "Dani retoma el trazado entre el oeste y Parque Batlle. El desafío ya no está solo en llegar, sino en comprender cuánto lleva hacerlo. Con Ari y Sol, explora cómo un recorrido puede completarse antes sin cambiar los lugares que conecta.",
+      "fuente": "Relato didáctico de METRONET"
+    },
+    "preparacion": {
+      "concepto": "Oeste y Parque Batlle",
+      "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
+      "contexto": "Dani retoma el trazado entre el oeste y Parque Batlle. El desafío ya no está solo en llegar, sino en comprender cuánto lleva hacerlo. Con Ari y Sol, explora cómo un recorrido puede completarse antes sin cambiar los lugares que conecta.",
+      "consejo": "Construí 3 líneas con 5, 4 y 3 estaciones, con 10 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 4 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Reducí UT de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
+    },
+    "transicion": {
+      "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
+      "ciudad": "Dani retoma el trazado entre el oeste y Parque Batlle. El desafío ya no está solo en llegar, sino en comprender cuánto lleva hacerlo. Con Ari y Sol, explora cómo un recorrido puede completarse antes sin cambiar los lugares que conecta."
+    }
+  },
+  {
+    "numero": 9,
+    "nombre": "Nivel 9 · Peñarol y Punta Carretas",
+    "objetivo": "Construí 4 líneas con 4, 4, 3 y 3 estaciones, con 11 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 5 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Reducí UV de una línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 4 líneas con 4, 4, 3 y 3 estaciones, con 11 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 5 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Reducí UV de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
+    "dificultad": "Desafío",
+    "reglasExito": {
+      "minimoEstaciones": 11,
+      "minimoLineas": 4,
+      "minimoTramos": 10,
+      "minimoMetros": 5,
+      "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          4,
+          4,
+          3,
+          3
+        ],
+        "redConectada": true,
+        "metroPorLinea": true,
+        "practica": "reducirUV"
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas: 4, 4, 3 y 3 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros; mínimo 1 por línea.",
+        "simulacionActual": "Reducir UV de una línea y simular."
+      },
+      "puntosInteresObjetivo": [
+        {
+          "idPunto": 92,
+          "radioCobertura": 25
+        },
+        {
+          "idPunto": 103,
+          "radioCobertura": 25
+        }
+      ],
+      "requierePoiIndividuales": true
+    },
+    "herramientasHabilitadas": {
+      "estaciones": true,
+      "lineas": true,
+      "conexiones": true,
+      "metros": true,
+      "simulacion": true
+    },
+    "historia": {
+      "estado": "APROBADA",
+      "texto": "Sol reúne las notas de Peñarol y Punta Carretas. La red ha crecido y correr más ya no parece la única respuesta posible. Dani propone observar una marcha más pausada; Ari sigue el efecto de esa decisión sobre el conjunto.",
+      "fuente": "Relato didáctico de METRONET"
+    },
+    "preparacion": {
+      "concepto": "Peñarol y Punta Carretas",
+      "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
+      "contexto": "Sol reúne las notas de Peñarol y Punta Carretas. La red ha crecido y correr más ya no parece la única respuesta posible. Dani propone observar una marcha más pausada; Ari sigue el efecto de esa decisión sobre el conjunto.",
+      "consejo": "Construí 4 líneas con 4, 4, 3 y 3 estaciones, con 11 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 5 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Reducí UV de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
+    },
+    "transicion": {
+      "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
+      "ciudad": "Sol reúne las notas de Peñarol y Punta Carretas. La red ha crecido y correr más ya no parece la única respuesta posible. Dani propone observar una marcha más pausada; Ari sigue el efecto de esa decisión sobre el conjunto."
+    }
+  },
+  {
+    "numero": 10,
+    "nombre": "Nivel 10 · Montevideo conectada",
+    "objetivo": "Construí 4 líneas de 4 estaciones, con 13 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 6 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Cambiá UV o UT de una línea. Guardá, simulá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Construí 4 líneas de 4 estaciones, con 13 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 6 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Cambiá UV o UT de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red.",
+    "dificultad": "Desafío",
+    "reglasExito": {
+      "minimoEstaciones": 13,
+      "minimoLineas": 4,
+      "minimoTramos": 12,
+      "minimoMetros": 6,
+      "requiereSimulacion": true,
+      "configuracionRecorrido": {
+        "estacionesPorLinea": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "redConectada": true,
+        "metroPorLinea": true,
+        "practica": "cambiar"
+      },
+      "textosMetas": {
+        "minimoEstaciones": "Crear {cantidad} estaciones.",
+        "minimoLineas": "{cantidad} líneas de 4 estaciones.",
+        "minimoTramos": "Unir las líneas: {cantidad} conexiones.",
+        "minimoMetros": "{cantidad} Metros; mínimo 1 por línea.",
+        "simulacionActual": "Cambiar UV o UT de una línea y simular."
+      },
       "puntosInteresObjetivo": [
         {
           "idPunto": 38,
           "radioCobertura": 25
         },
         {
-          "idPunto": 39,
+          "idPunto": 57,
           "radioCobertura": 25
         },
         {
-          "idPunto": 40,
-          "radioCobertura": 25
-        }
-      ],
-      "minimoTransbordos": 1,
-      "transbordosPorConexion": true,
-      "requierePoiIndividuales": true
-    },
-    "herramientasHabilitadas": {
-      "estaciones": true,
-      "lineas": true,
-      "conexiones": true,
-      "metros": true,
-      "simulacion": true
-    },
-    "historia": {
-      "estado": "APROBADA",
-      "texto": "Ari retoma esa mirada sobre los lugares al estudiar el entorno de Ciudad Vieja. Sus trazados se aproximan y una estación compartida aparece como punto de encuentro. El proyecto empieza a enlazar recorridos que, hasta entonces, el equipo miraba por separado.",
-      "fuente": "Relato didáctico de METRONET"
-    },
-    "preparacion": {
-      "concepto": "Transbordos",
-      "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Ari retoma esa mirada sobre los lugares al estudiar el entorno de Ciudad Vieja. Sus trazados se aproximan y una estación compartida aparece como punto de encuentro. El proyecto empieza a enlazar recorridos que, hasta entonces, el equipo miraba por separado.",
-      "consejo": "Ubicá 5 estaciones, construí 2 líneas que compartan al menos 1 estación de transbordo y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y ejecutá la red actual en Simulación. Volvé y pulsá Finalizar red. Puntos de interés: Puerta de la Ciudadela, Plaza Independencia, Teatro Solís."
-    },
-    "transicion": {
-      "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Ari retoma esa mirada sobre los lugares al estudiar el entorno de Ciudad Vieja. Sus trazados se aproximan y una estación compartida aparece como punto de encuentro. El proyecto empieza a enlazar recorridos que, hasta entonces, el equipo miraba por separado."
-    }
-  },
-  {
-    "numero": 8,
-    "nombre": "Nivel 8 · Ajustar una línea",
-    "objetivo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná una sola línea, cambiá y aplicá su UV y ejecutá B con su UT calculada y sin cambiar las demás líneas. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central.",
-    "instrucciones": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná una sola línea, cambiá y aplicá su UV y ejecutá B con su UT calculada y sin cambiar las demás líneas. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central.",
-    "dificultad": "Avanzado",
-    "reglasExito": {
-      "minimoEstaciones": 6,
-      "minimoLineas": 2,
-      "minimoMetros": 2,
-      "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "individual": true
-      },
-      "puntosInteresObjetivo": [
-        {
-          "idPunto": 46,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 47,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 48,
+          "idPunto": 106,
           "radioCobertura": 25
         }
       ],
@@ -327,125 +562,18 @@
     },
     "historia": {
       "estado": "APROBADA",
-      "texto": "En Cordón, Dani detiene la discusión antes de que cambien todo a la vez. Quiere entender qué aporta cada decisión. Conserva una línea tal como estaba y concentra la atención en la otra; por primera vez, el ensayo parte de una pregunta bien delimitada.",
+      "texto": "Ari, Sol y Dani preparan la presentación final. Ciudad Vieja, Maroñas y la costa aparecen ahora dentro de una misma propuesta. Entre trazados y ensayos, el cuaderno cuenta cómo aprendieron a relacionar territorio y operación: su proyecto por fin tiene una historia común.",
       "fuente": "Relato didáctico de METRONET"
     },
     "preparacion": {
-      "concepto": "Ajuste individual",
+      "concepto": "Montevideo conectada",
       "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "En Cordón, Dani detiene la discusión antes de que cambien todo a la vez. Quiere entender qué aporta cada decisión. Conserva una línea tal como estaba y concentra la atención en la otra; por primera vez, el ensayo parte de una pregunta bien delimitada.",
-      "consejo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A, seleccioná una sola línea, cambiá y aplicá su UV y ejecutá B con su UT calculada y sin cambiar las demás líneas. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Feria de Tristán Narvaja, Biblioteca Nacional, Universidad de la República - Edificio Central."
+      "contexto": "Ari, Sol y Dani preparan la presentación final. Ciudad Vieja, Maroñas y la costa aparecen ahora dentro de una misma propuesta. Entre trazados y ensayos, el cuaderno cuenta cómo aprendieron a relacionar territorio y operación: su proyecto por fin tiene una historia común.",
+      "consejo": "Construí 4 líneas de 4 estaciones, con 13 estaciones en total. Vinculá las líneas mediante estaciones compartidas. Asigná 6 Metros, al menos uno por línea. Cubrí los lugares indicados con alguna línea. Cambiá UV o UT de una línea. El cambio se mide respecto del valor inicial: 1 UV y su UT calculada. Al cambiar un valor, el otro se recalcula. Guardá, ejecutá la simulación y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "En Cordón, Dani detiene la discusión antes de que cambien todo a la vez. Quiere entender qué aporta cada decisión. Conserva una línea tal como estaba y concentra la atención en la otra; por primera vez, el ensayo parte de una pregunta bien delimitada."
-    }
-  },
-  {
-    "numero": 9,
-    "nombre": "Nivel 9 · Comparar ejecuciones",
-    "objetivo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT y ejecutá B con el otro valor calculado. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François.",
-    "instrucciones": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT y ejecutá B con el otro valor calculado. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François.",
-    "dificultad": "Desafío",
-    "reglasExito": {
-      "minimoEstaciones": 6,
-      "minimoLineas": 2,
-      "minimoMetros": 2,
-      "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "combinacion": true
-      },
-      "puntosInteresObjetivo": [
-        {
-          "idPunto": 80,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 81,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 82,
-          "radioCobertura": 25
-        }
-      ],
-      "requierePoiIndividuales": true
-    },
-    "herramientasHabilitadas": {
-      "estaciones": true,
-      "lineas": true,
-      "conexiones": true,
-      "metros": true,
-      "simulacion": true
-    },
-    "historia": {
-      "estado": "APROBADA",
-      "texto": "Sol reúne los ensayos del entorno de Parque Batlle y los pone junto al mismo mapa. Las primeras impresiones ya no alcanzan: necesita explicar por qué una alternativa se comporta distinto de otra. El cuaderno empieza a parecerse al informe del proyecto.",
-      "fuente": "Relato didáctico de METRONET"
-    },
-    "preparacion": {
-      "concepto": "Comparación de ejecuciones",
-      "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Sol reúne los ensayos del entorno de Parque Batlle y los pone junto al mismo mapa. Las primeras impresiones ya no alcanzan: necesita explicar por qué una alternativa se comporta distinto de otra. El cuaderno empieza a parecerse al informe del proyecto.",
-      "consejo": "Ubicá 6 estaciones, construí 2 líneas y asigná 2 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT y ejecutá B con el otro valor calculado. La última ejecución debe ser vigente. Volvé y pulsá Finalizar red. Puntos de interés: Estadio Centenario, Monumento La Carreta, Velódromo Municipal Atilio François."
-    },
-    "transicion": {
-      "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Sol reúne los ensayos del entorno de Parque Batlle y los pone junto al mismo mapa. Las primeras impresiones ya no alcanzan: necesita explicar por qué una alternativa se comporta distinto de otra. El cuaderno empieza a parecerse al informe del proyecto."
-    }
-  },
-  {
-    "numero": 10,
-    "nombre": "Nivel 10 · Integrar la red",
-    "objetivo": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT, aplicala y observá el valor calculado y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo.",
-    "instrucciones": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT, aplicala y observá el valor calculado y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo.",
-    "dificultad": "Desafío",
-    "reglasExito": {
-      "minimoEstaciones": 7,
-      "minimoMetros": 3,
-      "requiereSimulacion": true,
-      "aprendizajeSimulacion": {
-        "combinacion": true
-      },
-      "puntosInteresObjetivo": [
-        {
-          "idPunto": 100,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 101,
-          "radioCobertura": 25
-        },
-        {
-          "idPunto": 102,
-          "radioCobertura": 25
-        }
-      ],
-      "minimoTransbordos": 1,
-      "transbordosPorConexion": true,
-      "requierePoiIndividuales": true
-    },
-    "herramientasHabilitadas": {
-      "estaciones": true,
-      "lineas": true,
-      "conexiones": true,
-      "metros": true,
-      "simulacion": true
-    },
-    "historia": {
-      "estado": "APROBADA",
-      "texto": "Con el Prado como último escenario, Dani prepara la presentación junto a Ari y Sol. Sobre la mesa se reúnen trazados, lugares y ensayos que antes estudiaban por separado. Su red sigue siendo una propuesta, pero ahora pueden contar cómo llegaron a ella.",
-      "fuente": "Relato didáctico de METRONET"
-    },
-    "preparacion": {
-      "concepto": "Integración de la red",
-      "explicacion": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "contexto": "Con el Prado como último escenario, Dani prepara la presentación junto a Ari y Sol. Sobre la mesa se reúnen trazados, lugares y ensayos que antes estudiaban por separado. Su red sigue siendo una propuesta, pero ahora pueden contar cómo llegaron a ella.",
-      "consejo": "Ubicá 7 estaciones, conectá al menos 1 transbordo entre dos líneas y asigná 3 Metros. Cubrí cada uno de los tres puntos de interés con una estación dentro de su radio y unila a la red. Guardá y entrá en Simulación. Ejecutá A; elegí otra UV o UT, aplicala y observá el valor calculado y ejecutá B. La última ejecución debe corresponder a la red actual. Volvé a Edición y pulsá Finalizar red para completar la campaña. Puntos de interés: Rosedal del Prado, Museo Juan Manuel Blanes, Jardín Botánico de Montevideo."
-    },
-    "transicion": {
-      "aprendizaje": "Cada línea comparte UV y UT entre sus metros. UT = km ÷ UV; UV = km ÷ UT. Al cambiar un valor se calcula el otro. La simulación recorre la distancia con ese tiempo.",
-      "ciudad": "Con el Prado como último escenario, Dani prepara la presentación junto a Ari y Sol. Sobre la mesa se reúnen trazados, lugares y ensayos que antes estudiaban por separado. Su red sigue siendo una propuesta, pero ahora pueden contar cómo llegaron a ella."
+      "ciudad": "Ari, Sol y Dani preparan la presentación final. Ciudad Vieja, Maroñas y la costa aparecen ahora dentro de una misma propuesta. Entre trazados y ensayos, el cuaderno cuenta cómo aprendieron a relacionar territorio y operación: su proyecto por fin tiene una historia común."
     }
   }
 ]

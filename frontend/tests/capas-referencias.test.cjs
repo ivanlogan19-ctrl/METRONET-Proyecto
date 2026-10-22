@@ -156,7 +156,7 @@ test('Reingreso y cambio de diseño no duplican controles ni conservan búsqueda
   assert.equal(await p.evaluate(()=>juegoPrueba.scene.getScene('MapaScene').capaPuntosInteres.puntoBuscado),null);
 });
 
-test('Iconos e indicadores mantienen el color de su categoría y muestran ayuda al recibir foco', async t => {
+test('Iconos e indicadores mantienen el color de su categoría y conservan nombres accesibles sin carteles al recibir foco', async t => {
   const { pagina: p } = await abrir(t);
   await panel(p);
   const colores = await p.evaluate(async () => {
@@ -179,8 +179,8 @@ test('Iconos e indicadores mantienen el color de su categoría y muestran ayuda 
   }
   await p.locator('.metronet-poi__categorias [data-categoria="SALUD"]').click();
   await p.getByRole('img', { name: 'Salud', exact: true }).focus();
-  await p.waitForFunction(() => document.querySelector('#metronet-ayuda-sistema')?.textContent === 'Salud');
-  assert.equal(await p.getByRole('tooltip').isVisible(), true);
+  assert.equal(await p.getByRole('img', { name: 'Salud', exact: true }).getAttribute('title'), null);
+  assert.equal(await p.locator('[role=tooltip]:visible').count(), 0);
 });
 
 test('Mapa estrecho: Editor conserva POI visibles y la capa limita densidad fuera del modo completo', async t => {

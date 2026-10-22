@@ -317,7 +317,12 @@ export default class EditorRedMetro {
         this.actualizarAyuda();
       }
       if (cambioDeDiseno && this.disenoActual?.simulacion?.modo === 'EDICION_LIBRE') {
-        await this.panelAyuda?.presentarExtras({idDiseno,idUsuario:this.sesion?.usuario?.idUsuario});
+        // La bienvenida se monta antes de descubrir el mapa, incluso si su
+        // registro tarda. El recorrido se sigue cerrando por decisión del jugador.
+        const descubrir = window[Symbol.for('metronet:carga-pantalla')]?.cubrir();
+        try {
+          await this.panelAyuda?.presentarExtras({idDiseno,idUsuario:this.sesion?.usuario?.idUsuario,alPresentar:descubrir});
+        } finally { descubrir?.(); }
         if (apertura !== this.versionApertura || !this.activo) return false;
         this.panelCalles?.prepararTutorial(idDiseno, this.sesion?.usuario?.idUsuario);
       }

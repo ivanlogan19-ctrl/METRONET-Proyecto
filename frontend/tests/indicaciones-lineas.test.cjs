@@ -9,15 +9,15 @@ test('Entrada y metas comparten indicaciones para cada nivel con varias líneas'
   const condiciones=condicionesParaIndicaciones(nivel.reglasExito);
   const antes=indicacionesLineas(condiciones);
   const dentro=indicacionesLineas(condiciones,[{nombre:'Norte'},{nombre:'Sur'}]);
-  if(nivel.numero<5){assert.deepEqual(antes,[]);continue;}
+  if(nivel.numero<3){assert.deepEqual(antes,[]);continue;}
   assert.ok(antes.length>0,`Nivel ${nivel.numero}`);
   assert.deepEqual(antes.map(g=>g.clave),dentro.map(g=>g.clave));
   for(const grupo of dentro){assert.ok(grupo.filas.some(f=>f.startsWith('Norte:')));assert.ok(grupo.filas.some(f=>f.startsWith('Sur:')));}
  }
 });
-test('N8 ofrece alternativas explícitas; no exige modificar las dos líneas',async()=>{
+test('La práctica histórica individual conserva sus alternativas por línea',async()=>{
  const {condicionesParaIndicaciones,indicacionesLineas}=await cargar();
- const grupos=indicacionesLineas(condicionesParaIndicaciones(catalogo[7].reglasExito),[{nombre:'Centro'},{nombre:'Costa'}]);
+ const grupos=indicacionesLineas(condicionesParaIndicaciones({minimoLineas:2,aprendizajeSimulacion:{individual:true}}),[{nombre:'Centro'},{nombre:'Costa'}]);
  const practica=grupos.find(g=>g.clave.endsWith(':individual'));
  assert.match(practica.titulo,/sólo una línea/);
  assert.match(practica.titulo,/conservá las otras/);

@@ -2,12 +2,8 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const niveles=require('../src/educacion/recorrido-integral.json');
 const politica=require('../src/educacion/puntuacion-progreso.json');
-// Las variantes completas de cada nivel se prueban también en PostgreSQL.
-// Este recorrido comprueba los cinco puntajes en la interfaz y su transición al siguiente nivel.
-const puntosEsperados=process.env.METRONET_E2E_DESCUENTOS==='true'
- ? [100,90,80,70,100,100,100,60,90,60] : Array(10).fill(100);
-const premiosFinales=puntosEsperados.every(puntos=>puntos===100)
- ? ['corona','biblioteca','copa'] : ['biblioteca','copa'];
+const puntosEsperados=Array(10).fill(100);
+const premiosFinales=['corona','biblioteca','copa'];
 const { abrirNavegador } = require('./soporte/navegador.cjs');
 const BASE=process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5198';
 const API=process.env.METRONET_API_PRUEBAS;
@@ -170,20 +166,17 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
   console.log('EJECUCIÓN',JSON.stringify({lista:e.listo,puntaje:e.puntaje}));
   await presentaciones();return e;
  }
- const geo=JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname,'../src/mapa/datos/barrios_wgs84.geojson'),'utf8'));
- const coords=[];function recolectar(c){if(typeof c[0]==='number')coords.push(c);else c.forEach(recolectar);}
- geo.features.forEach(ft=>recolectar(ft.geometry.coordinates));
- const xs=coords.map(c=>c[0]),ys=coords.map(c=>c[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const referencias=JSON.parse(require('node:fs').readFileSync(process.env.METRONET_E2E_REFERENCIAS,'utf8'));
  const puntos=Object.values(require('../src/mapa/datos/puntos-interes.json').barrios).flatMap(b=>b.puntos);
- const poi=id=>{const p=puntos.find(p=>p.id===id);return [(p.longitud-minX)/(maxX-minX)*1000,(maxY-p.latitud)/(maxY-minY)*620];};
  let bloqueo=false;
  for(const nivel of niveles) { if(bloqueo) break; await t.test(`Nivel ${nivel.numero}: construir, guardar, simular, finalizar explícitamente y siguiente`,async()=>{
   try {
    await editor(nivel.numero);
    assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones.length),0);
-   const posiciones=Array.from({length:nivel.reglasExito.minimoEstaciones},(_,i)=>[580+i*45,460]);
+   const red=referencias[nivel.numero-1];
+   const posiciones=red.estaciones.map(e=>[e.x,e.y]);
+   const porNombre=Object.fromEntries(red.estaciones.map(e=>[e.nombre,[e.x,e.y]]));
    const objetivos=nivel.reglasExito.puntosInteresObjetivo||[];
-   for(let i=0;i<objetivos.length;i++) posiciones[i]=poi(objetivos[i].idPunto);
 
    if(objetivos.length){
     await f().locator('.metronet-poi > summary').click();
@@ -194,20 +187,20 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    }
    await herramienta('estaciones');
    for(let i=0;i<posiciones.length;i++){await mapa(...posiciones[i]);await cuenta('estaciones',i+1);}
-   const dos=nivel.reglasExito.minimoLineas===2||nivel.reglasExito.minimoTransbordos>0;
-   await herramienta('lineas');await mapa(...posiciones[0]);await mapa(...posiciones[1]);await cuenta('lineas',1);
-   let tramos=1;
-   if(posiciones.length>(dos?3:2)) {
-    await herramienta('conexiones');
-    await mapa(...posiciones[1]);
-    for(let i=2;i<posiciones.length-(dos?1:0);i++){await mapa(...posiciones[i]);await cuenta('tramos',++tramos);}
+   let tramos=0;
+   for(const [indice,linea] of red.lineas.entries()) {
+    const recorrido=red.tramos.filter(t=>t.linea===linea.nombre);
+    await herramienta('lineas');await mapa(...porNombre[recorrido[0].a]);await mapa(...porNombre[recorrido[0].b]);await cuenta('lineas',indice+1);tramos++;
+    if(recorrido.length>1) {
+     await herramienta('conexiones');await mapa(...porNombre[recorrido[0].b]);
+     for(const t of recorrido.slice(1)){await mapa(...porNombre[t.b]);await cuenta('tramos',++tramos);}
+    }
    }
-   if(dos){await herramienta('lineas');await mapa(...posiciones.at(-2));await mapa(...posiciones.at(-1));await cuenta('lineas',2);}
    await herramienta('metros');
-   const medio=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
-   for(let i=0;i<nivel.reglasExito.minimoMetros;i++){
-    await mapa(...(dos&&i===1?medio(posiciones.at(-2),posiciones.at(-1)):medio(posiciones[0],posiciones[1])));
-    await cuenta('unidadesMetro',i+1);
+   for(const [indice,unidad] of red.unidades.entries()) {
+    const tramo=red.tramos.find(t=>t.linea===unidad.linea);
+    const a=porNombre[tramo.a],b=porNombre[tramo.b];
+    await mapa((a[0]+b[0])/2,(a[1]+b[1])/2);await cuenta('unidadesMetro',indice+1);
    }
    const evaluacionesAntes=evaluaciones.length;
    const guardado=pagina.waitForResponse(r=>r.url().endsWith('/guardar')&&r.request().method()==='POST'&&r.ok());
@@ -215,7 +208,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await f().waitForFunction(()=>!juegoPrueba.scene.getScene('MapaScene').editorRedMetro.finalizacionEnCurso);
    const avanceGuardado=await leerAvance();
    assert.equal(evaluaciones.length,evaluacionesAntes,'Guardar no solicita aprobación');
-   assert.equal(avanceGuardado.consigna.condiciones.length,nivel.numero<6?5:8,'Cinco objetivos reales más tres POI cuando corresponde');
+   assert.equal(avanceGuardado.consigna.condiciones.length,5+objetivos.length,'Cinco objetivos reales más los POI aprobados');
    assert.equal(avanceGuardado.puntaje,100,'Cada nivel empieza con cien puntos');
    assert.equal(avanceGuardado.listo,false,'Guardar no reemplaza la simulación pendiente');
    assert.equal(avanceGuardado.desempeno.desglosePuntuacion.totalDescontado,0);
@@ -227,51 +220,13 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await f().waitForFunction(()=>!document.querySelector('#formularioEjecucion button[type=submit]').disabled);
    await presentaciones();
    assert.equal(await f().locator('#unidadDuracionSimulacion').innerText(),'UT');
-   let resultado=await ejecutar();
-   const esperado=puntosEsperados[nivel.numero-1];
-   if(esperado<100){
-    assert.equal(resultado.listo,false);
-    // La primera ejecución cumple objetivos; repetirla sin cambios ya no tiene exenciones.
-    const cantidadDescuentos=(100-esperado)/10;
-    for(let ejecucion=2;ejecucion<=1+cantidadDescuentos;ejecucion++){
-     resultado=await ejecutar();
-     assert.equal(resultado.listo,false,'Los puntos no aprueban objetivos pendientes');
-     assert.equal(resultado.puntaje,100-10*Math.max(0,ejecucion-1));
-    }
-    assert.equal(resultado.desempeno.desglosePuntuacion.descuentos.length,cantidadDescuentos);
-    if(esperado===60){
-     resultado=await ejecutar();assert.equal(resultado.puntaje,60,'El tope permite seguir jugando');
-     await f().locator('#volverEdicion').click();await editor();
-     const respuestaPendiente=pagina.waitForResponse(r=>r.url().endsWith('/evaluar')&&r.request().method()==='POST'&&r.ok());
-     await f().getByRole('button',{name:'Finalizar red',exact:true}).click();
-     const pendiente=await(await respuestaPendiente).json();
-     assert.equal(pendiente.completado,false,'Sesenta puntos no reemplazan los objetivos pendientes');
-     assert.equal(pendiente.puntaje,60);
-     assert.equal(pendiente.idSiguienteEscenario,null);
-     const aviso=f().getByRole('dialog',{name:'Nivel no completado',exact:true});
-     await aviso.waitFor();
-     assert.equal(await f().locator('.metronet-victoria').count(),0);
-     assert.match(await aviso.innerText(),/Todavía falta cumplir/);
-     await pagina.screenshot({path:`/tmp/metronet-pendiente-real-nivel-${nivel.numero}.png`});
-     await f().locator('body').press('Escape');await aviso.waitFor({state:'hidden'});
-     await f().locator('[data-ir-simulacion]').click();
-     await f().locator('#formularioEjecucion').waitFor();await presentaciones();
-    }
-   }
-   if(nivel.numero===2){
-    assert.equal(resultado.listo,false);
-    await aplicarUv(5);resultado=await ejecutar();
-   }
-   if(nivel.numero===3){assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();}
-   if(nivel.numero===4){
-    assert.equal(resultado.listo,false);await aplicarUv(5);resultado=await ejecutar();
-    assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();
-   }
-   if(nivel.numero===8){assert.equal(resultado.listo,false);await aplicarUv(3);resultado=await ejecutar();}
-   // La consigna permite cambiar UV o UT: comprobar cada alternativa sin
-   // modificar ambos controles y ocultar un posible requisito imposible.
-   if(nivel.numero===9){assert.equal(resultado.listo,false);await aplicarUv(6);resultado=await ejecutar();}
-   if(nivel.numero===10){assert.equal(resultado.listo,false);await horas(8);resultado=await ejecutar();}
+   // El usuario cambia un solo control antes de su primera simulación.
+   const practica=nivel.reglasExito.configuracionRecorrido.practica;
+   if(practica==='aumentarUV'||practica==='cambiar') await aplicarUv(2);
+   if(practica==='reducirUV') await aplicarUv(0.5);
+   if(practica==='aumentarUT') await horas(100);
+   if(practica==='reducirUT') await horas(0.5);
+   const resultado=await ejecutar(),esperado=puntosEsperados[nivel.numero-1];
    assert.equal(resultado.consigna.progreso,100);
    assert.equal(resultado.listo,true);assert.equal(resultado.puntaje,esperado);
    assert.equal(resultado.progreso.nivelesCompletados,nivel.numero-1,'Ni Guardar ni Simular aprueban');

@@ -1,6 +1,6 @@
 import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
-import { PASOS_CALLES, DESCRIPCION_MAPA_LIBRE } from './TutorialCalles.js';
+import { PASOS_CALLES, PASO_MAPA_LIBRE } from './TutorialCalles.js';
 const PASOS_INTEGRAL = [
   ['#metronet-mapa', 'Mapa de la red', 'Acá construís tu red. Arrastrá para desplazarte por el mapa.'],
   ['.metronet-control-zoom', 'Vista del mapa', 'Usá + y − para acercar o alejar. El botón de ajustar vuelve a encuadrar la red.'],
@@ -39,8 +39,8 @@ export default class RecorridoInicial {
     if (this.panelCerrado) this.togglePanel.click();
     this.pasos = (this.opciones.pasos ?? (this.opciones.integral ? PASOS_INTEGRAL : PASOS)).filter(([selector]) =>
       this.opciones.pasosDinamicos || (this.opciones.senalarDeshabilitados ? senalable : visible)(document.querySelector(selector)));
-    if (this.opciones.libre) this.pasos = this.pasos.map(paso => paso[0] === '#metronet-mapa'
-      ? [paso[0], paso[1], DESCRIPCION_MAPA_LIBRE] : paso);
+    if (this.opciones.libre) this.pasos = [PASO_MAPA_LIBRE,
+      ...this.pasos.filter(paso => paso[0] !== '#metronet-mapa')];
     this.indice = 0;
     this.dialogo = document.createElement('dialog');
     this.dialogo.className = 'metronet-recorrido';
@@ -102,7 +102,8 @@ export default class RecorridoInicial {
     if (!paso) this.cierreFinal = setTimeout(() => this.terminar(true, true), 3500);
   }
   notificar(evento) {
-    if (!this.dialogo || this.pasos[this.indice]?.[3] !== evento) return;
+    const esperado = this.pasos[this.indice]?.[3];
+    if (!this.dialogo || !(Array.isArray(esperado) ? esperado.includes(evento) : esperado === evento)) return;
     this.indice++;
     if (this.indice >= this.pasos.length && this.opciones.interactivo) this.terminar(true, true);
     else this.mostrar();

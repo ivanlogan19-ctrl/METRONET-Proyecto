@@ -6,8 +6,8 @@ const catalogo=require('../src/educacion/recorrido-integral.json');
 let browser;
 before(async()=>{browser=await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL});});
 after(()=>browser?.close());
-for(const width of [1366,390])test(`N8: entrada y metas nombran ambas líneas sin cambiar requisitos (${width})`,async t=>{
- const nivel=catalogo[7];
+for(const width of [1366,390])test(`Partida histórica: entrada y metas conservan ambas líneas (${width})`,async t=>{
+ const nivel={...catalogo[7],reglasExito:{minimoLineas:2,aprendizajeSimulacion:{individual:true}}};
  const condiciones=[
   {clave:'minimoEstaciones',texto:'Ubicar 6 estaciones',actual:3,requerido:6,completado:false},
   {clave:'minimoLineas',texto:'Crear 2 líneas',actual:2,requerido:2,completado:true},
@@ -63,7 +63,7 @@ test('Carteles publicados: los diez niveles conservan consigna, requisitos y acc
   assert.equal(await dialogo.locator('.metronet-viaje__consigna').count(),0,'La consigna se consulta al elegir el nivel, sin duplicarla');
   assert.equal(await dialogo.evaluate(e=>e.scrollWidth>e.clientWidth+1),false);
   assert.equal(await dialogo.getByRole('button',{name:'Iniciar nivel',exact:true}).isEnabled(),true);
-  if(nivel.numero>=5){
+  if(nivel.numero>=3){
    const detalle=dialogo.locator('.metronet-indicaciones-lineas');
    assert.match(await detalle.innerText(),/Línea 1/);
    assert.match(await detalle.innerText(),/Línea 2/);

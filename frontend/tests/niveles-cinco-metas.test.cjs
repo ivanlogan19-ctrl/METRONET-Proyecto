@@ -1,11 +1,11 @@
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
-const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH||'playwright');
+const {abrirNavegador}=require('./soporte/navegador.cjs');
 const {abrirEditor}=require('./soporte/editor.cjs');
 const niveles=require('../src/educacion/recorrido-integral.json');
 const puntos=Object.values(require('../src/mapa/datos/puntos-interes.json').barrios).flatMap(b=>b.puntos);
 let browser;
-before(async()=>{browser=await chromium.launch({channel:process.env.METRONET_BROWSER_CHANNEL,headless:true});});
+before(async()=>{browser=await abrirNavegador();});
 after(()=>browser?.close());
 function consigna(n){
  const r=n.reglasExito, condiciones=[];
@@ -18,13 +18,23 @@ function consigna(n){
  for(const practica of Object.keys(r.aprendizajeSimulacion||{})) agregar(`aprendizajeSimulacion:${practica}`,`Comparar ${practica}`);
  for(const poi of r.puntosInteresObjetivo||[]) agregar(`poi:${poi.idPunto}`,`Conectar ${puntos.find(p=>p.id===poi.idPunto).nombre}`);
  agregar('simulacionActual','Simular la red y UV actuales');
+ for (const c of condiciones) if (r.textosMetas?.[c.clave]) { c.texto=r.textosMetas[c.clave].replace('{cantidad}',c.requerido); c.textoPersonalizado=true; }
  return {condiciones,estadoGlobal:'PARCIAL',referenciasObjetivo:(r.puntosInteresObjetivo||[]).map(o=>({...o,nombrePunto:puntos.find(p=>p.id===o.idPunto).nombre,cubierto:false}))};
 }
 for(const [width,height] of [[1440,900],[1280,720],[390,844]]) for(const nivel of niveles) test(`N${nivel.numero} ${width}×${height}: cinco metas, lugares y límites iguales`,async t=>{
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-lineas-automaticas-v4'},primeraPasada:false,novedadPresentada:true,viewport:{width,height},consigna:()=>consigna(nivel)});
  t.after(async()=>{await v.contexto.close();assert.deepEqual(v.errores,[]);});const p=v.pagina;
+ await p.evaluate(()=>document.fonts.ready);
  assert.equal(await p.locator('.metronet-consigna__lista-breve > li').count(),5);
- assert.equal(await p.locator('.metronet-consigna__lista-referencias > li').count(),nivel.numero<6?0:3);
+ await p.waitForFunction(()=>[...document.querySelectorAll('.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo')].every(e=>{
+   const r=document.createRange();r.selectNodeContents(e);const b=r.getBoundingClientRect();
+   return b.width<=e.clientWidth+1&&r.getClientRects().length===1;
+ }));
+ if(width>=1280) {
+   const fuentes=await p.locator('.metronet-consigna__lista-breve .metronet-consigna__texto-objetivo').evaluateAll(es=>es.map(e=>parseFloat(getComputedStyle(e).fontSize)));
+   assert.ok(fuentes.every(f=>f>=10),JSON.stringify({nivel:nivel.numero,width,fuentes}));
+ }
+ assert.equal(await p.locator('.metronet-consigna__lista-referencias > li').count(),nivel.reglasExito.puntosInteresObjetivo?.length||0);
  assert.equal(await p.locator('.metronet-barra-geografica .metronet-poi > summary').isVisible(),nivel.numero>=6);
  const medidas=await p.evaluate(()=>{
    const mapa=document.querySelector('#metronet-mapa').getBoundingClientRect(),lateral=document.querySelector('.metronet-lateral-editor').getBoundingClientRect();

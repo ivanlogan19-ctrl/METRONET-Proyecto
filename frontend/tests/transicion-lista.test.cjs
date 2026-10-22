@@ -112,3 +112,40 @@ test('Editor: la lectura de la red empieza sin esperar el catálogo de niveles',
   await v.vista.locator('[data-editor-activo]:not([hidden])').waitFor({state:'visible'});
   assert.deepEqual(v.errores,[]);
 });
+
+for (const fallo of [false, true]) test(`Modo libre: no descubre el mapa antes de Extras (${fallo ? 'error' : 'éxito'})`, {timeout:30000}, async t => {
+  const navegador = await abrirNavegador();
+  t.after(() => navegador.close());
+  const v = await abrirPantalla(navegador, '/inicio.html', {contenedor:true, responder:r => {
+    if (new URL(r.url()).pathname === '/api/juego/escenarios') return {json:[{idEscenario:45,numero:null,modo:'EDICION_LIBRE',nombre:'Modo libre',desbloqueado:true,herramientasHabilitadas:{}}]};
+    if (new URL(r.url()).pathname === '/api/simulaciones/77') return {json:{
+      simulacion:{idDiseno:77,idEscenario:45, modo:'EDICION_LIBRE', nombre:'Red libre', estado:'EN_DISENO'},
+      estaciones:[], lineas:[], tramos:[], unidadesMetro:[], territorio:{areas:[], errores:[]},
+    }};
+  }});
+  t.after(() => v.contexto.close());
+  let liberar, recibida;
+  const espera = new Promise(r => { liberar = r; });
+  const peticion = new Promise(r => { recibida = r; });
+  t.after(liberar);
+  await v.pagina.route('**/api/juego/aprendizaje/extras/ingreso', async ruta => {
+    recibida(); await espera;
+    await ruta.fulfill({status:fallo ? 503 : 200,json:{},headers:{'access-control-allow-origin':'*'}});
+  });
+  await v.vista.evaluate(() => location.assign('/?idDiseno=77'));
+  await peticion;
+  // El cartel inicial ya terminó; mientras responde Extras, no debe asomar el mapa.
+  assert.equal(await v.pagina.locator('#pantalla-metronet').evaluate(e => e.inert), true);
+  assert.equal(await v.vista.locator('#metronet-mapa').isVisible(), false);
+  liberar();
+  await v.pagina.locator('#carga-pantalla').waitFor({state:'hidden'});
+  if (fallo) await v.vista.getByRole('heading',{name:'Bienvenido al Modo Libre',exact:true}).waitFor();
+  else {
+    await v.vista.getByRole('heading',{name:'Planificá una red',exact:true}).waitFor();
+    assert.equal(await v.vista.locator('dialog[open]').count(), 1);
+    await v.vista.getByRole('button',{name:'Ir a construir',exact:true}).click();
+    await v.vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).click();
+    await v.vista.getByRole('heading',{name:'Mapa y entorno real',exact:true}).waitFor();
+  }
+  assert.deepEqual(v.errores, []);
+});

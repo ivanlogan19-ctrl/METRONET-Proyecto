@@ -106,7 +106,7 @@ export function pasosPracticosEditor(numero, escenario) {
   ];
   if (nuevas.includes('editor.poi') && objetivo) return [
     ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí los puntos de interés usando la bandera amarilla.', 'poi-abierto'],
-    ['.metronet-poi__categorias', 'Probá una categoría', 'Tocá un icono para mostrar u ocultar sus puntos. Podés combinar categorías; la ayuda de cada icono indica su nombre.', 'poi-categoria'],
+    ['.metronet-poi__categorias', 'Probá una categoría', 'Tocá un icono para mostrar u ocultar sus puntos. Podés combinar categorías para localizar los lugares de la consigna.', 'poi-categoria'],
     ['#metronet-selector-barrios .metronet-panel-encabezado', 'Abrí Barrios', 'Abrí la lista para elegir qué barrios resaltar. La casilla de la izquierda muestra u oculta la capa sin borrar tu selección.', 'barrios-abiertos'],
     ['.metronet-selector-barrios-lista', 'Seleccioná un barrio', 'Marcá un barrio. Podés elegir varios; Ninguno limpia la selección. Las flechas pequeñas permiten ver otros nombres.', 'barrio-seleccionado'],
     ['.metronet-poi__paginacion', 'Más barrios', 'Usá las flechas de los extremos para cambiar de página. Los barrios elegidos se conservan aunque cambies de página.'],
@@ -123,7 +123,7 @@ export function pasosPracticosEditor(numero, escenario) {
     [estacion, 'Estación dentro del radio', 'Elegí Estación y colocala dentro del área marcada.', 'poi-cubierto'],
   ];
   if (nuevas.includes('editor.transbordo')) return [
-    ['[data-elegir-herramienta="lineas"]', 'Un intercambio real', 'Creá otra línea reutilizando una estación de la primera. Un cruce sin estación común no forma un transbordo.'],
+    ['[data-elegir-herramienta="lineas"]', 'Un intercambio real', 'Creá otra línea reutilizando una estación de la primera. Un cruce sin estación común no conecta las líneas.'],
     [mapa, 'Compartí una estación', 'Conectá tramos de dos líneas diferentes a una misma estación.', 'transbordo-creado'],
   ];
   return [];
@@ -158,7 +158,7 @@ export function accionPracticaCumplida(evento, contexto, estado, controles = {})
     'poi-buscado': controles.poiBuscado,
     'poi-localizado': Number(referencia?.id ?? referencia?.idPunto) === objetivoTutorialPoi(escenario?.numero, escenario)?.id,
     'poi-cubierto': consigna?.referenciasObjetivo?.some(p => Number(p.idPunto) === objetivoTutorialPoi(escenario?.numero, escenario)?.id && p.cubierto),
-    'transbordo-creado': completa('minimoTransbordos'),
+    'transbordo-creado': completa('minimoTransbordos') || (escenario?.reglasExito?.configuracionRecorrido?.redConectada && completa('minimoLineas') && completa('minimoTramos')),
   })[evento] === true;
 }
 

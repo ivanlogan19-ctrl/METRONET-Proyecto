@@ -1,11 +1,11 @@
 // Regresión de las ventanas HTML que reemplazan confirm/prompt del navegador.
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 const { abrirEditor } = require('./soporte/editor.cjs');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador(); });
 after(async () => { await navegador?.close(); });
 function registrar(t, pantalla) {
   t.after(async () => { await pantalla.contexto.close(); assert.deepEqual(pantalla.errores, []); });
@@ -76,17 +76,27 @@ test('entrada administrativa con Enter conserva el contrato y Escape no crea otr
   assert.equal(solicitudes.filter(s => s.method === 'POST').length, 1);
 });
 
-test('ayuda de zoom visible por teclado, dentro del viewport y descartable con Escape', async t => {
-  const { pagina } = registrar(t, await abrirEditor(navegador, { viewport: { width: 390, height: 844 } }));
-  const boton = pagina.locator('[data-ayuda-sistema="Acercar"]');
+test('controles sin carteles al pasar el mouse o enfocar, con nombres accesibles', async t => {
+  const { pagina } = registrar(t, await abrirEditor(navegador, { viewport: { width: 1440, height: 900 } }));
+  const boton = pagina.getByRole('button', { name: 'Acercar mapa', exact: true });
+  await boton.hover();
   await boton.focus();
-  const ayuda = pagina.locator('#metronet-ayuda-sistema'); await ayuda.waitFor();
-  assert.equal(await ayuda.textContent(), 'Acercar');
+  assert.equal(await pagina.locator('[role="tooltip"]:visible').count(), 0);
   assert.equal(await boton.getAttribute('title'), null);
-  assert.match(await boton.getAttribute('aria-describedby'), /metronet-ayuda-sistema/);
-  const caja = await ayuda.boundingBox(); assert.ok(caja.x >= 0 && caja.x + caja.width <= 390);
-  await pagina.keyboard.press('Escape'); await ayuda.waitFor({ state: 'hidden' });
-  assert.equal(await boton.getAttribute('aria-describedby'), null);
+  assert.equal(await boton.getAttribute('aria-description'), 'Acercar');
+  // Un control agregado después del arranque tampoco muestra ayuda flotante.
+  await pagina.evaluate(() => {
+    const control = document.createElement('button');
+    control.textContent = 'Prueba'; control.title = 'Ayuda dinámica';
+    control.id = 'control-ayuda-prueba'; document.body.append(control);
+  });
+  const dinamico = pagina.locator('#control-ayuda-prueba');
+  await dinamico.hover();
+  assert.equal(await dinamico.getAttribute('title'), null);
+  assert.equal(await dinamico.getAttribute('aria-description'), 'Ayuda dinámica');
+  await dinamico.evaluate(e => { e.title = 'Ayuda actualizada'; });
+  await pagina.waitForFunction(() => document.querySelector('#control-ayuda-prueba').getAttribute('aria-description') === 'Ayuda actualizada');
+  assert.equal(await pagina.locator('[role="tooltip"]:visible').count(), 0);
 });
 
 test('encabezados equivalentes y selectores mantienen tipografía y geometría entre rutas', async t => {
@@ -123,11 +133,11 @@ test('restricciones HTML bloquean la simulación y presentan un aviso dentro del
   await pagina.locator('#duracionSimulacion').fill('-1');
   await pagina.locator('#formularioEjecucion button[type="submit"]').click();
   await pagina.locator('.metronet-notificacion--error').waitFor();
-  assert.equal(await pagina.locator('#duracionSimulacion').evaluate(e => e.validity.rangeUnderflow && e === document.activeElement), true);
+  assert.equal(await pagina.locator('#duracionSimulacion').evaluate(e => !e.validity.valid && e === document.activeElement), true);
   assert.equal(solicitudes.some(s => s.path.endsWith('/ejecutar')), false);
 });
 
-for (const width of [1440, 768, 390]) test(`cabecera de referencias ${width}: zoom dentro del mapa y ayuda visible con teclado`, async t => {
+for (const width of [1440, 768, 390]) test(`cabecera de referencias ${width}: zoom accesible dentro del mapa sin carteles`, async t => {
   const { pagina } = registrar(t, await abrirEditor(navegador, { viewport: { width, height: 1000 } }));
   await pagina.evaluate(() => document.fonts.ready);
   const panel = pagina.locator('.metronet-panel-puntos-interes');
@@ -137,7 +147,7 @@ for (const width of [1440, 768, 390]) test(`cabecera de referencias ${width}: zo
     assert.ok(rect.x >= caja.x && rect.x + rect.width <= caja.x + caja.width, 'Control visible sin desplazar el mapa');
   }
   await pagina.locator('[data-ayuda-sistema="Acercar"]').focus();
-  await pagina.locator('#metronet-ayuda-sistema').waitFor();
+  assert.equal(await pagina.locator('[role=tooltip]:visible').count(), 0);
   assert.equal(await pagina.locator('#metronet-mapa').evaluate(e => e.scrollLeft), 0);
   if (width === 390) {
     const admin = registrar(t, await abrirPantalla(navegador, '/admin.html', { viewport: { width, height: 1000 } }));

@@ -11,7 +11,9 @@ export function funcionesCampana(escenario) {
   if (h.estaciones && h.lineas && h.metros) funciones.push('editor.basico');
   if (r.minimoTramos >= 2) funciones.push('editor.extender');
   if (r.puntosInteresObjetivo?.length) funciones.push('editor.poi');
-  if (r.minimoTransbordos) funciones.push('editor.transbordo');
+  if (r.minimoTransbordos || r.configuracionRecorrido?.redConectada) funciones.push('editor.transbordo');
+  const practica = r.configuracionRecorrido?.practica;
+  if (practica && practica !== 'inicial') funciones.push(practica.endsWith('UT') ? 'simulacion.duracion' : 'simulacion.velocidad');
   for (const [clave, activa] of Object.entries(r.aprendizajeSimulacion ?? {}))
     if (activa) funciones.push(`simulacion.${clave}`);
   return funciones;
@@ -35,8 +37,8 @@ export function registrarFuncionesEnsenadas(id, funciones) {
 export const claveAprendizajeTutorial = clave => clave === 'editor.poi' ? 'editor.poi.v2' : clave;
 export function describirFunciones(funciones) {
   const nombres = { 'editor.extender':'extender recorridos con Conexión', 'editor.poi':'buscar puntos de interés y usar sus categorías, barrios y zonas',
-    'editor.transbordo':'conectar líneas con una estación de transbordo', 'simulacion.velocidad':'comparar velocidades UV',
-    'simulacion.duracion':'comparar duraciones UT', 'simulacion.global':'ajustar todas las líneas',
+    'editor.transbordo':'conectar líneas mediante una estación compartida', 'simulacion.velocidad':'cambiar la velocidad UV y observar la UT calculada',
+    'simulacion.duracion':'cambiar la duración UT y observar la UV calculada', 'simulacion.global':'ajustar todas las líneas',
     'simulacion.individual':'ajustar una sola línea', 'simulacion.combinacion':'comparar UV y UT juntas' };
   return funciones.map(c => nombres[c] ?? c).join(' y ');
 }

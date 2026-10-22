@@ -361,8 +361,6 @@ html:root body :is(.metronet-vacio, .admin-aviso, .simulacion-vacio, .metronet-i
 html:root body :is(.metronet-vacio, .admin-aviso)::before {
   content: 'SIN REGISTROS'; display: block; margin-bottom: var(--space-sm); font-family: var(--font-tecnica); font-weight: 700; color: var(--info-active); letter-spacing: .08em;
 }
-html:root body .metronet-tooltip { position: fixed; z-index: var(--layer-toast); max-width: min(320px, calc(100vw - 24px)); pointer-events: none; }
-html:root body .metronet-tooltip:popover-open { margin: 0; }
 html:root body .metronet-estado-sistema { border-left: var(--border-accent) solid var(--info-active); padding: var(--space-sm); color: var(--text-secondary); background: var(--bg-secondary); line-height: 1.6; }
 
 /* Carga real: señal de sistema común, sin introducir tiempos de espera. */

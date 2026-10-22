@@ -67,12 +67,12 @@ class RecorridoIntegralPostgresTest {
                 }
             }
             var puntos = reglas.path("puntosInteresObjetivo");
-            assertEquals(publicada.numero() < 6 ? 0 : 3, puntos.size());
+            assertEquals(publicada.numero() < 6 ? 0 : publicada.numero() == 6 ? 1 : publicada.numero() == 10 ? 3 : 2, puntos.size());
             for (var punto : puntos) assertTrue(objetivosUnicos.add(punto.path("idPunto").asInt()), "POI repetido");
             assertNull(publicada.versionCriterioUvUt(),"El recorrido usa horas; los presupuestos UT históricos no se heredan");
             assertEquals(RecorridoIntegralService.VERSION,contenido.actual(publicada.numero()).desafio().path("recorrido").asText());
         }
-        assertEquals(15, objetivosUnicos.size());
+        assertEquals(10, objetivosUnicos.size());
         assertEquals(historia,contenido.deIntento(anterior.idIntento(),admin));
         assertEquals(intentos,jdbc.queryForObject("SELECT COUNT(*) FROM intento",Integer.class));
         assertEquals(ejecuciones,jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class));
@@ -119,7 +119,7 @@ class RecorridoIntegralPostgresTest {
         assertTrue(recorrido.publicar(admin).isEmpty());
     }
 
-    @Test void adaptaLaConsignaActivaAnteriorSinTocarLaCampanaCompletada() throws Exception {
+    @Test void conservaLasConsignasActivasYLasCampanasCompletadasAlPublicarLaNuevaCampana() throws Exception {
         int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Actualización QA','actualizacion-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
         int otro=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Histórico QA','historia-qa@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
         recorrido.publicar(admin);
@@ -134,8 +134,8 @@ class RecorridoIntegralPostgresTest {
         recorrido.publicar(admin);
         assertEquals(historia,contenido.deIntento(completo.idIntento(),otro));
         assertEquals(80,jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=?",Integer.class,completo.idIntento()));
-        assertNotEquals(versionAnterior,contenido.deIntento(activo.idIntento(),admin).idNivelPublicacion());
-        assertEquals(RecorridoIntegralService.VERSION,contenido.deIntento(activo.idIntento(),admin).desafio().path("recorrido").asText());
+        assertEquals(versionAnterior,contenido.deIntento(activo.idIntento(),admin).idNivelPublicacion());
+        assertEquals("integral-2026-10-objetivos-reales-km-v3",contenido.deIntento(activo.idIntento(),admin).desafio().path("recorrido").asText());
         assertEquals(jdbc.queryForObject("SELECT reglas_exito::text FROM escenario WHERE id_escenario=?",String.class,escenario),
             jdbc.queryForObject("SELECT reglas_exito::text FROM intento_catalogo_v1 WHERE id_intento=?",String.class,activo.idIntento()));
         assertTrue(recorrido.publicar(admin).isEmpty());

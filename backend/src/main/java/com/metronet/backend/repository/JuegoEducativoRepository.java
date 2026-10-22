@@ -256,4 +256,10 @@ public class JuegoEducativoRepository {
                   (SELECT 1 FROM metro m WHERE m.id_diseno=l.id_diseno AND m.nombre_linea=l.nombre)
                 """, Integer.class, idDiseno);
     }
+    public <T> List<T> enlacesRecorrido(RowMapper<T> mapeador, Integer idDiseno) {
+        return jdbc.query("""
+            SELECT nombre_linea, nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?
+            """, mapeador, idDiseno);
+    }
+
 }

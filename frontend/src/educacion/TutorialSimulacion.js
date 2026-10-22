@@ -1,7 +1,7 @@
 import { DESCRIPCION_MAPA_LIBRE } from './TutorialCalles.js';
 import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import { ofrecerTutorial } from './OfertaTutorial.js';
-import { describirFunciones, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
+import { describirFunciones, escenarioCampana, funcionesIntroducidas, registrarFuncionesEnsenadas } from './FuncionesCampana.js';
 import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 import RecorridoInicial from './RecorridoInicial.js';
 import './tutorial-inicial.css';
@@ -134,6 +134,23 @@ export function pasosSimulacion(numero, escenario, pendientes) {
   const ejecucion = ['#formularioEjecucion', 'Observá el recorrido', 'Pulsá Play y esperá a que termine la ejecución. Pausar o detener no completa este paso.', 'ejecucion'];
   const velocidad = ['.simulacion-parametro-velocidad', 'Cambiá UV', 'Modificá la UV y aplicá el valor. Observá la UT calculada según la distancia de esa línea.', 'velocidad'];
   const duracion = ['#seccionConfiguracion', 'Cambiá duración UT', 'Aumentá o reducí la duración UT y aplicala. La velocidad UV se calcula automáticamente para completar esa distancia.', 'duracion'];
+  const configuracion = escenarioCampana(numero, escenario)?.reglasExito?.configuracionRecorrido;
+  if (configuracion) {
+    const practica = configuracion.practica;
+    const instrucciones = {
+      aumentarUV: 'Elegí una línea, aumentá UV por encima de su valor inicial de 1 y guardá. UT se recalcula automáticamente.',
+      reducirUV: 'Elegí una línea, reducí UV por debajo de su valor inicial de 1 y guardá. Podés escribir un valor decimal; UT se recalcula automáticamente.',
+      aumentarUT: 'Elegí una línea y aumentá su UT inicial calculada. Guardá la duración: UV se reduce automáticamente.',
+      reducirUT: 'Elegí una línea y reducí su UT inicial calculada. Guardá la duración: UV aumenta automáticamente.',
+      cambiar: 'Elegí una línea y cambiá UV o UT respecto de sus valores iniciales. Guardá uno solo; el otro se recalcula automáticamente.',
+    };
+    if (instrucciones[practica]) return [PASOS[6],
+      [practica.endsWith('UT') ? '#seccionConfiguracion' : '.simulacion-parametro-velocidad', 'Probá el cambio de la consigna', instrucciones[practica],
+        practica === 'cambiar' ? ['velocidad', 'duracion'] : practica.endsWith('UT') ? 'duracion' : 'velocidad'], ejecucion];
+    return [PASOS[0], ...PASOS.slice(1,6), ['#formularioEjecucion', 'Simulá tu red', practica === 'inicial'
+      ? 'Conservá 1 UV y su UT calculada. Pulsá Play para recorrer la red con sus valores iniciales.'
+      : 'Pulsá Play para observar la red. En este nivel no es necesario cambiar UV ni UT.', 'ejecucion']];
+  }
   if (numero === 4) return [ejecucion, velocidad, ejecucion, duracion, ejecucion];
   if (nuevas.includes('simulacion.velocidad')) return [[...PASOS[7]], ejecucion, velocidad, ejecucion];
   if (nuevas.includes('simulacion.duracion')) return [[...PASOS[9]], ejecucion, duracion, ejecucion];
@@ -150,7 +167,7 @@ export function pasosSimulacion(numero, escenario, pendientes) {
 export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { primeraVisita = false, escenario, pendientes, modo } = {}) {
   const practicas = pasosSimulacion(numeroNivel, escenario, pendientes);
   const pasos = esModoLibre(modo) ? PASOS_LIBRE : primeraVisita && numeroNivel !== 1
-    ? [...pasosSimulacion(1), ...practicas]
+    ? [PASOS[0], ...PASOS.slice(1,6), ...practicas]
     : practicas.length ? practicas : pasosSimulacion(1);
   const recorrido = new RecorridoInicial(alFinalizar, {
     interactivo: true,
@@ -196,7 +213,8 @@ export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroN
     if (localStorage.getItem(clave)) return null;
   } catch { /* La guía sigue disponible sin almacenamiento. */ }
   const pendientes = funcionesIntroducidas(numeroNivel, escenario).filter(clave => clave.startsWith('simulacion.'));
-  if (conocido && numeroNivel !== 1 && numeroNivel !== 4 && (!Number.isInteger(numeroNivel) || !pendientes.length)) return null;
+  const practicaAnterior = numeroNivel === 4 && !escenarioCampana(numeroNivel, escenario)?.reglasExito?.configuracionRecorrido;
+  if (conocido && numeroNivel !== 1 && !practicaAnterior && (!Number.isInteger(numeroNivel) || !pendientes.length)) return null;
   const registrar = (completado, motivo) => {
     if (completado || motivo === 'omitido') try {
       localStorage.setItem(clave, completado ? 'presentado' : 'omitido');

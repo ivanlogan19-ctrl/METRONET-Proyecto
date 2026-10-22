@@ -57,8 +57,12 @@ public class PuntuacionService {
     public List<CondicionConsignaResponse> condicionesCirculacion(int idDiseno, int idIntento, String reglas,
             boolean requiereSimulacion, boolean escalaUt) {
         List<CondicionConsignaResponse> condiciones = new ArrayList<>();
-        JsonNode aprendizaje;
-        try { aprendizaje = mapper.readTree(reglas == null ? "{}" : reglas).path("aprendizajeSimulacion"); }
+        JsonNode aprendizaje, recorrido;
+        try {
+            JsonNode configuracion = mapper.readTree(reglas == null ? "{}" : reglas);
+            aprendizaje = configuracion.path("aprendizajeSimulacion");
+            recorrido = configuracion.path("configuracionRecorrido");
+        }
         catch (Exception e) { throw new IllegalStateException("Reglas de simulación ilegibles", e); }
         if (configuracion(reglas).has("velocidadObjetivoKmh")) {
             // Un escenario personalizado antiguo requiere revisión explícita;
@@ -111,6 +115,8 @@ public class PuntuacionService {
             boolean actual = escalaUt && !vinculoLibre.aplica(idDiseno) ? simulacionVigenteUvUt(idIntento, idDiseno)
                 : !ejecuciones.isEmpty() && ejecuciones.getLast().registro != null
                     && ejecuciones.getLast().comentarios.endsWith(marcaRed(idDiseno));
+            actual = actual && MetasRecorrido.practica(recorrido.path("practica").asText(),
+                ejecuciones.isEmpty() ? null : ejecuciones.getLast().registro);
             condiciones.add(new CondicionConsignaResponse("simulacionActual", "Simular la red y sus UV/UT actuales", actual ? 1 : 0, 1, actual));
         }
         return condiciones;

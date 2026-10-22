@@ -64,11 +64,20 @@ class MatrizPuntuacionRecorridoPostgresTest {
             assertTrue(simulaciones.listarResultados(jugador, diseno).isEmpty());
             assertFalse(juego.evaluarEscenario(jugador, diseno).completado());
 
-            // Nivel 1: toda red válida para simular ya satisface su consigna al ejecutarse.
-            // No se alteran sus reglas para fabricar una penalización imposible en ese flujo.
-            int esperado = nivel == 1 ? 100 : objetivo;
+            // El nivel 1 también puede perder puntos si se repite con UV distintas de las iniciales.
+            int esperado = objetivo;
             if (esperado < 100) {
                 construirParcial(jugador, diseno);
+                if (nivel >= 6) {
+                    var paso = niveles.versiones(nivel).getFirst().redReferencia().path("ejecuciones").get(0);
+                    var unidad = simulaciones.obtenerSimulacion(jugador, diseno).unidadesMetro().getFirst();
+                    // El recorrido parcial es más corto: su UT reducida debe corresponder a su propia distancia.
+                    double duracion = nivel == 8 ? unidad.duracionUt() : paso.path("duracion").asDouble();
+                    simulaciones.actualizarUnidadMetro(jugador, diseno, unidad.idTren(), new ActualizarUnidadMetroRequest(
+                        unidad.nombreLinea(), unidad.capacidad(), paso.path("unidades").get(0).path("uv").decimalValue(),
+                        "UT".equals(paso.path("parametroReferencia").asText()) ? duracion : null,
+                        paso.path("parametroReferencia").asText("UV")));
+                }
                 assertTrue(simulaciones.validarDiseno(jugador, diseno).preparadoParaSimular());
                 int descuentos = (100-esperado)/10;
                 // La primera ejecución alcanza objetivos nuevos; las siguientes repiten sin avanzar.
@@ -113,7 +122,7 @@ class MatrizPuntuacionRecorridoPostgresTest {
                         paso.path("parametroReferencia").asText("UV")));
                 }
                 simulaciones.validarDiseno(jugador, diseno);
-                var resultado = ejecutar(jugador, diseno, paso.path("duracion").asInt());
+                var resultado = ejecutar(jugador, diseno, paso.path("duracion").asDouble());
                 assertEquals(0, resultado.registroPuntuacion().descuento(), caso + ": avanzar no penaliza");
                 assertEquals(esperado, resultado.puntaje(), caso);
             }
@@ -136,7 +145,7 @@ class MatrizPuntuacionRecorridoPostgresTest {
             System.out.printf("MATRIZ PUNTOS nivel=%d objetivo=%d resultado=%d aprobado=true%n",nivel,objetivo,esperado);
         }
         assertEquals(10, juego.obtenerResumenProgreso(jugador).nivelesCompletados());
-        assertEquals(100+9*objetivo, jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=? AND estado='COMPLETADO'", Integer.class, jugador));
+        assertEquals(10*objetivo, jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=? AND estado='COMPLETADO'", Integer.class, jugador));
     }
 
     @Test
@@ -161,6 +170,8 @@ class MatrizPuntuacionRecorridoPostgresTest {
         assertFalse(juego.evaluarEscenario(jugador, diseno).completado(), "La ejecución anterior no valida UV nuevas");
         assertEquals(100, juego.obtenerDesempeno(jugador, diseno).puntaje());
         assertThrows(ResponseStatusException.class, () -> juego.evaluarEscenario(otro, diseno));
+        simulaciones.actualizarUnidadMetro(jugador, diseno, unidad.idTren(), new ActualizarUnidadMetroRequest(
+            unidad.nombreLinea(), unidad.capacidad(), BigDecimal.ONE));
         simulaciones.validarDiseno(jugador, diseno);
         ejecutar(jugador, diseno, 6);
         assertNotEquals("COMPLETADO", simulaciones.obtenerSimulacion(jugador, diseno).simulacion().estado());
@@ -197,7 +208,7 @@ class MatrizPuntuacionRecorridoPostgresTest {
             new CrearUnidadMetroSimulacionRequest(u.path("linea").asText(),u.path("capacidad").asInt(),u.path("uv").decimalValue())));
         return unidades;
     }
-    private ResultadoSimulacionResponse ejecutar(int jugador, int diseno, int horas) {
+    private ResultadoSimulacionResponse ejecutar(int jugador, int diseno, double horas) {
         return simulaciones.ejecutarSimulacion(jugador, diseno, new EjecutarSimulacionRequest(BigDecimal.ONE, horas));
     }
 }

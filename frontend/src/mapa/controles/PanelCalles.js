@@ -4,7 +4,7 @@ import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 import '../estilos/calles.css';
 import { ofrecerTutorial } from '../../educacion/OfertaTutorial.js';
 import RecorridoInicial from '../../educacion/RecorridoInicial.js';
-import { PASOS_CALLES } from '../../educacion/TutorialCalles.js';
+import { PASOS_CALLES, PASO_MAPA_LIBRE } from '../../educacion/TutorialCalles.js';
 import PanelTrafico from './PanelTrafico.js';
 import PanelPoblacion from './PanelPoblacion.js';
 
@@ -117,7 +117,7 @@ export default class PanelCalles {
       alOmitir: registrar,
       alAceptar: () => {
         registrar();
-        this.recorrido = new RecorridoInicial(() => {}, { pasos: PASOS_CALLES,
+        this.recorrido = new RecorridoInicial(() => {}, { pasos: [PASO_MAPA_LIBRE, ...PASOS_CALLES],
           interactivo: true, senalarDeshabilitados: true, disparador: '.metronet-tutorial > summary',
           textoFinal: 'Podés seguir construyendo tu red sobre las calles.' });
         this.recorrido.iniciar();

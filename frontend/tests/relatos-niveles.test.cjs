@@ -18,7 +18,7 @@ test('Diez capítulos breves conservan la narración separada de las instruccion
     assert.match(nivel.instrucciones, /Finalizar red/);
   }
   assert.match(niveles[0].historia.texto, /proyecto de Logística/);
-  assert.match(niveles[9].historia.texto, /presentación junto a Ari y Sol/);
+  assert.match(niveles[9].historia.texto, /Ari, Sol y Dani preparan la presentación final/);
 });
 
 for (const viewport of [{ width: 1280, height: 720 }, { width: 1470, height: 800 }]) {

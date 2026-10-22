@@ -10,7 +10,7 @@ after(()=>browser?.close());
 for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, incluida Simular deshabilitada: ${width}`,async t=>{
  const escenario={...catalogo[0],idEscenario:1,recorrido:'integral-2026-10'};
  const v=await abrirEditor(browser,{escenario,estaciones:[],lineas:[],tramos:[],ofrecerRecorrido:true,viewport:{width,height:1000}});
- t.after(()=>v.contexto.close());
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});
  const p=v.pagina;
  const oferta=p.locator('[data-oferta-tutorial]');
  const dimensiones=await oferta.boundingBox();
@@ -40,25 +40,22 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
  await p.waitForFunction(()=>document.querySelector('.metronet-recorrido h2')?.textContent==='Colocá estaciones');
  assert.deepEqual(v.errores,[]);
 });
-test('Simulación incremental exige eventos, y la ayuda manual sigue disponible en niveles de reutilización',async t=>{
- const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
+test('Simulación acompaña la consigna: un cambio de UV y una ejecución',async t=>{
+ const v=await abrirPantalla(browser,'/escenarios.html');t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  await p.evaluate(async()=>{
   const {abrirTutorialSimulacion,presentarTutorialSimulacion}=await import('/src/educacion/TutorialSimulacion.js');
-  localStorage.setItem("metronet:tutorial-pantalla-simulacion:v6:7:1:primera-visita","presentado");
-  window.autoReutilizacion=presentarTutorialSimulacion({numeroNivel:6,idUsuario:7});
+  localStorage.setItem('metronet:tutorial-pantalla-simulacion:v6:7:1:primera-visita','presentado');
+  window.autoReutilizacion=presentarTutorialSimulacion({numeroNivel:5,idUsuario:7});
   window.guia=abrirTutorialSimulacion(()=>{},6);
  });
  assert.equal(await p.evaluate(()=>autoReutilizacion),null);
- assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Mapa de la red');
- await p.keyboard.press('Escape');
- await p.evaluate(async()=>{const {abrirTutorialSimulacion}=await import('/src/educacion/TutorialSimulacion.js');window.guia=abrirTutorialSimulacion(()=>{},2);});
- assert.match(await p.locator('.metronet-recorrido h2').textContent(),/velocidad.*UV/);
+ assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Elegir línea');
  await p.locator('[data-recorrido-siguiente]').click();
+ assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Probá el cambio de la consigna');
+ assert.match(await p.locator('.metronet-recorrido').innerText(),/por encima de su valor inicial de 1/);
  assert.equal(await p.locator('[data-recorrido-siguiente]').isVisible(),false);
- await p.evaluate(()=>guia.notificar('velocidad'));
- assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Observá el recorrido','Un ajuste no sustituye la ejecución inicial');
- await p.evaluate(()=>guia.notificar('ejecucion'));
- assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Cambiá UV');
+ await p.evaluate(()=>guia.notificar('duracion'));
+ assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Probá el cambio de la consigna');
  await p.evaluate(()=>guia.notificar('velocidad'));
  assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Observá el recorrido');
  await p.evaluate(()=>guia.notificar('ejecucion'));
@@ -68,8 +65,8 @@ test('Simulación incremental exige eventos, y la ayuda manual sigue disponible 
 
 for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial automático presenta solamente funciones nuevas`, async t => {
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-metas-5-v1'},ofrecerRecorrido:true,estaciones:[],lineas:[],tramos:[]});
- t.after(()=>v.contexto.close());
- const p=v.pagina, titulo={2:'Extendé la línea',6:'Puntos de interés de Montevideo',7:'Un intercambio real'}[nivel.numero];
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});
+ const p=v.pagina, titulo={2:'Extendé la línea',4:'Un intercambio real',6:'Puntos de interés de Montevideo'}[nivel.numero];
  if(titulo) {
   await p.locator('.metronet-recorrido').waitFor();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Nueva funcionalidad');
@@ -83,7 +80,7 @@ for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial autom
 
 test('N1 permite comenzar directamente y sigue aceptando estaciones', async t => {
  const v=await abrirEditor(browser,{escenario:{...catalogo[0],idEscenario:1,recorrido:'integral-2026-10-objetivos-reales-v2'},ofrecerRecorrido:true,estaciones:[],lineas:[],tramos:[]});
- t.after(()=>v.contexto.close());const p=v.pagina;
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  await p.getByRole('button',{name:'Continuar',exact:true}).click();
  assert.equal(await p.locator('.metronet-recorrido').count(),0);
  await p.locator('[data-elegir-herramienta="estaciones"]').click();
@@ -96,7 +93,7 @@ test('N1 permite comenzar directamente y sigue aceptando estaciones', async t =>
 test('N6 ofrece el tutorial una vez por diseño y vuelve a ofrecerlo al empezar otro', async t => {
  const nivel=catalogo[5];
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:6,recorrido:'integral-2026-10-objetivos-reales-v2'},primeraPasada:false,ofrecerRecorrido:true});
- t.after(()=>v.contexto.close());const p=v.pagina;
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
  assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Puntos de interés de Montevideo');
  await p.reload();
@@ -115,7 +112,7 @@ test('N6 ofrece el tutorial una vez por diseño y vuelve a ofrecerlo al empezar 
 test('N6: el paseo enseña categorías, barrios, zonas, búsqueda y mantener visible con acciones reales', async t => {
  const nivel=catalogo[5];
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:6,recorrido:'integral-2026-10-objetivos-reales-v2'},ofrecerRecorrido:true,consigna:()=>({condiciones:[],referenciasObjetivo:nivel.reglasExito.puntosInteresObjetivo.map(p=>({...p,nombre:`Referencia ${p.idPunto}`}))})});
- t.after(()=>v.contexto.close()); const p=v.pagina;
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();}); const p=v.pagina;
  const titulo=async texto=>{try {await p.waitForFunction(texto=>document.querySelector('.metronet-recorrido h2')?.textContent===texto,texto,{timeout:5000});}catch(e){throw new Error(`Esperado: ${texto}; actual: ${await p.locator('.metronet-recorrido').innerText()}`);}};
  await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
  await p.locator('.metronet-poi>summary').click();
@@ -139,7 +136,7 @@ test('N6: el paseo enseña categorías, barrios, zonas, búsqueda y mantener vis
   await titulo('Buscar punto de interés');
   await p.getByRole('button',{name:'Buscar punto de interés',exact:true}).click();
  }
- await p.getByRole('searchbox',{name:'Buscar punto de interés'}).fill('Mirador Panorámico de la Intendencia');
+ await p.getByRole('searchbox',{name:'Buscar punto de interés'}).fill('Parque Tecnológico Industrial del Cerro');
  await titulo('Localizá el punto');
  await p.locator('.metronet-panel-puntos-lista button').first().click();
  await titulo('Mantené el punto visible');
@@ -153,7 +150,7 @@ test('N6: el paseo enseña categorías, barrios, zonas, búsqueda y mantener vis
 });
 
 test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan antes de practicarlas',async t=>{
- const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
+ const v=await abrirPantalla(browser,'/escenarios.html');t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  const estado=await p.evaluate(async()=>{
   const r=await import('/src/educacion/FuncionesCampana.js');
   const e=await import('/src/educacion/TutorialInicial.js');
@@ -169,19 +166,19 @@ test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan
    poi:e.objetivoTutorialPoi(6).id,poiInicial:e.objetivoTutorialPoi(1),
    pasosPoi:e.pasosPracticosEditor(6).map(p=>p[3]).filter(Boolean)};
  });
- assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender','simulacion.velocidad'],['simulacion.duracion'],[],[],['editor.poi'],['editor.transbordo'],['simulacion.individual'],['simulacion.combinacion'],[]]);
+ assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender'],[],['editor.transbordo'],[],['editor.poi','simulacion.velocidad'],['simulacion.duracion'],[],[],[]]);
  assert.equal(estado.conocida,false);assert.equal(estado.inicialOtraCuenta,'Nueva funcionalidad');assert.equal(estado.ajena,0);
- assert.equal(estado.poi,33);assert.equal(estado.poiInicial,undefined);
+ assert.equal(estado.poi,63);assert.equal(estado.poiInicial,undefined);
  assert.deepEqual(estado.pasosPoi,['poi-abierto','poi-categoria','barrios-abiertos','barrio-seleccionado','barrios-cerrados','zonas-abiertas','zona-seleccionada','zonas-cerradas','buscador-abierto','poi-buscado','poi-localizado','poi-fijado','poi-ficha-cerrada','poi-cubierto']);
 });
 
 test('Simulación ofrece cada función nueva una vez por partida y la repite en una nueva campaña', async t => {
- const v=await abrirPantalla(browser,'/escenarios.html');t.after(()=>v.contexto.close());const p=v.pagina;
+ const v=await abrirPantalla(browser,'/escenarios.html');t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  await p.evaluate(async()=>{
   const r=await import('/src/educacion/FuncionesCampana.js');
   r.registrarFuncionesEnsenadas(7,['simulacion.inicial.v2']);
  });
- for (const numero of [2,3,4,8,9]) {
+ for (const numero of [6,7]) {
   await p.evaluate(async numero=>{
    const s=await import('/src/educacion/TutorialSimulacion.js');
    window.ofertaPrueba=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:numero,repetido:true});
@@ -197,7 +194,7 @@ test('Simulación ofrece cada función nueva una vez por partida y la repite en 
   const s=await import('/src/educacion/TutorialSimulacion.js');
   const r=await import('/src/educacion/FuncionesCampana.js');
   r.registrarFuncionesEnsenadas(7,['simulacion.velocidad']);
-  const oferta=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:2,numeroCampana:2});
+  const oferta=s.presentarTutorialSimulacion({idUsuario:7,numeroNivel:6,numeroCampana:2});
   const ofrecida=Boolean(oferta);oferta?.terminar();return ofrecida;
  }),true);
  assert.deepEqual(v.errores,[]);
@@ -206,7 +203,7 @@ test('Simulación ofrece cada función nueva una vez por partida y la repite en 
 for (const numero of [1,6]) test(`Guía rápida N${numero}: solo funciones visibles y acceso Aprender`,async t=>{
  const nivel=catalogo[numero-1];
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:numero,recorrido:'integral-2026-10-objetivos-reales-v2'},primeraPasada:false,novedadPresentada:true,cerrarTarjetaAutomatica:false,consigna:()=>({condiciones:[],referenciasObjetivo:(nivel.reglasExito.puntosInteresObjetivo||[]).map(p=>({...p,nombre:`Referencia ${p.idPunto}`}))})});
- t.after(()=>v.contexto.close());const p=v.pagina;
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  if(await p.locator('.metronet-recorrido').count()) await p.keyboard.press('Escape');
  await p.locator('.metronet-tutorial > summary').click();
  const guia=p.locator('.metronet-guia-rapida:popover-open');await guia.waitFor();
@@ -222,7 +219,7 @@ for (const numero of [1,6]) test(`Guía rápida N${numero}: solo funciones visib
 
 test('Modo libre: el paseo señala herramientas actuales de edición y omite el selector retirado', async t => {
  const v=await abrirEditor(browser,{modo:'EDICION_LIBRE',escenario:{idEscenario:45,numero:null,nombre:'Modo libre',modo:'EDICION_LIBRE',desbloqueado:true},primeraPasada:false});
- t.after(()=>v.contexto.close());const p=v.pagina;
+ t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  await p.evaluate(async()=>{
   document.querySelector('.metronet-recorrido [data-recorrido-omitir]')?.click();
   const {default:Recorrido}=await import('/src/educacion/RecorridoInicial.js');

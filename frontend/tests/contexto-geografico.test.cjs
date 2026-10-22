@@ -63,9 +63,8 @@ test('Modo libre: alejar y girar conserva el entorno real sin ampliar el territo
   await p.locator('.metronet-tutorial > summary').click();
   await p.locator('.metronet-tutorial__repetir').click();
   const tutorial = p.locator('.metronet-recorrido');
-  for (let i = 0; await tutorial.locator('h2').textContent() !== 'Mapa de la red' && i < 20; i++) {
-    await tutorial.getByRole('button', { name: 'Siguiente', exact: true }).click();
-  }
+  assert.equal(await tutorial.getAttribute('data-objetivo'), '#metronet-mapa', 'El tutorial libre comienza mostrando el mapa');
+  assert.equal(await tutorial.locator('h2').textContent(), 'Mapa y entorno real');
   assert.match(await tutorial.innerText(), /Montevideo es el área donde podés construir/);
   assert.match(await tutorial.innerText(), /al girar, el mapa y tu red se mueven juntos/);
   await p.screenshot({ path: '/tmp/metronet-tutorial-contexto.png' });

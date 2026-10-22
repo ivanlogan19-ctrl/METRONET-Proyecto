@@ -195,7 +195,7 @@ test('calles y tráfico histórico: controles, edición libre, cámara, POI y pe
     await capasApagadas();
     await page.screenshot({ path: '/tmp/metronet-bienvenida-libre-real.png' });
     await frame().getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-    for (const titulo of ['Tarjetas Extras', 'Calles y avenidas', 'Transparencia', 'Tráfico histórico', 'Horarios', 'Densidad de población', 'Transparencia de población', 'Desplazamientos históricos', 'Animación de desplazamientos', 'Distancias de la red']) {
+    for (const titulo of ['Mapa y entorno real', 'Tarjetas Extras', 'Calles y avenidas', 'Transparencia', 'Tráfico histórico', 'Horarios', 'Densidad de población', 'Transparencia de población', 'Desplazamientos históricos', 'Animación de desplazamientos', 'Distancias de la red']) {
       await frame().locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
       await capasApagadas();
       await frame().locator('[data-recorrido-siguiente]').click();

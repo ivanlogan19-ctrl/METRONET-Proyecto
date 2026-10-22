@@ -53,12 +53,12 @@ class PuntuacionDescuentosPostgresTest {
             assertNotNull(ultima.registroPuntuacion());
             assertFalse(ultima.comentarios().contains("METRONET-UV"));
         }
-        assertFalse(juego.evaluarEscenario(admin,diseno).completado(), "60 no aprueba con la comparación UV pendiente");
+        assertFalse(juego.evaluarEscenario(admin,diseno).completado(), "60 no aprueba mientras falte el segundo Metro");
         var desglose = juego.obtenerDesempeno(admin,diseno).desglosePuntuacion();
         assertEquals(4,desglose.descuentos().size());
         assertEquals(40,desglose.totalDescontado());
         assertEquals(2,desglose.descuentos().getFirst().numeroEjecucion());
-        assertTrue(desglose.descuentos().getFirst().motivos().stream().anyMatch(m -> m.contains("Cambiar UV")));
+        assertTrue(desglose.descuentos().getFirst().motivos().stream().anyMatch(m -> m.contains("Metros")));
         int idUltima = ultima.idSimulacion();
         String evidencia = jdbc.queryForObject("SELECT comentarios FROM simulacion WHERE id_simulacion=?",String.class,idUltima);
         for (int i=0;i<3;i++) {
@@ -71,8 +71,7 @@ class PuntuacionDescuentosPostgresTest {
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
             () -> simulaciones.ejecutarSimulacion(admin,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,0)));
         assertEquals(7,simulaciones.listarResultados(admin,diseno).size(),"Una solicitud rechazada no consume ejecución ni puntos");
-        int metro = jdbc.queryForObject("SELECT id_tren FROM metro WHERE id_diseno=?",Integer.class,diseno);
-        simulaciones.actualizarUnidadMetro(admin,diseno,metro,new ActualizarUnidadMetroRequest("Principal",300,BigDecimal.valueOf(5)));
+        simulaciones.crearUnidadMetro(admin,diseno,new CrearUnidadMetroSimulacionRequest("Principal",300,BigDecimal.ONE));
         simulaciones.validarDiseno(admin,diseno);
         var completa = simulaciones.ejecutarSimulacion(admin,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6));
         assertEquals(0,completa.registroPuntuacion().descuento());
@@ -96,6 +95,8 @@ class PuntuacionDescuentosPostgresTest {
         var borrador = niveles.borrador(1);
         var c = borrador.contenido();
         com.fasterxml.jackson.databind.node.ObjectNode reglas = c.path("reglasExito").deepCopy();
+        reglas.remove(java.util.List.of("minimoEstaciones", "configuracionRecorrido"));
+        ((com.fasterxml.jackson.databind.node.ObjectNode)reglas.path("textosMetas")).remove("minimoEstaciones");
         reglas.put("maximoEstaciones", 2);
         var guardado = niveles.guardar(1, new EdicionNivelRequest(borrador.versionBase(), borrador.revision(),
             c.path("desafio"), reglas, c.path("herramientasHabilitadas"), c.path("criterioUvUt"),
@@ -141,9 +142,10 @@ class PuntuacionDescuentosPostgresTest {
         int admin = jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('QA eliminación',?,'!sin-acceso','ADMIN') RETURNING id_usuario",
             Integer.class, java.util.UUID.randomUUID()+"@example.test");
         recorrido.publicar(admin);
-        int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=1",Integer.class);
+        int escenario = jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=2",Integer.class);
         int diseno = juego.iniciarEscenario(admin,escenario).idDiseno();
         red(diseno);
+        simulaciones.crearUnidadMetro(admin,diseno,new CrearUnidadMetroSimulacionRequest("Principal",300,BigDecimal.ONE));
         simulaciones.validarDiseno(admin,diseno);
         simulaciones.ejecutarSimulacion(admin,diseno,new EjecutarSimulacionRequest(BigDecimal.ONE,6));
         var usuario = new com.metronet.backend.entity.Usuario();
