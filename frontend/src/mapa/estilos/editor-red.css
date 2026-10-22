@@ -1456,7 +1456,7 @@ html:root body #metronet-panel-controles .metronet-herramientas__barra button.me
 html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:disabled { opacity: .5; }
 
 .metronet-consigna__indicador-objetivo.es-estrella path {
-  stroke: #d99614;
+  stroke: #bc7d12;
   stroke-width: .7;
   stroke-linejoin: miter;
   paint-order: stroke fill;

@@ -4,7 +4,7 @@ import './mantenimiento.css';
 const URL_ESTADO = `${location.protocol}//${location.hostname}:8080/api/estado`;
 
 export async function consultarEstadoMantenimiento() {
-  const respuesta = await fetch(URL_ESTADO, { cache: 'no-store' });
+  const respuesta = await fetch(URL_ESTADO, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
   if (!respuesta.ok) throw new Error('No se pudo consultar el estado de METRONET.');
   return (await respuesta.json()).mantenimiento === true;
 }

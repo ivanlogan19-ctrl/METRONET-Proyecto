@@ -9,48 +9,88 @@ const BASE=process.env.METRONET_URL_PRUEBAS||'http://127.0.0.1:5198';
 const API=process.env.METRONET_API_PRUEBAS;
 
 test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API,timeout:1100000}, async t=>{
- const navegador=await abrirNavegador({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});
- t.after(()=>navegador.close());
- const contexto=await navegador.newContext({viewport:{width:1440,height:1000}});
- const pagina=await contexto.newPage(); pagina.setDefaultTimeout(20000);
+ let navegador,contexto,pagina;
  const errores=[],fallos=[],evaluaciones=[];
- pagina.on('pageerror',e=>errores.push(e.message));
- pagina.on('response',async r=>{
-  if(/\/(?:api|auth)\//.test(r.url())&&r.status()>=400) fallos.push([new URL(r.url()).pathname,r.status()]);
-  if(r.url().endsWith('/evaluar')&&r.ok()) evaluaciones.push(await r.json());
- });
- // Firefox oficial no expone el cuerpo de POST mediante la interceptación BiDi.
- // El proxy HTTP conserva la petición real y las comprobaciones CORS del navegador.
- if (process.env.METRONET_E2E_PROXY_HTTP === 'true') {
-  const { abrirProxyApi } = require('./soporte/proxy-api.cjs');
-  t.after(await abrirProxyApi(API));
- } else await contexto.route(/http:\/\/[^/]+:8080\//,async route=>{
-  // WebKit no admite cambiar el origen con continue. Se conserva íntegra
-  // la respuesta HTTP del servidor real, incluidos estado y cabeceras CORS.
-  const url=new URL(route.request().url());
-  // Reabrir una conexión de lectura cerrada por keep-alive es seguro.
-  // Nunca reintentar aquí una escritura cuyo resultado puede ser incierto.
-  const respuesta=await route.fetch({url:API+url.pathname+url.search,
-   maxRetries:route.request().method()==='GET'?1:0});
-  if (respuesta.status() >= 400) console.log('HTTP', route.request().method(), url.pathname,
-   respuesta.status(), 'origen', route.request().headers().origin ?? 'sin origen');
-  await route.fulfill({response:respuesta});
- });
- await contexto.route('**/src/main.js*',async route=>{
-  const respuesta=await route.fetch();
-  await route.fulfill({response:respuesta,body:(await respuesta.text()).replace('let juego = new Phaser.Game(config);','let juego = new Phaser.Game(config); window.juegoPrueba = juego;')});
- });
- await contexto.route('**/src/simulacion/simulacion.js*',async route=>{
-  const respuesta=await route.fetch();
-  await route.fulfill({response:respuesta,body:(await respuesta.text())+'\nwindow.leerEstadoPrueba=()=>({tutorial:tutorialSimulacion?.indice,estado:estadoMotor?.estado,resultadoEnCurso});'});
- });
+ const solicitudesPendientes=new Set(),fallosRed=[];
+ t.after(async()=>{await contexto?.unrouteAll({behavior:'wait'});await navegador?.close();});
+ async function abrirSesion() {
+  solicitudesPendientes.clear();
+  navegador=await abrirNavegador({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});
+  contexto=await navegador.newContext({viewport:{width:1440,height:1000}});
+  const servidorEfimero=API!=='http://127.0.0.1:8080';
+  if(servidorEfimero && (process.env.METRONET_BROWSER||'chromium')==='chromium') {
+   await contexto.grantPermissions(['local-network-access'],{origin:BASE});
+  }
+  // La campaña verifica una versión fija: conserva las utilidades CSS de Vite
+  // pero no abre el canal de recarga de desarrollo durante las reaperturas.
+  await contexto.route('**/@vite/client',async ruta=>{
+   const respuesta=await ruta.fetch(),contenido=await respuesta.text();
+   const conexion='transport.connect(createHMRHandler(handleMessage));';
+   assert.ok(contenido.includes(conexion),'Reconocer el arranque del canal de desarrollo');
+   await ruta.fulfill({response:respuesta,body:contenido.replace(conexion,'')});
+  });
+  // Conserva la política del producto, autorizando únicamente el servidor
+  // efímero de esta prueba tanto en la cabecera como en la etiqueta HTML.
+  if(servidorEfimero) await contexto.route(url=>url.origin===new URL(BASE).origin && (url.pathname==='/' || url.pathname.endsWith('.html')),async ruta=>{
+   const respuesta=await ruta.fetch();
+   const cabeceras=respuesta.headers();
+   const adaptar=texto=>texto.replaceAll('http://127.0.0.1:8080',API)
+    .replaceAll('ws://127.0.0.1:5173',BASE.replace('http:','ws:'));
+   cabeceras['content-security-policy']=adaptar(cabeceras['content-security-policy']);
+   const contenido=(await respuesta.text()).replace(/<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*>/gi,adaptar);
+   await ruta.fulfill({response:respuesta,headers:cabeceras,body:contenido});
+  });
+  // Cambia solo el destino del backend de prueba. El navegador envía HTTP real,
+  // conserva los cuerpos POST y comprueba CORS también en Firefox oficial.
+  if(servidorEfimero) await contexto.addInitScript(api=>{
+   const original=window.fetch.bind(window);
+   window.fetch=(entrada,opciones)=>{
+    const url=new URL(entrada instanceof Request?entrada.url:String(entrada),location.href);
+    if(url.hostname==='127.0.0.1' && url.port==='8080') {
+     const destino=api+url.pathname+url.search;
+     entrada=entrada instanceof Request?new Request(destino,entrada):destino;
+    }
+    return original(entrada,opciones);
+   };
+  },API);
+  pagina=await contexto.newPage();pagina.setDefaultTimeout(20000);
+  pagina.on('request',solicitud=>solicitudesPendientes.add(solicitud));
+  pagina.on('requestfinished',solicitud=>solicitudesPendientes.delete(solicitud));
+  pagina.on('requestfailed',solicitud=>{
+   solicitudesPendientes.delete(solicitud);
+   fallosRed.push({url:solicitud.url(),error:solicitud.failure()?.errorText});
+  });
+  pagina.on('pageerror',e=>errores.push(e.message));
+  pagina.on('response',async r=>{
+   if(/\/(?:api|auth)\//.test(r.url())&&r.status()>=400) fallos.push([new URL(r.url()).pathname,r.status()]);
+   if(r.url().endsWith('/evaluar')&&r.ok()) evaluaciones.push(await r.json());
+  });
+  await contexto.route('**/src/main.js*',async route=>{
+   const respuesta=await route.fetch();
+   await route.fulfill({response:respuesta,body:(await respuesta.text()).replace('let juego = new Phaser.Game(config);','let juego = new Phaser.Game(config); window.juegoPrueba = juego;')});
+  });
+  await contexto.route('**/src/simulacion/simulacion.js*',async route=>{
+   const respuesta=await route.fetch();
+   await route.fulfill({response:respuesta,body:(await respuesta.text())+'\nwindow.leerEstadoPrueba=()=>({tutorial:tutorialSimulacion?.indice,estado:estadoMotor?.estado,resultadoEnCurso});'});
+  });
+ }
+ await abrirSesion();
  await pagina.goto(BASE+'/login.html');
  await pagina.locator('#pantalla-metronet').waitFor();
  const f=()=>pagina.frames().find(frame=>frame.parentFrame());
  await f().locator('#email').fill(process.env.METRONET_E2E_EMAIL);
  await f().locator('#password').fill(process.env.METRONET_E2E_CLAVE);
  await f().locator('#loginButton').click();
- await f().locator('[data-continuar-bienvenida]').click();
+ try {
+  await pagina.waitForFunction(()=>document.querySelector('#pantalla-metronet')?.contentWindow?.document.querySelector('[data-continuar-bienvenida], #accionesInicio'));
+ } catch(error) {
+  console.log('LOGIN QA',errores,fallos,pagina.frames().map(frame=>frame.url()));
+  for(const frame of pagina.frames())console.log((await frame.locator('body').innerText()).slice(-3000));
+  throw error;
+ }
+ const bienvenidaInicial=f().locator('[data-continuar-bienvenida]');
+ if(await bienvenidaInicial.isVisible())await bienvenidaInicial.click();
+ await f().locator('#accionesInicio[aria-busy="false"]').waitFor();
  await f().getByRole('link',{name:'Niveles',exact:true}).first().click();
  await f().getByRole('button',{name:'Iniciar',exact:true}).click();
  await f().getByRole('button',{name:'Iniciar nivel',exact:true}).click();
@@ -119,17 +159,29 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
   await presentaciones();
  }
  async function herramienta(clave){await presentaciones();await f().locator(`[data-elegir-herramienta="${clave}"]`).click();}
+ async function escribirNumero(selector,valor) {
+  const campo=f().locator(selector);
+  // Firefox oficial requiere borrar por teclado: fill puede anexar decimales.
+  await campo.click();await campo.press('ControlOrMeta+A');await campo.press('Backspace');
+  await campo.pressSequentially(String(valor));
+  assert.equal(await campo.inputValue(),String(valor),'El control conserva el número introducido');
+ }
  async function aplicarUv(valor){
   await presentaciones();
   await f().locator('.simulacion-selector-metros > summary').click();
   await f().locator('.simulacion-selector-metros__opciones button').first().click();
-  await f().locator('#velocidadUnidad').fill(String(valor));
+  await escribirNumero('#velocidadUnidad',valor);
   const guardado=pagina.waitForResponse(r=>r.url().includes('/unidades/')&&r.request().method()==='PATCH'&&r.ok());
   await f().locator('.simulacion-parametro-velocidad button[type="submit"]').click();await guardado;
   await f().locator('.simulacion-parametro-velocidad button[type="submit"]').waitFor();
   await f().waitForFunction(()=>!document.querySelector('#velocidadUnidad')?.disabled);
  }
- async function horas(valor){await f().locator('#duracionSimulacion').fill(String(valor));await f().locator('#aplicarUnidadTiempo').click();}
+ async function horas(valor){
+  await escribirNumero('#duracionSimulacion',valor);
+  const guardado=pagina.waitForResponse(r=>r.url().includes('/unidades/')&&r.request().method()==='PATCH'&&r.ok());
+  await f().locator('#aplicarUnidadTiempo').click();await guardado;
+  await f().waitForFunction(()=>!document.querySelector('#duracionSimulacion')?.disabled);
+ }
  async function leerAvance(){
   return f().evaluate(async()=>{
    const {consultarJuego}=await import('/src/educacion/ClientePuntuacion.js');
@@ -137,6 +189,12 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    const [consigna,desempeno,progreso]=await Promise.all([
     consultarJuego(`/disenos/${id}/consigna`),consultarJuego(`/disenos/${id}/desempeno`),consultarJuego('/progreso')]);
    return {consigna,listo:consigna.estadoGlobal==='LISTO',puntaje:desempeno.puntaje,desempeno,progreso};
+  });
+ }
+ async function fotografiaRed() {
+  return f().evaluate(()=>{
+   const e=juegoPrueba.scene.getScene('MapaScene').editorRedMetro,d=e.disenoActual;
+   return {id:e.idDiseno(),estaciones:d.estaciones,lineas:d.lineas,tramos:d.tramos,metros:d.unidadesMetro};
   });
  }
  async function comprobarColeccion(completados) {
@@ -159,7 +217,8 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
   const resultado=pagina.waitForResponse(r=>r.url().endsWith('/ejecutar')&&r.request().method()==='POST'&&r.ok(),{timeout:45000});
   await f().getByRole('button',{name:'Iniciar simulación',exact:true}).click();
   await resultado;
-  await f().waitForFunction(()=>window.leerEstadoPrueba?.().estado==='FINALIZADA'&&!window.leerEstadoPrueba().resultadoEnCurso);
+  // El motor admite hasta 18 s visuales a ritmo 0,5×: esperar su final real.
+  await f().waitForFunction(()=>window.leerEstadoPrueba?.().estado==='FINALIZADA'&&!window.leerEstadoPrueba().resultadoEnCurso,null,{timeout:45000});
   assert.equal(evaluaciones.length,previas,'Simular no solicita aprobación');
   assert.equal(await f().locator('.metronet-resultado-nivel, .metronet-victoria').count(),0);
   const e=await leerAvance();
@@ -169,7 +228,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
  const referencias=JSON.parse(require('node:fs').readFileSync(process.env.METRONET_E2E_REFERENCIAS,'utf8'));
  const puntos=Object.values(require('../src/mapa/datos/puntos-interes.json').barrios).flatMap(b=>b.puntos);
  let bloqueo=false;
- for(const nivel of niveles) { if(bloqueo) break; await t.test(`Nivel ${nivel.numero}: construir, guardar, simular, finalizar explícitamente y siguiente`,async()=>{
+ for(const nivel of niveles) { if(bloqueo) break; await t.test(`Nivel ${nivel.numero}: construir, guardar, simular, cerrar, reabrir y finalizar`,async()=>{
   try {
    await editor(nivel.numero);
    assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones.length),0);
@@ -233,21 +292,29 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    assert.equal(resultado.progreso.modoLibreDesbloqueado,false);
    if(nivel.numero<10) assert.equal(resultado.progreso.escenarios.find(e=>e.numero===nivel.numero+1).desbloqueado,false);
    await f().locator('#volverEdicion').click();await editor();
-   if(nivel.numero===1){
-    // El contenedor vigente lleva toda recarga completa al login; retomar no debe aprobar ni crear otro intento.
-    const idAntes=await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.idDiseno());
-    await pagina.reload();
-    await pagina.waitForFunction(()=>document.querySelector('#pantalla-metronet')?.contentWindow?.document.querySelector('#loginButton'));
-    await f().locator('#email').fill(process.env.METRONET_E2E_EMAIL);
-    await f().locator('#password').fill(process.env.METRONET_E2E_CLAVE);
-    await f().locator('#loginButton').click();
-    await f().getByRole('link',{name:'Niveles',exact:true}).first().click({timeout:30000});
-    await f().getByRole('button',{name:'Continuar',exact:true}).click();
-    await f().getByRole('button',{name:'Iniciar nivel',exact:true}).click();
-    await editor();
-    assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.idDiseno()),idAntes);
-    assert.equal((await leerAvance()).progreso.nivelesCompletados,0,'Recargar y retomar no aprueba');
-   }
+   const antesDeCerrar=await fotografiaRed();
+   await contexto.unrouteAll({behavior:'wait'});
+   await navegador.close();
+   await abrirSesion();
+   await pagina.goto(BASE+'/login.html');
+   await pagina.locator('#pantalla-metronet').waitFor();
+   await f().locator('#email').fill(process.env.METRONET_E2E_EMAIL);
+   await f().locator('#password').fill(process.env.METRONET_E2E_CLAVE);
+   await f().locator('#loginButton').click();
+   await pagina.waitForFunction(()=>document.querySelector('#pantalla-metronet')?.contentWindow?.document.querySelector('[data-continuar-bienvenida], #accionesInicio[aria-busy="false"]'));
+   const bienvenida=f().locator('[data-continuar-bienvenida]');
+   if(await bienvenida.isVisible())await bienvenida.click();
+   await f().locator('#accionesInicio[aria-busy="false"]').waitFor();
+   await f().getByRole('link',{name:'Mis diseños',exact:true}).first().click();
+   await f().locator(`[data-diseno="${antesDeCerrar.id}"]`).getByRole('link',{name:/^Abrir diseño:/}).click();
+   await editor(nivel.numero);
+   assert.deepEqual(await fotografiaRed(),antesDeCerrar,'Cerrar todo el navegador y volver a entrar conserva la red guardada');
+   const recuperado=await leerAvance();
+   assert.equal(recuperado.progreso.nivelesCompletados,nivel.numero-1,'Reabrir no aprueba ni duplica el intento');
+   assert.equal(recuperado.puntaje,resultado.puntaje,'El puntaje se recupera de la base');
+   assert.deepEqual(recuperado.consigna.condiciones,resultado.consigna.condiciones,'Metas y POI completados se conservan');
+   assert.deepEqual(recuperado.desempeno.desglosePuntuacion,resultado.desempeno.desglosePuntuacion,'Simulaciones y descuentos se conservan');
+   console.log(`PERSISTENCIA NIVEL ${nivel.numero}: navegador cerrado, sesión nueva, mismo diseño, estaciones, líneas, conexiones, metros, UV/UT, metas y puntaje PASS`);
    await f().locator('[data-guardar]').click();
    await f().waitForFunction(()=>!juegoPrueba.scene.getScene('MapaScene').editorRedMetro.finalizacionEnCurso);
    assert.equal((await leerAvance()).progreso.nivelesCompletados,nivel.numero-1,'Guardar una red lista tampoco aprueba');
@@ -292,6 +359,7 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    assert.deepEqual(errores,[]);assert.deepEqual(fallos,[]);
   }catch(e){
    bloqueo=true; console.log('FALLO ORIGINAL',e,'ERRORES',errores,fallos,'PÁGINAS',pagina.frames().map(frame=>frame.url()));
+   console.log('RED PENDIENTE',[...solicitudesPendientes].map(s=>s.url()),'FALLOS DE RED',fallosRed.slice(-20));
    try {
     const frame=f();
     if(frame) console.log('ESTADO UI',await frame.evaluate(()=>window.leerEstadoPrueba?.()),(await frame.locator('body').innerText()).slice(-9000));
