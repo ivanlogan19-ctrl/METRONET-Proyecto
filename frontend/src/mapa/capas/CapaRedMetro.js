@@ -1,6 +1,6 @@
 import { tramosDeRecorridos } from '../configuracion/RecorridosRed.js';
 import { calcularCrucesLineas } from '../utilidades/CrucesLineas.mjs';
-import { PALETA_RED, coloresDeLineas, colorMetro } from '../configuracion/PaletaRed.js';
+import { PALETA_RED, coloresDeLineas } from '../configuracion/PaletaRed.js';
 import GestosRed from '../controles/GestosRed.js';
 import { numeroMetroEnRed } from '../controles/NombresRed.js';
 import Phaser from 'phaser';
@@ -181,11 +181,7 @@ export default class CapaRedMetro {
       const desde = this.convertirPosicion(a.posicionX, a.posicionY);
       const hasta = this.convertirPosicion(b.posicionX, b.posicionY);
       const seleccionada = this.elementoSeleccionado?.tipo === 'conexionLinea' && this.elementoSeleccionado.valor.idConexion === conexion.idConexion;
-      const medio = { x: (desde.x + hasta.x) / 2, y: (desde.y + hasta.y) / 2 };
-      this.grafico.lineStyle(seleccionada ? 8 : 5, this.colorLinea(conexion.lineaA), 1);
-      this.grafico.lineBetween(desde.x, desde.y, medio.x, medio.y);
-      this.grafico.lineStyle(seleccionada ? 8 : 5, this.colorLinea(conexion.lineaB), 1);
-      this.grafico.lineBetween(medio.x, medio.y, hasta.x, hasta.y);
+      this.dibujarVia(desde, hasta, [this.colorLinea(conexion.lineaA), this.colorLinea(conexion.lineaB)], seleccionada);
     }
   }
 
@@ -197,17 +193,36 @@ export default class CapaRedMetro {
     const hasta = this.convertirPosicion(destino.posicionX, destino.posicionY);
     const seleccionado = this.esTramoSeleccionado(tramo) ||
       (this.modo === 'crearTramo' && this.lineaActiva === tramo.nombreLinea);
-    const color = this.colorLinea(tramo.nombreLinea);
-    if (seleccionado) {
+    this.dibujarVia(desde, hasta, [this.colorLinea(tramo.nombreLinea)], seleccionado);
+  }
+
+  dibujarVia(desde, hasta, colores, seleccionada) {
+    const longitud = Math.hypot(hasta.x - desde.x, hasta.y - desde.y);
+    if (!longitud) return;
+    const dx = (hasta.x - desde.x) / longitud, dy = (hasta.y - desde.y) / longitud;
+    if (seleccionada) {
       this.grafico.lineStyle(16, COLORES_INTERFAZ_MAPA.ACTIVO, 0.22);
       this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
     }
-    this.grafico.lineStyle(seleccionado ? 12 : 10, COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 0.92);
+    this.grafico.lineStyle(seleccionada ? 12 : 10, COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 0.92);
     this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
-    this.grafico.lineStyle(seleccionado ? ANCHO_VIA_SELECCIONADA : ANCHO_VIA, color, 1);
-    this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
-    this.grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.TEXTO, seleccionado ? 0.62 : 0.24);
-    this.grafico.lineBetween(desde.x, desde.y, hasta.x, hasta.y);
+    // Durmientes y rieles usan coordenadas del mapa: escalan y giran con la red.
+    for (let distancia = 4; distancia < longitud; distancia += 8) {
+      const x = desde.x + dx * distancia, y = desde.y + dy * distancia;
+      const color = colores[Math.min(colores.length - 1, Math.floor(distancia / longitud * colores.length))];
+      this.grafico.lineStyle(2, color, 0.8);
+      this.grafico.lineBetween(x - dy * 4, y + dx * 4, x + dy * 4, y - dx * 4);
+    }
+    const separacion = (seleccionada ? ANCHO_VIA_SELECCIONADA : ANCHO_VIA) / 2;
+    colores.forEach((color, indice) => {
+      const inicio = longitud * indice / colores.length, fin = longitud * (indice + 1) / colores.length;
+      for (const lado of [-1, 1]) {
+        const x = -dy * separacion * lado, y = dx * separacion * lado;
+        this.grafico.lineStyle(1.5, color, 1);
+        this.grafico.lineBetween(desde.x + dx * inicio + x, desde.y + dy * inicio + y,
+          desde.x + dx * fin + x, desde.y + dy * fin + y);
+      }
+    });
   }
 
   dibujarCruces(estaciones) {
@@ -329,7 +344,7 @@ export default class CapaRedMetro {
     const punto = this.obtenerPuntoEnRuta(ruta, this.obtenerProgresoUnidad(indice));
     if (!punto) return;
     const seleccionada = this.elementoSeleccionado?.tipo === 'unidad' && this.elementoSeleccionado.valor.idTren === unidad.idTren;
-    this.unidadesEstaticas.push(this.crearRepresentacionMetro(punto, colorMetro(unidad.idTren), seleccionada, unidad.idTren));
+    this.unidadesEstaticas.push(this.crearRepresentacionMetro(punto, this.coloresMetro(unidad), seleccionada, unidad.idTren));
   }
 
   crearEtiquetaEstacion(estacion, punto, indice, radio) {
@@ -425,37 +440,50 @@ export default class CapaRedMetro {
   dibujarHaloMetro(grafico, seleccionada) {
     if (!seleccionada) return;
     grafico.lineStyle(3, COLORES_INTERFAZ_MAPA.ACTIVO, 0.96);
-    grafico.strokeCircle(0, 0, 19);
+    grafico.strokeEllipse(0, 0, 48, 30);
   }
 
   dibujarSombraMetro(grafico) {
     grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO, 0.52);
-    grafico.fillEllipse(0, 12, 38, 9);
+    grafico.fillEllipse(0, 12, 44, 9);
   }
 
-  dibujarCuerpoMetro(grafico, color) {
-    grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO_SECUNDARIO, 1);
-    grafico.fillRect(-17, -9, 34, 18);
-    grafico.lineStyle(2, COLORES_INTERFAZ_MAPA.TEXTO, 0.86);
-    grafico.strokeRect(-17, -9, 34, 18);
-    grafico.fillStyle(color, 1);
-    grafico.fillRect(-15, -7, 30, 6);
-    grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL_ELEVADO, 1);
-    grafico.fillRect(-15, 1, 30, 6);
-    grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.BORDE_ACTIVO, 0.75);
-    grafico.lineBetween(-14, 8, 14, 8);
+  dibujarCuerpoMetro(grafico, colores) {
+    grafico.fillStyle(0xbfc7cb, 1);
+    grafico.fillRect(-20, -9, 40, 18);
+    grafico.lineStyle(2, COLORES_INTERFAZ_MAPA.FONDO, 1);
+    grafico.strokeRect(-20, -9, 40, 18);
+    grafico.fillStyle(0xe0dfd4, 1);
+    grafico.fillRect(-18, -7, 36, 12);
+    colores.forEach((color, indice) => {
+      grafico.fillStyle(color, 1);
+      grafico.fillRect(-18 + indice * 36 / colores.length, 5, 36 / colores.length, 3);
+      grafico.fillRect(-18 + indice * 36 / colores.length, -8, 36 / colores.length, 2);
+    });
+    // Equipamiento del techo y juntas rectas conservan el detalle pixelado.
+    for (const x of [-7, 3]) {
+      grafico.fillStyle(0x647180, 1);
+      grafico.fillRect(x, -4, 5, 6);
+      grafico.fillStyle(0x263447, 1);
+      grafico.fillRect(x + 1, -3, 1, 4);
+      grafico.fillRect(x + 3, -3, 1, 4);
+    }
   }
 
-  dibujarCabinaMetro(grafico, color) {
-    grafico.fillStyle(COLORES_INTERFAZ_MAPA.PANEL, 1);
-    grafico.fillRect(-11, -5, 8, 5);
-    grafico.fillRect(3, -5, 8, 5);
-    grafico.lineStyle(1, COLORES_INTERFAZ_MAPA.TEXTO_SECUNDARIO, 0.8);
-    grafico.lineBetween(0, -5, 0, 0);
-    grafico.fillStyle(COLORES_INTERFAZ_MAPA.TEXTO, 0.94);
-    grafico.fillRect(13, -3, 2, 5);
-    grafico.fillStyle(color, 1);
-    grafico.fillCircle(14, 4, 1.7);
+  dibujarCabinaMetro(grafico) {
+    for (const x of [-18, 14]) {
+      grafico.fillStyle(0x142439, 1);
+      grafico.fillRect(x, -5, 4, 8);
+      grafico.fillStyle(0x7d9ba9, 1);
+      grafico.fillRect(x + 1, -4, 2, 2);
+      grafico.fillStyle(0xffe5a4, 1);
+      grafico.fillRect(x, 4, 3, 1);
+    }
+  }
+
+  coloresMetro(unidad) {
+    const conexion = this.diseno?.conexionesLineas?.find(c => `@conexion:${c.idConexion}` === unidad.nombreLinea);
+    return (conexion ? [conexion.lineaA, conexion.lineaB] : [unidad.nombreLinea]).map(nombre => this.colorLinea(nombre));
   }
 
   dibujarRuedasMetro(grafico) {
@@ -769,10 +797,17 @@ export default class CapaRedMetro {
       let tren = this.unidadesSimulacion.get(clave);
       if (!tren) {
         const seleccionada = this.elementoSeleccionado?.tipo === 'unidad' && String(this.elementoSeleccionado.valor.idTren) === String(unidad.idTren);
-        tren = this.crearRepresentacionMetro(punto, colorMetro(unidad.idTren), seleccionada, unidad.idTren);
+        tren = this.crearRepresentacionMetro(punto, this.coloresMetro(unidad), seleccionada, unidad.idTren);
         this.unidadesSimulacion.set(clave, tren);
         requiereActualizarEscala = true;
       }
+      if (!tren.aroMovimiento) {
+        tren.aroMovimiento = this.escena.add.graphics();
+        tren.aroMovimiento.lineStyle(2, COLORES_INTERFAZ_MAPA.EXITO, 0.95);
+        tren.aroMovimiento.strokeEllipse(0, 0, 48, 30);
+        tren.add(tren.aroMovimiento);
+      }
+      tren.aroMovimiento.setVisible(estado.enMovimiento === true);
       this.orientarMetro(tren, punto);
     });
     this.unidadesSimulacion.forEach((tren, clave) => {

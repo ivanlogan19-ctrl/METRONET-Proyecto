@@ -105,7 +105,9 @@ export default class MedicionDistancias {
       const paginas = Math.ceil(this.recorridos.length / 5);
       const navegacion = document.createElement('div'); navegacion.className = 'metronet-mediciones__paginas';
       for (const [texto, paso] of [['Anterior', -1], ['Siguiente', 1]]) {
-        const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = texto;
+        const boton = document.createElement('button'); boton.type = 'button';
+        boton.textContent = paso < 0 ? '◀' : '▶';
+        boton.setAttribute('aria-label', texto);
         boton.disabled = this.pagina + paso < 0 || this.pagina + paso >= paginas;
         boton.addEventListener('click', () => { this.pagina += paso; this.renderizarResumen(); this.posicionar(); });
         navegacion.append(boton);

@@ -12,7 +12,7 @@ vm.runInNewContext(`${codigo}\nmodule.exports = CapaRedMetro;`, {
   tramosDeRecorridos: d => [...(d.tramos ?? []), ...(d.conexionesLineas ?? []).map(c => ({ nombreLinea: `@conexion:${c.idConexion}`, estacionA: c.estacionA, estacionB: c.estacionB, distanciaKm: c.distanciaKm }))],
   COLORES_INTERFAZ_MAPA: { TEXTO: 0xffffff, FONDO: 0x000000 },
   FUENTES_INTERFAZ_MAPA: { SISTEMA: 'monospace' },
-  colorMetro: () => 0xe99238,
+  PALETA_RED: { lineas: [0x3983ff] },
   Phaser: { Math: {
     Clamp: (valor, minimo, maximo) => Math.min(maximo, Math.max(minimo, valor)),
     Linear: (origen, destino, avance) => origen + (destino - origen) * avance,
@@ -23,8 +23,8 @@ vm.runInNewContext(`${codigo}\nmodule.exports = CapaRedMetro;`, {
 const CapaRedMetro = modulo.exports;
 
 function crearGrafico() {
-  const grafico = { operaciones: [] };
-  for (const metodo of ['fillStyle', 'fillEllipse', 'fillRect', 'lineStyle', 'strokeRect', 'lineBetween', 'fillCircle', 'strokeCircle']) {
+  const grafico = { operaciones: [], setVisible(valor) { this.visible = valor; return this; } };
+  for (const metodo of ['fillStyle', 'fillEllipse', 'fillRect', 'lineStyle', 'strokeRect', 'lineBetween', 'fillCircle', 'strokeCircle', 'strokeEllipse']) {
     grafico[metodo] = (...argumentos) => {
       grafico.operaciones.push([metodo, ...argumentos]);
       return grafico;
@@ -39,6 +39,7 @@ function preparar(origen, destino, rotacion = 0) {
     graphics: crearGrafico,
     container(x, y) {
       return { x, y, rotation: 0, scaleX: 1, scaleY: 1, list: [],
+        destroy() {},
         setDepth(valor) { this.depth = valor; return this; },
         add(hijo) { this.list.push(hijo); return this; },
         setPosition(x, y) { this.x = x; this.y = y; return this; },
@@ -81,7 +82,7 @@ function comprobarDerecho(tren, camara, anguloRuta, contexto) {
   assert.ok(Math.abs(Math.sin(tren.rotation - anguloRuta)) < 1e-10, `${contexto}: metro fuera del ángulo de la vía`);
   assert.ok(Math.cos(anguloPantalla) >= -1e-10, `${contexto}: metro invertido`);
   const operaciones = tren.list[0].operaciones;
-  const techo = operaciones.find(([metodo, x, y]) => metodo === 'fillRect' && x === -17 && y === -9);
+  const techo = operaciones.find(([metodo, x, y]) => metodo === 'fillRect' && x === -20 && y === -9);
   const rueda = operaciones.find(([metodo, x, y]) => metodo === 'fillRect' && x === -13 && y === 8);
   assert.ok(techo && rueda, 'se conserva el dibujo con cuerpo y ruedas');
   assert.ok((rueda[2] - techo[2]) * Math.cos(anguloPantalla) >= -1e-10);
@@ -154,7 +155,7 @@ for (const modo of ['editor', 'simulacion']) {
     for (const zoom of [0.5, 1, 2, 4, 8, 1]) {
       camara.zoom = zoom;
       capa.manejadorPostUpdate();
-      assert.equal(34 * tren.scaleX * zoom, 17 * zoom, 'El ancho visible crece en la misma proporción que la vía');
+      assert.equal(40 * tren.scaleX * zoom, 20 * zoom, 'El ancho visible crece en la misma proporción que la vía');
       assert.equal(18 * tren.scaleY * zoom, 9 * zoom, 'El alto visible mantiene su proporción');
       assert.ok(20 * tren.scaleY * zoom <= 10 * zoom, 'El cuerpo y su borde caben en el ancho de la vía');
       comprobarPosicion(tren, [100, 200], [700, 200], 0.5);
@@ -199,4 +200,37 @@ test('El dibujo acompaña los kilómetros del motor y el reloj, aunque la escala
   comprobar(motor.actualizar(23000), 1, 260);
   comprobar(motor.actualizar(27500), 2.5, 200);
   comprobar(motor.actualizar(29000), 3, 100);
+});
+
+for (const modo of ['editor', 'simulacion']) {
+  test(`${modo}: el tren usa los colores de su recorrido, incluidas las dos mitades de una conexión`, () => {
+    const { capa } = preparar([100, 200], [700, 200]);
+    capa.coloresLineas.set('Azul', 0x3983ff);
+    capa.coloresLineas.set('Verde', 0x24b86a);
+    const coloresUsados = tren => tren.list[0].operaciones.filter(o => o[0] === 'fillStyle').map(o => o[1]);
+    assert.ok(coloresUsados(representar(capa, modo)).includes(0x3983ff));
+    capa.diseno.conexionesLineas = [{ idConexion: 7, lineaA: 'Azul', lineaB: 'Verde', estacionA: 'A', estacionB: 'B' }];
+    capa.diseno.unidadesMetro = [{ idTren: 2, nombreLinea: '@conexion:7' }];
+    capa.rutasPorLinea.clear();
+    if (modo === 'editor') capa.dibujarUnidad(capa.diseno.unidadesMetro[0], 0);
+    else capa.actualizarRepresentacionSimulacion([{ idTren: 2, nombreLinea: '@conexion:7', transitable: true, progresoRuta: 0.5 }]);
+    capa.actualizarEscalaElementosGraficos(true);
+    const tren = modo === 'editor' ? capa.unidadesEstaticas.at(-1) : capa.unidadesSimulacion.get('2');
+    assert.ok(coloresUsados(tren).includes(0x3983ff));
+    assert.ok(coloresUsados(tren).includes(0x24b86a));
+    assert.equal(tren.scaleX, 0.5);
+    comprobarPosicion(tren, [100, 200], [700, 200], modo === 'editor' ? capa.obtenerProgresoUnidad(0) : 0.5);
+  });
+}
+
+test('El aro acompaña al tren en movimiento y desaparece al pausar o llegar', () => {
+  const { capa } = preparar([100, 200], [700, 200]);
+  capa.mostrarUnidadesEstaticas = false;
+  for (const enMovimiento of [true, false, true, false]) {
+    capa.actualizarRepresentacionSimulacion([{ idTren: 1, nombreLinea: 'Azul', transitable: true, progresoRuta: 0.5, enMovimiento }]);
+    const tren = capa.unidadesSimulacion.get('1');
+    assert.equal(tren.aroMovimiento.visible, enMovimiento);
+    assert.equal(tren.list.length, 2, 'Se reutiliza el aro sin crear gráficos en cada cuadro');
+    comprobarPosicion(tren, [100, 200], [700, 200], 0.5);
+  }
 });

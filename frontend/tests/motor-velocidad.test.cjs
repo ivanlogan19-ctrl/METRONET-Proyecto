@@ -276,3 +276,16 @@ test('La suma decimal de tramos no impide reconocer la llegada y el regreso', as
   assert.equal(motor.actualizar(5000).unidades[0].proximaEstacion, null);
   assert.equal(motor.reiniciar(10000).unidades[0].estacionActual, 'E2');
 });
+
+test('Movimiento visual: solo se destaca durante la marcha, no en pausa ni después de llegar', async () => {
+  const Motor = await cargar(), datos = red([10, 5]);
+  const motor = new Motor(datos);
+  assert.equal(motor.obtenerEstado().unidades[0].enMovimiento, false);
+  assert.ok(motor.iniciar({duracion:6, ahora:0}).unidades.every(u => u.enMovimiento));
+  assert.ok(motor.pausar(1000).unidades.every(u => !u.enMovimiento));
+  assert.ok(motor.reanudar(1000).unidades.every(u => u.enMovimiento));
+  const intermedio = motor.actualizar(motor.duracionVisual * 0.75);
+  assert.equal(intermedio.unidades[0].enMovimiento, false, 'El primero ya llegó');
+  assert.equal(intermedio.unidades[1].enMovimiento, true, 'El segundo sigue circulando');
+  assert.ok(motor.actualizar(motor.duracionVisual).unidades.every(u => !u.enMovimiento));
+});

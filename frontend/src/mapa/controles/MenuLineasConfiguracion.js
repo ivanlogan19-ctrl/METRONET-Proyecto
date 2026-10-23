@@ -38,7 +38,7 @@ export function prepararMenuLineas(lista, controles, diseno, acceso) {
   const navegacion = document.createElement('nav');
   navegacion.className = 'simulacion-lineas-paginas';
   navegacion.setAttribute('aria-label', 'Páginas de líneas a configurar');
-  navegacion.innerHTML = '<button type="button" aria-label="Opciones anteriores">◀</button><output></output><button type="button" aria-label="Opciones siguientes">▶</button>';
+  navegacion.innerHTML = '<button type="button" aria-label="Opciones anteriores">◀</button><button type="button" aria-label="Opciones siguientes">▶</button>';
   lista.append(navegacion);
   const [anterior, siguiente] = navegacion.querySelectorAll('button');
   function mostrarPagina() {
@@ -46,7 +46,6 @@ export function prepararMenuLineas(lista, controles, diseno, acceso) {
     pagina = Math.max(0, Math.min(pagina, paginas - 1));
     controles.forEach((boton, i) => { boton.hidden = Math.floor(i / porPagina) !== pagina; });
     navegacion.hidden = paginas === 1;
-    navegacion.querySelector('output').textContent = `${pagina + 1} / ${paginas}`;
     anterior.disabled = pagina === 0; siguiente.disabled = pagina === paginas - 1;
   }
   function posicionar() {

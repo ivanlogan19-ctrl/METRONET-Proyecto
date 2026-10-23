@@ -184,6 +184,8 @@ export default class MotorSimulacion {
       proximaEstacion,
       progresoTramo: !esFinal && longitudes[indiceTramo] > 0 ? (distanciaRecorridaKm - distanciaPrevia) / longitudes[indiceTramo] : 0,
       transitable: cantidadTramos > 0 && distanciaTotalKm > 0,
+      enMovimiento: this.estado === 'EN_CURSO' && distanciaTotalKm > 0 && !esFinal
+        && unidad.velocidadUV > 0 && this.progreso * this.duracion < (unidad.duracionUt ?? this.ventanaVisual),
     };
   }
 

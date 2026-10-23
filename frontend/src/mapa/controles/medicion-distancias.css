@@ -36,4 +36,8 @@ html:root body .metronet-mediciones__fila { display: grid; grid-template-columns
 html:root body .metronet-mediciones__fila i { display: block; height: 5px; }
 html:root body .metronet-mediciones__fila b { font: inherit; }
 html:root body .metronet-mediciones__paginas { display: flex; justify-content: space-between; gap: 8px; pointer-events: auto; }
-html:root body .metronet-mediciones__paginas button { min-width: 0; min-height: 24px; padding: 3px 5px; font: inherit; }
+html:root body .metronet-mediciones__paginas button {
+  width: 22px; min-width: 22px; height: 18px; min-height: 18px; padding: 0;
+  background: var(--warning); border-color: var(--warning); color: var(--primary-ink);
+  font: 9px/1 'Silkscreen', monospace;
+}
