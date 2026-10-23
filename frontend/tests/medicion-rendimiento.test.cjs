@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 
-test('La regla sigue la cámara real al acercar y girar, sin reescribir el DOM en reposo', async t => {
+test('La regla muestra solo el cuadro estable al acercar y girar la simulación', async t => {
   const browser = await abrirNavegador({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL });
   t.after(() => browser.close());
   const v = await abrirPantalla(browser, '/simulacion.html?idDiseno=77', { responder: req => {
@@ -27,7 +27,7 @@ test('La regla sigue la cámara real al acercar y girar, sin reescribir el DOM e
   await p.reload();
   await p.waitForFunction(() => window.escenaMedicionPrueba?.disenoActual);
   await p.getByRole('button', { name: 'Mostrar distancias en kilómetros', exact: true }).click();
-  await p.locator('.metronet-mediciones__tramo:not([hidden])').waitFor();
+  await p.locator('.metronet-mediciones__total:not([hidden])').waitFor();
   await p.evaluate(() => document.fonts.ready);
   const resultado = await p.evaluate(async () => {
     const overlay = document.querySelector('.metronet-mediciones');
@@ -37,9 +37,7 @@ test('La regla sigue la cámara real al acercar y girar, sin reescribir el DOM e
     let cambios = 0;
     const observador = new MutationObserver(registros => { cambios += registros.length; });
     observador.observe(overlay, { attributes: true, childList: true, characterData: true, subtree: true });
-    // Ejecutar el mismo callback evita un falso verde si Chrome pausa Phaser
-    // mientras otra prueba tiene el foco. No se altera la red ni la cámara.
-    for (let i = 0; i < 30; i++) escenaMedicionPrueba.capaRedMetro.medicionDistancias.posicionar();
+    for (let i = 0; i < 30; i++) escenaMedicionPrueba.events.emit('render');
     cambios += observador.takeRecords().length;
     observador.disconnect();
     return { cambios, activa: medicion.activa, conectada: medicion.overlay === overlay, mismoContenido: antes === overlay.innerHTML, texto: overlay.textContent };
@@ -56,29 +54,27 @@ test('La regla sigue la cámara real al acercar y girar, sin reescribir el DOM e
     const capa = escena.capaRedMetro, camara = escena.cameras.main;
     const medicion = capa.medicionDistancias;
     const casos = [];
-    // La conversión inversa de Phaser contrasta el centro de cada etiqueta DOM
-    // con las coordenadas de la vía, sin repetir la proyección de la regla.
-    for (const zoom of [.8, 1, 1.7, 2.4]) for (const giro of [0, .3]) for (const margen of [0, 40]) {
-      camara.setViewport(margen, margen, escena.scale.gameSize.width - 2 * margen, escena.scale.gameSize.height - 2 * margen);
+    const cuadro = medicion.total.getBoundingClientRect();
+    for (const zoom of [.8, 1, 1.7, 2.4]) for (const giro of [0, .3]) {
       camara.setZoom(zoom).setRotation(giro);
-      const a = capa.convertirPosicion(400, 420), b = capa.convertirPosicion(770, 410);
-      camara.centerOn((a.x + b.x) / 2 + 20, (a.y + b.y) / 2 - 30);
+      camara.centerOn(450, 400);
       camara.preRender();
-      medicion.posicionar();
-      const rect = escena.game.canvas.getBoundingClientRect();
-      const elemento = medicion.etiquetas[0].elemento, etiqueta = elemento.getBoundingClientRect();
-      const escala = rect.width / escena.scale.gameSize.width;
-      const centro = camara.getWorldPoint((etiqueta.x + etiqueta.width / 2 - rect.x) / escala,
-        (etiqueta.y + etiqueta.height / 2 - rect.y) / escala);
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const distancia = Math.abs((centro.x - a.x) * dy - (centro.y - a.y) * dx) / Math.hypot(dx, dy) * zoom * escala;
-      const fraccion = ((centro.x - a.x) * dx + (centro.y - a.y) * dy) / (dx * dx + dy * dy);
-      casos.push({ zoom, giro, margen, fraccion, visible: !elemento.hidden, separacion: distancia - elemento.offsetHeight / 2 });
+      escena.events.emit('render');
+      const actual = medicion.total.getBoundingClientRect();
+      const mapa = medicion.overlay.getBoundingClientRect();
+      casos.push({ fijo: actual.x === cuadro.x && actual.y === cuadro.y,
+        dentro: actual.left >= mapa.left && actual.right <= mapa.right && actual.bottom <= mapa.bottom,
+        etiquetas: medicion.overlay.querySelectorAll('.metronet-mediciones__tramo').length });
     }
     return casos;
   });
   for (const posicion of posiciones) {
-    assert.ok(posicion.visible && posicion.fraccion >= 0 && posicion.fraccion <= 1
-      && posicion.separacion >= 7.5 && posicion.separacion <= 42.5, JSON.stringify(posicion));
+    assert.ok(posicion.fijo && posicion.dentro, JSON.stringify(posicion));
+    assert.equal(posicion.etiquetas, 0);
   }
+  assert.equal(await p.locator('.metronet-mediciones__titulo').textContent(), 'Distancia total');
+  assert.equal(await p.locator('.metronet-mediciones__subtitulo').count(), 0);
+  await p.screenshot({path:`/tmp/metronet-distancia-simulacion-${process.env.METRONET_BROWSER || 'chromium'}.png`});
+  await p.locator('[data-medicion-distancias]').click();
+  assert.equal(await p.locator('.metronet-mediciones').isVisible(), false);
 });

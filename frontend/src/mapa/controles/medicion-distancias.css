@@ -12,7 +12,7 @@ html:root body .metronet-cabecera-medicion button.metronet-regla:focus-visible {
 html:root body button.metronet-regla .metronet-icono { width: 20px; height: 14px; min-width: 0; min-height: 0; }
 html:root body .metronet-mediciones { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 4; }
 html:root body .metronet-mediciones[hidden], html:root body .metronet-mediciones [hidden] { display: none; }
-html:root body .metronet-mediciones :is(.metronet-mediciones__tramo, .metronet-mediciones__total) {
+html:root body .metronet-mediciones .metronet-mediciones__total {
   position: absolute; display: block; width: max-content; max-width: calc(100% - 20px);
   margin: 0; color: #edf5ff;
   font: 400 11px/1.2 'Silkscreen', monospace; white-space: nowrap;
@@ -22,22 +22,18 @@ html:root body .metronet-mediciones__total {
   top: 10px; right: 10px; padding: 4px 7px;
   background: #0b172a; border: 1px solid #46b5ef; box-shadow: 2px 2px 0 #050b18;
 }
-html:root body .metronet-mediciones__tramo {
-  top: 0; left: 0; padding: 2px 4px; transform-origin: center;
-  background: #0b172a; border: 1px solid #789bb8; box-shadow: none;
-  text-shadow: none;
-}
 
 html:root body .metronet-mediciones__total { padding: 8px 10px; width: 280px; }
-html:root body .metronet-mediciones__titulo, html:root body .metronet-mediciones__subtitulo { display: block; text-align: center; font: inherit; }
-html:root body .metronet-mediciones__titulo { color: #73caff; font-size: 12px; }
-html:root body .metronet-mediciones__subtitulo { padding: 4px 0 7px; border-bottom: 1px solid #34516b; }
+html:root body .metronet-mediciones__titulo {
+  display: block; text-align: center; font: inherit; color: #73caff; font-size: 12px;
+  padding-bottom: 7px; border-bottom: 1px solid #34516b;
+}
 html:root body .metronet-mediciones__fila { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 0; }
 html:root body .metronet-mediciones__fila i { display: block; height: 5px; }
 html:root body .metronet-mediciones__fila b { font: inherit; }
 html:root body .metronet-mediciones__paginas { display: flex; justify-content: space-between; gap: 8px; pointer-events: auto; }
 html:root body .metronet-mediciones__paginas button {
-  width: 22px; min-width: 22px; height: 18px; min-height: 18px; padding: 0;
-  background: var(--warning); border-color: var(--warning); color: var(--primary-ink);
+  width: 18px; min-width: 18px; height: 16px; min-height: 16px; padding: 0;
+  background: var(--warning); border: 0; color: var(--primary-ink); box-shadow: none;
   font: 9px/1 'Silkscreen', monospace;
 }

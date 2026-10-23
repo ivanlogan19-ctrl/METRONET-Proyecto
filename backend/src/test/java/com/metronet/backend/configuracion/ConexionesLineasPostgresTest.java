@@ -23,6 +23,73 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 @EnabledIfEnvironmentVariable(named="METRONET_TEST_POSTGRES_URL",matches="jdbc:postgresql://127\\.0\\.0\\.1:[0-9]+/metronet_pruebas")
 class ConexionesLineasPostgresTest {
+    @Test void tresLineasPermitenLosTresParesPeroNuncaRepitenUnaConexion() {
+        int usuario = usuario();
+        int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Tres pares")).idDiseno();
+        for (int i=0;i<6;i++) simulaciones.crearEstacion(usuario,diseno,
+            new CrearEstacionSimulacionRequest("E"+i,BigDecimal.valueOf(610+(i/2)*30),BigDecimal.valueOf(400+(i%2)*40)));
+        var lineas = List.of("Azul","Amarilla","Rosa");
+        for (int i=0;i<3;i++) {
+            simulaciones.crearLinea(usuario,diseno,new CrearLineaSimulacionRequest(lineas.get(i),List.of("E"+(i*2),"E"+(i*2+1))));
+            simulaciones.crearUnidadMetro(usuario,diseno,new CrearUnidadMetroSimulacionRequest(lineas.get(i),300,BigDecimal.ONE));
+        }
+        var pares = List.of(new ConexionLineasRequest("Azul","E1","Amarilla","E3"),
+            new ConexionLineasRequest("Amarilla","E2","Rosa","E4"),new ConexionLineasRequest("Rosa","E5","Azul","E0"));
+        for (var par : pares) simulaciones.crearConexionLineas(usuario,diseno,par);
+        simulaciones.guardarDiseno(usuario,diseno);
+        var reabierta = simulaciones.obtenerSimulacion(usuario,diseno);
+        assertEquals(3,reabierta.conexionesLineas().size());
+        assertEquals(6,reabierta.estaciones().size());
+        assertEquals(6,reabierta.tramos().size());
+        assertEquals(3,reabierta.unidadesMetro().size());
+        assertTrue(simulaciones.validarDiseno(usuario,diseno).preparadoParaSimular());
+        for (var par : pares) {
+            for (var duplicada : List.of(par,new ConexionLineasRequest(par.lineaB(),par.estacionB(),par.lineaA(),par.estacionA()))) {
+                var error = assertThrows(ResponseStatusException.class, () -> simulaciones.crearConexionLineas(usuario,diseno,duplicada));
+                assertEquals(409,error.getStatusCode().value());
+            }
+        }
+        assertEquals(reabierta.tramos(),simulaciones.obtenerSimulacion(usuario,diseno).tramos());
+        assertEquals(3,simulaciones.obtenerSimulacion(usuario,diseno).conexionesLineas().size());
+    }
+
+    @Test void distanciasYParametrosIncluyenTodosLosTramosDeCadaLineaConectada() {
+        int usuario = usuario();
+        int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Distancias completas")).idDiseno();
+        double[][] puntos = {{605.53,357.22},{438.81,309.29},{514.19,319.73},{548.33,253.29},{468.52,364.82},
+            {703.08,311.11},{660.22,403.50},{749.49,330.09},{710.77,416.47}};
+        for (int i=0;i<puntos.length;i++) simulaciones.crearEstacion(usuario,diseno,
+            new CrearEstacionSimulacionRequest("E"+(i+1),BigDecimal.valueOf(puntos[i][0]),BigDecimal.valueOf(puntos[i][1])));
+        var recorridos = List.of(List.of("E1","E3","E2"),List.of("E4","E3","E5"),List.of("E9","E8","E6"),List.of("E6","E7","E1"));
+        double[] totales = {6.59434896,5.64692763,5.83997532,7.05451010};
+        for (int i=0;i<4;i++) simulaciones.crearLinea(usuario,diseno,new CrearLineaSimulacionRequest("L"+i,recorridos.get(i)));
+        for (var c : List.of(new ConexionLineasRequest("L1","E3","L0","E3"),new ConexionLineasRequest("L2","E6","L3","E6"),new ConexionLineasRequest("L3","E1","L0","E1")))
+            simulaciones.crearConexionLineas(usuario,diseno,c);
+        for (int i=0;i<4;i++) simulaciones.crearUnidadMetro(usuario,diseno,new CrearUnidadMetroSimulacionRequest("L"+i,300,BigDecimal.ONE));
+        simulaciones.guardarDiseno(usuario,diseno);
+        var red = simulaciones.obtenerSimulacion(usuario,diseno);
+        for (int i=0;i<4;i++) {
+            String linea = "L"+i;
+            var tramos = red.tramos().stream().filter(t -> t.nombreLinea().equals(linea)).toList();
+            assertEquals(2,tramos.size());
+            assertEquals(totales[i],tramos.stream().mapToDouble(t -> t.distanciaKm()).sum(),1e-7);
+            var unidad = red.unidadesMetro().stream().filter(u -> u.nombreLinea().equals(linea)).findFirst().orElseThrow();
+            assertEquals(totales[i],unidad.duracionUt(),1e-7);
+            simulaciones.actualizarUnidadMetro(usuario,diseno,unidad.idTren(),new ActualizarUnidadMetroRequest(linea,300,new BigDecimal("2"),null,"UV"));
+            var ajustada = simulaciones.obtenerSimulacion(usuario,diseno).unidadesMetro().stream().filter(u -> u.idTren().equals(unidad.idTren())).findFirst().orElseThrow();
+            assertEquals(totales[i]/2,ajustada.duracionUt(),1e-7);
+            simulaciones.actualizarUnidadMetro(usuario,diseno,unidad.idTren(),new ActualizarUnidadMetroRequest(linea,300,new BigDecimal("2"),3d,"UT"));
+        }
+        simulaciones.guardarDiseno(usuario,diseno);
+        var reabierta = simulaciones.obtenerSimulacion(usuario,diseno);
+        for (int i=0;i<4;i++) {
+            String linea = "L"+i;
+            var unidad = reabierta.unidadesMetro().stream().filter(u -> u.nombreLinea().equals(linea)).findFirst().orElseThrow();
+            assertEquals(3,unidad.duracionUt());
+            assertEquals(totales[i]/3,unidad.velocidadPromedio().doubleValue(),1e-7);
+        }
+    }
+
     @Test void unirParalelasConservaEstacionesYTramosYProlongaSoloLaPrimera() {
         int usuario = usuario();
         int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Paralelas")).idDiseno();

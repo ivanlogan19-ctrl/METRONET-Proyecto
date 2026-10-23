@@ -206,3 +206,23 @@ for (const modo of ['LIBRE', 'NIVEL']) test(`Conexión: izquierda, centro azul, 
   const colores=await p.evaluate(()=>[...editorPrueba.capaRedMetro.coloresLineas.values()]);
   assert.equal(new Set(colores).size,2);
 });
+
+test('Tres líneas permiten conectar cada par sin perder estaciones ni identidad', async t => {
+  const lineas = ['Azul','Amarilla','Rosa'].map(nombre => ({nombre}));
+  const {pagina:p,diseno,solicitudes} = await abrir(t, {modo:'LIBRE',lineas,unidadesMetro:[],
+    estaciones:Array.from({length:6},(_,i) => ({nombre:`E${i}`,posicionX:610+Math.floor(i/2)*30,posicionY:400+(i%2)*40})),
+    tramos:lineas.map((l,i) => ({nombreLinea:l.nombre,estacionA:`E${i*2}`,estacionB:`E${i*2+1}`}))});
+  const estaciones = structuredClone(diseno.estaciones);
+  const colores = await p.evaluate(() => [...editorPrueba.capaRedMetro.coloresLineas.entries()]);
+  await p.locator('[data-elegir-herramienta=conexiones]').click();
+  for (const [a,b] of [['E1','E3'],['E2','E4'],['E5','E0']]) {
+    await estacion(p,a); await estacion(p,b); await esperar(p);
+  }
+  assert.deepEqual(solicitudes.filter(s => s.ruta.endsWith('/conexiones-lineas')).map(s => [s.datos.lineaA,s.datos.lineaB]),
+    [['Azul','Amarilla'],['Amarilla','Rosa'],['Rosa','Azul']]);
+  await p.evaluate(() => editorPrueba.abrirDiseno(77));
+  assert.equal(diseno.conexionesLineas.length,3);
+  assert.equal(diseno.tramos.length,6);
+  assert.deepEqual(diseno.estaciones,estaciones);
+  assert.deepEqual(await p.evaluate(() => [...editorPrueba.capaRedMetro.coloresLineas.entries()]),colores);
+});

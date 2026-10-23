@@ -1,77 +1,42 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
-const { abrirPantalla } = require('./soporte/pantallas.cjs');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
+const { abrirEditor } = require('./soporte/editor.cjs');
 
-test('La regla mantiene distancias paralelas, separadas y legibles al girar y acercar', async t => {
-  const browser = await chromium.launch({ channel: process.env.METRONET_BROWSER_CHANNEL });
-  t.after(() => browser.close());
-  const v = await abrirPantalla(browser, '/escenarios.html');
+test('El cuadro conserva totales, colores, paginación y fuente pixelada sin etiquetas sobre las vías', async t => {
+  const navegador = await abrirNavegador();
+  t.after(() => navegador.close());
+  const lineas = Array.from({length:6}, (_,i) => ({nombre:`Línea 0${i+1}`}));
+  const v = await abrirEditor(navegador, {modo:'LIBRE',lineas,
+    estaciones:[{nombre:'A',posicionX:620,posicionY:430},{nombre:'B',posicionX:680,posicionY:430}],
+    tramos:lineas.map((l,i) => ({nombreLinea:l.nombre,estacionA:'A',estacionB:'B',distanciaKm:i+1.5}))});
   t.after(() => v.contexto.close());
-  const resultado = await v.pagina.evaluate(async () => {
-    const { default: MedicionDistancias } = await import('/src/mapa/controles/MedicionDistancias.js');
-    const contenedor = document.createElement('div');
-    contenedor.style.cssText = 'position:fixed;inset:0;width:1000px;height:1000px;background:#091324;z-index:10000';
-    contenedor.innerHTML = '<h3 class="metronet-panel-editor-cabecera">Diseño de la red</h3><canvas width="1000" height="1000" style="position:absolute;inset:0;width:1000px;height:1000px"></canvas>';
-    document.body.append(contenedor);
-    const puntos = [{x:100,y:600},{x:650,y:400},{x:700,y:510},{x:690,y:620},{x:688,y:675}];
-    const estaciones = puntos.map((p,i)=>({nombre:String(i),posicionX:p.x,posicionY:p.y}));
-    const capa = {
-      escena: { events: {on(){},off(){}}, game:{canvas:contenedor.querySelector('canvas')},
-        scale:{gameSize:{width:1000,height:1000}}, cameras:{main:{scrollX:0,scrollY:0,matrixCombined:{transformPoint:(x,y)=>({x,y})}}}},
-      puntosEstaciones:puntos, unidadesEstaticas:[{x:250,y:545},{x:410,y:487},{x:550,y:436},{x:675,y:455}],
-      unidadesSimulacion:new Map(), convertirPosicion:(x,y)=>({x,y}),
-    };
-    const medicion = new MedicionDistancias(capa);
-    medicion.actualizar({simulacion:{modo:'LIBRE',idDiseno:1},estaciones,
-      tramos:[27.2,5.5,7.1,2.5].map((distanciaKm,i)=>({nombreLinea:i<3?'Azul':'Rosa',estacionA:String(i),estacionB:String(i+1),distanciaKm}))});
-    medicion.boton.click();
-    await document.fonts.ready;
-    const casos = [];
-    for (const giro of [0, Math.PI / 6, Math.PI, 3 * Math.PI / 2]) for (const zoom of [1, .7]) {
-      const proyectar = (x,y) => ({x:500+zoom*((x-500)*Math.cos(giro)-(y-500)*Math.sin(giro)),y:500+zoom*((x-500)*Math.sin(giro)+(y-500)*Math.cos(giro))});
-      capa.escena.cameras.main.matrixCombined.transformPoint = proyectar;
-      medicion.posicionar();
-      const etiquetas=medicion.etiquetas.map(({elemento,origen,destino})=>{
-        const r=elemento.getBoundingClientRect(), estilo=getComputedStyle(elemento), matriz=new DOMMatrix(estilo.transform);
-        const a=proyectar(origen.posicionX,origen.posicionY), b=proyectar(destino.posicionX,destino.posicionY);
-        const dx=b.x-a.x,dy=b.y-a.y,largo=Math.hypot(dx,dy);
-        const esquinas=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([sx,sy])=>({
-          x:r.x+r.width/2+matriz.a*sx*elemento.offsetWidth/2+matriz.c*sy*elemento.offsetHeight/2,
-          y:r.y+r.height/2+matriz.b*sx*elemento.offsetWidth/2+matriz.d*sy*elemento.offsetHeight/2,
-        }));
-        return {visible:!elemento.hidden,x:r.x,y:r.y,w:r.width,h:r.height,esquinas,
-          paralela:Math.abs((matriz.a*dy-matriz.b*dx)/largo)<.00001,
-          legible:matriz.a>=-.00001,
-          separacion:Math.abs((r.x+r.width/2-a.x)*dy-(r.y+r.height/2-a.y)*dx)/largo-elemento.offsetHeight/2,
-          recuadro:estilo.backgroundColor==='rgb(11, 23, 42)' && estilo.borderTopWidth==='1px',fuente:estilo.fontFamily};
-      });
-      const obstaculos=[...puntos.map(p=>{const s=proyectar(p.x,p.y);return {x:s.x-17,y:s.y-35,w:34,h:48};}),
-        ...capa.unidadesEstaticas.map(p=>{const s=proyectar(p.x,p.y);return {x:s.x-25,y:s.y-25,w:50,h:50};})];
-      casos.push({etiquetas,total:medicion.total.textContent,obstaculos,giro,zoom});
-    }
-    return casos;
-  });
-  const solapa=(a,b)=>{
-    const vertices=r=>r.esquinas ?? [{x:r.x,y:r.y},{x:r.x+r.w,y:r.y},{x:r.x+r.w,y:r.y+r.h},{x:r.x,y:r.y+r.h}];
-    const p=vertices(a),q=vertices(b);
-    return [p,q].every(poligono=>poligono.every((v,i)=>{
-      const siguiente=poligono[(i+1)%4], eje={x:v.y-siguiente.y,y:siguiente.x-v.x};
-      const proyectar=lista=>lista.map(pt=>pt.x*eje.x+pt.y*eje.y);
-      const pp=proyectar(p),pq=proyectar(q);
-      return Math.max(...pp)>Math.min(...pq) && Math.max(...pq)>Math.min(...pp);
-    }));
-  };
-  for (const caso of resultado) {
-    assert.match(caso.total,/39,8 km/); assert.match(caso.total,/2,5 km/);
-    assert.equal(caso.etiquetas.filter(e=>e.visible).length,2,JSON.stringify(caso));
-    for(const [i,e] of caso.etiquetas.entries()) {
-      assert.ok(e.x>=0 && e.y>=0 && e.x+e.w<=1000 && e.y+e.h<=1000);
-      assert.ok(![...caso.obstaculos,...caso.etiquetas.slice(i+1)].some(o=>solapa(e,o)));
-      assert.ok(e.paralela && e.legible && e.recuadro && e.separacion>=7.5 && e.separacion<=42.5,JSON.stringify(e));
-      assert.match(e.fuente,/Silkscreen/);
-    }
-  }
-  await v.pagina.screenshot({path:'/tmp/metronet-medicion-tramos-cercanos.png'});
+  const p = v.pagina;
+  await p.locator('[data-medicion-distancias]').click();
+  await p.evaluate(() => document.fonts.ready);
+  assert.equal(await p.locator('.metronet-mediciones__titulo').textContent(), 'Distancia total');
+  assert.equal(await p.locator('.metronet-mediciones__subtitulo').count(), 0);
+  assert.equal(await p.locator('.metronet-mediciones__tramo').count(), 0);
+  assert.equal(await p.locator('.metronet-mediciones__fila').count(), 5);
+  const anterior = p.locator('.metronet-mediciones').getByRole('button',{name:'Anterior',exact:true});
+  const siguiente = p.locator('.metronet-mediciones').getByRole('button',{name:'Siguiente',exact:true});
+  assert.equal(await anterior.isDisabled(), true);
+  await siguiente.click();
+  assert.equal(await p.locator('.metronet-mediciones__fila').count(), 1);
+  assert.equal(await p.locator('.metronet-mediciones__fila b').textContent(), '6,5 km');
+  assert.equal(await siguiente.isDisabled(), true);
+  await anterior.click();
+  const estilo = await p.locator('.metronet-mediciones__total').evaluate(e => ({
+    fuente:getComputedStyle(e).fontFamily, alineacion:getComputedStyle(e.querySelector('strong')).textAlign,
+    colores:[...e.querySelectorAll('.metronet-mediciones__fila i')].map(c => c.style.background),
+    dentro:e.getBoundingClientRect().right <= e.parentElement.getBoundingClientRect().right,
+  }));
+  assert.match(estilo.fuente,/Silkscreen/);
+  assert.equal(estilo.alineacion,'center');
+  assert.equal(new Set(estilo.colores).size,5);
+  assert.ok(estilo.dentro);
+  await p.screenshot({path:`/tmp/metronet-distancia-editor-${process.env.METRONET_BROWSER || 'chromium'}.png`});
+  await p.locator('[data-medicion-distancias]').click();
+  assert.equal(await p.locator('.metronet-mediciones').isVisible(),false);
   assert.deepEqual(v.errores,[]);
 });

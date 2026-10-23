@@ -11,5 +11,5 @@ export const PASOS_CALLES = [
   ['.metronet-poblacion__opacidad', 'Transparencia de población', 'Ajustá esta capa por separado para distinguir calles, puntos de interés y tu red. Las estaciones y vías se construyen encima.'],
   ['[data-desplazamientos-visible]', 'Desplazamientos históricos', 'Estas flechas muestran los principales viajes entre sectores según la encuesta 2016. Su dirección indica hacia dónde viajan; el grosor compara los flujos visibles. Podés construir encima.'],
   ['.metronet-desplazamientos__opacidad', 'Animación de desplazamientos', 'Ajustá la transparencia y pausá o reanudá las flechas. La animación es ilustrativa, no representa personas individuales. Los datos son históricos: el movimiento de las flechas no representa viajes en tiempo real.'],
-  ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta los kilómetros de cada tramo. Arriba del mapa ves el total de la línea seleccionada o de la red. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
+  ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra u oculta el cuadro con la distancia total de cada línea, identificada por su color. Incluye todos sus tramos, también los que llegan a conexiones. A 4 UV recorrés 4 km por UT.'],
 ];
