@@ -230,7 +230,7 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
     if(titulo==='¡Listo para simular!')break;
     await pagina.locator('[data-recorrido-siguiente]').click();
   }
-  for(const titulo of ['Línea o conexión a configurar','Distancias de la red','Reloj de estación','Cambiar el horario','Línea o conexión a reproducir','Reproducir la selección']) assert.ok(titulos.includes(titulo), JSON.stringify(titulos));
+  for(const titulo of ['Línea a configurar','Distancias de la red','Reloj de estación','Cambiar el horario','Líneas a reproducir','Reproducir la selección']) assert.ok(titulos.includes(titulo), JSON.stringify(titulos));
   await pagina.evaluate(() => window.tutorialPrueba.terminar());
   assert.deepEqual(errores, []);
 });

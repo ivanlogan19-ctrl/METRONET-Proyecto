@@ -28,8 +28,9 @@ final class MetasRecorrido {
             throw invalida();
         for (JsonNode cantidad : estaciones) if (!cantidad.isIntegralNumber() || cantidad.asInt() < 2) throw invalida();
         c.fieldNames().forEachRemaining(clave -> {
-            if (!Set.of("estacionesPorLinea", "redConectada", "metroPorLinea", "practica").contains(clave)) throw invalida();
+            if (!Set.of("estacionesPorLinea", "redConectada", "metroPorLinea", "practica", "contarEstacionesFusionadas").contains(clave)) throw invalida();
         });
+        if (c.has("contarEstacionesFusionadas") && !c.path("contarEstacionesFusionadas").isBoolean()) throw invalida();
         if (!reglas.path("requiereSimulacion").asBoolean() || reglas.has("aprendizajeSimulacion")
             || reglas.has("requiereMetroPorLinea")) throw invalida();
     }
@@ -81,9 +82,6 @@ final class MetasRecorrido {
         for (var condicion : condiciones) {
             if (!nombres.containsKey(condicion.clave())) continue;
             int limite = condicion.requerido();
-            // Cada conexión exigida requiere su metro adicional a los metros de las líneas.
-            if (condicion.clave().equals("minimoMetros"))
-                limite += ((Number) reglas.getOrDefault("minimoConexionesLineas", 0)).intValue();
             if (condicion.actual() > limite)
                 excesos.add(condicion.actual() + " " + nombres.get(condicion.clave()) + "; consigna " + limite);
         }

@@ -64,7 +64,7 @@ export const TARJETAS_EXTRAS = Object.freeze([
     "id": 7,
     "titulo": "Diseño y simulación",
     "subtitulo": "Contrastá una decisión con una prueba",
-    "texto": "El editor permite construir estaciones, líneas y conexiones; la simulación permite observar el recorrido de las unidades con velocidad y duración elegidas.",
+    "texto": "Construí líneas y unilas con Conexión en una estación compartida. En la simulación, cada metro recorre su línea con su propia velocidad y duración.",
     "aporte": "Vincula una hipótesis de diseño con una prueba controlada: la cobertura territorial y el desempeño del recorrido se evalúan por separado.",
     "practica": "Guardá la red y ejecutala. Repetí con la misma red, unidades y hora de inicio. Modificá la velocidad de una línea, observá la duración calculada automáticamente y compará el tiempo de recorrido.",
     "justificacion": "Registrá la variable modificada y explicá el resultado usando las distancias y las equivalencias de UV y UT del juego.",

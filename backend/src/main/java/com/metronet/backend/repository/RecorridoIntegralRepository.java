@@ -22,7 +22,7 @@ public class RecorridoIntegralRepository {
             SELECT i.id_intento, nueva.id_nivel_publicacion
             FROM intento i JOIN nivel_publicacion anterior ON anterior.id_nivel_publicacion=i.id_nivel_publicacion
             JOIN nivel_publicacion nueva ON nueva.id_escenario=i.id_escenario
-            WHERE anterior.contenido->'desafio'->>'recorrido'='integral-2026-10-objetivos-reales-km-v3'
+            WHERE anterior.contenido->'desafio'->>'recorrido' IN ('integral-2026-10-lineas-conexiones-v7','integral-2026-10-estaciones-compartidas-v8')
               AND nueva.contenido->'desafio'->>'recorrido'=?
               AND nueva.numero_version=(SELECT MAX(p.numero_version) FROM nivel_publicacion p WHERE p.id_escenario=i.id_escenario)
               AND i.estado<>'COMPLETADO' AND i.fecha_finalizacion IS NULL
@@ -30,6 +30,15 @@ public class RecorridoIntegralRepository {
               AND NOT EXISTS (SELECT 1 FROM intento_uv_ut v WHERE v.id_intento=i.id_intento)
             FOR UPDATE OF i
             """, recorrido);
+    }
+
+    public void archivarIntento(Object idIntento) {
+        jdbc.update("""
+            INSERT INTO archivo_intentos_conexion_via(id_intento,contenido)
+            SELECT i.id_intento,jsonb_build_object('intento',to_jsonb(i),'catalogo',to_jsonb(h))
+            FROM intento i LEFT JOIN intento_catalogo_v1 h ON h.id_intento=i.id_intento
+            WHERE i.id_intento=? ON CONFLICT DO NOTHING
+            """, idIntento);
     }
 
     public int vincularPublicacion(Object idPublicacion, Object idIntento) {

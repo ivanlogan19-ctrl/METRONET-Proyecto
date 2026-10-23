@@ -8,12 +8,12 @@ import './tutorial-inicial.css';
 
 const PASOS = [
   ['#visorSimulacion', 'Mapa de la red', 'Acá ves estaciones, conexiones y metros. Arrastrá el mapa para recorrerlo.'],
-  ['#formularioEjecucion button[type="submit"]', 'Iniciar', 'Play comienza el recorrido cuando la red está validada y cada línea y conexión tiene su metro. El tutorial no lo inicia por vos.'],
+  ['#formularioEjecucion button[type="submit"]', 'Iniciar', 'Play comienza el recorrido cuando la red está validada y cada línea tiene su metro. El tutorial no lo inicia por vos.'],
   ['.simulacion-acciones-ejecucion', 'Pausar y reanudar', 'Durante la ejecución aparece Pausar. Si pausás, Reanudar continúa desde el mismo punto; los botones se habilitan según el estado.'],
   ['#pausarSimulacion', 'Pausar', 'Detiene temporalmente la animación sin perder el recorrido ni su resultado. Aparece durante la ejecución.'],
   ['#detenerSimulacion', 'Detener', 'Termina la animación en curso o pausada. Se habilita solo en esos estados.'],
   ['#reiniciarSimulacion', 'Reiniciar', 'Repite el último recorrido con sus parámetros; se habilita después de una ejecución.'],
-  ['.simulacion-selector-metros > summary', 'Elegir línea o conexión', 'Abrí el menú hacia la izquierda. Elegí una línea, una conexión o Todas. Al aplicar UV o UT, cada recorrido calcula el otro valor según su propia distancia.'],
+  ['.simulacion-selector-metros > summary', 'Elegir línea', 'Abrí el menú hacia la izquierda. Elegí una línea o Todas. Al aplicar UV o UT, cada recorrido calcula el otro valor según su propia distancia.'],
   ['.simulacion-parametro-velocidad', 'Unidad de velocidad · UV', '1 UV equivale a 1 km por UT. Ajustá la línea seleccionada. Su UT se calcula según la distancia; guardá el valor.'],
   ['.simulacion-parametro-velocidad button[type="submit"]', 'Aplicar UV', 'Confirmá la UV antes del próximo recorrido. El botón se habilita cuando la red permite configurarla.'],
   ['#seccionConfiguracion', 'Duración simulada · UT', '1 UT equivale a una hora del escenario. Al elegir UT, la UV se calcula para completar los kilómetros de la línea. Confirmá la duración con el disquete.'],
@@ -24,7 +24,7 @@ const PASOS = [
 const RESUMEN = [
   ['territorio', 'Recorré el mapa y ajustá la vista.'],
   ['play', 'Iniciá, pausá o detené el recorrido.'],
-  ['metros', 'Elegí una línea, conexión o Todas para ajustar UV o UT.'],
+  ['metros', 'Elegí una línea o Todas para ajustar UV o UT.'],
   ['velocidad', 'Ajustá y aplicá la velocidad UV.'],
   ['reloj', 'Ajustá y aplicá la duración UT.'],
 ];
@@ -32,15 +32,15 @@ const RESUMEN = [
 const esModoLibre = modo => ['LIBRE', 'EDICION_LIBRE'].includes(modo);
 const PASOS_LIBRE = [
   ['#visorSimulacion', 'Mapa y entorno real', DESCRIPCION_MAPA_LIBRE],
-  ['.simulacion-selector-metros > summary', 'Línea o conexión a configurar', 'Abrí el menú hacia la izquierda. Elegí una línea, una conexión o Todas para aplicar UV o UT. La conexión lleva las dos mitades de color de sus líneas; debajo ves sus valores UV y UT guardados. Con Todas, ingresá una UV común y cada línea calculará su UT, o ingresá una UT común para calcular cada UV. “Por línea” indica que los resultados son distintos; podés escribir un valor o iniciar en 1 con + o −.'],
+  ['.simulacion-selector-metros > summary', 'Línea a configurar', 'Abrí el menú hacia la izquierda. Elegí una línea o Todas para aplicar UV o UT. Debajo ves los valores UV y UT guardados de la línea. Con Todas, ingresá una UV común y cada línea calculará su UT, o ingresá una UT común para calcular cada UV. “Por línea” indica que los resultados son distintos; podés escribir un valor o iniciar en 1 con + o −.'],
   ['.simulacion-parametro-velocidad', 'Velocidad y tiempo vinculados', 'Al cambiar UV se calcula UT según los kilómetros de la línea. Al cambiar UT se calcula UV. Guardá con los botones habituales; el último valor elegido se conserva al modificar el recorrido.'],
   ['#seccionConfiguracion', 'Tiempos fraccionarios', 'Podés indicar fracciones de UT. La duración se calcula con la distancia y la velocidad de cada línea.'],
-  ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra la distancia total de cada línea y conexión. El cuadro superior identifica cada recorrido por su color y sus kilómetros. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
+  ['[data-medicion-distancias]', 'Distancias de la red', 'La regla muestra la distancia total de cada línea. El cuadro superior identifica cada recorrido por su color y sus kilómetros. A 4 UV recorrés 4 km por UT; estas distancias te ayudan a elegir velocidad y duración.'],
 
   ['.simulacion-horarios', 'Reloj de estación', 'El reloj avanza con las líneas que reproducís. Las capas de tráfico y desplazamientos siguen ese mismo horario.'],
   ['.simulacion-reloj-digital', 'Cambiar el horario', 'Las flechas amarillas atrasan o adelantan el horario de a 15 minutos. Cambian la hora de las capas, sin modificar UV, UT ni la posición recorrida por los metros.'],
-  ['.simulacion-reproduccion', 'Línea o conexión a reproducir', 'Todas comienzan marcadas. Desmarcá las que no quieras ver circular o usá Todas. Los cuadrados llenos indican la selección; cada conexión muestra los dos colores y reproduce sólo su metro propio. Si hay más líneas, usá las flechas de página.'],
-  ['#formularioEjecucion', 'Reproducir la selección', 'Play reproduce las líneas y conexiones marcadas al mismo tiempo. Para cambiar la selección, detené el recorrido. Esta selección controla la reproducción visual; los resultados guardados siguen evaluando la red completa.'],
+  ['.simulacion-reproduccion', 'Líneas a reproducir', 'Todas comienzan marcadas. Desmarcá las que no quieras ver circular o usá Todas. Los cuadrados llenos indican las líneas seleccionadas. Cada metro permanece en su línea, incluso al pasar por estaciones compartidas. Si hay más líneas, usá las flechas de página.'],
+  ['#formularioEjecucion', 'Reproducir la selección', 'Play reproduce las líneas marcadas al mismo tiempo. Para cambiar la selección, detené el recorrido. Esta selección controla la reproducción visual; los resultados guardados siguen evaluando la red completa.'],
   ['[data-capa-simulacion="calles"]', 'Calles y avenidas', 'Este botón muestra u oculta las calles para ubicar tu red en la ciudad. Las estaciones, líneas y metros permanecen por encima.'],
   ['[data-capa-simulacion="trafico"]', 'Tráfico sincronizado', 'Activá el tráfico histórico para ver su intensidad por colores. Cambia con la hora del reloj de la simulación; son datos históricos, no tráfico en vivo.'],
   ['[data-capa-simulacion="poblacion"]', 'Densidad de población', 'Mostrá dónde se concentra la población. Esta capa censal permanece igual al avanzar el reloj.'],
@@ -50,7 +50,7 @@ const PASOS_LIBRE = [
 ];
 const RESUMEN_LIBRE = [
   ['reloj', 'Cambiá el horario de a 15 minutos.'],
-  ['metros', 'Elegí las líneas o conexiones que querés reproducir o configurar.'],
+  ['metros', 'Elegí las líneas que querés reproducir o configurar.'],
   ['trafico', 'Tráfico y desplazamientos siguen el reloj.'],
   ['poblacion', 'La población conserva sus datos censales.'],
   ['cobertura', 'Compará las capas con la cobertura de 500 m.'],
@@ -186,7 +186,7 @@ export function abrirTutorialSimulacion(alFinalizar = () => {}, numeroNivel, { p
 export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroNivel, numeroCampana, escenario, alFinalizar } = {}) {
   if (esModoLibre(modo)) {
     // Independiente del aprendizaje de la campaña: estas funciones solo existen en Modo Libre.
-    const clave = `metronet:tutorial-simulacion-libre:v3:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
+    const clave = `metronet:tutorial-simulacion-libre:v4:${idUsuario ?? 'invitado'}:${idDiseno ?? 'actual'}`;
     try { if (localStorage.getItem(clave)) return null; } catch { /* No bloquea jugar. */ }
     const registrar = (completado, motivo) => {
       if (completado || motivo === 'omitido') try {
@@ -204,7 +204,7 @@ export function presentarTutorialSimulacion({ idUsuario, idDiseno, modo, numeroN
     });
     return { notificar: evento => recorrido?.notificar(evento), terminar: (...args) => { oferta.terminar(); recorrido?.terminar(...args); } };
   }
-  const prefijo = `metronet:tutorial-pantalla-simulacion:v6:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
+  const prefijo = `metronet:tutorial-pantalla-simulacion:v7:${idUsuario ?? 'invitado'}:${numeroCampana ?? 1}:`;
   const clave = `${prefijo}${numeroNivel ?? 'libre'}:${idDiseno ?? 'actual'}`;
   const primeraVisita = `${prefijo}primera-visita`;
   let conocido = false;

@@ -21,8 +21,8 @@ const PASOS_NOVEDAD = {
     ['#metronet-mapa', 'Trazar línea', 'Seleccioná dos estaciones distintas del mapa. La línea se crea con su primer tramo.'],
   ],
   conexiones: [
-    ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Uní estaciones de líneas diferentes. Después asigná un metro propio a esa conexión.'],
-    ['#metronet-mapa', 'Conectar líneas', 'Seleccioná una estación de cada línea. Ambas conservarán su recorrido y su color.'],
+    ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Uní dos líneas en una estación compartida. Cada metro sigue recorriendo su propia línea.'],
+    ['#metronet-mapa', 'Conectar líneas', 'Elegí una estación de cada línea: se fusionan en la segunda ubicación. Conservan sus recorridos, colores y metros.'],
   ],
   metros: [
     ['[data-elegir-herramienta="metros"]', 'Unidad de metro', 'Elegí este icono para asignar una unidad.'],
@@ -34,8 +34,8 @@ const PASOS_NOVEDAD = {
 };
 const HERRAMIENTAS_NUEVAS = {
   estaciones: ['Estación', 'Ubicá estaciones en el mapa. Escape termina la herramienta.'],
-  lineas: ['Línea', 'Uní dos estaciones; seguí desde su extremo para extender la misma línea.'],
-  conexiones: ['Conexión', 'Uní estaciones de líneas diferentes.'],
+  lineas: ['Línea', 'Uní dos estaciones libres o prolongá un extremo, en cualquier orden.'],
+  conexiones: ['Conexión', 'Uní líneas en una estación compartida.'],
   metros: ['Unidad de metro', 'Asigná una unidad a una vía del mapa.'],
   simulacion: ['Simulación', 'Comprobá la red y abrí su recorrido simulado.'],
 };

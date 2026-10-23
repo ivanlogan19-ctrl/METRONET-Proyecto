@@ -167,22 +167,10 @@ export default class CapaRedMetro {
     }));
     this.limitesEtiquetas = [];
     this.obtenerTramos().forEach((tramo) => this.dibujarTramo(tramo, estacionesPorNombre));
-    this.dibujarConexionesLineas(estacionesPorNombre);
     this.dibujarCruces(estaciones);
     estaciones.forEach((estacion, indice) => this.dibujarEstacion(estacion, indice));
     if (this.mostrarUnidadesEstaticas) this.obtenerUnidadesMetro().forEach((unidad, indice) => this.dibujarUnidad(unidad, indice));
     this.actualizarEscalaElementosGraficos(true);
-  }
-
-  dibujarConexionesLineas(estaciones) {
-    for (const conexion of this.diseno?.conexionesLineas ?? []) {
-      const a = estaciones.get(conexion.estacionA), b = estaciones.get(conexion.estacionB);
-      if (!a || !b) continue;
-      const desde = this.convertirPosicion(a.posicionX, a.posicionY);
-      const hasta = this.convertirPosicion(b.posicionX, b.posicionY);
-      const seleccionada = this.elementoSeleccionado?.tipo === 'conexionLinea' && this.elementoSeleccionado.valor.idConexion === conexion.idConexion;
-      this.dibujarVia(desde, hasta, [this.colorLinea(conexion.lineaA), this.colorLinea(conexion.lineaB)], seleccionada);
-    }
   }
 
   dibujarTramo(tramo, estaciones) {
@@ -247,14 +235,29 @@ export default class CapaRedMetro {
     const destacada = seleccionada || activa;
     const transbordo = this.esTransbordo(estacion);
     const nombres = new Set(this.lineasPorEstacion.get(estacion.nombre) ?? []);
-    for (const c of this.diseno?.conexionesLineas ?? []) {
-      if (c.estacionA === estacion.nombre || c.estacionB === estacion.nombre) { nombres.add(c.lineaA); nombres.add(c.lineaB); }
-    }
     const colores = [...nombres].map(nombre => this.colorLinea(nombre));
     const color = colores[0] ?? PALETA_RED.estaciones.normal;
-    this.dibujarNodoFuncional(punto, destacada, transbordo, color);
-    this.marcadoresEstaciones.push(this.crearMarcadorEstacion(punto, destacada, transbordo, color, colores));
+    if (transbordo) this.dibujarEstacionCompartida(punto, colores, destacada);
+    else {
+      this.dibujarNodoFuncional(punto, destacada, false, color);
+      this.marcadoresEstaciones.push(this.crearMarcadorEstacion(punto, destacada, false, color, colores));
+    }
     this.crearEtiquetaEstacion(estacion, punto, indice, ALCANCE_MARCADOR_ESTACION);
+  }
+
+  dibujarEstacionCompartida(punto, colores, destacada) {
+    const radio = RADIO_NODO_VISIBLE * 1.6;
+    const contorno = this.contornoEstacionCompartida(punto.x, punto.y, radio, radio);
+    this.grafico.lineStyle(destacada ? 5 : 3, destacada ? COLORES_INTERFAZ_MAPA.ACTIVO : COLORES_INTERFAZ_MAPA.FONDO, 1);
+    this.grafico.strokePoints(contorno, true);
+    // Sectores del propio nodo, sin carteles ni un segundo marcador sobre la estación.
+    const centro = { x: punto.x, y: punto.y };
+    for (let i = 0; i < contorno.length; i++) {
+      this.grafico.fillStyle(colores[Math.floor(i * colores.length / contorno.length)] ?? PALETA_RED.transbordo, 1);
+      this.grafico.fillPoints([centro, contorno[i], contorno[(i + 1) % contorno.length]], true);
+    }
+    this.grafico.fillStyle(COLORES_INTERFAZ_MAPA.FONDO, 1);
+    this.grafico.fillPoints(this.contornoEstacionCompartida(punto.x, punto.y, radio * 0.55, radio * 0.55), true);
   }
 
   dibujarNodoFuncional(punto, destacada, transbordo, colorNodo) {
@@ -482,8 +485,7 @@ export default class CapaRedMetro {
   }
 
   coloresMetro(unidad) {
-    const conexion = this.diseno?.conexionesLineas?.find(c => `@conexion:${c.idConexion}` === unidad.nombreLinea);
-    return (conexion ? [conexion.lineaA, conexion.lineaB] : [unidad.nombreLinea]).map(nombre => this.colorLinea(nombre));
+    return [this.colorLinea(unidad.nombreLinea)];
   }
 
   dibujarRuedasMetro(grafico) {
@@ -576,8 +578,6 @@ export default class CapaRedMetro {
       return;
     }
     if (this.modo === 'crearMetro') {
-      const conexion = this.obtenerConexionCercana(convertido.punto);
-      if (conexion) { this.alSeleccionar({ tipo: 'conexionLinea', valor: conexion }); return; }
       const tramos = this.obtenerTramosCercanos(convertido.punto);
       this.alSeleccionar(tramos.length ? {tipo:'tramos',valor:tramos} : null);
       return;
@@ -592,8 +592,6 @@ export default class CapaRedMetro {
       this.alSeleccionar({ tipo: 'estacion', valor: estacion });
       return;
     }
-    const conexion = this.obtenerConexionCercana(convertido.punto);
-    if (conexion) { this.alSeleccionar({ tipo: 'conexionLinea', valor: conexion }); return; }
     const tramo = this.obtenerTramoCercano(convertido.punto);
     if (tramo) this.alSeleccionar({ tipo: 'tramo', valor: tramo });
   }
@@ -636,15 +634,7 @@ export default class CapaRedMetro {
     })?.unidad ?? null;
   }
 
-  obtenerConexionCercana(punto) {
-    const estaciones = new Map(this.obtenerEstaciones().map(e => [e.nombre, e]));
-    return (this.diseno?.conexionesLineas ?? []).map(conexion => {
-      const a = estaciones.get(conexion.estacionA), b = estaciones.get(conexion.estacionB);
-      if (!a || !b) return { conexion, distancia: Infinity };
-      return { conexion, distancia: this.distanciaPuntoTramo(punto, this.convertirPosicion(a.posicionX, a.posicionY),
-        this.convertirPosicion(b.posicionX, b.posicionY)) * this.escena.cameras.main.zoom };
-    }).filter(c => c.distancia <= TOLERANCIA_SELECCION.tramo).sort((a, b) => a.distancia - b.distancia)[0]?.conexion;
-  }
+
 
   obtenerTramoCercano(punto) { return this.obtenerTramosCercanos(punto)[0] ?? null; }
 
@@ -864,8 +854,7 @@ export default class CapaRedMetro {
   }
 
   esTransbordo(estacion) {
-    return (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1
-      || (this.diseno?.conexionesLineas ?? []).some(c => c.estacionA === estacion.nombre || c.estacionB === estacion.nombre);
+    return (this.diseno?.conexionesLineas ?? []).some(c => c.estacionA === estacion.nombre && c.estacionB === estacion.nombre);
   }
 
   esTramoSeleccionado(tramo) {

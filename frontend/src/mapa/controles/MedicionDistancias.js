@@ -90,7 +90,7 @@ export default class MedicionDistancias {
     titulo.className = 'metronet-mediciones__titulo';
     titulo.textContent = 'Distancia total';
     const subtitulo = document.createElement('div');
-    subtitulo.textContent = 'Líneas y conexiones';
+    subtitulo.textContent = 'Líneas';
     subtitulo.className = 'metronet-mediciones__subtitulo';
     this.total.append(titulo, subtitulo);
     for (const recorrido of this.recorridos.slice(this.pagina * 5, this.pagina * 5 + 5)) {

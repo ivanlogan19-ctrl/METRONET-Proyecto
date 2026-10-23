@@ -8,9 +8,9 @@ export const esRecorridoIntegral = escenario => typeof escenario?.recorrido === 
 
 const LECCIONES = {
   estaciones: ['Estación', 'Elegí el icono de estación y hacé clic en una ubicación válida. Podés colocar varias seguidas: el nombre se genera automáticamente. Arrastrá para mover el mapa; Escape termina la herramienta.'],
-  lineas: ['Línea', 'Uní dos estaciones con Línea. Desde su extremo podés seguir a otra estación, conservando el color. Para otro recorrido, elegí Línea otra vez y empezá en una estación libre.'],
-  conexiones: ['Conexión', 'Uní estaciones de dos líneas distintas: conservan sus colores y muestran un símbolo octagonal. Asigná a la conexión su propio metro, que circula sólo entre sus extremos.'],
-  metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea o conexión. Seleccionala después para editar la velocidad.'],
+  lineas: ['Línea', 'Con Línea uní dos estaciones libres o prolongá un extremo. Podés pulsar primero la estación nueva: conserva la línea y su color.'],
+  conexiones: ['Conexión', 'Con Conexión, tocá una estación libre, una de otra línea y la siguiente libre. Creás una línea que pasa por la conexión. Cada tren sigue su línea.'],
+  metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea. Seleccionala después para editar la velocidad.'],
   simulacion: ['Simulación', 'El botón verde Simular está en Acciones. Comprueba y guarda la red antes de abrir la simulación; primero construí la red y asigná un metro.'],
 
 };
@@ -102,8 +102,8 @@ export function pasosPracticosEditor(numero, escenario) {
     ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
   ];
   if (nuevas.includes('editor.extender')) return [
-    ['[data-elegir-herramienta="lineas"]', 'Extendé la línea', 'Usá Línea desde el extremo del recorrido hacia otra estación. Conserva la misma línea y su color.', 'linea-elegida'],
-    [mapa, 'Continuá el recorrido', 'Elegí el extremo y después la estación nueva. El Metro recorrerá también el nuevo tramo.', 'linea-extendida'],
+    ['[data-elegir-herramienta="lineas"]', 'Extendé la línea', 'Usá Línea entre un extremo y una estación nueva, en cualquier orden. Conserva la misma línea y su color.', 'linea-elegida'],
+    [mapa, 'Continuá el recorrido', 'Elegí el extremo y la estación nueva, en cualquier orden. El Metro recorrerá también ese tramo.', 'linea-extendida'],
   ];
   if (nuevas.includes('editor.poi') && objetivo) return [
     ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí los puntos de interés usando la bandera amarilla.', 'poi-abierto'],
@@ -125,7 +125,7 @@ export function pasosPracticosEditor(numero, escenario) {
   ];
   if (nuevas.includes('editor.conectar')) return [
     ['[data-elegir-herramienta="conexiones"]', 'Conectá dos líneas', 'Línea crea o extiende un recorrido. Conexión une dos líneas distintas: construí ambas y elegí este botón.', 'conexion-elegida'],
-    [mapa, 'Uní sus estaciones', 'Elegí una estación de cada línea. Conservan sus colores. Después usá Metro sobre la conexión: necesita su propia unidad para simular.', 'conexion-creada'],
+    [mapa, 'Uní sus estaciones', 'Tocá una estación de cada línea para fusionarlas. También podés trazar otra línea: estación libre, estación de la línea existente y otra libre.', 'conexion-creada'],
   ];
   return [];
 }

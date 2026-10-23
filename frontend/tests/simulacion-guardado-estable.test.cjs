@@ -8,17 +8,17 @@ const selectoresEstables = ['.simulacion-encabezado', '.simulacion-lienzo-conten
   '.simulacion-parametro-velocidad .simulacion-parametro-valor', '#seccionConfiguracion .simulacion-parametro-valor',
   '.simulacion-mandos', '.simulacion-selector-metros', '.simulacion-reloj-digital'];
 
-for (const modo of ['NIVEL','EDICION_LIBRE']) for (const tipo of ['línea', 'conexión']) for (const parametro of ['UV','UT']) {
+for (const modo of ['NIVEL','EDICION_LIBRE']) for (const tipo of ['línea', 'línea compartida']) for (const parametro of ['UV','UT']) {
   test(`${modo} ${tipo}: guardar ${parametro} conserva la cabecera y el mapa durante la lectura del servidor`, async t => {
     const navegador = await abrirNavegador(); t.after(() => navegador.close());
-    const unidad = {idTren:1,nombreLinea:tipo === 'conexión' ? '@conexion:10' : 'Azul',capacidad:300,velocidadPromedio:4,duracionUt:4};
+    const unidad = {idTren:1,nombreLinea:tipo === 'línea compartida' ? 'Roja' : 'Azul',capacidad:300,velocidadPromedio:4,duracionUt:4};
     const red = {
       simulacion:{idDiseno:77,idEscenario:modo==='NIVEL'?42:null,nombre:'Red de prueba',modo,estado:'VALIDADO'},
       estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460},
         {nombre:'C',posicionX:760,posicionY:460},{nombre:'D',posicionX:820,posicionY:450}],
       lineas:[{nombre:'Azul'},{nombre:'Roja'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B',distanciaKm:16},
-        {nombreLinea:'Roja',estacionA:'C',estacionB:'D',distanciaKm:16}],
-      conexionesLineas:[{idConexion:10,lineaA:'Azul',lineaB:'Roja',estacionA:'B',estacionB:'C',distanciaKm:16}],
+        {nombreLinea:'Roja',estacionA:'B',estacionB:'D',distanciaKm:16}],
+      conexionesLineas:[{idConexion:10,lineaA:'Azul',lineaB:'Roja',estacionA:'B',estacionB:'B'}],
       unidadesMetro:[unidad],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[],
     };
     let modificado=false, liberar, lectura;
@@ -105,18 +105,18 @@ for (const modo of ['NIVEL','EDICION_LIBRE']) for (const tipo of ['línea', 'con
   });
 }
 
-for (const tipo of ['línea', 'conexión']) for (const parametro of ['UV', 'UT']) {
+for (const tipo of ['línea', 'línea compartida']) for (const parametro of ['UV', 'UT']) {
   test(`FINALIZADA ${tipo}: guardar ${parametro} conserva reloj, mandos y extremo alcanzado`, async t => {
     const navegador = await abrirNavegador(); t.after(() => navegador.close());
-    const unidad = { idTren: 1, nombreLinea: tipo === 'conexión' ? '@conexion:10' : 'Azul', capacidad: 300, velocidadPromedio: 4, duracionUt: 4 };
+    const unidad = { idTren: 1, nombreLinea: tipo === 'línea compartida' ? 'Roja' : 'Azul', capacidad: 300, velocidadPromedio: 4, duracionUt: 4 };
     const red = {
       simulacion: { idDiseno: 77, nombre: 'Red de prueba', modo: 'EDICION_LIBRE', estado: 'VALIDADO' },
       estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 },
         { nombre: 'C', posicionX: 760, posicionY: 460 }, { nombre: 'D', posicionX: 820, posicionY: 450 }],
       lineas: [{ nombre: 'Azul' }, { nombre: 'Roja' }],
       tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B', distanciaKm: 16 },
-        { nombreLinea: 'Roja', estacionA: 'C', estacionB: 'D', distanciaKm: 16 }],
-      conexionesLineas: [{ idConexion: 10, lineaA: 'Azul', lineaB: 'Roja', estacionA: 'B', estacionB: 'C', distanciaKm: 16 }],
+        { nombreLinea: 'Roja', estacionA: 'B', estacionB: 'D', distanciaKm: 16 }],
+      conexionesLineas: [{ idConexion: 10, lineaA: 'Azul', lineaB: 'Roja', estacionA: 'B', estacionB: 'B' }],
       unidadesMetro: [unidad], preparadoParaSimular: true, territorio: { areas: [], errores: [] }, resultados: [],
     };
     const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: async req => {

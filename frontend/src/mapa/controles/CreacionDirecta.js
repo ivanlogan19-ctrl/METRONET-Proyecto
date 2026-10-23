@@ -1,4 +1,4 @@
-import { claveConexion, nombreRecorrido } from '../configuracion/RecorridosRed.js';
+import { nombreRecorrido } from '../configuracion/RecorridosRed.js';
 import { nombreVisibleLinea } from '../configuracion/PaletaRed.js';
 import { velocidadInicial } from '../../simulacion/VinculoUvUtLibre.js';
 import { siguienteNombre } from './NombresRed.js';
@@ -11,7 +11,8 @@ export default class CreacionDirecta {
   constructor(editor) { this.editor = editor; this.lineaActiva = ''; this.version = 0; this.pendiente = null; }
   cancelar() {
     this.version += 1;
-    this.editor.obtener('[data-opciones-construccion]')?.replaceChildren();
+    this.eleccionEnMapa = null;
+    this.lineaEnConexion = null;
     const opciones = this.editor.obtener('[data-lineas-superpuestas]');
     if (opciones) { opciones.replaceChildren(); opciones.hidden = true; }
   }
@@ -98,9 +99,17 @@ export default class CreacionDirecta {
     const e = this.editor;
     if (!Object.values(MODOS).includes(e.modo)) return false;
     if (!this.disponible()) return true;
+    if (this.eleccionEnMapa) {
+      const nombre = elemento?.tipo === 'tramo' ? elemento.valor.nombreLinea : elemento?.tipo === 'linea' ? elemento.valor.nombre : null;
+      if (nombre) {
+        const { opciones, ejecutar } = this.eleccionEnMapa;
+        const compatibles = opciones.filter(o => o.nombre === nombre || o.lineaA === nombre || o.lineaB === nombre);
+        if (compatibles.length) this.elegirOpcion(compatibles, ejecutar);
+      }
+      return true;
+    }
     if (e.modo === 'crearMetro') {
-      if (elemento?.tipo === 'conexionLinea') { this.metro(claveConexion(elemento.valor)); return true; }
-      const lineas = elemento?.tipo === 'tramos' ? [...new Set(elemento.valor.map(t => t.nombreLinea))] : elemento?.tipo === 'tramo' ? [elemento.valor.nombreLinea] : [];
+      const lineas = elemento?.tipo === 'tramos' ? [...new Set(elemento.valor.map(t => t.nombreLinea))] : elemento?.tipo === 'tramo' ? [elemento.valor.nombreLinea] : elemento?.tipo === 'estacion' ? this.lineasDe(elemento.valor.nombre) : [];
       if (lineas.length === 1) this.metro(lineas[0]);
       else if (lineas.length > 1) {
         const opciones = e.obtener('[data-lineas-superpuestas]');
@@ -128,9 +137,18 @@ export default class CreacionDirecta {
     if (elemento?.tipo !== 'estacion') return true;
     if (!['crearLinea', 'crearTramo'].includes(e.modo)) return true;
     const nombre = elemento.valor.nombre;
+    if (e.modo === 'crearTramo' && !e.estacionesSeleccionadas.length && this.lineasDe(nombre).length > 1) {
+      const lineas = this.lineasDe(nombre);
+      const opciones = lineas.flatMap((lineaA, i) => lineas.slice(i + 1).map(lineaB => ({
+        lineaA, lineaB, texto: `${this.nombreVisible(lineaA)} ↔ ${this.nombreVisible(lineaB)}`,
+      }))).filter(o => !(e.disenoActual.conexionesLineas ?? []).some(c =>
+        (c.lineaA === o.lineaA && c.lineaB === o.lineaB) || (c.lineaA === o.lineaB && c.lineaB === o.lineaA)));
+      this.elegirOpcion(opciones, opcion => this.guardarUnion([nombre, nombre], opcion));
+      return true;
+    }
     if (e.estacionesSeleccionadas.length >= 2) {
       e.estacionesSeleccionadas = [];
-      e.obtener('[data-opciones-construccion]')?.replaceChildren();
+      this.eleccionEnMapa = null;
     }
     if (e.estacionesSeleccionadas[0] === nombre) { e.estacionesSeleccionadas = []; }
     else e.estacionesSeleccionadas.push(nombre);
@@ -145,15 +163,14 @@ export default class CreacionDirecta {
       .filter(t => t.estacionA === estacion || t.estacionB === estacion).map(t => t.nombreLinea))];
   }
   elegirOpcion(opciones, ejecutar) {
-    if (opciones.length === 1) return ejecutar(opciones[0]);
-    const panel = this.editor.obtener('[data-opciones-construccion]');
-    panel.replaceChildren(...opciones.map(opcion => {
-      const boton = document.createElement('button');
-      boton.type = 'button'; boton.textContent = opcion.texto;
-      boton.addEventListener('click', () => { panel.replaceChildren(); ejecutar(opcion); });
-      return boton;
-    }));
-    panel.querySelector('button')?.focus();
+    if (!opciones.length) return;
+    if (opciones.length === 1) {
+      this.eleccionEnMapa = null;
+      return ejecutar(opciones[0]);
+    }
+    // Resolver coincidencias sobre las vías; nunca agregar botones al panel de herramientas.
+    this.eleccionEnMapa = { opciones, ejecutar };
+    this.editor.mostrarMensaje('Tocá en el mapa la vía que querés usar en esta unión.', 'info');
   }
   conectar() {
     const e = this.editor, estaciones = [...e.estacionesSeleccionadas];
@@ -164,19 +181,32 @@ export default class CreacionDirecta {
       return e.mostrarMensaje(error, 'advertencia');
     }
     const origen = this.lineasDe(estaciones[0]);
+    const destino = this.lineasDe(estaciones[1]);
     if (e.modo === 'crearTramo') {
-      const opciones = origen.flatMap(lineaA => this.lineasDe(estaciones[1])
+      if (!destino.length && origen.includes(this.lineaEnConexion))
+        return this.guardarUnion(estaciones, { nombre: this.lineaEnConexion });
+      if (!origen.length && destino.length || origen.length && !destino.length) {
+        const recorrido = origen.length ? [...estaciones].reverse() : estaciones;
+        const existentes = origen.length ? origen : destino;
+        const opciones = existentes.map(lineaB => ({ lineaA: siguienteNombre('Línea', e.disenoActual.lineas), lineaB, nuevaConexion: true,
+          continuarDesde: estaciones[1], texto: this.nombreVisible(lineaB) }));
+        return this.elegirOpcion(opciones, opcion => this.guardarUnion(recorrido, opcion));
+      }
+      const opciones = origen.flatMap(lineaA => destino
         .filter(lineaB => lineaA !== lineaB).map(lineaB => ({ lineaA, lineaB, texto: `${this.nombreVisible(lineaA)} ↔ ${this.nombreVisible(lineaB)}` })));
       if (!opciones.length) {
         e.estacionesSeleccionadas = [];
         e.capaRedMetro.establecerEstacionesSeleccionadas([]);
-        return e.mostrarMensaje('Conexión une estaciones de líneas diferentes ya construidas.', 'advertencia');
+        return e.mostrarMensaje('Elegí una estación de la línea con la que querés conectar.', 'advertencia');
       }
       return this.elegirOpcion(opciones, opcion => this.guardarUnion(estaciones, opcion));
     }
-    if (!origen.length) return this.guardarUnion(estaciones, { nueva: true });
-    const nombres = origen.includes(this.lineaActiva) ? [this.lineaActiva] : origen;
-    return this.elegirOpcion(nombres.map(nombre => ({ nombre, texto: this.nombreVisible(nombre) })), opcion => this.guardarUnion(estaciones, opcion));
+    if (!origen.length && !destino.length) return this.guardarUnion(estaciones, { nueva: true });
+    // La extensión parte del extremo existente, aunque se pulse primero la estación nueva.
+    const existentes = origen.length ? origen : destino;
+    const recorrido = origen.length ? estaciones : [...estaciones].reverse();
+    const nombres = existentes.includes(this.lineaActiva) ? [this.lineaActiva] : existentes;
+    return this.elegirOpcion(nombres.map(nombre => ({ nombre, texto: this.nombreVisible(nombre) })), opcion => this.guardarUnion(recorrido, opcion));
   }
   async guardarUnion(estaciones, opcion) {
     const e = this.editor;
@@ -191,8 +221,9 @@ export default class CreacionDirecta {
           : opcion.nueva ? { nombre, estaciones } : { nombreLinea: nombre, estacionA: estaciones[0], estacionB: estaciones[1] },
       };
     }, conexion ? 'Conexión creada.' : 'Línea guardada.', () => {
-      if (!conexion) this.elegirLinea(nombre);
-      e.estacionesSeleccionadas = conexion ? [] : [estaciones[1]];
+      this.elegirLinea(conexion ? opcion.lineaA : nombre);
+      if (opcion.nuevaConexion) this.lineaEnConexion = opcion.lineaA;
+      e.estacionesSeleccionadas = opcion.nuevaConexion ? [opcion.continuarDesde] : conexion ? [] : [estaciones[1]];
       if (conexion) e.panelTutorial?.registrarUso('conexiones');
     });
     if (!guardada) {
@@ -207,7 +238,7 @@ export default class CreacionDirecta {
     const id = e.disenoActual?.simulacion.idDiseno, version = this.version;
     await e.configuracionLista;
     if (!e.activo || e.disenoActual?.simulacion.idDiseno !== id || version !== this.version) return;
-    await this.enviar(() => ({ ruta: '/unidades', datos: { ...(nombreLinea.startsWith('@conexion:') ? { idConexion: Number(nombreLinea.slice(10)) } : { nombreLinea }), capacidad: e.capacidadUnidadPredeterminada, velocidadPromedio: velocidadInicial(e.disenoActual) } }), 'Metro asignado. Sus parámetros están disponibles al seleccionarlo.');
+    await this.enviar(() => ({ ruta: '/unidades', datos: { nombreLinea, capacidad: e.capacidadUnidadPredeterminada, velocidadPromedio: velocidadInicial(e.disenoActual) } }), 'Metro asignado. Sus parámetros están disponibles al seleccionarlo.');
     if (!e.activo || e.disenoActual?.simulacion.idDiseno !== id || version !== this.version) return;
     const opciones = e.obtener('[data-lineas-superpuestas]');
     opciones.replaceChildren(); opciones.hidden = true;

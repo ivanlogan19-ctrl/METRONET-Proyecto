@@ -167,7 +167,7 @@ class EscalaSimulacionPostgresTest {
         enviar(ruta + "/unidades", "{\"nombreLinea\":\"Azul\",\"capacidad\":300,\"velocidadPromedio\":4}", token);
         enviar(ruta + "/validacion", "{}", token);
         var sinSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(sinSegundaLinea.path("comentarios").asText().contains("0 punto(s) de transbordo"));
+        assertTrue(sinSegundaLinea.path("comentarios").asText().contains("0 estación(es) compartida(s)"));
 
         enviar(ruta + "/estaciones", "{\"nombre\":\"D\",\"posicionX\":690,\"posicionY\":460}", token);
         enviar(ruta + "/lineas", "{\"nombre\":\"Rosa\",\"estaciones\":[\"A\",\"C\",\"D\"]}", token);
@@ -175,7 +175,7 @@ class EscalaSimulacionPostgresTest {
         enviar(ruta + "/unidades", "{\"nombreLinea\":\"Rosa\",\"capacidad\":300,\"velocidadPromedio\":4}", token);
         enviar(ruta + "/validacion", "{}", token);
         var conSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(conSegundaLinea.path("comentarios").asText().contains("2 punto(s) de transbordo"));
+        assertTrue(conSegundaLinea.path("comentarios").asText().contains("2 estación(es) compartida(s)"));
         assertEquals(2, transbordosDeConsigna(id));
 
         http.perform(patch(ruta + "/tramos").header("Authorization", token)
@@ -187,7 +187,7 @@ class EscalaSimulacionPostgresTest {
         assertEquals(2, transbordosDeConsigna(id));
         enviar(ruta + "/validacion", "{}", token);
         var sinConexionReal = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(sinConexionReal.path("comentarios").asText().contains("2 punto(s) de transbordo"));
+        assertTrue(sinConexionReal.path("comentarios").asText().contains("2 estación(es) compartida(s)"));
 
         http.perform(delete(ruta + "/tramos").header("Authorization", token)
             .param("linea", "Rosa").param("estacionA", "B").param("estacionB", "C"))
@@ -197,7 +197,7 @@ class EscalaSimulacionPostgresTest {
         assertEquals(1, transbordosDeConsigna(id));
         enviar(ruta + "/validacion", "{}", token);
         var trasEliminar = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
-        assertTrue(trasEliminar.path("comentarios").asText().contains("1 punto(s) de transbordo"));
+        assertTrue(trasEliminar.path("comentarios").asText().contains("1 estación(es) compartida(s)"));
     }
 
     private void cambiarTransbordo(String ruta, String token, String nombre, int x, boolean transbordo) throws Exception {

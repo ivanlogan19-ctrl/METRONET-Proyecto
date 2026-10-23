@@ -26,11 +26,7 @@ public class DistanciasRedService {
     }
 
     public List<TramoSimulacionResponse> recorridos(int idDiseno) {
-        var resultado = new java.util.ArrayList<>(tramos(idDiseno));
-        resultado.addAll(repositorio.conexiones((r, fila) -> new TramoSimulacionResponse(r.getString(1), r.getString(2), r.getString(3),
-            kilometros(geografia.coordenadaGeografica(r.getBigDecimal("ax"), r.getBigDecimal("ay")),
-                geografia.coordenadaGeografica(r.getBigDecimal("bx"), r.getBigDecimal("lat_b")))), idDiseno));
-        return resultado;
+        return tramos(idDiseno);
     }
 
     public Map<String, Double> porLinea(int idDiseno) {

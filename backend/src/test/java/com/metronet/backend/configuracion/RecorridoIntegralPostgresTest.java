@@ -142,6 +142,23 @@ class RecorridoIntegralPostgresTest {
         assertTrue(recorrido.publicar(admin).isEmpty());
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"integral-2026-10-lineas-conexiones-v7","integral-2026-10-estaciones-compartidas-v8"})
+    void adaptaIntentoAbiertoSinAlterarPuntajesNiElNivelCompletado(String versionAnterior) throws Exception {
+        int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Migración','migracion-compartida@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
+        recorrido.publicar(admin);
+        int escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=4",Integer.class);
+        jdbc.update("UPDATE nivel_publicacion SET contenido=jsonb_set(contenido,'{desafio,recorrido}',to_jsonb(?::text)) WHERE id_escenario=?",versionAnterior,escenario);
+        jdbc.update("UPDATE nivel_borrador SET contenido=jsonb_set(contenido,'{desafio,recorrido}',to_jsonb(?::text)) WHERE id_escenario=?",versionAnterior,escenario);
+        var intento=juego.iniciarEscenario(admin,escenario);
+        jdbc.update("UPDATE intento SET puntaje=80 WHERE id_intento=?",intento.idIntento());
+        recorrido.publicar(admin);
+        assertEquals(RecorridoIntegralService.VERSION,contenido.deIntento(intento.idIntento(),admin).desafio().path("recorrido").asText());
+        assertEquals(80,jdbc.queryForObject("SELECT puntaje FROM intento WHERE id_intento=?",Integer.class,intento.idIntento()));
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM archivo_intentos_conexion_via WHERE id_intento=?",Integer.class,intento.idIntento()));
+        assertTrue(recorrido.publicar(admin).isEmpty());
+    }
+
     @Test void noPublicaConUnaCuentaJugador() {
         int jugador=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('QA Jugador','recorrido-jugador@example.test','!sin-acceso','JUGADOR') RETURNING id_usuario",Integer.class);
         var rechazo=assertThrows(org.springframework.web.server.ResponseStatusException.class,()->recorrido.publicar(jugador));

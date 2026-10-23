@@ -9,7 +9,7 @@ export const CONCEPTOS = Object.freeze([
   concepto('diseno', 'Diseño', 'Red que construís y guardás, con sus estaciones, líneas, conexiones y unidades de metro.', 'Red', ['diseños']),
   concepto('linea', 'Línea de metro', 'Agrupa estaciones y tramos de un mismo recorrido. La herramienta Línea permite extenderlo conservando su color.', 'Red', ['línea', 'líneas', 'líneas de metro']),
   concepto('estacion', 'Estación', 'Punto que ubicás en el mapa y que puede formar parte del recorrido de una o varias líneas.', 'Red', ['estaciones']),
-  concepto('conexion', 'Conexión', 'Unión entre estaciones de líneas diferentes. Cada línea conserva su identidad y el recorrido de sus trenes.', 'Red', ['conexiones']),
+  concepto('conexion', 'Conexión', 'Unión entre líneas en un mismo punto. Con Conexión podés fusionar estaciones o trazar otra línea pasando por una existente. Cada línea conserva su color, metros y UV/UT.', 'Red', ['conexiones']),
   concepto('tramo', 'Tramo', 'Segmento entre dos estaciones consecutivas de una misma línea. Se construye con la herramienta Línea.', 'Red', ['tramos']),
   concepto('escenario', 'Actividad', 'Actividad con un objetivo y condiciones para trabajar sobre un diseño de red.', 'Aprendizaje', ['escenarios']),
   concepto('nivel', 'Nivel', 'Parte de la campaña educativa. Su consigna indica qué construir y qué herramientas podés utilizar.', 'Aprendizaje', ['niveles']),

@@ -50,7 +50,7 @@ async function abrirEditor(navegador, opciones = {}) {
     lineas: [{ nombre: 'Azul' }],
     tramos: [{ nombreLinea: 'Azul', estacionA: 'Centro', estacionB: 'Parque' }],
     conexionesLineas: opciones.conexionesLineas ?? [],
-    unidadesMetro: [{ idTren: 1, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 40 }],
+    unidadesMetro: opciones.unidadesMetro ?? [{ idTren: 1, nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 40 }],
     preparadoParaSimular: false, observacionesSimulacion: [],
   };
   if (opciones.estaciones) diseno.estaciones = opciones.estaciones;
@@ -93,7 +93,19 @@ async function abrirEditor(navegador, opciones = {}) {
       [...diseno.tramos, ...diseno.unidadesMetro].filter((e) => e.nombreLinea === nombre).forEach((e) => { e.nombreLinea = datos.nombre; });
     } else if (ruta.includes('/lineas/') && metodo === 'DELETE') diseno.lineas = diseno.lineas.filter((l) => l.nombre !== decodeURIComponent(ruta.split('/').at(-1)));
     else if (ruta.endsWith('/lineas/extender') && metodo === 'POST') diseno.tramos.push(datos);
-    else if (ruta.endsWith('/conexiones-lineas') && metodo === 'POST') diseno.conexionesLineas.push({ idConexion: diseno.conexionesLineas.length + 1, ...datos });
+    else if (ruta.endsWith('/conexiones-lineas') && metodo === 'POST') {
+      if (!diseno.lineas.some(l => l.nombre === datos.lineaA)) {
+        diseno.lineas.push({ nombre: datos.lineaA });
+        diseno.tramos.push({ nombreLinea: datos.lineaA, estacionA: datos.estacionA, estacionB: datos.estacionB });
+      } else if (datos.estacionA !== datos.estacionB) {
+        diseno.tramos.filter(t => t.nombreLinea === datos.lineaA).forEach(t => {
+          if (t.estacionA === datos.estacionA) t.estacionA = datos.estacionB;
+          if (t.estacionB === datos.estacionA) t.estacionB = datos.estacionB;
+        });
+        diseno.estaciones = diseno.estaciones.filter(e => e.nombre !== datos.estacionA);
+      }
+      diseno.conexionesLineas.push({ idConexion: diseno.conexionesLineas.length + 1, ...datos, estacionA: datos.estacionB });
+    }
     else if (ruta.includes('/conexiones-lineas/') && metodo === 'DELETE') diseno.conexionesLineas = diseno.conexionesLineas.filter(c => c.idConexion !== Number(ruta.split('/').at(-1)));
     else if (ruta.endsWith('/tramos') && metodo === 'POST') diseno.tramos.push(datos);
     else if (ruta.endsWith('/tramos') && metodo === 'PATCH') Object.assign(diseno.tramos[0], datos);

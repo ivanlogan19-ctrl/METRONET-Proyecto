@@ -1,7 +1,6 @@
 package com.metronet.backend.repository;
 
 import java.math.BigDecimal;
-import com.metronet.backend.utilidades.IdentidadRecorrido;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -104,13 +103,10 @@ public class SimulacionRepository {
 
     public int copiarMetros(Integer idDisenoNuevo, Integer idDisenoBase) {
         return jdbc.update("""
-            INSERT INTO metro (id_diseno, nombre_linea, id_conexion, capacidad, velocidad_promedio, duracion_ut, referencia_uv_ut)
-            SELECT ?, m.nombre_linea, destino.id_conexion, m.capacidad, m.velocidad_promedio, m.duracion_ut, m.referencia_uv_ut
-            FROM metro m LEFT JOIN conexion_lineas origen ON origen.id_conexion=m.id_conexion
-            LEFT JOIN conexion_lineas destino ON destino.id_diseno=? AND destino.linea_a=origen.linea_a
-                AND destino.estacion_a=origen.estacion_a AND destino.linea_b=origen.linea_b AND destino.estacion_b=origen.estacion_b
-            WHERE m.id_diseno=? ORDER BY m.id_tren
-            """, idDisenoNuevo, idDisenoNuevo, idDisenoBase);
+            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio, duracion_ut, referencia_uv_ut)
+            SELECT ?, nombre_linea, capacidad, velocidad_promedio, duracion_ut, referencia_uv_ut
+            FROM metro WHERE id_diseno=? ORDER BY id_tren
+            """, idDisenoNuevo, idDisenoBase);
     }
 
     public int crearIntento(Integer idUsuario, Integer idEscenario, Integer idDisenoNuevo) {
@@ -167,9 +163,9 @@ public class SimulacionRepository {
 
     public Integer crearUnidad(Integer idDiseno, String nombreLinea, Integer capacidad, BigDecimal velocidad) {
         return jdbc.queryForObject("""
-            INSERT INTO metro (id_diseno, nombre_linea, id_conexion, capacidad, velocidad_promedio)
-            VALUES (?, ?, ?, ?, ?) RETURNING id_tren
-            """, Integer.class, idDiseno, IdentidadRecorrido.linea(nombreLinea), IdentidadRecorrido.idConexion(nombreLinea), capacidad, velocidad);
+            INSERT INTO metro (id_diseno, nombre_linea, capacidad, velocidad_promedio)
+            VALUES (?, ?, ?, ?) RETURNING id_tren
+            """, Integer.class, idDiseno, nombreLinea, capacidad, velocidad);
     }
 
     public int eliminarUnidad(Integer idDiseno, Integer idTren) {
@@ -177,7 +173,7 @@ public class SimulacionRepository {
     }
 
     public <T> List<T> lineaDeUnidad(RowMapper<T> mapeador, Integer idDiseno, Integer idTren) {
-        return jdbc.query("SELECT COALESCE(nombre_linea, '@conexion:' || id_conexion) FROM metro WHERE id_diseno=? AND id_tren=?", mapeador, idDiseno, idTren);
+        return jdbc.query("SELECT nombre_linea FROM metro WHERE id_diseno=? AND id_tren=?", mapeador, idDiseno, idTren);
     }
 
     public <T> List<T> velocidadDeUnidad(RowMapper<T> mapeador, Integer idDiseno, Integer idTren) {
@@ -186,9 +182,9 @@ public class SimulacionRepository {
 
     public int actualizarUnidad(String nombreLinea, Integer capacidad, BigDecimal velocidad, Double duracionUt, Integer idDiseno, Integer idTren) {
         return jdbc.update("""
-            UPDATE metro SET nombre_linea = ?, id_conexion = ?, capacidad = ?, velocidad_promedio = ?, duracion_ut = COALESCE(?, duracion_ut)
+            UPDATE metro SET nombre_linea = ?, capacidad = ?, velocidad_promedio = ?, duracion_ut = COALESCE(?, duracion_ut)
             WHERE id_diseno = ? AND id_tren = ?
-            """, IdentidadRecorrido.linea(nombreLinea), IdentidadRecorrido.idConexion(nombreLinea), capacidad, velocidad, duracionUt, idDiseno, idTren);
+            """, nombreLinea, capacidad, velocidad, duracionUt, idDiseno, idTren);
     }
 
     public int actualizarEscenario(String nombre, String dificultad, String objetivo, String instrucciones, Integer idEscenario) {
@@ -466,9 +462,17 @@ public class SimulacionRepository {
                 """, idEscenario, idEscenarioIntentos);
     }
 
+    public int retirarLineasVacias(Integer idDiseno) {
+        return jdbc.update("""
+            DELETE FROM linea l WHERE l.id_diseno = ?
+              AND NOT EXISTS (SELECT 1 FROM pasa p WHERE p.id_diseno=l.id_diseno AND p.nombre_linea=l.nombre)
+              AND NOT EXISTS (SELECT 1 FROM tramo t WHERE t.id_diseno=l.id_diseno AND t.nombre_linea=l.nombre)
+              AND NOT EXISTS (SELECT 1 FROM metro m WHERE m.id_diseno=l.id_diseno AND m.nombre_linea=l.nombre)
+              AND NOT EXISTS (SELECT 1 FROM conexion_lineas c WHERE c.id_diseno=l.id_diseno AND (c.linea_a=l.nombre OR c.linea_b=l.nombre))
+            """, idDiseno);
+    }
+
     public Boolean tieneRutaOperable(Integer idDiseno, String nombreLinea) {
-        Long conexion = IdentidadRecorrido.idConexion(nombreLinea);
-        if (conexion != null) return jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM conexion_lineas WHERE id_diseno=? AND id_conexion=? AND estacion_a<>estacion_b)", Boolean.class, idDiseno, conexion);
         return jdbc.queryForObject("""
             SELECT EXISTS (
                 SELECT 1 FROM tramo tramo
@@ -490,7 +494,7 @@ public class SimulacionRepository {
 
     public <T> List<T> listarUnidades(RowMapper<T> mapeador, Integer idDiseno) {
         return jdbc.query("""
-            SELECT id_tren, COALESCE(nombre_linea, '@conexion:' || id_conexion) AS nombre_linea, capacidad, velocidad_promedio, duracion_ut
+            SELECT id_tren, nombre_linea AS nombre_linea, capacidad, velocidad_promedio, duracion_ut
             FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, mapeador, idDiseno);
     }

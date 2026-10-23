@@ -31,7 +31,7 @@
   ] },
   { "numero": 7, "mensajes": [
     { "id": "intercambio", "categoria": "Planificación", "texto": "Reutilizá una misma estación donde se encuentran dos líneas en vez de superponer dos puntos." },
-    { "id": "brazo", "categoria": "Conexiones", "texto": "Usá Conexión para unir estaciones de líneas diferentes; un cruce visual no basta." },
+    { "id": "brazo", "categoria": "Conexiones", "texto": "Usá Conexión para compartir una estación entre líneas; un cruce visual no basta." },
     { "id": "marca", "categoria": "Simulación", "texto": "Elegí una línea por su color antes de Aplicar velocidad para conservar los valores de las otras líneas." }
   ] },
   { "numero": 8, "mensajes": [

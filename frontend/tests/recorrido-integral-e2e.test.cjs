@@ -233,8 +233,23 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await editor(nivel.numero);
    assert.equal(await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.estaciones.length),0);
    const red=referencias[nivel.numero-1];
-   const posiciones=red.estaciones.map(e=>[e.x,e.y]);
    const porNombre=Object.fromEntries(red.estaciones.map(e=>[e.nombre,[e.x,e.y]]));
+   const iniciales=[...red.estaciones];
+   const propietarios=new Map(),copias=new Map();
+   const recorridos=red.lineas.map((linea,indice)=>{
+    const segmentos=red.tramos.filter(t=>t.linea===linea.nombre);
+    return [segmentos[0].a,...segmentos.map(t=>t.b)].map(nombre=>{
+     if(!propietarios.has(nombre)){propietarios.set(nombre,linea.nombre);return nombre;}
+     const copia=`${nombre}-separada-${indice}`;
+     const [x,y]=porNombre[nombre];
+     porNombre[copia]=[x-50,y-indice*40];
+     iniciales.push({nombre:copia,x:x-50,y:y-indice*40});
+     copias.set(`${linea.nombre}:${nombre}`,copia);
+     return copia;
+    });
+   });
+   const posiciones=iniciales.map(e=>[e.x,e.y]);
+   assert.equal(posiciones.length,nivel.reglasExito.minimoEstaciones,'Se construyen todas las estaciones pedidas antes de fusionar');
    const objetivos=nivel.reglasExito.puntosInteresObjetivo||[];
 
    if(objetivos.length){
@@ -247,24 +262,34 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    await herramienta('estaciones');
    for(let i=0;i<posiciones.length;i++){await mapa(...posiciones[i]);await cuenta('estaciones',i+1);}
    let tramos=0;
-   for(const [indice,linea] of red.lineas.entries()) {
-    const recorrido=red.tramos.filter(t=>t.linea===linea.nombre);
-    await herramienta('lineas');await mapa(...porNombre[recorrido[0].a]);await mapa(...porNombre[recorrido[0].b]);await cuenta('lineas',indice+1);tramos++;
-    if(recorrido.length>1) {
-     await herramienta('lineas');await mapa(...porNombre[recorrido[0].b]);
-     for(const t of recorrido.slice(1)){await mapa(...porNombre[t.b]);await cuenta('tramos',++tramos);}
-    }
+   for(const [indice,paradas] of recorridos.entries()) {
+    await herramienta('lineas');await mapa(...porNombre[paradas[0]]);await mapa(...porNombre[paradas[1]]);await cuenta('lineas',indice+1);tramos++;
+    for(const nombre of paradas.slice(2)){await mapa(...porNombre[nombre]);await cuenta('tramos',++tramos);}
    }
    for (const [indice,conexion] of (red.conexionesLineas||[]).entries()) {
+    const origen=copias.get(`${conexion.lineaB}:${conexion.estacionB}`);
+    assert.ok(origen,'La conexión fusiona dos estaciones previamente construidas');
     await herramienta('conexiones');
-    await mapa(...porNombre[conexion.estacionA]);await mapa(...porNombre[conexion.estacionB]);
+    await mapa(...porNombre[origen]);
+    await mapa(...porNombre[conexion.estacionA]);
     await cuenta('conexionesLineas',indice+1);
+    await cuenta('estaciones',posiciones.length-indice-1);
    }
    await herramienta('metros');
    for(const [indice,unidad] of red.unidades.entries()) {
-    const tramo=red.tramos.find(t=>t.linea===unidad.linea);
+    const tramo=red.tramos.filter(t=>t.linea===unidad.linea).reduce((mejor,actual)=>{
+     const longitud=t=>Math.hypot(porNombre[t.a][0]-porNombre[t.b][0],porNombre[t.a][1]-porNombre[t.b][1]);
+     return !mejor||longitud(actual)>=longitud(mejor)?actual:mejor;
+    },null);
     const a=porNombre[tramo.a],b=porNombre[tramo.b];
-    await mapa((a[0]+b[0])/2,(a[1]+b[1])/2);await cuenta('unidadesMetro',indice+1);
+    await mapa((a[0]+b[0])/2,(a[1]+b[1])/2);
+    // En vías cercanas, resolver la selección con el control visible del editor.
+    const numeroLinea=red.lineas.findIndex(l=>l.nombre===unidad.linea)+1;
+    const opcion=f().locator(`[data-linea-superpuesta="Línea ${String(numeroLinea).padStart(2,'0')}"]`);
+    if(await opcion.isVisible())await opcion.click();
+    await cuenta('unidadesMetro',indice+1);
+    const asignadas=await f().evaluate(()=>juegoPrueba.scene.getScene('MapaScene').editorRedMetro.disenoActual.unidadesMetro.map(u=>u.nombreLinea));
+    assert.equal(asignadas.at(-1),`Línea ${String(numeroLinea).padStart(2,'0')}`,'El clic debe asignar el metro a la línea elegida');
    }
    const evaluacionesAntes=evaluaciones.length;
    const guardado=pagina.waitForResponse(r=>r.url().endsWith('/guardar')&&r.request().method()==='POST'&&r.ok());

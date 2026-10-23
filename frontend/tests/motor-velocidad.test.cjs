@@ -13,6 +13,35 @@ const red = (uv = [4, 6]) => ({
   tramos: Array.from({ length: 30 }, (_, i) => ({ distanciaKm: 1, nombreLinea: 'Línea', estacionA: `E${i}`, estacionB: `E${i+1}` })),
   unidadesMetro: uv.map((velocidadPromedio, i) => ({ idTren: i + 1, nombreLinea: 'Línea', velocidadPromedio })),
 });
+test('Un solo metro recorre la línea completa con giros, sin dividirla por orientación', async () => {
+  const Motor = await cargar();
+  for (const posiciones of [
+    [[0, 0], [10, 0], [10, 10]],
+    [[0, 0], [10, 0], [5, 8.66]],
+    [[0, 0], [10, 0], [5, 0]],
+    [[373.78, 294.93], [531.96, 396.96], [574.21, 218.40]],
+  ]) {
+    const datos = {
+      estaciones: posiciones.map(([posicionX, posicionY], i) => ({ nombre: `E${i}`, posicionX, posicionY })),
+      // Orden y sentido de almacenamiento distintos del orden de circulación.
+      tramos: [
+        { nombreLinea: 'Amarilla', estacionA: 'E2', estacionB: 'E1', distanciaKm: 2 },
+        { nombreLinea: 'Amarilla', estacionA: 'E0', estacionB: 'E1', distanciaKm: 1 },
+      ],
+      unidadesMetro: [{ idTren: 1, nombreLinea: 'Amarilla', velocidadPromedio: 1, duracionUt: 3 }],
+    };
+    const motor = new Motor(datos);
+    const inicio = motor.iniciar({ ahora: 0 });
+    assert.equal(inicio.unidades.length, 1);
+    assert.equal(inicio.unidades[0].transitable, true);
+    assert.equal(motor.rutas.length, 1);
+    assert.deepEqual(new Set(motor.rutas[0].ruta.map(e => e.nombre)), new Set(['E0', 'E1', 'E2']));
+    const fin = motor.actualizar(motor.duracionVisual).unidades[0];
+    assert.equal(fin.distanciaRecorridaKm, 3);
+    assert.equal(fin.proximaEstacion, null);
+    assert.notEqual(fin.estacionActual, inicio.unidades[0].estacionActual);
+  }
+});
 test('Recorre 2 km y luego 10 km según UV × UT, sin repartir tiempo por cantidad de tramos', async () => {
   const Motor = await cargar(), datos = red([4]);
   datos.tramos = datos.tramos.slice(0, 2);
@@ -225,27 +254,27 @@ test('Cada nueva ejecución vuelve desde el extremo alcanzado y respeta las dist
   assert.equal(JSON.stringify(datos), original);
 });
 
-test('Las selecciones de líneas y conexiones conservan sus extremos de forma independiente', async () => {
+test('Las líneas de una estación compartida conservan sus extremos de forma independiente', async () => {
   const Motor = await cargar();
   const datos = {
     estaciones: ['A', 'B', 'C', 'D'].map(nombre => ({ nombre })),
     tramos: [
       { nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B', distanciaKm: 2 },
-      { nombreLinea: 'Roja', estacionA: 'C', estacionB: 'D', distanciaKm: 2 },
+      { nombreLinea: 'Roja', estacionA: 'B', estacionB: 'D', distanciaKm: 2 },
     ],
-    conexionesLineas: [{ idConexion: 5, estacionA: 'B', estacionB: 'C', distanciaKm: 2 }],
-    unidadesMetro: ['Azul', 'Roja', '@conexion:5'].map((nombreLinea, i) => ({ idTren: i + 1, nombreLinea, velocidadPromedio: 1, duracionUt: 2 })),
+    conexionesLineas: [{ idConexion: 5, estacionA: 'B', estacionB: 'B' }],
+    unidadesMetro: ['Azul', 'Roja'].map((nombreLinea, i) => ({ idTren: i + 1, nombreLinea, velocidadPromedio: 1, duracionUt: 2 })),
   };
   const motor = new Motor(datos);
-  motor.seleccionarLineas(['Azul', '@conexion:5']);
+  motor.seleccionarLineas(['Azul']);
   motor.iniciar({ ahora: 0 });
-  assert.deepEqual(motor.actualizar(6000).unidades.map(u => u.estacionActual), ['B', 'C']);
+  assert.deepEqual(motor.actualizar(6000).unidades.map(u => u.estacionActual), ['B']);
   motor.seleccionarLineas(['Roja']);
-  assert.equal(motor.iniciar({ ahora: 10000 }).unidades[0].estacionActual, 'C');
+  assert.equal(motor.iniciar({ ahora: 10000 }).unidades[0].estacionActual, 'B');
   motor.actualizar(16000);
-  motor.seleccionarLineas(['Azul', 'Roja', '@conexion:5']);
-  assert.deepEqual(motor.iniciar({ ahora: 20000 }).unidades.map(u => [u.estacionActual, u.proximaEstacion]), [['B', 'A'], ['D', 'C'], ['C', 'B']]);
-  assert.deepEqual(motor.actualizar(26000).unidades.map(u => u.estacionActual), ['A', 'C', 'B']);
+  motor.seleccionarLineas(['Azul', 'Roja']);
+  assert.deepEqual(motor.iniciar({ ahora: 20000 }).unidades.map(u => [u.estacionActual, u.proximaEstacion]), [['B', 'A'], ['D', 'B']]);
+  assert.deepEqual(motor.actualizar(26000).unidades.map(u => u.estacionActual), ['A', 'B']);
 });
 
 test('Recargar el mismo diseño y ajustar UV/UT conserva el extremo; cambiar geometría lo invalida', async () => {

@@ -16,7 +16,7 @@ export function renderizarDesempeno(contenedor, diseno, desempeno, guardar, opci
   contenedor.limpiarSelectorMetro?.();
   contenedor.innerHTML = `
     <section class="simulacion-grupo-metros">
-      <h3 class="simulacion-seccion-titulo">${opciones.vinculoLibre ? 'Línea o conexión a configurar' : 'Metros'}</h3>
+      <h3 class="simulacion-seccion-titulo">${opciones.vinculoLibre ? 'Línea a configurar' : 'Metros'}</h3>
       <details class="simulacion-selector-metros">
         <summary aria-expanded="false">${iconoRetro('metros')}<span data-seleccion-metro></span></summary>
         <select id="unidadCirculacion" aria-label="Metro" aria-hidden="true" tabindex="-1"></select>

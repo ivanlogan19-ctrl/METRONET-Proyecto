@@ -49,12 +49,12 @@ test('Simulación acompaña la consigna: un cambio de UV y una ejecución',async
  const v=await abrirPantalla(browser,'/escenarios.html');t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});const p=v.pagina;
  await p.evaluate(async()=>{
   const {abrirTutorialSimulacion,presentarTutorialSimulacion}=await import('/src/educacion/TutorialSimulacion.js');
-  localStorage.setItem('metronet:tutorial-pantalla-simulacion:v6:7:1:primera-visita','presentado');
+  localStorage.setItem('metronet:tutorial-pantalla-simulacion:v7:7:1:primera-visita','presentado');
   window.autoReutilizacion=presentarTutorialSimulacion({numeroNivel:5,idUsuario:7});
   window.guia=abrirTutorialSimulacion(()=>{},6);
  });
  assert.equal(await p.evaluate(()=>autoReutilizacion),null);
- assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Elegir línea o conexión');
+ assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Elegir línea');
  await p.locator('[data-recorrido-siguiente]').click();
  assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Probá el cambio de la consigna');
  assert.match(await p.locator('.metronet-recorrido').innerText(),/por encima de su valor inicial de 1/);
@@ -264,8 +264,8 @@ test('Modo libre: el paseo señala herramientas actuales de edición y omite el 
    assert.ok(l.texto.length<=200,'Texto breve sin párrafos extensos');
    assert.doesNotMatch(l.texto,/Nueva línea/);
   }
-  assert.match(lecciones[0].find(l=>l.clave==='lineas').texto,/conservando el color/);
-  assert.match(lecciones[3].find(l=>l.clave==='conexiones').texto,/dos líneas distintas/);
+  assert.match(lecciones[0].find(l=>l.clave==='lineas').texto,/conserva la línea y su color/);
+  assert.match(lecciones[3].find(l=>l.clave==='conexiones').texto,/estación libre, una de otra línea/);
  });
 
 for (const nivel of catalogo) test(`N${nivel.numero}: Conexión visible, gris antes de N4 y disponible desde N4`, async t => {

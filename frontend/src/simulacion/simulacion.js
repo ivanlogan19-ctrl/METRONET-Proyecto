@@ -789,7 +789,7 @@ function formatearEstadoMotor(estado) {
 
 function obtenerMensajeEstadoMotor(estado) {
   if (estaMantenimientoActivo(sesion)) return obtenerEstadoEjecucion();
-  if (estado.estado === 'EN_CURSO') return 'La red permanece visible mientras los metros recorren sus conexiones.';
+  if (estado.estado === 'EN_CURSO') return 'La red permanece visible mientras los metros recorren sus líneas.';
   if (estado.estado === 'PAUSADA') return 'La animación está pausada. Podés reanudarla, detenerla o reiniciarla.';
   if (estado.estado === 'FINALIZADA') return 'El recorrido terminó. La red continúa visible para revisar el resultado.';
   if (parametrosUltimaEjecucion) return 'La simulación está detenida. Podés reiniciarla sin alterar la red guardada.';

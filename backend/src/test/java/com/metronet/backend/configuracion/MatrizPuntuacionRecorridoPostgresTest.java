@@ -252,10 +252,8 @@ class MatrizPuntuacionRecorridoPostgresTest {
         for (JsonNode u : red.path("unidades")) unidades.add(simulaciones.crearUnidadMetro(jugador,diseno,
             new CrearUnidadMetroSimulacionRequest(u.path("linea").asText(),u.path("capacidad").asInt(),u.path("uv").decimalValue())));
         for (JsonNode c : red.path("conexionesLineas")) {
-            var conexion = simulaciones.crearConexionLineas(jugador, diseno,
+            simulaciones.crearConexionLineas(jugador, diseno,
                 new ConexionLineasRequest(c.path("lineaA").asText(), c.path("estacionA").asText(), c.path("lineaB").asText(), c.path("estacionB").asText()));
-            unidades.add(simulaciones.crearUnidadMetro(jugador, diseno,
-                new CrearUnidadMetroSimulacionRequest(null, 300, java.math.BigDecimal.ONE, conexion.idConexion())));
         }
         return unidades;
     }

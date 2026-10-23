@@ -26,10 +26,28 @@ public class ConexionesLineasRepository {
             (r, n) -> new ConexionLineasResponse(r.getLong(1), r.getString(2), r.getString(3), r.getString(4), r.getString(5)), diseno);
     }
 
+    public boolean existeLinea(int diseno, String linea) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM linea WHERE id_diseno=? AND nombre=?)", Boolean.class, diseno, linea));
+    }
+
+    public void crearLinea(int diseno, String linea, String origen, String destino) {
+        jdbc.update("INSERT INTO linea(id_diseno,nombre) VALUES (?,?)", diseno, linea);
+        jdbc.update("INSERT INTO pasa(id_diseno,nombre_linea,nombre_estacion) VALUES (?,?,?),(?,?,?)", diseno, linea, origen, diseno, linea, destino);
+        jdbc.update("INSERT INTO tramo(id_diseno,nombre_linea,nombre_estacion_a,nombre_estacion_b) VALUES (?,?,?,?)", diseno, linea, origen, destino);
+    }
+
     public ConexionLineasResponse crear(int diseno, ConexionLineasRequest c) {
         long id = jdbc.queryForObject("INSERT INTO conexion_lineas(id_diseno,linea_a,estacion_a,linea_b,estacion_b) VALUES (?,?,?,?,?) RETURNING id_conexion",
             Long.class, diseno, c.lineaA(), c.estacionA(), c.lineaB(), c.estacionB());
         return new ConexionLineasResponse(id, c.lineaA(), c.estacionA(), c.lineaB(), c.estacionB());
+    }
+
+    public void fusionar(int diseno, String linea, String origen, String destino) {
+        jdbc.update("INSERT INTO pasa(id_diseno,nombre_linea,nombre_estacion) VALUES (?,?,?) ON CONFLICT DO NOTHING", diseno, linea, destino);
+        jdbc.update("UPDATE tramo SET nombre_estacion_a=? WHERE id_diseno=? AND nombre_linea=? AND nombre_estacion_a=?", destino, diseno, linea, origen);
+        jdbc.update("UPDATE tramo SET nombre_estacion_b=? WHERE id_diseno=? AND nombre_linea=? AND nombre_estacion_b=?", destino, diseno, linea, origen);
+        jdbc.update("DELETE FROM pasa WHERE id_diseno=? AND nombre_linea=? AND nombre_estacion=?", diseno, linea, origen);
+        jdbc.update("DELETE FROM estacion WHERE id_diseno=? AND nombre=?", diseno, origen);
     }
 
     public int eliminar(int diseno, long conexion) {

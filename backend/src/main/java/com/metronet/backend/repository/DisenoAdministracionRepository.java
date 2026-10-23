@@ -53,7 +53,7 @@ public class DisenoAdministracionRepository {
 
     public <T> List<T> unidades(RowMapper<T> mapeador, Integer idDiseno) {
         return jdbc.query("""
-            SELECT id_tren, COALESCE(nombre_linea, '@conexion:' || id_conexion) AS nombre_linea, capacidad, velocidad_promedio
+            SELECT id_tren, nombre_linea AS nombre_linea, capacidad, velocidad_promedio
             FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, mapeador, idDiseno);
     }

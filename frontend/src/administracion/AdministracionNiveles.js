@@ -521,7 +521,13 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       const i=actual.redIndice,item=red[tipo][i];
       const fila=crear('div','','admin-niveles__grupo');
         for(const [clave,valor] of Object.entries(item)) {
-          const antes=fila.children.length;editarValor(fila,clave,valor,nuevo=>{item[clave]=nuevo;mapa?.actualizar()});
+          if(tipo==='conexionesLineas' && clave==='estacionB')continue;
+          const etiqueta=tipo==='conexionesLineas' && clave==='estacionA'?'Estación compartida':clave;
+          const antes=fila.children.length;editarValor(fila,etiqueta,valor,nuevo=>{
+            item[clave]=nuevo;
+            if(tipo==='conexionesLineas' && clave==='estacionA')item.estacionB=nuevo;
+            mapa?.actualizar();
+          });
           if(fila.children[antes])fila.children[antes].dataset.campoReferencia=clave;
         }
         const quitar=crear('button','Quitar','admin-secundario metronet-boton--peligro');quitar.type='button';

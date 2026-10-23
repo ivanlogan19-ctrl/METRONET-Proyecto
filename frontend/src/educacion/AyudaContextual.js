@@ -45,7 +45,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
 
   if (inicial && pendientes.length && !tutorialActivo && ['crearLinea', 'crearTramo'].includes(modo)) return aviso(`${modo}-${Math.min(seleccionadas.length, 2)}`,
     seleccionadas.length < 2 ? 'Elegí estaciones distintas en el mapa. El orden de selección ayuda a definir el recorrido.' : 'El recorrido se está construyendo entre las estaciones elegidas.',
-    modo === 'crearLinea' ? 'La segunda estación crea o extiende la línea. Para otro recorrido, elegí Línea y empezá en una estación libre.' : 'Elegí una estación de otra línea construida para unir ambas líneas.', ['estacion', 'linea', 'conexion']);
+    modo === 'crearLinea' ? 'Línea une dos estaciones libres o prolonga un extremo, en cualquier orden. Para compartir otra línea usá Conexión.' : 'Elegí una estación de otra línea construida para unir ambas líneas.', ['estacion', 'linea', 'conexion']);
   if (estaciones > 0 && falta('requiereGeografiaValida')) return aviso('territorio', 'Hay una dificultad territorial. Revisá la ubicación de las estaciones y sus tramos.', 'Los límites se aplican al recorrido completo, no solo a sus extremos.', ['estacion', 'conexion', 'zona']);
   const limite = pendientes.find(c => c.clave === 'maximoEstaciones');
   if (limite && limite.actual > limite.requerido) return aviso('limite', 'Hay más estaciones de las permitidas. Compará qué cobertura aporta cada ubicación.', 'Más elementos no siempre mejoran la red: compará su función antes de revisar el diseño.', ['estacion', 'cobertura']);
@@ -65,7 +65,7 @@ export function obtenerAyudaContextual({ diseno, escenario, consigna, estadoCons
   const opciones = [
     ['minimoEstaciones', 'estaciones', 'Aún faltan estaciones. Pensá qué función aportaría cada nueva ubicación.', 'Pensá en ampliar el alcance del recorrido sin repetir la función de una estación cercana.', ['estacion', 'cobertura']],
     ['minimoLineas', 'lineas', 'Aún faltan líneas. Pensá cómo se relacionarían con los recorridos que ya construiste.', 'Una nueva línea puede compartir estaciones, pero necesita un recorrido propio coherente.', ['linea', 'estacion']],
-    ['minimoConexionesLineas', 'conexiones', 'Falta unir las líneas con Conexión.', 'Elegí una estación de cada línea. Conservan sus colores y sus recorridos.', ['conexion', 'linea', 'estacion']],
+    ['minimoConexionesLineas', 'conexiones', 'Falta unir las líneas con Conexión.', 'Fusioná una estación de cada línea. O trazá con Conexión desde una estación libre, pasando por otra línea.', ['conexion', 'linea', 'estacion']],
     ['minimoTramos', 'lineas', 'Faltan tramos. Usá Línea desde el extremo hacia la estación siguiente.', 'Seguí el recorrido entre estaciones y comprobá sus extremos antes de agregar un tramo.', ['conexion', 'estacion', 'linea']],
     ['requiereCoberturaPuntosInteres', 'estaciones', 'Queda cobertura pendiente. Compará las estaciones con las referencias sin atender.', 'La cercanía visual no confirma cobertura. Consultá cada POI en los objetivos.', ['cobertura', 'estacion', 'poi']],
     ['areas', 'estaciones', 'Hay áreas sin atender. Revisá en qué barrios y zonas quedan las estaciones.', 'Cubrir un POI no garantiza atender todas las áreas: compará ambas condiciones por separado.', ['barrio', 'zona', 'estacion', 'poi']],

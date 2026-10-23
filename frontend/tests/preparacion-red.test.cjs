@@ -45,6 +45,13 @@ test('cada línea conserva un color exclusivo aunque la red supere la paleta ini
   }
  }
 });
+test('Retirar una línea vacía no cambia el color de las demás líneas del editor',async()=>{
+ const {coloresDeLineas}=await cargar('../src/mapa/configuracion/PaletaRed.js');
+ const lineas=[1,2,3,4].map(n=>({nombre:`Línea ${String(n).padStart(2,'0')}`}));
+ const antes=coloresDeLineas(lineas);
+ const despues=coloresDeLineas(lineas.filter(l=>l.nombre!=='Línea 02'));
+ for(const [nombre,color] of despues)assert.equal(color,antes.get(nombre));
+});
 function cliente(valida,estado='EN_DISENO') {const llamadas=[];return {llamadas,obtener:async()=>({simulacion:{estado}}),solicitar:async(ruta,opciones)=>{llamadas.push([ruta,opciones.method]);return ruta.endsWith('/validacion')?valida:{};}};}
 test('guardar borrador conserva avances, simular red inválida no guarda ni ejecuta',async()=>{
  const {prepararDiseno}=await cargar('../src/red/PreparacionDiseno.js');

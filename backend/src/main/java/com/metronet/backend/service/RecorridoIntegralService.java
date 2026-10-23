@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
 @Service
 public class RecorridoIntegralService {
-    public static final String VERSION = "integral-2026-10-lineas-conexiones-v7";
+    public static final String VERSION = "integral-2026-10-estaciones-fusionadas-v9";
     private final AdministracionNivelesService borradores;
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
@@ -72,6 +72,14 @@ public class RecorridoIntegralService {
                 desafio,reglas,nivel.path("herramientasHabilitadas"),mapper.nullNode(),
                 referencia(nivel),ayudas,tarjetasActualizadas(previo.tarjetas(), nivel)),idAdmin);
             resultado.add(publicarValidado(numero, guardado, idAdmin));
+        }
+        // Cambio de dominio aprobado: sólo los intentos abiertos de v7/v8 adoptan la nueva consigna.
+        // Conserva resultados, puntajes y campañas completadas; guarda su contrato anterior.
+        for (var intento : repositorio.intentosEnCurso(VERSION)) {
+            Object id = intento.get("id_intento"), publicacion = intento.get("id_nivel_publicacion");
+            repositorio.archivarIntento(id);
+            repositorio.actualizarCatalogoIntento(id, publicacion);
+            repositorio.vincularPublicacion(publicacion, id);
         }
         return resultado;
     }
@@ -156,21 +164,32 @@ public class RecorridoIntegralService {
                 double distancia = Math.hypot(centroX - x, centroY - y);
                 x += (centroX - x) * 12 / distancia; y += (centroY - y) * 12 / distancia;
             }
-            String anterior = "Centro" + linea;
-            double origenX = centroX + linea * 8, origenY = centroY + linea * 8;
+            String anterior = "Centro" + (numero >= 4 && linea > 0 ? linea - 1 : linea);
+            double origenX = centroX + Math.max(0, linea - 1) * 8, origenY = centroY + Math.max(0, linea - 1) * 8;
             if (numero == 3 && linea == 1) { origenX = 700; origenY = 495; }
-            estaciones.addObject().put("nombre", anterior).put("x", origenX).put("y", origenY);
+            if (numero < 4 || linea == 0) estaciones.addObject().put("nombre", anterior).put("x", origenX).put("y", origenY);
             if (numero >= 4 && linea > 0) conexiones.addObject()
-                .put("lineaA", "Línea " + linea).put("estacionA", "Centro" + (linea - 1))
+                .put("lineaA", "Línea " + linea).put("estacionA", anterior)
                 .put("lineaB", nombre).put("estacionB", anterior);
             int cantidad = cantidades.get(linea).asInt();
             for (int indice = 1; indice < cantidad; indice++) {
                 String estacion = "E" + linea + "_" + indice;
-                double fraccion = (double) indice / (cantidad - 1);
+                boolean siguienteConexion = numero >= 4 && linea > 0 && linea < cantidades.size() - 1;
+                double fraccion = (double) indice / Math.max(1, cantidad - (siguienteConexion ? 2 : 1));
                 double estacionX = origenX + (x - origenX) * fraccion;
                 double estacionY = origenY + (y - origenY) * fraccion;
                 // La llegada a Ciudad Vieja bordea el puerto por tierra.
-                if (numero == 10 && linea == 0 && indice == 2) { estacionX = 610; estacionY = 520; }
+                if (numero == 10 && linea == 0) {
+                    int hastaGiro = (cantidad - 1) / 2;
+                    double avance = indice <= hastaGiro ? (double) indice / hastaGiro
+                        : (double) (indice - hastaGiro) / (cantidad - 1 - hastaGiro);
+                    estacionX = indice <= hastaGiro ? origenX + (610 - origenX) * avance : 610 + (x - 610) * avance;
+                    estacionY = indice <= hastaGiro ? origenY + (520 - origenY) * avance : 520 + (y - 520) * avance;
+                }
+                if (siguienteConexion && indice == cantidad - 1) {
+                    estacion = "Centro" + linea;
+                    estacionX = centroX + linea * 8; estacionY = centroY + linea * 8;
+                }
                 estaciones.addObject().put("nombre", estacion).put("x", estacionX).put("y", estacionY);
                 tramos.addObject().put("linea", nombre).put("a", anterior).put("b", estacion);
                 anterior = estacion;
@@ -185,8 +204,7 @@ public class RecorridoIntegralService {
             .put("parametroReferencia", numero == 7 || numero == 8 ? "UT" : "UV");
         var valores = ejecucion.putArray("unidades");
         double uv = numero == 6 || numero == 10 ? 2 : numero == 9 ? 0.5 : 1;
-        for (JsonNode conexion : conexiones) ((ObjectNode) conexion).putObject("metro").put("capacidad", 300).put("uv", 1);
-        for (int indice = 0; indice < metros + conexiones.size(); indice++) valores.addObject().put("uv", uv);
+        for (int indice = 0; indice < metros; indice++) valores.addObject().put("uv", uv);
         return red;
     }
 

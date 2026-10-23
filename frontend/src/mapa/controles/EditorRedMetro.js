@@ -1,4 +1,4 @@
-import { claveConexion, nombreRecorrido } from '../configuracion/RecorridosRed.js';
+import { nombreRecorrido } from '../configuracion/RecorridosRed.js';
 import { metasConLineas } from '../../educacion/IndicacionesLineas.mjs';
 import '../../educacion/indicaciones-lineas.css';
 import CreacionDirecta from './CreacionDirecta.js';
@@ -83,7 +83,6 @@ export default class EditorRedMetro {
         <div class="metronet-editor-grupo" data-herramienta="metros">
           <div class="metronet-editor-fila" data-lineas-superpuestas hidden role="group" aria-label="Elegir línea del metro"></div>
         </div>
-        <div data-opciones-construccion class="metronet-editor-fila" role="group" aria-label="Elegir línea para construir"></div>
         <div class="metronet-editor-acciones"><button data-guardar type="button">Guardar</button><button data-ir-simulacion type="button" disabled>Simular diseño</button><button data-finalizar-red type="button" class="metronet-boton--exito metronet-boton--destacado" hidden>Finalizar red</button></div>
         <article data-elemento-seleccionado class="metronet-editor-seleccionado" hidden></article>
       </div>`;
@@ -648,7 +647,6 @@ export default class EditorRedMetro {
     const estacion = this.elementoSeleccionado.valor;
     this.editarEnPanel([
       { nombre: 'nombre', etiqueta: 'Nombre de la estación', valor: estacion.nombre },
-      { nombre: 'transbordo', etiqueta: 'Permite transbordo', valor: estacion.transbordo, tipo: 'checkbox' },
     ], datos => {
       if (!datos.nombre) return this.mostrarMensaje('Ingresá el nombre de la estación.', 'advertencia');
       return this.ejecutarAccion(`/${this.idDiseno()}/estaciones/${encodeURIComponent(estacion.nombre)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...estacion, ...datos }) }, 'Estación actualizada.');
@@ -679,23 +677,23 @@ export default class EditorRedMetro {
     const tramo = this.elementoSeleccionado.valor;
     const parametros = new URLSearchParams({ lineaActual: tramo.nombreLinea, estacionAActual: tramo.estacionA, estacionBActual: tramo.estacionB });
     this.editarEnPanel([
-      { nombre: 'nombreLinea', etiqueta: 'Línea de la conexión', valor: tramo.nombreLinea, opciones: this.disenoActual.lineas.map(l => l.nombre) },
+      { nombre: 'nombreLinea', etiqueta: 'Línea del tramo', valor: tramo.nombreLinea, opciones: this.disenoActual.lineas.map(l => l.nombre) },
       { nombre: 'estacionA', etiqueta: 'Estación de origen', valor: tramo.estacionA, opciones: this.disenoActual.estaciones.map(e => e.nombre) },
       { nombre: 'estacionB', etiqueta: 'Estación de destino', valor: tramo.estacionB, opciones: this.disenoActual.estaciones.map(e => e.nombre) },
-    ], datos => this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }, 'Conexión actualizada.'));
+    ], datos => this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) }, 'Tramo actualizado.'));
   }
 
   async eliminarTramo() {
     const tramo = this.elementoSeleccionado.valor;
-    if (!await this.confirmarEliminacion({ titulo: 'Eliminar conexión', mensaje: '¿Querés eliminar esta conexión?' })) return;
+    if (!await this.confirmarEliminacion({ titulo: 'Eliminar tramo', mensaje: '¿Querés eliminar este tramo?' })) return;
     const parametros = new URLSearchParams({ linea: tramo.nombreLinea, estacionA: tramo.estacionA, estacionB: tramo.estacionB });
-    await this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'DELETE' }, 'Conexión eliminada.');
+    await this.ejecutarAccion(`/${this.idDiseno()}/tramos?${parametros}`, { method: 'DELETE' }, 'Tramo eliminado.');
   }
 
   editarUnidad() {
     const unidad = this.elementoSeleccionado.valor;
     this.editarEnPanel([
-      { nombre: 'nombreLinea', etiqueta: 'Línea o conexión', valor: unidad.nombreLinea, opciones: [...this.disenoActual.lineas.map(l => l.nombre), ...(this.disenoActual.conexionesLineas ?? []).map(claveConexion)].map(valor => ({ valor, etiqueta: nombreRecorrido(this.disenoActual, valor) })) },
+      { nombre: 'nombreLinea', etiqueta: 'Línea', valor: unidad.nombreLinea, opciones: this.disenoActual.lineas.map(l => l.nombre).map(valor => ({ valor, etiqueta: nombreRecorrido(this.disenoActual, valor) })) },
       { nombre: 'velocidadPromedio', etiqueta: 'Velocidad promedio (UV)', valor: unidad.velocidadPromedio, tipo: 'number' },
     ], datos => this.ejecutarAccion(`/${this.idDiseno()}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...datos, capacidad: unidad.capacidad, velocidadPromedio: Number(datos.velocidadPromedio) }) }, 'Unidad actualizada.'));
   }

@@ -9,14 +9,26 @@ export const PALETA_RED = Object.freeze({
 export function coloresDeLineas(lineas = []) {
   const colores = new Map();
   const usados = new Set([...Object.values(PALETA_RED.estaciones), ...PALETA_RED.metros, PALETA_RED.transbordo]);
+  const ordenadas = [...lineas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { numeric: true }));
+  // Los nombres automáticos mantienen su color aunque se elimine otra línea.
+  for (const linea of ordenadas) {
+    const numero = Number(/^Línea (\d+)$/.exec(linea.nombre)?.[1]);
+    if (!Number.isSafeInteger(numero) || numero < 1) continue;
+    let indice = numero - 1;
+    let color = PALETA_RED.lineas[indice] ?? colorAdicional(indice - PALETA_RED.lineas.length);
+    while (usados.has(color)) color = colorAdicional(++indice);
+    colores.set(linea.nombre, color);
+    usados.add(color);
+  }
   let indiceAdicional = 0;
-  [...lineas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { numeric: true })).forEach((linea, indice) => {
+  ordenadas.forEach((linea, indice) => {
+    if (colores.has(linea.nombre)) return;
     let color = PALETA_RED.lineas[indice];
     while (color === undefined || usados.has(color)) color = colorAdicional(indiceAdicional++);
     colores.set(linea.nombre, color);
     usados.add(color);
   });
-  return colores;
+  return new Map(ordenadas.map(linea => [linea.nombre, colores.get(linea.nombre)]));
 }
 
 // Distribuye los tonos adicionales; el conjunto anterior evita colisiones RGB.

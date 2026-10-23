@@ -159,7 +159,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
     assert.doesNotMatch(await tutorial.innerText(), /RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
     await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
   }
-  assert.ok(titulosVisitados.includes('Elegir línea o conexión'));
+  assert.ok(titulosVisitados.includes('Elegir línea'));
   assert.ok(!titulosVisitados.includes('Vista del mapa'));
   assert.match(await tutorial.innerText(),/¡Listo para simular!/i);
   await tutorial.waitFor({state:'detached',timeout:5000});
@@ -268,7 +268,7 @@ for (const [width, height] of [[390, 210], [390, 900], [1440, 900]]) test(`Tutor
   assert.equal(await tutorial.locator('[data-recorrido-pausar]').count(), 0);
   await tutorial.getByRole('button', { name: 'Salir del tutorial', exact: true }).click();
   await tutorial.waitFor({ state: 'detached' });
-  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v6:7:1:1:77')), 'omitido');
+  assert.equal(await p.evaluate(() => localStorage.getItem('metronet:tutorial-pantalla-simulacion:v7:7:1:1:77')), 'omitido');
   await p.reload();
   await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await tutorial.count(), 0);
@@ -298,7 +298,7 @@ test('Reiniciar la campaña vuelve a ofrecer el tutorial de Simulación', async 
   while (await guia.getAttribute('data-objetivo') !== 'fin') await guia.locator('[data-recorrido-siguiente]').click();
   assert.equal(await guia.locator('h2').textContent(), '¡Listo para simular!');
   await guia.waitFor({state:'detached',timeout:5000});
-  const clave = 'metronet:tutorial-pantalla-simulacion:v6:7:1:1:77';
+  const clave = 'metronet:tutorial-pantalla-simulacion:v7:7:1:1:77';
   assert.equal(await p.evaluate(clave => localStorage.getItem(clave), clave), 'presentado');
   await p.goto(`${new URL(p.url()).origin}/escenarios.html`);
   await p.locator('#botonReiniciarRecorrido:not([hidden])').click();
@@ -359,7 +359,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-  for (const titulo of ['Mapa y entorno real', 'Línea o conexión a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Línea o conexión a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+  for (const titulo of ['Mapa y entorno real', 'Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     const objetivo = await p.locator('.metronet-recorrido').getAttribute('data-objetivo');
     assert.equal(await p.locator(objetivo).first().isVisible(), true, `${titulo}: el control señalado debe estar visible`);

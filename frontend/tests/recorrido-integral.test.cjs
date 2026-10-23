@@ -16,6 +16,9 @@ for(const n of niveles) test(`consistencia del nivel ${n.numero}: reglas, herram
  assert.equal(n.reglasExito.requiereSimulacion,true);
  for(const [regla,herramienta] of Object.entries(herramientasPorRegla)) if(n.reglasExito[regla]) assert.equal(n.herramientasHabilitadas[herramienta],true,regla);
  assert.match(n.instrucciones,/Guardá/);
+ const lugaresEnLineas=n.reglasExito.configuracionRecorrido.estacionesPorLinea.reduce((total,cantidad)=>total+cantidad,0);
+ assert.equal(lugaresEnLineas,n.reglasExito.minimoEstaciones,
+  `Nivel ${n.numero}: se piden todas las estaciones antes de fusionarlas en conexiones`);
  assert.match(n.instrucciones,/simul[aá]|ejecu|ejecut/i);
  assert.ok(n.historia.texto.length>60);
  assert.notEqual(n.historia.texto,n.objetivo);
@@ -26,9 +29,9 @@ for(const n of niveles) test(`consistencia del nivel ${n.numero}: reglas, herram
  if(n.reglasExito.minimoTransbordos) assert.match(n.instrucciones,/transbordo/);
 });
 test('progresión aprobada: líneas, estaciones y prácticas sin comparaciones obligatorias',()=>{
- assert.deepEqual(niveles.map(n=>n.reglasExito.minimoEstaciones),[2,3,4,4,6,7,8,9,10,13]);
+ assert.deepEqual(niveles.map(n=>n.reglasExito.minimoEstaciones),[2,3,4,5,8,9,10,11,13,16]);
  assert.deepEqual(niveles.map(n=>n.reglasExito.minimoMetros),[1,2,2,2,3,3,4,4,5,6]);
- assert.deepEqual(niveles.map(n=>n.reglasExito.configuracionRecorrido.estacionesPorLinea),[[2],[3],[2,2],[2,2],[2,2,2],[3,2,2],[3,3,2],[3,3,3],[3,3,2,2],[4,3,3,3]]);
+ assert.deepEqual(niveles.map(n=>n.reglasExito.configuracionRecorrido.estacionesPorLinea),[[2],[3],[2,2],[3,2],[3,3,2],[4,3,2],[4,4,2],[4,4,3],[4,4,3,2],[5,4,4,3]]);
  assert.deepEqual(niveles.slice(5).map(n=>n.reglasExito.configuracionRecorrido.practica),['aumentarUV','aumentarUT','reducirUT','reducirUV','cambiar']);
  for(const n of niveles){
   assert.equal(n.reglasExito.aprendizajeSimulacion,undefined);

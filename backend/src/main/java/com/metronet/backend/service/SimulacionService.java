@@ -202,6 +202,7 @@ public class SimulacionService {
         repositorio.bloquearUsuarioParaGuardar(idUsuario);
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         restriccionesGeograficas.validarDiseno(idDiseno);
+        repositorio.retirarLineasVacias(idDiseno);
         repositorio.guardarDiseno(idUsuario, idDiseno);
         juegoEducativoService.actualizarProgreso(idUsuario, idDiseno);
         return obtenerResumen(idUsuario, idDiseno);
@@ -217,7 +218,7 @@ public class SimulacionService {
         if (solicitud != null && solicitud.idConexion() != null && solicitud.nombreLinea() != null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí una línea o una conexión, no ambas");
         String nombreLinea = nombreValido(solicitud == null ? null : solicitud.idConexion() != null
-            ? IdentidadRecorrido.conexion(solicitud.idConexion()) : solicitud.nombreLinea(), "Elegí la línea o conexión de la unidad");
+            ? IdentidadRecorrido.conexion(solicitud.idConexion()) : solicitud.nombreLinea(), "Elegí la línea de la unidad");
         validarRecorridoUnidad(idDiseno, nombreLinea);
         if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
@@ -324,7 +325,7 @@ public class SimulacionService {
         int transbordos = repositorio.contarEstacionesCompartidas(idDiseno);
         int puntaje = 0; // Sin criterios de escenario no se asignan puntos por cantidad de elementos.
         String comentarios = "Se operaron " + unidades + " unidad(es) en " + lineas + " línea(s) durante " + duracion
-            + " UT." + " La red mantiene " + estaciones + " estaciones y " + transbordos + " punto(s) de transbordo.";
+            + " UT." + " La red mantiene " + estaciones + " estaciones y " + transbordos + " estación(es) compartida(s).";
         boolean progresivo = juegoEducativoService.esDisenoProgresivo(idUsuario, idDiseno);
         comentarios += juegoEducativoService.marcaRedSimulada(idDiseno, duracion);
         Integer idSimulacion = repositorio.registrarSimulacion(idIntento, solicitud.velocidad(), duracion, comentarios, puntaje);
@@ -569,7 +570,7 @@ public class SimulacionService {
         List<String> ramificaciones = repositorio.estacionesConRamificaciones((resultado, fila) -> resultado.getString("nombre_linea") + " (" + resultado.getString("nombre_estacion") + ")", idDiseno, idDiseno);
         if (!ramificaciones.isEmpty()) {
             observaciones.add("Hay líneas ramificadas: " + String.join(", ", ramificaciones)
-                + ". Dividí cada ramal en otra línea o usá una estación de transbordo.");
+                + ". Dividí cada ramal en otra línea o usá una estación compartida.");
         }
     }
 
@@ -647,17 +648,11 @@ public class SimulacionService {
         if (repositorio.lineas((r, n) -> r.getString("nombre"), idDiseno).stream()
             .anyMatch(linea -> unidadesMetro.stream().noneMatch(u -> linea.equals(u.nombreLinea()))))
             observaciones.add("Asigná al menos un metro a cada línea antes de simular la red completa.");
-        if (conexionesLineas.listar(idDiseno).stream().anyMatch(c -> unidadesMetro.stream()
-            .noneMatch(u -> IdentidadRecorrido.conexion(c.idConexion()).equals(u.nombreLinea()))))
-            observaciones.add("Asigná un metro propio a cada conexión antes de simular.");
         return new PreparacionSimulacion(observaciones.isEmpty(), List.copyOf(observaciones));
     }
 
     private List<com.metronet.backend.dto.ConexionLineasResponse> conexionesConDistancia(int diseno) {
-        var longitudes = distancias.porLinea(diseno);
-        return conexionesLineas.listar(diseno).stream().map(c -> new com.metronet.backend.dto.ConexionLineasResponse(
-            c.idConexion(), c.lineaA(), c.estacionA(), c.lineaB(), c.estacionB(),
-            longitudes.get(IdentidadRecorrido.conexion(c.idConexion())))).toList();
+        return conexionesLineas.listar(diseno);
     }
 
     private void validarNombreLinea(String nombre) {
@@ -666,10 +661,8 @@ public class SimulacionService {
     }
 
     private void validarRecorridoUnidad(int diseno, String clave) {
-        Long conexion = IdentidadRecorrido.idConexion(clave);
-        boolean existe = conexion == null ? existeLinea(diseno, clave)
-            : conexionesLineas.listar(diseno).stream().anyMatch(c -> c.idConexion() == conexion);
-        if (!existe) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea o conexión seleccionada no existe en este diseño");
+        if (IdentidadRecorrido.idConexion(clave) != null || !existeLinea(diseno, clave))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí una línea. La conexión comparte una estación y no lleva metro propio");
     }
 
     private boolean tieneRutaOperable(Integer idDiseno, String nombreLinea) {
@@ -733,6 +726,7 @@ public class SimulacionService {
     }
 
     private void marcarEnDiseno(Integer idUsuario, Integer idDiseno) {
+        repositorio.retirarLineasVacias(idDiseno);
         vinculoLibre.recalcular(idDiseno);
         repositorio.marcarEnDiseno(idUsuario, idDiseno);
     }
@@ -773,6 +767,6 @@ public class SimulacionService {
         if ("NIVEL".equals(modo)) {
             return "Nivel " + dificultad + ": revisá el objetivo, explorá la red y realizá ajustes hasta obtener una red consistente.";
         }
-        return "Edición libre: experimentá con estaciones, líneas y transbordos. Podés corregir cada decisión sin afectar el diseño original.";
+        return "Edición libre: experimentá con estaciones, líneas y conexiones. Podés corregir cada decisión sin afectar el diseño original.";
     }
 }

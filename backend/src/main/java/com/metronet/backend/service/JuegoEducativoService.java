@@ -415,6 +415,9 @@ public class JuegoEducativoService {
         Map<String, Object> reglas = leerJson(intento.reglasExito());
         List<CondicionConsignaResponse> condiciones = new ArrayList<>();
         int estaciones = cantidad(repositorio.contarEstaciones(idDiseno));
+        if (reglas.get("configuracionRecorrido") instanceof Map<?, ?> recorrido
+            && Boolean.TRUE.equals(recorrido.get("contarEstacionesFusionadas")))
+            estaciones += cantidad(repositorio.contarEstacionesIntegradas(idDiseno));
         int lineas = cantidad(repositorio.contarLineas(idDiseno));
         int tramos = cantidad(repositorio.contarTramos(idDiseno));
         int metros = cantidad(repositorio.contarMetros(idDiseno));

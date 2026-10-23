@@ -30,6 +30,6 @@ public class RestriccionesGeograficasRepository {
     }
 
     public <T> List<T> tramos(RowMapper<T> mapeador, Integer idDiseno) {
-        return jdbc.query("SELECT nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ? UNION ALL SELECT estacion_a,estacion_b FROM conexion_lineas WHERE id_diseno=?", mapeador, idDiseno, idDiseno);
+        return jdbc.query("SELECT nombre_estacion_a, nombre_estacion_b FROM tramo WHERE id_diseno = ?", mapeador, idDiseno);
     }
 }

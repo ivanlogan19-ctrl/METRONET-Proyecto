@@ -32,14 +32,14 @@ public class PuntuacionRepository {
 
     public <T> List<T> medicionesUnidades(RowMapper<T> mapeador, int idDiseno) {
         return jdbc.query("""
-            SELECT m.id_tren, COALESCE(m.nombre_linea, '@conexion:' || m.id_conexion) AS nombre_linea, m.velocidad_promedio, m.duracion_ut,
+            SELECT m.id_tren, m.nombre_linea AS nombre_linea, m.velocidad_promedio, m.duracion_ut,
                 (CASE WHEN m.id_conexion IS NOT NULL THEN 1 ELSE (SELECT COUNT(*) FROM tramo t WHERE t.id_diseno=m.id_diseno AND t.nombre_linea=m.nombre_linea) END) tramos
             FROM metro m WHERE m.id_diseno=? ORDER BY m.id_tren
             """, mapeador, idDiseno);
     }
 
     public void referenciasLineas(RowCallbackHandler lector, int idDiseno) {
-        jdbc.query("SELECT DISTINCT COALESCE(nombre_linea, '@conexion:' || id_conexion),referencia_uv_ut FROM metro WHERE id_diseno=?", lector, idDiseno);
+        jdbc.query("SELECT DISTINCT nombre_linea,referencia_uv_ut FROM metro WHERE id_diseno=?", lector, idDiseno);
     }
 
     public Boolean tieneDuracion(int idDiseno) {
@@ -72,7 +72,7 @@ public class PuntuacionRepository {
         boolean incluirCapacidad,
         int idDiseno
     ) {
-        return jdbc.queryForList("SELECT id_tren,COALESCE(nombre_linea, '@conexion:' || id_conexion) AS nombre_linea" + (incluirVelocidad ? ",velocidad_promedio" : "") + (incluirDuracion ? ",duracion_ut" : "")
+        return jdbc.queryForList("SELECT id_tren,nombre_linea AS nombre_linea" + (incluirVelocidad ? ",velocidad_promedio" : "") + (incluirDuracion ? ",duracion_ut" : "")
                     + (incluirCapacidad ? ",capacidad" : "") + " FROM metro WHERE id_diseno=? ORDER BY id_tren", idDiseno);
     }
 

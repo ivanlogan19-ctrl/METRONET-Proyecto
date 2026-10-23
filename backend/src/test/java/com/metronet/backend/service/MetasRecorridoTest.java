@@ -117,7 +117,7 @@ class MetasRecorridoTest {
                 int metros = nivel.path("reglasExito").path("minimoMetros").asInt();
                 int conexiones = nivel.path("reglasExito").path("minimoConexionesLineas").asInt();
                 assertTrue(MetasRecorrido.excesos(reglas, List.of(new CondicionConsignaResponse(
-                    "minimoMetros", "Metros", metros + conexiones, metros, true))).isEmpty(), "El metro obligatorio de conexión no es un extra");
+                    "minimoMetros", "Metros", metros, metros, true))).isEmpty(), "Las estaciones compartidas no requieren metros adicionales");
             }
         }
         assertTrue(MetasRecorrido.excesos(Map.of(), metas).isEmpty(), "Sin nueva regla no cambia el histórico");

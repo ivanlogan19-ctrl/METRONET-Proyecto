@@ -1,3 +1,5 @@
+import { coloresDeLineas } from '../mapa/configuracion/PaletaRed.js';
+
 const NS = 'http://www.w3.org/2000/svg';
 const ANCHO = 1000;
 const ALTO = 620;
@@ -68,21 +70,26 @@ export function crearEditorRedReferenciaNivel(contenedor, red, alCambiar) {
         }
       }
     }
+    const colores = coloresDeLineas(red.lineas);
+    const color = nombre => `#${(colores.get(nombre) ?? 0x3983ff).toString(16).padStart(6,'0')}`;
     const estaciones = new Map((red.estaciones ?? []).map(e => [e.nombre,e]));
     for (const tramo of red.tramos ?? []) {
       const a=estaciones.get(tramo.a), b=estaciones.get(tramo.b);
       if (a && b) svg.append(nodo('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,
-        stroke:'#ffcb53','stroke-width':4,'stroke-linecap':'round','pointer-events':'none'}));
-    }
-    for (const c of red.conexionesLineas ?? []) {
-      const a = estaciones.get(c.estacionA), b = estaciones.get(c.estacionB);
-      if (a && b) svg.append(nodo('line', {x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#d6fdff','stroke-width':5,'pointer-events':'none'}));
+        stroke:color(tramo.linea),'stroke-width':4,'stroke-linecap':'round','pointer-events':'none'}));
     }
     for (const estacion of red.estaciones ?? []) {
       const grupo=nodo('g',{tabindex:0,role:'button','aria-label':`Estación ${estacion.nombre}`});
       grupo.dataset.estacion=estacion.nombre;
       grupo.append(nodo('circle',{cx:estacion.x,cy:estacion.y,r:9,fill:seleccion===estacion.nombre?'#fff1ac':'#f6f3e7',
         stroke:'#1b2337','stroke-width':2}));
+      const conexion=(red.conexionesLineas ?? []).find(c => c.estacionA === estacion.nombre && c.estacionB === estacion.nombre);
+      if (conexion) {
+        const x=Number(estacion.x), y=Number(estacion.y);
+        grupo.append(nodo('path',{d:`M ${x} ${y-14} h -7 l -7 7 v 14 l 7 7 h 7 Z`,fill:color(conexion.lineaA)}));
+        grupo.append(nodo('path',{d:`M ${x} ${y-14} h 7 l 7 7 v 14 l -7 7 h -7 Z`,fill:color(conexion.lineaB)}));
+        grupo.append(nodo('circle',{cx:x,cy:y,r:7,fill:'#0a1425'}));
+      }
       const rotulo=nodo('text',{x:Number(estacion.x)+12,y:Number(estacion.y)-10,fill:'#fff',
         'font-size':15,'paint-order':'stroke',stroke:'#101a29','stroke-width':3});
       rotulo.textContent=estacion.nombre; grupo.append(rotulo);

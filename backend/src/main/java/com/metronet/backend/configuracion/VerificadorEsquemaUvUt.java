@@ -28,6 +28,8 @@ public class VerificadorEsquemaUvUt {
                 throw new IllegalStateException("Falta aplicar 025_conexiones_entre_lineas.sql antes de iniciar METRONET");
             if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='id_conexion')", Boolean.class)))
                 throw new IllegalStateException("Falta aplicar 026_metros_en_conexiones.sql antes de iniciar METRONET");
+            if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='conexion_lineas'::regclass AND conname='chk_conexion_estacion_compartida')", Boolean.class)))
+                throw new IllegalStateException("Falta aplicar 027_estaciones_compartidas.sql antes de iniciar METRONET");
             if (jdbc.queryForObject("SELECT to_regclass('aprendizaje_extra_visita')::text", String.class) == null)
                 throw new IllegalStateException("Falta aplicar 022_extras_modo_libre.sql antes de iniciar METRONET");
             if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='referencia_uv_ut')", Boolean.class)))

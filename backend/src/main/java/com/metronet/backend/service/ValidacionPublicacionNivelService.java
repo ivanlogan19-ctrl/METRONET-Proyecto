@@ -61,9 +61,7 @@ public class ValidacionPublicacionNivelService {
             for (JsonNode c : red.path("conexionesLineas")) {
                 var conexion = simulaciones.crearConexionLineas(idAdmin, diseno,
                     new com.metronet.backend.dto.ConexionLineasRequest(texto(c,"lineaA"), texto(c,"estacionA"), texto(c,"lineaB"), texto(c,"estacionB")));
-                if (c.path("metro").isObject()) simulaciones.crearUnidadMetro(idAdmin, diseno,
-                    new com.metronet.backend.dto.CrearUnidadMetroSimulacionRequest(null,
-                        entero(c.path("metro").path("capacidad"), "capacidad"), decimal(c.path("metro").path("uv"), "UV"), conexion.idConexion()));
+
             }
             JsonNode criterio = contenido.path("criterioUvUt");
             if (criterio.isObject()) {

@@ -9,7 +9,7 @@ const codigo = fs.readFileSync(`${__dirname}/../src/mapa/capas/CapaRedMetro.js`,
 const modulo = { exports: null };
 vm.runInNewContext(`${codigo}\nmodule.exports = CapaRedMetro;`, {
   module: modulo,
-  tramosDeRecorridos: d => [...(d.tramos ?? []), ...(d.conexionesLineas ?? []).map(c => ({ nombreLinea: `@conexion:${c.idConexion}`, estacionA: c.estacionA, estacionB: c.estacionB, distanciaKm: c.distanciaKm }))],
+  tramosDeRecorridos: d => d.tramos ?? [],
   COLORES_INTERFAZ_MAPA: { TEXTO: 0xffffff, FONDO: 0x000000 },
   FUENTES_INTERFAZ_MAPA: { SISTEMA: 'monospace' },
   PALETA_RED: { lineas: [0x3983ff] },
@@ -203,20 +203,21 @@ test('El dibujo acompaña los kilómetros del motor y el reloj, aunque la escala
 });
 
 for (const modo of ['editor', 'simulacion']) {
-  test(`${modo}: el tren usa los colores de su recorrido, incluidas las dos mitades de una conexión`, () => {
+  test(`${modo}: el tren conserva el color de su línea en una estación compartida`, () => {
     const { capa } = preparar([100, 200], [700, 200]);
     capa.coloresLineas.set('Azul', 0x3983ff);
     capa.coloresLineas.set('Verde', 0x24b86a);
     const coloresUsados = tren => tren.list[0].operaciones.filter(o => o[0] === 'fillStyle').map(o => o[1]);
     assert.ok(coloresUsados(representar(capa, modo)).includes(0x3983ff));
-    capa.diseno.conexionesLineas = [{ idConexion: 7, lineaA: 'Azul', lineaB: 'Verde', estacionA: 'A', estacionB: 'B' }];
-    capa.diseno.unidadesMetro = [{ idTren: 2, nombreLinea: '@conexion:7' }];
+    capa.diseno.conexionesLineas = [{ idConexion: 7, lineaA: 'Azul', lineaB: 'Verde', estacionA: 'B', estacionB: 'B' }];
+    capa.diseno.tramos = capa.diseno.tramos.map(t => ({ ...t, nombreLinea: 'Verde' }));
+    capa.diseno.unidadesMetro = [{ idTren: 2, nombreLinea: 'Verde' }];
     capa.rutasPorLinea.clear();
     if (modo === 'editor') capa.dibujarUnidad(capa.diseno.unidadesMetro[0], 0);
-    else capa.actualizarRepresentacionSimulacion([{ idTren: 2, nombreLinea: '@conexion:7', transitable: true, progresoRuta: 0.5 }]);
+    else capa.actualizarRepresentacionSimulacion([{ idTren: 2, nombreLinea: 'Verde', transitable: true, progresoRuta: 0.5 }]);
     capa.actualizarEscalaElementosGraficos(true);
     const tren = modo === 'editor' ? capa.unidadesEstaticas.at(-1) : capa.unidadesSimulacion.get('2');
-    assert.ok(coloresUsados(tren).includes(0x3983ff));
+    assert.ok(!coloresUsados(tren).includes(0x3983ff));
     assert.ok(coloresUsados(tren).includes(0x24b86a));
     assert.equal(tren.scaleX, 0.5);
     comprobarPosicion(tren, [100, 200], [700, 200], modo === 'editor' ? capa.obtenerProgresoUnidad(0) : 0.5);

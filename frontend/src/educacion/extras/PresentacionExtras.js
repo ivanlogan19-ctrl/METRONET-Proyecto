@@ -132,7 +132,7 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       const fases=nodo('ol','','metronet-extras__fases');
       for(const [nombre,descripcion] of [
         ['Observá','Reconocé corredores, población y desplazamientos. Definí qué zonas querés conectar.'],
-        ['Construí','Ubicá estaciones, trazá líneas y conexiones y revisá su cobertura territorial.'],
+        ['Construí','Ubicá estaciones, trazá líneas y unilas con estaciones compartidas. Revisá su cobertura territorial.'],
         ['Contrastá','Ejecutá la red, modificá una variable y explicá qué cambia en el recorrido.'],
       ]) { const fase=nodo('li');fase.append(nodo('strong',nombre),nodo('p',descripcion));fases.append(fase); }
       explicacion.append(fases,nodo('p','Las capas aportan referencias para decidir. No calculan por sí solas la demanda ni garantizan la viabilidad de una red real.','metronet-extras__nota'));
