@@ -5,6 +5,7 @@ const path = require('node:path');
 const fuente = nombre => fs.readFileSync(path.join(__dirname, '../src/simulacion/', nombre), 'utf8');
 const url = fuente => 'data:text/javascript;base64,' + Buffer.from(fuente).toString('base64');
 const cargar = async () => (await import(url(fuente('MotorSimulacion.js')
+  .replace('../mapa/configuracion/RecorridosRed.js', url(fuente('../mapa/configuracion/RecorridosRed.js').replace('./PaletaRed.js', url(fuente('../mapa/configuracion/PaletaRed.js')))))
   .replace('./EscalaSimulacion.js', url(fuente('EscalaSimulacion.js')))
   .replace('../mapa/controles/NombresRed.js', url(fuente('../mapa/controles/NombresRed.js')))))).default;
 const red = (uv = [4, 6]) => ({
@@ -164,7 +165,7 @@ test('Modo Libre conserva UT fraccionarias y llega en 1,5 UT a 8 UV sobre 12 km'
   assert.equal(fin.unidades[0].utLlegada,1.5);
 });
 test('Vínculo por línea calcula tiempos y velocidades diferentes sin usar el total de la red',async()=>{
-  const {calcularVinculo}=await import(url(fuente('VinculoUvUtLibre.js')));
+  const {calcularVinculo}=await import(url(fuente('VinculoUvUtLibre.js').replace('../mapa/configuracion/RecorridosRed.js', url(fuente('../mapa/configuracion/RecorridosRed.js').replace('./PaletaRed.js', url(fuente('../mapa/configuracion/PaletaRed.js')))))));
   const diseno={tramos:[{nombreLinea:'A',estacionA:'a',estacionB:'b',distanciaKm:12},{nombreLinea:'B',estacionA:'b',estacionB:'c',distanciaKm:18}]};
   const unidades=[{nombreLinea:'A'},{nombreLinea:'B'}];
   assert.deepEqual(calcularVinculo(diseno,unidades,'UV',8).map(u=>u.duracionUt),[1.5,2.25]);
@@ -174,7 +175,7 @@ test('Vínculo por línea calcula tiempos y velocidades diferentes sin usar el t
 });
 
 test('Los pasos fraccionarios no saltan casi a cero ni pierden precisión al sumar',async()=>{
-  const {desplazarValorVinculado}=await import(url(fuente('VinculoUvUtLibre.js')));
+  const {desplazarValorVinculado}=await import(url(fuente('VinculoUvUtLibre.js').replace('../mapa/configuracion/RecorridosRed.js', url(fuente('../mapa/configuracion/RecorridosRed.js').replace('./PaletaRed.js', url(fuente('../mapa/configuracion/PaletaRed.js')))))));
   assert.equal(desplazarValorVinculado(0.3,-1),0.2);
   assert.equal(desplazarValorVinculado(0.1,-1),0.09);
   assert.equal(desplazarValorVinculado(1.00000001,-1),0.90000001);
@@ -200,4 +201,78 @@ test('Reproducir una selección conserva UV/UT, excluye las otras líneas y bloq
   motor.seleccionarLineas(['Línea','Corta']);
   assert.equal(motor.iniciar().duracion,7.5);
   assert.equal(JSON.stringify(datos),original,'La reproducción no modifica el diseño');
+});
+
+test('Cada nueva ejecución vuelve desde el extremo alcanzado y respeta las distancias al regresar', async () => {
+  const Motor = await cargar(), datos = red([4]);
+  datos.tramos = datos.tramos.slice(0, 2);
+  datos.tramos[0].distanciaKm = 2;
+  datos.tramos[1].distanciaKm = 10;
+  datos.unidadesMetro[0].duracionUt = 3;
+  const original = JSON.stringify(datos), motor = new Motor(datos);
+  motor.iniciar({ ahora: 0 });
+  assert.equal(motor.actualizar(9000).unidades[0].estacionActual, 'E2');
+  assert.equal(motor.detener().unidades[0].estacionActual, 'E2');
+  const regreso = motor.iniciar({ ahora: 10000 }).unidades[0];
+  assert.equal(regreso.estacionActual, 'E2');
+  assert.equal(regreso.proximaEstacion, 'E1');
+  const intermedio = motor.actualizar(13000).unidades[0];
+  assert.equal(intermedio.estacionActual, 'E2');
+  assert.equal(intermedio.proximaEstacion, 'E1');
+  assert.equal(intermedio.progresoTramo, .4, 'El regreso empieza por el tramo de 10 km');
+  assert.equal(motor.actualizar(19000).unidades[0].estacionActual, 'E0');
+  assert.equal(motor.iniciar({ ahora: 20000 }).unidades[0].proximaEstacion, 'E1');
+  assert.equal(JSON.stringify(datos), original);
+});
+
+test('Las selecciones de líneas y conexiones conservan sus extremos de forma independiente', async () => {
+  const Motor = await cargar();
+  const datos = {
+    estaciones: ['A', 'B', 'C', 'D'].map(nombre => ({ nombre })),
+    tramos: [
+      { nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B', distanciaKm: 2 },
+      { nombreLinea: 'Roja', estacionA: 'C', estacionB: 'D', distanciaKm: 2 },
+    ],
+    conexionesLineas: [{ idConexion: 5, estacionA: 'B', estacionB: 'C', distanciaKm: 2 }],
+    unidadesMetro: ['Azul', 'Roja', '@conexion:5'].map((nombreLinea, i) => ({ idTren: i + 1, nombreLinea, velocidadPromedio: 1, duracionUt: 2 })),
+  };
+  const motor = new Motor(datos);
+  motor.seleccionarLineas(['Azul', '@conexion:5']);
+  motor.iniciar({ ahora: 0 });
+  assert.deepEqual(motor.actualizar(6000).unidades.map(u => u.estacionActual), ['B', 'C']);
+  motor.seleccionarLineas(['Roja']);
+  assert.equal(motor.iniciar({ ahora: 10000 }).unidades[0].estacionActual, 'C');
+  motor.actualizar(16000);
+  motor.seleccionarLineas(['Azul', 'Roja', '@conexion:5']);
+  assert.deepEqual(motor.iniciar({ ahora: 20000 }).unidades.map(u => [u.estacionActual, u.proximaEstacion]), [['B', 'A'], ['D', 'C'], ['C', 'B']]);
+  assert.deepEqual(motor.actualizar(26000).unidades.map(u => u.estacionActual), ['A', 'C', 'B']);
+});
+
+test('Recargar el mismo diseño y ajustar UV/UT conserva el extremo; cambiar geometría lo invalida', async () => {
+  const Motor = await cargar(), datos = red([2]);
+  datos.tramos = datos.tramos.slice(0, 1);
+  datos.unidadesMetro[0].duracionUt = .5;
+  const motor = new Motor(datos);
+  motor.iniciar({ ahora: 0 }); motor.actualizar(5000);
+  const guardado = structuredClone(datos);
+  guardado.unidadesMetro[0].velocidadPromedio = 4;
+  guardado.unidadesMetro[0].duracionUt = .25;
+  const recargado = new Motor(guardado, motor);
+  assert.equal(recargado.obtenerEstado().unidades[0].estacionActual, 'E1');
+  assert.equal(recargado.iniciar().unidades[0].proximaEstacion, 'E0');
+  assert.equal(recargado.actualizar(5000).unidades[0].estacionActual, 'E0');
+  guardado.tramos.push({ nombreLinea: 'Línea', estacionA: 'E1', estacionB: 'E2', distanciaKm: 1 });
+  assert.equal(new Motor(guardado, motor).obtenerEstado().unidades[0].estacionActual, 'E0');
+});
+
+test('La suma decimal de tramos no impide reconocer la llegada y el regreso', async () => {
+  const Motor = await cargar(), datos = red([1]);
+  datos.tramos = datos.tramos.slice(0, 2);
+  datos.tramos[0].distanciaKm = .1;
+  datos.tramos[1].distanciaKm = .2;
+  datos.unidadesMetro[0].duracionUt = .3;
+  const motor = new Motor(datos);
+  motor.iniciar();
+  assert.equal(motor.actualizar(5000).unidades[0].proximaEstacion, null);
+  assert.equal(motor.reiniciar(10000).unidades[0].estacionActual, 'E2');
 });

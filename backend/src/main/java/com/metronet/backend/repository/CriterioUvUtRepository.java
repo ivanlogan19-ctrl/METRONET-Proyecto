@@ -69,7 +69,7 @@ public class CriterioUvUtRepository {
     }
 
     public <T> List<T> unidades(RowMapper<T> mapeador, int idDiseno) {
-        return jdbc.query("SELECT id_tren,nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? ORDER BY id_tren", mapeador, idDiseno);
+        return jdbc.query("SELECT id_tren,COALESCE(nombre_linea, '@conexion:' || id_conexion) AS nombre_linea,velocidad_promedio,duracion_ut FROM metro WHERE id_diseno=? ORDER BY id_tren", mapeador, idDiseno);
     }
 
     public int registrarResultado(

@@ -72,10 +72,13 @@ for (const width of [1440, 390]) test(`Descuentos ${width}: muestra motivos del 
   });
   const dialogo = p.locator('.metronet-resultado-nivel');
   assert.match(await dialogo.innerText(), /Ganaste\s+80\s+puntos/);
-  assert.match(await dialogo.innerText(), /Ejecución 3.*Sin nuevos avances/s);
+  assert.match(await dialogo.innerText(), /Ejecución 3.*Metas pendientes/s);
   await dialogo.locator('summary').first().click();
   assert.match(await dialogo.innerText(), /Cubrir POI solicitado/);
   assert.match(await dialogo.innerText(), /Asignar Metro a cada línea/);
+  assert.deepEqual(await dialogo.locator('.metronet-resultado-nivel__motivo-descuento').first().locator('li').allTextContents(),
+    ['Faltó cumplir: Cubrir POI solicitado', 'Faltó cumplir: Asignar Metro a cada línea']);
+  assert.doesNotMatch(await dialogo.innerText(), /Sin nuevos avances/);
   assert.deepEqual(await dialogo.locator('dd').allTextContents(), ['100', '−10', '−10', '80']);
   assert.equal(await dialogo.evaluate(e => e.scrollWidth > e.clientWidth), false);
   assert.doesNotMatch(await dialogo.innerText(), /Toda la consigna cumplida|RESULTADO \/\/ NIVEL/);
@@ -164,7 +167,7 @@ for (const puntos of [50, 60]) test(`No completado ${puntos}: explica descuentos
   await d.waitFor();
   assert.match(await d.innerText(), /Cambiar UV y simular/);
   assert.doesNotMatch(await d.innerText(), /Ganaste|Nuevo récord|Ubicar estaciones/);
-  assert.equal(await d.locator('.metronet-resultado-nivel__motivo-descuento p:visible').count(), (100 - puntos) / 10);
+  assert.equal(await d.locator('.metronet-resultado-nivel__motivo-descuento li:visible').count(), (100 - puntos) / 10);
   if (puntos === 50) assert.match(await d.innerText(), /mínimo de 60/);
   else assert.doesNotMatch(await d.innerText(), /debajo del mínimo/);
   const volver = d.getByRole('button', { name: 'Volver al nivel', exact: true });
@@ -176,5 +179,36 @@ for (const puntos of [50, 60]) test(`No completado ${puntos}: explica descuentos
   await volver.click();
   assert.equal(await p.evaluate(() => window.resultadoPendiente), false);
   assert.equal(await p.locator('.metronet-resultado-nivel, .metronet-victoria').count(), 0);
+  assert.equal(solicitudes.filter(s => s.method !== 'GET').length, 0);
+});
+
+test('No completado 80: lista cada meta pendiente y conserva un descuento por ejecución', async t => {
+  const { pagina: p, solicitudes } = await abrir(t, 1280);
+  await p.setViewportSize({ width: 1280, height: 800 });
+  await p.evaluate(async () => {
+    window.controlResultado.abort(); await window.resultado;
+    const { mostrarResultadoNivel } = await import('/src/educacion/PantallaResultadoNivel.js');
+    window.resultadoPendiente = mostrarResultadoNivel({ nombre: 'Nivel 1 · Primer recorrido' }, {
+      completado: false, puntaje: 80, desempeno: { desglosePuntuacion: {
+        puntosBase: 100, total: 80, totalDescontado: 20, descuentoMaximo: 40,
+        puntajeMinimoAprobacion: 60, descuentos: [
+          { numeroEjecucion: 2, puntos: 10, motivos: ['1 línea de 2 estaciones.', 'Simular con los valores iniciales.'] },
+          { numeroEjecucion: 3, puntos: 10, motivos: ['1 línea de 2 estaciones.'] },
+        ],
+      } },
+    }, { condiciones: [{ texto: '1 línea de 2 estaciones.', completado: false }] });
+  });
+  const d = p.getByRole('dialog', { name: 'Nivel no completado', exact: true });
+  await d.waitFor();
+  assert.deepEqual(await d.locator('.metronet-resultado-nivel__motivo-descuento li').allTextContents(), [
+    'Faltó cumplir: 1 línea de 2 estaciones.', 'Faltó cumplir: Simular con los valores iniciales.',
+    'Faltó cumplir: 1 línea de 2 estaciones.',
+  ]);
+  assert.deepEqual(await d.locator('dd').allTextContents(), ['100', '−10', '−10', '80']);
+  assert.doesNotMatch(await d.innerText(), /Sin nuevos avances|; faltaba|iniciales\.\./);
+  assert.equal(await d.evaluate(e => e.scrollHeight > e.clientHeight || e.scrollWidth > e.clientWidth), false);
+  await p.screenshot({ path: '/tmp/metronet-desglose-pendiente-80.png' });
+  await d.getByRole('button', { name: 'Volver al nivel', exact: true }).click();
+  assert.equal(await p.evaluate(() => window.resultadoPendiente), false);
   assert.equal(solicitudes.filter(s => s.method !== 'GET').length, 0);
 });

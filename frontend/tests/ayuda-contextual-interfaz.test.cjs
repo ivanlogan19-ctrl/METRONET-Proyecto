@@ -155,14 +155,14 @@ test('simulación: Tutorial, circulación, pausa y repetición sin consultas ext
 test('conexión rechazada y reintento actualizan el motor sin bloquear el Editor', async t => {
   const { pagina: p, diseno } = await abrir(t, { escenario: escenario(2), consigna: d => consigna([condicion('minimoEstaciones', true), condicion('minimoTramos', d.tramos.length >= 2)]) });
   let rechazada = false;
-  await p.route('**/api/simulaciones/77/tramos', async route => {
+  await p.route('**/api/simulaciones/77/lineas/extender', async route => {
     if (route.request().method() === 'POST' && !rechazada) {
       rechazada = true;
       return route.fulfill({ status: 400, json: { detail: 'El recorrido no admite ramificaciones.' }, headers: { 'access-control-allow-origin': '*' } });
     }
     return route.fallback();
   });
-  await p.locator('[data-elegir-herramienta=conexiones]').click();
+  await p.locator('[data-elegir-herramienta=lineas]').click();
   await p.evaluate(() => editorPrueba.seleccionarElemento({
     tipo: 'tramo', valor: editorPrueba.disenoActual.tramos[0],
   }));

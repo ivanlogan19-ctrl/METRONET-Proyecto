@@ -94,23 +94,27 @@ test('crear estaciones, líneas y conexiones directamente conserva contratos y h
   await pagina.waitForFunction(() => editorPrueba.disenoActual.estaciones.some(e => e.nombre === 'Estación 02'));
   await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
   await herramienta(pagina, 'lineas');
-  await clicarMapa(pagina, 580, 470);
+  assert.equal(await pagina.locator('[data-nueva-linea]').count(), 0);
+  await clicarMapa(pagina, 750, 500);
   assert.equal(solicitudes.length, 2);
   await clicarMapa(pagina, 810, 480);
   await pagina.waitForFunction(() => editorPrueba.disenoActual.lineas.some(l => l.nombre === 'Línea 01'));
   await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente);
-  assert.deepEqual(solicitudes[2].datos, { nombre:'Línea 01', estaciones:['Centro','Este'] });
+  assert.deepEqual(solicitudes[2].datos, { nombre:'Línea 01', estaciones:['Estación 01','Este'] });
   assert.equal(await pagina.evaluate(() => editorPrueba.creacionDirecta.lineaActiva), 'Línea 01');
   await herramienta(pagina, 'conexiones');
   assert.equal(await pagina.locator('[data-linea-conexion]').isVisible(), false);
   await clicarMapa(pagina, 700, 460);
   await clicarMapa(pagina, 810, 480);
-  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente && editorPrueba.disenoActual.tramos.length === 3);
-  assert.deepEqual(solicitudes[3].datos, { nombreLinea:'Línea 01', estacionA:'Parque', estacionB:'Este' });
-  assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), ['Este']);
-  await clicarMapa(pagina, 750, 500);
-  await pagina.waitForFunction(() => editorPrueba.disenoActual.tramos.length === 4);
-  assert.deepEqual(solicitudes[4].datos, { nombreLinea:'Línea 01', estacionA:'Este', estacionB:'Estación 01' });
+  await pagina.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente && editorPrueba.disenoActual.conexionesLineas.length === 1);
+  assert.deepEqual(solicitudes[3].datos, { lineaA:'Azul', lineaB:'Línea 01', estacionA:'Parque', estacionB:'Este' });
+  assert.deepEqual(await pagina.evaluate(() => editorPrueba.estacionesSeleccionadas), []);
+  assert.equal(await pagina.evaluate(() => editorPrueba.disenoActual.tramos.length), 2);
+  await herramienta(pagina, 'lineas');
+  await clicarMapa(pagina, 810, 480);
+  await clicarMapa(pagina, 760, 480);
+  await pagina.waitForFunction(() => editorPrueba.disenoActual.tramos.length === 3);
+  assert.deepEqual(solicitudes[4].datos, { nombreLinea:'Línea 01', estacionA:'Este', estacionB:'Estación 02' });
 });
 
 test('selección contextual permite mover y eliminar una estación sin editar su identidad', async (t) => {

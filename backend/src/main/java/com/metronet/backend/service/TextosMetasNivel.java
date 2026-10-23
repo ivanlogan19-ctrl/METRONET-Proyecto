@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Etiquetas editoriales: conserva intactos clave, contador y resultado del evaluador. */
 final class TextosMetasNivel {
     private static final Set<String> CANTIDADES = Set.of("minimoEstaciones", "minimoLineas", "minimoTramos",
-        "minimoMetros", "minimoTransbordos", "maximoEstaciones");
+        "minimoMetros", "minimoConexionesLineas", "minimoTransbordos", "maximoEstaciones");
     private static final Set<String> ACCIONES = Set.of("simulacionActual", "requiereMetroPorLinea",
         "requiereObjetivosMismaLinea", "requiereCoberturaPuntosInteres", "requiereGeografiaValida",
         "aprendizajeSimulacion:velocidad", "aprendizajeSimulacion:duracion",

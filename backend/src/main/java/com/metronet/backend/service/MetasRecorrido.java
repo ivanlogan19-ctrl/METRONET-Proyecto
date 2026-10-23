@@ -48,18 +48,68 @@ final class MetasRecorrido {
             vecinos.computeIfAbsent(enlace.destino(), k -> new HashSet<>()).add(enlace.origen());
         }
         var esperadas = ((List<?>) configuracion.get("estacionesPorLinea")).stream().map(n -> ((Number) n).intValue()).sorted().toList();
-        var actuales = estaciones.values().stream().map(Set::size).sorted().toList();
-        boolean distribucion = estaciones.size() == lineas && actuales.equals(esperadas);
+        boolean distribucion = contieneDistribucion(estaciones, esperadas);
         boolean unida = !Boolean.TRUE.equals(configuracion.get("redConectada")) || conectada(vecinos);
         return metas.stream().map(meta -> {
             boolean cumple = switch (meta.clave()) {
                 case "minimoLineas" -> distribucion;
                 case "minimoTramos" -> unida;
-                case "minimoMetros" -> !Boolean.TRUE.equals(configuracion.get("metroPorLinea")) || lineas > 0 && atendidas == lineas;
+                case "minimoMetros" -> !Boolean.TRUE.equals(configuracion.get("metroPorLinea")) || !esperadas.isEmpty() && atendidas >= esperadas.size();
                 default -> true;
             };
             return new CondicionConsignaResponse(meta.clave(), meta.texto(), meta.actual(), meta.requerido(), meta.completado() && cumple);
         }).toList();
+    }
+
+    private static boolean contieneDistribucion(Map<String, Set<String>> estaciones, List<Integer> esperadas) {
+        var actuales = new java.util.ArrayList<>(estaciones.values().stream().map(Set::size).sorted().toList());
+        // Cada requisito consume una línea distinta; las adicionales no borran lo cumplido.
+        for (Integer cantidad : esperadas) {
+            var suficiente = actuales.stream().filter(actual -> actual >= cantidad).findFirst();
+            if (suficiente.isEmpty()) return false;
+            actuales.remove(suficiente.get());
+        }
+        return true;
+    }
+
+    /** Los extras descuentan al ejecutar; no alteran las estrellas de las cinco metas. */
+    static List<String> excesos(Map<String, Object> reglas, List<CondicionConsignaResponse> condiciones) {
+        if (!Boolean.TRUE.equals(reglas.get("penalizarElementosAdicionales"))) return List.of();
+        var nombres = Map.of("minimoEstaciones", "estaciones", "minimoLineas", "líneas",
+            "minimoTramos", "tramos", "minimoMetros", "metros", "minimoConexionesLineas", "conexiones");
+        var excesos = new java.util.ArrayList<String>();
+        for (var condicion : condiciones) {
+            if (!nombres.containsKey(condicion.clave())) continue;
+            int limite = condicion.requerido();
+            // Cada conexión exigida requiere su metro adicional a los metros de las líneas.
+            if (condicion.clave().equals("minimoMetros"))
+                limite += ((Number) reglas.getOrDefault("minimoConexionesLineas", 0)).intValue();
+            if (condicion.actual() > limite)
+                excesos.add(condicion.actual() + " " + nombres.get(condicion.clave()) + "; consigna " + limite);
+        }
+        return List.copyOf(excesos);
+    }
+
+    static boolean lineasConectadas(List<List<String>> conexiones, int cantidadLineas) {
+        Map<String, Set<String>> vecinas = new HashMap<>();
+        for (var conexion : conexiones) {
+            vecinas.computeIfAbsent(conexion.get(0), k -> new HashSet<>()).add(conexion.get(1));
+            vecinas.computeIfAbsent(conexion.get(1), k -> new HashSet<>()).add(conexion.get(0));
+        }
+        // Una componente suficiente conserva lo cumplido aunque haya líneas adicionales.
+        var pendientes = new HashSet<>(vecinas.keySet());
+        while (!pendientes.isEmpty()) {
+            var cola = new ArrayDeque<String>();
+            var visitadas = new HashSet<String>();
+            cola.add(pendientes.iterator().next());
+            while (!cola.isEmpty()) {
+                String linea = cola.remove();
+                if (visitadas.add(linea)) cola.addAll(vecinas.get(linea));
+            }
+            if (visitadas.size() >= cantidadLineas) return true;
+            pendientes.removeAll(visitadas);
+        }
+        return false;
     }
 
     private static boolean conectada(Map<String, Set<String>> vecinos) {

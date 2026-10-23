@@ -25,13 +25,16 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class DisenoAdministracionService {
     private final DisenoAdministracionRepository repositorio;
+    private final com.metronet.backend.repository.ConexionesLineasRepository conexionesLineas;
     private final RestriccionesGeograficasService restriccionesGeograficas;
 
     public DisenoAdministracionService(
         DisenoAdministracionRepository repositorio,
-        RestriccionesGeograficasService restriccionesGeograficas
+        RestriccionesGeograficasService restriccionesGeograficas,
+        com.metronet.backend.repository.ConexionesLineasRepository conexionesLineas
     ) {
         this.repositorio = repositorio;
+        this.conexionesLineas = conexionesLineas;
         this.restriccionesGeograficas = restriccionesGeograficas;
     }
 
@@ -77,7 +80,7 @@ public class DisenoAdministracionService {
                 resultado.getBigDecimal("velocidad_promedio")
             ), idDiseno);
 
-        return new DisenoDetalleResponse(diseno, lineas, estaciones, conexiones, tramos, unidadesMetro);
+        return new DisenoDetalleResponse(diseno, lineas, estaciones, conexiones, tramos, unidadesMetro, conexionesLineas.listar(idDiseno));
     }
 
     @Transactional
@@ -87,8 +90,9 @@ public class DisenoAdministracionService {
             throw noEncontrado("No existe el diseño solicitado");
         }
         List<Integer> escenariosNoProgresivos = obtenerEscenariosNoProgresivosRelacionados(idDiseno);
-        // La eliminación administrativa incluye el intento y su puntaje por las FK existentes.
-        // La protección de logros sigue aplicándose a la edición y al borrado del jugador.
+        // Serializar con la finalización antes de separar los logros de la red.
+        repositorio.bloquearIntentosDelDiseno(idDiseno);
+        repositorio.conservarIntentosCompletados(idDiseno);
         if (repositorio.eliminarDiseno(idDiseno) == 0) {
             throw noEncontrado("No existe el diseño solicitado");
         }
@@ -210,6 +214,7 @@ public class DisenoAdministracionService {
         asegurarConexion(idDiseno, tramo.nombreLinea(), tramo.estacionB());
         quitarConexionSinTramos(idDiseno, nombreLineaActual, estacionAActual);
         quitarConexionSinTramos(idDiseno, nombreLineaActual, estacionBActual);
+        conexionesLineas.limpiarSinRecorrido(idDiseno);
     }
 
     @Transactional
@@ -220,6 +225,7 @@ public class DisenoAdministracionService {
         }
         quitarConexionSinTramos(idDiseno, nombreLinea, estacionA);
         quitarConexionSinTramos(idDiseno, nombreLinea, estacionB);
+        conexionesLineas.limpiarSinRecorrido(idDiseno);
     }
 
     public UnidadMetroResponse crearUnidadMetro(Integer idDiseno, ActualizarUnidadMetroRequest solicitud) {

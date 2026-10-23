@@ -8,9 +8,9 @@ export const esRecorridoIntegral = escenario => typeof escenario?.recorrido === 
 
 const LECCIONES = {
   estaciones: ['Estación', 'Elegí el icono de estación y hacé clic en una ubicación válida. Podés colocar varias seguidas: el nombre se genera automáticamente. Arrastrá para mover el mapa; Escape termina la herramienta.'],
-  lineas: ['Línea', 'Elegí el icono de línea y dos estaciones. Las estaciones toman su color; las compartidas son octagonales. Un rombo señala un cruce visual, sin crear conexión.'],
-  conexiones: ['Conexión', 'Elegí el icono de vía, una línea activa y dos estaciones. Cada destino agrega un tramo; después podés continuar desde esa estación.'],
-  metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea. Seleccionala después para editar la velocidad.'],
+  lineas: ['Línea', 'Uní dos estaciones con Línea. Desde su extremo podés seguir a otra estación, conservando el color. Para otro recorrido, elegí Línea otra vez y empezá en una estación libre.'],
+  conexiones: ['Conexión', 'Uní estaciones de dos líneas distintas: conservan sus colores y muestran un símbolo octagonal. Asigná a la conexión su propio metro, que circula sólo entre sus extremos.'],
+  metros: ['Unidad de metro', 'Elegí el icono de metro y hacé clic sobre una vía. La unidad se asigna a esa línea o conexión. Seleccionala después para editar la velocidad.'],
   simulacion: ['Simulación', 'El botón verde Simular está en Acciones. Comprueba y guarda la red antes de abrir la simulación; primero construí la red y asigná un metro.'],
 
 };
@@ -19,6 +19,7 @@ export function leccionesDisponibles({ diseno, escenario, pantalla }) {
   if (!diseno) return [];
   const herramientas = escenario?.herramientasHabilitadas;
   const lecciones = Object.entries(LECCIONES)
+    .filter(([clave]) => clave !== 'conexiones' || !esRecorridoIntegral(escenario) || Boolean(escenario.reglasExito?.minimoConexionesLineas))
     .filter(([clave]) => pantalla === 'simulacion' ? clave === 'simulacion' : !herramientas || herramientas[clave] === true)
     .map(([clave, [titulo, texto]]) => ({ clave, titulo, texto }));
   if (pantalla !== 'simulacion') lecciones.unshift({
@@ -72,7 +73,7 @@ export function pasoPractico(contexto, estado) {
   }
   for (const clave of nuevas) {
     const completada = clave === 'conexiones'
-      ? consigna?.condiciones?.some(c => c.clave === 'minimoTramos' && c.completado)
+      ? consigna?.condiciones?.some(c => c.clave === 'minimoConexionesLineas' && c.completado)
       : clave === 'metros' ? diseno.unidadesMetro?.length > 0
       : clave === 'simulacion' ? consigna?.condiciones?.some(c => ['requiereSimulacion', 'simulacionActual'].includes(c.clave) && c.completado) : false;
     if (completada || estado.aprendidas.has(clave)) continue;
@@ -101,8 +102,8 @@ export function pasosPracticosEditor(numero, escenario) {
     ['[data-ir-simulacion]', 'Pasá a Simulación', 'Abrí Acciones y pulsá Simular. Allí vas a iniciar el recorrido con Play.'],
   ];
   if (nuevas.includes('editor.extender')) return [
-    ['[data-elegir-herramienta="conexiones"]', 'Extendé la línea', 'Creá primero una línea entre dos estaciones. Luego elegí Conexión para agregar otra estación al mismo recorrido.', 'conexion-elegida'],
-    [mapa, 'Continuá el recorrido', 'Elegí una estación de la línea y otra estación como destino. El Metro recorrerá también el nuevo tramo.', 'conexion-creada'],
+    ['[data-elegir-herramienta="lineas"]', 'Extendé la línea', 'Usá Línea desde el extremo del recorrido hacia otra estación. Conserva la misma línea y su color.', 'linea-elegida'],
+    [mapa, 'Continuá el recorrido', 'Elegí el extremo y después la estación nueva. El Metro recorrerá también el nuevo tramo.', 'linea-extendida'],
   ];
   if (nuevas.includes('editor.poi') && objetivo) return [
     ['.metronet-poi > summary', 'Puntos de interés de Montevideo', 'Abrí los puntos de interés usando la bandera amarilla.', 'poi-abierto'],
@@ -122,9 +123,9 @@ export function pasosPracticosEditor(numero, escenario) {
     [mapa, 'Marcador y cobertura', 'El marcador indica el centro. El área visible muestra dónde debe quedar la estación; el límite está incluido.'],
     [estacion, 'Estación dentro del radio', 'Elegí Estación y colocala dentro del área marcada.', 'poi-cubierto'],
   ];
-  if (nuevas.includes('editor.transbordo')) return [
-    ['[data-elegir-herramienta="lineas"]', 'Un intercambio real', 'Creá otra línea reutilizando una estación de la primera. Un cruce sin estación común no conecta las líneas.'],
-    [mapa, 'Compartí una estación', 'Conectá tramos de dos líneas diferentes a una misma estación.', 'transbordo-creado'],
+  if (nuevas.includes('editor.conectar')) return [
+    ['[data-elegir-herramienta="conexiones"]', 'Conectá dos líneas', 'Línea crea o extiende un recorrido. Conexión une dos líneas distintas: construí ambas y elegí este botón.', 'conexion-elegida'],
+    [mapa, 'Uní sus estaciones', 'Elegí una estación de cada línea. Conservan sus colores. Después usá Metro sobre la conexión: necesita su propia unidad para simular.', 'conexion-creada'],
   ];
   return [];
 }
@@ -140,7 +141,8 @@ export function accionPracticaCumplida(evento, contexto, estado, controles = {})
     'origen-elegido': seleccionadas.length === 1,
     'linea-creada': diseno?.lineas?.length > 0,
     'conexion-elegida': modo === 'crearTramo',
-    'conexion-creada': diseno?.tramos?.length >= 2,
+    'conexion-creada': diseno?.conexionesLineas?.length > 0,
+    'linea-extendida': diseno?.lineas?.some(l => diseno.tramos.filter(t => t.nombreLinea === l.nombre).length >= 2),
     'metro-elegido': modo === 'crearMetro',
     'metro-creado': diseno?.unidadesMetro?.length > 0,
     guardado: estado?.aprendidas.has('guardar'),

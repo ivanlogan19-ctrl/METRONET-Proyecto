@@ -8,5 +8,6 @@ public record DisenoDetalleResponse(
     List<EstacionResponse> estaciones,
     List<ConexionResponse> conexiones,
     List<TramoResponse> tramos,
-    List<UnidadMetroResponse> unidadesMetro
+    List<UnidadMetroResponse> unidadesMetro,
+    List<ConexionLineasResponse> conexionesLineas
 ) {}

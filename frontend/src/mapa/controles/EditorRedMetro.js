@@ -1,3 +1,4 @@
+import { claveConexion, nombreRecorrido } from '../configuracion/RecorridosRed.js';
 import { metasConLineas } from '../../educacion/IndicacionesLineas.mjs';
 import '../../educacion/indicaciones-lineas.css';
 import CreacionDirecta from './CreacionDirecta.js';
@@ -73,16 +74,16 @@ export default class EditorRedMetro {
         <section class="metronet-consigna" data-consigna-escenario hidden></section>
         <div class="metronet-editor-grupo" data-herramienta="estaciones"></div>
         <div class="metronet-editor-grupo" data-herramienta="lineas">
-          <p class="metronet-editor-etiqueta">Líneas existentes</p>
           <div class="metronet-editor-fila" hidden><select data-linea-gestion aria-label="Línea existente"></select></div>
         </div>
         <div class="metronet-editor-grupo" data-herramienta="conexiones">
-          <label for="metronet-linea-conexion">Línea activa</label>
-          <select id="metronet-linea-conexion" data-linea-conexion></select>
+          <label for="metronet-linea-conexion" hidden>Línea activa</label>
+          <select id="metronet-linea-conexion" data-linea-conexion hidden></select>
         </div>
         <div class="metronet-editor-grupo" data-herramienta="metros">
           <div class="metronet-editor-fila" data-lineas-superpuestas hidden role="group" aria-label="Elegir línea del metro"></div>
         </div>
+        <div data-opciones-construccion class="metronet-editor-fila" role="group" aria-label="Elegir línea para construir"></div>
         <div class="metronet-editor-acciones"><button data-guardar type="button">Guardar</button><button data-ir-simulacion type="button" disabled>Simular diseño</button><button data-finalizar-red type="button" class="metronet-boton--exito metronet-boton--destacado" hidden>Finalizar red</button></div>
         <article data-elemento-seleccionado class="metronet-editor-seleccionado" hidden></article>
       </div>`;
@@ -594,7 +595,7 @@ export default class EditorRedMetro {
     }
     const { tipo } = this.elementoSeleccionado;
     const esNivel = this.escenarioJuegoActual?.numero !== null && this.escenarioJuegoActual?.numero !== undefined;
-    const herramienta = ({estacion:'estaciones',linea:'lineas',tramo:'conexiones',unidad:'metros'})[tipo];
+    const herramienta = ({estacion:'estaciones',linea:'lineas',tramo:'lineas',conexionLinea:'conexiones',unidad:'metros'})[tipo];
     const bloqueado = esNivel && this.disenoActual?.simulacion.estado === 'COMPLETADO';
     const puedeModificar = !bloqueado && this.escenarioJuegoActual?.herramientasHabilitadas?.[herramienta] !== false;
     this.panelHerramientas?.seleccionar('seleccion', false);
@@ -608,7 +609,17 @@ export default class EditorRedMetro {
     if (accion === 'mover' && this.elementoSeleccionado.tipo === 'estacion') return this.reubicarEstacion();
     if (accion !== 'eliminar') return;
     return ({ estacion: () => this.eliminarEstacion(), linea: () => this.eliminarLinea(),
-      tramo: () => this.eliminarTramo(), unidad: () => this.eliminarUnidad() })[this.elementoSeleccionado.tipo]?.();
+      tramo: () => this.eliminarTramo(), conexionLinea: () => this.eliminarConexionLineas(), unidad: () => this.eliminarUnidad() })[this.elementoSeleccionado.tipo]?.();
+  }
+
+  async eliminarConexionLineas() {
+    const conexion = this.elementoSeleccionado?.valor;
+    if (!conexion || !await this.confirmarEliminacion({ titulo: 'Eliminar conexión', mensaje: '¿Eliminar la unión entre estas líneas?' })) return;
+    try {
+      await this.clienteDisenos.solicitar(`/${this.idDiseno()}/conexiones-lineas/${conexion.idConexion}`, { method: 'DELETE' });
+      this.restablecerModo();
+      await this.abrirDiseno(this.idDiseno());
+    } catch (error) { this.mostrarError(error); }
   }
 
   seleccionarLinea() {
@@ -684,7 +695,7 @@ export default class EditorRedMetro {
   editarUnidad() {
     const unidad = this.elementoSeleccionado.valor;
     this.editarEnPanel([
-      { nombre: 'nombreLinea', etiqueta: 'Línea asignada', valor: unidad.nombreLinea, opciones: this.disenoActual.lineas.map(l => l.nombre) },
+      { nombre: 'nombreLinea', etiqueta: 'Línea o conexión', valor: unidad.nombreLinea, opciones: [...this.disenoActual.lineas.map(l => l.nombre), ...(this.disenoActual.conexionesLineas ?? []).map(claveConexion)].map(valor => ({ valor, etiqueta: nombreRecorrido(this.disenoActual, valor) })) },
       { nombre: 'velocidadPromedio', etiqueta: 'Velocidad promedio (UV)', valor: unidad.velocidadPromedio, tipo: 'number' },
     ], datos => this.ejecutarAccion(`/${this.idDiseno()}/unidades/${unidad.idTren}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...datos, capacidad: unidad.capacidad, velocidadPromedio: Number(datos.velocidadPromedio) }) }, 'Unidad actualizada.'));
   }

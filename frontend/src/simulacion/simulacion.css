@@ -358,7 +358,8 @@ html:root body.simulacion-pagina .simulacion-instrumentos :is(
   border-bottom: var(--border-width) solid var(--info-active);
   background: color-mix(in srgb, var(--info-active) 19%, var(--panel-elevated));
   box-shadow: var(--shadow-header);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 html:root body.simulacion-pagina .simulacion-instrumentos h3.simulacion-seccion-titulo::before {
   content: none !important;

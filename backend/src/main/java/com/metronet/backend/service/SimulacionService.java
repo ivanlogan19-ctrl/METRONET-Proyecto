@@ -22,6 +22,7 @@ import com.metronet.backend.dto.ValidacionDisenoResponse;
 import com.metronet.backend.enums.Rol;
 import com.metronet.backend.repository.SimulacionRepository;
 import java.math.BigDecimal;
+import com.metronet.backend.utilidades.IdentidadRecorrido;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
@@ -40,6 +41,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class SimulacionService {
     private final SimulacionRepository repositorio;
+    private final ConexionesLineasService conexionesLineas;
     private final RestriccionesGeograficasService restriccionesGeograficas;
     private final DisenoAdministracionService disenoAdministracionService;
     private final ObjetivosPuntosInteresService objetivosPuntosInteresService;
@@ -51,7 +53,8 @@ public class SimulacionService {
     @org.springframework.beans.factory.annotation.Autowired
     public SimulacionService(SimulacionRepository repositorio, DisenoAdministracionService disenoAdministracionService,
         ObjetivosPuntosInteresService objetivosPuntosInteresService, JuegoEducativoService juegoEducativoService,
-        RestriccionesGeograficasService restriccionesGeograficas, CriterioUvUtService criterioUvUt, DistanciasRedService distancias, VinculoUvUtLibre vinculoLibre) {
+        RestriccionesGeograficasService restriccionesGeograficas, CriterioUvUtService criterioUvUt, DistanciasRedService distancias, VinculoUvUtLibre vinculoLibre, ConexionesLineasService conexionesLineas) {
+        this.conexionesLineas = conexionesLineas;
         this.distancias = distancias;
         this.vinculoLibre = vinculoLibre;
         this.repositorio = repositorio;
@@ -103,11 +106,13 @@ public class SimulacionService {
         repositorio.copiarLineas(idDisenoNuevo, idDisenoBase);
         repositorio.copiarConexiones(idDisenoNuevo, idDisenoBase);
         repositorio.copiarTramos(idDisenoNuevo, idDisenoBase);
+        conexionesLineas.copiar(idDisenoBase, idDisenoNuevo);
         repositorio.copiarMetros(idDisenoNuevo, idDisenoBase);
         repositorio.crearIntento(idUsuario, idEscenario, idDisenoNuevo);
         return obtenerResumen(idUsuario, idDisenoNuevo);
     }
 
+    @Transactional(readOnly = true)
     public SimulacionDetalleResponse obtenerSimulacion(Integer idUsuario, Integer idDiseno) {
         SimulacionResumenResponse simulacion = obtenerResumen(idUsuario, idDiseno);
         List<EstacionSimulacionResponse> estaciones = repositorio.estaciones((resultado, fila) -> new EstacionSimulacionResponse(
@@ -123,7 +128,7 @@ public class SimulacionService {
 
         return new SimulacionDetalleResponse(
             simulacion, estaciones, lineas, tramos, unidadesMetro, resultados,
-            preparacion.preparado(), preparacion.observaciones(), restriccionesGeograficas.obtenerConfiguracion(idDiseno), vinculoLibre.aplica(idDiseno)
+            preparacion.preparado(), preparacion.observaciones(), restriccionesGeograficas.obtenerConfiguracion(idDiseno), vinculoLibre.aplica(idDiseno), conexionesConDistancia(idDiseno)
         );
     }
 
@@ -160,6 +165,7 @@ public class SimulacionService {
     ) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         String nombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre para la línea");
+        validarNombreLinea(nombre);
         List<String> estaciones = solicitud == null || solicitud.estaciones() == null
             ? List.of()
             : solicitud.estaciones().stream().map(valor -> valor == null ? "" : valor.trim()).toList();
@@ -208,11 +214,15 @@ public class SimulacionService {
         CrearUnidadMetroSimulacionRequest solicitud
     ) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
-        String nombreLinea = nombreValido(solicitud == null ? null : solicitud.nombreLinea(), "Elegí la línea de la unidad");
-        if (!existeLinea(idDiseno, nombreLinea)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea seleccionada no existe");
+        if (solicitud != null && solicitud.idConexion() != null && solicitud.nombreLinea() != null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elegí una línea o una conexión, no ambas");
+        String nombreLinea = nombreValido(solicitud == null ? null : solicitud.idConexion() != null
+            ? IdentidadRecorrido.conexion(solicitud.idConexion()) : solicitud.nombreLinea(), "Elegí la línea o conexión de la unidad");
+        validarRecorridoUnidad(idDiseno, nombreLinea);
         if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
         }
+        vinculoLibre.bloquear(idDiseno);
         Integer idTren = repositorio.crearUnidad(idDiseno, nombreLinea, solicitud.capacidad(), solicitud.velocidadPromedio());
         marcarEnDiseno(idUsuario, idDiseno);
         if (vinculoLibre.aplica(idDiseno)) return vinculoLibre.resolver(idDiseno, listarUnidades(idDiseno)).stream()
@@ -235,7 +245,7 @@ public class SimulacionService {
         boolean libre = vinculoLibre.aplica(idDiseno);
         String lineaAnterior = libre ? repositorio.lineaDeUnidad((rs,n) -> rs.getString(1), idDiseno, idTren).stream().findFirst().orElse(null) : null;
         String nombreLinea = nombreValido(solicitud == null ? null : solicitud.nombreLinea(), "Elegí la línea de la unidad");
-        if (!existeLinea(idDiseno, nombreLinea)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea seleccionada no existe");
+        validarRecorridoUnidad(idDiseno, nombreLinea);
         if (solicitud.capacidad() == null || solicitud.capacidad() < 1 || solicitud.velocidadPromedio() == null || !(libre ? VinculoUvUtLibre.velocidadValida(solicitud.velocidadPromedio()) : ParametrosSimulacion.velocidadValida(solicitud.velocidadPromedio()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresá una capacidad y velocidad válidas");
         }
@@ -331,6 +341,7 @@ public class SimulacionService {
         return obtenerResultado(idSimulacion);
     }
 
+    @Transactional(readOnly = true)
     public List<ResultadoSimulacionResponse> listarResultados(Integer idUsuario, Integer idDiseno) {
         obtenerResumen(idUsuario, idDiseno);
         return repositorio.listarResultados((resultado, fila) -> mapearResultado(resultado), idUsuario, idDiseno);
@@ -380,6 +391,7 @@ public class SimulacionService {
     public void actualizarLinea(Integer idUsuario, Integer idDiseno, String nombreActual, ActualizarLineaSimulacionRequest solicitud) {
         obtenerResumenParaEdicion(idUsuario, idDiseno);
         String nuevoNombre = nombreValido(solicitud == null ? null : solicitud.nombre(), "Ingresá un nombre de línea válido");
+        validarNombreLinea(nuevoNombre);
         verificarLinea(idDiseno, nombreActual);
         // PATCH sin estaciones renombra sin reconstruir el grafo ni sus identificadores.
         List<String> estaciones = solicitud.estaciones() == null ? null : estacionesValidas(solicitud.estaciones());
@@ -405,13 +417,13 @@ public class SimulacionService {
             return;
         }
         repositorio.eliminarTramosLinea(idDiseno, nuevoNombre);
-        repositorio.eliminarConexionesLinea(idDiseno, nuevoNombre);
         for (String estacion : estaciones) {
             repositorio.registrarConexionLinea(idDiseno, nuevoNombre, estacion);
         }
         for (int indice = 1; indice < estaciones.size(); indice++) {
             repositorio.registrarTramoLinea(idDiseno, nuevoNombre, estaciones.get(indice - 1), estaciones.get(indice));
         }
+        repositorio.eliminarConexionesLinea(idDiseno, nuevoNombre);
         marcarEnDiseno(idUsuario, idDiseno);
     }
 
@@ -422,6 +434,31 @@ public class SimulacionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la línea solicitada");
         }
         marcarEnDiseno(idUsuario, idDiseno);
+    }
+
+    @Transactional
+    public void extenderLinea(Integer usuario, Integer diseno, ActualizarTramoRequest solicitud) {
+        obtenerResumenParaEdicion(usuario, diseno);
+        if (solicitud == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Falta el tramo de la línea");
+        conexionesLineas.validarExtension(diseno, solicitud.nombreLinea(), solicitud.estacionA(), solicitud.estacionB());
+        disenoAdministracionService.crearTramo(diseno, solicitud);
+        marcarEnDiseno(usuario, diseno);
+    }
+
+    @Transactional
+    public com.metronet.backend.dto.ConexionLineasResponse crearConexionLineas(Integer usuario, Integer diseno,
+        com.metronet.backend.dto.ConexionLineasRequest solicitud) {
+        obtenerResumenParaEdicion(usuario, diseno);
+        var conexion = conexionesLineas.crear(diseno, solicitud);
+        marcarEnDiseno(usuario, diseno);
+        return conexion;
+    }
+
+    @Transactional
+    public void eliminarConexionLineas(Integer usuario, Integer diseno, long conexion) {
+        obtenerResumenParaEdicion(usuario, diseno);
+        conexionesLineas.eliminar(diseno, conexion);
+        marcarEnDiseno(usuario, diseno);
     }
 
     @Transactional
@@ -607,7 +644,32 @@ public class SimulacionService {
                     + " no tienen una ruta operable. Agregá al menos un tramo a cada línea antes de simular.");
             }
         }
+        if (repositorio.lineas((r, n) -> r.getString("nombre"), idDiseno).stream()
+            .anyMatch(linea -> unidadesMetro.stream().noneMatch(u -> linea.equals(u.nombreLinea()))))
+            observaciones.add("Asigná al menos un metro a cada línea antes de simular la red completa.");
+        if (conexionesLineas.listar(idDiseno).stream().anyMatch(c -> unidadesMetro.stream()
+            .noneMatch(u -> IdentidadRecorrido.conexion(c.idConexion()).equals(u.nombreLinea()))))
+            observaciones.add("Asigná un metro propio a cada conexión antes de simular.");
         return new PreparacionSimulacion(observaciones.isEmpty(), List.copyOf(observaciones));
+    }
+
+    private List<com.metronet.backend.dto.ConexionLineasResponse> conexionesConDistancia(int diseno) {
+        var longitudes = distancias.porLinea(diseno);
+        return conexionesLineas.listar(diseno).stream().map(c -> new com.metronet.backend.dto.ConexionLineasResponse(
+            c.idConexion(), c.lineaA(), c.estacionA(), c.lineaB(), c.estacionB(),
+            longitudes.get(IdentidadRecorrido.conexion(c.idConexion())))).toList();
+    }
+
+    private void validarNombreLinea(String nombre) {
+        if (nombre.startsWith(IdentidadRecorrido.PREFIJO_CONEXION))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ese nombre está reservado para conexiones");
+    }
+
+    private void validarRecorridoUnidad(int diseno, String clave) {
+        Long conexion = IdentidadRecorrido.idConexion(clave);
+        boolean existe = conexion == null ? existeLinea(diseno, clave)
+            : conexionesLineas.listar(diseno).stream().anyMatch(c -> c.idConexion() == conexion);
+        if (!existe) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La línea o conexión seleccionada no existe en este diseño");
     }
 
     private boolean tieneRutaOperable(Integer idDiseno, String nombreLinea) {

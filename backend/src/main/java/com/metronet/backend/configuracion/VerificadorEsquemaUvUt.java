@@ -24,6 +24,10 @@ public class VerificadorEsquemaUvUt {
                 String encontrada = jdbc.queryForObject("SELECT to_regclass(?)::text", String.class, tabla);
                 if (encontrada == null) throw migracionPendiente();
             }
+            if (jdbc.queryForObject("SELECT to_regclass('conexion_lineas')::text", String.class) == null)
+                throw new IllegalStateException("Falta aplicar 025_conexiones_entre_lineas.sql antes de iniciar METRONET");
+            if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='id_conexion')", Boolean.class)))
+                throw new IllegalStateException("Falta aplicar 026_metros_en_conexiones.sql antes de iniciar METRONET");
             if (jdbc.queryForObject("SELECT to_regclass('aprendizaje_extra_visita')::text", String.class) == null)
                 throw new IllegalStateException("Falta aplicar 022_extras_modo_libre.sql antes de iniciar METRONET");
             if (!Boolean.TRUE.equals(jdbc.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='metro' AND column_name='referencia_uv_ut')", Boolean.class)))
@@ -36,6 +40,15 @@ public class VerificadorEsquemaUvUt {
                     AND NOT tgisinternal)
                 """, Boolean.class);
             if (!Boolean.TRUE.equals(disparador)) throw migracionPendiente();
+            Boolean logrosSinDiseno = jdbc.queryForObject("""
+                SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_schema=current_schema() AND table_name='intento'
+                    AND column_name='id_diseno' AND is_nullable='YES')
+                  AND EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid=to_regclass('intento')
+                    AND conname='chk_intento_sin_diseno_completado')
+                """, Boolean.class);
+            if (!Boolean.TRUE.equals(logrosSinDiseno))
+                throw new IllegalStateException("Falta aplicar 024_conservar_logros_sin_diseno.sql antes de iniciar METRONET");
         };
     }
 

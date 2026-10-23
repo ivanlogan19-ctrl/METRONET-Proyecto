@@ -12,7 +12,7 @@ html:root body .metronet-cabecera-medicion button.metronet-regla:focus-visible {
 html:root body button.metronet-regla .metronet-icono { width: 20px; height: 14px; min-width: 0; min-height: 0; }
 html:root body .metronet-mediciones { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 4; }
 html:root body .metronet-mediciones[hidden], html:root body .metronet-mediciones [hidden] { display: none; }
-html:root body .metronet-mediciones :is(span, output) {
+html:root body .metronet-mediciones :is(.metronet-mediciones__tramo, .metronet-mediciones__total) {
   position: absolute; display: block; width: max-content; max-width: calc(100% - 20px);
   margin: 0; color: #edf5ff;
   font: 400 11px/1.2 'Silkscreen', monospace; white-space: nowrap;
@@ -27,3 +27,13 @@ html:root body .metronet-mediciones__tramo {
   background: #0b172a; border: 1px solid #789bb8; box-shadow: none;
   text-shadow: none;
 }
+
+html:root body .metronet-mediciones__total { padding: 8px 10px; width: 280px; }
+html:root body .metronet-mediciones__titulo, html:root body .metronet-mediciones__subtitulo { display: block; text-align: center; font: inherit; }
+html:root body .metronet-mediciones__titulo { color: #73caff; font-size: 12px; }
+html:root body .metronet-mediciones__subtitulo { padding: 4px 0 7px; border-bottom: 1px solid #34516b; }
+html:root body .metronet-mediciones__fila { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 0; }
+html:root body .metronet-mediciones__fila i { display: block; height: 5px; }
+html:root body .metronet-mediciones__fila b { font: inherit; }
+html:root body .metronet-mediciones__paginas { display: flex; justify-content: space-between; gap: 8px; pointer-events: auto; }
+html:root body .metronet-mediciones__paginas button { min-width: 0; min-height: 24px; padding: 3px 5px; font: inherit; }

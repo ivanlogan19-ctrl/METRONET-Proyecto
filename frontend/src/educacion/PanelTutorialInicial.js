@@ -21,8 +21,8 @@ const PASOS_NOVEDAD = {
     ['#metronet-mapa', 'Trazar línea', 'Seleccioná dos estaciones distintas del mapa. La línea se crea con su primer tramo.'],
   ],
   conexiones: [
-    ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Elegí el icono de vía para extender una línea.'],
-    ['#metronet-mapa', 'Extender recorrido', 'Elegí la línea activa, la estación de origen y otra de destino para agregar un tramo.'],
+    ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Uní estaciones de líneas diferentes. Después asigná un metro propio a esa conexión.'],
+    ['#metronet-mapa', 'Conectar líneas', 'Seleccioná una estación de cada línea. Ambas conservarán su recorrido y su color.'],
   ],
   metros: [
     ['[data-elegir-herramienta="metros"]', 'Unidad de metro', 'Elegí este icono para asignar una unidad.'],
@@ -34,8 +34,8 @@ const PASOS_NOVEDAD = {
 };
 const HERRAMIENTAS_NUEVAS = {
   estaciones: ['Estación', 'Ubicá estaciones en el mapa. Escape termina la herramienta.'],
-  lineas: ['Línea', 'Uní dos estaciones para iniciar un recorrido.'],
-  conexiones: ['Conexión', 'Agregá tramos a una línea existente.'],
+  lineas: ['Línea', 'Uní dos estaciones; seguí desde su extremo para extender la misma línea.'],
+  conexiones: ['Conexión', 'Uní estaciones de líneas diferentes.'],
   metros: ['Unidad de metro', 'Asigná una unidad a una vía del mapa.'],
   simulacion: ['Simulación', 'Comprobá la red y abrí su recorrido simulado.'],
 };
@@ -92,6 +92,8 @@ export default class PanelTutorialInicial {
     this.contexto = contexto;
     this.integral = esRecorridoIntegral(contexto.escenario);
     this.recorrido.opciones.integral = this.integral;
+    this.recorrido.opciones.conexionesRequeridas = this.integral
+      ? Boolean(contexto.escenario?.reglasExito?.minimoConexionesLineas) : undefined;
     this.recorrido.opciones.libre = contexto.diseno?.simulacion?.modo === 'EDICION_LIBRE';
     this.recorrido.opciones.senalarDeshabilitados = this.integral;
     const id = JSON.stringify([contexto.diseno?.simulacion?.idDiseno, contexto.escenario?.idEscenario]);

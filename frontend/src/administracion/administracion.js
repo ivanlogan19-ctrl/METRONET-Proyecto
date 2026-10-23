@@ -368,7 +368,7 @@ function normalizarTexto(valor) {
 async function eliminarDisenoAdministrador(idDiseno, token) {
   const diseno = disenosDisponibles.find(d => String(d.idDiseno) === String(idDiseno));
   if (!diseno) return;
-  if (!await confirmarSistema(`¿Eliminar definitivamente ${etiquetaDiseno(diseno, numerosDisenos)} de ${diseno.propietario || 'este jugador'}? También se borrarán sus elementos, intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar. Esta acción no se puede deshacer.`, { cancelarSeguro: true, peligro: true })) return;
+  if (!await confirmarSistema(`¿Eliminar definitivamente ${etiquetaDiseno(diseno, numerosDisenos)} de ${diseno.propietario || 'este jugador'}? Se borrará la red. Si pertenece a un nivel completado, se conservarán sus intentos, puntajes, resultados, progreso y desbloqueos. En los demás casos se eliminarán también la partida y sus resultados. Esta acción no se puede deshacer.`, { cancelarSeguro: true, peligro: true })) return;
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` },

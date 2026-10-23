@@ -172,6 +172,7 @@ class EscalaSimulacionPostgresTest {
         enviar(ruta + "/estaciones", "{\"nombre\":\"D\",\"posicionX\":690,\"posicionY\":460}", token);
         enviar(ruta + "/lineas", "{\"nombre\":\"Rosa\",\"estaciones\":[\"A\",\"C\",\"D\"]}", token);
         assertEquals(2, transbordosDeConsigna(id));
+        enviar(ruta + "/unidades", "{\"nombreLinea\":\"Rosa\",\"capacidad\":300,\"velocidadPromedio\":4}", token);
         enviar(ruta + "/validacion", "{}", token);
         var conSegundaLinea = enviar(ruta + "/ejecutar", "{\"velocidad\":1,\"duracion\":6}", token);
         assertTrue(conSegundaLinea.path("comentarios").asText().contains("2 punto(s) de transbordo"));

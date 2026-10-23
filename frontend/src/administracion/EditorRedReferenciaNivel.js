@@ -21,7 +21,7 @@ export function crearEditorRedReferenciaNivel(contenedor, red, alCambiar) {
   svg.classList.add('admin-red-referencia__mapa');
   const modos = document.createElement('select');
   modos.setAttribute('aria-label', 'Acción del mapa de referencia');
-  for (const [valor, texto] of [['estacion','Agregar estación'],['tramo','Conectar estaciones'],['mover','Mover estación']]) {
+  for (const [valor, texto] of [['estacion','Agregar estación'],['tramo','Extender línea'],['mover','Mover estación']]) {
     const opcion = document.createElement('option'); opcion.value = valor; opcion.textContent = texto; modos.append(opcion);
   }
   const linea = document.createElement('select'); linea.setAttribute('aria-label', 'Línea de referencia activa');
@@ -74,6 +74,10 @@ export function crearEditorRedReferenciaNivel(contenedor, red, alCambiar) {
       if (a && b) svg.append(nodo('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,
         stroke:'#ffcb53','stroke-width':4,'stroke-linecap':'round','pointer-events':'none'}));
     }
+    for (const c of red.conexionesLineas ?? []) {
+      const a = estaciones.get(c.estacionA), b = estaciones.get(c.estacionB);
+      if (a && b) svg.append(nodo('line', {x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#d6fdff','stroke-width':5,'pointer-events':'none'}));
+    }
     for (const estacion of red.estaciones ?? []) {
       const grupo=nodo('g',{tabindex:0,role:'button','aria-label':`Estación ${estacion.nombre}`});
       grupo.dataset.estacion=estacion.nombre;
@@ -89,7 +93,7 @@ export function crearEditorRedReferenciaNivel(contenedor, red, alCambiar) {
           if (!seleccion) { seleccion=estacion.nombre; estado.textContent=`Elegí otra estación para conectar desde ${seleccion}.`; }
           else if (seleccion!==estacion.nombre) {
             red.tramos.push({linea:linea.value,a:seleccion,b:estacion.nombre});
-            seleccion=null; estado.textContent='Conexión agregada; guardá el borrador para conservarla.'; alCambiar();
+            seleccion=null; estado.textContent='Tramo agregado; guardá el borrador para conservarla.'; alCambiar();
           }
         } else if (modos.value==='mover') {
           seleccion=estacion.nombre; estado.textContent=`Elegí en el mapa la nueva posición de ${seleccion}.`;

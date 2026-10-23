@@ -27,13 +27,18 @@ for(const width of [1440,390]) test(`Nivel 1 presenta mapa y herramientas, inclu
  const titulos=[];
  while(await p.locator('.metronet-recorrido [data-recorrido-siguiente]:visible').count()) {
   titulos.push(await p.locator('.metronet-recorrido h2').textContent());
+  const objetivo=await p.locator('.metronet-recorrido').getAttribute('data-objetivo');
+  assert.equal(await p.locator(objetivo).isVisible(),true,`El tutorial señala un elemento visible: ${objetivo}`);
   assert.equal(await p.locator('[data-recorrido-progreso]').isVisible(),false);
   assert.doesNotMatch(await p.locator('.metronet-recorrido').innerText(),/RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
   const r=await p.locator('.metronet-recorrido').boundingBox();
   assert.ok(r.x>=0 && r.x+r.width<=width+1,'La guía queda dentro del ancho visible');
   await p.locator('[data-recorrido-siguiente]').click();
  }
- for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
+ for(const nombre of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Metro','Guardar','Simular','Selección','Mover','Eliminar','Desmarcar','Aprender','Música']) assert.ok(titulos.includes(nombre),nombre);
+ assert.equal(await p.locator('[data-accion-edicion="mover"]').isDisabled(),true,'El tutorial explica Mover sin habilitarlo antes de seleccionar');
+ assert.equal(await p.locator('[data-accion-edicion="eliminar"]').isDisabled(),true,'El tutorial no habilita Eliminar sin selección');
+ assert.equal(titulos.includes('Conexión'),false,'No presenta herramientas que la consigna todavía no habilita');
  await p.waitForFunction(()=>document.querySelector('.metronet-recorrido h2')?.textContent==='Elegí Estación');
  assert.equal(await p.locator('[data-recorrido-siguiente]').isVisible(),false,'La práctica requiere la herramienta real');
  await p.locator('[data-elegir-herramienta="estaciones"]').click();
@@ -49,7 +54,7 @@ test('Simulación acompaña la consigna: un cambio de UV y una ejecución',async
   window.guia=abrirTutorialSimulacion(()=>{},6);
  });
  assert.equal(await p.evaluate(()=>autoReutilizacion),null);
- assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Elegir línea');
+ assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Elegir línea o conexión');
  await p.locator('[data-recorrido-siguiente]').click();
  assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Probá el cambio de la consigna');
  assert.match(await p.locator('.metronet-recorrido').innerText(),/por encima de su valor inicial de 1/);
@@ -66,12 +71,20 @@ test('Simulación acompaña la consigna: un cambio de UV y una ejecución',async
 for (const nivel of catalogo.slice(1)) test(`N${nivel.numero}: el tutorial automático presenta solamente funciones nuevas`, async t => {
  const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero,recorrido:'integral-2026-10-metas-5-v1'},ofrecerRecorrido:true,estaciones:[],lineas:[],tramos:[]});
  t.after(async()=>{await v.pagina.unrouteAll({behavior:'wait'});await v.contexto.close();});
- const p=v.pagina, titulo={2:'Extendé la línea',4:'Un intercambio real',6:'Puntos de interés de Montevideo'}[nivel.numero];
+ const p=v.pagina, titulo={2:'Extendé la línea',4:'Conectá dos líneas',6:'Puntos de interés de Montevideo'}[nivel.numero];
  if(titulo) {
   await p.locator('.metronet-recorrido').waitFor();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),'Nueva funcionalidad');
   await p.getByRole('button',{name:'Iniciar tutorial',exact:true}).click();
   assert.equal(await p.locator('.metronet-recorrido h2').textContent(),titulo);
+  if(nivel.numero===2 || nivel.numero===4) {
+   const selector=`[data-elegir-herramienta="${nivel.numero===4?'conexiones':'lineas'}"]`;
+   assert.equal(await p.locator('.metronet-recorrido').getAttribute('data-objetivo'),selector);
+   assert.equal(await p.locator(selector).isVisible(),true,'Señala el botón real en pantalla');
+   const texto=await p.locator('[data-recorrido-texto]').innerText();
+   assert.ok(texto.length<=180,'Explicación breve');
+   if(nivel.numero===4) assert.match(texto,/Conexión une dos líneas distintas/);
+  }
   assert.equal(await p.locator('[data-recorrido-omitir]').evaluate(e=>e.getBoundingClientRect().width),32);
   await p.keyboard.press('Escape');
  } else assert.equal(await p.locator('.metronet-recorrido').count(),0);
@@ -166,7 +179,7 @@ test('Registro por usuario: funciones nuevas, POI real y ayudas que no se marcan
    poi:e.objetivoTutorialPoi(6).id,poiInicial:e.objetivoTutorialPoi(1),
    pasosPoi:e.pasosPracticosEditor(6).map(p=>p[3]).filter(Boolean)};
  });
- assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender'],[],['editor.transbordo'],[],['editor.poi','simulacion.velocidad'],['simulacion.duracion'],[],[],[]]);
+ assert.deepEqual(estado.secuencia,[['editor.basico'],['editor.extender'],[],['editor.conectar'],[],['editor.poi','simulacion.velocidad'],['simulacion.duracion'],[],[],[]]);
  assert.equal(estado.conocida,false);assert.equal(estado.inicialOtraCuenta,'Nueva funcionalidad');assert.equal(estado.ajena,0);
  assert.equal(estado.poi,63);assert.equal(estado.poiInicial,undefined);
  assert.deepEqual(estado.pasosPoi,['poi-abierto','poi-categoria','barrios-abiertos','barrio-seleccionado','barrios-cerrados','zonas-abiertas','zona-seleccionada','zonas-cerradas','buscador-abierto','poi-buscado','poi-localizado','poi-fijado','poi-ficha-cerrada','poi-cubierto']);
@@ -236,5 +249,33 @@ test('Modo libre: el paseo señala herramientas actuales de edición y omite el 
   await p.locator('[data-recorrido-siguiente]').click();
  }
  for(const titulo of ['Mapa de la red','Vista del mapa','Rotación del mapa','Estación','Línea','Conexión','Metro','Guardar','Simular','Selección']) assert.ok(titulos.includes(titulo),titulo);
+ assert.deepEqual(v.errores,[]);
+});
+
+ test('el catálogo de ayuda introduce Conexión en N4 y conserva la distinción con Línea',async t=>{
+  const v=await abrirEditor(browser,{ofrecerRecorrido:false});
+  t.after(()=>v.contexto.close());
+  const lecciones=await v.pagina.evaluate(async catalogo=>{
+   const {leccionesDisponibles}=await import('/src/educacion/TutorialInicial.js');
+   return catalogo.map(n=>leccionesDisponibles({diseno:{},pantalla:'edicion',escenario:{...n,recorrido:'integral-2026-10'}}));
+  },catalogo);
+  assert.deepEqual(lecciones.map(ls=>ls.some(l=>l.clave==='conexiones')),[false,false,false,true,true,true,true,true,true,true]);
+  for(const ls of lecciones) for(const l of ls.filter(l=>['lineas','conexiones'].includes(l.clave))){
+   assert.ok(l.texto.length<=200,'Texto breve sin párrafos extensos');
+   assert.doesNotMatch(l.texto,/Nueva línea/);
+  }
+  assert.match(lecciones[0].find(l=>l.clave==='lineas').texto,/conservando el color/);
+  assert.match(lecciones[3].find(l=>l.clave==='conexiones').texto,/dos líneas distintas/);
+ });
+
+for (const nivel of catalogo) test(`N${nivel.numero}: Conexión visible, gris antes de N4 y disponible desde N4`, async t => {
+ const v=await abrirEditor(browser,{escenario:{...nivel,idEscenario:nivel.numero},estaciones:[],lineas:[],tramos:[]});
+ t.after(()=>v.contexto.close());
+ const boton=v.pagina.locator('[data-elegir-herramienta="conexiones"]');
+ assert.equal(await boton.isVisible(),true);
+ assert.equal(await boton.isDisabled(),nivel.numero<4);
+ const color=await boton.evaluate(e=>getComputedStyle(e).getPropertyValue('--herramienta-color').trim());
+ if(nivel.numero<4) assert.equal(color,'#818b98');
+ else assert.notEqual(color,'#818b98');
  assert.deepEqual(v.errores,[]);
 });

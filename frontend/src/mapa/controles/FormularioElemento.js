@@ -11,7 +11,7 @@ export function mostrarFormularioElemento(panel, campos, guardar, cancelar) {
     texto.textContent = etiqueta;
     const input = document.createElement(opciones ? 'select' : 'input');
     input.name = nombre;
-    if (opciones) opciones.forEach(opcion => input.append(new Option(opcion, opcion)));
+    if (opciones) opciones.forEach(opcion => input.append(new Option(opcion.etiqueta ?? opcion, opcion.valor ?? opcion)));
     else input.type = tipo;
     if (tipo === 'number') input.step = 'any';
     if (tipo === 'checkbox') input.checked = Boolean(valor);

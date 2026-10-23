@@ -1,3 +1,4 @@
+import { tramosDeRecorridos } from '../mapa/configuracion/RecorridosRed.js';
 // Previsualización en los controles existentes. El servidor recalcula y valida al guardar.
 export const esModoLibre = diseno => ['LIBRE', 'EDICION_LIBRE'].includes(diseno?.simulacion?.modo);
 export const usaVinculoPorLinea = diseno => diseno?.vinculoUvUtPorLinea ?? (esModoLibre(diseno) || diseno?.simulacion?.modo === 'NIVEL');
@@ -48,7 +49,7 @@ function dividirHaciaArriba(distancia, valor) {
 export function calcularVinculo(diseno, unidades, referencia, valor) {
   if (!Number.isFinite(valor) || valor <= 0) return null;
   const resultados = unidades.map(u => {
-    const tramos = (diseno.tramos ?? []).filter(t => t.nombreLinea === u.nombreLinea);
+    const tramos = tramosDeRecorridos(diseno).filter(t => t.nombreLinea === u.nombreLinea);
     const adyacencias = new Map();
     for (const t of tramos) {
       for (const [a,b] of [[t.estacionA,t.estacionB],[t.estacionB,t.estacionA]]) {

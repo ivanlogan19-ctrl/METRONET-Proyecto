@@ -247,7 +247,11 @@ public class PuntuacionService {
                 repositorio.conexionesOrdenadas(idDiseno),
                 repositorio.tramosOrdenados(idDiseno),
                 repositorio.unidadesOrdenadas(incluirVelocidad, incluirDuracion, incluirCapacidad, idDiseno));
-            byte[] hash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsString(datos).getBytes(StandardCharsets.UTF_8));
+            var enlaces = repositorio.enlacesOrdenados(idDiseno);
+            // Preserva la huella histórica cuando la red no contiene conexiones entre líneas.
+            var datosCompletos = new java.util.ArrayList<Object>(datos);
+            if (enlaces != null && !enlaces.isEmpty()) datosCompletos.add(enlaces);
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsString(datosCompletos).getBytes(StandardCharsets.UTF_8));
             return MARCA + HexFormat.of().formatHex(hash) + "]";
         } catch (Exception e) { throw new IllegalStateException("No fue posible identificar la red simulada", e); }
     }

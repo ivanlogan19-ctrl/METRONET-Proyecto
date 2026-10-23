@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
 @Service
 public class RecorridoIntegralService {
-    public static final String VERSION = "integral-2026-10-red-progresiva-v5";
+    public static final String VERSION = "integral-2026-10-lineas-conexiones-v7";
     private final AdministracionNivelesService borradores;
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
@@ -56,6 +56,9 @@ public class RecorridoIntegralService {
                 resultado.add(publicarValidado(numero, guardado, idAdmin));
                 continue;
             }
+            if (!previo.contenido().equals(vigente.contenido()) || !previo.redReferencia().equals(vigente.redReferencia())
+                || !previo.tarjetas().equals(vigente.tarjetas()))
+                throw new IllegalStateException("Nivel " + numero + ": hay un borrador pendiente; se conserva sin publicar");
             ObjectNode desafio=mapper.createObjectNode();
             for (String clave:List.of("nombre","objetivo","instrucciones","dificultad","preparacion","transicion"))
                 desafio.set(clave,nivel.path(clave));
@@ -140,7 +143,7 @@ public class RecorridoIntegralService {
         var cantidades = reglas.path("configuracionRecorrido").path("estacionesPorLinea");
         var puntos = reglas.path("puntosInteresObjetivo");
         double centroX = numero < 4 ? 650 : 610, centroY = numero < 4 ? 465 : 380;
-        estaciones.addObject().put("nombre", "Centro").put("x", centroX).put("y", centroY);
+        var conexiones = red.putArray("conexionesLineas");
         for (int linea = 0; linea < cantidades.size(); linea++) {
             String nombre = "Línea " + (linea + 1);
             lineas.addObject().put("nombre", nombre);
@@ -153,12 +156,13 @@ public class RecorridoIntegralService {
                 double distancia = Math.hypot(centroX - x, centroY - y);
                 x += (centroX - x) * 12 / distancia; y += (centroY - y) * 12 / distancia;
             }
-            String anterior = "Centro";
-            double origenX = centroX, origenY = centroY;
-            if (numero == 3 && linea == 1) {
-                anterior = "Centro2"; origenX = 700; origenY = 495;
-                estaciones.addObject().put("nombre", anterior).put("x", origenX).put("y", origenY);
-            }
+            String anterior = "Centro" + linea;
+            double origenX = centroX + linea * 8, origenY = centroY + linea * 8;
+            if (numero == 3 && linea == 1) { origenX = 700; origenY = 495; }
+            estaciones.addObject().put("nombre", anterior).put("x", origenX).put("y", origenY);
+            if (numero >= 4 && linea > 0) conexiones.addObject()
+                .put("lineaA", "Línea " + linea).put("estacionA", "Centro" + (linea - 1))
+                .put("lineaB", nombre).put("estacionB", anterior);
             int cantidad = cantidades.get(linea).asInt();
             for (int indice = 1; indice < cantidad; indice++) {
                 String estacion = "E" + linea + "_" + indice;
@@ -181,7 +185,8 @@ public class RecorridoIntegralService {
             .put("parametroReferencia", numero == 7 || numero == 8 ? "UT" : "UV");
         var valores = ejecucion.putArray("unidades");
         double uv = numero == 6 || numero == 10 ? 2 : numero == 9 ? 0.5 : 1;
-        for (int indice = 0; indice < metros; indice++) valores.addObject().put("uv", uv);
+        for (JsonNode conexion : conexiones) ((ObjectNode) conexion).putObject("metro").put("capacidad", 300).put("uv", 1);
+        for (int indice = 0; indice < metros + conexiones.size(); indice++) valores.addObject().put("uv", uv);
         return red;
     }
 
@@ -194,15 +199,17 @@ public class RecorridoIntegralService {
             var reglas = nivel.path("reglasExito");
             if (nivel.path("numero").asInt() != numero) throw new IllegalStateException("Secuencia de niveles inválida");
             int objetivos = 0;
-            for (String clave : List.of("minimoEstaciones", "minimoLineas", "minimoTramos", "minimoMetros", "minimoTransbordos"))
+            for (String clave : List.of("minimoEstaciones", "minimoLineas", "minimoTramos", "minimoMetros", "minimoTransbordos", "minimoConexionesLineas"))
                 if (reglas.path(clave).asInt() > 0) objetivos++;
             for (JsonNode practica : reglas.path("aprendizajeSimulacion")) if (practica.asBoolean()) objetivos++;
             if (reglas.path("requiereSimulacion").asBoolean()) objetivos++;
             if (objetivos != 5 || !reglas.path("requiereSimulacion").asBoolean())
                 throw new IllegalStateException("Nivel " + numero + ": se requieren cinco objetivos y Simulación");
-            for (String herramienta : List.of("estaciones", "lineas", "conexiones", "metros", "simulacion"))
+            for (String herramienta : List.of("estaciones", "lineas", "metros", "simulacion"))
                 if (!nivel.path("herramientasHabilitadas").path(herramienta).asBoolean())
                     throw new IllegalStateException("Nivel " + numero + ": herramienta requerida no habilitada: " + herramienta);
+            if (nivel.path("herramientasHabilitadas").path("conexiones").asBoolean() != (numero >= 4))
+                throw new IllegalStateException("Conexión se introduce a partir del nivel 4");
             var puntos = reglas.path("puntosInteresObjetivo");
             if (puntos.size() != (numero < 6 ? 0 : numero == 6 ? 1 : numero == 10 ? 3 : 2) || (numero >= 6 && !reglas.path("requierePoiIndividuales").asBoolean()))
                 throw new IllegalStateException("Nivel " + numero + ": cantidad/evaluación de POI inválida");

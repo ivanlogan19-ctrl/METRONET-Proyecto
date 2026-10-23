@@ -50,6 +50,8 @@ public class AdministracionNivelesService {
             reglasConocidas.add("requierePoiIndividuales");
             reglasConocidas.add("textosMetas");
             reglasConocidas.add("configuracionRecorrido");
+            reglasConocidas.add("minimoConexionesLineas");
+            reglasConocidas.add("penalizarElementosAdicionales");
             clavesRegla = Set.copyOf(reglasConocidas);
             clavesHerramienta = Set.copyOf(herramientasConocidas);
         } catch (Exception error) {
@@ -222,7 +224,7 @@ public class AdministracionNivelesService {
             JsonNode valor=edicion.reglasExito().path(clave);
             if (clave.startsWith("minimo") || clave.equals("maximoEstaciones")) {
                 if (!valor.isIntegralNumber() || valor.asInt()<=0) throw invalido("La regla " + clave + " requiere un entero positivo");
-            } else if (clave.startsWith("requiere") || clave.equals("transbordosPorConexion")) {
+            } else if (clave.startsWith("requiere") || clave.equals("transbordosPorConexion") || clave.equals("penalizarElementosAdicionales")) {
                 if (!valor.isBoolean()) throw invalido("La regla " + clave + " debe estar activada o desactivada");
             } else if (clave.equals("aprendizajeSimulacion")) {
                 if (!valor.isObject()) throw invalido("Prácticas de simulación inválidas");
@@ -278,6 +280,8 @@ public class AdministracionNivelesService {
         if (red == null || !red.isObject()) throw invalido("Falta la red de referencia privada");
         for (String tipo : List.of("estaciones","lineas","tramos","unidades"))
             if (!red.path(tipo).isArray()) throw invalido("La red requiere " + tipo + " como lista");
+        if (red.has("conexionesLineas") && !red.path("conexionesLineas").isArray())
+            throw invalido("Las conexiones entre líneas deben ser una lista");
         if (red.has("ejecuciones") && !red.path("ejecuciones").isArray())
             throw invalido("Las ejecuciones de referencia deben ser una lista");
         if (edicion.ayudas() == null || !edicion.ayudas().isArray()) throw invalido("Ayudas inválidas");

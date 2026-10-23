@@ -93,7 +93,48 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
   await pagina.locator('[data-linea-reproducir="Roja"]').click();
   assert.deepEqual(await pagina.evaluate(() => window.escenaPrueba.motorSimulacion.rutas.map(r=>r.nombreLinea)), ['Azul']);
   assert.equal(await pagina.evaluate(() => window.escenaPrueba.motorSimulacion.duracion), 3);
-  await pagina.locator('[data-linea-reproducir="Azul"]').click();
+  for (const unica of ['Azul', 'Roja']) {
+    for (const nombre of ['Azul', 'Roja']) {
+      const boton = pagina.locator(`[data-linea-reproducir="${nombre}"]`);
+      if (await boton.getAttribute('aria-pressed') !== String(nombre === unica)) await boton.click();
+    }
+    const recargaSeleccion = await pagina.evaluate(() => {
+      const e = window.escenaPrueba, capa = e.capaRedMetro;
+      const medir = () => ({
+        camara: [e.cameras.main.scrollX, e.cameras.main.scrollY, e.cameras.main.zoom],
+        estaciones: capa.puntosEstaciones.map(p => [p.nombre, p.x, p.y]),
+        trenes: [...capa.unidadesSimulacion].map(([id, tren]) => [id, tren.x, tren.y]),
+        estaticos: capa.unidadesEstaticas.length,
+      });
+      const antes = medir();
+      // La ejecución recarga la red del servidor antes de arrancar el reloj.
+      e.establecerDiseno(structuredClone(e.disenoActual));
+      const recargada = medir();
+      e.iniciarAnimacion(1, 4.5);
+      const inicio = medir();
+      const marca = e.motorSimulacion.marcaInicio;
+      const posiciones = [];
+      for (const horas of [0.25, 0.5, 1]) {
+        e.update(marca + horas / e.motorSimulacion.duracion * e.motorSimulacion.duracionVisual, 16);
+        posiciones.push({ ...medir(), hora: e.capasLibre.reloj.hora,
+          tiempo: e.motorSimulacion.obtenerEstado().tiempoTranscurrido });
+      }
+      e.detenerAnimacion();
+      return { antes, recargada, inicio, posiciones };
+    });
+    assert.deepEqual(recargaSeleccion.recargada, recargaSeleccion.antes,
+      'Recargar antes de reproducir una línea no debe mostrar otros trenes ni saltar a una vista estática');
+    assert.deepEqual(recargaSeleccion.inicio, recargaSeleccion.antes,
+      'El reloj inicia desde la misma posición y selección visibles');
+    for (const estado of recargaSeleccion.posiciones) {
+      assert.deepEqual(estado.camara, recargaSeleccion.antes.camara);
+      assert.deepEqual(estado.estaciones, recargaSeleccion.antes.estaciones);
+      assert.deepEqual(estado.trenes.map(t => t[0]), [unica === 'Azul' ? '1' : '2']);
+      assert.equal(estado.estaticos, 0);
+      assert.equal(estado.hora, Math.floor(8 + estado.tiempo));
+    }
+  }
+  await pagina.locator('[data-linea-reproducir="Roja"]').click();
   assert.equal(await pagina.locator('#formularioEjecucion button').isDisabled(), true);
   await pagina.locator('.simulacion-lineas-todas').click();
   assert.equal(await pagina.locator('#formularioEjecucion button').isDisabled(), false);
@@ -189,7 +230,7 @@ test('Phaser: posición geográfica y reloj coinciden por línea durante toda la
     if(titulo==='¡Listo para simular!')break;
     await pagina.locator('[data-recorrido-siguiente]').click();
   }
-  for(const titulo of ['Línea a configurar','Distancias de la red','Reloj de estación','Cambiar el horario','Líneas a reproducir','Reproducir la selección']) assert.ok(titulos.includes(titulo), JSON.stringify(titulos));
+  for(const titulo of ['Línea o conexión a configurar','Distancias de la red','Reloj de estación','Cambiar el horario','Línea o conexión a reproducir','Reproducir la selección']) assert.ok(titulos.includes(titulo), JSON.stringify(titulos));
   await pagina.evaluate(() => window.tutorialPrueba.terminar());
   assert.deepEqual(errores, []);
 });

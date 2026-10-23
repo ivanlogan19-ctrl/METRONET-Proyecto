@@ -17,3 +17,31 @@ La 018 crea las publicaciones iniciales inmutables de los diez niveles con 60 ta
 Aplicar `021_duracion_por_metro.sql` después de la 020 y antes de iniciar el backend actualizado, con respaldo restaurable y `psql -v ON_ERROR_STOP=1`. Agrega `metro.duracion_ut` opcional y positivo; puede repetirse. NULL conserva el respaldo global de los diseños anteriores. No modifica ejecuciones históricas ni claves/relaciones. El backend verifica su presencia antes de los inicializadores.
 
 La API de unidades acepta `duracionUt` entero positivo al actualizar; omitirlo conserva el valor previo. El selector de simulación aplica UV o UT a todos los metros o al seleccionado. La ejecución utiliza cada duración configurada y el parámetro global para unidades antiguas sin UT; guarda el máximo como duración total y una instantánea con cada valor efectivo. Cambiar UT invalida la vigencia de la simulación del diseño, sin reescribir resultados anteriores.
+
+## Eliminación de diseños completados — cambio formal aprobado el 22/10/2026
+
+`IMPLEMENTADO`: aplicar `024_conservar_logros_sin_diseno.sql` después de la 023, con un respaldo restaurable y antes de iniciar el backend actualizado. La migración admite `intento.id_diseno = NULL` únicamente para intentos completados; conserva la clave foránea y la unicidad de los diseños existentes. Puede repetirse y no elimina datos. El backend verifica este requisito al arrancar.
+
+La eliminación administrativa bloquea el intento y separa los niveles progresivos completados de su red dentro de la misma transacción. Luego elimina el diseño y sus elementos. Conserva intentos, simulaciones, resultados, puntajes, progreso, ranking y desbloqueos; esos intentos ya no se listan como diseños ni permiten abrir la red eliminada. Volver a jugar crea otra red. Los diseños no completados y los de Modo Libre conservan el comportamiento anterior. Los endpoints y permisos no cambian.
+
+`DEFINIDO`: la decisión formal amplía la conservación de logros al borrado administrativo. El modelo y el caso de uso del documento académico requieren una actualización autorizada por separado; no se ha modificado ese documento. Para revertir después de eliminar redes, restaurar el respaldo: no basta con reponer NOT NULL sobre intentos que ya no tengan diseño.
+
+## Líneas extensibles y conexiones entre líneas — cambio formal aprobado el 23/10/2026
+
+`IMPLEMENTADO`: `025_conexiones_entre_lineas.sql`, después de la 024 y con respaldo restaurable, agrega `conexion_lineas`. Cada extremo referencia la pertenencia de una estación a una línea mediante `pasa`. Renombrar conserva la unión; eliminar una estación o línea retira sus uniones. Los tramos históricos no se transforman ni se reinterpretan.
+
+La herramienta **Línea** crea el primer tramo o extiende un extremo del mismo recorrido, conservando su identidad y color. Para comenzar otra línea se elige de nuevo **Línea** desde una estación libre. **Conexión** une estaciones de líneas diferentes ya construidas. Sus marcadores conservan el símbolo octagonal y muestran los colores de las líneas relacionadas. Los trenes siguen circulando únicamente por los tramos de su propia línea.
+
+Contratos nuevos: `POST /api/simulaciones/{id}/lineas/extender`, `POST /api/simulaciones/{id}/conexiones-lineas` y `DELETE /api/simulaciones/{id}/conexiones-lineas/{idConexion}`. Las respuestas de detalle del jugador y administrador agregan `conexionesLineas`; los campos anteriores conservan su significado y los permisos siguen verificándose en el servicio.
+
+El catálogo `integral-2026-10-lineas-conexiones-v7` se publica explícitamente usando el mecanismo existente de validación e historial (`metronet.recorrido.publicar=true` y un administrador existente). No se activa en un arranque normal. Publica cinco metas por nivel y conserva los POI. Las cantidades de conexiones entre líneas son 0, 0, 0, 1, 2, 2, 2, 2, 3 y 3. Los primeros tres niveles cuentan tramos internos; desde el cuarto se exige que las conexiones unan todas las líneas. Conexión queda visible y deshabilitada en los niveles 1–3; se presenta desde el cuarto. La bandera `penalizarElementosAdicionales` conserva el cumplimiento de las metas al superar sus cantidades y registra el exceso al simular, con la política de descuentos de cada intento. Los metros obligatorios de las conexiones se suman al límite de metros de las líneas. Los intentos anteriores conservan su publicación y puntajes. Un borrador pendiente bloquea la actualización, sin sobrescribirlo.
+
+`DEFINIDO`: la decisión formal del usuario autoriza esta distinción y la adecuación de metas/tutoriales. El Documento METRONET requiere actualizar los casos de uso de creación/extensión de líneas y conexiones, el modelo relacional, los contratos y las pruebas. El documento académico no se modificó.
+
+## Metro propio de conexión — cambio formal aprobado
+
+`IMPLEMENTADO`: aplicar una vez `026_metros_en_conexiones.sql`, después de la 025 y con respaldo restaurable. `metro` pertenece exclusivamente a una línea o a una conexión del mismo diseño. Borrar la conexión elimina sólo sus metros; los de las líneas se conservan. La migración no transforma ni elimina metros históricos.
+
+`POST /api/simulaciones/{id}/unidades` acepta `idConexion` en lugar de `nombreLinea`. Para conservar el contrato de los controles de UV/UT, el detalle y la actualización representan ese recorrido con la clave reservada `@conexion:<id>`; la interfaz muestra el nombre abreviado y los dos colores, nunca esa clave. La respuesta de cada conexión incluye `distanciaKm`. El tren del enlace recorre únicamente sus dos extremos; cada conexión necesita su metro antes de simular. Sus valores UV/UT se calculan con su propia distancia. Las referencias de publicación indican el metro del enlace en `conexionesLineas[].metro` y lo incluyen en las ejecuciones de prueba.
+
+`DEFINIDO`: el usuario aprobó formalmente este servicio independiente. No se adopta la alternativa de continuar un tren de una línea hacia la otra. El documento académico requiere actualizar relación metro–conexión, contratos, simulación y casos de uso; no se ha editado ese documento.

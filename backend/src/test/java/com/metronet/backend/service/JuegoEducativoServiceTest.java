@@ -454,7 +454,7 @@ class JuegoEducativoServiceTest {
     private ResultSet resultadoIntento(int idIntento, int idDiseno, String estado, int progreso) throws SQLException {
         ResultSet resultado = org.mockito.Mockito.mock(ResultSet.class);
         when(resultado.getInt("id_intento")).thenReturn(idIntento);
-        when(resultado.getInt("id_diseno")).thenReturn(idDiseno);
+        when(resultado.getObject("id_diseno", Integer.class)).thenReturn(idDiseno);
         when(resultado.getString("estado")).thenReturn(estado);
         when(resultado.getInt("progreso")).thenReturn(progreso);
         return resultado;

@@ -183,6 +183,51 @@ class MatrizPuntuacionRecorridoPostgresTest {
         assertEquals(100, juego.obtenerDesempeno(jugador, diseno).puntaje());
     }
 
+    @ParameterizedTest(name="Diez niveles: exceso de {0} conserva aprobación y descuenta")
+    @ValueSource(strings={"estaciones", "metros"})
+    void elementosAdicionalesDescuentanSinBloquearLaCampana(String elemento) throws Exception {
+        int admin = usuario("Publicador extras", "ADMIN");
+        recorrido.publicar(admin);
+        int jugador = usuario("Jugador extras", "JUGADOR");
+        for (int numero = 1; numero <= 10; numero++) {
+            final int nivel = numero;
+            var escenario = juego.obtenerProgreso(jugador).stream().filter(e -> Integer.valueOf(nivel).equals(e.numero())).findFirst().orElseThrow();
+            int diseno = juego.iniciarEscenario(jugador, escenario.idEscenario()).idDiseno();
+            var referencia = niveles.versiones(nivel).getFirst().redReferencia();
+            var unidades = construirReferencia(jugador, diseno, referencia);
+            String linea = referencia.path("lineas").get(0).path("nombre").asText();
+            if (elemento.equals("estaciones")) {
+                var tramos = new ArrayList<JsonNode>();
+                referencia.path("tramos").forEach(t -> { if (linea.equals(t.path("linea").asText())) tramos.add(t); });
+                String ultima = tramos.getLast().path("b").asText();
+                JsonNode extremo = null, anterior = null;
+                for (JsonNode estacion : referencia.path("estaciones")) {
+                    if (ultima.equals(estacion.path("nombre").asText())) extremo = estacion;
+                    if (tramos.getLast().path("a").asText().equals(estacion.path("nombre").asText())) anterior = estacion;
+                }
+                double x = extremo.path("x").asDouble() * .98 + anterior.path("x").asDouble() * .02;
+                double y = extremo.path("y").asDouble() * .98 + anterior.path("y").asDouble() * .02;
+                simulaciones.crearEstacion(jugador, diseno, new CrearEstacionSimulacionRequest("Extra", BigDecimal.valueOf(x), BigDecimal.valueOf(y)));
+                simulaciones.extenderLinea(jugador, diseno, new ActualizarTramoRequest(linea, ultima, "Extra"));
+            } else simulaciones.crearUnidadMetro(jugador, diseno, new CrearUnidadMetroSimulacionRequest(linea, 300, BigDecimal.ONE));
+            var paso = referencia.path("ejecuciones").get(0);
+            for (int i = 0; i < unidades.size(); i++) {
+                var u = unidades.get(i);
+                simulaciones.actualizarUnidadMetro(jugador, diseno, u.idTren(), new ActualizarUnidadMetroRequest(u.nombreLinea(), u.capacidad(),
+                    paso.path("unidades").get(i).path("uv").decimalValue(),
+                    "UT".equals(paso.path("parametroReferencia").asText()) ? paso.path("duracion").asDouble() : null,
+                    paso.path("parametroReferencia").asText("UV")));
+            }
+            assertTrue(simulaciones.validarDiseno(jugador, diseno).preparadoParaSimular(), "Nivel " + nivel);
+            var resultado = ejecutar(jugador, diseno, paso.path("duracion").asDouble());
+            assertEquals(90, resultado.puntaje(), "Nivel " + nivel + ": " + elemento);
+            assertTrue(resultado.registroPuntuacion().excesos().stream().anyMatch(m -> m.contains(elemento)));
+            assertTrue(juego.evaluarEscenario(jugador, diseno).completado(), "El exceso no impide aprobar N" + nivel);
+            assertEquals(90, juego.obtenerDesempeno(jugador, diseno).puntaje());
+            System.out.printf("EXCESOS nivel=%d elemento=%s puntos=90 aprobado=true%n", nivel, elemento);
+        }
+    }
+
     private int usuario(String nombre, String rol) {
         return jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES (?,?,?,?) RETURNING id_usuario",
             Integer.class, nombre, java.util.UUID.randomUUID()+"@example.test", "!sin-acceso", rol);
@@ -206,6 +251,12 @@ class MatrizPuntuacionRecorridoPostgresTest {
         var unidades = new ArrayList<UnidadMetroSimulacionResponse>();
         for (JsonNode u : red.path("unidades")) unidades.add(simulaciones.crearUnidadMetro(jugador,diseno,
             new CrearUnidadMetroSimulacionRequest(u.path("linea").asText(),u.path("capacidad").asInt(),u.path("uv").decimalValue())));
+        for (JsonNode c : red.path("conexionesLineas")) {
+            var conexion = simulaciones.crearConexionLineas(jugador, diseno,
+                new ConexionLineasRequest(c.path("lineaA").asText(), c.path("estacionA").asText(), c.path("lineaB").asText(), c.path("estacionB").asText()));
+            unidades.add(simulaciones.crearUnidadMetro(jugador, diseno,
+                new CrearUnidadMetroSimulacionRequest(null, 300, java.math.BigDecimal.ONE, conexion.idConexion())));
+        }
         return unidades;
     }
     private ResultadoSimulacionResponse ejecutar(int jugador, int diseno, double horas) {

@@ -1,3 +1,4 @@
+import { fondoRecorrido } from '../configuracion/RecorridosRed.js';
 import { coloresDeLineas } from '../configuracion/PaletaRed.js';
 import '../estilos/menu-lineas.css';
 const colorDeLineaCss = (colores, nombre) => `#${(colores.get(nombre) ?? 0x3983ff).toString(16).padStart(6, '0')}`;
@@ -15,7 +16,7 @@ export function prepararMenuLineas(lista, controles, diseno, acceso) {
     const nombreLinea = control.dataset.nombreLinea ?? unidad?.nombreLinea;
     const tonos = nombreLinea ? [colorDeLineaCss(colores, nombreLinea)]
       : [...colores.keys()].map(nombre => colorDeLineaCss(colores, nombre));
-    muestra.style.background = tonos.length > 1
+    muestra.style.background = nombreLinea ? fondoRecorrido(diseno, nombreLinea) : tonos.length > 1
       ? `linear-gradient(90deg, ${tonos.map((color, i) => `${color} ${i * 100 / tonos.length}% ${(i + 1) * 100 / tonos.length}%`).join(',')})`
       : tonos[0] ?? 'transparent';
     const nombre = document.createElement('span'); nombre.textContent = control.textContent;

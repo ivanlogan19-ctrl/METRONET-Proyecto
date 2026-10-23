@@ -167,7 +167,7 @@ function aplicarConfiguracionPredeterminada(configuracion) {
   document.getElementById('ritmoVisible').textContent = formatearRitmo(velocidad);
 }
 
-async function abrirDiseno(idDiseno) {
+async function abrirDiseno(idDiseno, { conservarRecorrido = false } = {}) {
   const version = ++versionDiseno;
   try {
     const nuevoDiseno = String(disenoActual?.simulacion?.idDiseno) !== String(idDiseno);
@@ -182,10 +182,13 @@ async function abrirDiseno(idDiseno) {
     errorAyuda = null;
     numeroSolicitudConsigna += 1;
     mensajeConsigna = '';
-    detenerAnimacion();
-    parametrosUltimaEjecucion = null;
-    estadoMotor = null;
-    restablecerSeguimientoMetro();
+    const conservar = conservarRecorrido && !nuevoDiseno;
+    if (!conservar) {
+      detenerAnimacion();
+      parametrosUltimaEjecucion = null;
+      estadoMotor = null;
+      restablecerSeguimientoMetro();
+    }
     const diseno = await cliente.obtener(idDiseno);
     if (version !== versionDiseno || !paginaActiva) return;
     disenoActual = diseno;
@@ -199,7 +202,9 @@ async function abrirDiseno(idDiseno) {
     if (usaVinculoPorLinea(diseno)) duracionAplicada = Math.max(0, ...(diseno.unidadesMetro ?? []).map(u => u.duracionUt ?? 0)) || 6;
     const contexto = obtenerContextoDiseno(idDiseno);
     window.history.replaceState({}, '', establecerIdDisenoEnRuta('/simulacion.html', idDiseno, contexto));
-    visor.escena.establecerDiseno(disenoActual);
+    // Guardar parámetros no reproduce ni reinicia el recorrido visible.
+    // La próxima ejecución carga la red renovada antes de iniciar el motor.
+    if (!conservar) visor.escena.establecerDiseno(disenoActual);
     visor.escena.establecerUnidadSeleccionada(unidadSeleccionada);
     const vista = consumirVistaParaNavegacion(idDiseno, sesion, 'simulacion');
     actualizarPantalla();
@@ -418,7 +423,7 @@ async function guardarVinculoLibre(referencia, valor) {
   } catch (error) { fallo = error; }
   finally {
     if (vigente()) {
-      const recargado = await abrirDiseno(id);
+      const recargado = await abrirDiseno(id, { conservarRecorrido: true });
       if (recargado) mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} líneas. ${fallo.message}` : 'Velocidad y duración guardadas.', fallo ? 'error' : 'exito');
     }
     guardandoVelocidad = false;
@@ -456,7 +461,7 @@ async function guardarDuraciones() {
   finally {
     if (vigente()) {
       if (!fallo && unidadSeleccionada === 'todas') duracionAplicada = duracion;
-      const recargado = await abrirDiseno(id);
+      const recargado = await abrirDiseno(id, { conservarRecorrido: true });
       if (recargado) {
         mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}`
           : `Duración guardada: ${duracion} UT en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
@@ -503,7 +508,7 @@ async function guardarVelocidades(unidades, velocidadPromedio) {
     if (vigente()) {
       // Las operaciones existentes son individuales. Ante un fallo parcial se
       // vuelve a leer lo realmente persistido, sin fingir una escritura atómica.
-      const recargado = await abrirDiseno(id);
+      const recargado = await abrirDiseno(id, { conservarRecorrido: true });
       if (recargado && paginaActiva && disenoActual?.simulacion.idDiseno === id) {
         mostrarMensaje(fallo ? `Se actualizaron ${actualizadas} de ${unidades.length} unidades. ${fallo.message}`
           : `Velocidad guardada: ${formatearVelocidad(velocidadPromedio)} en ${actualizadas} unidad(es).`, fallo ? 'error' : 'exito');
@@ -590,7 +595,7 @@ function detenerSimulacion() {
 async function reiniciarSimulacion() {
   if (estaMantenimientoActivo(sesion)) return;
   if (!parametrosUltimaEjecucion || !visor || resultadoEnCurso) return;
-  if ((usaVinculoPorLinea(disenoActual) && vinculoPendiente) ||
+  if (visor.escena.disenoActual !== disenoActual || (usaVinculoPorLinea(disenoActual) && vinculoPendiente) ||
       (!usaVinculoPorLinea(disenoActual) && document.getElementById('duracionSimulacion').value && unidadesElegidas().some(u => (u.duracionUt ?? duracionAplicada) !== Number(document.getElementById('duracionSimulacion').value)))) {
     await ejecutarSimulacion({ preventDefault() {} });
     return;

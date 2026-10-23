@@ -58,6 +58,13 @@ public class ValidacionPublicacionNivelService {
                 desafio.path("instrucciones").asText(),
                 intento
             );
+            for (JsonNode c : red.path("conexionesLineas")) {
+                var conexion = simulaciones.crearConexionLineas(idAdmin, diseno,
+                    new com.metronet.backend.dto.ConexionLineasRequest(texto(c,"lineaA"), texto(c,"estacionA"), texto(c,"lineaB"), texto(c,"estacionB")));
+                if (c.path("metro").isObject()) simulaciones.crearUnidadMetro(idAdmin, diseno,
+                    new com.metronet.backend.dto.CrearUnidadMetroSimulacionRequest(null,
+                        entero(c.path("metro").path("capacidad"), "capacidad"), decimal(c.path("metro").path("uv"), "UV"), conexion.idConexion()));
+            }
             JsonNode criterio = contenido.path("criterioUvUt");
             if (criterio.isObject()) {
                 int version = repositorio.siguienteVersionCriterio(idEscenario);
@@ -108,12 +115,8 @@ public class ValidacionPublicacionNivelService {
             faltantes.add("Estaciones");
         if (!red.path("lineas").isEmpty() && !herramientas.path("lineas").asBoolean())
             faltantes.add("Líneas");
-        Set<String> primeraConexionPorLinea = new HashSet<>();
-        boolean extensiones = false;
-        for (JsonNode tramo : red.path("tramos"))
-            if (!primeraConexionPorLinea.add(tramo.path("linea").asText())) extensiones = true;
-        if (extensiones && !herramientas.path("conexiones").asBoolean())
-            faltantes.add("Conexiones");
+        if (!red.path("conexionesLineas").isMissingNode() && !red.path("conexionesLineas").isEmpty()
+            && !herramientas.path("conexiones").asBoolean()) faltantes.add("Conexiones");
         if (!red.path("unidades").isEmpty() && !herramientas.path("metros").asBoolean())
             faltantes.add("Metros");
         if (!red.path("ejecuciones").isEmpty() && !herramientas.path("simulacion").asBoolean())

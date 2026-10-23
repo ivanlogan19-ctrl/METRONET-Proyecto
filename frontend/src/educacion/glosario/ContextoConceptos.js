@@ -1,7 +1,7 @@
 import { obtenerConcepto } from './Conceptos.js';
 
 // Configuración exclusivamente educativa. No altera niveles.json ni sus reglas.
-const iniciales = ['diseno', 'linea', 'estacion', 'nivel', 'escenario', 'objetivo', 'regla-exito', 'herramientas', 'progreso', 'intento', 'puntaje'];
+const iniciales = ['diseno', 'linea', 'tramo', 'estacion', 'nivel', 'escenario', 'objetivo', 'regla-exito', 'herramientas', 'progreso', 'intento', 'puntaje'];
 const conexiones = [...iniciales, 'conexion'];
 const unidades = [...conexiones, 'unidad', 'cantidad-unidades', 'velocidad'];
 const geografia = [...unidades, 'poi', 'cobertura', 'unidades-mapa', 'zona', 'barrio', 'simulacion', 'duracion', 'tiempo-estimado'];
@@ -20,7 +20,7 @@ export const CONCEPTOS_POR_NIVEL = Object.freeze({
   10: { ids: intercambios },
 });
 
-const herramientaConcepto = { estacion: 'estaciones', linea: 'lineas', conexion: 'conexiones', unidad: 'metros', 'cantidad-unidades': 'metros', velocidad: 'metros', simulacion: 'simulacion', duracion: 'simulacion', 'tiempo-estimado': 'simulacion' };
+const herramientaConcepto = { estacion: 'estaciones', linea: 'lineas', tramo: 'lineas', conexion: 'conexiones', unidad: 'metros', 'cantidad-unidades': 'metros', velocidad: 'metros', simulacion: 'simulacion', duracion: 'simulacion', 'tiempo-estimado': 'simulacion' };
 const validos = ids => ids.filter(id => obtenerConcepto(id)?.definicion);
 export function conceptosDelNivel(escenario) {
   const configuracion = CONCEPTOS_POR_NIVEL[escenario?.numero];

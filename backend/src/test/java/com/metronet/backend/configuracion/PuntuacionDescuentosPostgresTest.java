@@ -91,11 +91,11 @@ class PuntuacionDescuentosPostgresTest {
             Integer.class, java.util.UUID.randomUUID()+"@example.test");
         recorrido.publicar(admin);
         // Publicación de prueba con un máximo explícito, usando el flujo administrativo existente.
-        // El catálogo de producción no se modifica ni se interpreta un mínimo como un máximo.
+        // Aísla el máximo explícito del descuento por cantidades adicionales de la campaña.
         var borrador = niveles.borrador(1);
         var c = borrador.contenido();
         com.fasterxml.jackson.databind.node.ObjectNode reglas = c.path("reglasExito").deepCopy();
-        reglas.remove(java.util.List.of("minimoEstaciones", "configuracionRecorrido"));
+        reglas.remove(java.util.List.of("minimoEstaciones", "configuracionRecorrido", "penalizarElementosAdicionales"));
         ((com.fasterxml.jackson.databind.node.ObjectNode)reglas.path("textosMetas")).remove("minimoEstaciones");
         reglas.put("maximoEstaciones", 2);
         var guardado = niveles.guardar(1, new EdicionNivelRequest(borrador.versionBase(), borrador.revision(),

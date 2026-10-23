@@ -33,6 +33,7 @@ class DisenoAdministracionServiceTest {
             contains("FROM diseno"), eq(Boolean.class), any(Object[].class)
         )).thenReturn(true);
         when(jdbcTemplate.update(eq("DELETE FROM diseno WHERE id_diseno = ?"), any(Object[].class))).thenReturn(1);
+        when(jdbcTemplate.update(contains("UPDATE intento i SET id_diseno = NULL"), any(Object[].class))).thenReturn(1);
         when(jdbcTemplate.query(
             contains("COALESCE(e.progresivo, FALSE) = FALSE"),
             ArgumentMatchers.<RowMapper<Integer>>any(),
@@ -56,6 +57,7 @@ class DisenoAdministracionServiceTest {
             contains("FROM diseno"), eq(Boolean.class), any(Object[].class)
         )).thenReturn(true);
         when(jdbcTemplate.update(eq("DELETE FROM diseno WHERE id_diseno = ?"), any(Object[].class))).thenReturn(1);
+        when(jdbcTemplate.update(contains("UPDATE intento i SET id_diseno = NULL"), any(Object[].class))).thenReturn(1);
         when(jdbcTemplate.query(
             contains("COALESCE(e.progresivo, FALSE) = FALSE"),
             ArgumentMatchers.<RowMapper<Integer>>any(),
@@ -84,15 +86,19 @@ class DisenoAdministracionServiceTest {
     }
 
     @Test
-    void laEliminacionAdministrativaNoUsaElBloqueoDeEdicionDeLogros() {
+    void separaLogrosAntesDeBorrarYConservaElBloqueoDeEdicion() {
         when(jdbcTemplate.queryForObject(
             contains("FROM diseno"), eq(Boolean.class), any(Object[].class)
         )).thenReturn(true);
         when(jdbcTemplate.update(eq("DELETE FROM diseno WHERE id_diseno = ?"), any(Object[].class))).thenReturn(1);
+        when(jdbcTemplate.update(contains("UPDATE intento i SET id_diseno = NULL"), any(Object[].class))).thenReturn(1);
 
         crearServicio().eliminarDiseno(25);
 
-        verify(jdbcTemplate).update("DELETE FROM diseno WHERE id_diseno = ?", 25);
+        InOrder orden = inOrder(jdbcTemplate);
+        orden.verify(jdbcTemplate).queryForList(contains("FOR UPDATE"), eq(Integer.class), eq(25));
+        orden.verify(jdbcTemplate).update(contains("UPDATE intento i SET id_diseno = NULL"), eq(25));
+        orden.verify(jdbcTemplate).update("DELETE FROM diseno WHERE id_diseno = ?", 25);
         verify(jdbcTemplate, never()).queryForObject(
             contains("JOIN escenario escenarioJuego"), eq(Boolean.class), any(Object[].class)
         );
@@ -114,6 +120,6 @@ class DisenoAdministracionServiceTest {
     }
 
     private DisenoAdministracionService crearServicio() {
-        return new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbcTemplate), org.mockito.Mockito.mock(RestriccionesGeograficasService.class));
+        return new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbcTemplate), org.mockito.Mockito.mock(RestriccionesGeograficasService.class), new com.metronet.backend.repository.ConexionesLineasRepository(jdbcTemplate));
     }
 }

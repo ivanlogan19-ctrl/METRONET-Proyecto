@@ -35,7 +35,7 @@ class RestriccionesGeograficasPostgresTest {
                 var mapper = new ObjectMapper();
                 var geografia = new GeografiaService(mapper);
                 var restricciones = new RestriccionesGeograficasService(new com.metronet.backend.repository.RestriccionesGeograficasRepository(jdbc), mapper, geografia);
-                var admin = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones);
+                var admin = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones, new com.metronet.backend.repository.ConexionesLineasRepository(jdbc));
                 var simulacion = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, admin, new ObjetivosPuntosInteresService(mapper, geografia), org.mockito.Mockito.mock(JuegoEducativoService.class), restricciones);
                 simulacion.crearEstacion(idUsuario, id, new CrearEstacionSimulacionRequest("Válida", new BigDecimal("710.1234"), new BigDecimal("460")));
                 var error = assertThrows(ResponseStatusException.class, () -> simulacion.crearEstacion(idUsuario, id,

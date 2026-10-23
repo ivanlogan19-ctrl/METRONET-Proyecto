@@ -1453,7 +1453,10 @@ html:root body #metronet-panel-controles .metronet-herramientas__barra button.me
 html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:not(:disabled):hover {
   background: color-mix(in srgb, var(--herramienta-color) 80%, white) !important;
 }
-html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:disabled { opacity: .5; }
+html:root body #metronet-panel-controles .metronet-herramientas__barra button.metronet-boton-icono:disabled {
+  --herramienta-color: #818b98;
+  opacity: .65;
+}
 
 .metronet-consigna__indicador-objetivo.es-estrella path {
   stroke: #bc7d12;

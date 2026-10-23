@@ -10,9 +10,10 @@ test('Cambiar acción modifica su regla real y retira la anterior sin tocar las 
  cambiarMeta(r,'minimoTramos',false);cambiarMeta(r,'aprendizajeSimulacion:velocidad',true);
  assert.equal(r.minimoTramos,undefined);assert.equal(r.aprendizajeSimulacion.velocidad,true);assert.equal(r.minimoEstaciones,2);assert.equal(metasActivas(r).length,5);
 });
-test('Avisa herramientas incompatibles sin confundir Línea con extender Conexión',async()=>{
+test('Avisa herramientas incompatibles sin confundir los tramos con las conexiones entre líneas',async()=>{
  const {avisosMetas}=await cargar(),r=structuredClone(niveles[0].reglasExito),h={...niveles[0].herramientasHabilitadas,conexiones:false};
- assert.equal(avisosMetas(r,h).length,0);r.minimoTramos=2;assert.match(avisosMetas(r,h).join(' '),/Conexiones/);
+ assert.equal(avisosMetas(r,h).length,0);r.minimoTramos=2;assert.equal(avisosMetas(r,h).length,0);
+ r.minimoConexionesLineas=1;assert.match(avisosMetas(r,h).join(' '),/Conexión/);
  h.estaciones=false;assert.match(avisosMetas(r,h).join(' '),/Estaciones/);
 });
 test('La presentación por línea respeta el texto editorial validado',async()=>{

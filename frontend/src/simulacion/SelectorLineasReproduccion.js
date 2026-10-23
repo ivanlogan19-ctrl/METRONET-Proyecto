@@ -1,3 +1,4 @@
+import { nombreRecorrido, fondoRecorrido } from '../mapa/configuracion/RecorridosRed.js';
 import { coloresDeLineas, nombreVisibleLinea } from '../mapa/configuracion/PaletaRed.js';
 import { representantesLineas } from './VinculoUvUtLibre.js';
 
@@ -12,7 +13,7 @@ export default class SelectorLineasReproduccion {
     this.pagina = 0;
     this.elemento = document.createElement('section');
     this.elemento.className = 'simulacion-reproduccion simulacion-territorio-panel';
-    this.elemento.innerHTML = `<h3 class="simulacion-seccion-titulo">Líneas a reproducir</h3>
+    this.elemento.innerHTML = `<h3 class="simulacion-seccion-titulo">Línea o conexión a reproducir</h3>
       <button type="button" class="simulacion-lineas-todas" aria-pressed="true"><i aria-hidden="true"></i>Todas</button>
       <div class="simulacion-reproduccion__lineas"></div>
       <nav class="simulacion-lineas-paginas" aria-label="Páginas de líneas">
@@ -32,6 +33,7 @@ export default class SelectorLineasReproduccion {
   }
 
   establecerDiseno(diseno) {
+    this.diseno = diseno;
     const anteriores = new Set(this.lineas?.map(l => l.nombreLinea) ?? []);
     this.lineas = representantesLineas(diseno.unidadesMetro ?? []);
     this.colores = coloresDeLineas(diseno.lineas ?? []);
@@ -56,9 +58,9 @@ export default class SelectorLineasReproduccion {
       boton.type = 'button'; boton.dataset.lineaReproducir = linea.nombreLinea;
       boton.setAttribute('aria-pressed', String(this.seleccion.has(linea.nombreLinea)));
       const indicador = document.createElement('i'); indicador.setAttribute('aria-hidden', 'true');
-      const nombre = document.createElement('span'); nombre.textContent = nombreVisibleLinea(this.colores.get(linea.nombreLinea));
+      const nombre = document.createElement('span'); nombre.textContent = nombreRecorrido(this.diseno, linea.nombreLinea);
       const muestra = document.createElement('b'); muestra.className = 'simulacion-color-linea';
-      muestra.style.backgroundColor = colorDeLineaCss(this.colores, linea.nombreLinea);
+      muestra.style.background = fondoRecorrido(this.diseno, linea.nombreLinea);
       muestra.setAttribute('aria-hidden', 'true');
       boton.append(indicador, nombre, muestra);
       boton.addEventListener('click', () => {

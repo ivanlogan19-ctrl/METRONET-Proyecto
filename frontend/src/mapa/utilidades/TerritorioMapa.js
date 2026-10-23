@@ -44,7 +44,7 @@ export default class TerritorioMapa {
   errorMovimiento(posicion, nombre, diseno) {
     const error = this.errorEstacion(posicion);
     if (error || !nombre) return error;
-    for (const tramo of diseno?.tramos ?? []) {
+    for (const tramo of [...(diseno?.tramos ?? []), ...(diseno?.conexionesLineas ?? [])]) {
       const vecino = tramo.estacionA === nombre ? tramo.estacionB : tramo.estacionB === nombre ? tramo.estacionA : null;
       if (!vecino) continue;
       const otro = diseno.estaciones.find(e => e.nombre === vecino);

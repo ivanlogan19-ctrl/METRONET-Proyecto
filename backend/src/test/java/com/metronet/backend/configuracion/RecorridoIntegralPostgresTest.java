@@ -126,6 +126,7 @@ class RecorridoIntegralPostgresTest {
         int escenario=jdbc.queryForObject("SELECT id_escenario FROM escenario WHERE progresivo AND numero=4",Integer.class);
         // Fixture de la versión anterior, sin ejecutar sus reglas con el motor nuevo.
         jdbc.update("UPDATE nivel_publicacion SET contenido=jsonb_set(contenido,'{desafio,recorrido}',to_jsonb('integral-2026-10-objetivos-reales-km-v3'::text)) WHERE id_escenario=?",escenario);
+        jdbc.update("UPDATE nivel_borrador SET contenido=jsonb_set(contenido,'{desafio,recorrido}',to_jsonb('integral-2026-10-objetivos-reales-km-v3'::text)) WHERE id_escenario=?",escenario);
         var completo=juego.iniciarEscenario(otro,escenario);
         jdbc.update("UPDATE intento SET estado='COMPLETADO',puntaje=80,fecha_finalizacion=now() WHERE id_intento=?",completo.idIntento());
         var historia=contenido.deIntento(completo.idIntento(),otro);

@@ -12,6 +12,7 @@ public record SimulacionDetalleResponse(
     boolean preparadoParaSimular,
     List<String> observacionesSimulacion,
     ConfiguracionTerritorialResponse territorio,
-    boolean vinculoUvUtPorLinea
+    boolean vinculoUvUtPorLinea,
+    List<ConexionLineasResponse> conexionesLineas
 ) {
 }

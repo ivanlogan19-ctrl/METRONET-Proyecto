@@ -2,13 +2,13 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla: abrirBase } = require('./soporte/pantallas.cjs');
-// La presentación completa pertenece al nuevo Nivel 1; después solo hay prácticas incrementales.
+// Estas pruebas visuales usan una guía descriptiva; las prácticas de campaña se verifican en tutorial-recorrido-integral.
 async function abrirPantalla(navegador,ruta,opciones={}) {
   const vista = await abrirBase(navegador,ruta,{...opciones,responder:async req=>{
     const respuesta=await opciones.responder?.(req);
     if(respuesta) return respuesta;
     if(new URL(req.url()).pathname==='/api/juego/progreso') return {json:{
-      escenarios:[{idEscenario:42,numero:1,nombre:'Primer recorrido',cantidadIntentosCampana:1,estado:'COMPLETADO',desbloqueado:true,progreso:100}],numeroCampanaActual:1,nivelesCompletados:1,cantidadNiveles:10,
+      escenarios:[{idEscenario:42,numero:1,nombre:'Primer recorrido',reglasExito:{},cantidadIntentosCampana:1,estado:'COMPLETADO',desbloqueado:true,progreso:100}],numeroCampanaActual:1,nivelesCompletados:1,cantidadNiveles:10,
     }};
   }});
   if (ruta.startsWith('/simulacion.html')) await vista.pagina.getByRole('button', { name: 'Iniciar tutorial', exact: true }).click();
@@ -64,7 +64,7 @@ for (const anterior of ['presentado', 'omitido']) test(`Tutorial actualizado: re
 // Las prácticas de los niveles posteriores esperan acciones reales.
 for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: controles libres, cierre y repetición sin cambiar datos`, async t => {
   let campana = 1, disponible = true, uv = 4;
-  const escenario = { idEscenario: 44, numero: 1, nombre: 'Simulación', herramientasHabilitadas: { simulacion: true } };
+  const escenario = { idEscenario: 44, numero: 1, nombre: 'Simulación', reglasExito: {}, herramientasHabilitadas: { simulacion: true } };
   const red = { simulacion: { idDiseno: 77, idEscenario: 44, nombre: 'Red', modo: 'NIVEL', estado: 'VALIDADO' },
     estaciones: [{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],
     lineas:[{nombre:'Línea'}], tramos:[{nombreLinea:'Línea',estacionA:'A',estacionB:'B'}],
@@ -159,7 +159,7 @@ for (const width of [1440, 390]) test(`Tutorial visual de simulación ${width}: 
     assert.doesNotMatch(await tutorial.innerText(), /RECORRIDO\s*\/\/|\d+\s+DE\s+\d+/i);
     await tutorial.getByRole('button',{name:'Siguiente',exact:true}).click();
   }
-  assert.ok(titulosVisitados.includes('Elegir línea'));
+  assert.ok(titulosVisitados.includes('Elegir línea o conexión'));
   assert.ok(!titulosVisitados.includes('Vista del mapa'));
   assert.match(await tutorial.innerText(),/¡Listo para simular!/i);
   await tutorial.waitFor({state:'detached',timeout:5000});
@@ -288,7 +288,7 @@ test('Reiniciar la campaña vuelve a ofrecer el tutorial de Simulación', async 
       numeroCampanaActual:2, nivelesCompletados:0, modoLibreDesbloqueado:false,
     } };
     if (ruta === '/api/juego/recorrido/reiniciar') { campana = 2; return { json: {
-      escenarios: [{ idEscenario: 41, numero: 1, nombre: 'Red inicial', estado: 'DISPONIBLE', desbloqueado: true, progreso: 0 }],
+      escenarios: [{ idEscenario: 41, numero: 1, nombre: 'Red inicial', reglasExito: {}, estado: 'DISPONIBLE', desbloqueado: true, progreso: 0 }],
       numeroCampanaActual: 2, nivelesCompletados: 0, modoLibreDesbloqueado: false,
     } }; }
   } });
@@ -359,7 +359,7 @@ for (const modo of ['LIBRE', 'EDICION_LIBRE']) test(`Simulación ${modo}: ofrece
   await p.getByRole('heading', { name: 'Modo libre', exact: true }).waitFor();
   await p.getByRole('heading', { name: 'Simulación de Modo Libre', exact: true }).waitFor();
   await p.getByRole('button', { name: 'Recorrer las funciones', exact: true }).click();
-  for (const titulo of ['Mapa y entorno real', 'Línea a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Líneas a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
+  for (const titulo of ['Mapa y entorno real', 'Línea o conexión a configurar', 'Velocidad y tiempo vinculados', 'Tiempos fraccionarios', 'Distancias de la red', 'Reloj de estación', 'Cambiar el horario', 'Línea o conexión a reproducir', 'Reproducir la selección', 'Calles y avenidas', 'Tráfico sincronizado', 'Densidad de población', 'Desplazamientos sincronizados', 'Cobertura de las estaciones', 'Transparencia de las capas']) {
     await p.locator('.metronet-recorrido').getByRole('heading', { name: titulo, exact: true }).waitFor();
     const objetivo = await p.locator('.metronet-recorrido').getAttribute('data-objetivo');
     assert.equal(await p.locator(objetivo).first().isVisible(), true, `${titulo}: el control señalado debe estar visible`);
@@ -406,10 +406,10 @@ test('Regla: total por línea, teclado y distancias ausentes sin valores inventa
   const regla=p.locator('[data-medicion-distancias]');
   // La regla muestra la distancia de la línea seleccionada.
   await regla.focus(); await p.keyboard.press('Enter');
-  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 01 · 2,4 km');
+  await p.waitForFunction(()=>document.querySelector('[data-recorrido="Línea 01"]')?.textContent.includes('2,4 km'));
   await p.locator('.simulacion-selector-metros > summary').click();
   await p.locator('button[data-metro="2"]').click();
-  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 02 · 3,5 km');
+  await p.waitForFunction(()=>document.querySelector('[data-recorrido="Línea 02"]')?.textContent.includes('3,5 km'));
   await regla.focus(); await p.keyboard.press('Space');
   assert.equal(await p.locator('.metronet-mediciones').isVisible(),false);
   distancia=null;
@@ -418,10 +418,10 @@ test('Regla: total por línea, teclado y distancias ausentes sin valores inventa
   await p.locator('button[data-metro="2"]').click();
   await p.getByRole('button',{name:'Mostrar distancias en kilómetros',exact:true}).click();
   assert.equal(await p.locator('.metronet-mediciones__tramo').count(),1);
-  assert.equal(await p.locator('.metronet-mediciones__total').isVisible(),false,'No sumar una red incompleta');
+  assert.equal(await p.locator('[data-recorrido="Línea 02"]').count(),0,'No mostrar el total de una línea incompleta');
   await p.locator('.simulacion-selector-metros > summary').click();
   await p.locator('button[data-metro="1"]').click();
-  await p.waitForFunction(()=>document.querySelector('.metronet-mediciones__total').textContent==='Línea 01 · 2,4 km');
+  await p.waitForFunction(()=>document.querySelector('[data-recorrido="Línea 01"]')?.textContent.includes('2,4 km'));
   modo='NIVEL'; await p.reload();
   await p.locator('#velocidadUnidad').waitFor();
   assert.equal(await p.locator('[data-medicion-distancias],.metronet-mediciones').count(),0);

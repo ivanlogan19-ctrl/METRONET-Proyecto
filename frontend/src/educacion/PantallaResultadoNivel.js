@@ -51,10 +51,11 @@ export function mostrarResultadoNivel(nivel, evaluacion, { signal, mejorPuntajeA
         pendientes.className = 'metronet-resultado-nivel__motivo-descuento';
         const resumen = texto(pendiente ? 'h4' : 'summary', `Ejecución ${descuento.numeroEjecucion}`);
         const excesos = descuento.excesos ?? [];
-        if (!pendiente) resumen.append(texto('span', excesos.length ? 'Exceso sobre la consigna' : 'Sin nuevos avances'));
-        pendientes.append(resumen, texto('p', excesos.length
-          ? `Superaste: ${excesos.join('; ')}.`
-          : `${pendiente ? 'Sin nuevos avances; faltaba' : 'En esa ejecución faltaba'}: ${descuento.motivos.join('; ')}.`));
+        if (!pendiente) resumen.append(texto('span', excesos.length ? 'Exceso sobre la consigna' : 'Metas pendientes'));
+        const lista = document.createElement('ul');
+        const motivos = excesos.length ? excesos : descuento.motivos;
+        motivos.forEach(motivo => lista.append(texto('li', `${excesos.length ? 'Superaste' : 'Faltó cumplir'}: ${motivo}`)));
+        pendientes.append(resumen, lista);
         motivo.append(pendientes);
         item.append(motivo, texto('dd', `−${descuento.puntos}`)); desglose.append(item);
       }

@@ -9,9 +9,9 @@ export function funcionesCampana(escenario) {
   const r = escenario?.reglasExito ?? {}, h = escenario?.herramientasHabilitadas ?? {};
   const funciones = [];
   if (h.estaciones && h.lineas && h.metros) funciones.push('editor.basico');
-  if (r.minimoTramos >= 2) funciones.push('editor.extender');
+  if (r.minimoTramos >= 2 || r.configuracionRecorrido?.estacionesPorLinea?.some(n => n > 2)) funciones.push('editor.extender');
   if (r.puntosInteresObjetivo?.length) funciones.push('editor.poi');
-  if (r.minimoTransbordos || r.configuracionRecorrido?.redConectada) funciones.push('editor.transbordo');
+  if (r.minimoConexionesLineas) funciones.push('editor.conectar');
   const practica = r.configuracionRecorrido?.practica;
   if (practica && practica !== 'inicial') funciones.push(practica.endsWith('UT') ? 'simulacion.duracion' : 'simulacion.velocidad');
   for (const [clave, activa] of Object.entries(r.aprendizajeSimulacion ?? {}))
@@ -34,10 +34,10 @@ export function registrarFuncionesEnsenadas(id, funciones) {
 }
 
 // Cambiar una lección no borra lo aprendido en las demás.
-export const claveAprendizajeTutorial = clave => clave === 'editor.poi' ? 'editor.poi.v2' : clave;
+export const claveAprendizajeTutorial = clave => clave === 'editor.poi' ? 'editor.poi.v2' : ['editor.basico', 'editor.extender'].includes(clave) ? `${clave}.v2` : clave;
 export function describirFunciones(funciones) {
-  const nombres = { 'editor.extender':'extender recorridos con Conexión', 'editor.poi':'buscar puntos de interés y usar sus categorías, barrios y zonas',
-    'editor.transbordo':'conectar líneas mediante una estación compartida', 'simulacion.velocidad':'cambiar la velocidad UV y observar la UT calculada',
+  const nombres = { 'editor.extender':'extender recorridos con Línea', 'editor.poi':'buscar puntos de interés y usar sus categorías, barrios y zonas',
+    'editor.conectar':'unir estaciones de líneas diferentes con Conexión', 'simulacion.velocidad':'cambiar la velocidad UV y observar la UT calculada',
     'simulacion.duracion':'cambiar la duración UT y observar la UV calculada', 'simulacion.global':'ajustar todas las líneas',
     'simulacion.individual':'ajustar una sola línea', 'simulacion.combinacion':'comparar UV y UT juntas' };
   return funciones.map(c => nombres[c] ?? c).join(' y ');

@@ -106,7 +106,7 @@ class EscenaSimulacion extends Phaser.Scene {
     if (cambiaDiseno) this.capaPuntosInteres?.establecerCategoriasVisibles(leerCategoriasPoi(diseno.simulacion?.idDiseno));
     this.territorioMapa?.configurar(diseno.territorio);
     this.capaTerritorial?.dibujar();
-    this.motorSimulacion = new MotorSimulacion(diseno);
+    this.motorSimulacion = new MotorSimulacion(diseno, cambiaDiseno ? null : this.motorSimulacion);
     const libre = ['LIBRE', 'EDICION_LIBRE'].includes(diseno.simulacion?.modo);
     this.capaContextoGeografico?.establecerDisponible(libre);
     if (cambiaDiseno || !libre) { this.capasLibre?.eliminar(); this.capasLibre = null; }
@@ -117,6 +117,8 @@ class EscenaSimulacion extends Phaser.Scene {
     }
     if (this.capasLibre) this.motorSimulacion.seleccionarLineas([...this.capasLibre.selectorLineas.seleccion]);
     this.capaRedMetro.establecerDiseno(diseno);
+    // La recarga previa a ejecutar conserva la selección y el punto de partida.
+    this.capaRedMetro.iniciarRepresentacionSimulacion(this.motorSimulacion.obtenerEstado().unidades);
     this.capaPuntosInteres?.establecerPuntosObjetivo(this.obtenerPuntosInteresObjetivo());
     this.capaPuntosInteres?.establecerEstacionesReferencia(diseno.estaciones ?? []);
     this.seguimientoMetroActivo = false;

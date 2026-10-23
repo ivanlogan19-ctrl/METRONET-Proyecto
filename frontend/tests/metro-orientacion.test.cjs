@@ -9,6 +9,7 @@ const codigo = fs.readFileSync(`${__dirname}/../src/mapa/capas/CapaRedMetro.js`,
 const modulo = { exports: null };
 vm.runInNewContext(`${codigo}\nmodule.exports = CapaRedMetro;`, {
   module: modulo,
+  tramosDeRecorridos: d => [...(d.tramos ?? []), ...(d.conexionesLineas ?? []).map(c => ({ nombreLinea: `@conexion:${c.idConexion}`, estacionA: c.estacionA, estacionB: c.estacionB, distanciaKm: c.distanciaKm }))],
   COLORES_INTERFAZ_MAPA: { TEXTO: 0xffffff, FONDO: 0x000000 },
   FUENTES_INTERFAZ_MAPA: { SISTEMA: 'monospace' },
   colorMetro: () => 0xe99238,
@@ -145,12 +146,30 @@ for (const modo of ['editor', 'simulacion']) {
       assert.equal(JSON.stringify(tren.list[0].operaciones), dibujoInicial);
     }
   });
+
+  test(`${modo}: el tamaño del metro acompaña el zoom sin desplazarlo de la vía`, () => {
+    const { capa, camara } = preparar([100, 200], [700, 200]);
+    const tren = representar(capa, modo);
+    const dibujoInicial = JSON.stringify(tren.list[0].operaciones);
+    for (const zoom of [0.5, 1, 2, 4, 8, 1]) {
+      camara.zoom = zoom;
+      capa.manejadorPostUpdate();
+      assert.equal(34 * tren.scaleX * zoom, 17 * zoom, 'El ancho visible crece en la misma proporción que la vía');
+      assert.equal(18 * tren.scaleY * zoom, 9 * zoom, 'El alto visible mantiene su proporción');
+      assert.ok(20 * tren.scaleY * zoom <= 10 * zoom, 'El cuerpo y su borde caben en el ancho de la vía');
+      comprobarPosicion(tren, [100, 200], [700, 200], 0.5);
+      assert.equal(JSON.stringify(tren.list[0].operaciones), dibujoInicial);
+      assert.equal(capa.obtenerUnidadCercana({ x: tren.x + 15, y: tren.y })?.idTren, 1,
+        'Se puede seleccionar el cuerpo visible del metro al acercar');
+    }
+  });
 }
 
 test('El dibujo acompaña los kilómetros del motor y el reloj, aunque la escala visual de los tramos difiera', async () => {
   const url = codigo => 'data:text/javascript;base64,' + Buffer.from(codigo).toString('base64');
   const fuente = ruta => fs.readFileSync(`${__dirname}/../src/${ruta}`, 'utf8');
   const { default: Motor } = await import(url(fuente('simulacion/MotorSimulacion.js')
+    .replace('../mapa/configuracion/RecorridosRed.js', url(fuente('mapa/configuracion/RecorridosRed.js').replace('./PaletaRed.js', url(fuente('mapa/configuracion/PaletaRed.js')))))
     .replace('./EscalaSimulacion.js', url(fuente('simulacion/EscalaSimulacion.js')))
     .replace('../mapa/controles/NombresRed.js', url(fuente('mapa/controles/NombresRed.js')))));
   const { capa } = preparar([100, 200], [200, 200]);
@@ -176,5 +195,8 @@ test('El dibujo acompaña los kilómetros del motor y el reloj, aunque la escala
   const fin = motor.actualizar(18000);
   comprobar(fin, 3, 300);
   assert.equal(fin.estado, 'FINALIZADA');
-  comprobar(motor.reiniciar(20000), 0, 100);
+  comprobar(motor.reiniciar(20000), 0, 300);
+  comprobar(motor.actualizar(23000), 1, 260);
+  comprobar(motor.actualizar(27500), 2.5, 200);
+  comprobar(motor.actualizar(29000), 3, 100);
 });

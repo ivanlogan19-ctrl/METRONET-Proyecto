@@ -35,7 +35,7 @@ test('Registro: alias, plurales, límites de palabras, acentos, términos largos
       faltante: segmentarConceptos('Texto POI sin ayuda.', ['sin-definicion']), ids: CONCEPTOS.map(c => c.id) };
   }, modulo);
   assert.equal(resultado.segmentos.map(s => s.texto).join(''), resultado.texto);
-  assert.deepEqual(resultado.segmentos.filter(s => s.id).map(s => s.id), ['linea','estacion','conexion','conexion','poi','poi','transbordo','unidades-mapa']);
+  assert.deepEqual(resultado.segmentos.filter(s => s.id).map(s => s.id), ['linea','estacion','conexion','tramo','poi','poi','transbordo','unidades-mapa']);
   assert.equal(resultado.desconocido, null);
   assert.deepEqual(resultado.faltante, [{texto:'Texto POI sin ayuda.'}]);
   assert.equal(new Set(resultado.ids).size, resultado.ids.length);

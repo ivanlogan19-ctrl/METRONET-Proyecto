@@ -203,6 +203,25 @@ public class SimulacionController {
         simulacionService.eliminarLinea(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, nombreLinea);
     }
 
+    @PostMapping("/{idDiseno}/lineas/extender")
+    public void extenderLinea(@PathVariable Integer idDiseno, @RequestBody ActualizarTramoRequest solicitud,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion) {
+        simulacionService.extenderLinea(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, solicitud);
+    }
+
+    @PostMapping("/{idDiseno}/conexiones-lineas")
+    public com.metronet.backend.dto.ConexionLineasResponse conectarLineas(@PathVariable Integer idDiseno,
+        @RequestBody com.metronet.backend.dto.ConexionLineasRequest solicitud,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion) {
+        return simulacionService.crearConexionLineas(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, solicitud);
+    }
+
+    @DeleteMapping("/{idDiseno}/conexiones-lineas/{idConexion}")
+    public void eliminarConexionLineas(@PathVariable Integer idDiseno, @PathVariable long idConexion,
+        @RequestHeader(value = "Authorization", required = false) String autorizacion) {
+        simulacionService.eliminarConexionLineas(obtenerJugador(autorizacion).getIdUsuario(), idDiseno, idConexion);
+    }
+
     @PostMapping("/{idDiseno}/tramos")
     public void crearTramo(
         @PathVariable Integer idDiseno,

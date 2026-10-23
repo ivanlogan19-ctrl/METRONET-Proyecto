@@ -22,7 +22,10 @@ class ReferenciasRecorridoTest {
                 String etiqueta = "Nivel " + nivel.path("numero").asInt();
                 var reglas = nivel.path("reglasExito");
                 assertEquals(reglas.path("minimoEstaciones").asInt(), red.path("estaciones").size(), etiqueta);
-                assertEquals(reglas.path("minimoTramos").asInt(), red.path("tramos").size(), etiqueta);
+                int tramos = 0;
+                for (var cantidad : reglas.path("configuracionRecorrido").path("estacionesPorLinea")) tramos += cantidad.asInt() - 1;
+                assertEquals(tramos, red.path("tramos").size(), etiqueta);
+                assertEquals(reglas.path("minimoConexionesLineas").asInt(), red.path("conexionesLineas").size(), etiqueta);
                 var estaciones = new HashMap<String, GeometriaTerritorial.Punto>();
                 for (var e : red.path("estaciones")) {
                     var punto = geo.coordenadaGeografica(e.path("x").decimalValue(), e.path("y").decimalValue());
@@ -31,6 +34,8 @@ class ReferenciasRecorridoTest {
                 }
                 for (var t : red.path("tramos")) assertTrue(territorio.contieneSegmento(
                     estaciones.get(t.path("a").asText()), estaciones.get(t.path("b").asText())), etiqueta + " " + t);
+                for (var c : red.path("conexionesLineas")) assertTrue(territorio.contieneSegmento(
+                    estaciones.get(c.path("estacionA").asText()), estaciones.get(c.path("estacionB").asText())), etiqueta + " " + c);
             }
         }
     }

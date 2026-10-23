@@ -291,9 +291,10 @@ public class JuegoEducativoService {
     public void registrarPuntuacionSimulacion(Integer idUsuario, Integer idDiseno, Integer idSimulacion) {
         IntentoEvaluable intento = obtenerIntentoPorDiseno(idUsuario, idDiseno);
         if (intento == null || MODO_EDICION_LIBRE.equals(intento.modo())) return;
-        puntuacion.registrarEjecucion(idDiseno, idSimulacion, intento.reglasExito(),
-            evaluarCondiciones(intento, idDiseno).condiciones(),
-            CriterioUvUtService.excesos(criterioUvUt.resultadoDeSimulacion(idSimulacion)));
+        var condiciones = evaluarCondiciones(intento, idDiseno).condiciones();
+        var excesos = new ArrayList<>(CriterioUvUtService.excesos(criterioUvUt.resultadoDeSimulacion(idSimulacion)));
+        excesos.addAll(MetasRecorrido.excesos(leerJson(intento.reglasExito()), condiciones));
+        puntuacion.registrarEjecucion(idDiseno, idSimulacion, intento.reglasExito(), condiciones, excesos);
     }
 
     public java.util.List<DesempenoNivelResponse.MedicionUnidad> medirCirculacion(Integer idDiseno) { return puntuacion.medirUnidades(idDiseno); }
@@ -339,7 +340,7 @@ public class JuegoEducativoService {
     }
 
     private IntentoJuego obtenerIntentoActual(Integer idUsuario, Integer idEscenario, int numeroCampana) {
-        return repositorio.intentoActual(tieneEsquemaPublicaciones(), (resultado, fila) -> new IntentoJuego(resultado.getInt("id_intento"), resultado.getInt("id_diseno"), resultado.getString("estado"), resultado.getInt("progreso"),resultado.getObject("id_nivel_publicacion",Long.class)), idUsuario, idEscenario, numeroCampana).stream().findFirst().orElse(null);
+        return repositorio.intentoActual(tieneEsquemaPublicaciones(), (resultado, fila) -> new IntentoJuego(resultado.getInt("id_intento"), resultado.getObject("id_diseno", Integer.class), resultado.getString("estado"), resultado.getInt("progreso"),resultado.getObject("id_nivel_publicacion",Long.class)), idUsuario, idEscenario, numeroCampana).stream().findFirst().orElse(null);
     }
 
     private IntentoEvaluable obtenerIntentoPorDiseno(Integer idUsuario, Integer idDiseno) {
@@ -449,6 +450,13 @@ public class JuegoEducativoService {
             entero(reglas, "minimoMetros"),
             reglas.containsKey("minimoMetros")
         );
+        if (reglas.containsKey("minimoConexionesLineas")) {
+            var conexiones = repositorio.conexionesLineas(idDiseno);
+            int minimo = entero(reglas, "minimoConexionesLineas");
+            condiciones.add(new CondicionConsignaResponse("minimoConexionesLineas",
+                "Unir las líneas: " + minimo + " conexiones", conexiones.size(), minimo,
+                conexiones.size() >= minimo && MetasRecorrido.lineasConectadas(conexiones, entero(reglas, "minimoLineas"))));
+        }
         if (reglas.containsKey("maximoEstaciones")) {
             int maximo = entero(reglas, "maximoEstaciones");
             boolean valido = reglas.get("maximoEstaciones") instanceof Integer && maximo > 0

@@ -2,7 +2,8 @@
 export const accionesMetas = [
   ['minimoEstaciones', 'Ubicar estaciones', 'Ubicar al menos {cantidad} estaciones', 2],
   ['minimoLineas', 'Construir líneas', 'Crear al menos {cantidad} líneas', 1],
-  ['minimoTramos', 'Construir conexiones', 'Crear al menos {cantidad} conexiones', 1],
+  ['minimoTramos', 'Construir tramos de línea', 'Crear al menos {cantidad} tramos', 1],
+  ['minimoConexionesLineas', 'Conectar líneas diferentes', 'Unir las líneas: {cantidad} conexiones', 1],
   ['minimoMetros', 'Asignar metros', 'Asignar al menos {cantidad} unidades de metro', 1],
   ['minimoTransbordos', 'Conectar líneas con transbordos', 'Conectar al menos {cantidad} estaciones compartidas por dos líneas', 1],
   ['maximoEstaciones', 'Limitar las estaciones', 'Usar como máximo {cantidad} estaciones', 5],
@@ -45,8 +46,7 @@ export function avisosMetas(reglas, herramientas) {
   };
   necesita(reglas.minimoEstaciones || reglas.puntosInteresObjetivo?.length, 'estaciones', 'Habilitá Estaciones para cumplir estas metas.');
   necesita(reglas.minimoLineas || reglas.minimoTramos || reglas.requiereObjetivosMismaLinea, 'lineas', 'Habilitá Líneas para construir los recorridos.');
-  // Línea crea el primer tramo. Conexiones es necesaria para extender una línea.
-  necesita(Number(reglas.minimoTramos) > Math.max(1, Number(reglas.minimoLineas) || 1), 'conexiones', 'La consigna puede requerir extender una línea: habilitá Conexiones o comprobá la solución de referencia.');
+  necesita(reglas.minimoConexionesLineas, 'conexiones', 'Habilitá Conexión para unir líneas diferentes.');
   necesita(reglas.minimoMetros || reglas.requiereMetroPorLinea, 'metros', 'Habilitá Metros para asignar unidades.');
   necesita(reglas.requiereSimulacion || Object.values(reglas.aprendizajeSimulacion ?? {}).some(Boolean), 'simulacion', 'Habilitá Simulación para cumplir estas metas.');
   return avisos;

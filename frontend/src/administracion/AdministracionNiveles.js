@@ -8,7 +8,7 @@ import { configurarBotonIcono, iconoRetro } from '../interfaz/IconosRetro.js';
 
 const nombres = {
   minimoEstaciones:'Mínimo de estaciones', maximoEstaciones:'Máximo de estaciones', minimoLineas:'Mínimo de líneas',
-  minimoTramos:'Mínimo de conexiones', minimoMetros:'Mínimo de unidades', minimoTransbordos:'Mínimo de conexiones entre líneas',
+  minimoConexionesLineas:'Conexiones entre líneas', minimoTramos:'Mínimo de tramos', minimoMetros:'Mínimo de unidades', minimoTransbordos:'Mínimo de conexiones entre líneas',
   transbordosPorConexion:'Contar estaciones compartidas por líneas',
   requiereSimulacion:'Exigir simulación',
   requiereCoberturaPuntosInteres:'Cobertura de lugares objetivo', requiereObjetivosMismaLinea:'Lugares en una misma línea',
@@ -98,7 +98,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
         redReferencia:copiar(borrador.redReferencia),ayudas:copiar(contenido.ayudas ?? []),
         tarjetas:copiar(borrador.tarjetas),
       }};
-      for(const clave of ['estaciones','lineas','tramos','unidades','ejecuciones'])
+      for(const clave of ['estaciones','lineas','tramos','conexionesLineas','unidades','ejecuciones'])
         actual.datos.redReferencia[clave] ??= [];
       pintarLista(); anunciar('');
       contenedor.closest('.admin-contenido')?.scrollIntoView({block:'start'});
@@ -309,7 +309,7 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       if(reglasNoEditables.has(clave))continue;
       const fila=crear('div','','admin-niveles__regla');
       fila.dataset.reglaNivel=clave;
-      const pictograma={minimoLineas:'lineas',minimoMetros:'metros',minimoTramos:'conexiones',minimoTransbordos:'conexiones',minimoEstaciones:'estaciones'}[clave];
+      const pictograma={minimoLineas:'lineas',minimoMetros:'metros',minimoConexionesLineas:'conexiones',minimoTramos:'lineas',minimoTransbordos:'conexiones',minimoEstaciones:'estaciones'}[clave];
       if(pictograma){const icono=crear('span','','admin-niveles__icono-cantidad');icono.innerHTML=iconoRetro(pictograma);fila.append(icono);}
       const compuesta=valor && typeof valor==='object';
       if(compuesta)fila.classList.add('admin-niveles__regla--compuesta');
@@ -504,10 +504,11 @@ export function crearAdministracionNiveles({ contenedor, mensaje, token, urlServ
       estaciones:()=>({nombre:`E${red.estaciones.length+1}`,x:660,y:460,transbordo:false}),
       lineas:()=>({nombre:`Línea ${red.lineas.length+1}`}),
       tramos:()=>({linea:red.lineas[0]?.nombre??'',a:red.estaciones[0]?.nombre??'',b:red.estaciones[1]?.nombre??''}),
+      conexionesLineas:()=>({lineaA:red.lineas[0]?.nombre??'',estacionA:'',lineaB:red.lineas[1]?.nombre??'',estacionB:''}),
       unidades:()=>({linea:red.lineas[0]?.nombre??'',capacidad:300,uv:1}),
       ejecuciones:()=>({duracion:2,velocidad:1,unidades:red.unidades.map(u=>({uv:u.uv}))}),
     };
-    const titulos={estaciones:'Estaciones',lineas:'Líneas',tramos:'Conexiones',unidades:'Unidades',ejecuciones:'Ejecuciones de prueba'};
+    const titulos={estaciones:'Estaciones',lineas:'Líneas',tramos:'Tramos de línea',conexionesLineas:'Conexiones entre líneas',unidades:'Unidades',ejecuciones:'Ejecuciones de prueba'};
     const tipo=actual.redTipo??'estaciones';
     campo(tablas,'Elementos de referencia',tipo,valor=>{
       actual.redTipo=valor;actual.redIndice=0;pintarTablasRed();

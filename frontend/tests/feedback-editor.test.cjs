@@ -51,11 +51,11 @@ test('crear estaciones repetidas no muestra avisos que reduzcan el mapa', async 
 
 test('cambiar herramientas tras una conexión sin línea permite continuar sin modal', async t => {
   const { pagina, solicitudes } = await preparar(t);
-  await pagina.locator('[data-elegir-herramienta=conexiones]').click();
+  await pagina.locator('[data-elegir-herramienta=lineas]').click();
   const p = await puntoMapa(pagina,700,460); await pagina.mouse.click(p.x,p.y);
   assert.equal(await pagina.locator('[data-revisar-error]').isVisible(), false,
     await pagina.evaluate(() => editorPrueba.barraEstado?.ultimoError));
-  assert.equal(await pagina.locator('[data-elegir-herramienta=conexiones]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await pagina.locator('[data-elegir-herramienta=lineas]').getAttribute('aria-pressed'), 'true');
   await pagina.locator('[data-elegir-herramienta=estaciones]').click();
   assert.equal(await pagina.locator('[data-elegir-herramienta=estaciones]').getAttribute('aria-pressed'), 'true');
   assert.equal(await pagina.evaluate(() => editorPrueba.modo), 'crearEstacion');
@@ -199,10 +199,10 @@ for (const estado of [400, 409, 422]) {
   test(`validación HTTP ${estado}: advertencia corregible, conserva selección y permite reintentar`, async t => {
     const { pagina, solicitudes } = await preparar(t);
     let rechazar = true;
-    await pagina.route('**/api/simulaciones/77/tramos', route => rechazar
+    await pagina.route('**/api/simulaciones/77/lineas/extender', route => rechazar
       ? route.fulfill({ status: estado, json: { detail: 'La conexión no es válida. Revisá sus extremos.' } })
       : route.fallback());
-    await pagina.locator('[data-elegir-herramienta=conexiones]').click();
+    await pagina.locator('[data-elegir-herramienta=lineas]').click();
     await pagina.evaluate(() => editorPrueba.seleccionarElemento({
       tipo: 'tramo', valor: editorPrueba.disenoActual.tramos[0],
     }));

@@ -238,6 +238,11 @@ public class JuegoEducativoRepository {
         return jdbc.queryForObject("SELECT COUNT(*) FROM estacion WHERE id_diseno = ?", Integer.class, idDiseno);
     }
 
+    public java.util.List<java.util.List<String>> conexionesLineas(Integer diseno) {
+        return jdbc.query("SELECT linea_a,linea_b FROM conexion_lineas WHERE id_diseno=?",
+            (r, n) -> java.util.List.of(r.getString(1), r.getString(2)), diseno);
+    }
+
     public Integer contarLineas(Integer idDiseno) {
         return jdbc.queryForObject("SELECT COUNT(*) FROM linea WHERE id_diseno = ?", Integer.class, idDiseno);
     }

@@ -1,8 +1,11 @@
+import { tramosDeRecorridos } from '../mapa/configuracion/RecorridosRed.js';
 import { RITMOS as VELOCIDADES_ADMITIDAS, HORAS_INICIALES, duracionVisual, avanceEnKilometros, normalizarHoras } from './EscalaSimulacion.js';
 import { numeroMetroEnRed } from '../mapa/controles/NombresRed.js';
 
 export default class MotorSimulacion {
-  constructor(diseno) {
+  constructor(diseno, motorAnterior = null) {
+    // Estado visual de esta sesión: guardar UV/UT no devuelve los metros al origen.
+    this.extremos = new Map(motorAnterior?.extremos ?? []);
     this.diseno = diseno ?? {};
     this.rutas = this.crearRutas();
     this.estado = 'DETENIDA';
@@ -18,6 +21,7 @@ export default class MotorSimulacion {
 
   iniciar({ velocidad = 1, duracion = HORAS_INICIALES, ahora = 0 } = {}) {
     if (!this.rutas.length) return this.detener();
+    this.actualizarSentidos();
     this.velocidad = normalizarVelocidad(velocidad);
     this.ventanaVisual = normalizarHoras(duracion);
     this.duracion = Math.max(...this.rutas.map(u => u.duracionUt ?? this.ventanaVisual), this.rutas.length ? 0 : this.ventanaVisual);
@@ -57,6 +61,7 @@ export default class MotorSimulacion {
   }
 
   detener() {
+    this.actualizarSentidos();
     this.marcaInicio = null;
     this.tiempoAcumulado = 0;
     this.progreso = 0;
@@ -91,7 +96,21 @@ export default class MotorSimulacion {
       this.estado = 'FINALIZADA';
       this.finalizada = true;
     }
-    return this.obtenerEstado();
+    const estado = this.obtenerEstado();
+    estado.unidades.forEach((unidad, indice) => {
+      if (unidad.transitable && unidad.proximaEstacion === null) {
+        const ruta = this.rutas[indice];
+        this.extremos.set(ruta.idTren, { firma: ruta.firma, alFinal: !ruta.sentidoInverso });
+      }
+    });
+    return estado;
+  }
+
+  actualizarSentidos() {
+    this.rutas.forEach(ruta => {
+      const extremo = this.extremos.get(ruta.idTren);
+      ruta.sentidoInverso = extremo?.firma === ruta.firma && extremo.alFinal;
+    });
   }
 
   obtenerEstado() {
@@ -112,23 +131,34 @@ export default class MotorSimulacion {
 
   crearRutas() {
     const estacionesPorNombre = new Map(this.obtenerEstaciones().map((estacion) => [estacion.nombre, estacion]));
-    return this.obtenerUnidadesMetro().map((unidad) => ({
-      idTren: unidad.idTren,
-      identificador: `M-${numeroMetroEnRed(unidad.idTren, this.obtenerUnidadesMetro()) ?? '—'}`,
-      nombreLinea: unidad.nombreLinea,
-      velocidadUV: Number(unidad.velocidadPromedio) || 0,
-      duracionUt: Number.isFinite(unidad.duracionUt) && unidad.duracionUt > 0 ? unidad.duracionUt : null,
-      ruta: construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea),
-    }));
+    return this.obtenerUnidadesMetro().map((unidad) => {
+      const ruta = construirRuta(this.obtenerTramos(), estacionesPorNombre, unidad.nombreLinea);
+      const firma = JSON.stringify([unidad.nombreLinea, ruta.map(estacion =>
+        [estacion.nombre, estacion.posicionX, estacion.posicionY, estacion.distanciaDesdeAnteriorKm])]);
+      const extremo = this.extremos.get(unidad.idTren);
+      return {
+        idTren: unidad.idTren,
+        identificador: `M-${numeroMetroEnRed(unidad.idTren, this.obtenerUnidadesMetro()) ?? '—'}`,
+        nombreLinea: unidad.nombreLinea,
+        velocidadUV: Number(unidad.velocidadPromedio) || 0,
+        duracionUt: Number.isFinite(unidad.duracionUt) && unidad.duracionUt > 0 ? unidad.duracionUt : null,
+        ruta, firma,
+        sentidoInverso: extremo?.firma === firma && extremo.alFinal,
+      };
+    });
   }
 
   crearEstadoUnidad(unidad) {
     const nombresEstaciones = unidad.ruta.map((estacion) => estacion.nombre);
     const cantidadTramos = Math.max(0, nombresEstaciones.length - 1);
     const longitudes = unidad.ruta.slice(1).map(estacion => estacion.distanciaDesdeAnteriorKm);
+    if (unidad.sentidoInverso) { nombresEstaciones.reverse(); longitudes.reverse(); }
     const distanciaTotalKm = longitudes.reduce((total, km) => total + km, 0);
-    const distanciaRecorridaKm = Math.min(distanciaTotalKm,
-      avanceEnKilometros(unidad.velocidadUV, Math.min(this.progreso * this.duracion, unidad.duracionUt ?? this.ventanaVisual)));
+    const avanceKm = avanceEnKilometros(unidad.velocidadUV,
+      Math.min(this.progreso * this.duracion, unidad.duracionUt ?? this.ventanaVisual));
+    const tolerancia = Number.EPSILON * Math.max(1, distanciaTotalKm) * 8;
+    const distanciaRecorridaKm = avanceKm >= distanciaTotalKm - tolerancia
+      ? distanciaTotalKm : avanceKm;
     const progresoRuta = distanciaTotalKm > 0 ? distanciaRecorridaKm / distanciaTotalKm : 0;
     let indiceTramo = 0, distanciaPrevia = 0;
     while (indiceTramo < cantidadTramos - 1 && distanciaRecorridaKm >= distanciaPrevia + longitudes[indiceTramo]) {
@@ -146,7 +176,7 @@ export default class MotorSimulacion {
       velocidadUV: unidad.velocidadUV,
       duracionUt: unidad.duracionUt ?? this.ventanaVisual,
       tiempoAgotado: this.progreso * this.duracion >= (unidad.duracionUt ?? this.ventanaVisual),
-      progresoRuta,
+      progresoRuta: unidad.sentidoInverso ? 1 - progresoRuta : progresoRuta,
       distanciaTotalKm,
       distanciaRecorridaKm,
       utLlegada: unidad.velocidadUV > 0 ? distanciaTotalKm / unidad.velocidadUV : null,
@@ -162,7 +192,7 @@ export default class MotorSimulacion {
   }
 
   obtenerEstaciones() { return Array.isArray(this.diseno.estaciones) ? this.diseno.estaciones : []; }
-  obtenerTramos() { return Array.isArray(this.diseno.tramos) ? this.diseno.tramos : []; }
+  obtenerTramos() { return tramosDeRecorridos(this.diseno); }
   obtenerUnidadesMetro() { return Array.isArray(this.diseno.unidadesMetro) ? this.diseno.unidadesMetro : []; }
 }
 

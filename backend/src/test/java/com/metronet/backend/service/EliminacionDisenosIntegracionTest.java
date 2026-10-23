@@ -46,6 +46,8 @@ class EliminacionDisenosIntegracionTest {
             new FileSystemResource("../database/014_progresion_educativa.sql")
         ).execute(fuente);
         jdbc = new JdbcTemplate(fuente);
+        jdbc.execute("ALTER TABLE intento ALTER COLUMN id_diseno DROP NOT NULL");
+        jdbc.execute("ALTER TABLE intento ADD CONSTRAINT chk_intento_sin_diseno_completado CHECK (id_diseno IS NOT NULL OR estado IS NOT DISTINCT FROM 'COMPLETADO')");
         jdbc.execute("CREATE TABLE intento_catalogo_v1(id_intento INT, reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
         jdbc.execute("CREATE TABLE intento_uv_ut(id_intento INT, version INT, limite_ut INT, presupuesto_uv DECIMAL(8,2), reglas_exito VARCHAR, herramientas_habilitadas VARCHAR, objetivo VARCHAR, instrucciones VARCHAR)");
         jdbc.execute("CREATE TABLE resultado_uv_ut(id_simulacion INT, version INT, huella_problema VARCHAR, huella_ejecucion VARCHAR, limite_ut INT, presupuesto_uv DECIMAL(8,2), ut_ejecutadas INT, suma_uv DECIMAL(8,2), completo BOOLEAN, unidades VARCHAR)");
@@ -73,7 +75,7 @@ class EliminacionDisenosIntegracionTest {
         admin = "Bearer " + auth.iniciarSesionAdministrador(new LoginAdministradorRequest("admin", "prueba")).token();
         jugador = "Bearer " + auth.iniciarSesion(new LoginRequest("jugador@example.test", "prueba")).token();
         var restricciones = mock(RestriccionesGeograficasService.class);
-        var disenos = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones);
+        var disenos = new DisenoAdministracionService(new com.metronet.backend.repository.DisenoAdministracionRepository(jdbc), restricciones, new com.metronet.backend.repository.ConexionesLineasRepository(jdbc));
         var objetivos = mock(ObjetivosPuntosInteresService.class);
         when(objetivos.obtenerObjetivos(anyString())).thenReturn(List.of());
         var simulaciones = com.metronet.backend.service.ServiciosPrueba.crearSimulacion(jdbc, disenos, objetivos, mock(JuegoEducativoService.class), restricciones);
@@ -104,7 +106,7 @@ class EliminacionDisenosIntegracionTest {
     }
 
     @Test
-    void administradorPuedeBorrarCompletadoConIntentoPuntajeYRedSinBorrarElNivel() throws Exception {
+    void administradorBorraRedCompletadaConservandoIntentoPuntajeYResultados() throws Exception {
         var mapper = new ObjectMapper();
         var puntuacion = com.metronet.backend.service.ServiciosPrueba.crearPuntuacion(jdbc, mapper);
         assertEquals(100, puntuacion.ranking(8).puntajeTotal());
@@ -112,11 +114,12 @@ class EliminacionDisenosIntegracionTest {
         for (String tabla : List.of("diseno", "intento", "linea", "estacion", "pasa", "tramo", "metro")) {
             assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM " + tabla + " WHERE id_diseno=103", Integer.class), tabla);
         }
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM simulacion WHERE id_intento=303", Integer.class));
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM simulacion WHERE id_intento=303", Integer.class));
+        assertNull(jdbc.queryForObject("SELECT id_diseno FROM intento WHERE id_intento=303", Integer.class));
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM escenario WHERE id_escenario=203", Integer.class));
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM diseno WHERE id_diseno=102", Integer.class));
-        assertNull(jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=8", Integer.class));
-        assertEquals(0, puntuacion.ranking(8).puntajeTotal());
+        assertEquals(100, jdbc.queryForObject("SELECT SUM(puntaje) FROM intento WHERE id_usuario=8", Integer.class));
+        assertEquals(100, puntuacion.ranking(8).puntajeTotal());
         http.perform(get("/api/simulaciones").header("Authorization", jugador)).andExpect(jsonPath("$.length()").value(1));
     }
 

@@ -46,7 +46,7 @@ for (const width of [1440, 320]) test(`ADMIN ${width}: borrado de diseños propi
   assert.equal(await p.locator('#listaDisenosLibres [data-diseno="77"]').count(), 1);
   await p.getByRole('button', { name: 'Eliminar diseño: Nivel completado' }).click();
   assert.match(await p.locator('#nombreEliminarDiseno').innerText(), /Ana Prueba/);
-  assert.match(await p.locator('#alcanceEliminarDiseno').innerText(), /partida, puntaje y resultados/);
+  assert.match(await p.locator('#alcanceEliminarDiseno').innerText(), /completados conservarán sus logros, puntajes y resultados/);
   if (width === 1440) await p.locator('#confirmarEliminarDiseno').screenshot({path:'/tmp/eliminar-diseno-compacto.png'});
   await p.getByRole('button', { name: 'Cancelar', exact: true }).click();
   assert.equal(v.solicitudes.filter(s => s.method === 'DELETE').length, 0);
@@ -132,7 +132,7 @@ test('Administración: misma advertencia y retirada inmediata sin depender de ot
   }
   await p.locator('[data-vista="disenos"]').click();
   await p.locator('[data-eliminar-diseno="88"]').click();
-  assert.match(await p.locator('dialog[open]').innerText(), /intento, puntaje y resultados/);
+  assert.match(await p.locator('dialog[open]').innerText(), /se conservarán sus intentos, puntajes, resultados, progreso y desbloqueos/);
   await p.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
   await p.locator('[data-eliminar-diseno="88"]').waitFor({state:'detached'});
   assert.equal(await p.locator('[data-eliminar-diseno="88"]').count(), 0);

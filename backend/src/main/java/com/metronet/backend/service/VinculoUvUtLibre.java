@@ -48,7 +48,7 @@ public class VinculoUvUtLibre {
     }
     /** Un recorrido conectado y sin bifurcaciones; el motor también admite circuitos. */
     private Map<String, Double> longitudesValidas(int diseno) {
-        var tramos = distancias.tramos(diseno);
+        var tramos = distancias.recorridos(diseno);
         Map<String, Map<String, Set<String>>> grafos = new HashMap<>();
         Map<String, Double> km = new HashMap<>();
         for (var t : tramos) {

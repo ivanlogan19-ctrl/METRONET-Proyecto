@@ -3,14 +3,22 @@ const assert = require('node:assert/strict');
 const {abrirNavegador} = require('./soporte/navegador.cjs');
 const {abrirPantalla} = require('./soporte/pantallas.cjs');
 
-for (const modo of ['NIVEL','EDICION_LIBRE']) for (const parametro of ['UV','UT']) {
-  test(`${modo}: guardar ${parametro} conserva la cabecera y el mapa durante la lectura del servidor`, async t => {
+const selectoresEstables = ['.simulacion-encabezado', '.simulacion-lienzo-contenedor', '.metronet-aprender-acceso',
+  '.simulacion-accesos-titulo #tutorialPantallaSimulacion', '.simulacion-accesos-titulo .metronet-hud > summary',
+  '.simulacion-parametro-velocidad .simulacion-parametro-valor', '#seccionConfiguracion .simulacion-parametro-valor',
+  '.simulacion-mandos', '.simulacion-selector-metros', '.simulacion-reloj-digital'];
+
+for (const modo of ['NIVEL','EDICION_LIBRE']) for (const tipo of ['línea', 'conexión']) for (const parametro of ['UV','UT']) {
+  test(`${modo} ${tipo}: guardar ${parametro} conserva la cabecera y el mapa durante la lectura del servidor`, async t => {
     const navegador = await abrirNavegador(); t.after(() => navegador.close());
-    const unidad = {idTren:1,nombreLinea:'Azul',capacidad:300,velocidadPromedio:4,duracionUt:4};
+    const unidad = {idTren:1,nombreLinea:tipo === 'conexión' ? '@conexion:10' : 'Azul',capacidad:300,velocidadPromedio:4,duracionUt:4};
     const red = {
       simulacion:{idDiseno:77,idEscenario:modo==='NIVEL'?42:null,nombre:'Red de prueba',modo,estado:'VALIDADO'},
-      estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460}],
-      lineas:[{nombre:'Azul'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B',distanciaKm:16}],
+      estaciones:[{nombre:'A',posicionX:580,posicionY:470},{nombre:'B',posicionX:700,posicionY:460},
+        {nombre:'C',posicionX:760,posicionY:460},{nombre:'D',posicionX:820,posicionY:450}],
+      lineas:[{nombre:'Azul'},{nombre:'Roja'}],tramos:[{nombreLinea:'Azul',estacionA:'A',estacionB:'B',distanciaKm:16},
+        {nombreLinea:'Roja',estacionA:'C',estacionB:'D',distanciaKm:16}],
+      conexionesLineas:[{idConexion:10,lineaA:'Azul',lineaB:'Roja',estacionA:'B',estacionB:'C',distanciaKm:16}],
       unidadesMetro:[unidad],preparadoParaSimular:true,territorio:{areas:[],errores:[]},resultados:[],
     };
     let modificado=false, liberar, lectura;
@@ -38,19 +46,18 @@ for (const modo of ['NIVEL','EDICION_LIBRE']) for (const parametro of ['UV','UT'
     });
     await p.getByRole('button',{name:'Continuar',exact:true}).click();
     await p.locator('.metronet-aprender-acceso').waitFor();
-    const medir=()=>p.evaluate(()=>Object.fromEntries(['.simulacion-encabezado','.simulacion-lienzo-contenedor','.metronet-aprender-acceso','.simulacion-accesos-titulo #tutorialPantallaSimulacion','.simulacion-accesos-titulo .metronet-hud > summary'].map(s=>{
-      const e=document.querySelector(s),r=e.getBoundingClientRect();return [s,[r.x,r.y,r.width,r.height,e.hidden]];
-    })));
-    await p.evaluate(() => {
+    const medir=()=>p.evaluate(selectores=>Object.fromEntries(selectores.flatMap(s=>{
+      const e=document.querySelector(s); if (!e) return [];
+      const r=e.getBoundingClientRect(); return [[s,[r.x,r.y,r.width,r.height,e.hidden]]];
+    })),selectoresEstables);
+    await p.evaluate(selectores => {
       window.saltosGuardado = [];
       window.controlesAntesDeGuardar = [...document.querySelectorAll(
         '#desempenoNivel input, #desempenoNivel button, #desempenoNivel summary, .simulacion-accesos-titulo button, .simulacion-encabezado svg, #aplicarUnidadTiempo svg'
       )].map(control => ({control, etiqueta: control.closest('button, summary')?.getAttribute('aria-label') ?? control.id}));
-      const selectores = ['.simulacion-encabezado', '.simulacion-lienzo-contenedor',
-        '.metronet-aprender-acceso', '.simulacion-accesos-titulo #tutorialPantallaSimulacion',
-        '.simulacion-accesos-titulo .metronet-hud > summary'];
       const medir = () => selectores.map(selector => {
-        const elemento = document.querySelector(selector), r = elemento.getBoundingClientRect();
+        const elemento = document.querySelector(selector); if (!elemento) return [selector];
+        const r = elemento.getBoundingClientRect();
         return [selector, r.x, r.y, r.width, r.height, elemento.hidden];
       });
       const inicial = JSON.stringify(medir());
@@ -60,7 +67,7 @@ for (const modo of ['NIVEL','EDICION_LIBRE']) for (const parametro of ['UV','UT'
         window.observadorGuardado = requestAnimationFrame(observar);
       };
       window.observadorGuardado = requestAnimationFrame(observar);
-    });
+    }, selectoresEstables);
     const antes=await medir();
     const reducir=p.getByRole('button',{name:parametro==='UV'?'Reducir velocidad':'Reducir duración',exact:true});
     await reducir.click();
@@ -95,5 +102,67 @@ for (const modo of ['NIVEL','EDICION_LIBRE']) for (const parametro of ['UV','UT'
     });
     assert.deepEqual(saltos, [], 'Ni un fotograma debe desplazar el mapa o la botonera');
     assert.deepEqual(v.errores,[]);
+  });
+}
+
+for (const tipo of ['línea', 'conexión']) for (const parametro of ['UV', 'UT']) {
+  test(`FINALIZADA ${tipo}: guardar ${parametro} conserva reloj, mandos y extremo alcanzado`, async t => {
+    const navegador = await abrirNavegador(); t.after(() => navegador.close());
+    const unidad = { idTren: 1, nombreLinea: tipo === 'conexión' ? '@conexion:10' : 'Azul', capacidad: 300, velocidadPromedio: 4, duracionUt: 4 };
+    const red = {
+      simulacion: { idDiseno: 77, nombre: 'Red de prueba', modo: 'EDICION_LIBRE', estado: 'VALIDADO' },
+      estaciones: [{ nombre: 'A', posicionX: 580, posicionY: 470 }, { nombre: 'B', posicionX: 700, posicionY: 460 },
+        { nombre: 'C', posicionX: 760, posicionY: 460 }, { nombre: 'D', posicionX: 820, posicionY: 450 }],
+      lineas: [{ nombre: 'Azul' }, { nombre: 'Roja' }],
+      tramos: [{ nombreLinea: 'Azul', estacionA: 'A', estacionB: 'B', distanciaKm: 16 },
+        { nombreLinea: 'Roja', estacionA: 'C', estacionB: 'D', distanciaKm: 16 }],
+      conexionesLineas: [{ idConexion: 10, lineaA: 'Azul', lineaB: 'Roja', estacionA: 'B', estacionB: 'C', distanciaKm: 16 }],
+      unidadesMetro: [unidad], preparadoParaSimular: true, territorio: { areas: [], errores: [] }, resultados: [],
+    };
+    const vista = await abrirPantalla(navegador, '/simulacion.html?idDiseno=77', { responder: async req => {
+      const ruta = new URL(req.url()).pathname;
+      if (ruta === '/api/simulaciones/77') return { json: red };
+      if (ruta === '/api/simulaciones/77/unidades/1' && req.method() === 'PATCH') {
+        const datos = req.postDataJSON() ?? await req.frame().evaluate(() => window.datosGuardadoPrueba);
+        if (datos.parametroReferencia === 'UT') { unidad.duracionUt = datos.duracionUt; unidad.velocidadPromedio = 16 / datos.duracionUt; }
+        else { unidad.velocidadPromedio = datos.velocidadPromedio; unidad.duracionUt = 16 / datos.velocidadPromedio; }
+        return { json: unidad };
+      }
+    } });
+    t.after(() => vista.contexto.close());
+    const p = vista.pagina;
+    await p.route('**/src/simulacion/EscenaSimulacion.js*', async route => {
+      const respuesta = await route.fetch();
+      await route.fulfill({ response: respuesta, body: (await respuesta.text()).replace(
+        'resolver({ escena: this, destruir });', 'window.escenaPrueba = this; resolver({ escena: this, destruir });') });
+    });
+    await p.reload();
+    await p.waitForFunction(() => window.escenaPrueba?.motorSimulacion?.rutas.length === 1);
+    await p.getByRole('button', { name: 'Continuar', exact: true }).click();
+    await p.evaluate(() => {
+      const solicitar = window.fetch;
+      window.fetch = (url, opciones) => {
+        if (opciones?.method === 'PATCH') window.datosGuardadoPrueba = JSON.parse(opciones.body);
+        return solicitar(url, opciones);
+      };
+      const e = window.escenaPrueba;
+      e.game.loop.sleep();
+      e.iniciarAnimacion(1, 4);
+      e.update(e.motorSimulacion.marcaInicio + e.motorSimulacion.duracionVisual, 16);
+    });
+    const medir = () => p.evaluate(() => {
+      const e = window.escenaPrueba, tren = e.capaRedMetro.unidadesSimulacion.get('1');
+      return { reloj: document.querySelector('[data-hora-actual]').textContent,
+        posicion: [tren.x, tren.y],
+        mandos: [...document.querySelectorAll('.simulacion-mandos button')].map(b => [b.id, b.hidden, b.disabled]),
+        tiempo: document.querySelector('#tiempoSimulacion').textContent };
+    });
+    const antes = await medir();
+    assert.equal(antes.reloj, '12:00');
+    await p.locator(parametro === 'UV' ? '#velocidadUnidad' : '#duracionSimulacion').fill('2');
+    await p.locator(parametro === 'UV' ? '.simulacion-parametro-velocidad button[type="submit"]' : '#aplicarUnidadTiempo').click();
+    await p.locator('#velocidadUnidad:not(:disabled)').waitFor();
+    assert.deepEqual(await medir(), antes, 'Guardar no debe devolver el reloj al inicio ni alterar la posición o mandos del recorrido terminado');
+    assert.deepEqual(vista.errores, []);
   });
 }

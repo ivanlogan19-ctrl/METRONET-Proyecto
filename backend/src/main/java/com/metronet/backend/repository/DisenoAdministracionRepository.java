@@ -53,13 +53,26 @@ public class DisenoAdministracionRepository {
 
     public <T> List<T> unidades(RowMapper<T> mapeador, Integer idDiseno) {
         return jdbc.query("""
-            SELECT id_tren, nombre_linea, capacidad, velocidad_promedio
+            SELECT id_tren, COALESCE(nombre_linea, '@conexion:' || id_conexion) AS nombre_linea, capacidad, velocidad_promedio
             FROM metro WHERE id_diseno = ? ORDER BY id_tren
             """, mapeador, idDiseno);
     }
 
     public Boolean existeDiseno(Integer idDiseno) {
         return jdbc.queryForObject("SELECT EXISTS (SELECT 1 FROM diseno WHERE id_diseno = ?)", Boolean.class, idDiseno);
+    }
+
+    public void bloquearIntentosDelDiseno(Integer idDiseno) {
+        jdbc.queryForList("SELECT id_intento FROM intento WHERE id_diseno = ? FOR UPDATE", Integer.class, idDiseno);
+    }
+
+    public int conservarIntentosCompletados(Integer idDiseno) {
+        return jdbc.update("""
+            UPDATE intento i SET id_diseno = NULL
+            FROM escenario e
+            WHERE i.id_diseno = ? AND i.id_escenario = e.id_escenario
+              AND i.estado = 'COMPLETADO' AND e.progresivo = TRUE AND e.modo = 'NIVEL'
+            """, idDiseno);
     }
 
     public int eliminarDiseno(Integer idDiseno) {

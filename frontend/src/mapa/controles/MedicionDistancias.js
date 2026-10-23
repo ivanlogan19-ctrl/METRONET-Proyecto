@@ -1,5 +1,6 @@
 import { configurarBotonIcono } from '../../interfaz/IconosRetro.js';
 import './medicion-distancias.css';
+import { tramosDeRecorridos, nombreRecorrido, fondoRecorrido } from '../configuracion/RecorridosRed.js';
 
 const formatoKm = new Intl.NumberFormat('es-UY', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const valido = valor => typeof valor === 'number' && Number.isFinite(valor) && valor > 0;
@@ -56,17 +57,61 @@ export default class MedicionDistancias {
       this.total.className = 'metronet-mediciones__total';
     }
     const estaciones = new Map((diseno.estaciones ?? []).map(e => [e.nombre, e]));
-    this.tramos = diseno.tramos ?? [];
-    this.etiquetas = this.tramos.filter(t => valido(t.distanciaKm) && estaciones.has(t.estacionA) && estaciones.has(t.estacionB)).map(tramo => {
+    this.tramos = tramosDeRecorridos(diseno);
+    this.diseno = diseno;
+    const grupos = new Map();
+    for (const tramo of this.tramos) {
+      if (!grupos.has(tramo.nombreLinea)) grupos.set(tramo.nombreLinea, []);
+      grupos.get(tramo.nombreLinea).push(tramo);
+    }
+    this.recorridos = [...grupos].filter(([, tramos]) => tramos.every(t => valido(t.distanciaKm))).map(([nombre, tramos]) => ({
+      nombre, distanciaKm: tramos.reduce((s, t) => s + t.distanciaKm, 0),
+      tramo: tramos.reduce((a, b) => a.distanciaKm >= b.distanciaKm ? a : b),
+    }));
+    this.pagina = 0;
+    this.renderizarResumen();
+    this.etiquetas = this.recorridos.filter(r => estaciones.has(r.tramo.estacionA) && estaciones.has(r.tramo.estacionB)).map(recorrido => {
+      const tramo = { ...recorrido.tramo, distanciaKm: recorrido.distanciaKm };
       const elemento = document.createElement('span');
       elemento.className = 'metronet-mediciones__tramo';
       elemento.textContent = `${formatoKm.format(tramo.distanciaKm)} km`;
-      elemento.setAttribute('aria-label', `${tramo.nombreLinea}: ${tramo.estacionA} a ${tramo.estacionB}, ${elemento.textContent}`);
+      elemento.setAttribute('aria-label', `${nombreRecorrido(diseno, tramo.nombreLinea)}, distancia total ${elemento.textContent}`);
       elemento.dataset.distanciaKm = tramo.distanciaKm;
       return { elemento, tramo, origen: estaciones.get(tramo.estacionA), destino: estaciones.get(tramo.estacionB) };
     });
     this.overlay.replaceChildren(this.total, ...this.etiquetas.map(e => e.elemento));
     this.actualizarVisibilidad();
+  }
+
+  renderizarResumen() {
+    this.total.replaceChildren();
+    this.total.hidden = !this.recorridos.length;
+    const titulo = document.createElement('strong');
+    titulo.className = 'metronet-mediciones__titulo';
+    titulo.textContent = 'Distancia total';
+    const subtitulo = document.createElement('div');
+    subtitulo.textContent = 'Líneas y conexiones';
+    subtitulo.className = 'metronet-mediciones__subtitulo';
+    this.total.append(titulo, subtitulo);
+    for (const recorrido of this.recorridos.slice(this.pagina * 5, this.pagina * 5 + 5)) {
+      const fila = document.createElement('div'); fila.className = 'metronet-mediciones__fila';
+      fila.dataset.recorrido = recorrido.nombre;
+      const color = document.createElement('i'); color.style.background = fondoRecorrido(this.diseno, recorrido.nombre);
+      const nombre = document.createElement('span'); nombre.textContent = nombreRecorrido(this.diseno, recorrido.nombre);
+      const valor = document.createElement('b'); valor.textContent = `${formatoKm.format(recorrido.distanciaKm)} km`;
+      fila.append(color, nombre, valor); this.total.append(fila);
+    }
+    if (this.recorridos.length > 5) {
+      const paginas = Math.ceil(this.recorridos.length / 5);
+      const navegacion = document.createElement('div'); navegacion.className = 'metronet-mediciones__paginas';
+      for (const [texto, paso] of [['Anterior', -1], ['Siguiente', 1]]) {
+        const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = texto;
+        boton.disabled = this.pagina + paso < 0 || this.pagina + paso >= paginas;
+        boton.addEventListener('click', () => { this.pagina += paso; this.renderizarResumen(); this.posicionar(); });
+        navegacion.append(boton);
+      }
+      this.total.append(navegacion);
+    }
   }
 
   actualizarVisibilidad() {
@@ -92,17 +137,8 @@ export default class MedicionDistancias {
       const p = camara.matrixCombined.transformPoint(punto.x, punto.y);
       return { x: p.x * escalaX + rect.left - contenedor.left, y: p.y * escalaY + rect.top - contenedor.top };
     };
-    const seleccion = capa.elementoSeleccionado;
-    const linea = seleccion?.tipo === 'linea' ? seleccion.valor.nombre : seleccion?.valor?.nombreLinea;
-    const nombres = [...new Set(this.tramos.map(t => t.nombreLinea))];
-    const nombre = linea || (nombres.length === 1 ? nombres[0] : null);
-    const tramos = nombre ? this.tramos.filter(t => t.nombreLinea === nombre) : this.tramos;
-    const completo = tramos.length && tramos.every(t => valido(t.distanciaKm));
-    this.total.hidden = !completo;
-    const texto = completo ? `${nombre || 'Red'} · ${formatoKm.format(tramos.reduce((s, t) => s + t.distanciaKm, 0))} km` : '';
-    if (this.total.textContent !== texto) this.total.textContent = texto;
     const ocupados = [];
-    if (completo) ocupados.push({ x: contenedor.width - this.total.offsetWidth - 10, y: 10, w: this.total.offsetWidth, h: this.total.offsetHeight });
+    if (this.recorridos.length) ocupados.push({ x: contenedor.width - this.total.offsetWidth - 10, y: 10, w: this.total.offsetWidth, h: this.total.offsetHeight });
     // Protege los marcadores y trenes; el texto conserva su tamaño al acercar o girar.
     for (const p of capa.puntosEstaciones) {
       const s = proyectar(p);

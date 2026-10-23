@@ -25,9 +25,17 @@ public class DistanciasRedService {
                     geografia.coordenadaGeografica(r.getBigDecimal("bx"), r.getBigDecimal("lat_b")))), idDiseno);
     }
 
+    public List<TramoSimulacionResponse> recorridos(int idDiseno) {
+        var resultado = new java.util.ArrayList<>(tramos(idDiseno));
+        resultado.addAll(repositorio.conexiones((r, fila) -> new TramoSimulacionResponse(r.getString(1), r.getString(2), r.getString(3),
+            kilometros(geografia.coordenadaGeografica(r.getBigDecimal("ax"), r.getBigDecimal("ay")),
+                geografia.coordenadaGeografica(r.getBigDecimal("bx"), r.getBigDecimal("lat_b")))), idDiseno));
+        return resultado;
+    }
+
     public Map<String, Double> porLinea(int idDiseno) {
         Map<String, Double> resultado = new LinkedHashMap<>();
-        tramos(idDiseno).forEach(t -> resultado.merge(t.nombreLinea(), t.distanciaKm(), Double::sum));
+        recorridos(idDiseno).forEach(t -> resultado.merge(t.nombreLinea(), t.distanciaKm(), Double::sum));
         return resultado;
     }
 

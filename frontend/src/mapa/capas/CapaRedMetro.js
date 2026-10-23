@@ -1,3 +1,4 @@
+import { tramosDeRecorridos } from '../configuracion/RecorridosRed.js';
 import { calcularCrucesLineas } from '../utilidades/CrucesLineas.mjs';
 import { PALETA_RED, coloresDeLineas, colorMetro } from '../configuracion/PaletaRed.js';
 import GestosRed from '../controles/GestosRed.js';
@@ -14,6 +15,8 @@ const PROFUNDIDAD_METROS = 16;
 const RADIO_NODO_FUNCIONAL = 4;
 const RADIO_NODO_VISIBLE = RADIO_NODO_FUNCIONAL + 2;
 const ANCHO_VIA = 5;
+// El cuerpo y su borde ocupan el ancho exterior de la vía (10 px del mapa).
+const ESCALA_METRO = 0.5;
 const ANCHO_VIA_SELECCIONADA = 6;
 const DESPLAZAMIENTO_MARCADOR_ESTACION = 17;
 const ANCHO_MARCADOR_ESTACION = 18;
@@ -164,10 +167,26 @@ export default class CapaRedMetro {
     }));
     this.limitesEtiquetas = [];
     this.obtenerTramos().forEach((tramo) => this.dibujarTramo(tramo, estacionesPorNombre));
+    this.dibujarConexionesLineas(estacionesPorNombre);
     this.dibujarCruces(estaciones);
     estaciones.forEach((estacion, indice) => this.dibujarEstacion(estacion, indice));
     if (this.mostrarUnidadesEstaticas) this.obtenerUnidadesMetro().forEach((unidad, indice) => this.dibujarUnidad(unidad, indice));
     this.actualizarEscalaElementosGraficos(true);
+  }
+
+  dibujarConexionesLineas(estaciones) {
+    for (const conexion of this.diseno?.conexionesLineas ?? []) {
+      const a = estaciones.get(conexion.estacionA), b = estaciones.get(conexion.estacionB);
+      if (!a || !b) continue;
+      const desde = this.convertirPosicion(a.posicionX, a.posicionY);
+      const hasta = this.convertirPosicion(b.posicionX, b.posicionY);
+      const seleccionada = this.elementoSeleccionado?.tipo === 'conexionLinea' && this.elementoSeleccionado.valor.idConexion === conexion.idConexion;
+      const medio = { x: (desde.x + hasta.x) / 2, y: (desde.y + hasta.y) / 2 };
+      this.grafico.lineStyle(seleccionada ? 8 : 5, this.colorLinea(conexion.lineaA), 1);
+      this.grafico.lineBetween(desde.x, desde.y, medio.x, medio.y);
+      this.grafico.lineStyle(seleccionada ? 8 : 5, this.colorLinea(conexion.lineaB), 1);
+      this.grafico.lineBetween(medio.x, medio.y, hasta.x, hasta.y);
+    }
   }
 
   dibujarTramo(tramo, estaciones) {
@@ -212,7 +231,11 @@ export default class CapaRedMetro {
     const activa = this.elementoSeleccionado?.tipo === 'estacion' && this.elementoSeleccionado.valor.nombre === estacion.nombre;
     const destacada = seleccionada || activa;
     const transbordo = this.esTransbordo(estacion);
-    const colores = [...(this.lineasPorEstacion.get(estacion.nombre) ?? [])].map(nombre => this.colorLinea(nombre));
+    const nombres = new Set(this.lineasPorEstacion.get(estacion.nombre) ?? []);
+    for (const c of this.diseno?.conexionesLineas ?? []) {
+      if (c.estacionA === estacion.nombre || c.estacionB === estacion.nombre) { nombres.add(c.lineaA); nombres.add(c.lineaB); }
+    }
+    const colores = [...nombres].map(nombre => this.colorLinea(nombre));
     const color = colores[0] ?? PALETA_RED.estaciones.normal;
     this.dibujarNodoFuncional(punto, destacada, transbordo, color);
     this.marcadoresEstaciones.push(this.crearMarcadorEstacion(punto, destacada, transbordo, color, colores));
@@ -525,6 +548,8 @@ export default class CapaRedMetro {
       return;
     }
     if (this.modo === 'crearMetro') {
+      const conexion = this.obtenerConexionCercana(convertido.punto);
+      if (conexion) { this.alSeleccionar({ tipo: 'conexionLinea', valor: conexion }); return; }
       const tramos = this.obtenerTramosCercanos(convertido.punto);
       this.alSeleccionar(tramos.length ? {tipo:'tramos',valor:tramos} : null);
       return;
@@ -539,6 +564,8 @@ export default class CapaRedMetro {
       this.alSeleccionar({ tipo: 'estacion', valor: estacion });
       return;
     }
+    const conexion = this.obtenerConexionCercana(convertido.punto);
+    if (conexion) { this.alSeleccionar({ tipo: 'conexionLinea', valor: conexion }); return; }
     const tramo = this.obtenerTramoCercano(convertido.punto);
     if (tramo) this.alSeleccionar({ tipo: 'tramo', valor: tramo });
   }
@@ -576,8 +603,19 @@ export default class CapaRedMetro {
       const ruta = this.obtenerRuta(unidad.nombreLinea);
       const posicion = this.obtenerPuntoEnRuta(ruta, estado.progresoRuta ?? this.obtenerProgresoUnidad(indice));
       if (!posicion) return false;
-      return Phaser.Math.Distance.Between(punto.x, punto.y, posicion.x, posicion.y) <= 18 / this.escena.cameras.main.zoom;
+      const radioSeleccion = Math.max(18, 18 / this.escena.cameras.main.zoom);
+      return Phaser.Math.Distance.Between(punto.x, punto.y, posicion.x, posicion.y) <= radioSeleccion;
     })?.unidad ?? null;
+  }
+
+  obtenerConexionCercana(punto) {
+    const estaciones = new Map(this.obtenerEstaciones().map(e => [e.nombre, e]));
+    return (this.diseno?.conexionesLineas ?? []).map(conexion => {
+      const a = estaciones.get(conexion.estacionA), b = estaciones.get(conexion.estacionB);
+      if (!a || !b) return { conexion, distancia: Infinity };
+      return { conexion, distancia: this.distanciaPuntoTramo(punto, this.convertirPosicion(a.posicionX, a.posicionY),
+        this.convertirPosicion(b.posicionX, b.posicionY)) * this.escena.cameras.main.zoom };
+    }).filter(c => c.distancia <= TOLERANCIA_SELECCION.tramo).sort((a, b) => a.distancia - b.distancia)[0]?.conexion;
   }
 
   obtenerTramoCercano(punto) { return this.obtenerTramosCercanos(punto)[0] ?? null; }
@@ -604,7 +642,7 @@ export default class CapaRedMetro {
   obtenerRuta(nombreLinea) {
     if (this.rutasPorLinea.has(nombreLinea)) return this.rutasPorLinea.get(nombreLinea);
     const estaciones = new Map(this.obtenerEstaciones().map((estacion) => [estacion.nombre, estacion]));
-    const tramos = this.obtenerTramos().filter((tramo) => tramo.nombreLinea === nombreLinea);
+    const tramos = tramosDeRecorridos(this.diseno).filter((tramo) => tramo.nombreLinea === nombreLinea);
     if (!tramos.length) return [];
     const adyacencias = new Map();
     tramos.forEach((tramo, indice) => {
@@ -764,12 +802,12 @@ export default class CapaRedMetro {
     const rotacion = this.escena.cameras?.main?.rotation ?? 0;
     if (!forzar && this.zoomElementosGraficos === zoom && this.rotacionElementosGraficos === rotacion) return;
     const escala = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.125, 1);
-    const escalaMetro = Phaser.Math.Clamp(1 / Math.max(zoom, 0.01), 0.2, 1);
     this.marcadoresCruces.forEach(marcador => marcador.setScale(escala));
     this.etiquetasEstaciones.forEach((etiqueta) => etiqueta.setScale(escala));
     this.marcadoresEstaciones.forEach((marcador) => marcador.setScale(Phaser.Math.Clamp(escala, ESCALA_MINIMA_MARCADOR, 1)));
     const actualizarMetro = (unidad) => {
-      unidad.setScale(escalaMetro);
+      // La cámara escala el metro junto con la vía; no compensar su zoom.
+      unidad.setScale(ESCALA_METRO);
       this.orientarMetro(unidad);
     };
     this.unidadesEstaticas.forEach(actualizarMetro);
@@ -791,7 +829,8 @@ export default class CapaRedMetro {
   }
 
   esTransbordo(estacion) {
-    return (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1;
+    return (this.lineasPorEstacion.get(estacion.nombre)?.size ?? 0) > 1
+      || (this.diseno?.conexionesLineas ?? []).some(c => c.estacionA === estacion.nombre || c.estacionB === estacion.nombre);
   }
 
   esTramoSeleccionado(tramo) {

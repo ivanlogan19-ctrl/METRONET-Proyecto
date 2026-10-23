@@ -7,10 +7,13 @@ const PASOS_INTEGRAL = [
   ['.metronet-control-zoom__brujula', 'Rotación del mapa', 'Las flechas curvas giran el mapa a izquierda o derecha. La aguja señala el norte. Tocá la brújula para volver a colocar el norte arriba.'],
   ['.metronet-herramientas__barra', 'Herramientas', 'Estos símbolos permiten construir y editar la red. Solo aparecen disponibles los que corresponden al nivel.'],
   ['[data-elegir-herramienta="estaciones"]', 'Estación', 'Este símbolo permite colocar estaciones sobre el mapa.'],
-  ['[data-elegir-herramienta="lineas"]', 'Línea', 'Uní dos estaciones para crear la línea. Sus estaciones toman ese color; las compartidas son octagonales. Los rombos señalan cruces visuales, sin crear conexiones.'],
+  ['[data-elegir-herramienta="lineas"]', 'Línea', 'Uní dos estaciones con Línea. Seguí desde su extremo para extender el recorrido con el mismo color. Para otro recorrido, elegí Línea otra vez y empezá en una estación libre.'],
   ['[data-elegir-herramienta="seleccion"]', 'Selección', 'Seleccioná elementos existentes para consultar o editar sus propiedades.'],
+  ['[data-accion-edicion="mover"]', 'Mover', 'Seleccioná una estación y pulsá Mover para cambiar su ubicación en el mapa.'],
+  ['[data-accion-edicion="eliminar"]', 'Eliminar', 'Seleccioná un elemento y pulsá Eliminar. Revisá la confirmación antes de borrarlo.'],
+  ['[data-cancelar-herramienta]', 'Desmarcar', 'Limpia la selección o termina la herramienta activa sin borrar elementos.'],
   ['[data-guardar]', 'Guardar', 'El disquete conserva los cambios de tu red.'],
-  ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Elegí una vía y dos estaciones para extender una línea.'],
+  ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Conexión une estaciones de dos líneas distintas. Ambas conservan su color; las estaciones conectadas tienen un símbolo octagonal. Asigná un metro a la conexión: circula sólo entre sus dos extremos.'],
   ['[data-elegir-herramienta="metros"]', 'Metro', 'Tocá una vía con esta herramienta para asignarle una unidad.'],
   ['[data-ir-simulacion]', 'Simular', 'En Acciones podés pasar a Simulación después de guardar y comprobar la red.'],
   ['.metronet-aprender-acceso', 'Aprender', 'Abrí este botón para volver a ver las tarjetas educativas de este nivel.'],
@@ -18,7 +21,7 @@ const PASOS_INTEGRAL = [
   ['.metronet-consigna__cabecera', 'Metas del nivel', 'Este panel muestra las metas y su progreso. Cada meta cumplida se marca con una estrella.'],
 ];
 
-const PASOS = [...PASOS_CALLES, ...PASOS_INTEGRAL.slice(0,11),
+const PASOS = [...PASOS_CALLES, ...PASOS_INTEGRAL.slice(0,-3),
   ['.metronet-poi > summary', 'Referencias', 'La bandera amarilla permite mostrar referencias geográficas. Su buscador localiza un punto concreto.'],
   ...PASOS_INTEGRAL.slice(-3)];
 
@@ -37,8 +40,12 @@ export default class RecorridoInicial {
     this.togglePanel = document.querySelector('[data-panel-edicion-toggle]');
     this.panelCerrado = this.togglePanel?.getAttribute('aria-expanded') === 'false';
     if (this.panelCerrado) this.togglePanel.click();
-    this.pasos = (this.opciones.pasos ?? (this.opciones.integral ? PASOS_INTEGRAL : PASOS)).filter(([selector]) =>
-      this.opciones.pasosDinamicos || (this.opciones.senalarDeshabilitados ? senalable : visible)(document.querySelector(selector)));
+    this.pasos = (this.opciones.pasos ?? (this.opciones.integral ? PASOS_INTEGRAL : PASOS)).filter(([selector]) => {
+      const elemento = document.querySelector(selector);
+      if (selector === '[data-elegir-herramienta="conexiones"]' && this.opciones.conexionesRequeridas === false) return false;
+      if (selector.startsWith('[data-elegir-herramienta=') && elemento?.disabled) return false;
+      return this.opciones.pasosDinamicos || (this.opciones.senalarDeshabilitados ? senalable : visible)(elemento);
+    });
     if (this.opciones.libre) this.pasos = [PASO_MAPA_LIBRE,
       ...this.pasos.filter(paso => paso[0] !== '#metronet-mapa')];
     this.indice = 0;

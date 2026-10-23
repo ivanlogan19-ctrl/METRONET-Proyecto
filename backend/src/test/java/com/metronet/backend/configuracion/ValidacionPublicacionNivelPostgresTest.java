@@ -103,13 +103,22 @@ class ValidacionPublicacionNivelPostgresTest {
                     """));
                 var conEjecuciones=validador.validar(escenario4,admin,contenido4,red4,tarjetas4);
                 assertTrue(conEjecuciones.viable(),conEjecuciones.mensaje());
-                for (String herramienta : new String[]{"estaciones","lineas","conexiones","metros","simulacion"}) {
+                for (String herramienta : new String[]{"estaciones","lineas","metros","simulacion"}) {
                     ObjectNode bloqueado=contenido4.deepCopy();
                     ((ObjectNode)bloqueado.path("herramientasHabilitadas")).put(herramienta,false);
                     var imposible=validador.validar(escenario4,admin,bloqueado,red4,tarjetas4);
                     assertFalse(imposible.viable(),"La referencia requiere " + herramienta);
                     assertTrue(imposible.mensaje().contains("herramientas deshabilitadas"));
                 }
+                ObjectNode sinConexiones = contenido4.deepCopy();
+                ((ObjectNode)sinConexiones.path("herramientasHabilitadas")).put("conexiones", false);
+                assertTrue(validador.validar(escenario4, admin, sinConexiones, red4, tarjetas4).viable(),
+                    "Extender una línea usa Línea, no Conexión");
+                ObjectNode conUnion = red4.deepCopy();
+                conUnion.putArray("conexionesLineas").addObject().put("lineaA", "Principal").put("estacionA", "B")
+                    .put("lineaB", "Otra").put("estacionB", "C");
+                assertTrue(validador.validar(escenario4, admin, sinConexiones, conUnion, tarjetas4).mensaje()
+                    .contains("herramientas deshabilitadas"), "Una unión entre líneas sí requiere Conexión");
                 assertEquals(intentos,jdbc.queryForObject("SELECT COUNT(*) FROM intento",Integer.class));
                 assertEquals(simulacionesPrevias,jdbc.queryForObject("SELECT COUNT(*) FROM simulacion",Integer.class));
                 var borradores=new AdministracionNivelesService(new com.metronet.backend.repository.AdministracionNivelesRepository(jdbc),mapper);

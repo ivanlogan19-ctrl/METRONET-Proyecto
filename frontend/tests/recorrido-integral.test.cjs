@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const niveles=require('../src/educacion/recorrido-integral.json');
 const puntos=Object.values(require('../src/mapa/datos/puntos-interes.json').barrios).flatMap(b=>b.puntos);
-const herramientasPorRegla={minimoEstaciones:'estaciones',minimoLineas:'lineas',minimoTramos:'conexiones',minimoMetros:'metros',requiereMetroPorLinea:'metros',requiereSimulacion:'simulacion',aprendizajeSimulacion:'simulacion'};
+const herramientasPorRegla={minimoEstaciones:'estaciones',minimoLineas:'lineas',minimoTramos:'lineas',minimoConexionesLineas:'conexiones',minimoMetros:'metros',requiereMetroPorLinea:'metros',requiereSimulacion:'simulacion',aprendizajeSimulacion:'simulacion'};
 test('los objetivos POI no se repiten entre niveles del recorrido',()=>{
  const usados=new Map();
  for(const nivel of niveles) for(const punto of nivel.reglasExito.puntosInteresObjetivo||[]) {
@@ -26,9 +26,9 @@ for(const n of niveles) test(`consistencia del nivel ${n.numero}: reglas, herram
  if(n.reglasExito.minimoTransbordos) assert.match(n.instrucciones,/transbordo/);
 });
 test('progresión aprobada: líneas, estaciones y prácticas sin comparaciones obligatorias',()=>{
- assert.deepEqual(niveles.map(n=>n.reglasExito.minimoEstaciones),[2,3,4,5,7,8,9,10,11,13]);
+ assert.deepEqual(niveles.map(n=>n.reglasExito.minimoEstaciones),[2,3,4,4,6,7,8,9,10,13]);
  assert.deepEqual(niveles.map(n=>n.reglasExito.minimoMetros),[1,2,2,2,3,3,4,4,5,6]);
- assert.deepEqual(niveles.map(n=>n.reglasExito.configuracionRecorrido.estacionesPorLinea),[[2],[3],[2,2],[3,3],[3,3,3],[4,3,3],[4,4,3],[5,4,3],[4,4,3,3],[4,4,4,4]]);
+ assert.deepEqual(niveles.map(n=>n.reglasExito.configuracionRecorrido.estacionesPorLinea),[[2],[3],[2,2],[2,2],[2,2,2],[3,2,2],[3,3,2],[3,3,3],[3,3,2,2],[4,3,3,3]]);
  assert.deepEqual(niveles.slice(5).map(n=>n.reglasExito.configuracionRecorrido.practica),['aumentarUV','aumentarUT','reducirUT','reducirUV','cambiar']);
  for(const n of niveles){
   assert.equal(n.reglasExito.aprendizajeSimulacion,undefined);
@@ -39,4 +39,14 @@ test('progresión aprobada: líneas, estaciones y prácticas sin comparaciones o
 test('los POI son exactamente los aprobados y no exigen una línea concreta',()=>{
  assert.deepEqual(niveles.map(n=>(n.reglasExito.puntosInteresObjetivo||[]).map(p=>p.idPunto)),[[],[],[],[],[],[63],[2,25],[88,80],[92,103],[38,57,106]]);
  assert.ok(niveles.every(n=>!n.reglasExito.requiereObjetivosMismaLinea));
+});
+
+test('los diez niveles conservan cinco metas y hasta tres POI solo desde el nivel seis',()=>{
+ assert.deepEqual(niveles.map(n=>n.numero),[1,2,3,4,5,6,7,8,9,10]);
+ for(const n of niveles){
+  assert.equal(Object.keys(n.reglasExito.textosMetas).length,5,`Nivel ${n.numero}: cinco metas`);
+  const cantidad=(n.reglasExito.puntosInteresObjetivo||[]).length;
+  if(n.numero<6) assert.equal(cantidad,0);
+  else assert.ok(cantidad>=1 && cantidad<=3,`Nivel ${n.numero}: de uno a tres POI`);
+ }
 });

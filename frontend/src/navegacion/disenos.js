@@ -44,7 +44,7 @@ function iniciar() {
   };
 
   if (administrador) {
-    document.getElementById('alcanceEliminarDiseno').textContent = 'Se borrarán también su partida, puntaje y resultados. Puede cambiar el progreso y ranking. No se puede deshacer.';
+    document.getElementById('alcanceEliminarDiseno').textContent = 'Se borrará la red. Los niveles completados conservarán sus logros, puntajes y resultados. En los demás casos se borrará también la partida. No se puede deshacer.';
   }
 
   function crearFila(d) {

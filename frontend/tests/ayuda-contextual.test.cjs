@@ -92,7 +92,7 @@ test('errores, selección de extremos, referencias y circulación', () => {
   assert.equal(orientar({ ...c, error: 'La conexión atraviesa Centro, donde la consigna prohíbe tramos.' }).clave, 'error-territorio');
   assert.equal(orientar({ ...c, error: 'Hay conexiones duplicadas: A-B.' }).clave, 'error-recorrido');
   assert.equal(orientar({ ...c, modo: 'crearLinea', seleccionadas: ['A', 'B'] }).clave, 'crearLinea-2');
-  assert.match(orientar({ ...c, modo: 'crearTramo' }).pista, /línea activa/);
+  assert.match(orientar({ ...c, modo: 'crearTramo' }).pista, /otra línea construida/);
   const geo = contexto(niveles[3]); geo.consigna.condiciones.push(condicion('requiereCoberturaPuntosInteres', false));
   assert.equal(orientar({ ...geo, referencia: { id: 1 } }).clave, 'referencia-elegida');
   geo.diseno = { estaciones: [{}, {}], lineas: [{}] };

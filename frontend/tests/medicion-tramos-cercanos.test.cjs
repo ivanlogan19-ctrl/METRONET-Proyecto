@@ -63,8 +63,8 @@ test('La regla mantiene distancias paralelas, separadas y legibles al girar y ac
     }));
   };
   for (const caso of resultado) {
-    assert.equal(caso.total,'Red · 42,3 km');
-    assert.equal(caso.etiquetas.filter(e=>e.visible).length,4,JSON.stringify(caso));
+    assert.match(caso.total,/39,8 km/); assert.match(caso.total,/2,5 km/);
+    assert.equal(caso.etiquetas.filter(e=>e.visible).length,2,JSON.stringify(caso));
     for(const [i,e] of caso.etiquetas.entries()) {
       assert.ok(e.x>=0 && e.y>=0 && e.x+e.w<=1000 && e.y+e.h<=1000);
       assert.ok(![...caso.obstaculos,...caso.etiquetas.slice(i+1)].some(o=>solapa(e,o)));
