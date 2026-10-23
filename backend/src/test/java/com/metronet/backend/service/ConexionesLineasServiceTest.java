@@ -36,12 +36,12 @@ class ConexionesLineasServiceTest {
         verifyNoInteractions(geo);
     }
 
-    @Test void conexionFusionaSinAgregarTramos() {
+    @Test void conexionProlongaDesdeElExtremo() {
         red();
         servicio.crear(7, new ConexionLineasRequest("Azul", "C", "Verde", "D"));
-        verify(repo).fusionar(7, "Azul", "C", "D");
+        verify(repo).extender(7, "Azul", "C", "D");
         verify(repo).crear(7, new ConexionLineasRequest("Azul", "D", "Verde", "D"));
-        verify(geo).validarRecorrido(7, List.of("B", "D"));
+        verify(geo).validarRecorrido(7, List.of("C", "D"));
     }
 
     @Test void noConectaUnaLineaConsigoMisma() {
@@ -52,12 +52,11 @@ class ConexionesLineasServiceTest {
         verify(repo, never()).crear(anyInt(), any());
     }
 
-    @Test void fusionaTambienUnaEstacionIntermediaConservandoAmbosTramos() {
+    @Test void noCreaUnRamalDesdeUnaEstacionIntermedia() {
         red();
-        servicio.crear(7, new ConexionLineasRequest("Azul", "B", "Verde", "D"));
-        verify(repo).fusionar(7, "Azul", "B", "D");
-        verify(geo).validarRecorrido(7, List.of("A", "D"));
-        verify(geo).validarRecorrido(7, List.of("C", "D"));
+        assertThrows(ResponseStatusException.class, () -> servicio.crear(7, new ConexionLineasRequest("Azul", "B", "Verde", "D")));
+        verify(repo, never()).extender(anyInt(), anyString(), anyString(), anyString());
+        verifyNoInteractions(geo);
     }
 
     @Test void conexionDesdeEstacionLibreCreaUnaLineaDistinta() {
@@ -65,7 +64,7 @@ class ConexionesLineasServiceTest {
         servicio.crear(7,new ConexionLineasRequest("Rosa","Libre","Azul","B"));
         verify(repo).crearLinea(7,"Rosa","Libre","B");
         verify(repo).crear(7,new ConexionLineasRequest("Rosa","B","Azul","B"));
-        verify(repo,never()).fusionar(anyInt(),anyString(),anyString(),anyString());
+        verify(repo,never()).extender(anyInt(),anyString(),anyString(),anyString());
     }
 
     @Test void unaEstacionLibreNoPuedeReutilizarElNombreDeOtraLinea() {

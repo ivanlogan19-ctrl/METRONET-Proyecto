@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 /** Publicación explícita del recorrido aprobado, usando la validación y el historial existentes. */
 @Service
 public class RecorridoIntegralService {
-    public static final String VERSION = "integral-2026-10-estaciones-fusionadas-v9";
+    public static final String VERSION = "integral-2026-10-conexiones-sin-fusion-v10";
     private final AdministracionNivelesService borradores;
     private final PublicacionNivelService publicador;
     private final ObjectMapper mapper;
@@ -73,7 +73,7 @@ public class RecorridoIntegralService {
                 referencia(nivel),ayudas,tarjetasActualizadas(previo.tarjetas(), nivel)),idAdmin);
             resultado.add(publicarValidado(numero, guardado, idAdmin));
         }
-        // Cambio de dominio aprobado: sólo los intentos abiertos de v7/v8 adoptan la nueva consigna.
+        // Cambio de dominio aprobado: sólo los intentos abiertos de v7/v8/v9 adoptan la nueva consigna.
         // Conserva resultados, puntajes y campañas completadas; guarda su contrato anterior.
         for (var intento : repositorio.intentosEnCurso(VERSION)) {
             Object id = intento.get("id_intento"), publicacion = intento.get("id_nivel_publicacion");
@@ -194,6 +194,19 @@ public class RecorridoIntegralService {
                 tramos.addObject().put("linea", nombre).put("a", anterior).put("b", estacion);
                 anterior = estacion;
             }
+        }
+        // Cada línea empieza separada; la conexión prolonga su extremo sin retirar estaciones.
+        for (int indice = 0; indice < conexiones.size(); indice++) {
+            var conexion = conexiones.get(indice);
+            String linea = conexion.path("lineaB").asText(), destino = conexion.path("estacionB").asText();
+            JsonNode compartida = null;
+            for (var estacion : estaciones) if (estacion.path("nombre").asText().equals(destino)) compartida = estacion;
+            String origen = destino + "-separada-" + (indice + 1);
+            estaciones.addObject().put("nombre", origen).put("x", compartida.path("x").asDouble() - 50)
+                .put("y", compartida.path("y").asDouble() - (indice + 1) * 40);
+            for (var tramo : tramos) if (tramo.path("linea").asText().equals(linea) && tramo.path("a").asText().equals(destino))
+                ((ObjectNode) tramo).put("a", origen);
+            tramos.addObject().put("linea", linea).put("a", origen).put("b", destino);
         }
         var unidades = red.putArray("unidades");
         int metros = reglas.path("minimoMetros").asInt();

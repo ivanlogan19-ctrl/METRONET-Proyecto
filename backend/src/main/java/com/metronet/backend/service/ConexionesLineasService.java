@@ -44,16 +44,10 @@ public class ConexionesLineasService {
             repositorio.crearLinea(diseno, c.lineaA(), c.estacionA(), c.estacionB());
         } else if (!c.estacionA().equals(c.estacionB())) {
             if (pertenece(tramos, c.lineaA(), c.estacionB())
-                || tramos.stream().anyMatch(t -> !t.nombreLinea().equals(c.lineaA())
-                    && (t.estacionA().equals(c.estacionA()) || t.estacionB().equals(c.estacionA()))))
-                throw invalida("Elegí primero una estación sin conexión y después la estación donde se unirán las líneas");
-            // Reemplazar el punto de origen conserva los tramos de la línea, incluso en una curva.
-            for (var tramo : tramos) {
-                if (!extremo(tramo, c.lineaA(), c.estacionA())) continue;
-                String vecina = tramo.estacionA().equals(c.estacionA()) ? tramo.estacionB() : tramo.estacionA();
-                geografia.validarRecorrido(diseno, List.of(vecina, c.estacionB()));
-            }
-            repositorio.fusionar(diseno, c.lineaA(), c.estacionA(), c.estacionB());
+                || tramos.stream().filter(t -> extremo(t, c.lineaA(), c.estacionA())).count() != 1)
+                throw invalida("Elegí primero un extremo de la línea que querés prolongar y después una estación de otra línea");
+            geografia.validarRecorrido(diseno, List.of(c.estacionA(), c.estacionB()));
+            repositorio.extender(diseno, c.lineaA(), c.estacionA(), c.estacionB());
         }
         return repositorio.crear(diseno, new ConexionLineasRequest(c.lineaA(), c.estacionB(), c.lineaB(), c.estacionB()));
     }

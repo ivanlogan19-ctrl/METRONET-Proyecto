@@ -143,8 +143,10 @@ export default class CreacionDirecta {
         lineaA, lineaB, texto: `${this.nombreVisible(lineaA)} ↔ ${this.nombreVisible(lineaB)}`,
       }))).filter(o => !(e.disenoActual.conexionesLineas ?? []).some(c =>
         (c.lineaA === o.lineaA && c.lineaB === o.lineaB) || (c.lineaA === o.lineaB && c.lineaB === o.lineaA)));
-      this.elegirOpcion(opciones, opcion => this.guardarUnion([nombre, nombre], opcion));
-      return true;
+      if (opciones.length) {
+        this.elegirOpcion(opciones, opcion => this.guardarUnion([nombre, nombre], opcion));
+        return true;
+      }
     }
     if (e.estacionesSeleccionadas.length >= 2) {
       e.estacionesSeleccionadas = [];
@@ -188,6 +190,11 @@ export default class CreacionDirecta {
       if (!origen.length && destino.length || origen.length && !destino.length) {
         const recorrido = origen.length ? [...estaciones].reverse() : estaciones;
         const existentes = origen.length ? origen : destino;
+        // Al retomar una conexión, continuar la línea que termina allí, sin crear otra identidad.
+        const extensibles = existentes.length > 1 ? existentes.filter(nombre => e.disenoActual.tramos
+          .filter(t => t.nombreLinea === nombre && (t.estacionA === recorrido[1] || t.estacionB === recorrido[1])).length === 1) : [];
+        if (extensibles.length) return this.elegirOpcion(extensibles.map(nombre => ({ nombre, texto: this.nombreVisible(nombre) })),
+          opcion => this.guardarUnion([...recorrido].reverse(), opcion));
         const opciones = existentes.map(lineaB => ({ lineaA: siguienteNombre('Línea', e.disenoActual.lineas), lineaB, nuevaConexion: true,
           continuarDesde: estaciones[1], texto: this.nombreVisible(lineaB) }));
         return this.elegirOpcion(opciones, opcion => this.guardarUnion(recorrido, opcion));

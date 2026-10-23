@@ -143,7 +143,7 @@ class RecorridoIntegralPostgresTest {
     }
 
     @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings={"integral-2026-10-lineas-conexiones-v7","integral-2026-10-estaciones-compartidas-v8"})
+    @org.junit.jupiter.params.provider.ValueSource(strings={"integral-2026-10-lineas-conexiones-v7","integral-2026-10-estaciones-compartidas-v8","integral-2026-10-estaciones-fusionadas-v9"})
     void adaptaIntentoAbiertoSinAlterarPuntajesNiElNivelCompletado(String versionAnterior) throws Exception {
         int admin=jdbc.queryForObject("INSERT INTO usuario(nombre,email,password,rol) VALUES ('Migración','migracion-compartida@example.test','!sin-acceso','ADMIN') RETURNING id_usuario",Integer.class);
         recorrido.publicar(admin);

@@ -125,7 +125,7 @@ export function pasosPracticosEditor(numero, escenario) {
   ];
   if (nuevas.includes('editor.conectar')) return [
     ['[data-elegir-herramienta="conexiones"]', 'Conectá dos líneas', 'Línea crea o extiende un recorrido. Conexión une dos líneas distintas: construí ambas y elegí este botón.', 'conexion-elegida'],
-    [mapa, 'Uní sus estaciones', 'Tocá una estación de cada línea para fusionarlas. También podés trazar otra línea: estación libre, estación de la línea existente y otra libre.', 'conexion-creada'],
+    [mapa, 'Uní sus estaciones', 'Tocá un extremo y una estación de otra línea para prolongar la primera. También podés trazar: estación libre, estación de otra línea y otra libre.', 'conexion-creada'],
   ];
   return [];
 }

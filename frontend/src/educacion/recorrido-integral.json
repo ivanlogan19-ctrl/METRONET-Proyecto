@@ -18,7 +18,7 @@
         "redConectada": false,
         "metroPorLinea": true,
         "practica": "inicial",
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -70,7 +70,7 @@
         ],
         "redConectada": false,
         "metroPorLinea": true,
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -123,7 +123,7 @@
         ],
         "redConectada": false,
         "metroPorLinea": true,
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -160,8 +160,8 @@
   {
     "numero": 4,
     "nombre": "Nivel 4 · Unir dos líneas",
-    "objetivo": "Creá 5 estaciones y armá 2 líneas de 3, 2 estaciones. Fusioná sus estaciones para formar 1 conexión. Las estaciones fusionadas conservan su cumplimiento. Asigná 2 Metros, al menos uno por línea. Uní todas las líneas mediante 1 conexión. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 5 estaciones y armá 2 líneas de 3, 2 estaciones. Fusioná sus estaciones para formar 1 conexión. Las estaciones fusionadas conservan su cumplimiento. Asigná 2 Metros, al menos uno por línea. Uní todas las líneas mediante 1 conexión. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 5 estaciones y armá 2 líneas de 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 2 Metros, al menos uno por línea. Uní todas las líneas mediante 1 conexión. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 5 estaciones y armá 2 líneas de 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 2 Metros, al menos uno por línea. Uní todas las líneas mediante 1 conexión. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Básico",
     "reglasExito": {
       "minimoEstaciones": 5,
@@ -175,7 +175,7 @@
         ],
         "redConectada": false,
         "metroPorLinea": true,
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -203,7 +203,7 @@
       "concepto": "Unir dos líneas",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Ari acerca dos trazados que hasta entonces parecían proyectos separados. Sol encuentra un lugar donde podrían encontrarse y Dani imagina el viaje de quienes necesitarían usar ambos. La red empieza a ofrecer relaciones, sin que cada recorrido pierda su identidad.",
-      "consejo": "Creá 5 estaciones y armá 2 líneas de 3, 2 estaciones. Fusioná sus estaciones para formar 1 conexión. Las estaciones fusionadas conservan su cumplimiento. Asigná 2 Metros, al menos uno por línea. Uní todas las líneas mediante 1 conexión. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 5 estaciones y armá 2 líneas de 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 2 Metros, al menos uno por línea. Uní todas las líneas mediante 1 conexión. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
@@ -213,8 +213,8 @@
   {
     "numero": 5,
     "nombre": "Nivel 5 · Tres líneas",
-    "objetivo": "Creá 8 estaciones y armá 3 líneas de 3, 3, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 8 estaciones y armá 3 líneas de 3, 3, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 8 estaciones y armá 3 líneas de 3, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 8 estaciones y armá 3 líneas de 3, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Intermedio",
     "reglasExito": {
       "minimoEstaciones": 8,
@@ -229,7 +229,7 @@
         ],
         "redConectada": false,
         "metroPorLinea": true,
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -257,7 +257,7 @@
       "concepto": "Tres líneas",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Sol despliega una tercera alternativa sobre la mesa. El equipo descubre que sumar recorridos no alcanza: también importa cómo se relacionan. Entre apuntes y bocetos, el proyecto deja de ser una colección de líneas para empezar a funcionar como una red.",
-      "consejo": "Creá 8 estaciones y armá 3 líneas de 3, 3, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 8 estaciones y armá 3 líneas de 3, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Ejecutá la simulación. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
@@ -267,8 +267,8 @@
   {
     "numero": 6,
     "nombre": "Nivel 6 · Conexión oeste",
-    "objetivo": "Creá 9 estaciones y armá 3 líneas de 4, 3, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 9 estaciones y armá 3 líneas de 4, 3, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 9 estaciones y armá 3 líneas de 4, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 9 estaciones y armá 3 líneas de 4, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Intermedio",
     "reglasExito": {
       "minimoEstaciones": 9,
@@ -284,7 +284,7 @@
         "redConectada": false,
         "metroPorLinea": true,
         "practica": "aumentarUV",
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -319,7 +319,7 @@
       "concepto": "Conexión oeste",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Sol lleva al equipo hacia el oeste, donde el Parque Tecnológico Industrial del Cerro incorpora otra actividad al proyecto. Dani observa el ritmo del recorrido y propone ensayar una marcha más ágil. La distancia permanece; la manera de recorrerla comienza a cambiar.",
-      "consejo": "Creá 9 estaciones y armá 3 líneas de 4, 3, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 9 estaciones y armá 3 líneas de 4, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 3 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
@@ -329,8 +329,8 @@
   {
     "numero": 7,
     "nombre": "Nivel 7 · Goes y Carrasco",
-    "objetivo": "Creá 10 estaciones y armá 3 líneas de 4, 4, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 10 estaciones y armá 3 líneas de 4, 4, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 10 estaciones y armá 3 líneas de 4, 4, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 10 estaciones y armá 3 líneas de 4, 4, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Avanzado",
     "reglasExito": {
       "minimoEstaciones": 10,
@@ -346,7 +346,7 @@
         "redConectada": false,
         "metroPorLinea": true,
         "practica": "aumentarUT",
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -385,7 +385,7 @@
       "concepto": "Goes y Carrasco",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Ari despliega el mapa entre Goes y Carrasco. Los lugares tienen ritmos distintos y el equipo empieza a discutir qué significa dar más tiempo a un servicio. Sol recuerda que una red también debe pensarse desde la experiencia de quienes la usan.",
-      "consejo": "Creá 10 estaciones y armá 3 líneas de 4, 4, 2 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 10 estaciones y armá 3 líneas de 4, 4, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Aumentá UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
@@ -395,8 +395,8 @@
   {
     "numero": 8,
     "nombre": "Nivel 8 · Oeste y Parque Batlle",
-    "objetivo": "Creá 11 estaciones y armá 3 líneas de 4, 4, 3 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Reducí UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 11 estaciones y armá 3 líneas de 4, 4, 3 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Reducí UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 11 estaciones y armá 3 líneas de 4, 4, 3 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Reducí UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 11 estaciones y armá 3 líneas de 4, 4, 3 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Reducí UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Avanzado",
     "reglasExito": {
       "minimoEstaciones": 11,
@@ -412,7 +412,7 @@
         "redConectada": false,
         "metroPorLinea": true,
         "practica": "reducirUT",
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -451,7 +451,7 @@
       "concepto": "Oeste y Parque Batlle",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Dani retoma el trazado entre el oeste y Parque Batlle. El desafío ya no está solo en llegar, sino en comprender cuánto lleva hacerlo. Con Ari y Sol, explora cómo un recorrido puede completarse antes sin cambiar los lugares que conecta.",
-      "consejo": "Creá 11 estaciones y armá 3 líneas de 4, 4, 3 estaciones. Fusioná sus estaciones para formar 2 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Reducí UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 11 estaciones y armá 3 líneas de 4, 4, 3 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 4 Metros, al menos uno por línea. Uní todas las líneas mediante 2 conexiones. Reducí UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
@@ -461,8 +461,8 @@
   {
     "numero": 9,
     "nombre": "Nivel 9 · Peñarol y Punta Carretas",
-    "objetivo": "Creá 13 estaciones y armá 4 líneas de 4, 4, 3, 2 estaciones. Fusioná sus estaciones para formar 3 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 5 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Reducí UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 13 estaciones y armá 4 líneas de 4, 4, 3, 2 estaciones. Fusioná sus estaciones para formar 3 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 5 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Reducí UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 13 estaciones y armá 4 líneas de 4, 4, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 5 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Reducí UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 13 estaciones y armá 4 líneas de 4, 4, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 5 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Reducí UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Desafío",
     "reglasExito": {
       "minimoEstaciones": 13,
@@ -479,7 +479,7 @@
         "redConectada": false,
         "metroPorLinea": true,
         "practica": "reducirUV",
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -518,7 +518,7 @@
       "concepto": "Peñarol y Punta Carretas",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Sol reúne las notas de Peñarol y Punta Carretas. La red ha crecido y correr más ya no parece la única respuesta posible. Dani propone observar una marcha más pausada; Ari sigue el efecto de esa decisión sobre el conjunto.",
-      "consejo": "Creá 13 estaciones y armá 4 líneas de 4, 4, 3, 2 estaciones. Fusioná sus estaciones para formar 3 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 5 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Reducí UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 13 estaciones y armá 4 líneas de 4, 4, 3, 2 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 5 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Reducí UV de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
@@ -528,8 +528,8 @@
   {
     "numero": 10,
     "nombre": "Nivel 10 · Montevideo conectada",
-    "objetivo": "Creá 16 estaciones y armá 4 líneas de 5, 4, 4, 3 estaciones. Fusioná sus estaciones para formar 3 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 6 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Cambiá UV o UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
-    "instrucciones": "Creá 16 estaciones y armá 4 líneas de 5, 4, 4, 3 estaciones. Fusioná sus estaciones para formar 3 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 6 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Cambiá UV o UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "objetivo": "Creá 16 estaciones y armá 4 líneas de 5, 4, 4, 3 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 6 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Cambiá UV o UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
+    "instrucciones": "Creá 16 estaciones y armá 4 líneas de 5, 4, 4, 3 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 6 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Cambiá UV o UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red.",
     "dificultad": "Desafío",
     "reglasExito": {
       "minimoEstaciones": 16,
@@ -546,7 +546,7 @@
         "redConectada": false,
         "metroPorLinea": true,
         "practica": "cambiar",
-        "contarEstacionesFusionadas": true
+        "contarEstacionesFusionadas": false
       },
       "textosMetas": {
         "minimoEstaciones": "Crear {cantidad} estaciones.",
@@ -589,7 +589,7 @@
       "concepto": "Montevideo conectada",
       "explicacion": "Conexión une líneas en una conexión entre estaciones. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",
       "contexto": "Ari, Sol y Dani preparan la presentación final. Ciudad Vieja, Maroñas y la costa aparecen ahora dentro de una misma propuesta. Entre trazados y ensayos, el cuaderno cuenta cómo aprendieron a relacionar territorio y operación: su proyecto por fin tiene una historia común.",
-      "consejo": "Creá 16 estaciones y armá 4 líneas de 5, 4, 4, 3 estaciones. Fusioná sus estaciones para formar 3 conexiones. Las estaciones fusionadas conservan su cumplimiento. Asigná 6 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Cambiá UV o UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
+      "consejo": "Creá 16 estaciones y armá 4 líneas de 5, 4, 4, 3 estaciones. Con Conexión, prolongá un extremo hasta una estación de otra línea sin moverlas. Asigná 6 Metros, al menos uno por línea. Uní todas las líneas mediante 3 conexiones. Cambiá UV o UT de una línea y simulá. Guardá y volvé a Edición para Finalizar red."
     },
     "transicion": {
       "aprendizaje": "Conexión une líneas en una estación compartida. Pueden continuar o terminar allí. Cada línea conserva su color, metros y UV/UT.",

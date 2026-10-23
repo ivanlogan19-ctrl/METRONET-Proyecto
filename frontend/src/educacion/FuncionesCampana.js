@@ -34,7 +34,7 @@ export function registrarFuncionesEnsenadas(id, funciones) {
 }
 
 // Cambiar una lección no borra lo aprendido en las demás.
-export const claveAprendizajeTutorial = clave => clave === 'editor.conectar' ? 'editor.conectar.v3' : clave === 'editor.poi' ? 'editor.poi.v2' : ['editor.basico', 'editor.extender'].includes(clave) ? `${clave}.v3` : clave;
+export const claveAprendizajeTutorial = clave => clave === 'editor.conectar' ? 'editor.conectar.v4' : clave === 'editor.poi' ? 'editor.poi.v2' : ['editor.basico', 'editor.extender'].includes(clave) ? `${clave}.v3` : clave;
 export function describirFunciones(funciones) {
   const nombres = { 'editor.extender':'extender recorridos con Línea', 'editor.poi':'buscar puntos de interés y usar sus categorías, barrios y zonas',
     'editor.conectar':'unir líneas en una estación compartida con Conexión', 'simulacion.velocidad':'cambiar la velocidad UV y observar la UT calculada',

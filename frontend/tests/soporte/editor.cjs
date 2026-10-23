@@ -98,11 +98,7 @@ async function abrirEditor(navegador, opciones = {}) {
         diseno.lineas.push({ nombre: datos.lineaA });
         diseno.tramos.push({ nombreLinea: datos.lineaA, estacionA: datos.estacionA, estacionB: datos.estacionB });
       } else if (datos.estacionA !== datos.estacionB) {
-        diseno.tramos.filter(t => t.nombreLinea === datos.lineaA).forEach(t => {
-          if (t.estacionA === datos.estacionA) t.estacionA = datos.estacionB;
-          if (t.estacionB === datos.estacionA) t.estacionB = datos.estacionB;
-        });
-        diseno.estaciones = diseno.estaciones.filter(e => e.nombre !== datos.estacionA);
+        diseno.tramos.push({ nombreLinea: datos.lineaA, estacionA: datos.estacionA, estacionB: datos.estacionB });
       }
       diseno.conexionesLineas.push({ idConexion: diseno.conexionesLineas.length + 1, ...datos, estacionA: datos.estacionB });
     }

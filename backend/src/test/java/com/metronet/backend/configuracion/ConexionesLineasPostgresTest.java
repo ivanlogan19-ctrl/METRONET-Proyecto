@@ -23,6 +23,27 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 @EnabledIfEnvironmentVariable(named="METRONET_TEST_POSTGRES_URL",matches="jdbc:postgresql://127\\.0\\.0\\.1:[0-9]+/metronet_pruebas")
 class ConexionesLineasPostgresTest {
+    @Test void unirParalelasConservaEstacionesYTramosYProlongaSoloLaPrimera() {
+        int usuario = usuario();
+        int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Paralelas")).idDiseno();
+        int[][] posiciones = {{620,400},{620,440},{680,400},{680,440}};
+        for (int i=0;i<4;i++) simulaciones.crearEstacion(usuario,diseno,
+            new CrearEstacionSimulacionRequest("E"+i,BigDecimal.valueOf(posiciones[i][0]),BigDecimal.valueOf(posiciones[i][1])));
+        simulaciones.crearLinea(usuario,diseno,new CrearLineaSimulacionRequest("Azul",List.of("E0","E1")));
+        simulaciones.crearLinea(usuario,diseno,new CrearLineaSimulacionRequest("Violeta",List.of("E2","E3")));
+        for (String linea : List.of("Azul","Violeta")) simulaciones.crearUnidadMetro(usuario,diseno,new CrearUnidadMetroSimulacionRequest(linea,300,BigDecimal.ONE));
+        var antes = simulaciones.obtenerSimulacion(usuario,diseno);
+        simulaciones.crearConexionLineas(usuario,diseno,new ConexionLineasRequest("Azul","E1","Violeta","E3"));
+        simulaciones.guardarDiseno(usuario,diseno);
+        var despues = simulaciones.obtenerSimulacion(usuario,diseno);
+        assertEquals(antes.estaciones(),despues.estaciones(),"No se mueve ni elimina ninguna estación");
+        assertEquals(antes.lineas(),despues.lineas());
+        assertTrue(despues.tramos().containsAll(antes.tramos()),"Las vías paralelas conservan su geometría");
+        assertEquals(3,despues.tramos().size());
+        assertEquals(2,despues.unidadesMetro().size());
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM tramo WHERE id_diseno=? AND nombre_linea='Azul' AND nombre_estacion_a='E1' AND nombre_estacion_b='E3'",Integer.class,diseno));
+        assertTrue(simulaciones.validarDiseno(usuario,diseno).preparadoParaSimular());
+    }
     @Test void guardarRetiraSoloLineasSinElementosYUnMetroRecorreLaCurva() {
         int usuario = usuario();
         int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Curva completa")).idDiseno();
@@ -122,7 +143,7 @@ class ConexionesLineasPostgresTest {
         }
     }
 
-    @Test void conectarFusionaDosEstacionesSinAgregarTramosYPermiteContinuar() {
+    @Test void conectarConservaAmbasEstacionesYPermiteContinuar() {
         int usuario = usuario();
         int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Extensión")).idDiseno();
         for (int i=0;i<5;i++) simulaciones.crearEstacion(usuario,diseno,new CrearEstacionSimulacionRequest("E"+i,BigDecimal.valueOf(610+i*15),BigDecimal.valueOf(430)));
@@ -133,17 +154,17 @@ class ConexionesLineasPostgresTest {
         simulaciones.extenderLinea(usuario,diseno,new ActualizarTramoRequest("Azul","E2","E4"));
         simulaciones.guardarDiseno(usuario,diseno);
         var despues = simulaciones.obtenerSimulacion(usuario,diseno);
-        assertEquals(antes.estaciones().size()-1,despues.estaciones().size());
-        assertTrue(despues.estaciones().stream().noneMatch(e -> e.nombre().equals("E1")));
+        assertEquals(antes.estaciones(),despues.estaciones());
+        assertTrue(despues.estaciones().stream().anyMatch(e -> e.nombre().equals("E1")));
         assertEquals(antes.lineas(),despues.lineas());
-        assertEquals(2,despues.tramos().stream().filter(t -> t.nombreLinea().equals("Azul")).count());
+        assertEquals(3,despues.tramos().stream().filter(t -> t.nombreLinea().equals("Azul")).count());
         assertEquals(1,despues.tramos().stream().filter(t -> t.nombreLinea().equals("Amarilla")).count());
         assertEquals("E2",conexion.estacionA());
-        assertEquals(antes.estaciones().size(),metas.contarEstaciones(diseno)+metas.contarEstacionesIntegradas(diseno),"La fusión conserva el total construido para las metas");
+        assertEquals(antes.estaciones().size(),metas.contarEstaciones(diseno),"La conexión conserva todas las estaciones construidas");
         simulaciones.actualizarEstacion(usuario,diseno,"E2",new ActualizarEstacionRequest("Compartida",BigDecimal.valueOf(640),BigDecimal.valueOf(430),false));
         assertEquals("Compartida",simulaciones.obtenerSimulacion(usuario,diseno).conexionesLineas().getFirst().estacionB());
         simulaciones.eliminarConexionLineas(usuario,diseno,conexion.idConexion());
-        assertEquals(3,simulaciones.obtenerSimulacion(usuario,diseno).tramos().size());
+        assertEquals(4,simulaciones.obtenerSimulacion(usuario,diseno).tramos().size());
         assertTrue(simulaciones.obtenerSimulacion(usuario,diseno).conexionesLineas().isEmpty());
     }
     @Test void migrarViaAnteriorConservaRedYArchivaSuMetro() throws java.io.IOException {

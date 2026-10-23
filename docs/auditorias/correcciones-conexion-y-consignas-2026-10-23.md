@@ -1,5 +1,7 @@
 # Correcciones de conexiones y consignas — 23/10/2026
 
+> Registro histórico v9. La aclaración posterior sustituye la fusión por prolongación sin mover estaciones: ver [revisión v10](conexiones-sin-desplazar-estaciones-2026-10-23.md).
+
 ## Alcance y estado
 
 - DEFINIDO: el documento académico conserva su versión previa y requiere actualización autorizada.

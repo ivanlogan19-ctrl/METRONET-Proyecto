@@ -22,7 +22,7 @@ public class RecorridoIntegralRepository {
             SELECT i.id_intento, nueva.id_nivel_publicacion
             FROM intento i JOIN nivel_publicacion anterior ON anterior.id_nivel_publicacion=i.id_nivel_publicacion
             JOIN nivel_publicacion nueva ON nueva.id_escenario=i.id_escenario
-            WHERE anterior.contenido->'desafio'->>'recorrido' IN ('integral-2026-10-lineas-conexiones-v7','integral-2026-10-estaciones-compartidas-v8')
+            WHERE anterior.contenido->'desafio'->>'recorrido' IN ('integral-2026-10-lineas-conexiones-v7','integral-2026-10-estaciones-compartidas-v8','integral-2026-10-estaciones-fusionadas-v9')
               AND nueva.contenido->'desafio'->>'recorrido'=?
               AND nueva.numero_version=(SELECT MAX(p.numero_version) FROM nivel_publicacion p WHERE p.id_escenario=i.id_escenario)
               AND i.estado<>'COMPLETADO' AND i.fecha_finalizacion IS NULL

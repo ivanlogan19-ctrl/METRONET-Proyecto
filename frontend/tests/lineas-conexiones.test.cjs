@@ -16,6 +16,31 @@ async function estacion(p, nombre) {
 }
 async function esperar(p) { await p.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente); }
 
+for (const inverso of [false, true]) test(`Conexión existente permite continuar el extremo violeta tras reabrir (${inverso ? 'libre primero' : 'conexión primero'})`, async t => {
+  const { pagina: p, diseno, solicitudes } = await abrir(t, { unidadesMetro: [],
+    estaciones: [
+      { nombre:'E1',posicionX:587.30,posicionY:370.22 }, { nombre:'E2',posicionX:590.26,posicionY:334.57 },
+      { nombre:'E3',posicionX:596.76,posicionY:287.96 }, { nombre:'E4',posicionX:643.47,posicionY:332.89 },
+      { nombre:'E5',posicionX:532.32,posicionY:340.90 }],
+    lineas:[{nombre:'Línea 01'},{nombre:'Línea 02'}], tramos:[
+      {nombreLinea:'Línea 01',estacionA:'E2',estacionB:'E1'},
+      {nombreLinea:'Línea 01',estacionA:'E3',estacionB:'E2'},
+      {nombreLinea:'Línea 02',estacionA:'E4',estacionB:'E2'}],
+    conexionesLineas:[{idConexion:8,lineaA:'Línea 02',estacionA:'E2',lineaB:'Línea 01',estacionB:'E2'}] });
+  const colores=await p.evaluate(()=>[...editorPrueba.capaRedMetro.coloresLineas.entries()]);
+  await p.locator('[data-elegir-herramienta=conexiones]').click();
+  for (const nombre of inverso ? ['E5','E2'] : ['E2','E5']) await estacion(p,nombre);
+  await esperar(p);
+  assert.equal(solicitudes.at(-1)?.ruta,'/api/simulaciones/77/lineas/extender');
+  assert.equal(solicitudes.at(-1).datos.nombreLinea,'Línea 02');
+  assert.equal(diseno.lineas.length,2);
+  assert.equal(diseno.conexionesLineas.length,1);
+  assert.equal(diseno.tramos.length,4);
+  await p.evaluate(()=>editorPrueba.abrirDiseno(77));
+  assert.deepEqual(await p.evaluate(()=>[...editorPrueba.capaRedMetro.coloresLineas.entries()]),colores);
+  assert.deepEqual(await p.evaluate(()=>editorPrueba.capaRedMetro.obtenerRuta('Línea 02').map(e=>e.nombre)),['E4','E2','E5']);
+});
+
 test('Una línea amarilla con curva conserva su recorrido y color con un único metro', async t => {
   const { pagina: p, diseno } = await abrir(t, { unidadesMetro: [], lineas: [{ nombre: 'Línea 01' }, { nombre: 'Línea 02' }, { nombre: 'Línea 03' }],
     estaciones: [
@@ -74,7 +99,7 @@ test('Línea extiende desde una estación nueva hacia el extremo existente sin c
   assert.equal(await p.evaluate(() => editorPrueba.disenoActual.conexionesLineas.length), 0);
 });
 
-test('Conexión fusiona estaciones conservando las líneas y sus tramos', async t => {
+test('Conexión prolonga la primera línea conservando estaciones y tramos', async t => {
   const { pagina: p, diseno } = await abrir(t, { estaciones: [
     { nombre: 'Centro', posicionX: 580, posicionY: 470 }, { nombre: 'Parque', posicionX: 700, posicionY: 460 },
     { nombre: 'Este', posicionX: 780, posicionY: 480 }, { nombre: 'Final', posicionX: 810, posicionY: 480 },
@@ -83,14 +108,16 @@ test('Conexión fusiona estaciones conservando las líneas y sus tramos', async 
     { nombreLinea: 'Verde', estacionA: 'Este', estacionB: 'Final' },
   ] });
   const tramos = structuredClone(diseno.tramos);
-  const rutas = await p.evaluate(() => JSON.stringify(['Azul', 'Verde'].map(n => editorPrueba.capaRedMetro.obtenerRuta(n))));
+  const estaciones = structuredClone(diseno.estaciones);
   await p.locator('[data-elegir-herramienta=conexiones]').click();
   await estacion(p, 'Parque'); await estacion(p, 'Este'); await esperar(p);
   assert.equal(diseno.conexionesLineas.length, 1);
-  assert.equal(diseno.tramos.length, 2);
-  assert.deepEqual(diseno.tramos[0], { nombreLinea: 'Azul', estacionA: 'Centro', estacionB: 'Este' });
+  assert.deepEqual(diseno.estaciones, estaciones);
+  assert.equal(diseno.tramos.length, 3);
+  assert.deepEqual(diseno.tramos.slice(0, 2), tramos);
+  assert.deepEqual(diseno.tramos[2], { nombreLinea: 'Azul', estacionA: 'Parque', estacionB: 'Este' });
   assert.deepEqual(diseno.tramos[1], tramos[1]);
-  assert.equal(diseno.estaciones.length, 3);
+  assert.equal(diseno.estaciones.length, 4);
   assert.equal(diseno.conexionesLineas[0].estacionA, 'Este');
   assert.equal(diseno.conexionesLineas[0].estacionB, 'Este');
   assert.equal(await p.evaluate(() => editorPrueba.capaRedMetro.esTransbordo(editorPrueba.disenoActual.estaciones.find(e => e.nombre === 'Este'))), true);
@@ -100,7 +127,7 @@ test('Conexión fusiona estaciones conservando las líneas y sus tramos', async 
   await p.locator('[data-confirmar-eliminar]').click();
   await p.waitForFunction(() => editorPrueba.disenoActual.conexionesLineas.length === 0);
   assert.deepEqual(diseno.tramos[1], tramos[1]);
-  assert.equal(diseno.tramos.length, 2);
+  assert.equal(diseno.tramos.length, 3);
 });
 
 

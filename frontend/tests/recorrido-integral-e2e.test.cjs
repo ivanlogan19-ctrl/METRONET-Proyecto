@@ -235,21 +235,13 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
    const red=referencias[nivel.numero-1];
    const porNombre=Object.fromEntries(red.estaciones.map(e=>[e.nombre,[e.x,e.y]]));
    const iniciales=[...red.estaciones];
-   const propietarios=new Map(),copias=new Map();
-   const recorridos=red.lineas.map((linea,indice)=>{
-    const segmentos=red.tramos.filter(t=>t.linea===linea.nombre);
-    return [segmentos[0].a,...segmentos.map(t=>t.b)].map(nombre=>{
-     if(!propietarios.has(nombre)){propietarios.set(nombre,linea.nombre);return nombre;}
-     const copia=`${nombre}-separada-${indice}`;
-     const [x,y]=porNombre[nombre];
-     porNombre[copia]=[x-50,y-indice*40];
-     iniciales.push({nombre:copia,x:x-50,y:y-indice*40});
-     copias.set(`${linea.nombre}:${nombre}`,copia);
-     return copia;
-    });
+   const uniones=(red.conexionesLineas||[]).map(c=>red.tramos.find(t=>t.linea===c.lineaB&&t.b===c.estacionB));
+   const recorridos=red.lineas.map(linea=>{
+    const segmentos=red.tramos.filter(t=>t.linea===linea.nombre&&!uniones.includes(t));
+    return [segmentos[0].a,...segmentos.map(t=>t.b)];
    });
    const posiciones=iniciales.map(e=>[e.x,e.y]);
-   assert.equal(posiciones.length,nivel.reglasExito.minimoEstaciones,'Se construyen todas las estaciones pedidas antes de fusionar');
+   assert.equal(posiciones.length,nivel.reglasExito.minimoEstaciones,'Se construyen todas las estaciones pedidas y se conservan al conectar');
    const objetivos=nivel.reglasExito.puntosInteresObjetivo||[];
 
    if(objetivos.length){
@@ -267,13 +259,14 @@ test('campaña integral real: login → diez niveles → Modo Libre', {skip:!API
     for(const nombre of paradas.slice(2)){await mapa(...porNombre[nombre]);await cuenta('tramos',++tramos);}
    }
    for (const [indice,conexion] of (red.conexionesLineas||[]).entries()) {
-    const origen=copias.get(`${conexion.lineaB}:${conexion.estacionB}`);
-    assert.ok(origen,'La conexión fusiona dos estaciones previamente construidas');
+    const origen=uniones[indice]?.a;
+    assert.ok(origen,'La conexión prolonga el extremo de una línea ya construida');
     await herramienta('conexiones');
     await mapa(...porNombre[origen]);
     await mapa(...porNombre[conexion.estacionA]);
     await cuenta('conexionesLineas',indice+1);
-    await cuenta('estaciones',posiciones.length-indice-1);
+    await cuenta('estaciones',posiciones.length);
+    await cuenta('tramos',++tramos);
    }
    await herramienta('metros');
    for(const [indice,unidad] of red.unidades.entries()) {

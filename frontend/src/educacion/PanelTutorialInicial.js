@@ -22,7 +22,7 @@ const PASOS_NOVEDAD = {
   ],
   conexiones: [
     ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Uní dos líneas en una estación compartida. Cada metro sigue recorriendo su propia línea.'],
-    ['#metronet-mapa', 'Conectar líneas', 'Elegí una estación de cada línea: se fusionan en la segunda ubicación. Conservan sus recorridos, colores y metros.'],
+    ['#metronet-mapa', 'Conectar líneas', 'Tocá un extremo y una estación de otra línea. La primera se prolonga hasta la segunda sin mover estaciones ni cambiar sus colores o metros.'],
   ],
   metros: [
     ['[data-elegir-herramienta="metros"]', 'Unidad de metro', 'Elegí este icono para asignar una unidad.'],

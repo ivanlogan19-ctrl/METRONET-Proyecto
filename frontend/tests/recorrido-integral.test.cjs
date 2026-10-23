@@ -14,11 +14,13 @@ test('los objetivos POI no se repiten entre niveles del recorrido',()=>{
 });
 for(const n of niveles) test(`consistencia del nivel ${n.numero}: reglas, herramientas, referencias y narrativa`,()=>{
  assert.equal(n.reglasExito.requiereSimulacion,true);
+ assert.equal(n.reglasExito.configuracionRecorrido.contarEstacionesFusionadas,false);
+ assert.doesNotMatch(n.instrucciones,/fusion/i);
  for(const [regla,herramienta] of Object.entries(herramientasPorRegla)) if(n.reglasExito[regla]) assert.equal(n.herramientasHabilitadas[herramienta],true,regla);
  assert.match(n.instrucciones,/Guardá/);
  const lugaresEnLineas=n.reglasExito.configuracionRecorrido.estacionesPorLinea.reduce((total,cantidad)=>total+cantidad,0);
  assert.equal(lugaresEnLineas,n.reglasExito.minimoEstaciones,
-  `Nivel ${n.numero}: se piden todas las estaciones antes de fusionarlas en conexiones`);
+  `Nivel ${n.numero}: se piden todas las estaciones antes de prolongar las líneas para conectarlas`);
  assert.match(n.instrucciones,/simul[aá]|ejecu|ejecut/i);
  assert.ok(n.historia.texto.length>60);
  assert.notEqual(n.historia.texto,n.objetivo);

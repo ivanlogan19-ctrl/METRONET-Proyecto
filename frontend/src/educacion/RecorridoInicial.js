@@ -13,7 +13,7 @@ const PASOS_INTEGRAL = [
   ['[data-accion-edicion="eliminar"]', 'Eliminar', 'Seleccioná un elemento y pulsá Eliminar. Revisá la confirmación antes de borrarlo.'],
   ['[data-cancelar-herramienta]', 'Desmarcar', 'Limpia la selección o termina la herramienta activa sin borrar elementos.'],
   ['[data-guardar]', 'Guardar', 'El disquete conserva los cambios de tu red.'],
-  ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Con Conexión tocá una estación libre, una de otra línea y otra libre. La nueva línea conserva su color. También podés fusionar estaciones de dos líneas ya armadas.'],
+  ['[data-elegir-herramienta="conexiones"]', 'Conexión', 'Con Conexión tocá una estación libre, una de otra línea y otra libre. La nueva línea conserva su color. También podés prolongar un extremo hasta otra línea, sin mover estaciones.'],
   ['[data-elegir-herramienta="metros"]', 'Metro', 'Tocá una vía con esta herramienta para asignarle una unidad.'],
   ['[data-ir-simulacion]', 'Simular', 'En Acciones podés pasar a Simulación después de guardar y comprobar la red.'],
   ['.metronet-aprender-acceso', 'Aprender', 'Abrí este botón para volver a ver las tarjetas educativas de este nivel.'],
