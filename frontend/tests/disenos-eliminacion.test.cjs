@@ -1,13 +1,13 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 const datos = () => [
   { idDiseno: 77, idUsuario: 7, nombre: 'Red propia', propietario: 'Ana Prueba', estado: 'GUARDADO', idEscenario: 45 },
-  { idDiseno: 88, idUsuario: 8, nombre: 'Nivel completado', propietario: 'Otro Jugador', estado: 'COMPLETADO', idEscenario: 1 },
+  { idDiseno: 88, idUsuario: 7, nombre: 'Nivel completado', propietario: 'Ana Prueba', estado: 'COMPLETADO', idEscenario: 1 },
 ];
 async function abrir(t, opciones = {}) {
   let redes = datos();
@@ -34,18 +34,18 @@ async function confirmar(pagina, nombre) {
   await pagina.locator('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
 }
 
-for (const width of [1440, 320]) test(`ADMIN ${width}: propietarios, borrado propio/ajeno/completado y persistencia al recargar`, async t => {
+for (const width of [1440, 320]) test(`ADMIN ${width}: borrado de diseños propios y completados y persistencia al recargar`, async t => {
   const v = await abrir(t, { viewport: { width, height: 900 } }); const p = v.pagina;
   assert.equal(await p.locator('[data-diseno]').count(), 2);
-  assert.match(await p.locator('[data-diseno="88"]').innerText(), /Otro Jugador/);
-  assert.equal(await p.locator('[data-diseno="88"] a').count(), 0);
+  assert.match(await p.locator('[data-diseno="88"]').innerText(), /Mi diseño/);
+  assert.equal(await p.locator('[data-diseno="88"] a').count(), 1);
   assert.equal(await p.locator('[data-diseno="77"] a').count(), 1);
   assert.equal(await p.locator('[data-diseno="77"] .metronet-disenos__accion--simular').isDisabled(), true);
   assert.equal(await p.locator('#irDisenoLibre').isEnabled(), true);
   assert.equal(await p.locator('#listaMisDisenos [data-diseno="88"]').count(), 1);
   assert.equal(await p.locator('#listaDisenosLibres [data-diseno="77"]').count(), 1);
   await p.getByRole('button', { name: 'Eliminar diseño: Nivel completado' }).click();
-  assert.match(await p.locator('#nombreEliminarDiseno').innerText(), /Otro Jugador/);
+  assert.match(await p.locator('#nombreEliminarDiseno').innerText(), /Ana Prueba/);
   assert.match(await p.locator('#alcanceEliminarDiseno').innerText(), /partida, puntaje y resultados/);
   if (width === 1440) await p.locator('#confirmarEliminarDiseno').screenshot({path:'/tmp/eliminar-diseno-compacto.png'});
   await p.getByRole('button', { name: 'Cancelar', exact: true }).click();
@@ -94,7 +94,7 @@ test('Una carga antigua no resucita un diseño borrado y el doble submit no dupl
   let liberar, avisar; let lectura = 0;
   const pendiente = new Promise(resolve => { avisar = resolve; });
   const v = await abrir(t, { responder: async (req, redes) => {
-    if (new URL(req.url()).pathname === '/api/admin/disenos' && ++lectura === 2) {
+    if (new URL(req.url()).pathname === '/api/simulaciones' && ++lectura === 2) {
       const copia = structuredClone(redes); avisar(); await new Promise(resolve => { liberar = resolve; }); return { json: copia };
     }
   } }); const p = v.pagina;
@@ -109,13 +109,13 @@ test('Una carga antigua no resucita un diseño borrado y el doble submit no dupl
   assert.equal(v.solicitudes.filter(s => s.method === 'DELETE').length, 1);
 });
 
-test('Error de listado administrativo muestra reintento sin reemplazarlo por permisos de jugador', async t => {
+test('Error del listado personal muestra reintento sin consultar diseños ajenos', async t => {
   let falla = true;
-  const v = await abrir(t, { responder: req => new URL(req.url()).pathname === '/api/admin/disenos' && falla ? { status: 503, json: { detail: 'Servicio no disponible' } } : null }); const p = v.pagina;
+  const v = await abrir(t, { responder: req => new URL(req.url()).pathname === '/api/simulaciones' && falla ? { status: 503, json: { detail: 'Servicio no disponible' } } : null }); const p = v.pagina;
   assert.equal(await p.locator('[data-diseno]').count(), 0);
   assert.equal(await p.getByRole('button', { name: 'Reintentar' }).isVisible(), true);
   falla = false; await p.getByRole('button', { name: 'Reintentar' }).click(); await p.locator('[data-diseno="88"]').waitFor();
-  assert.equal(v.solicitudes.some(s => s.path === '/api/simulaciones'), false);
+  assert.equal(v.solicitudes.some(s => s.path === '/api/admin/disenos'), false);
 });
 
 test('Administración: misma advertencia y retirada inmediata sin depender de otra carga', async t => {

@@ -235,50 +235,24 @@ test('Administración muestra solo mantenimiento y lo guarda mediante API simula
   assert.equal(solicitudes.some(s => s.path.endsWith('/capacidad_unidad')), false);
 });
 
-test('Administración oculta capacidad de unidades y conserva el dato interno al editar', async t => {
-  const diseno = { idDiseno: 77, propietario: 'Ana Prueba', correoPropietario: 'ana@example.test', modoEscenario: 'EDICION_LIBRE' };
-  const detalle = { diseno, lineas: [{ nombre: 'Azul', modificable: true }], estaciones: [], conexiones: [], tramos: [],
+test('Administración muestra la red sin exponer capacidad ni modificar unidades', async t => {
+  const diseno = { idDiseno: 77, propietario: 'Ana Prueba', modoEscenario: 'EDICION_LIBRE' };
+  const detalle = { diseno, lineas: [{ nombre: 'Azul' }], estaciones: [], conexiones: [], tramos: [],
     unidadesMetro: [{ idTren: 5, nombreLinea: 'Azul', capacidad: 450, velocidadPromedio: 60 }] };
-  const { pagina, solicitudes } = await abrir(t, '/admin.html', { responder: async solicitud => {
+  const { pagina, solicitudes } = await abrir(t, '/admin.html', { responder: solicitud => {
     const ruta = new URL(solicitud.url()).pathname;
     if (ruta === '/api/admin/disenos') return { json: [diseno] };
-    if (ruta === '/api/admin/disenos/77' && solicitud.method() === 'GET') return { json: detalle };
-    if (ruta === '/api/admin/disenos/77/unidades/5' && solicitud.method() === 'PATCH') {
-      detalle.unidadesMetro[0].velocidadPromedio = solicitud.postDataJSON().velocidadPromedio;
-      return { json: {} };
-    }
-    if (ruta === '/api/admin/disenos/77/unidades' && solicitud.method() === 'POST') return { json: {} };
+    if (ruta === '/api/admin/disenos/77') return { json: detalle };
   } });
   await pagina.locator('[data-vista="disenos"]').click();
   await pagina.locator('[data-ver-diseno="77"]').click();
-  await pagina.locator('[data-accion-diseno="editar-unidad"]').waitFor();
-  assert.doesNotMatch(await pagina.locator('#detalleDiseno').innerText(), /capacidad|pasajeros/i);
-  await pagina.locator('[data-accion-diseno="editar-unidad"]').click();
-  let dialogo = pagina.locator('.metronet-dialogo-sistema');
-  await dialogo.waitFor();
-  await dialogo.getByLabel('Línea asignada:').fill('Azul');
-  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
-  dialogo = pagina.locator('.metronet-dialogo-sistema');
-  await dialogo.getByLabel('Velocidad promedio (UV):').fill('75');
-  const respuestaEdicion = pagina.waitForResponse(respuesta => respuesta.request().method() === 'PATCH' && respuesta.url().endsWith('/unidades/5'));
-  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
-  await respuestaEdicion;
-  const edicion = solicitudes.find(s => s.path === '/api/admin/disenos/77/unidades/5' && s.method === 'PATCH');
-  assert.ok(edicion);
-  assert.deepEqual(edicion.body, { nombreLinea: 'Azul', capacidad: 450, velocidadPromedio: 75 });
-  assert.doesNotMatch(solicitudes.map(s => s.path).join(' '), /capacidad_unidad/);
-
-  await pagina.locator('[data-crear-diseno="unidad"]').click();
-  dialogo = pagina.locator('.metronet-dialogo-sistema');
-  await dialogo.getByLabel('Nombre de la línea asignada:').fill('Azul');
-  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
-  dialogo = pagina.locator('.metronet-dialogo-sistema');
-  await dialogo.getByLabel('Velocidad (UV):').fill('80');
-  const respuestaCreacion = pagina.waitForResponse(respuesta => respuesta.request().method() === 'POST' && respuesta.url().endsWith('/unidades'));
-  await dialogo.getByRole('button', { name: 'Confirmar' }).click();
-  await respuestaCreacion;
-  const creacion = solicitudes.find(s => s.path === '/api/admin/disenos/77/unidades' && s.method === 'POST');
-  assert.deepEqual(creacion.body, { nombreLinea: 'Azul', capacidad: 300, velocidadPromedio: 80 });
+  const visor = pagina.getByRole('dialog', { name: 'Diseño 1' });
+  await visor.locator('[data-cargado="true"]').waitFor();
+  assert.doesNotMatch(await visor.innerText(), /capacidad|pasajeros/i);
+  assert.equal(await pagina.locator('[data-crear-diseno], [data-accion-diseno]').count(), 0);
+  await visor.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  assert.equal(solicitudes.some(s => ['POST', 'PATCH', 'PUT', 'DELETE'].includes(s.method)), false);
+  assert.equal(detalle.unidadesMetro[0].capacidad, 450);
 });
 
 for (const [width, height] of [[1920, 1080], [1440, 900], [1366, 768], [1280, 720]]) {

@@ -1,0 +1,21 @@
+.admin-visor-diseno {
+  box-sizing: border-box;
+  width: min(1400px, 96vw);
+  height: 90dvh;
+  max-width: 96vw;
+  max-height: 94dvh;
+  margin: auto;
+  padding: 16px;
+  border: 2px solid #41b4ff;
+  background: #0a1425;
+  color: #e4efff;
+  overflow: hidden;
+}
+.admin-visor-diseno[open] { display: flex; flex-direction: column; gap: 12px; }
+.admin-visor-diseno::backdrop { background: rgb(3 9 20 / 85%); }
+.admin-visor-diseno header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.admin-visor-diseno h2 { margin: 0; font-size: clamp(12px, 1.5vw, 20px); overflow-wrap: anywhere; }
+.admin-visor-diseno header button { flex-shrink: 0; }
+.admin-visor-diseno p { margin: 0; font-size: 12px; }
+.admin-visor-diseno__mapa { position: relative; flex: 1; min-height: 0; border: 1px solid #6589aa; overflow: hidden; }
+.admin-visor-diseno__mapa canvas { display: block; }

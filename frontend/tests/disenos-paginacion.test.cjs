@@ -12,7 +12,7 @@ async function abrir(t, viewport) {
   const v = await abrirPantalla(navegador, '/disenos.html', {administrador:true, viewport, responder:req => {
     const path = new URL(req.url()).pathname;
     if (req.method() === 'DELETE') { redes = redes.filter(d => d.idDiseno !== Number(path.split('/').pop())); return {status:204}; }
-    if (path === '/api/admin/disenos') return {json:redes};
+    if (path === '/api/simulaciones') return {json:redes};
     if (path === '/api/juego/escenarios') return {json:[{idEscenario:42,numero:2},{idEscenario:45,numero:null,desbloqueado:true}]};
     if (/^\/api\/simulaciones\/\d+$/.test(path)) return {json:{preparadoParaSimular:true}};
   }});

@@ -1,3 +1,4 @@
+import { numerarDisenos, etiquetaDiseno, nombreDiseno } from '../red/NumeracionDisenos.mjs';
 import { configurarAccion } from '../interfaz/AccionesInterfaz.js';
 import ClienteDisenos from '../red/ClienteDisenos.js';
 import { requerirSesion } from '../autenticacion/sesion.js';
@@ -24,6 +25,7 @@ function iniciar() {
   let disenos = [], escenarios = [], catalogoDisponible = false, modoLibre = null;
   let cargando = false, operacion = false, recargaPendiente = false, versionListado = 0;
   let grupoActivo = 'campana';
+  let numerosDisenos = new Map();
   const paginas = { campana: 0, libres: 0 };
   const capacidadPagina = () => (innerWidth < 700 ? 1 : innerWidth < 1050 ? 2 : 3) * (innerHeight < 650 ? 1 : 2);
   let porPagina = capacidadPagina();
@@ -34,7 +36,8 @@ function iniciar() {
   const textoEstado = d => estados[d.estado] ?? d.estado ?? '';
   const protegido = d => !administrador && (!catalogoDisponible || escenarios.some(e => e.idEscenario === d.idEscenario && Number.isInteger(e.numero)));
   const esDisenoLibre = d => d.modo === 'EDICION_LIBRE' || escenarios.some(e => e.idEscenario === d.idEscenario && e.numero === null);
-  const propio = d => !administrador || d.idUsuario === sesion.usuario.idUsuario;
+  const propio = d => d.idUsuario == null || d.idUsuario === sesion.usuario.idUsuario;
+  const propietarioDiseno = d => d.propietario || [sesion.usuario.nombre, sesion.usuario.apellido].filter(Boolean).join(' ') || 'Mi cuenta';
   const ruta = (d, destino) => {
     const anterior = obtenerContextoRuta();
     return establecerIdDisenoEnRuta(destino, d.idDiseno, anterior.idDiseno === d.idDiseno ? anterior : { idEscenario: d.idEscenario });
@@ -59,12 +62,12 @@ function iniciar() {
       estado.textContent = textoEstado(d);
       cabecera.append(nivel, estado);
       const nombre = document.createElement('strong');
-      nombre.textContent = d.nombre;
+      nombre.textContent = nombreDiseno(d, numerosDisenos);
       const pie = document.createElement('div');
       pie.className = 'metronet-disenos__pie-tarjeta';
       const propietario = document.createElement('small');
-      propietario.textContent = `${propio(d) ? 'Mi diseño' : d.propietario || 'Sin usuario asignado'} · #${d.idDiseno}`;
-      if (administrador && propio(d)) propietario.title = `Propietario: ${d.propietario || 'Sin usuario asignado'}`;
+      propietario.textContent = `${propio(d) ? 'Mi diseño' : d.propietario || 'Sin usuario asignado'} · ${etiquetaDiseno(d, numerosDisenos)}`;
+      if (administrador && propio(d)) propietario.title = `Propietario: ${propietarioDiseno(d)}`;
       pie.append(propietario);
       const acciones = document.createElement('div');
       acciones.className = 'metronet-disenos__acciones';
@@ -74,7 +77,7 @@ function iniciar() {
       }
       const eliminar = document.createElement('button');
       eliminar.type = 'button';
-      configurarBotonIcono(eliminar, 'eliminar', `Eliminar diseño: ${d.nombre}`);
+      configurarBotonIcono(eliminar, 'eliminar', `Eliminar diseño: ${nombreDiseno(d, numerosDisenos)}`);
       eliminar.classList.add('metronet-boton--peligro');configurarAccion(eliminar,'eliminar',{icono:true});
       eliminar.disabled = protegido(d) || operacion;
       eliminar.addEventListener('click', () => confirmarEliminar(d));
@@ -90,7 +93,7 @@ function iniciar() {
     enlace.className = 'metronet-boton';
     if (deshabilitado) { enlace.type = 'button'; enlace.disabled = true; }
     else enlace.href = ruta(d, destino);
-    configurarBotonIcono(enlace, icono, `${etiqueta}: ${d.nombre}`);
+    configurarBotonIcono(enlace, icono, `${etiqueta}: ${nombreDiseno(d, numerosDisenos)}`);
     configurarAccion(enlace, icono === 'editar' ? 'abrir' : 'simular', {icono:true});
     if (deshabilitado) enlace.title = d.verificacion === 'pendiente'
       ? 'Comprobando si la red está preparada para simular.' : 'Prepará la red desde Edición para habilitar su simulación.';
@@ -115,6 +118,7 @@ function iniciar() {
   }
 
   function renderizar() {
+    numerosDisenos = numerarDisenos(disenos);
     const grupos = { campana: disenos.filter(d => !esDisenoLibre(d)), libres: disenos.filter(esDisenoLibre) };
     for (const [grupo, redes] of Object.entries(grupos)) {
       const sufijo = grupo === 'campana' ? 'Campana' : 'Libres';
@@ -165,7 +169,7 @@ function iniciar() {
     const version = versionListado;
     lista.setAttribute('aria-busy', 'true'); listaLibres.setAttribute('aria-busy', 'true'); reintentar.hidden = true; botonLibre.disabled = true;
     try {
-      const [redes, juego, acceso] = await Promise.allSettled([gestion.listar(), consultarJuego('/escenarios'), consultarAccesoMisDisenos()]);
+      const [redes, juego, acceso] = await Promise.allSettled([cliente.listar(), consultarJuego('/escenarios'), consultarAccesoMisDisenos()]);
       // Una respuesta iniciada antes de borrar no puede restaurar el registro eliminado.
       if (version !== versionListado) return;
       catalogoDisponible = juego.status === 'fulfilled' && Array.isArray(juego.value);
@@ -176,7 +180,7 @@ function iniciar() {
       document.getElementById('explicacionDisenoLibre').hidden = Boolean(modoLibre);
       botonLibre.title = modoLibre ? '' : 'Completá los diez niveles para habilitar el diseño libre.';
       if (redes.status === 'fulfilled' && Array.isArray(redes.value)) {
-        disenos = redes.value.map(d => ({ ...d, nombre: d.nombre || `Diseño #${d.idDiseno}`, preparadoParaSimular: false }));
+        disenos = redes.value.filter(propio).map(d => ({ ...d, preparadoParaSimular: false }));
         mensaje.hidden = true;
         renderizar();
       } else {
@@ -202,8 +206,8 @@ function iniciar() {
 
   function confirmarEliminar(diseno) {
     if (operacion || dialogo.open || protegido(diseno)) return;
-    const propietario = administrador ? ` · ${diseno.propietario || 'Sin usuario asignado'}` : '';
-    document.getElementById('nombreEliminarDiseno').textContent = `«${diseno.nombre}»${propietario}`;
+    const propietario = administrador ? ` · ${propietarioDiseno(diseno)}` : '';
+    document.getElementById('nombreEliminarDiseno').textContent = `«${nombreDiseno(diseno, numerosDisenos)}»${propietario}`;
     dialogo.returnValue = 'cancelar'; dialogo.showModal();
     dialogo.addEventListener('close', async () => {
       if (dialogo.returnValue !== 'eliminar') { recargarSiPendiente(); return; }

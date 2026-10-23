@@ -1,17 +1,18 @@
+import { numerarDisenos, etiquetaDiseno } from '../red/NumeracionDisenos.mjs';
 import { mostrarFuentesMapa } from '../mapa/FuentesMapa.js';
-import { formatearVelocidad, VELOCIDAD_INICIAL } from '../simulacion/EscalaSimulacion.js';
-import { confirmarSistema, pedirDatoSistema } from '../componentes/DialogoSistema.js';
+import { confirmarSistema } from '../componentes/DialogoSistema.js';
 import { cerrarSesionRemota, eliminarSesiones, guardarSesionAdministrador, obtenerSesionActiva } from "../autenticacion/sesion.js";
 import { inicializarNavegacion } from "../navegacion/NavegacionAplicacion.js";
 
 const sesion = obtenerSesionActiva();
-const CAPACIDAD_COMPATIBILIDAD = 300;
 let usuariosDisponibles = [];
 let disenosDisponibles = [];
 let actividadesDisponibles = [];
 let borrandoActividad = false;
 let administracionNiveles = null;
 let cargaNiveles = null;
+let abriendoDiseno = false;
+let numerosDisenos = new Map();
 
 if (!sesion) {
   window.location.replace("/login.html?destino=%2Fadmin.html");
@@ -116,20 +117,6 @@ function inicializarAdministracion(sesionAdministrador) {
     }
 
     if (botonEliminar) eliminarDisenoAdministrador(botonEliminar.dataset.eliminarDiseno, sesionAdministrador.token);
-  });
-
-  document.getElementById("detalleDiseno").addEventListener("click", (evento) => {
-    const boton = evento.target.closest("[data-accion-diseno]");
-
-    if (boton) {
-      ejecutarAccionDiseno(boton, sesionAdministrador.token);
-    }
-
-    const botonCrear = evento.target.closest("[data-crear-diseno]");
-
-    if (botonCrear) {
-      crearElementoDiseno(botonCrear, sesionAdministrador.token);
-    }
   });
 
   document.getElementById("listaConfiguracion").addEventListener("click", (evento) => {
@@ -295,10 +282,6 @@ async function cargarDisenos(token) {
 
 function renderizarDisenos(disenos) {
   const lista = document.getElementById("listaDisenos");
-  const detalle = document.getElementById("detalleDiseno");
-
-  detalle.hidden = true;
-  detalle.replaceChildren();
   const grupos = new Map();
   for (const diseno of disenos) {
     const clave = Number.isInteger(diseno.idUsuario) ? `usuario:${diseno.idUsuario}`
@@ -332,12 +315,12 @@ function renderizarDisenos(disenos) {
     tarjetas.append(...grupo.disenos.map(diseno => {
       const tarjeta = document.createElement("article");
       const actividad = diseno.idEscenario
-        ? `Actividad #${diseno.idEscenario} · ${formatearModoEscenario(diseno.modoEscenario)}`
+        ? diseno.nombre || formatearModoEscenario(diseno.modoEscenario)
         : "Sin actividad asociada";
 
       tarjeta.innerHTML = `
         <div>
-          <h4>Diseño #${diseno.idDiseno}</h4>
+          <h4>${etiquetaDiseno(diseno, numerosDisenos)}</h4>
           <p>${escaparHtml(actividad)}</p>
         </div>
         <div class="admin-acciones-linea">
@@ -350,10 +333,11 @@ function renderizarDisenos(disenos) {
     }));
     seccion.append(cabecera, tarjetas);
     return seccion;
-  }) : [crearEstadoVacio("No hay diseños que coincidan con el filtro.")]));
+  }) : [crearEstadoVacio(disenosDisponibles.length ? "No hay diseños que coincidan con el filtro." : "0 diseños")]));
 }
 
 function filtrarDisenos() {
+  numerosDisenos = numerarDisenos(disenosDisponibles);
   const texto = normalizarTexto(document.getElementById("filtroDisenos").value);
   const disenosFiltrados = disenosDisponibles.filter((diseno) => {
     const contenido = `${diseno.propietario ?? ""} ${diseno.correoPropietario ?? ""}`;
@@ -382,7 +366,9 @@ function normalizarTexto(valor) {
 }
 
 async function eliminarDisenoAdministrador(idDiseno, token) {
-  if (!await confirmarSistema(`¿Eliminar definitivamente el diseño #${idDiseno}? También se borrarán sus elementos, intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar. Esta acción no se puede deshacer.`, { cancelarSeguro: true, peligro: true })) return;
+  const diseno = disenosDisponibles.find(d => String(d.idDiseno) === String(idDiseno));
+  if (!diseno) return;
+  if (!await confirmarSistema(`¿Eliminar definitivamente ${etiquetaDiseno(diseno, numerosDisenos)} de ${diseno.propietario || 'este jugador'}? También se borrarán sus elementos, intento, puntaje y resultados asociados, incluso si el nivel está completado. El progreso y el ranking del propietario pueden cambiar. Esta acción no se puede deshacer.`, { cancelarSeguro: true, peligro: true })) return;
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` },
@@ -395,240 +381,22 @@ async function eliminarDisenoAdministrador(idDiseno, token) {
 }
 
 async function cargarDetalleDiseno(idDiseno, token) {
-  mostrarMensajeDisenos("Cargando elementos del diseño…");
-
+  if (abriendoDiseno) return;
+  abriendoDiseno = true;
+  mostrarMensajeDisenos("Abriendo mapa del diseño…");
   try {
     const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
     });
-
-    if (!respuesta.ok) {
-      throw new Error(await obtenerMensajeError(respuesta, "No fue posible abrir el diseño."));
-    }
-
-    renderizarDetalleDiseno(await respuesta.json());
+    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible abrir el diseño."));
+    const detalle = await respuesta.json();
+    const { abrirVisorDiseno } = await import('./VisorDisenoAdministrador.js');
+    abrirVisorDiseno(detalle, etiquetaDiseno(detalle.diseno, numerosDisenos));
     mostrarMensajeDisenos("");
   } catch (error) {
     mostrarMensajeDisenos(error.message, "error");
-  }
-}
-
-function renderizarDetalleDiseno(detalle) {
-  const contenedor = document.getElementById("detalleDiseno");
-  const { diseno, lineas, estaciones, conexiones, tramos, unidadesMetro } = detalle;
-
-  contenedor.hidden = false;
-  contenedor.innerHTML = `
-    <div class="admin-detalle-encabezado">
-      <div>
-        <h3>Diseño #${diseno.idDiseno}</h3>
-        <p>Jugador: ${escaparHtml(diseno.propietario)} · ${escaparHtml(diseno.correoPropietario ?? "Sin correo")}</p>
-      </div>
-      <button class="admin-secundario" type="button" data-accion-diseno="cerrar" data-id-diseno="${diseno.idDiseno}" data-accion-ui="cerrar" data-categoria-accion="peligro">Cerrar</button>
-    </div>
-    ${crearTablaElementos("Líneas de metro", lineas, (linea) => `
-      <tr><td>${escaparHtml(linea.nombre)}</td><td>${linea.modificable ? "Sí" : "No"}</td><td>${botonesAccion("linea", diseno.idDiseno, { nombre: linea.nombre })}</td></tr>`)}
-    <button class="admin-guardar" type="button" data-crear-diseno="linea" data-id-diseno="${diseno.idDiseno}">Agregar línea</button>
-    ${crearTablaElementos("Estaciones", estaciones, (estacion) => `
-      <tr><td>${escaparHtml(estacion.nombre)}</td><td>${estacion.posicionX}, ${estacion.posicionY}${estacion.transbordo ? " · Transbordo" : ""}</td><td>${botonesAccion("estacion", diseno.idDiseno, { nombre: estacion.nombre, x: estacion.posicionX, y: estacion.posicionY, transbordo: estacion.transbordo })}</td></tr>`)}
-    <button class="admin-guardar" type="button" data-crear-diseno="estacion" data-id-diseno="${diseno.idDiseno}">Agregar estación</button>
-    ${crearTablaElementos("Paradas por línea", conexiones, (conexion) => `
-      <tr><td>${escaparHtml(conexion.nombreLinea)}</td><td>${escaparHtml(conexion.nombreEstacion)}</td><td>${botonesAccion("conexion", diseno.idDiseno, { linea: conexion.nombreLinea, estacion: conexion.nombreEstacion })}</td></tr>`)}
-    <button class="admin-guardar" type="button" data-crear-diseno="conexion" data-id-diseno="${diseno.idDiseno}">Agregar parada a línea</button>
-    ${crearTablaElementos("Tramos entre estaciones", tramos, (tramo) => `
-      <tr><td>${escaparHtml(tramo.nombreLinea)}</td><td>${escaparHtml(tramo.estacionA)} · ${escaparHtml(tramo.estacionB)}</td><td>${botonesAccion("tramo", diseno.idDiseno, { linea: tramo.nombreLinea, estacionA: tramo.estacionA, estacionB: tramo.estacionB })}</td></tr>`)}
-    <button class="admin-guardar" type="button" data-crear-diseno="tramo" data-id-diseno="${diseno.idDiseno}">Agregar tramo</button>
-    ${crearTablaElementos("Unidades de metro", unidadesMetro, (unidad) => `
-      <tr><td>${escaparHtml(unidad.nombreLinea)}</td><td>Velocidad: ${formatearVelocidad(unidad.velocidadPromedio)}</td><td>${botonesAccion("unidad", diseno.idDiseno, { 'id-tren': unidad.idTren, linea: unidad.nombreLinea, capacidad: unidad.capacidad, velocidad: unidad.velocidadPromedio })}</td></tr>`)}
-    <button class="admin-guardar" type="button" data-crear-diseno="unidad" data-id-diseno="${diseno.idDiseno}">Agregar unidad de metro</button>
-  `;
-}
-
-function crearTablaElementos(titulo, elementos, crearFila) {
-  const filas = elementos.length
-    ? elementos.map(crearFila).join("")
-    : '<tr><td colspan="3" class="metronet-vacio">No hay elementos registrados.</td></tr>';
-
-  return `
-    <section class="admin-elementos-diseno">
-      <h4>${titulo}</h4>
-      <div class="admin-tabla-contenedor">
-        <table class="admin-tabla admin-tabla-diseno"><tbody>${filas}</tbody></table>
-      </div>
-    </section>
-  `;
-}
-
-function botonesAccion(tipo, idDiseno, datos) {
-  const atributos = Object.entries(datos)
-    .map(([clave, valor]) => `data-${clave}="${escaparHtml(String(valor))}"`)
-    .join(" ");
-
-  return `
-    <button class="admin-secundario" type="button" data-accion-diseno="editar-${tipo}" data-id-diseno="${idDiseno}" ${atributos} data-accion-ui="editar" data-categoria-accion="secundaria">Editar</button>
-    <button class="admin-eliminar" type="button" data-accion-diseno="eliminar-${tipo}" data-id-diseno="${idDiseno}" ${atributos} data-accion-ui="eliminar" data-categoria-accion="peligro">Eliminar</button>
-  `;
-}
-
-async function ejecutarAccionDiseno(boton, token) {
-  const accion = boton.dataset.accionDiseno;
-
-  if (accion === "cerrar") {
-    document.getElementById("detalleDiseno").hidden = true;
-    return;
-  }
-
-  const idDiseno = boton.dataset.idDiseno;
-  let url = "";
-  let opciones = { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } };
-
-  if (accion.includes("linea")) {
-    const nombre = accion === "editar-linea" ? await pedirDatoSistema("Nombre de la línea:", boton.dataset.nombre) : null;
-    if (accion === "editar-linea" && !nombre) return;
-    if (accion === "eliminar-linea" && !await confirmarSistema(`¿Eliminar la línea ${boton.dataset.nombre}?`)) return;
-    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/lineas/${encodeURIComponent(boton.dataset.nombre)}`;
-    opciones = accion === "editar-linea" ? { ...opciones, body: JSON.stringify({ nombre }) } : { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
-  }
-
-  if (accion.includes("estacion")) {
-    if (accion === "eliminar-estacion" && !await confirmarSistema(`¿Eliminar la estación ${boton.dataset.nombre}?`)) return;
-    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/estaciones/${encodeURIComponent(boton.dataset.nombre)}`;
-    if (accion === "editar-estacion") {
-      const nombre = await pedirDatoSistema("Nombre de la estación:", boton.dataset.nombre);
-      const posicionX = await pedirDatoSistema("Posición X:", boton.dataset.x);
-      const posicionY = await pedirDatoSistema("Posición Y:", boton.dataset.y);
-      if (!nombre || posicionX === null || posicionY === null) return;
-      opciones.body = JSON.stringify({ nombre, posicionX: Number(posicionX), posicionY: Number(posicionY), transbordo: boton.dataset.transbordo === "true" });
-    } else {
-      opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
-    }
-  }
-
-  if (accion.includes("conexion")) {
-    const consulta = new URLSearchParams({ linea: boton.dataset.linea, estacion: boton.dataset.estacion });
-    if (accion === "editar-conexion") {
-      const nombreLinea = await pedirDatoSistema("Línea de la conexión:", boton.dataset.linea);
-      const nombreEstacion = await pedirDatoSistema("Estación de la conexión:", boton.dataset.estacion);
-      if (!nombreLinea || !nombreEstacion) return;
-      consulta.set("lineaActual", boton.dataset.linea);
-      consulta.set("estacionActual", boton.dataset.estacion);
-      consulta.delete("linea");
-      consulta.delete("estacion");
-      opciones.body = JSON.stringify({ nombreLinea, nombreEstacion });
-    } else if (!await confirmarSistema(`¿Eliminar la conexión ${boton.dataset.linea} · ${boton.dataset.estacion}?`)) {
-      return;
-    } else {
-      opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
-    }
-    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/conexiones?${consulta}`;
-  }
-
-  if (accion.includes("tramo")) {
-    const consulta = new URLSearchParams({ linea: boton.dataset.linea, estacionA: boton.dataset.estacionA, estacionB: boton.dataset.estacionB });
-    if (accion === "editar-tramo") {
-      const nombreLinea = await pedirDatoSistema("Línea del tramo:", boton.dataset.linea);
-      const estacionA = await pedirDatoSistema("Estación de origen:", boton.dataset.estacionA);
-      const estacionB = await pedirDatoSistema("Estación de destino:", boton.dataset.estacionB);
-      if (!nombreLinea || !estacionA || !estacionB) return;
-      consulta.set("lineaActual", boton.dataset.linea);
-      consulta.set("estacionAActual", boton.dataset.estacionA);
-      consulta.set("estacionBActual", boton.dataset.estacionB);
-      consulta.delete("linea");
-      consulta.delete("estacionA");
-      consulta.delete("estacionB");
-      opciones.body = JSON.stringify({ nombreLinea, estacionA, estacionB });
-    } else if (!await confirmarSistema(`¿Eliminar el tramo ${boton.dataset.estacionA} · ${boton.dataset.estacionB}?`)) {
-      return;
-    } else {
-      opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
-    }
-    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/tramos?${consulta}`;
-  }
-
-  if (accion.includes("unidad")) {
-    if (accion === "editar-unidad") {
-      const nombreLinea = await pedirDatoSistema("Línea asignada:", boton.dataset.linea);
-      const velocidadPromedio = await pedirDatoSistema("Velocidad promedio (UV):", boton.dataset.velocidad);
-      if (!nombreLinea || velocidadPromedio === null) return;
-      const capacidad = Number(boton.dataset.capacidad);
-      if (!Number.isInteger(capacidad) || capacidad < 1) return mostrarMensajeDisenos('No se pudo conservar el dato interno de la unidad.', 'error');
-      opciones.body = JSON.stringify({ nombreLinea, capacidad, velocidadPromedio: Number(velocidadPromedio) });
-    } else if (!await confirmarSistema("¿Eliminar esta unidad de metro?")) {
-      return;
-    } else {
-      opciones = { method: "DELETE", headers: { Authorization: `Bearer ${token}` } };
-    }
-    url = `${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/unidades/${boton.dataset.idTren}`;
-  }
-
-  try {
-    const respuesta = await fetch(url, opciones);
-    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible guardar el cambio."));
-    mostrarMensajeDisenos("");
-    cargarDetalleDiseno(idDiseno, token);
-  } catch (error) {
-    mostrarMensajeDisenos(error.message, "error");
-  }
-}
-
-async function crearElementoDiseno(boton, token) {
-  const idDiseno = boton.dataset.idDiseno;
-  const tipo = boton.dataset.crearDiseno;
-  let cuerpo = null;
-  let ruta = "";
-
-  if (tipo === "linea") {
-    const nombre = await pedirDatoSistema("Nombre de la línea:");
-    if (!nombre) return;
-    cuerpo = { nombre };
-    ruta = "lineas";
-  }
-
-  if (tipo === "estacion") {
-    const nombre = await pedirDatoSistema("Nombre de la estación:");
-    const posicionX = await pedirDatoSistema("Posición X:", "500");
-    const posicionY = await pedirDatoSistema("Posición Y:", "300");
-    if (!nombre || posicionX === null || posicionY === null) return;
-    cuerpo = { nombre, posicionX: Number(posicionX), posicionY: Number(posicionY), transbordo: false };
-    ruta = "estaciones";
-  }
-
-  if (tipo === "conexion") {
-    const nombreLinea = await pedirDatoSistema("Nombre de la línea:");
-    const nombreEstacion = await pedirDatoSistema("Nombre de la estación:");
-    if (!nombreLinea || !nombreEstacion) return;
-    cuerpo = { nombreLinea, nombreEstacion };
-    ruta = "conexiones";
-  }
-
-  if (tipo === "tramo") {
-    const nombreLinea = await pedirDatoSistema("Nombre de la línea:");
-    const estacionA = await pedirDatoSistema("Estación de origen:");
-    const estacionB = await pedirDatoSistema("Estación de destino:");
-    if (!nombreLinea || !estacionA || !estacionB) return;
-    cuerpo = { nombreLinea, estacionA, estacionB };
-    ruta = "tramos";
-  }
-
-  if (tipo === "unidad") {
-    const nombreLinea = await pedirDatoSistema("Nombre de la línea asignada:");
-    const velocidadPromedio = await pedirDatoSistema("Velocidad (UV):", String(VELOCIDAD_INICIAL));
-    if (!nombreLinea || velocidadPromedio === null) return;
-    cuerpo = { nombreLinea, capacidad: CAPACIDAD_COMPATIBILIDAD, velocidadPromedio: Number(velocidadPromedio) };
-    ruta = "unidades";
-  }
-
-  try {
-    const respuesta = await fetch(`${obtenerUrlServidor()}/api/admin/disenos/${idDiseno}/${ruta}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
-    });
-    if (!respuesta.ok) throw new Error(await obtenerMensajeError(respuesta, "No fue posible crear el elemento."));
-    mostrarMensajeDisenos("");
-    cargarDetalleDiseno(idDiseno, token);
-  } catch (error) {
-    mostrarMensajeDisenos(error.message, "error");
+  } finally {
+    abriendoDiseno = false;
   }
 }
 
