@@ -2,7 +2,7 @@ const BASE = process.env.METRONET_URL_PRUEBAS || 'http://127.0.0.1:5173';
 
 async function abrirEditor(navegador, opciones = {}) {
   const contexto = await navegador.newContext({ hasTouch: Boolean(opciones.hasTouch), viewport: opciones.viewport || { width: 1440, height: 1000 } });
-  await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
+  if (!opciones.contenedor) await contexto.route('**/iniciar-contenedor.js', ruta => ruta.fulfill({ contentType: 'application/javascript', body: '' }));
   await contexto.addInitScript(() => {
     if (!/^https?:$/.test(location.protocol)) return;
     localStorage.setItem('sesionUsuario', JSON.stringify({ token: 'prueba-local', usuario: { idUsuario: 7, nombre: 'Prueba', rol: 'JUGADOR' } }));
@@ -26,6 +26,7 @@ async function abrirEditor(navegador, opciones = {}) {
   // la presentación educativa se valida en tarjetas-educativas.test.cjs.
   if (opciones.cerrarTarjetaAutomatica !== false) await contexto.addInitScript(() => {
     window.addEventListener('DOMContentLoaded', () => {
+      if (!document.body || !/^https?:$/.test(location.protocol)) return;
       const continuar = () => document.querySelector('dialog[open] .metronet-tarjeta-educativa__acciones button')?.click();
       new MutationObserver(continuar).observe(document.body, { childList:true, subtree:true });
     });
@@ -35,7 +36,7 @@ async function abrirEditor(navegador, opciones = {}) {
     if (performance.getEntriesByType('navigation')[0]?.type === 'reload') return;
     sessionStorage.setItem('metronet:inicio-tutorial', JSON.stringify({idDiseno:77,idEscenario:escenario.idEscenario,idIntento:123,numeroCampana:1,idUsuario:7,creada:Date.now()}));
   }, opciones.escenario);
-  const pagina = await contexto.newPage();
+  let pagina = await contexto.newPage();
   pagina.setDefaultTimeout(15000);
   const errores = [];
   pagina.on('pageerror', (error) => errores.push(error.message));
@@ -117,7 +118,14 @@ async function abrirEditor(navegador, opciones = {}) {
     }
     await route.fulfill({ json: respuesta, headers: { 'access-control-allow-origin': '*' } });
   });
-  await pagina.goto(`${BASE}/?idDiseno=77`);
+  const paginaContenedor = pagina;
+  if (opciones.contenedor) {
+    await pagina.goto(`${BASE}/login.html`);
+    await pagina.locator('#pantalla-metronet').waitFor();
+    pagina = await (await pagina.locator('#pantalla-metronet').elementHandle()).contentFrame();
+    await pagina.waitForURL(`${BASE}/login.html`);
+    await pagina.evaluate(() => location.assign('/?idDiseno=77'));
+  } else await pagina.goto(`${BASE}/?idDiseno=77`);
   try {
     await pagina.waitForFunction(() => window.juegoPrueba?.scene?.getScene('MapaScene')?.editorRedMetro?.disenoActual?.simulacion?.idDiseno === 77);
   } catch (error) {
@@ -131,7 +139,7 @@ async function abrirEditor(navegador, opciones = {}) {
   if (!opciones.ofrecerRecorrido && await pagina.locator('[data-oferta-tutorial]').getByRole('button', { name:'Continuar', exact:true }).isVisible()) {
     await pagina.locator('[data-oferta-tutorial]').getByRole('button', { name:'Continuar', exact:true }).click();
   }
-  return { contexto, pagina, solicitudes, diseno, errores };
+  return { contexto, pagina, paginaContenedor, solicitudes, diseno, errores };
 }
 
 module.exports = { abrirEditor };

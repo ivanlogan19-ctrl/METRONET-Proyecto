@@ -1,10 +1,12 @@
 import { gestorMusica } from '../audio/GestorMusica.js';
+import { adaptarEscalaInterfaz } from './EscalaInterfaz.js';
 
 const CLAVE = Symbol.for('metronet:contenedor');
 const pantallas = new Set(['/', '/index.html', '/login.html', '/admin-login.html', '/registro.html',
   '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/mantenimiento.html', '/inicio.html',
   '/escenarios.html', '/aprendizaje.html', '/reglas.html', '/ranking.html', '/disenos.html', '/perfil.html', '/privacidad.html', '/admin.html', '/simulacion.html']);
 const marco = document.querySelector('#pantalla-metronet');
+adaptarEscalaInterfaz(marco);
 const error = document.querySelector('#error-pantalla');
 const carga = document.querySelector('#carga-pantalla');
 let documentoEnCarga = null;
