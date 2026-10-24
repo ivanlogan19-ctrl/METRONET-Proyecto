@@ -1,8 +1,7 @@
 import { gestorMusica } from './GestorMusica.js';
 import { crearControlMusica } from './ControlMusica.js';
 
-// Entrada exclusiva de login, registro y recuperación. La privacidad y el perfil
-// usan otras entradas y no heredan la pista por compartir estilos o componentes.
+// Entrada de acceso, registro, recuperación y lectura del consentimiento.
 const tarjeta = document.querySelector('.auth-card');
 if (tarjeta && !document.querySelector('[data-control-musica]')) {
   const control = crearControlMusica();

@@ -3,6 +3,9 @@ import { TARJETAS_EXTRAS, ilustracionExtra } from './TarjetasExtras.js';
 import { solicitarExtras } from './ClienteExtras.js';
 import { celebrarTrofeosNuevos } from '../CelebracionTrofeos.js';
 import './extras.css';
+import { crearBienvenidaModoLibre } from './BienvenidaModoLibre.js';
+import { crearEntradaModoLibre } from './EntradaModoLibre.js';
+import { gestorMusica } from '../../audio/GestorMusica.js';
 
 let abierta = null;
 const nodo = (tag,texto='',clase='') => { const e=document.createElement(tag); e.textContent=texto; e.className=clase; return e; };
@@ -16,12 +19,12 @@ export async function ofrecerExtras({signal,idDiseno,idUsuario,alPresentar}={}) 
   const clave=idDiseno && idUsuario ? `metronet:extras-bienvenida:v1:${idUsuario}:${idDiseno}` : null;
   try { if(clave && localStorage.getItem(clave)) return; } catch { /* Preferencia opcional. */ }
   const registrar=()=>{try { if(clave)localStorage.setItem(clave,'ofrecida'); } catch { /* No bloquear el juego. */ }};
-  const recorrido = abrirExtras({bienvenida:true,signal,alElegirBienvenida:registrar});
+  const recorrido = abrirExtras({bienvenida:true,animacion:true,signal,alElegirBienvenida:registrar});
   alPresentar?.();
   await recorrido;
 }
 
-export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualizar,alElegirBienvenida}={}) {
+export function abrirExtras({bienvenida=false,animacion=false,indiceInicial=0,signal,alActualizar,alElegirBienvenida}={}) {
   if (signal?.aborted) return Promise.resolve();
   if (abierta) return abierta;
   abierta=new Promise(resolve => {
@@ -30,6 +33,8 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
     dialogo.setAttribute('aria-labelledby','tituloExtras');
     let indice=Math.max(0,Math.min(6,indiceInicial)), cerrado=false, ocupado=false;
     const peticiones=new AbortController();
+    const liberarMusica = gestorMusica.usarContextoTemporal('modoLibre', { reiniciar: true });
+    let eliminarEntrada = () => {};
     let registro=bienvenida ? Promise.resolve() : null;
     async function asegurarIngreso() {
       registro ??= solicitarExtras('/ingreso','POST',peticiones.signal);
@@ -37,11 +42,11 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
     }
     function cerrar() {
       if(cerrado) return;
-      cerrado=true; peticiones.abort();
+      cerrado=true; peticiones.abort(); eliminarEntrada();
       signal?.removeEventListener('abort',cerrar);
       window.removeEventListener('pagehide',cerrar);
       window.removeEventListener('popstate',cerrar);
-      dialogo.remove(); abierta=null;
+      dialogo.remove(); abierta=null; liberarMusica();
       if(foco?.isConnected) foco.focus({preventScroll:true});
       resolve();
     }
@@ -87,6 +92,7 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       return seccion;
     }
     function mostrarTarjeta() {
+      dialogo.classList.remove('metronet-extras--bienvenida');
       dialogo.classList.add('metronet-extras--tarjetas');
       const tarjeta=TARJETAS_EXTRAS[indice];
       const encabezado=nodo('header');
@@ -122,36 +128,22 @@ export function abrirExtras({bienvenida=false,indiceInicial=0,signal,alActualiza
       enfocar();
     }
     function mostrarBienvenida() {
-      const encabezado=nodo('header');
-      const rotulo=nodo('div','','metronet-extras__encabezado');
-      rotulo.append(nodo('span','Modo Libre'),titulo('Planificá una red'));
-      encabezado.append(rotulo,nodo('span','7 herramientas · Una propuesta propia'));
-      const vista=nodo('div','','metronet-extras__bienvenida');
-      const explicacion=nodo('section');
-      explicacion.append(nodo('h3','Del territorio a la simulación'),nodo('p','Ahora podés combinar información del mapa con las herramientas de construcción y simulación para fundamentar tu propia red de metro.'));
-      const fases=nodo('ol','','metronet-extras__fases');
-      for(const [nombre,descripcion] of [
-        ['Observá','Reconocé corredores, población y desplazamientos. Definí qué zonas querés conectar.'],
-        ['Construí','Ubicá estaciones, trazá líneas y unilas con estaciones compartidas. Revisá su cobertura territorial.'],
-        ['Contrastá','Ejecutá la red, modificá una variable y explicá qué cambia en el recorrido.'],
-      ]) { const fase=nodo('li');fase.append(nodo('strong',nombre),nodo('p',descripcion));fases.append(fase); }
-      explicacion.append(fases,nodo('p','Las capas aportan referencias para decidir. No calculan por sí solas la demanda ni garantizan la viabilidad de una red real.','metronet-extras__nota'));
-      const temas=nodo('ol','','metronet-extras__temas');
-      temas.setAttribute('aria-label','Las siete herramientas');
-      TARJETAS_EXTRAS.forEach(t=>{const tema=nodo('li');tema.append(nodo('b',String(t.id).padStart(2,'0')),nodo('span',t.titulo));temas.append(tema);});
-      vista.append(explicacion,temas);
-      const pie=nodo('footer');
-      const acciones=nodo('div','','metronet-extras__acciones');
-      acciones.append(boton('Ir a construir',()=>elegirBienvenida(false),'metronet-extras__anterior'),boton('Ver las 7 tarjetas',()=>elegirBienvenida(true),'metronet-boton--exito metronet-extras__ver-tarjetas'));
-      pie.append(nodo('small','Consultalas cuando quieras en Aprendizaje · Modo Libre.'),acciones);
-      dialogo.replaceChildren(encabezado,vista,pie);enfocar();
+      if (cerrado) return;
+      dialogo.classList.add('metronet-extras--bienvenida');
+      dialogo.replaceChildren(...crearBienvenidaModoLibre(titulo('Modo libre'),
+        boton('Ir a construir',()=>elegirBienvenida(false),'metronet-extras__anterior'),
+        boton('Ver las 7 tarjetas',()=>elegirBienvenida(true),'metronet-boton--exito metronet-extras__ver-tarjetas')));
+      enfocar();
     }
-    dialogo.addEventListener('cancel',e=>{e.preventDefault();cerrar();});
+    dialogo.addEventListener('cancel',e=>{e.preventDefault();if(!dialogo.classList.contains('metronet-extras--entrada'))cerrar();});
     for(const evento of ['pointerdown','mousedown','touchstart']) dialogo.addEventListener(evento,e=>e.stopPropagation());
     signal?.addEventListener('abort',cerrar,{once:true});
     window.addEventListener('pagehide',cerrar,{once:true});window.addEventListener('popstate',cerrar,{once:true});
     document.body.append(dialogo);dialogo.showModal();
-    if(bienvenida)mostrarBienvenida();else {
+    if(bienvenida) {
+      if(animacion && !matchMedia('(prefers-reduced-motion: reduce)').matches) eliminarEntrada=crearEntradaModoLibre(dialogo,mostrarBienvenida);
+      else mostrarBienvenida();
+    } else {
       mostrarTarjeta();
       asegurarIngreso().catch(error=>{ if(!cerrado) dialogo.querySelector('[data-extras-estado]').textContent=error.message; });
     }

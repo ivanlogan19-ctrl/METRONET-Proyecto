@@ -16,6 +16,41 @@ async function estacion(p, nombre) {
 }
 async function esperar(p) { await p.waitForFunction(() => !editorPrueba.creacionDirecta.pendiente); }
 
+test('Una línea de veinte estaciones conserva todos sus tramos, colores y recorrido', async t => {
+  const estaciones = Array.from({ length: 20 }, (_, i) => ({
+    nombre: `E${i + 1}`, posicionX: 600 + i * 5, posicionY: 430,
+  }));
+  const { pagina: p, diseno } = await abrir(t, { modo: 'LIBRE', estaciones,
+    lineas: [{ nombre: 'Azul' }],
+    tramos: [{ nombreLinea: 'Azul', estacionA: 'E1', estacionB: 'E2' }],
+  });
+  const color = await p.evaluate(() => editorPrueba.capaRedMetro.colorLinea('Azul'));
+  await p.locator('[data-elegir-herramienta=lineas]').click();
+  await estacion(p, 'E2');
+  for (const siguiente of estaciones.slice(2)) {
+    await estacion(p, siguiente.nombre);
+    await esperar(p);
+  }
+  assert.equal(diseno.lineas.length, 1);
+  assert.equal(diseno.tramos.length, 19);
+  // El servidor aporta las distancias; el doble de edición sólo conserva las escrituras.
+  diseno.tramos.forEach(tramo => { tramo.distanciaKm = 0.2; });
+  await p.evaluate(() => editorPrueba.abrirDiseno(77));
+  const resultado = await p.evaluate(async () => {
+    const capa = editorPrueba.capaRedMetro;
+    const { default: Motor } = await import('/src/simulacion/MotorSimulacion.js');
+    return {
+      ruta: capa.obtenerRuta('Azul').map(e => e.nombre),
+      colores: editorPrueba.disenoActual.estaciones.map(e =>
+        [...(capa.lineasPorEstacion.get(e.nombre) ?? [])].map(l => capa.colorLinea(l))),
+      rutaSimulada: new Motor(editorPrueba.disenoActual).rutas[0].ruta.map(e => e.nombre),
+    };
+  });
+  assert.deepEqual(resultado.ruta, estaciones.map(e => e.nombre));
+  assert.deepEqual(resultado.rutaSimulada, resultado.ruta);
+  assert.deepEqual(resultado.colores, estaciones.map(() => [color]));
+});
+
 for (const inverso of [false, true]) test(`Conexión existente permite continuar el extremo violeta tras reabrir (${inverso ? 'libre primero' : 'conexión primero'})`, async t => {
   const { pagina: p, diseno, solicitudes } = await abrir(t, { unidadesMetro: [],
     estaciones: [

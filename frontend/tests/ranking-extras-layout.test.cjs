@@ -1,9 +1,9 @@
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
-const {chromium}=require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const {abrirNavegador}=require('./soporte/navegador.cjs');
 const {abrirPantalla}=require('./soporte/pantallas.cjs');
 let browser;
-before(async()=>{browser=await chromium.launch({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
+before(async()=>{browser=await abrirNavegador({headless:true,channel:process.env.METRONET_BROWSER_CHANNEL});});
 after(async()=>browser?.close());
 const trofeos=['corona','biblioteca','copa','estacion','camino','extras'].map((id,i)=>({id,nombre:['Corona de platino','Biblioteca completa','Copa de la red','Primera estación','Camino a la cima','Premio oculto'][i],requisito:['Puntuación máxima en los 10 niveles.','Desbloquear las 70 tarjetas de los 10 niveles.','Completar los 10 niveles.','Completar el Nivel 1.','Completar 5 niveles distintos.','???'][i],obtenido:false}));
 const jugadores=Array.from({length:19},(_,i)=>({posicion:i+1,jugador:`Jugador ${i+1}`,puntajeTotal:1000-i*10,nivelesCompletados:10,sosVos:i===18}));
@@ -78,7 +78,7 @@ for(const [width,height] of [[1280,720],[1470,745],[1920,1080]]) {
   test(`Modo Libre ${width}×${height}: introducción y siete tarjetas completas`,async t=>{
     const {pagina:p,solicitudes}=await abrir(t,{width,height});
     await p.evaluate(async()=>{const {abrirExtras}=await import('/src/educacion/extras/PresentacionExtras.js');void abrirExtras({bienvenida:true});await document.fonts.ready;});
-    await p.getByRole('heading',{name:'Planificá una red',exact:true}).waitFor();
+    await p.getByRole('heading',{name:'Modo libre',exact:true}).waitFor();
     await sinDesbordes(p,'dialog.metronet-extras');
     assert.equal(await p.locator('.metronet-extras__temas li').count(),7);
     if(process.env.METRONET_CAPTURAS && width===1470)await p.screenshot({path:`${process.env.METRONET_CAPTURAS}/introduccion.png`});

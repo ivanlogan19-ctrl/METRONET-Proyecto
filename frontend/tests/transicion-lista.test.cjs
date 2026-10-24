@@ -141,7 +141,10 @@ for (const fallo of [false, true]) test(`Modo libre: no descubre el mapa antes d
   await v.pagina.locator('#carga-pantalla').waitFor({state:'hidden'});
   if (fallo) await v.vista.getByRole('heading',{name:'Bienvenido al Modo Libre',exact:true}).waitFor();
   else {
-    await v.vista.getByRole('heading',{name:'Planificá una red',exact:true}).waitFor();
+    await v.vista.locator('.metronet-extras--entrada').waitFor();
+    assert.equal(await v.vista.locator('.metronet-identificacion__cartel').count(), 0);
+    await v.vista.locator('[data-continuar-bienvenida]').click();
+    await v.vista.locator('.metronet-extras--bienvenida #tituloExtras').waitFor();
     assert.equal(await v.vista.locator('dialog[open]').count(), 1);
     await v.vista.getByRole('button',{name:'Ir a construir',exact:true}).click();
     await v.vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).click();

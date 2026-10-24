@@ -1,12 +1,12 @@
 // Navegador y editor reales; contratos HTTP controlados, sin escribir en PostgreSQL.
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirEditor } = require('./soporte/editor.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 const niveles = require('../src/educacion/niveles.json');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless:true, channel:process.env.METRONET_BROWSER_CHANNEL }); });
+before(async () => { navegador = await abrirNavegador({ headless:true, channel:process.env.METRONET_BROWSER_CHANNEL }); });
 after(async () => { await navegador?.close(); });
 const escenario = n => ({ ...n, idEscenario:n.numero, estado:'DISPONIBLE', desbloqueado:true });
 const libre = { numero:null, idEscenario:111, nombre:'Modo Libre', desbloqueado:true, estado:'DISPONIBLE' };
@@ -83,7 +83,7 @@ for (const administrador of [false, true]) test(`Modo Libre directo (${administr
     const {crearIdentificacionNivel} = await import('/src/educacion/IdentificacionNivel.js');
     window.entrada = crearIdentificacionNivel(); window.finEntrada = entrada.mostrar(libre, 77);
   }, libre);
-  assert.equal(await v.pagina.locator('.metronet-identificacion strong').textContent(), 'MODO LIBRE');
+  assert.equal(await v.pagina.locator('.metronet-identificacion').count(), 0);
   assert.equal(await v.pagina.locator('.metronet-identificacion p').count(), 0);
   await v.pagina.clock.runFor(1100);
   assert.equal(await v.pagina.evaluate(() => finEntrada), true);
@@ -118,8 +118,8 @@ test('Último nivel recién completado: victoria → celebración → Modo Libre
   await p.clock.runFor(1100); await p.evaluate(() => resultadoEntrada);
   assert.equal(await p.evaluate(() => editorPrueba.escenarioJuegoActual.numero), null);
   await p.evaluate(() => { window.reentrada = editorPrueba.abrirDiseno(77, {identificar:true}); });
-  await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
-  assert.equal(await p.locator('.metronet-identificacion strong').textContent(), 'MODO LIBRE');
+  await p.evaluate(() => reentrada);
+  assert.equal(await p.locator('.metronet-identificacion').count(), 0);
   await p.clock.runFor(1100); await p.evaluate(() => reentrada);
 });
 
@@ -183,8 +183,8 @@ test('Simular y finalizar el último nivel desde Edición: celebración de un so
   assert.match(await p.locator('.metronet-identificacion').innerText(), /RECORRIDO COMPLETADO/);
   assert.equal(v.solicitudes.filter(s => s.path.endsWith('/111/iniciar')).length,1);
   await p.locator('.metronet-identificacion').waitFor({state:'detached'});
-  await p.reload(); await p.locator('.metronet-identificacion[data-fase="identificacion"]').waitFor();
-  assert.equal(await p.locator('.metronet-identificacion strong').textContent(),'MODO LIBRE');
+  await p.reload(); await p.locator('.metronet-extras--entrada').waitFor();
+  assert.equal(await p.locator('.metronet-identificacion').count(),0);
 });
 
 for (const width of [1920,1440,1366,1280,768,390,320]) test(`Cartel ${width}px: responsive, reduced-motion y audio sin reinicio`, async t => {
@@ -223,7 +223,7 @@ test('Recargar no repite un evento pendiente; completar después de recargar sí
     window.identificar = await import('/src/educacion/IdentificacionNivel.js');
     window.entrada = identificar.crearIdentificacionNivel(); window.fin = entrada.mostrar({numero:null,idEscenario:111},77);
   });
-  assert.equal(await p.locator('.metronet-identificacion strong').textContent(),'MODO LIBRE');
+  assert.equal(await p.locator('.metronet-identificacion').count(),0);
   await p.evaluate(() => fin);
   await p.evaluate(() => {
     identificar.registrarEntradaRecorrido({idDiseno:77,idEscenario:111});

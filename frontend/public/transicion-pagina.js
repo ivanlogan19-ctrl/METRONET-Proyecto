@@ -29,13 +29,21 @@
   // píxeles de la vista anterior. Solo se espera la carga inicial declarada.
   const raiz = document.documentElement;
   raiz.dataset.pantallaPreparando = '';
-  let saliendo = false, lista = false, fuentesListas = false, cuadro = 0;
+  let saliendo = false, lista = false, fuentesListas = false, cuadro = 0, coberturas = 0;
   const contenedor = window.parent !== window ? window.parent[Symbol.for('metronet:contenedor')] : null;
   contenedor?.preparar(window, document);
   function cubrirSalida() {
+    coberturas++;
     raiz.dataset.pantallaPreparando = '';
     contenedor?.preparar(window, document);
-    return () => { delete raiz.dataset.pantallaPreparando; contenedor?.presentar(window, document); };
+    let liberada = false;
+    return () => {
+      if (liberada) return;
+      liberada = true;
+      if (--coberturas > 0) return;
+      if (lista) { delete raiz.dataset.pantallaPreparando; contenedor?.presentar(window, document); }
+      else comprobarPantalla();
+    };
   }
   window[Symbol.for('metronet:carga-pantalla')] = Object.freeze({cubrir: cubrirSalida});
   document.addEventListener('click', evento => {
@@ -49,10 +57,10 @@
   });
   const observadorCarga = new MutationObserver(comprobarPantalla);
   function comprobarPantalla() {
-    if (lista || saliendo || cuadro || !fuentesListas || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
+    if (lista || saliendo || coberturas || cuadro || !fuentesListas || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
     cuadro = requestAnimationFrame(() => {
       cuadro = 0;
-      if (saliendo || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
+      if (saliendo || coberturas || raiz.querySelector('[data-carga-inicial][aria-busy="true"]')) return;
       lista = true;
       observadorCarga.disconnect();
       delete raiz.dataset.pantallaPreparando;
@@ -72,6 +80,7 @@
   window.addEventListener('pageshow', evento => {
     if (!evento.persisted) return;
     saliendo = false;
+    coberturas = 0;
     if (lista) { delete raiz.dataset.pantallaPreparando; contenedor?.preparar(window, document); contenedor?.presentar(window, document); }
     else comprobarPantalla();
   });

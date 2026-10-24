@@ -23,6 +23,28 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 @EnabledIfEnvironmentVariable(named="METRONET_TEST_POSTGRES_URL",matches="jdbc:postgresql://127\\.0\\.0\\.1:[0-9]+/metronet_pruebas")
 class ConexionesLineasPostgresTest {
+    @Test void extenderMasDeOchoEstacionesConservaUnaLineaCompletaAlGuardar() {
+        int usuario = usuario();
+        int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Veinte estaciones")).idDiseno();
+        for (int i=0;i<20;i++) simulaciones.crearEstacion(usuario,diseno,
+            new CrearEstacionSimulacionRequest("E"+i,BigDecimal.valueOf(600+i*5),BigDecimal.valueOf(430)));
+        simulaciones.crearLinea(usuario,diseno,new CrearLineaSimulacionRequest("Azul",List.of("E0","E1")));
+        for (int i=2;i<20;i++) simulaciones.extenderLinea(usuario,diseno,new ActualizarTramoRequest("Azul","E"+(i-1),"E"+i));
+        simulaciones.crearUnidadMetro(usuario,diseno,new CrearUnidadMetroSimulacionRequest("Azul",300,BigDecimal.ONE));
+        simulaciones.guardarDiseno(usuario,diseno);
+        var red = simulaciones.obtenerSimulacion(usuario,diseno);
+        assertEquals(20,red.estaciones().size());
+        assertEquals(1,red.lineas().size());
+        assertEquals(19,red.tramos().size());
+        assertTrue(red.tramos().stream().allMatch(t -> t.nombreLinea().equals("Azul")));
+        for (int i=1;i<20;i++) {
+            String anterior = "E"+(i-1), siguiente = "E"+i;
+            assertTrue(red.tramos().stream().anyMatch(t -> t.estacionA().equals(anterior) && t.estacionB().equals(siguiente)));
+        }
+        assertEquals(1,red.unidadesMetro().size());
+        assertTrue(simulaciones.validarDiseno(usuario,diseno).preparadoParaSimular());
+    }
+
     @Test void tresLineasPermitenLosTresParesPeroNuncaRepitenUnaConexion() {
         int usuario = usuario();
         int diseno = simulaciones.crearSimulacion(usuario,Rol.ADMIN,new CrearSimulacionRequest("Tres pares")).idDiseno();

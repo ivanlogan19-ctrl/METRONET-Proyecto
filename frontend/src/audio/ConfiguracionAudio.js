@@ -4,6 +4,7 @@ const PISTA_CONSTRUCCION = '/audio/construccion-theme.m4a';
 export const PISTAS_MUSICA = Object.freeze({
   gameplay: PISTA_CONSTRUCCION,
   inicioNivel: '/audio/inicio-nivel-theme.m4a',
+  modoLibre: '/audio/modo-libre-theme.m4a',
   loading: null,
   transition: PISTA_CONSTRUCCION,
   auth: '/audio/portada-theme.m4a',

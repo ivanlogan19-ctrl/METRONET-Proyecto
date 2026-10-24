@@ -1,13 +1,13 @@
 // MP3 real y formularios reales con respuestas HTTP controladas; no modifica cuentas.
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.METRONET_PLAYWRIGHT_PATH || 'playwright');
+const { abrirNavegador } = require('./soporte/navegador.cjs');
 const { abrirPantalla } = require('./soporte/pantallas.cjs');
 let navegador;
-before(async () => { navegador = await chromium.launch({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL, args: ['--autoplay-policy=no-user-gesture-required'] }); });
+before(async () => { navegador = await abrirNavegador({ headless: true, channel: process.env.METRONET_BROWSER_CHANNEL, args: ['--autoplay-policy=no-user-gesture-required'] }); });
 after(async () => { await navegador?.close(); });
 const audio = 'audio[data-musica-metronet]';
-const rutas = ['/login.html', '/admin-login.html', '/registro.html', '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html'];
+const rutas = ['/login.html', '/admin-login.html', '/registro.html', '/recuperar-contrasena.html', '/verificar-codigo.html', '/nueva-contrasena.html', '/privacidad.html'];
 
 async function abrir(t, ruta = '/login.html', opciones = {}) {
   const vista = await abrirPantalla(navegador, ruta, opciones);
@@ -16,6 +16,7 @@ async function abrir(t, ruta = '/login.html', opciones = {}) {
   return vista;
 }
 async function reproduciendo(p) {
+  await p.locator('h1').first().click();
   await p.waitForFunction(() => {
     const a = document.querySelector('audio[data-musica-metronet]');
     return a && !a.paused && a.currentTime > 0 && a.volume > 0;
@@ -53,8 +54,12 @@ test('Navegar entre formularios, recargar y completar el loop conserva una sola 
   await p.locator(audio).evaluate(a => { a.currentTime = a.duration - .3; });
   await p.waitForFunction(() => { const a = document.querySelector('audio[data-musica-metronet]'); return !a.paused && a.currentTime > .1 && a.currentTime < 2; });
   await p.getByRole('link', { name: 'Leer el uso de mis datos' }).click();
-  await p.waitForURL('**/privacidad.html');
-  assert.equal(await p.locator(audio).count(), 0);
+  await p.waitForURL('**/privacidad.html'); await reproduciendo(p);
+  assert.equal(await p.locator(audio).count(), 1);
+  assert.equal(await p.locator(audio).getAttribute('src'), '/audio/portada-theme.m4a');
+  await p.getByRole('link', { name: 'Volver al registro' }).click();
+  await p.waitForURL('**/registro.html'); await reproduciendo(p);
+  assert.equal(await p.locator(audio).count(), 1);
 });
 
 for (const rol of ['JUGADOR', 'ADMIN']) test(`${rol}: error de login conserva música; bienvenida y menú la detienen; logout la recupera`, async t => {
@@ -201,4 +206,22 @@ for (const width of [320, 390, 768, 1440]) test(`Audio en formularios: teclado, 
   assert.equal(await p.getByLabel('Silenciar música').isChecked(), true);
   await p.keyboard.press('Escape');
   assert.equal(await p.locator('.metronet-audio').getAttribute('open'), null);
+});
+
+
+test('Consentimiento dentro del contenedor conserva Portada y el control de silencio', async t => {
+  const {pagina:p,vista:f}=await abrir(t,'/registro.html',{contenedor:true});
+  await f.locator('h1').click();
+  await p.waitForFunction(()=>{const a=document.querySelector('audio');return a && !a.paused && a.currentTime>0;});
+  await p.evaluate(()=>{window.pistaRegistro=document.querySelector('audio');});
+  await f.getByRole('link',{name:'Leer el uso de mis datos'}).click();
+  await f.locator('#tituloPrivacidad').waitFor();
+  await p.locator('#carga-pantalla').waitFor({state:'hidden'});
+  assert.equal(await p.evaluate(()=>pistaRegistro===document.querySelector('audio') && !pistaRegistro.paused),true);
+  await f.locator('[data-control-musica] summary').click();
+  await f.locator('[data-silencio-musica]').check();
+  await p.waitForFunction(()=>document.querySelector('audio').paused);
+  await f.getByRole('link',{name:'Volver al registro'}).click();
+  await f.locator('#registroForm').waitFor();
+  assert.equal(await p.evaluate(()=>document.querySelector('audio').paused),true);
 });

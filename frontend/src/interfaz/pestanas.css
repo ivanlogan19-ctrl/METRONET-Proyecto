@@ -9,6 +9,7 @@ html:root body .metronet-pestanas button {
 html:root body .metronet-navegacion .metronet-navegacion__enlace.activo,
 html:root body .metronet-navegacion .metronet-navegacion__usuario > summary,
 html:root body .metronet-bienvenida [data-continuar-bienvenida],
+html:root body .metronet-extras--entrada [data-continuar-bienvenida],
 html:root body .metronet-pestanas button[aria-pressed='true'],
 html:root body .metronet-pestanas button[aria-pressed='true']:is(:hover, :active, :focus),
 html:root body .metronet-pestanas button[aria-selected='true'],

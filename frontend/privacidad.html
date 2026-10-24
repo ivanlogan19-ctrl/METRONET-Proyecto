@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-contexto-musical="auth">
   <head>
   <link rel="stylesheet" href="/src/estilos/navegacion-estable.css" />
   <script src="/transicion-pagina.js"></script>
+  <script type="module" async vite-ignore src="/src/audio/ReanudacionTemprana.js"></script>
   <link rel="preload" href="/assets/fonts/silkscreen/Silkscreen-Regular.ttf" as="font" type="font/ttf" crossorigin />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -53,5 +54,6 @@
       </section>
     </main>
 
+    <script type="module" src="/src/audio/AudioAutenticacion.js"></script>
   </body>
 </html>

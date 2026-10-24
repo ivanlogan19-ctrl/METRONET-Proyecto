@@ -77,8 +77,11 @@ export function crearIdentificacionNivel(contenedor) {
       if (!conservarMusica) gestorMusica.establecerContexto('gameplay');
       if (nivel && consumirIdentificacionPresentada(idDiseno, escenario.idEscenario)) { finalizar(true); return true; }
       const especial = consumirEntradaRecorrido(idDiseno, escenario);
+      // Modo Libre tiene su propia entrada animada. Conservar únicamente la
+      // celebración al completar la campaña y los carteles de niveles.
+      if (!nivel && !especial) { finalizar(true); return true; }
       const titulo = document.createElement('strong');
-      titulo.textContent = especial ? 'RECORRIDO COMPLETADO' : nivel ? `NIVEL ${escenario.numero}` : 'MODO LIBRE';
+      titulo.textContent = especial ? 'RECORRIDO COMPLETADO' : `NIVEL ${escenario.numero}`;
       cartel.append(titulo);
       if (especial) {
         const subtitulo = document.createElement('p');

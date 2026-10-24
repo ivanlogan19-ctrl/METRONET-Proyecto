@@ -102,5 +102,18 @@
     "rmsDbfs": -22.0,
     "gananciaDb": -7.57,
     "unionBucleSegundos": 0
+  },
+  {
+    "original": "05-Wyald.mp3",
+    "sha256Original": "73c06918328f18ed3febfe3e96982d48e5bedb492ca93640f784d2d3af1ebcd6",
+    "recurso": "modo-libre-theme.m4a",
+    "duracionSegundos": 189.72,
+    "finOriginalSegundos": 190.72,
+    "gananciaDb": -6.16,
+    "bucle": true,
+    "inicioOriginalSegundos": 0,
+    "rmsDbfs": -22,
+    "unionBucleSegundos": 1,
+    "sha256Recurso": "0f02da91fdafdc051ee6a1b72b279c260c5a5039c3be021cd1300fe6cb001193"
   }
 ]

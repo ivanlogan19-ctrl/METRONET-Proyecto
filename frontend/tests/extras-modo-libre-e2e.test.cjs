@@ -27,7 +27,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
   await vista.locator('#extrasAprendizaje').getByText(/Ingresá a Modo Libre/).waitFor();
   await vista.getByRole('link',{name:'Inicio',exact:true}).first().click();
   await vista.locator('.metronet-inicio__tarjeta--crear button').click();
-  await vista.getByRole('heading',{name:'Planificá una red',exact:true}).waitFor();
+  await vista.locator('.metronet-extras--bienvenida #tituloExtras').waitFor();
   const primerDiseno=Number(new URL(frame().url()).searchParams.get('idDiseno'));
   assert.equal(await vista.locator('dialog[open]').count(),1,'La bienvenida no se superpone al tutorial');
   for(const [width,height] of [[1440,900],[1280,720],[390,844]]) {
@@ -120,7 +120,7 @@ test('Extras: primera entrada, omisión, tutorial, recuperación, siete tarjetas
     const libre=await solicitar('POST','/api/juego/escenarios/'+escenarioLibre.idEscenario+'/iniciar',{});
     const url=BASE+'/?idDiseno='+libre.idDiseno+'&idEscenario='+libre.idEscenario+'&idIntento='+libre.idIntento;
     await frame().goto(url);
-    await vista.getByRole('heading',{name:'Planificá una red',exact:true}).waitFor();
+    await vista.locator('.metronet-extras--bienvenida #tituloExtras').waitFor();
     assert.equal(await vista.getByRole('button',{name:'Recorrer las funciones',exact:true}).count(),0);
     await vista.getByRole('button',{name:'Ver las 7 tarjetas',exact:true}).click();
     await vista.getByRole('heading',{name:'Calles y avenidas',exact:true}).waitFor();
