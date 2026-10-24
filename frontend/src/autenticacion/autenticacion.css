@@ -15,6 +15,7 @@ body .auth-page {
 
 body .auth-card {
   display: grid;
+  position: relative;
   width: min(100%, 540px);
   gap: 0;
   padding: clamp(24px, 5vw, 42px);
@@ -429,7 +430,6 @@ body .auth-card .auth-action {
     column-gap: clamp(24px, 4vw, 52px);
     width: min(100%, 1100px);
     padding: clamp(20px, 3vw, 34px);
-    position: relative;
   }
 
   body .auth-card__presentacion,
@@ -527,7 +527,7 @@ body .auth-card .auth-action {
     margin: 0;
   }
 
-  body .auth-card:not(.privacy-card) > .metronet-audio--autenticacion {
+  body .auth-card > .metronet-audio--autenticacion {
     position: absolute;
     top: 12px;
     left: 12px;

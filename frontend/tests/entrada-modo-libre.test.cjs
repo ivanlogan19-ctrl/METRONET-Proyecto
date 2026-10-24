@@ -93,6 +93,29 @@ test('Abortar la entrada libera el diálogo y su audio; Escape permite omitirla'
 });
 
 // La salida del navegador está silenciada; se comprueba el recurso y su reloj real.
+test('Modo libre reproduce música al entrar desde el contenedor sin tocar la animación', async t => {
+  const v = await abrirPantalla(navegador, '/inicio.html', {contenedor:true, responder:r => {
+    const ruta = new URL(r.url()).pathname;
+    if (ruta === '/api/juego/escenarios') return {json:[{idEscenario:45,numero:null,modo:'EDICION_LIBRE',nombre:'Modo libre',desbloqueado:true,herramientasHabilitadas:{}}]};
+    if (ruta.includes('/aprendizaje/extras/')) return {json:{visitadas:[],nuevoTrofeo:null}};
+    if (ruta === '/api/simulaciones/77') return {json:{
+      simulacion:{idDiseno:77,idEscenario:45,modo:'EDICION_LIBRE',nombre:'Red libre',estado:'EN_DISENO'},
+      estaciones:[],lineas:[],tramos:[],unidadesMetro:[],territorio:{areas:[],errores:[]},
+    }};
+  }});
+  t.after(() => v.contexto.close());
+  t.after(() => assert.deepEqual(v.errores, []));
+  await v.vista.locator('h1').click();
+  await v.pagina.waitForFunction(()=>[...document.querySelectorAll('audio')].some(a=>!a.paused && a.currentTime>0 && a.volume>0));
+  await v.vista.evaluate(() => location.assign('/?idDiseno=77'));
+  await v.vista.locator('.metronet-extras--entrada').waitFor();
+  await v.pagina.waitForFunction(()=>{
+    const a=document.querySelector('audio[src="/audio/modo-libre-theme.m4a"]');
+    return a && !a.paused && a.currentTime>0 && a.volume>0;
+  },null,{timeout:3000});
+  assert.equal(await v.vista.locator('.metronet-extras--entrada').count(),1);
+});
+
 test('Wyald acompaña túnel, portada y tarjetas sin reiniciarse y se libera al cerrar', async t => {
   const {pagina:p} = await abrir(t);
   await p.locator('.metronet-extras--entrada').waitFor();
